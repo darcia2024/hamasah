@@ -1,8 +1,9 @@
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
+const { listMigrations } = require('./migrations.js');
 
-const schema = fs.readFileSync(path.join(__dirname, '001_initial_schema.sql'), 'utf8');
+const migrations = listMigrations();
+const schema = migrations.map((migration) => migration.sql).join('\n');
+
 const requiredTables = [
   'accounts', 'registrations', 'registration_status_events', 'registration_documents', 'articles',
   'students', 'student_parent_accounts', 'student_activities', 'student_attendance',
@@ -11,6 +12,8 @@ const requiredTables = [
   'visa_tracking', 'inventory_items'
 ];
 
+assert.ok(migrations.length >= 2, 'Minimal ada migrasi 001 dan 002.');
+
 requiredTables.forEach((table) => {
   assert.match(schema, new RegExp(`CREATE TABLE ${table} \\(`));
 });
@@ -18,5 +21,11 @@ assert.match(schema, /access_token_hash TEXT NOT NULL/);
 assert.match(schema, /password_hash TEXT NOT NULL/);
 assert.match(schema, /student_parent_accounts[\s\S]*parent_account_id UUID NOT NULL REFERENCES accounts/);
 assert.match(schema, /course_completions[\s\S]*UNIQUE \(student_id, material_id\)/);
-assert.doesNotMatch(schema, /(?:^|\n)BEGIN;|(?:^|\n)COMMIT;/);
+
+// Runner yang membungkus tiap migrasi dalam transaksi, jadi file tidak boleh mengatur transaksi sendiri.
+migrations.forEach((migration) => {
+  assert.doesNotMatch(migration.sql, /(?:^|\n)\s*(BEGIN|COMMIT|ROLLBACK)\s*;/i, `${migration.file} tidak boleh memuat BEGIN, COMMIT, atau ROLLBACK.`);
+  assert.doesNotMatch(migration.sql, /CREATE\s+INDEX\s+CONCURRENTLY/i, `${migration.file} tidak boleh memakai CREATE INDEX CONCURRENTLY karena tidak bisa jalan di dalam transaksi.`);
+});
+
 console.log('database schema contract passed');

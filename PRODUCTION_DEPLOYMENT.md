@@ -10,9 +10,9 @@
 ## Urutan deploy
 
 1. Buat database PostgreSQL kosong.
-2. Terapkan [schema database](database/001_initial_schema.sql) dengan `psql $env:DATABASE_URL -f database/001_initial_schema.sql`.
-3. Isi `APP_ENV=production`, `DATABASE_URL`, `STORAGE_BUCKET`, dan `HAMASAH_BOOTSTRAP_KEY` pada environment deployment.
-4. Jalankan `npm test` sebelum release.
+2. Isi `APP_ENV=production`, `DATABASE_URL`, `DATABASE_MIGRATION_URL`, `STORAGE_BUCKET`, dan `HAMASAH_BOOTSTRAP_KEY` pada environment deployment. Isi `DATABASE_MIGRATION_URL` dengan koneksi session (port 5432) atau koneksi langsung, bukan pooler mode transaksi.
+3. Terapkan schema dengan `npm run migrate` (lihat [pengaman skrip database](#pengaman-skrip-database) untuk konfirmasi production). Untuk database yang schema-nya dulu diterapkan manual, jalankan `npm run migrate -- --baseline` lebih dulu, lalu `npm run migrate`.
+4. Periksa hasilnya dengan `npm run verify:database`, lalu jalankan `npm test` sebelum release.
 5. Build container dari `Dockerfile`, deploy, lalu jalankan smoke test ke `/api/health` dan halaman publik.
 6. Buat akun admin pertama melalui endpoint bootstrap yang hanya aktif sekali, lalu hapus `HAMASAH_BOOTSTRAP_KEY` dari environment.
 
@@ -39,6 +39,8 @@ Remove-Item Env:ALLOW_PRODUCTION_WRITE
 ```
 
 `npm run verify:database` hanya membaca, jadi tidak membutuhkan konfirmasi ini.
+
+Setiap migrasi berjalan dalam satu transaksi dan tercatat di tabel `schema_migrations`. Kalau satu migrasi gagal di tengah, seluruh perubahannya dibatalkan dan tidak tercatat, sehingga perintah bisa diulang setelah penyebabnya diperbaiki. Tetap buat backup sebelum menjalankan migrasi di production.
 
 ## Batas implementasi saat ini
 

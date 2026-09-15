@@ -48,7 +48,11 @@ function createPostgresDatabase(pool, { ownsPool }) {
       let releaseError;
       try {
         await client.query('BEGIN');
-        const result = await work({ query: (sql, params) => client.query(sql, params) });
+        const result = await work({
+          query: (sql, params) => client.query(sql, params),
+          // exec untuk SQL berisi banyak statement, misalnya file migrasi.
+          exec: (sql) => client.query(sql)
+        });
         await client.query('COMMIT');
         return result;
       } catch (error) {
@@ -92,7 +96,12 @@ function createPgliteDatabase(target) {
     },
 
     withTransaction(work) {
-      return db.transaction((tx) => work({ query: (sql, params) => tx.query(sql, params) }));
+      // tx.query PGlite memakai extended protocol dan menolak SQL multi-statement,
+      // jadi SQL migrasi wajib lewat tx.exec.
+      return db.transaction((tx) => work({
+        query: (sql, params) => tx.query(sql, params),
+        exec: (sql) => tx.exec(sql)
+      }));
     },
 
     exec(sql) {

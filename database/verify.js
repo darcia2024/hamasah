@@ -1,49 +1,92 @@
-const { DEFAULT_ENV_FILE, loadEnvironmentFile } = require('./migrate');
-const { readProductionConfig } = require('../server/production-config');
+const { DEFAULT_ENV_FILE, loadEnvironmentFile, resolveMigrationUrl } = require('./migrate');
+const { DEFAULT_MIGRATIONS_DIRECTORY, listMigrations } = require('./migrations');
+const { createDatabase } = require('../server/db');
 
-const REQUIRED_TABLES = Object.freeze([
-  'accounts', 'registrations', 'registration_status_events', 'registration_documents', 'articles',
-  'students', 'student_parent_accounts', 'student_activities', 'student_attendance',
-  'student_achievements', 'student_evaluations', 'student_violations', 'courses',
-  'course_materials', 'course_enrollments', 'course_completions', 'invoices',
-  'visa_tracking', 'inventory_items'
-]);
+// Query tabel di schema public yang belum memakai Row Level Security.
+// Sejak Task 6.6, daftar ini harus kosong.
+const TABLES_WITHOUT_RLS_SQL = `
+SELECT c.relname
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'public' AND c.relkind = 'r' AND NOT c.relrowsecurity
+ORDER BY c.relname
+`;
 
-function assertRequiredTables(tableNames) {
-  const available = new Set(tableNames);
-  const missing = REQUIRED_TABLES.filter((table) => !available.has(table));
-  if (missing.length) {
-    throw new Error(`Tabel production belum lengkap: ${missing.join(', ')}`);
-  }
-  return REQUIRED_TABLES.length;
+function findMissingTables(expected, available) {
+  const present = new Set(available);
+  return expected.filter((table) => !present.has(table));
 }
 
-// Hanya membaca, jadi tidak memakai assertDatabaseWriteAllowed.
-async function verifyDatabase({ environment = { ...process.env }, Client, envFilePath = DEFAULT_ENV_FILE } = {}) {
+async function verifyDatabase({
+  environment = { ...process.env },
+  database: injectedDatabase,
+  envFilePath = DEFAULT_ENV_FILE,
+  migrationsDirectory = DEFAULT_MIGRATIONS_DIRECTORY
+} = {}) {
   loadEnvironmentFile(envFilePath, environment);
-  const config = readProductionConfig(environment);
-  const PgClient = Client || require('pg').Client;
-  const client = new PgClient({ connectionString: config.databaseUrl });
+  const migrations = listMigrations(migrationsDirectory);
+  const database = injectedDatabase || createDatabase({ connectionString: resolveMigrationUrl(environment) });
 
-  await client.connect();
   try {
-    const { rows } = await client.query(
-      "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = ANY($1::text[]) ORDER BY table_name",
-      [REQUIRED_TABLES]
+    const ledgerTable = await database.query("SELECT to_regclass('public.schema_migrations') AS relasi");
+    if (!ledgerTable.rows[0].relasi) {
+      throw new Error('Catatan migrasi belum ada di database. Jalankan npm run migrate, atau npm run migrate -- --baseline untuk database yang sudah berisi tabel.');
+    }
+
+    const ledgerRows = await database.query('SELECT version, checksum FROM schema_migrations');
+    const ledger = new Map(ledgerRows.rows.map((row) => [row.version, row.checksum]));
+
+    const pending = migrations.filter((migration) => !ledger.has(migration.version));
+    if (pending.length) {
+      throw new Error(`Migrasi belum diterapkan: ${pending.map((migration) => migration.file).join(', ')}.`);
+    }
+
+    const changed = migrations.filter((migration) => ledger.get(migration.version) !== migration.checksum);
+    if (changed.length) {
+      throw new Error(`Isi file migrasi berbeda dari yang diterapkan di database: ${changed.map((migration) => migration.file).join(', ')}.`);
+    }
+
+    const files = new Set(migrations.map((migration) => migration.version));
+    const orphans = [...ledger.keys()].filter((version) => !files.has(version));
+    if (orphans.length) {
+      throw new Error(`Migrasi tercatat di database tetapi filenya tidak ditemukan: ${orphans.join(', ')}.`);
+    }
+
+    const expectedTables = [...new Set(migrations.flatMap((migration) => migration.tables))].sort();
+    const tableRows = await database.query(
+      "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = ANY($1::text[])",
+      [expectedTables]
     );
-    return assertRequiredTables(rows.map((row) => row.table_name));
+    const missing = findMissingTables(expectedTables, tableRows.rows.map((row) => row.table_name));
+    if (missing.length) {
+      throw new Error(`Tabel production belum lengkap: ${missing.join(', ')}`);
+    }
+
+    const rlsRows = await database.query(TABLES_WITHOUT_RLS_SQL);
+    return {
+      migrations: migrations.length,
+      tables: expectedTables.length,
+      tablesWithoutRls: rlsRows.rows.map((row) => row.relname)
+    };
   } finally {
-    await client.end();
+    if (!injectedDatabase) {
+      await database.close();
+    }
   }
 }
 
 if (require.main === module) {
   verifyDatabase()
-    .then((count) => console.log(`Verifikasi PostgreSQL selesai: ${count} tabel aplikasi tersedia.`))
+    .then((result) => {
+      console.log(`Verifikasi PostgreSQL selesai: ${result.migrations} migrasi diterapkan, ${result.tables} tabel aplikasi tersedia.`);
+      if (result.tablesWithoutRls.length) {
+        console.warn(`Peringatan: ${result.tablesWithoutRls.length} tabel belum memakai Row Level Security: ${result.tablesWithoutRls.join(', ')}.`);
+      }
+    })
     .catch((error) => {
       console.error(`Verifikasi database gagal: ${error.message}`);
       process.exitCode = 1;
     });
 }
 
-module.exports = { REQUIRED_TABLES, assertRequiredTables, verifyDatabase };
+module.exports = { TABLES_WITHOUT_RLS_SQL, findMissingTables, verifyDatabase };

@@ -82,11 +82,20 @@ async function testPostgresTransactionUsesOneClient() {
   const database = createDatabase({ pool });
   const result = await database.withTransaction(async (tx) => {
     await tx.query('INSERT satu');
+    await tx.exec('CREATE TABLE satu (id INT); CREATE TABLE dua (id INT);');
     await tx.query('INSERT dua');
     return 'selesai';
   });
   assert.equal(result, 'selesai');
-  assert.deepEqual(log, ['connect', 'BEGIN', 'INSERT satu', 'INSERT dua', 'COMMIT', 'release']);
+  assert.deepEqual(log, [
+    'connect',
+    'BEGIN',
+    'INSERT satu',
+    'CREATE TABLE satu (id INT); CREATE TABLE dua (id INT);',
+    'INSERT dua',
+    'COMMIT',
+    'release'
+  ]);
   assert.equal(pool.connects, 1);
 
   await database.close();
@@ -135,6 +144,25 @@ async function testPglite() {
       return rows[0].jumlah;
     });
     assert.equal(jumlah, 2);
+
+    // exec di dalam transaksi menerima SQL berisi banyak statement (dipakai migration runner).
+    await database.withTransaction(async (tx) => {
+      await tx.exec('CREATE TABLE satu (id INT); CREATE TABLE dua (id INT);');
+    });
+    const tabel = await database.query(
+      "SELECT count(*)::int AS jumlah FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('satu', 'dua')"
+    );
+    assert.equal(tabel.rows[0].jumlah, 2);
+
+    // SQL multi-statement yang gagal di tengah dibatalkan seluruhnya.
+    await assert.rejects(
+      database.withTransaction(async (tx) => {
+        await tx.exec('CREATE TABLE harus_hilang (id INT); SELECT * FROM tabel_tidak_ada;');
+      }),
+      /tabel_tidak_ada/
+    );
+    const hilang = await database.query("SELECT to_regclass('public.harus_hilang') AS relasi");
+    assert.equal(hilang.rows[0].relasi, null);
 
     // Rollback: perubahan sebelum error dibatalkan.
     await assert.rejects(

@@ -631,6 +631,17 @@ Dikerjakan manusia. Sonnet tidak ikut.
 
 **Jangan:** mengubah isi `001` atau `002`.
 
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- Pembaca file migrasi ada di `database/migrations.js` (dipakai runner, verify, dan validate-schema). Nama file wajib `NNN_nama.sql`, nomor unik, dan file `.sql` bernama lain ditolak.
+- **Checksum dihitung setelah BOM dihapus dan CRLF diubah jadi LF.** Git di Windows memakai `core.autocrlf=true`, jadi tanpa normalisasi migrasi yang sama akan dianggap berubah saat dijalankan dari Linux.
+- Tiap migrasi dijalankan dalam satu transaksi yang diawali `pg_advisory_xact_lock` dan pengecekan ulang catatan, supaya dua proses deploy tidak menerapkan file yang sama dua kali.
+- SQL migrasi dijalankan lewat `tx.exec` (ditambahkan ke `server/db.js`), karena `tx.query` PGlite menolak SQL berisi banyak statement.
+- Mode `--baseline` hanya mencatat migrasi yang **seluruh** tabelnya sudah ada. Kondisi sebagian ditolak, dan migrasi baru tetap berstatus pending sampai `npm run migrate` dijalankan lagi.
+- `verify.js` memakai `createDatabase` dan mengembalikan `{ migrations, tables, tablesWithoutRls }`. Peringatan RLS menjadi error di Task 6.6.
+- `readProductionConfig` mengizinkan `pglite:` hanya untuk `development` dan `test` (siap untuk Task 7.1). Helper baru: `assertDatabaseUrl`.
+- Test PGlite memakai **satu instance per file** dengan `DROP SCHEMA public CASCADE; CREATE SCHEMA public;` antar skenario. Membuat instance baru memakan 1,8 detik, sedangkan reset schema hanya 30 milidetik.
+- Belum dijalankan ke staging dan production. Langkah manusia ada di `PRODUCTION_DEPLOYMENT.md`.
+
 ---
 
 ### Task 6.6 `[INTI]` Migrasi 003: aktifkan Row Level Security di semua tabel
