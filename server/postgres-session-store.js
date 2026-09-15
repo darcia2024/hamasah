@@ -1,9 +1,11 @@
-function createPostgresSessionStore({ connectionString, pool } = {}) {
-  const client = pool || new (require('pg').Pool)({ connectionString });
+function createPostgresSessionStore({ database } = {}) {
+  if (!database) {
+    throw new Error('createPostgresSessionStore membutuhkan database.');
+  }
 
   return {
     async get(tokenHash) {
-      const { rows } = await client.query(
+      const { rows } = await database.query(
         'SELECT token_hash, account_id, expires_at FROM account_sessions WHERE token_hash = $1',
         [tokenHash]
       );
@@ -16,7 +18,7 @@ function createPostgresSessionStore({ connectionString, pool } = {}) {
     },
 
     async save(session) {
-      await client.query(
+      await database.query(
         `INSERT INTO account_sessions (token_hash, account_id, expires_at)
          VALUES ($1, $2, $3)
          ON CONFLICT (token_hash) DO UPDATE SET
@@ -27,7 +29,7 @@ function createPostgresSessionStore({ connectionString, pool } = {}) {
     },
 
     async remove(tokenHash) {
-      await client.query('DELETE FROM account_sessions WHERE token_hash = $1', [tokenHash]);
+      await database.query('DELETE FROM account_sessions WHERE token_hash = $1', [tokenHash]);
     }
   };
 }

@@ -15,32 +15,34 @@ function toAccount(row) {
   };
 }
 
-function createPostgresAccountStore({ connectionString, pool } = {}) {
-  const client = pool || new (require('pg').Pool)({ connectionString });
+function createPostgresAccountStore({ database } = {}) {
+  if (!database) {
+    throw new Error('createPostgresAccountStore membutuhkan database.');
+  }
 
   return {
     async count() {
-      const { rows } = await client.query('SELECT count(*)::int AS count FROM accounts');
+      const { rows } = await database.query('SELECT count(*)::int AS count FROM accounts');
       return Number(rows[0].count);
     },
 
     async getByEmail(email) {
-      const { rows } = await client.query(`SELECT ${ACCOUNT_FIELDS} FROM accounts WHERE email = $1`, [email]);
+      const { rows } = await database.query(`SELECT ${ACCOUNT_FIELDS} FROM accounts WHERE email = $1`, [email]);
       return rows[0] ? toAccount(rows[0]) : null;
     },
 
     async getById(id) {
-      const { rows } = await client.query(`SELECT ${ACCOUNT_FIELDS} FROM accounts WHERE id = $1`, [id]);
+      const { rows } = await database.query(`SELECT ${ACCOUNT_FIELDS} FROM accounts WHERE id = $1`, [id]);
       return rows[0] ? toAccount(rows[0]) : null;
     },
 
     async list() {
-      const { rows } = await client.query(`SELECT ${ACCOUNT_FIELDS} FROM accounts ORDER BY name`);
+      const { rows } = await database.query(`SELECT ${ACCOUNT_FIELDS} FROM accounts ORDER BY name`);
       return rows.map(toAccount);
     },
 
     async save(account) {
-      const { rows } = await client.query(
+      const { rows } = await database.query(
         `INSERT INTO accounts (id, email, name, role, active, password_hash, reset_token_hash, reset_expires_at, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          ON CONFLICT (id) DO UPDATE SET

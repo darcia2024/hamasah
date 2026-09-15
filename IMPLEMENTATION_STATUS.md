@@ -65,7 +65,9 @@ Halaman internal tersedia di `/website/staff.html`, `/website/portal.html`, `/we
 - Schema PostgreSQL seluruh modul telah dimigrasikan dan 19 tabel aplikasi sudah tervalidasi di Supabase.
 - `npm run seed:articles` menyinkronkan artikel publik ke PostgreSQL secara idempoten.
 - Endpoint `GET /api/articles` dan `GET /api/articles/:slug` sudah membaca PostgreSQL saat `DATABASE_URL` tersedia.
-- Endpoint akun, monitoring, LMS, dan operasional masih menggunakan repository JSON sampai adapter PostgreSQL masing-masing selesai.
+- Pendaftaran, artikel, akun, dan sesi memakai PostgreSQL saat `DATABASE_URL` tersedia. Keempat store berbagi satu pool koneksi (`server/db.js`), dan penyimpanan pendaftaran memakai transaksi sungguhan pada satu koneksi.
+- Endpoint monitoring, LMS, dan operasional masih menggunakan repository JSON sampai adapter PostgreSQL masing-masing selesai.
+- Test store PostgreSQL berjalan offline di atas PGlite (`server/test-support/database.js`), termasuk test integrasi API di `server/app-postgres.test.js`.
 
 ## Sebelum go-live penuh
 

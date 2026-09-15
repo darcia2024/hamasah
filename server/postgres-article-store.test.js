@@ -1,23 +1,45 @@
 const assert = require('node:assert/strict');
+const { createTestDatabase } = require('./test-support/database.js');
 const { createPostgresArticleStore } = require('./postgres-article-store.js');
 
+const PUBLISHED_AT = '2026-09-15T00:00:00.000Z';
+
 async function run() {
-  const queries = [];
-  const pool = {
-    async query(sql, parameters) {
-      queries.push({ sql, parameters });
-      if (sql.startsWith('SELECT') && sql.includes('WHERE slug')) return { rows: [] };
-      if (sql.startsWith('SELECT')) return { rows: [{ slug: 'kegiatan-santri', title: 'Kegiatan Santri', excerpt: 'Ringkasan.', body: 'Isi.', category: 'Kegiatan', published_at: '2026-09-15T00:00:00.000Z' }] };
-      return { rows: [{ slug: 'kegiatan-santri', title: 'Kegiatan Santri Hamasah', excerpt: 'Ringkasan kegiatan.', body: 'Isi kegiatan lengkap.', category: 'Kegiatan', published_at: '2026-09-15T00:00:00.000Z' }] };
-    }
-  };
-  const store = createPostgresArticleStore({ pool });
-  assert.equal((await store.list()).length, 1);
-  assert.equal(await store.get('tidak-ada'), null);
-  const created = await store.create({ title: 'Kegiatan Santri Hamasah', excerpt: 'Ringkasan kegiatan.', body: 'Isi kegiatan lengkap.' }, '2026-09-15T00:00:00.000Z');
-  assert.equal(created.ok, true);
-  assert.match(queries[2].sql, /INSERT INTO articles/);
-  console.log('postgres article store tests passed');
+  const database = await createTestDatabase();
+  try {
+    const store = createPostgresArticleStore({ database });
+    assert.deepEqual(await store.list(), []);
+    assert.equal(await store.get('tidak-ada'), null);
+
+    const input = { title: 'Kegiatan Santri Hamasah', excerpt: 'Ringkasan kegiatan.', body: 'Isi kegiatan lengkap.' };
+    const created = await store.create(input, PUBLISHED_AT);
+    assert.equal(created.ok, true);
+    assert.deepEqual(created.value, {
+      slug: 'kegiatan-santri-hamasah',
+      title: 'Kegiatan Santri Hamasah',
+      excerpt: 'Ringkasan kegiatan.',
+      body: 'Isi kegiatan lengkap.',
+      category: 'Kegiatan',
+      publishedAt: PUBLISHED_AT
+    });
+
+    assert.equal((await store.list()).length, 1);
+    assert.equal((await store.get('kegiatan-santri-hamasah')).title, 'Kegiatan Santri Hamasah');
+
+    // Slug ganda dikembalikan sebagai pesan yang ramah, bukan error mentah database.
+    assert.deepEqual(await store.create(input, PUBLISHED_AT), { ok: false, error: 'Slug artikel sudah digunakan.' });
+
+    const invalid = await store.create({ title: 'Pendek', excerpt: '', body: '' }, PUBLISHED_AT);
+    assert.equal(invalid.ok, false);
+    assert.equal((await store.list()).length, 1);
+
+    console.log('postgres article store tests passed');
+  } finally {
+    await database.close();
+  }
 }
 
-run().catch((error) => { console.error(error); process.exitCode = 1; });
+run().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

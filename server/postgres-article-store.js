@@ -12,18 +12,20 @@ function toArticle(row) {
   };
 }
 
-function createPostgresArticleStore({ connectionString, pool } = {}) {
-  const client = pool || new (require('pg').Pool)({ connectionString });
+function createPostgresArticleStore({ database } = {}) {
+  if (!database) {
+    throw new Error('createPostgresArticleStore membutuhkan database.');
+  }
 
   return {
     async list() {
-      const { rows } = await client.query(
+      const { rows } = await database.query(
         'SELECT slug, title, excerpt, body, category, published_at FROM articles ORDER BY published_at DESC'
       );
       return rows.map(toArticle);
     },
     async get(slug) {
-      const { rows } = await client.query(
+      const { rows } = await database.query(
         'SELECT slug, title, excerpt, body, category, published_at FROM articles WHERE slug = $1',
         [slug]
       );
@@ -39,7 +41,7 @@ function createPostgresArticleStore({ connectionString, pool } = {}) {
         return { ok: false, error: 'Judul, ringkasan, dan isi artikel belum valid.' };
       }
       try {
-        const { rows } = await client.query(
+        const { rows } = await database.query(
           `INSERT INTO articles (id, slug, title, excerpt, body, category, published_at)
            VALUES ($1, $2, $3, $4, $5, $6, $7)
            RETURNING slug, title, excerpt, body, category, published_at`,

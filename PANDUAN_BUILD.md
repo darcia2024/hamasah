@@ -197,6 +197,7 @@ Bagian ini dibaca **setiap sesi**. Jika aturan di sini bertentangan dengan isi t
 - Kolom database `snake_case`, properti JavaScript `camelCase`. Pemetaan dilakukan di store.
 - Kolom `DATE` dibaca sebagai teks: `SELECT join_date::text AS join_date`. Driver `pg` mengubah `DATE` jadi objek `Date` pada jam lokal, dan tanggal bisa bergeser satu hari.
 - Uang disimpan sebagai `BIGINT` rupiah (bilangan bulat). Tidak ada angka desimal untuk uang.
+- **Nilai `BIGINT` selalu dibungkus `Number()` di store.** PGlite (test) mengembalikan `BIGINT` sebagai number, sedangkan `pg` (production) mengembalikannya sebagai string. Tanpa `Number()`, test bisa lulus tapi production salah hitung (misalnya `"1500000" + 1`). Untuk jumlah baris, pakai `count(*)::int`.
 
 **Waktu**
 - Simpan `TIMESTAMPTZ` (UTC). Tampilkan dengan zona eksplisit.
@@ -217,7 +218,8 @@ Bagian ini dibaca **setiap sesi**. Jika aturan di sini bertentangan dengan isi t
 
 **Test**
 - `node:assert/strict`. Nama file `*.test.js` di samping file yang dites.
-- Test tidak boleh butuh internet, `.env`, atau database luar. Test database memakai PGlite (`server/test-support/`).
+- Test tidak boleh butuh internet, `.env`, atau database luar. Test database memakai PGlite lewat `createTestDatabase()` di `server/test-support/database.js`, dan wajib ditutup dengan `await database.close()` di blok `finally`.
+- **Jangan beri nama file helper dengan pola `test-*.js`**, karena `node --test` akan ikut menjalankannya sebagai test (sudah dibuktikan).
 - Endpoint baru wajib punya test negatif: tanpa login mendapat 401, role salah mendapat 403, akses data milik orang lain mendapat 403 atau 404.
 
 ### 2.5 Definition of Done (berlaku untuk semua task)
@@ -565,7 +567,7 @@ Dikerjakan manusia. Sonnet tidak ikut.
    - **Mode PGlite** (`connectionString` diawali `pglite:`): `pglite:memory` untuk in-memory, `pglite:./data/dev-db` untuk disimpan di disk.
      Pakai `const { PGlite } = require('@electric-sql/pglite')` yang di-require **di dalam fungsi**, supaya production tidak membutuhkan paket dev. `withTransaction` memakai `db.transaction(async (tx) => fn({ query: (s, p) => tx.query(s, p) }))`.
    - Jangan mengubah opsi SSL yang sudah berjalan. Jika koneksi gagal karena SSL, berhenti dan laporkan.
-3. Buat `server/test-support/test-database.js` berisi `createTestDatabase()`: PGlite in-memory, lalu jalankan `001` dan `002` dengan `exec`. Setelah Task 6.5, ganti dengan migration runner.
+3. Buat `server/test-support/database.js` berisi `createTestDatabase()`: PGlite in-memory, lalu jalankan `001` dan `002` dengan `exec`. Setelah Task 6.5, ganti dengan migration runner.
 4. Ubah keempat store Postgres agar menerima `{ database }` dan tidak membuat Pool sendiri.
    `postgres-registration-store.save` wajib memakai `withTransaction`, dan semua query di dalamnya memakai `tx.query`.
 5. Di `createHamasahApp`: buat **satu** `database` dari `databaseUrl`, bagikan ke semua store, lalu tambahkan `close()` pada objek app.
@@ -580,6 +582,15 @@ Dikerjakan manusia. Sonnet tidak ikut.
 - [ ] Perilaku API tidak berubah (`server/app.test.js` lulus tanpa diubah).
 
 **Jangan:** mengubah file SQL; memanggil `database.query` di dalam `withTransaction`.
+
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- Helper test bernama `server/test-support/database.js`, bukan `test-database.js` (pola `test-*.js` ikut dijalankan `node --test`).
+- `createDatabase({ pool })` menerima pool dari luar (dipakai `server/db.test.js` untuk menguji protokol transaksi dengan pool palsu). Database dari luar tidak ditutup oleh `close()`. Hal yang sama berlaku untuk `createHamasahApp({ database })`.
+- Jika `ROLLBACK` gagal, koneksi dibuang (`client.release(error)`), tidak dikembalikan ke pool.
+- `DATABASE_POOL_MAX` divalidasi (bilangan bulat 1 sampai 50, default 5). Connection string tidak pernah ditampilkan di pesan error.
+- Store yang ditulis ulang dirapikan dulu di commit `style:` terpisah.
+- Test tambahan `server/app-postgres.test.js` menjalankan API sungguhan di atas store PostgreSQL (login, sesi, logout, pendaftaran, artikel).
+- Perbedaan PGlite dan `pg` yang ditemukan: `BIGINT` (number dan string) dan `DATE` (tengah malam UTC dan tengah malam lokal). Aturannya sudah ditambahkan di Bagian 2.4.
 
 ---
 
@@ -612,7 +623,7 @@ Dikerjakan manusia. Sonnet tidak ikut.
    - Gagal jika ada migrasi yang belum diterapkan.
    - Gagal jika ada tabel di schema `public` tanpa RLS: `SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind = 'r' AND NOT c.relrowsecurity`. Pemeriksaan RLS aktif mulai Task 6.6.
 3. `validate-schema.js` membaca semua file migrasi.
-4. `server/test-support/test-database.js` memakai runner. Panggil runner dengan `APP_ENV: 'test'` dan `envFilePath: null` (pengaman dari Task 6.3 menolak `APP_ENV` kosong).
+4. `server/test-support/database.js` memakai runner. Panggil runner dengan `APP_ENV: 'test'` dan `envFilePath: null` (pengaman dari Task 6.3 menolak `APP_ENV` kosong).
 5. Test (PGlite): database kosong menerapkan semua migrasi; dijalankan ulang tidak melakukan apa-apa; checksum berubah menghasilkan error; skenario baseline.
 6. Perbarui `database/README.md` dan `PRODUCTION_DEPLOYMENT.md` (urutan deploy memakai runner, termasuk langkah baseline untuk database yang sudah ada).
 
@@ -2328,7 +2339,7 @@ server/
   documents/              terbilang, verification, finance-pdf, report-card-pdf
   ai/                     claude-client, pricing, public-assistant, study-partner, evals/
   video/                  adapter penyedia video
-  test-support/           test-database (PGlite)
+  test-support/           database.js: createTestDatabase (PGlite)
   *-service.js            service per domain
   postgres-*-store.js     store per domain
 database/

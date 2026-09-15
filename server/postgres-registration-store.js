@@ -1,18 +1,20 @@
 const crypto = require('node:crypto');
 
-function createPostgresRegistrationStore({ connectionString, pool } = {}) {
-  const client = pool || new (require('pg').Pool)({ connectionString });
+function createPostgresRegistrationStore({ database } = {}) {
+  if (!database) {
+    throw new Error('createPostgresRegistrationStore membutuhkan database.');
+  }
 
   async function get(registrationId) {
-    const { rows } = await client.query('SELECT * FROM registrations WHERE registration_id = $1', [registrationId]);
+    const { rows } = await database.query('SELECT * FROM registrations WHERE registration_id = $1', [registrationId]);
     if (!rows[0]) return null;
     const registration = rows[0];
     const [documents, history] = await Promise.all([
-      client.query(
+      database.query(
         'SELECT document_type, storage_key, status, uploaded_at, uploaded_by_role FROM registration_documents WHERE registration_id = $1 ORDER BY uploaded_at',
         [registration.id]
       ),
-      client.query(
+      database.query(
         'SELECT previous_status, next_status, changed_at, changed_by_role, note FROM registration_status_events WHERE registration_id = $1 ORDER BY changed_at',
         [registration.id]
       )
@@ -54,23 +56,26 @@ function createPostgresRegistrationStore({ connectionString, pool } = {}) {
 
   return {
     async count() {
-      const { rows } = await client.query('SELECT count(*)::int AS count FROM registrations');
+      const { rows } = await database.query('SELECT count(*)::int AS count FROM registrations');
       return Number(rows[0].count);
     },
 
     get,
 
     async list() {
-      const { rows } = await client.query('SELECT registration_id FROM registrations ORDER BY updated_at DESC');
+      const { rows } = await database.query('SELECT registration_id FROM registrations ORDER BY updated_at DESC');
       return Promise.all(rows.map((row) => get(row.registration_id)));
     },
 
     async save(record) {
+      // Pencarian id dilakukan sebelum transaksi dimulai (di luar withTransaction).
       const existing = record.id ? record : await get(record.registrationId);
       const id = existing ? existing.id : crypto.randomUUID();
-      await client.query('BEGIN');
-      try {
-        await client.query(
+
+      // Semua penulisan di bawah berjalan dalam satu transaksi pada satu koneksi,
+      // dan wajib memakai tx.query. Jika satu query gagal, semuanya dibatalkan.
+      return database.withTransaction(async (tx) => {
+        await tx.query(
           `INSERT INTO registrations (
              id, registration_id, applicant_name, phone_e164, guardian_name, guardian_phone_e164,
              program, education_level, city, consented_at, status, progress, access_token_hash,
@@ -107,28 +112,24 @@ function createPostgresRegistrationStore({ connectionString, pool } = {}) {
             record.updatedAt
           ]
         );
-        await client.query('DELETE FROM registration_documents WHERE registration_id = $1', [id]);
-        await client.query('DELETE FROM registration_status_events WHERE registration_id = $1', [id]);
+        await tx.query('DELETE FROM registration_documents WHERE registration_id = $1', [id]);
+        await tx.query('DELETE FROM registration_status_events WHERE registration_id = $1', [id]);
         for (const entry of record.statusHistory) {
-          await client.query(
+          await tx.query(
             `INSERT INTO registration_status_events (id, registration_id, previous_status, next_status, changed_by_role, note, changed_at)
              VALUES ($1, $2, $3, $4, $5, $6, $7)`,
             [crypto.randomUUID(), id, entry.from, entry.to, entry.changedBy, entry.note || null, entry.changedAt]
           );
         }
         for (const document of record.documents) {
-          await client.query(
+          await tx.query(
             `INSERT INTO registration_documents (id, registration_id, document_type, storage_key, status, uploaded_by_role, uploaded_at)
              VALUES ($1, $2, $3, $4, $5, $6, $7)`,
             [crypto.randomUUID(), id, document.type, document.storageKey, document.status, document.uploadedBy, document.uploadedAt]
           );
         }
-        await client.query('COMMIT');
         return { ...record, id };
-      } catch (error) {
-        await client.query('ROLLBACK');
-        throw error;
-      }
+      });
     }
   };
 }

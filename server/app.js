@@ -4,6 +4,7 @@ const http = require('node:http');
 const path = require('node:path');
 const registrationDomain = require('../website/registration-domain.js');
 const registrationServiceModule = require('../website/registration-service.js');
+const { createDatabase } = require('./db.js');
 const { createRegistrationFileStore } = require('./registration-file-store.js');
 const { createPostgresRegistrationStore } = require('./postgres-registration-store.js');
 const { createArticleStore } = require('./article-store.js');
@@ -127,17 +128,22 @@ function createHamasahApp(options) {
   const databaseUrl = config.databaseUrl || '';
   const staffApiKey = config.staffApiKey || process.env.HAMASAH_STAFF_API_KEY || '';
   const bootstrapKey = config.bootstrapKey || process.env.HAMASAH_BOOTSTRAP_KEY || '';
-  const registrationStore = config.registrationStore || (databaseUrl
-    ? createPostgresRegistrationStore({ connectionString: databaseUrl })
+  // Satu database (satu pool koneksi) dibagikan ke semua store PostgreSQL.
+  const database = config.database || (databaseUrl ? createDatabase({ connectionString: databaseUrl }) : null);
+  const ownsDatabase = Boolean(database) && !config.database;
+  const registrationStore = config.registrationStore || (database
+    ? createPostgresRegistrationStore({ database })
     : createRegistrationFileStore(path.join(dataDirectory, 'registrations.json')));
   const registrationService = config.registrationService || registrationServiceModule.createRegistrationService({
     store: registrationStore
   });
-  const articleStore = config.articleStore || (databaseUrl
-    ? createPostgresArticleStore({ connectionString: databaseUrl })
+  const articleStore = config.articleStore || (database
+    ? createPostgresArticleStore({ database })
     : createArticleStore(path.join(dataDirectory, 'articles.json')));
-  const accountStore = config.accountStore || (databaseUrl ? createPostgresAccountStore({ connectionString: databaseUrl }) : createAccountFileStore(path.join(dataDirectory, 'accounts.json')));
-  const sessionStore = config.sessionStore || (databaseUrl ? createPostgresSessionStore({ connectionString: databaseUrl }) : undefined);
+  const accountStore = config.accountStore || (database
+    ? createPostgresAccountStore({ database })
+    : createAccountFileStore(path.join(dataDirectory, 'accounts.json')));
+  const sessionStore = config.sessionStore || (database ? createPostgresSessionStore({ database }) : undefined);
   const identityService = config.identityService || identity.createIdentityService({ accountStore, sessionStore });
   const studentStore = config.studentStore || createStudentFileStore(path.join(dataDirectory, 'students.json'));
   const studentPortalService = config.studentPortalService || createStudentPortalService({ store: studentStore });
@@ -573,6 +579,12 @@ function createHamasahApp(options) {
   return {
     createServer() {
       return http.createServer(requestListener);
+    },
+    // Menutup pool koneksi database yang dibuat app ini. Database dari luar (config.database) tidak ditutup.
+    async close() {
+      if (ownsDatabase) {
+        await database.close();
+      }
     },
     identityService,
     registrationService,
