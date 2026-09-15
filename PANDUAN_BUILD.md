@@ -2410,7 +2410,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [x] 6.2 Test runner otomatis (9b5a96f)
 - [x] 6.3 Pengaman environment skrip database (5fd284e)
 - [x] 6.4 Lapisan database bersama dan harness PGlite (5e8c40a, 1f5da20)
-- [ ] 6.5 Migration runner berversi
+- [x] 6.5 Migration runner berversi (9cdfa2f)
 - [ ] 6.6 Migrasi 003: Row Level Security
 - [ ] 6.7 Perbaiki penomoran registrasi
 - [ ] 6.8 Riwayat status mencatat akun pelaku
