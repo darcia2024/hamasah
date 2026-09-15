@@ -2386,7 +2386,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [ ] 6.0 `[MANUSIA]` Amankan kredensial dan repo
 - [x] 6.1 Rapikan `.gitignore` dan commit pekerjaan (7aff22c, c79bb5b)
 - [x] 6.2 Test runner otomatis (9b5a96f)
-- [ ] 6.3 Pengaman environment skrip database
+- [x] 6.3 Pengaman environment skrip database (5fd284e)
 - [ ] 6.4 Lapisan database bersama dan harness PGlite
 - [ ] 6.5 Migration runner berversi
 - [ ] 6.6 Migrasi 003: Row Level Security
