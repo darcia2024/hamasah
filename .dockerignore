@@ -1,0 +1,6 @@
+.git
+.env
+data/*.json
+!data/articles.json
+node_modules
+*.log

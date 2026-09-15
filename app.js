@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initFamilyDashboard();
   initRoleEcosystemDiagram();
   initRoadmapTimeline();
+  initPhaseOneWorkspace();
   initHamasahAiAssistant();
   initScrollAnimations();
 });
@@ -1521,8 +1522,55 @@ function initRoadmapTimeline() {
   });
 }
 
+// ===========================================================================
+// 8A. PHASE 1 UI REVIEW WORKSPACE
+// ===========================================================================
+function initPhaseOneWorkspace() {
+  const buttons = document.querySelectorAll('[data-ui-review-state]');
+  const result = document.getElementById('ui-review-state');
+  if (!buttons.length || !result) return;
 
-// ==========================================================================
+  const states = {
+    main: {
+      title: 'Alur utama',
+      message: 'Pengguna memahami isi layar, melihat tindakan prioritas, lalu dapat melanjutkan tanpa harus menebak langkah berikutnya.'
+    },
+    loading: {
+      title: 'Sedang dimuat',
+      message: 'Beritahu pengguna bagian apa yang sedang diproses. Jangan tampilkan halaman kosong atau tombol yang terlihat siap dipakai.'
+    },
+    empty: {
+      title: 'Belum ada data',
+      message: 'Jelaskan kenapa belum ada isi dan beri satu tindakan yang bisa mengisi halaman, misalnya menambahkan laporan atau memilih periode lain.'
+    },
+    restricted: {
+      title: 'Akses dibatasi',
+      message: 'Terangkan bahwa data ini membutuhkan akun atau peran tertentu, lalu arahkan pengguna kembali ke halaman yang masih dapat ia akses.'
+    },
+    invalid: {
+      title: 'Data tidak valid',
+      message: 'Tandai field yang perlu diperbaiki, jelaskan alasannya dengan kalimat singkat, dan pertahankan isian pengguna yang sudah benar.'
+    }
+  };
+
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      const state = states[button.dataset.uiReviewState];
+      if (!state) return;
+
+      buttons.forEach(item => {
+        const active = item === button;
+        item.classList.toggle('is-active', active);
+        item.setAttribute('aria-pressed', String(active));
+      });
+
+      result.innerHTML = `<strong>${state.title}</strong><p>${state.message}</p>`;
+    });
+  });
+}
+
+
+// ===========================================================================
 // 9. ASISTEN AI HAMASAH (PUBLIK) - TANYA-JAWAB CALON SANTRI & WALI
 // ==========================================================================
 const HAMASAH_AI_KB = [

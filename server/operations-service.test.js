@@ -1,0 +1,12 @@
+const assert = require('node:assert/strict');
+const { createOperationsService } = require('./operations-service.js');
+const admin = { role: 'admin' };
+const service = createOperationsService({ now: () => '2026-09-15T08:00:00.000Z', studentExists: (id) => id === 'student-1' });
+const invoice = service.createInvoice({ studentId: 'student-1', description: 'SPP September', amount: 1500000 }, admin);
+assert.equal(invoice.ok, true); assert.equal(invoice.value.number, 'INV/HI/2026/00001');
+const paid = service.markInvoicePaid(invoice.value.id, admin);
+assert.equal(paid.value.receiptNumber, 'KWT/HI/2026/00001');
+assert.equal(service.saveVisa({ studentId: 'student-1', status: 'collecting-documents', note: 'Paspor diperiksa' }, admin).ok, true);
+assert.equal(service.saveInventory({ name: 'Kasur asrama', location: 'Hay Asyir', quantity: 20 }, admin).ok, true);
+assert.equal(service.list().invoices.length, 1);
+console.log('operations-service tests passed');

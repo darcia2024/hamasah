@@ -1,0 +1,4 @@
+const assert = require('node:assert/strict');
+const { createPostgresAccountStore } = require('./postgres-account-store.js');
+async function run() { const pool={async query(sql,args){ if(sql.startsWith('SELECT count')) return {rows:[{count:0}]}; if(sql.startsWith('INSERT')) return {rows:[{id:'a',email:'a@b.com',name:'Admin',role:'admin',active:true,password_hash:'hash',reset_token_hash:null,reset_expires_at:null,created_at:new Date(),updated_at:new Date()}]}; return {rows:[]}; }}; const store=createPostgresAccountStore({pool}); assert.equal(await store.count(),0); const saved=await store.save({id:'a',email:'a@b.com',name:'Admin',role:'admin',active:true,passwordHash:'hash',resetTokenHash:null,resetExpiresAt:null,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()}); assert.equal(saved.email,'a@b.com'); console.log('postgres account store tests passed'); }
+run().catch(error=>{console.error(error);process.exitCode=1;});

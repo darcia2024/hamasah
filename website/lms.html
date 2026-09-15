@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LMS Hamasah | Hamasah International</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="website.css?v=17" />
+    <link rel="stylesheet" href="staff.css?v=1" />
+    <link rel="stylesheet" href="portal.css?v=1" />
+  </head>
+  <body class="staff-page">
+    <main class="staff-shell">
+      <header class="staff-header"><a href="portal.html" class="staff-brand">Hamasah <span>LMS</span></a><a href="portal.html" class="button button--secondary">Portal akun</a></header>
+      <section id="lms-guard" class="staff-login" aria-live="polite"><p class="eyebrow">LMS Hamasah</p><h1>Memeriksa akses.</h1><p id="lms-guard-copy">Silakan masuk melalui Portal Hamasah.</p></section>
+      <section id="lms-console" hidden>
+        <div class="staff-intro"><div><p class="eyebrow">Ruang belajar</p><h1>Maddah dan progress belajar.</h1></div></div>
+        <label for="lms-student-select">Pilih santri</label>
+        <select id="lms-student-select" class="monitoring-select"><option value="">Pilih santri</option></select>
+        <p id="lms-status" class="form-status" role="status" aria-live="polite"></p>
+        <div id="lms-course-list" class="portal-student-grid"></div>
+        <section id="lms-course-view" class="portal-dashboard" hidden></section>
+        <section id="lms-staff-section" class="portal-admin" hidden>
+          <div><p class="eyebrow">Kelola LMS</p><h2>Siapkan maddah dan materi.</h2></div>
+          <div class="portal-admin-grid">
+            <form id="course-form" class="staff-form"><label for="course-title">Judul maddah</label><input id="course-title" type="text" required /><label for="course-description">Deskripsi</label><textarea id="course-description" rows="4" required></textarea><button class="button button--primary" type="submit">Buat maddah</button><p id="course-form-status" class="form-status" role="status" aria-live="polite"></p></form>
+            <form id="material-form" class="staff-form"><label for="material-course">Maddah</label><select id="material-course"></select><label for="material-type">Jenis</label><select id="material-type"><option value="video">Video</option><option value="pdf">PDF</option><option value="text">Teks</option><option value="assignment">Tugas</option><option value="quiz">Kuis</option></select><label for="material-title">Judul materi</label><input id="material-title" type="text" required /><label for="material-content">Referensi atau isi materi</label><textarea id="material-content" rows="3" required></textarea><label for="material-summary">Rangkuman</label><textarea id="material-summary" rows="3" required></textarea><label for="material-points">Poin penting, pisahkan dengan koma</label><input id="material-points" type="text" required /><label for="guide-question">Pertanyaan panduan</label><input id="guide-question" type="text" /><label for="guide-answer">Jawaban panduan</label><textarea id="guide-answer" rows="2"></textarea><button class="button button--primary" type="submit">Tambah materi</button><p id="material-form-status" class="form-status" role="status" aria-live="polite"></p></form>
+          </div>
+          <form id="enrollment-form" class="staff-form record-form"><label for="enrollment-course">Daftarkan santri ke maddah</label><select id="enrollment-course"></select><button class="button button--secondary" type="submit">Daftarkan santri terpilih</button><p id="enrollment-form-status" class="form-status" role="status" aria-live="polite"></p></form>
+        </section>
+      </section>
+    </main>
+    <script src="lms.js?v=1"></script>
+  </body>
+</html>

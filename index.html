@@ -12,9 +12,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=phase1-ui-review-3">
 </head>
 <body>
+  <a class="skip-to-content" href="#main-content">Lewati navigasi ke isi utama</a>
 
   <!-- Minimal Header (Lattice Style) -->
   <header class="lattice-header" id="site-header">
@@ -81,7 +82,7 @@
     </div>
   </header>
 
-  <main>
+  <main id="main-content">
 
     <!-- Hero Centered Typography Section -->
     <section class="lattice-hero-centered" id="beranda">
@@ -102,15 +103,107 @@
           Satu website, dua layanan. Pendaftaran calon santri, pemantauan akademik, sampai keuangan wali kini rapi dalam satu sistem: dari persiapan berkas sampai wisuda di Mesir.
         </p>
 
+        <p class="prototype-status" role="note">
+          <span aria-hidden="true">01</span>
+          Prototype Phase 1. Seluruh data dan aksi di halaman ini dipakai untuk menguji rancangan UI, belum terhubung ke sistem operasional.
+        </p>
+
         <div class="lattice-hero-actions">
-          <a href="#arsitektur" class="pill-btn-primary hero-cta" style="padding: 13px 28px; font-size: 14.5px;">
-            Pelajari 2 Layanan Utama ↓
+          <a href="#phase-1-workspace" class="pill-btn-primary hero-cta" style="padding: 13px 28px; font-size: 14.5px;">
+            Mulai Review UI Phase 1
           </a>
-          <button class="pill-btn-outline open-pitch-btn hero-cta" style="padding: 13px 26px; font-size: 14.5px;">
-            Diskusikan Bersama Dar Dev ↗
-          </button>
+          <a href="#arsitektur" class="pill-btn-outline hero-cta" style="padding: 13px 26px; font-size: 14.5px;">Lihat Struktur Layanan</a>
         </div>
 
+      </div>
+    </section>
+
+    <section class="phase1-workspace section-padding" id="phase-1-workspace" aria-labelledby="phase1-title">
+      <div class="lattice-container">
+        <div class="phase1-intro">
+          <div>
+            <p class="phase1-kicker">Phase 1 · UI &amp; flow review</p>
+            <h2 id="phase1-title">Tinjau alur sebelum sistem mulai dibangun</h2>
+            <p class="phase1-lead">Mulai dari peran dan pekerjaan yang nyata. Setiap jalur di bawah membawa reviewer ke layar yang perlu disetujui, termasuk kondisi ketika data belum ada, sedang dimuat, atau akses pengguna dibatasi.</p>
+          </div>
+          <aside class="phase1-review-note" aria-label="Catatan prototype">
+            <span class="phase1-note-icon" aria-hidden="true">i</span>
+            <p><strong>Tujuan review:</strong> sepakat pada urutan kerja, informasi yang terlihat per peran, dan tindakan berikutnya pada setiap layar. Angka, nama, dan dokumen yang tampil adalah data contoh UI.</p>
+          </aside>
+        </div>
+
+        <div class="phase1-route-grid" aria-label="Jalur review per peran">
+          <article class="phase1-route route-public">
+            <div class="phase1-route-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5.5h16v13H4z"/><path d="M7 9h6M7 13h10M7 16h5"/></svg></div>
+            <div>
+              <p class="phase1-route-label">01 · calon santri</p>
+              <h3>Website publik dan kabar kegiatan</h3>
+              <p>Uji apakah calon santri dapat memahami Hamasah, menemukan artikel kegiatan Mesir, lalu menentukan langkah sebelum mendaftar.</p>
+              <a href="#modul-web1" class="phase1-route-action">Buka layar publik</a>
+            </div>
+          </article>
+
+          <article class="phase1-route route-registration">
+            <div class="phase1-route-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3h8M9 3v3h6V3M6 7h12v14H6z"/><path d="M9 11h6M9 15h4"/></svg></div>
+            <div>
+              <p class="phase1-route-label">02 · pendaftaran</p>
+              <h3>Isi data, cek kelengkapan, dan pantau status</h3>
+              <p>Review alur dari informasi persyaratan sampai status pengajuan. Pada Phase 2, bagian ini akan menjadi formulir bertahap dan dashboard pendaftar yang tersimpan.</p>
+              <a href="#modul-web1" class="phase1-route-action">Lihat alur pendaftaran</a>
+            </div>
+          </article>
+
+          <article class="phase1-route route-family">
+            <div class="phase1-route-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="3.5"/><path d="M21 20v-2.5a3.5 3.5 0 0 0-2.5-3.35M16.5 3.8a3.5 3.5 0 0 1 0 6.4"/></svg></div>
+            <div>
+              <p class="phase1-route-label">03 · orang tua</p>
+              <h3>Melihat perkembangan anak dari rumah</h3>
+              <p>Pastikan wali hanya melihat informasi yang memang boleh dibagikan, dengan ringkasan yang dapat ditelusuri ke laporan detail.</p>
+              <a href="#modul-web2-family" class="phase1-route-action">Buka portal orang tua</a>
+            </div>
+          </article>
+
+          <article class="phase1-route route-campus">
+            <div class="phase1-route-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 5 8-3 8 3-8 3z"/><path d="M7 9v5c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5V9M20 6v6"/></svg></div>
+            <div>
+              <p class="phase1-route-label">04 · santri dan pengawas</p>
+              <h3>Belajar, catatan kegiatan, dan rekam jejak</h3>
+              <p>Review LMS, progress maddah, catatan pembinaan, kehadiran, pencapaian, dan informasi yang dibutuhkan pengawas saat mengevaluasi.</p>
+              <a href="#modul-web2-campus" class="phase1-route-action">Buka portal akademik</a>
+            </div>
+          </article>
+
+          <article class="phase1-route route-operations">
+            <div class="phase1-route-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="1"/><path d="M8 3v4M16 3v4M7.5 11h9M7.5 15h5"/></svg></div>
+            <div>
+              <p class="phase1-route-label">05 · admin</p>
+              <h3>Menata kerja harian tim operasional</h3>
+              <p>Uji prioritas informasi, pencarian data, dan tindakan admin sebelum pembuatan akun, hak akses, serta dokumen otomatis dimulai.</p>
+              <a href="#modul-web2-operations" class="phase1-route-action">Buka portal operasional</a>
+            </div>
+          </article>
+        </div>
+
+        <section class="phase1-state-lab" aria-labelledby="state-lab-title">
+          <div class="phase1-state-copy">
+            <p class="phase1-kicker">Uji kondisi layar</p>
+            <h3 id="state-lab-title">Layar yang baik tetap jelas saat data belum ideal</h3>
+            <p>Ganti skenario untuk memeriksa teks, tindakan, dan arah pengguna pada kondisi yang akan muncul saat aplikasi benar-benar digunakan.</p>
+          </div>
+          <div class="phase1-state-control">
+            <div class="phase1-state-buttons" role="group" aria-label="Pilih skenario review UI">
+              <button type="button" class="phase1-state-button is-active" data-ui-review-state="main" aria-pressed="true">Alur utama</button>
+              <button type="button" class="phase1-state-button" data-ui-review-state="loading" aria-pressed="false">Sedang dimuat</button>
+              <button type="button" class="phase1-state-button" data-ui-review-state="empty" aria-pressed="false">Belum ada data</button>
+              <button type="button" class="phase1-state-button" data-ui-review-state="restricted" aria-pressed="false">Akses dibatasi</button>
+              <button type="button" class="phase1-state-button" data-ui-review-state="invalid" aria-pressed="false">Data tidak valid</button>
+            </div>
+            <div class="phase1-state-result" id="ui-review-state" role="status" aria-live="polite">
+              <strong>Alur utama</strong>
+              <p>Pengguna memahami isi layar, melihat tindakan prioritas, lalu dapat melanjutkan tanpa harus menebak langkah berikutnya.</p>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
 
@@ -2863,11 +2956,11 @@
         <div class="roadmap-timeline-wrapper">
           <div class="roadmap-timeline-header">
             <div>
-              <span class="timeline-sub-tag">ESTIMASI 1 BULAN · 4 PEKAN SPRINT INTENSIF</span>
-              <h4 class="timeline-main-title">Peta Alur Peluncuran 1 Bulan (Sprint Execution)</h4>
+              <span class="timeline-sub-tag">5 PHASE PEMBANGUNAN · UI DULU, LOGIC MENYUSUL PER PHASE</span>
+              <h4 class="timeline-main-title">Peta Eksekusi Website Hamasah International</h4>
             </div>
             <div class="timeline-total-duration">
-              Estimasi Waktu: <strong>1 Bulan (4 Pekan Kerja)</strong> · Garansi Uji Coba Lapangan
+              Alur Kerja: <strong>Desain UI → Backend → Integrasi → Uji Coba</strong> di setiap fase
             </div>
           </div>
 
@@ -2883,9 +2976,9 @@
                 <span class="step-pulse"></span>
               </div>
               <div class="step-meta">
-                <span class="step-phase-tag">PEKAN 1</span>
-                <strong class="step-title">Publik & Pendaftaran</strong>
-                <span class="step-duration">Hari 1 - 7</span>
+                <span class="step-phase-tag">PHASE 1</span>
+                <strong class="step-title">UI & Flow Final</strong>
+                <span class="step-duration">Desain semua layar utama</span>
               </div>
             </div>
 
@@ -2895,9 +2988,9 @@
                 <span class="step-num">02</span>
               </div>
               <div class="step-meta">
-                <span class="step-phase-tag">PEKAN 2</span>
-                <strong class="step-title">Operasional Staff</strong>
-                <span class="step-duration">Hari 8 - 14</span>
+                <span class="step-phase-tag">PHASE 2</span>
+                <strong class="step-title">Website Publik</strong>
+                <span class="step-duration">CMS, artikel, pendaftaran</span>
               </div>
             </div>
 
@@ -2907,9 +3000,9 @@
                 <span class="step-num">03</span>
               </div>
               <div class="step-meta">
-                <span class="step-phase-tag">PEKAN 3</span>
-                <strong class="step-title">Portal Keluarga</strong>
-                <span class="step-duration">Hari 15 - 21</span>
+                <span class="step-phase-tag">PHASE 3</span>
+                <strong class="step-title">Login & Role</strong>
+                <span class="step-duration">Akun, akses, database santri</span>
               </div>
             </div>
 
@@ -2919,9 +3012,9 @@
                 <span class="step-num">04</span>
               </div>
               <div class="step-meta">
-                <span class="step-phase-tag">PEKAN 4 AWAL</span>
-                <strong class="step-title">Portal Akademik</strong>
-                <span class="step-duration">Hari 22 - 26</span>
+                <span class="step-phase-tag">PHASE 4</span>
+                <strong class="step-title">Monitoring Santri</strong>
+                <span class="step-duration">Orang tua, pengawas, laporan</span>
               </div>
             </div>
 
@@ -2931,9 +3024,9 @@
                 <span class="step-num">05</span>
               </div>
               <div class="step-meta">
-                <span class="step-phase-tag">FINAL GO-LIVE</span>
-                <strong class="step-title">Integrasi Single SSO</strong>
-                <span class="step-duration">Hari 27 - 30</span>
+                <span class="step-phase-tag">PHASE 5</span>
+                <strong class="step-title">LMS & AI</strong>
+                <span class="step-duration">Materi, progress, AI belajar</span>
               </div>
             </div>
           </div>
@@ -2945,135 +3038,135 @@
           <!-- Card Fase 01 -->
           <div class="roadmap-phase-card" id="card-phase-p1">
             <div class="phase-card-topbar">
-              <div class="phase-badge-pill pub">FASE 01 · PEKAN 1</div>
-              <span class="phase-time-badge">Pekan 1 (Hari 1 - 7)</span>
+              <div class="phase-badge-pill pub">PHASE 01 · UI FOUNDATION</div>
+              <span class="phase-time-badge">Dimulai paling awal</span>
             </div>
-            <h4 class="phase-card-title">Layanan 1: Publik & Akun Keberangkatan</h4>
+            <h4 class="phase-card-title">UI Final Semua Modul</h4>
             <p class="phase-card-summary">
-              Membangun pintu utama representasi digital Hamasah International dan gerbang pendaftaran mandiri calon santri baru.
+              Menyelesaikan desain visual dan alur penggunaan sebelum backend dibuat, agar semua pihak bisa menilai bentuk produk sejak awal.
             </p>
 
             <div class="phase-deliverables-box">
               <div class="box-label">DELIVERABLE UTAMA:</div>
               <ul class="phase-list">
-                <li>Website profil representatif, visi lembaga & fasilitas asrama Hay Asyir.</li>
-                <li>Brosur digital interaktif program bimbingan studi Al-Azhar Kairo.</li>
-                <li>Sistem Akun Keberangkatan: Cek kelengkapan dokumen, visa, jadwal terbang & panduan Kairo.</li>
-                <li>AI Konsultan Publik menjawab FAQ biaya & syarat studi 24/7.</li>
+                <li>UI landing page publik, artikel kegiatan, dan alur pendaftaran calon santri.</li>
+                <li>UI portal orang tua, portal santri, dashboard pengawas, dan dashboard admin.</li>
+                <li>UI LMS, detail maddah, progress belajar, dan tampilan AI partner belajar.</li>
+                <li>Design system: warna, tombol, tabel, kartu, form, empty state, dan responsive mobile.</li>
               </ul>
             </div>
 
             <div class="phase-owner-roi">
               <strong>Manfaat Nyata bagi Owner:</strong>
-              <span>Lembaga langsung memiliki wajah digital modern bertaraf internasional dan penyerapan calon santri berjalan otomatis.</span>
+              <span>Tim Hamasah bisa menyetujui bentuk, alur, dan prioritas fitur sebelum biaya backend masuk lebih jauh.</span>
             </div>
           </div>
 
           <!-- Card Fase 02 -->
           <div class="roadmap-phase-card" id="card-phase-p2">
             <div class="phase-card-topbar">
-              <div class="phase-badge-pill priv">FASE 02 · PEKAN 2</div>
-              <span class="phase-time-badge">Pekan 2 (Hari 8 - 14)</span>
+              <div class="phase-badge-pill priv">PHASE 02 · PUBLIC WEBSITE</div>
+              <span class="phase-time-badge">Full-stack pertama</span>
             </div>
-            <h4 class="phase-card-title">Layanan 2: Portal Operasional & Keuangan Staff</h4>
+            <h4 class="phase-card-title">Website Publik, CMS, dan Pendaftaran</h4>
             <p class="phase-card-summary">
-              Digitalisasi kendali internal pengurus: mengotomatisasi penerbitan kuitansi sah, SPP per rumah, dan administrasi visa Mesir.
+              Membangun bagian yang terbuka untuk publik lebih dulu: profil Hamasah, artikel kegiatan, AI informasi awal, dan pendaftaran calon santri.
             </p>
 
             <div class="phase-deliverables-box">
               <div class="box-label">DELIVERABLE UTAMA:</div>
               <ul class="phase-list">
-                <li>Dashboard internal staff pengurus & musyrif asrama Kairo.</li>
-                <li>Auto Financial Generator: Terbitkan Invoice & Kuitansi Sah PDF instan 10 detik.</li>
-                <li>Buku ledger transaksi SPP Bulanan & Bayar Iqomah dalam mata uang Rupiah.</li>
-                <li>Tracking logistik & fasilitas rumah asrama (AC, listrik, inventaris Rumah 1 & 2).</li>
+                <li>Landing page publik yang siap dipakai sebagai wajah resmi Hamasah.</li>
+                <li>CMS artikel untuk berita kegiatan Hamasah International di Mesir.</li>
+                <li>Form pendaftaran calon santri dan dashboard data pendaftar awal.</li>
+                <li>AI FAQ publik untuk menjawab pertanyaan dasar calon santri dan orang tua.</li>
               </ul>
             </div>
 
             <div class="phase-owner-roi">
               <strong>Manfaat Nyata bagi Owner:</strong>
-              <span>Memangkas 75% waktu kerja manual staf, mengeliminasi kesalahan hitung, dan transparansi arus kas 100% terjaga.</span>
+              <span>Hamasah langsung punya kanal informasi dan pendaftaran yang bisa dipakai sebelum portal internal selesai.</span>
             </div>
           </div>
 
           <!-- Card Fase 03 -->
           <div class="roadmap-phase-card" id="card-phase-p3">
             <div class="phase-card-topbar">
-              <div class="phase-badge-pill priv">FASE 03 · PEKAN 3</div>
-              <span class="phase-time-badge">Pekan 3 (Hari 15 - 21)</span>
+              <div class="phase-badge-pill priv">PHASE 03 · ACCOUNT SYSTEM</div>
+              <span class="phase-time-badge">Fondasi portal</span>
             </div>
-            <h4 class="phase-card-title">Layanan 2: Portal Keluarga & Rapor Digital Berkala</h4>
+            <h4 class="phase-card-title">Login, Role Access, dan Database Santri</h4>
             <p class="phase-card-summary">
-              Akses khusus wali santri dari tanah air untuk memantau tumbuh kembang anak dan mengunduh berkas kuitansi resmi.
+              Membuat pondasi akun agar santri, orang tua, pengawas, dan admin punya akses yang berbeda sesuai kebutuhan.
             </p>
 
             <div class="phase-deliverables-box">
               <div class="box-label">DELIVERABLE UTAMA:</div>
               <ul class="phase-list">
-                <li>Akun personal wali santri dengan proteksi enkripsi login aman.</li>
-                <li>Dashboard monitoring anak: stamina fisik, presensi Subuh & capaian tahfidz.</li>
-                <li>Rapor Digital Online Berkala & Catatan Kendala Anak dengan solusi musyrif.</li>
-                <li>Arsip kuitansi sah SPP Bulanan berstempel resmi format cetak PDF.</li>
+                <li>Login, register, reset password, dan manajemen akun internal.</li>
+                <li>Role access untuk admin, pengawas, santri, dan orang tua.</li>
+                <li>Database santri, relasi orang tua-santri, dan status keaktifan santri.</li>
+                <li>Dashboard awal untuk tiap role sebagai dasar pengembangan portal.</li>
               </ul>
             </div>
 
             <div class="phase-owner-roi">
               <strong>Manfaat Nyata bagi Owner:</strong>
-              <span>Meredakan kekhawatiran orang tua santri, menumbuhkan rasa bangga keluarga, dan meningkatkan kepercayaan jangka panjang.</span>
+              <span>Semua fitur internal berikutnya punya fondasi akses yang aman dan tidak tercampur antar pengguna.</span>
             </div>
           </div>
 
           <!-- Card Fase 04 -->
           <div class="roadmap-phase-card" id="card-phase-p4">
             <div class="phase-card-topbar">
-              <div class="phase-badge-pill priv">FASE 04 · PEKAN 4 AWAL</div>
-              <span class="phase-time-badge">Pekan 4 Awal (Hari 22 - 26)</span>
+              <div class="phase-badge-pill priv">PHASE 04 · MONITORING PORTAL</div>
+              <span class="phase-time-badge">Pendampingan santri</span>
             </div>
-            <h4 class="phase-card-title">Layanan 2: Portal Akademik & Talaqqi Turats LMS</h4>
+            <h4 class="phase-card-title">Portal Monitoring Santri, Orang Tua, dan Pengawas</h4>
             <p class="phase-card-summary">
-              Platform dars dan halaqah santri dengan pemutar video talaqqi terstruktur, AI study partner, dan rekam jejak kelulusan.
+              Mengubah catatan kegiatan dan perkembangan santri menjadi rekam jejak yang rapi dari awal bergabung sampai lulus.
             </p>
 
             <div class="phase-deliverables-box">
               <div class="box-label">DELIVERABLE UTAMA:</div>
               <ul class="phase-list">
-                <li>Pemutar video talaqqi terstruktur Al-Azhar (Matan Fathul Qorib & Ajurrumiyyah).</li>
-                <li>AI Study Partner khusus materi madzhab Syafi'i & nahwu bahasa Arab.</li>
-                <li>Visual roadmap rekam jejak santri dari tahun ke-1 hingga target wisuda Al-Azhar.</li>
-                <li>Panel mutaba'ah adab harian santri yang diisi langsung oleh musyrif asrama.</li>
+                <li>Laporan kegiatan santri selama di Mesir, progress belajar, dan achievement.</li>
+                <li>Catatan pelanggaran, kehadiran, evaluasi pengawas, dan riwayat pembinaan.</li>
+                <li>Dashboard orang tua untuk melihat pencapaian dan aktivitas anak.</li>
+                <li>Export laporan atau ringkasan berkala bila dibutuhkan pihak Hamasah.</li>
               </ul>
             </div>
 
             <div class="phase-owner-roi">
               <strong>Manfaat Nyata bagi Owner:</strong>
-              <span>Hamasah International menjadi pionir lembaga bimbingan Al-Azhar pertama yang memiliki platform pembelajaran digital mandiri.</span>
+              <span>Pengawas lebih mudah mengevaluasi santri, dan orang tua mendapat gambaran yang jelas tanpa menunggu laporan manual.</span>
             </div>
           </div>
 
           <!-- Card Fase 05 -->
           <div class="roadmap-phase-card" id="card-phase-p5">
             <div class="phase-card-topbar">
-              <div class="phase-badge-pill tech">FASE 05 · FINAL & GO-LIVE</div>
-              <span class="phase-time-badge">Pekan 4 Akhir (Hari 27 - 30)</span>
+              <div class="phase-badge-pill tech">PHASE 05 · LMS & AI</div>
+              <span class="phase-time-badge">Pembelajaran digital</span>
             </div>
-            <h4 class="phase-card-title">Integrasi Sistem, Single SSO & Hardening</h4>
+            <h4 class="phase-card-title">LMS Maddah dan AI Partner Belajar</h4>
             <p class="phase-card-summary">
-              Penyatuan single database, uji coba beban server, enkripsi SHA-256, serta pelatihan lengkap bagi tim pengurus Hamasah.
+              Menyediakan ruang belajar online untuk santri dengan progress materi dan AI yang membantu memahami maddah.
             </p>
 
             <div class="phase-deliverables-box">
               <div class="box-label">DELIVERABLE UTAMA:</div>
               <ul class="phase-list">
-                <li>Single Sign-On (SSO) Role-Based Access Control antar seluruh layanan.</li>
-                <li>Penyatuan database tunggal cloud dengan backup harian otomatis.</li>
-                <li>Optimasi performa & latency jaringan Kairo - Indonesia (loading cepat).</li>
-                <li>Pelatihan staf operasional & serah terima dokumentasi teknis Dar Dev.</li>
+                <li>Upload dan pengelolaan materi LMS: video, PDF, teks, tugas, dan quiz dasar.</li>
+                <li>Progress belajar per santri untuk setiap maddah yang diakses.</li>
+                <li>AI rangkuman materi berdasarkan maddah yang sedang dipelajari.</li>
+                <li>AI tanya jawab sebagai partner belajar santri saat materi belum jelas.</li>
               </ul>
             </div>
 
             <div class="phase-owner-roi">
               <strong>Manfaat Nyata bagi Owner:</strong>
-              <span>Sistem siap pakai 100%, bebas ketergantungan vendor luar, dan menjadi aset digital berharga milik penuh yayasan.</span>
+              <span>Pembelajaran tidak berhenti di kelas; santri punya ruang belajar mandiri yang progress-nya tetap tercatat.</span>
             </div>
           </div>
 
@@ -3552,6 +3645,6 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=phase1-ui-review-3"></script>
 </body>
 </html>

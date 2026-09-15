@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Konsol operasional Hamasah International." />
+    <title>Operasional | Hamasah International</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="website.css?v=17" />
+    <link rel="stylesheet" href="staff.css?v=1" />
+  </head>
+  <body class="staff-page">
+    <main class="staff-shell">
+      <header class="staff-header">
+        <a href="index.html" class="staff-brand">Hamasah <span>Operasional</span></a>
+        <button class="button button--secondary" id="logout-button" type="button" hidden>Keluar</button>
+      </header>
+
+      <section class="staff-login" id="staff-login" aria-labelledby="staff-login-title">
+        <p class="eyebrow">Akses petugas</p>
+        <h1 id="staff-login-title">Masuk ke konsol operasional.</h1>
+        <form id="staff-login-form" class="staff-form">
+          <label for="staff-email">Email</label>
+          <input id="staff-email" type="email" autocomplete="email" required />
+          <label for="staff-password">Kata sandi</label>
+          <input id="staff-password" type="password" autocomplete="current-password" required />
+          <button class="button button--primary" type="submit">Masuk</button>
+          <p id="staff-login-status" class="form-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section id="staff-console" hidden>
+        <div class="staff-intro">
+          <div>
+            <p class="eyebrow">Dashboard pendaftaran</p>
+            <h1>Data awal calon santri.</h1>
+          </div>
+          <button class="button button--secondary" id="refresh-registrations" type="button">Perbarui data</button>
+        </div>
+        <p id="registration-list-status" class="form-status" role="status" aria-live="polite"></p>
+        <div id="registration-list" class="staff-registration-list"></div>
+
+        <section class="staff-article-section" aria-labelledby="article-form-title">
+          <div>
+            <p class="eyebrow">CMS Pena Hamasah</p>
+            <h2 id="article-form-title">Terbitkan kabar kegiatan.</h2>
+          </div>
+          <form id="article-form" class="staff-form staff-form--article">
+            <label for="article-title">Judul artikel</label>
+            <input id="article-title" type="text" required />
+            <label for="article-category">Kategori</label>
+            <input id="article-category" type="text" value="Kegiatan" required />
+            <label for="article-excerpt">Ringkasan</label>
+            <textarea id="article-excerpt" rows="3" required></textarea>
+            <label for="article-body">Isi artikel</label>
+            <textarea id="article-body" rows="8" required></textarea>
+            <button class="button button--primary" type="submit">Terbitkan artikel</button>
+            <p id="article-form-status" class="form-status" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+      </section>
+    </main>
+    <script src="staff.js?v=1"></script>
+  </body>
+</html>

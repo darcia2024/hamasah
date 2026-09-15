@@ -1,0 +1,180 @@
+const loginSection = document.querySelector('#staff-login');
+const loginForm = document.querySelector('#staff-login-form');
+const loginStatus = document.querySelector('#staff-login-status');
+const consoleSection = document.querySelector('#staff-console');
+const logoutButton = document.querySelector('#logout-button');
+const refreshButton = document.querySelector('#refresh-registrations');
+const registrationList = document.querySelector('#registration-list');
+const registrationListStatus = document.querySelector('#registration-list-status');
+const articleForm = document.querySelector('#article-form');
+const articleFormStatus = document.querySelector('#article-form-status');
+
+const statusOptions = [
+  ['submitted', 'Data dikirim'], ['document-review', 'Pemeriksaan berkas'], ['needs-revision', 'Perlu perbaikan'],
+  ['academic-preparation', 'Persiapan akademik'], ['ready-for-departure', 'Siap keberangkatan'],
+  ['completed', 'Selesai'], ['cancelled', 'Dibatalkan']
+];
+
+function getSession() {
+  try {
+    return JSON.parse(sessionStorage.getItem('hamasahStaffSession') || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function clearSession() {
+  sessionStorage.removeItem('hamasahStaffSession');
+}
+
+function authHeaders() {
+  const session = getSession();
+  return session ? { Authorization: `Bearer ${session.accessToken}` } : {};
+}
+
+function renderRegistrations(items) {
+  registrationList.replaceChildren();
+  if (!items.length) {
+    const empty = document.createElement('p');
+    empty.textContent = 'Belum ada pendaftaran masuk.';
+    registrationList.append(empty);
+    return;
+  }
+
+  items.forEach((registration) => {
+    const card = document.createElement('article');
+    card.className = 'staff-registration';
+    const content = document.createElement('div');
+    const name = document.createElement('h2');
+    name.textContent = registration.applicant.applicantName;
+    const identity = document.createElement('p');
+    identity.textContent = `${registration.registrationId} · ${registration.program}`;
+    const meta = document.createElement('div');
+    meta.className = 'staff-registration__meta';
+    [
+      `WhatsApp calon: ${registration.applicant.phone}`,
+      `Wali: ${registration.applicant.guardianName || 'Belum diisi'} · ${registration.applicant.guardianPhone || '—'}`,
+      `Pendidikan: ${registration.applicant.educationLevel || '—'} · Domisili: ${registration.applicant.city || '—'}`,
+      `Status: ${registration.statusLabel} · Progres ${registration.progress}%`
+    ].forEach((text) => {
+      const line = document.createElement('p');
+      line.textContent = text;
+      meta.append(line);
+    });
+    content.append(name, identity, meta);
+
+    const controls = document.createElement('div');
+    controls.className = 'staff-registration__controls';
+    const select = document.createElement('select');
+    statusOptions.forEach(([value, label]) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = label;
+      option.selected = value === registration.status;
+      select.append(option);
+    });
+    const update = document.createElement('button');
+    update.className = 'button button--secondary';
+    update.type = 'button';
+    update.textContent = 'Simpan status';
+    update.addEventListener('click', async () => {
+      update.disabled = true;
+      try {
+        const response = await fetch(`/api/registrations/${encodeURIComponent(registration.registrationId)}/status`, {
+          method: 'PATCH',
+          headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: select.value })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Status belum dapat disimpan.');
+        await loadRegistrations();
+      } catch (error) {
+        registrationListStatus.textContent = error.message || 'Status belum dapat disimpan.';
+        registrationListStatus.classList.add('is-error');
+      } finally {
+        update.disabled = false;
+      }
+    });
+    controls.append(select, update);
+    card.append(content, controls);
+    registrationList.append(card);
+  });
+}
+
+async function loadRegistrations() {
+  registrationListStatus.classList.remove('is-error');
+  registrationListStatus.textContent = 'Memuat data pendaftar...';
+  const response = await fetch('/api/registrations', { headers: authHeaders() });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || 'Data pendaftar belum dapat dimuat.');
+  renderRegistrations(result.items);
+  registrationListStatus.textContent = `${result.items.length} pendaftaran tersedia.`;
+}
+
+function showConsole() {
+  loginSection.hidden = true;
+  consoleSection.hidden = false;
+  logoutButton.hidden = false;
+  loadRegistrations().catch((error) => {
+    registrationListStatus.textContent = error.message || 'Data pendaftar belum dapat dimuat.';
+    registrationListStatus.classList.add('is-error');
+  });
+}
+
+loginForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  loginStatus.classList.remove('is-error');
+  try {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: document.querySelector('#staff-email').value, password: document.querySelector('#staff-password').value })
+    });
+    const result = await response.json();
+    if (!response.ok || !['admin', 'registration-officer'].includes(result.account.role)) {
+      throw new Error(result.error || 'Akun ini tidak memiliki akses petugas.');
+    }
+    sessionStorage.setItem('hamasahStaffSession', JSON.stringify({ accessToken: result.accessToken, account: result.account }));
+    showConsole();
+  } catch (error) {
+    loginStatus.textContent = error.message || 'Login belum berhasil.';
+    loginStatus.classList.add('is-error');
+  }
+});
+
+refreshButton.addEventListener('click', () => loadRegistrations().catch((error) => {
+  registrationListStatus.textContent = error.message || 'Data pendaftar belum dapat dimuat.';
+  registrationListStatus.classList.add('is-error');
+}));
+
+articleForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  articleFormStatus.classList.remove('is-error');
+  try {
+    const response = await fetch('/api/articles', {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: document.querySelector('#article-title').value,
+        category: document.querySelector('#article-category').value,
+        excerpt: document.querySelector('#article-excerpt').value,
+        body: document.querySelector('#article-body').value
+      })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Artikel belum dapat diterbitkan.');
+    articleForm.reset();
+    document.querySelector('#article-category').value = 'Kegiatan';
+    articleFormStatus.textContent = `Artikel “${result.item.title}” sudah diterbitkan.`;
+  } catch (error) {
+    articleFormStatus.textContent = error.message || 'Artikel belum dapat diterbitkan.';
+    articleFormStatus.classList.add('is-error');
+  }
+});
+
+logoutButton.addEventListener('click', async () => {
+  await fetch('/api/auth/logout', { method: 'POST', headers: authHeaders() }).catch(() => {});
+  clearSession();
+  window.location.reload();
+});
+
+if (getSession()) showConsole();

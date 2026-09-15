@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Portal Hamasah International." />
+    <title>Portal | Hamasah International</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="website.css?v=17" />
+    <link rel="stylesheet" href="staff.css?v=1" />
+    <link rel="stylesheet" href="portal.css?v=1" />
+  </head>
+  <body class="staff-page">
+    <main class="staff-shell">
+      <header class="staff-header">
+        <a href="index.html" class="staff-brand">Hamasah <span>Portal</span></a>
+        <button class="button button--secondary" id="portal-logout" type="button" hidden>Keluar</button>
+      </header>
+      <section class="staff-login" id="portal-login" aria-labelledby="portal-login-title">
+        <p class="eyebrow">Portal Hamasah</p>
+        <h1 id="portal-login-title">Masuk ke akun Anda.</h1>
+        <form id="portal-login-form" class="staff-form">
+          <label for="portal-email">Email</label>
+          <input id="portal-email" type="email" autocomplete="email" required />
+          <label for="portal-password">Kata sandi</label>
+          <input id="portal-password" type="password" autocomplete="current-password" required />
+          <button class="button button--primary" type="submit">Masuk ke portal</button>
+          <p id="portal-login-status" class="form-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section id="portal-console" hidden>
+        <div class="staff-intro">
+          <div>
+            <p class="eyebrow" id="portal-role-label">Portal</p>
+            <h1 id="portal-title">Selamat datang.</h1>
+          </div>
+        </div>
+
+        <section class="portal-students" aria-labelledby="portal-students-title">
+          <h2 id="portal-students-title">Santri yang dapat Anda pantau</h2>
+          <p id="portal-students-status" class="form-status" role="status" aria-live="polite"></p>
+          <div class="portal-student-grid" id="portal-student-list"></div>
+          <section id="student-dashboard" class="portal-dashboard" hidden aria-live="polite"></section>
+        </section>
+
+        <section class="portal-admin" id="portal-admin" hidden aria-labelledby="portal-admin-title">
+          <div>
+            <p class="eyebrow">Admin</p>
+            <h2 id="portal-admin-title">Kelola akun internal.</h2>
+          </div>
+          <div class="portal-admin-grid">
+            <form id="account-form" class="staff-form">
+              <label for="account-name">Nama</label>
+              <input id="account-name" type="text" required />
+              <label for="account-email">Email</label>
+              <input id="account-email" type="email" required />
+              <label for="account-role">Peran</label>
+              <select id="account-role">
+                <option value="registration-officer">Petugas pendaftaran</option>
+                <option value="supervisor">Pengawas</option>
+                <option value="parent">Wali</option>
+                <option value="student">Santri</option>
+                <option value="admin">Admin</option>
+              </select>
+              <label for="account-password">Kata sandi awal</label>
+              <input id="account-password" type="password" minlength="12" required />
+              <button class="button button--primary" type="submit">Buat akun</button>
+              <p id="account-form-status" class="form-status" role="status" aria-live="polite"></p>
+            </form>
+            <div>
+              <h3 class="portal-list-title">Akun terdaftar</h3>
+              <div id="account-list" class="portal-account-list"></div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+    <script src="portal.js?v=1"></script>
+  </body>
+</html>

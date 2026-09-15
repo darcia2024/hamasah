@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Monitoring Santri | Hamasah International</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="website.css?v=17" />
+    <link rel="stylesheet" href="staff.css?v=1" />
+    <link rel="stylesheet" href="portal.css?v=1" />
+  </head>
+  <body class="staff-page">
+    <main class="staff-shell">
+      <header class="staff-header">
+        <a href="portal.html" class="staff-brand">Hamasah <span>Monitoring</span></a>
+        <a href="portal.html" class="button button--secondary">Portal akun</a>
+      </header>
+      <section id="monitoring-guard" class="staff-login" aria-live="polite">
+        <p class="eyebrow">Monitoring santri</p>
+        <h1>Memeriksa akses.</h1>
+        <p id="monitoring-guard-copy">Silakan masuk melalui Portal Hamasah untuk menggunakan halaman ini.</p>
+      </section>
+      <section id="monitoring-console" hidden>
+        <div class="staff-intro">
+          <div><p class="eyebrow">Pengawas dan admin</p><h1>Rekam jejak santri.</h1></div>
+          <button class="button button--secondary" id="reload-students" type="button">Perbarui data</button>
+        </div>
+        <div class="portal-admin-grid monitoring-grid">
+          <form id="student-form" class="staff-form">
+            <h2>Tambah santri</h2>
+            <label for="student-name">Nama lengkap</label><input id="student-name" type="text" required />
+            <label for="student-program">Program</label><input id="student-program" type="text" placeholder="Kuliah Al-Azhar" required />
+            <label for="student-city">Kota</label><input id="student-city" type="text" value="Kairo" required />
+            <label for="student-join-date">Tanggal bergabung</label><input id="student-join-date" type="date" required />
+            <button class="button button--primary" type="submit">Simpan profil santri</button>
+            <p id="student-form-status" class="form-status" role="status" aria-live="polite"></p>
+          </form>
+          <div>
+            <h2 class="portal-list-title">Pilih santri</h2>
+            <select id="monitoring-student-select" class="monitoring-select"><option value="">Pilih santri</option></select>
+            <button id="download-report" class="button button--secondary monitoring-download" type="button" hidden>Unduh ringkasan CSV</button>
+            <section id="monitoring-dashboard" class="portal-dashboard" hidden></section>
+          </div>
+        </div>
+        <section id="account-link-section" class="portal-admin" hidden>
+          <div><p class="eyebrow">Relasi akun</p><h2>Hubungkan akun wali dan santri.</h2></div>
+          <form id="account-link-form" class="staff-form record-form">
+            <label for="linked-student-account">Akun santri</label><select id="linked-student-account"><option value="">Belum dihubungkan</option></select>
+            <label for="linked-parent-accounts">Akun wali</label><select id="linked-parent-accounts" multiple size="4"></select>
+            <button class="button button--primary" type="submit">Simpan relasi akun</button>
+            <p id="account-link-status" class="form-status" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+        <section id="record-section" class="portal-admin" hidden>
+          <div><p class="eyebrow">Catatan pembinaan</p><h2>Tambah rekam kegiatan.</h2></div>
+          <form id="record-form" class="staff-form record-form">
+            <label for="record-kind">Jenis catatan</label>
+            <select id="record-kind">
+              <option value="activities">Kegiatan</option><option value="attendance">Kehadiran</option><option value="achievements">Achievement</option><option value="evaluations">Evaluasi</option><option value="violations">Pelanggaran</option>
+            </select>
+            <label for="record-title" id="record-title-label">Judul kegiatan</label><input id="record-title" type="text" />
+            <label for="record-attendance" id="record-attendance-label" hidden>Status kehadiran</label>
+            <select id="record-attendance" hidden><option value="present">Hadir</option><option value="late">Terlambat</option><option value="excused">Izin</option><option value="absent">Tidak hadir</option></select>
+            <label for="record-note" id="record-note-label">Deskripsi</label><textarea id="record-note" rows="4"></textarea>
+            <label for="record-date">Tanggal catatan</label><input id="record-date" type="date" required />
+            <button class="button button--primary" type="submit">Simpan catatan</button>
+            <p id="record-form-status" class="form-status" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+      </section>
+    </main>
+    <script src="monitoring.js?v=1"></script>
+  </body>
+</html>

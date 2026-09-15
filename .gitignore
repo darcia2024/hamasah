@@ -4,3 +4,15 @@
 Thumbs.db
 *.log
 .vercel
+.env
+data/registrations.json
+data/registrations.json.tmp
+data/accounts.json
+data/accounts.json.tmp
+data/students.json
+data/students.json.tmp
+data/lms.json
+data/lms.json.tmp
+data/operations.json
+data/operations.json.tmp
+node_modules/

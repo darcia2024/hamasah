@@ -1,0 +1,45 @@
+# Phase 2: Fondasi Pendaftaran Calon Santri
+
+## Tujuan
+
+Membangun aturan proses pendaftaran yang dapat digunakan bersama oleh form publik, akun calon santri, dan dashboard petugas. Phase ini mengutamakan data dan logika, bukan tampilan baru.
+
+## Yang sudah tersedia
+
+- Kontrak data pendaftaran: calon peserta, wali, jalur program, pendidikan terakhir, kota, dan persetujuan.
+- Normalisasi nomor WhatsApp Indonesia menjadi format internasional.
+- Validasi data wajib sesuai jalur Kuliah, Ma'had, atau Hamasah Courses.
+- Nomor registrasi yang konsisten, misalnya `HI-REG-2026-00018`.
+- Status resmi: data dikirim, pemeriksaan berkas, perbaikan, persiapan akademik, siap keberangkatan, selesai, dan dibatalkan.
+- Aturan perubahan status berbasis peran calon pendaftar, petugas pendaftaran, dan admin.
+- Riwayat perubahan status yang tidak mengubah data sebelumnya.
+- Service pendaftaran yang menyiapkan respons aman untuk calon pendaftar: nomor registrasi, progres, status, ringkasan berkas, dan riwayat tanpa nomor telepon, nama wali, atau lokasi penyimpanan berkas.
+- Metadata berkas dengan validasi jenis berkas dan referensi penyimpanan, siap dihubungkan ke object storage privat.
+
+## Kontrak backend yang akan dihubungkan
+
+| Endpoint | Peran | Hasil |
+| --- | --- | --- |
+| `POST /api/registrations` | Publik | Membuat data awal, nomor registrasi, dan token akses satu kali |
+| `GET /api/registrations/:registrationId` | Calon pendaftar terautentikasi | Melihat status dan daftar kebutuhan berkas dengan Bearer token |
+| `PATCH /api/registrations/:registrationId/status` | Petugas atau admin | Mengubah status berdasarkan aturan domain |
+| `POST /api/registrations/:registrationId/documents` | Calon pendaftar atau petugas | Menambah metadata berkas tanpa mengekspos berkas ke publik |
+
+## Kriteria selesai sebelum backend produksi
+
+- Database dan penyimpanan dokumen terenkripsi dipilih dan dikonfigurasi.
+- Identitas calon pendaftar, wali, dan petugas terlindungi dengan autentikasi serta otorisasi berbasis peran.
+- Nomor urut registrasi dibuat oleh database dalam transaksi, bukan oleh browser.
+- Pengiriman formulir publik terhubung ke API dan memiliki halaman konfirmasi yang tidak membocorkan data pribadi.
+- Petugas dapat meminta revisi berkas dengan catatan yang tercatat pada riwayat pendaftaran.
+- Kunci API petugas sementara diganti dengan akun staf berbasis role pada Phase 3. Jangan menjalankan endpoint administrasi sebelum `HAMASAH_STAFF_API_KEY` diisi pada environment server.
+
+## Cara menguji aturan domain
+
+Jalankan dua perintah berikut dari root proyek.
+
+```powershell
+node website/registration-domain.test.js
+node website/registration-service.test.js
+node server/app.test.js
+```
