@@ -1,0 +1,12 @@
+# Vercel hanya menyajikan prototype proposal (landing page di root).
+# Aplikasi nyata (server/, database/, website/), dokumen internal, dan
+# file konfigurasi lain tidak ikut di-deploy.
+#
+# Pola allowlist: abaikan semua isi root, lalu izinkan yang dipakai prototype.
+# Jika prototype menambah file baru di root, tambahkan barisnya di bawah.
+/*
+!index.html
+!styles.css
+!app.js
+!assets
+!vercel.json
