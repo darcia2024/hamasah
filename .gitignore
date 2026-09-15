@@ -16,3 +16,9 @@ data/lms.json.tmp
 data/operations.json
 data/operations.json.tmp
 node_modules/
+data/dev-db/
+data/dev-storage/
+*.tmp
+coverage/
+.env.*
+!.env.example
