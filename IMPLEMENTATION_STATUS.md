@@ -51,6 +51,7 @@ Selesai sebagai API pembelajaran inti.
 
 ```powershell
 Copy-Item .env.example .env
+# Sesuaikan APP_ENV dengan database yang dituju DATABASE_URL.
 # Isi HAMASAH_BOOTSTRAP_KEY pada environment terminal Anda.
 npm start
 ```
@@ -69,7 +70,8 @@ Halaman internal tersedia di `/website/staff.html`, `/website/portal.html`, `/we
 ## Sebelum go-live penuh
 
 - Container Node tersedia melalui `Dockerfile`; jalankan pada platform yang menyediakan volume atau database terkelola.
-- Validasi environment production tersedia untuk `DATABASE_URL`, bucket privat, dan bootstrap key.
+- Validasi environment tersedia: `DATABASE_URL` selalu wajib, bucket privat wajib saat `APP_ENV=production`, dan bootstrap key diperiksa panjangnya jika diisi.
+- Skrip yang menulis ke database (migrate, seed artikel, auth-live-check) menolak `APP_ENV` kosong, dan menolak production tanpa konfirmasi `ALLOW_PRODUCTION_WRITE=I_UNDERSTAND` di terminal. Lihat `PRODUCTION_DEPLOYMENT.md`.
 - Ganti repository JSON yang tersisa dengan adapter PostgreSQL dan object storage privat untuk dokumen.
 - Hubungkan reset password ke email atau WhatsApp resmi.
 - Simpan rahasia pada environment deployment, bukan file `.env` di repositori.

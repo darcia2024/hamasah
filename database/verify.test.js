@@ -17,11 +17,13 @@ async function run() {
   }
   const count = await verifyDatabase({
     environment: {
+      APP_ENV: 'test',
       DATABASE_URL: 'postgresql://test:test@localhost:5432/hamasah',
       STORAGE_BUCKET: 'hamasah-private-documents',
       HAMASAH_BOOTSTRAP_KEY: 'this-is-a-safe-test-key-with-more-than-32-characters'
     },
-    Client: MockClient
+    Client: MockClient,
+    envFilePath: null
   });
   assert.equal(count, REQUIRED_TABLES.length);
   assert.equal(ended, true);

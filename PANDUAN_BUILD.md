@@ -533,6 +533,13 @@ Dikerjakan manusia. Sonnet tidak ikut.
 
 **Jangan:** menjalankan skrip ke database luar untuk "mencoba".
 
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- `assertDatabaseWriteAllowed` juga **menolak `APP_ENV` kosong**. Jika kosong dianggap `development`, `.env` yang mengarah ke production tanpa `APP_ENV` akan lolos.
+- `ALLOW_PRODUCTION_WRITE` **tidak pernah dibaca dari file** oleh `loadEnvironmentFile`, jadi hanya berlaku jika diset di terminal.
+- `HAMASAH_BOOTSTRAP_KEY` tidak wajib di lingkungan mana pun (dihapus setelah admin pertama dibuat, Task 8.13), tapi panjangnya tetap diperiksa jika diisi. `readProductionConfig` kini juga mengembalikan `appEnvironment`.
+- `migrate`, `seedArticles`, dan `verifyDatabase` menerima opsi `envFilePath` (default `.env` di root). **Test wajib memanggilnya dengan `envFilePath: null` dan `APP_ENV: 'test'`** supaya `.env` di laptop tidak ikut terbaca.
+- Verifikasi CLI memakai server TCP palsu di localhost: kasus yang ditolak menghasilkan 0 percobaan koneksi, sedangkan kontrol positif (`staging`) terbukti mencoba konek.
+
 ---
 
 ### Task 6.4 `[INTI]` `[KOMPLEKS]` Lapisan database bersama, transaksi yang benar, dan harness PGlite
@@ -605,7 +612,7 @@ Dikerjakan manusia. Sonnet tidak ikut.
    - Gagal jika ada migrasi yang belum diterapkan.
    - Gagal jika ada tabel di schema `public` tanpa RLS: `SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind = 'r' AND NOT c.relrowsecurity`. Pemeriksaan RLS aktif mulai Task 6.6.
 3. `validate-schema.js` membaca semua file migrasi.
-4. `server/test-support/test-database.js` memakai runner.
+4. `server/test-support/test-database.js` memakai runner. Panggil runner dengan `APP_ENV: 'test'` dan `envFilePath: null` (pengaman dari Task 6.3 menolak `APP_ENV` kosong).
 5. Test (PGlite): database kosong menerapkan semua migrasi; dijalankan ulang tidak melakukan apa-apa; checksum berubah menghasilkan error; skenario baseline.
 6. Perbarui `database/README.md` dan `PRODUCTION_DEPLOYMENT.md` (urutan deploy memakai runner, termasuk langkah baseline untuk database yang sudah ada).
 

@@ -1,11 +1,13 @@
-const path = require('node:path');
-const { loadEnvironmentFile } = require('./migrate');
-loadEnvironmentFile(path.join(__dirname, '..', '.env'), process.env);
+const { DEFAULT_ENV_FILE, loadEnvironmentFile } = require('./migrate');
+const { assertDatabaseWriteAllowed } = require('../server/environment');
+loadEnvironmentFile(DEFAULT_ENV_FILE, process.env);
 const email = `auth-check-${Date.now()}@hamasah.test`;
 const baseUrl = process.env.AUTH_CHECK_BASE_URL || 'http://127.0.0.1:4323';
 const { Client } = require('pg');
 
 async function run() {
+  // Skrip ini menghapus akun di database, jadi wajib lolos pengaman sebelum koneksi dibuka.
+  assertDatabaseWriteAllowed(process.env);
   const cleanup = new Client({ connectionString: process.env.DATABASE_URL });
   await cleanup.connect();
   await cleanup.query("DELETE FROM accounts WHERE email LIKE 'auth-check-%@hamasah.test'");

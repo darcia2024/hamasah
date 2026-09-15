@@ -1,5 +1,4 @@
-const path = require('node:path');
-const { loadEnvironmentFile } = require('./migrate');
+const { DEFAULT_ENV_FILE, loadEnvironmentFile } = require('./migrate');
 const { readProductionConfig } = require('../server/production-config');
 
 const REQUIRED_TABLES = Object.freeze([
@@ -19,8 +18,9 @@ function assertRequiredTables(tableNames) {
   return REQUIRED_TABLES.length;
 }
 
-async function verifyDatabase({ environment = { ...process.env }, Client } = {}) {
-  loadEnvironmentFile(path.join(__dirname, '..', '.env'), environment);
+// Hanya membaca, jadi tidak memakai assertDatabaseWriteAllowed.
+async function verifyDatabase({ environment = { ...process.env }, Client, envFilePath = DEFAULT_ENV_FILE } = {}) {
+  loadEnvironmentFile(envFilePath, environment);
   const config = readProductionConfig(environment);
   const PgClient = Client || require('pg').Client;
   const client = new PgClient({ connectionString: config.databaseUrl });

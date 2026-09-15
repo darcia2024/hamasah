@@ -4,17 +4,41 @@
 
 - PostgreSQL terkelola dan `DATABASE_URL` dengan akses TLS.
 - Bucket object storage privat untuk berkas pendaftaran.
-- `HAMASAH_BOOTSTRAP_KEY` acak minimal 32 karakter.
+- `HAMASAH_BOOTSTRAP_KEY` acak minimal 32 karakter, hanya sampai akun admin pertama dibuat.
 - Domain dan environment variables pada platform deployment.
 
 ## Urutan deploy
 
 1. Buat database PostgreSQL kosong.
 2. Terapkan [schema database](database/001_initial_schema.sql) dengan `psql $env:DATABASE_URL -f database/001_initial_schema.sql`.
-3. Isi `DATABASE_URL`, `STORAGE_BUCKET`, dan `HAMASAH_BOOTSTRAP_KEY` pada environment deployment.
+3. Isi `APP_ENV=production`, `DATABASE_URL`, `STORAGE_BUCKET`, dan `HAMASAH_BOOTSTRAP_KEY` pada environment deployment.
 4. Jalankan `npm test` sebelum release.
 5. Build container dari `Dockerfile`, deploy, lalu jalankan smoke test ke `/api/health` dan halaman publik.
-6. Buat akun admin pertama melalui endpoint bootstrap yang hanya aktif sekali.
+6. Buat akun admin pertama melalui endpoint bootstrap yang hanya aktif sekali, lalu hapus `HAMASAH_BOOTSTRAP_KEY` dari environment.
+
+## Pengaman skrip database
+
+Skrip yang menulis ke database (`npm run migrate`, `npm run seed:articles`, dan `database/auth-live-check.js`) memeriksa `APP_ENV` sebelum membuka koneksi:
+
+| `APP_ENV` | Hasil |
+| --- | --- |
+| Kosong | Ditolak. Tentukan dulu lingkungan yang dituju. |
+| `development`, `test`, `staging` | Diizinkan. |
+| `production` | Ditolak, kecuali `ALLOW_PRODUCTION_WRITE=I_UNDERSTAND` diset di terminal. |
+| Nilai lain | Ditolak. |
+
+`APP_ENV` harus sesuai dengan database yang dituju `DATABASE_URL`. Jika `.env` di laptop masih mengarah ke database production, isi `APP_ENV=production` agar pengaman aktif.
+
+`ALLOW_PRODUCTION_WRITE` sengaja **tidak pernah dibaca dari file `.env`**. Set hanya untuk satu sesi terminal, setelah backup dibuat:
+
+```powershell
+$env:APP_ENV = 'production'
+$env:ALLOW_PRODUCTION_WRITE = 'I_UNDERSTAND'
+npm run migrate
+Remove-Item Env:ALLOW_PRODUCTION_WRITE
+```
+
+`npm run verify:database` hanya membaca, jadi tidak membutuhkan konfirmasi ini.
 
 ## Batas implementasi saat ini
 

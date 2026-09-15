@@ -1,7 +1,8 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
-const { loadEnvironmentFile } = require('./migrate');
+const { DEFAULT_ENV_FILE, loadEnvironmentFile } = require('./migrate');
+const { assertDatabaseWriteAllowed } = require('../server/environment');
 const { readProductionConfig } = require('../server/production-config');
 
 function readSeedArticles(filePath) {
@@ -25,8 +26,9 @@ function validateArticle(article) {
   }
 }
 
-async function seedArticles({ environment = { ...process.env }, Client, articles } = {}) {
-  loadEnvironmentFile(path.join(__dirname, '..', '.env'), environment);
+async function seedArticles({ environment = { ...process.env }, Client, articles, envFilePath = DEFAULT_ENV_FILE } = {}) {
+  loadEnvironmentFile(envFilePath, environment);
+  assertDatabaseWriteAllowed(environment);
   const config = readProductionConfig(environment);
   const seedArticles = articles || readSeedArticles(path.join(__dirname, '..', 'data', 'articles.json'));
   seedArticles.forEach(validateArticle);
