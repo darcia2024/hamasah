@@ -13,7 +13,35 @@ const ROLES = Object.freeze({
 });
 
 const ROLE_VALUES = Object.freeze(Object.values(ROLES));
-const SESSION_TTL_MS = 1000 * 60 * 60 * 12;
+
+const JAM = 1000 * 60 * 60;
+const HARI = 24 * JAM;
+
+// Keputusan K17 (16 Sep 2026). Akun staf memegang data banyak orang, jadi sesinya
+// pendek dan tidak diperpanjang. Wali dan santri hanya melihat datanya sendiri dan
+// membukanya dari HP pribadi, jadi sesinya panjang dan diperpanjang selama aktif.
+// Sesi yang dipaksa pendek untuk wali berujung pada kata sandi yang ditulis di
+// catatan HP, dan itu justru lebih berbahaya.
+const SESSION_TTL_MS = Object.freeze({
+  [ROLES.ADMIN]: 12 * JAM,
+  [ROLES.REGISTRATION_OFFICER]: 12 * JAM,
+  [ROLES.SUPERVISOR]: 12 * JAM,
+  [ROLES.TEACHER]: 12 * JAM,
+  [ROLES.FINANCE]: 12 * JAM,
+  [ROLES.PARENT]: 30 * HARI,
+  [ROLES.STUDENT]: 30 * HARI
+});
+
+// Role yang sesinya ikut diperpanjang setiap kali dipakai.
+const SLIDING_ROLES = Object.freeze([ROLES.PARENT, ROLES.STUDENT]);
+
+// Penulisan ulang waktu kedaluwarsa dibatasi supaya setiap permintaan tidak
+// berubah menjadi satu operasi tulis ke database.
+const TOUCH_INTERVAL_MS = 15 * 60 * 1000;
+
+function sessionTtlFor(role) {
+  return SESSION_TTL_MS[role] || 12 * JAM;
+}
 const RESET_TTL_MS = 1000 * 60 * 30;
 
 function clone(value) {
@@ -104,8 +132,34 @@ function createMemorySessionStore() {
     save(session) {
       sessions.set(session.tokenHash, clone(session));
     },
+    touch(tokenHash, { expiresAt, lastSeenAt }) {
+      const session = sessions.get(tokenHash);
+      if (session) {
+        sessions.set(tokenHash, { ...session, expiresAt, lastSeenAt });
+      }
+    },
     remove(tokenHash) {
       sessions.delete(tokenHash);
+    },
+    removeForAccount(accountId) {
+      let dihapus = 0;
+      for (const [tokenHash, session] of sessions) {
+        if (session.accountId === accountId) {
+          sessions.delete(tokenHash);
+          dihapus += 1;
+        }
+      }
+      return dihapus;
+    },
+    removeExpired(isoTime) {
+      let dihapus = 0;
+      for (const [tokenHash, session] of sessions) {
+        if (session.expiresAt < isoTime) {
+          sessions.delete(tokenHash);
+          dihapus += 1;
+        }
+      }
+      return dihapus;
     }
   };
 }
@@ -163,7 +217,8 @@ function createIdentityService(options) {
     await sessionStore.save({
       tokenHash: hashSecret(accessToken),
       accountId: account.id,
-      expiresAt: new Date(issuedAt.getTime() + SESSION_TTL_MS).toISOString()
+      expiresAt: new Date(issuedAt.getTime() + sessionTtlFor(account.role)).toISOString(),
+      lastSeenAt: issuedAt.toISOString()
     });
     return { accessToken, account: publicAccount(account) };
   }
@@ -190,11 +245,62 @@ function createIdentityService(options) {
     if (!account || !account.active) {
       return { ok: false, error: 'Akun tidak dapat digunakan.' };
     }
+
+    // Sesi wali dan santri diperpanjang selama masih dipakai, tetapi tulisannya
+    // dibatasi sekali per 15 menit supaya membuka halaman tidak berarti menulis
+    // ke database setiap kali.
+    if (SLIDING_ROLES.includes(account.role) && typeof sessionStore.touch === 'function') {
+      const saatIni = now();
+      const terakhir = session.lastSeenAt ? new Date(session.lastSeenAt).getTime() : 0;
+      if (saatIni.getTime() - terakhir >= TOUCH_INTERVAL_MS) {
+        await sessionStore.touch(tokenHash, {
+          expiresAt: new Date(saatIni.getTime() + sessionTtlFor(account.role)).toISOString(),
+          lastSeenAt: saatIni.toISOString()
+        });
+      }
+    }
+
     return { ok: true, value: publicAccount(account) };
   }
 
   async function logout(accessToken) {
     await sessionStore.remove(hashSecret(accessToken || ''));
+  }
+
+  // Mencabut seluruh sesi satu akun. Dipakai saat perangkat hilang, dan saat akun
+  // dinonaktifkan.
+  async function logoutAll(accountId) {
+    if (typeof sessionStore.removeForAccount !== 'function') {
+      return 0;
+    }
+    return sessionStore.removeForAccount(accountId);
+  }
+
+  // Menonaktifkan akun sekaligus mencabut sesinya. Tanpa pencabutan, akun yang
+  // sudah dinonaktifkan masih bisa dipakai sampai sesinya kedaluwarsa sendiri,
+  // dan untuk wali itu berarti sampai 30 hari.
+  async function setAccountActive(accountId, active, actor) {
+    if (!actor || actor.role !== ROLES.ADMIN) {
+      return { ok: false, error: 'Akses admin diperlukan.' };
+    }
+    const account = await accountStore.getById(accountId);
+    if (!account) {
+      return { ok: false, error: 'Akun tidak ditemukan.' };
+    }
+    if (account.id === actor.id && !active) {
+      return { ok: false, error: 'Akun yang sedang dipakai tidak dapat dinonaktifkan sendiri.' };
+    }
+    const disimpan = await accountStore.save({ ...account, active: Boolean(active), updatedAt: now().toISOString() });
+    const dicabut = active ? 0 : await logoutAll(accountId);
+    return { ok: true, value: { account: publicAccount(disimpan), sessionsRevoked: dicabut } };
+  }
+
+  // Dipanggil job harian.
+  async function purgeExpiredSessions() {
+    if (typeof sessionStore.removeExpired !== 'function') {
+      return 0;
+    }
+    return sessionStore.removeExpired(now().toISOString());
   }
 
   async function listAccounts() {
@@ -247,13 +353,20 @@ function createIdentityService(options) {
     listAccounts,
     login,
     logout,
+    logoutAll,
     publicAccount,
-    resetPassword
+    purgeExpiredSessions,
+    resetPassword,
+    setAccountActive
   });
 }
 
 module.exports = {
   ROLES,
+  SESSION_TTL_MS,
+  SLIDING_ROLES,
+  TOUCH_INTERVAL_MS,
+  sessionTtlFor,
   createIdentityService,
   createMemoryAccountStore,
   createMemorySessionStore,

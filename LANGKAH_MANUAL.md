@@ -41,7 +41,13 @@ Isi commit tersebut: mode dev PGlite, konversi tiga service menjadi async, store
 >
 > Migrasi 007 (role `teacher` dan `finance`) juga sudah diterapkan ke production pada 16 Sep 2026. Verifikasi: 7 migrasi, 21 tabel, semua ber-RLS.
 >
-> **Masih menunggu:** migrasi `008_dormitories.sql` (tabel asrama, penempatan santri, penugasan musyrif). Perintahnya sama persis dengan bagian 5 di bawah. Migrasi ini menambah 2 tabel dan 2 kolom yang boleh kosong, jadi data santri yang sudah ada tidak berubah.
+> **Masih menunggu:** migrasi `008_dormitories.sql` (asrama dan penugasan musyrif), `009_audit_events.sql` (catatan audit), dan `010_session_last_seen.sql` (durasi sesi per role). Ketiganya diterapkan sekaligus dengan perintah yang sama persis seperti bagian 5 di bawah. Semuanya menambah tabel atau kolom baru yang boleh kosong, jadi data yang sudah ada tidak berubah.
+>
+> **Satu variabel environment baru wajib diisi sebelum deploy berikutnya:** `IP_HASH_SECRET`, minimal 32 karakter acak. Dipakai mengacak alamat IP di catatan audit. Tanpa ini, `npm start` akan berhenti dengan pesan jelas di staging dan production. Buat nilainya dengan perintah di bawah, lalu simpan di `.env` server (bukan di repo):
+>
+> ```bash
+> node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+> ```
 >
 > Setelah migrasi 008 diterapkan, **perhatikan ini:** musyrif yang belum ditugaskan ke asrama tidak akan melihat santri mana pun. Jadi begitu ada akun musyrif, admin harus membuat daftar asrama dan menugaskan musyrifnya lewat halaman Monitoring, lalu menempatkan setiap santri ke asramanya.
 >

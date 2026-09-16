@@ -1335,6 +1335,18 @@ Pola sama dengan Task 7.2 untuk `server/lms-service.js` dan `server/lms-file-sto
 
 ---
 
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- Migrasi `010_session_last_seen.sql` menambah `last_seen_at` dan indeks pada `expires_at` untuk pembersihan.
+- Durasi sesi mengikuti K17: lima role staf 12 jam, wali dan santri 30 hari. Role yang tidak dikenal jatuh ke durasi **terpendek**, bukan terpanjang, supaya kesalahan konfigurasi tidak berujung sesi panjang.
+- Hanya sesi wali dan santri yang diperpanjang saat dipakai. Sesi staf sengaja tidak, karena akun staf memegang data banyak orang.
+- Perpanjangan ditulis paling sering sekali per 15 menit (`TOUCH_INTERVAL_MS`). Tanpa batas itu, setiap membuka halaman berarti satu operasi tulis ke database.
+- `POST /api/auth/logout-all` mencabut seluruh sesi akun sendiri, untuk kasus perangkat hilang, tanpa harus menunggu admin.
+- `PATCH /api/accounts/:id/active` menonaktifkan akun **sekaligus mencabut sesinya**. Tanpa pencabutan, akun yang sudah dinonaktifkan tetap bisa dipakai sampai sesinya kedaluwarsa sendiri, dan untuk wali itu berarti sampai 30 hari. Admin tidak bisa menonaktifkan akunnya sendiri.
+- Sesi kedaluwarsa dibersihkan oleh timer harian di dalam proses, bersama pembersihan audit. Sesi kedaluwarsa memang sudah ditolak saat dipakai, tetapi barisnya tetap menumpuk kalau tidak pernah dibuang.
+- Halaman portal belum punya tombol "keluar dari semua perangkat" maupun tombol nonaktifkan akun; keduanya baru endpoint. Penambahannya ke layar admin masuk Task 8.8 dan 9.6.
+
+---
+
 ### Task 8.10 `[INTI]` `[KOMPLEKS]` Penyimpanan berkas privat
 
 **Pendekatan:** browser mengirim isi berkas **ke server kita** sebagai body mentah (bukan multipart), lalu server memeriksa ukuran dan tanda tangan byte (magic bytes) sebelum meneruskan ke Supabase Storage. Cara ini tidak membutuhkan parser multipart dan memastikan isi berkas benar-benar divalidasi.
@@ -2598,7 +2610,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [x] 8.6 Header keamanan dan CSP
 - [ ] 8.7 Notification outbox dan email
 - [ ] 8.8 Undangan akun, aktivasi, reset password
-- [ ] 8.9 Sesi per role
+- [x] 8.9 Sesi per role
 - [ ] 8.10 Penyimpanan berkas privat
 - [ ] 8.11 Cloudflare Turnstile
 - [ ] 8.12 CI GitHub Actions

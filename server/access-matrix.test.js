@@ -142,6 +142,11 @@ async function run() {
         body: () => ({ name: 'Akun Tambahan', email: `tambahan-${Math.random().toString(36).slice(2)}@hamasah.test`, role: R.PARENT, password: KATA_SANDI })
       },
 
+      {
+        permission: 'accounts.manage', method: 'PATCH', path: () => `/api/accounts/${akunId[R.TEACHER]}/active`,
+        body: () => ({ active: true })
+      },
+
       { permission: 'audit.read', method: 'GET', path: '/api/audit?limit=5' },
 
       { permission: 'dormitories.manage', method: 'GET', path: '/api/dormitories' },

@@ -85,6 +85,23 @@ module.exports = [
     }
   },
 
+  // Mencabut seluruh sesi akun sendiri. Dipakai kalau perangkat hilang atau
+  // dipinjam orang lain, tanpa harus menunggu admin.
+  {
+    method: 'POST',
+    pattern: /^\/api\/auth\/logout-all$/,
+    session: true,
+    async handler({ response, services, auth, ip }) {
+      const actor = await auth.actor();
+      const dicabut = await services.identityService.logoutAll(actor.id);
+      await services.auditService.record({
+        action: ACTIONS.LOGOUT_ALL, actor, ip,
+        entityType: 'account', entityId: actor.id, metadata: { sesiDicabut: dicabut }
+      });
+      json(response, 200, { sessionsRevoked: dicabut });
+    }
+  },
+
   {
     method: 'GET',
     pattern: /^\/api\/me$/,

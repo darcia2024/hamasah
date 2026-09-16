@@ -47,6 +47,7 @@ const ROUTES = Object.freeze([
 
 const READINESS_TIMEOUT_MS = 2000;
 const AUDIT_PURGE_INTERVAL_MS = 24 * 60 * 60 * 1000;
+const SESSION_PURGE_INTERVAL_MS = 24 * 60 * 60 * 1000;
 // Kunci pengembangan. readProductionConfig menolak nilai ini di staging dan production.
 const DEV_IP_HASH_SECRET = 'kunci-hash-ip-khusus-pengembangan';
 
@@ -236,6 +237,17 @@ function createHamasahApp(options) {
   // Pembersihan catatan audit lama. Dijalankan di dalam proses aplikasi karena
   // belum ada penjadwal terpisah; timer di-unref supaya tidak menahan proses berhenti.
   let auditPurgeTimer = null;
+  let sessionPurgeTimer = null;
+
+  // Timer di-unref supaya tidak menahan proses berhenti saat shutdown.
+  function jadwalkan(pekerjaan, jeda) {
+    const timer = setInterval(pekerjaan, jeda);
+    if (typeof timer.unref === 'function') {
+      timer.unref();
+    }
+    return timer;
+  }
+
   function startAuditRetention() {
     async function bersihkan() {
       try {
@@ -247,10 +259,24 @@ function createHamasahApp(options) {
         console.error(`[audit] Pembersihan catatan lama gagal: ${error.message}`);
       }
     }
-    auditPurgeTimer = setInterval(bersihkan, AUDIT_PURGE_INTERVAL_MS);
-    if (typeof auditPurgeTimer.unref === 'function') {
-      auditPurgeTimer.unref();
+    auditPurgeTimer = jadwalkan(bersihkan, AUDIT_PURGE_INTERVAL_MS);
+    return bersihkan();
+  }
+
+  // Sesi kedaluwarsa memang sudah ditolak saat dipakai, tetapi barisnya tetap
+  // menumpuk di database kalau tidak pernah dibuang.
+  function startSessionCleanup() {
+    async function bersihkan() {
+      try {
+        const dihapus = await identityService.purgeExpiredSessions();
+        if (dihapus > 0) {
+          console.log(`[sesi] ${dihapus} sesi kedaluwarsa dihapus.`);
+        }
+      } catch (error) {
+        console.error(`[sesi] Pembersihan sesi kedaluwarsa gagal: ${error.message}`);
+      }
     }
+    sessionPurgeTimer = jadwalkan(bersihkan, SESSION_PURGE_INTERVAL_MS);
     return bersihkan();
   }
 
@@ -260,6 +286,7 @@ function createHamasahApp(options) {
       // app dirakit, supaya test yang hanya merakit app tidak menyentuh database.
       if (config.auditRetention !== false && !auditPurgeTimer) {
         startAuditRetention();
+        startSessionCleanup();
       }
       return http.createServer(requestListener);
     },
@@ -269,6 +296,10 @@ function createHamasahApp(options) {
       if (auditPurgeTimer) {
         clearInterval(auditPurgeTimer);
         auditPurgeTimer = null;
+      }
+      if (sessionPurgeTimer) {
+        clearInterval(sessionPurgeTimer);
+        sessionPurgeTimer = null;
       }
       if (ownsDatabase) {
         await database.close();

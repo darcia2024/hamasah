@@ -20,6 +20,7 @@ const ACTIONS = Object.freeze({
   LOGIN_RATE_LIMITED: 'auth.login.rate-limited',
   LOGOUT: 'auth.logout',
   LOGOUT_ALL: 'auth.logout-all',
+  ACCOUNT_ACTIVE_CHANGED: 'account.active-changed',
   PASSWORD_RESET_REQUESTED: 'auth.password-reset.requested',
   PASSWORD_RESET_COMPLETED: 'auth.password-reset.completed',
   ACCOUNT_CREATED: 'account.created',
