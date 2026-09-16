@@ -28,6 +28,7 @@ const LABEL = {
   'auth.password-reset.completed': 'Kata sandi diganti',
   'account.created': 'Akun dibuat',
   'account.bootstrapped': 'Admin pertama dibuat',
+  'account.active-changed': 'Status aktif akun diubah',
   'registration.created': 'Pendaftaran masuk',
   'registration.status-changed': 'Status pendaftaran berubah',
   'registration.document-added': 'Dokumen pendaftaran ditambahkan',
@@ -38,6 +39,8 @@ const LABEL = {
   'dormitory.created': 'Asrama dibuat',
   'dormitory.staff-assigned': 'Musyrif ditugaskan',
   'dormitory.staff-unassigned': 'Penugasan musyrif dicabut',
+  'file.uploaded': 'Berkas diunggah',
+  'file.downloaded': 'Berkas diunduh',
   'invoice.created': 'Invoice dibuat',
   'invoice.paid': 'Invoice ditandai lunas'
 };
