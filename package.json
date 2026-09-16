@@ -14,6 +14,7 @@
     "verify:database": "node database/verify.js",
     "seed:articles": "node database/seed-articles.js",
     "check:docker": "node scripts/check-docker-context.js",
+    "smoke-test": "node scripts/smoke.js",
     "test": "node database/validate-schema.js && node --test"
   },
   "dependencies": {

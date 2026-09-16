@@ -77,13 +77,34 @@ $env:APP_ENV="staging"; npm run verify:database
 
 > Jangan menjalankan daftar periksa ini di production. Alurnya membuat santri, invoice, dan pendaftaran contoh; data fiktif tidak boleh masuk ke database yang dipakai keluarga sungguhan. Tunggu project staging dari langkah 1.
 
-Jalankan aplikasi ke staging, lalu periksa alur berikut lewat browser:
+Jalankan aplikasi ke staging (di terminal terpisah, biarkan tetap menyala):
 
 ```bash
 $env:APP_ENV="staging"; npm start
 ```
 
-Daftar periksa:
+### Cara cepat: skrip otomatis
+
+`scripts/smoke.js` (dipanggil lewat `npm run smoke-test`) menjalankan seluruh daftar periksa di bawah lewat HTTP, termasuk uji unggah/unduh berkas. Skrip ini **tidak pernah dijalankan otomatis oleh Sonnet** — menjalankannya berarti membuat data sungguhan (akun, santri, invoice, pendaftaran, berkas) di lingkungan target, jadi ini murni tugas Anda. Di terminal lain (server staging tetap menyala di terminal pertama):
+
+```bash
+$env:SMOKE_BASE_URL="http://127.0.0.1:4273"
+$env:SMOKE_ADMIN_EMAIL="admin@hamasah.test"
+$env:SMOKE_ADMIN_PASSWORD="<kata sandi admin staging Anda>"
+npm run smoke-test
+```
+
+Kalau akun admin ini belum pernah dibuat di staging (baru pertama kali), tambahkan satu baris lagi sebelum `npm run smoke-test`, isi dengan nilai `HAMASAH_BOOTSTRAP_KEY` dari `.env` staging:
+
+```bash
+$env:SMOKE_BOOTSTRAP_KEY="<HAMASAH_BOOTSTRAP_KEY dari .env staging>"
+```
+
+Skrip mencetak ✔/✖ per langkah dan berhenti dengan exit code bukan-nol kalau ada yang gagal — sudah diuji berperilaku benar di kedua arah (lulus semua, dan sengaja digagalkan dengan kata sandi salah) terhadap server dev lokal sebelum diserahkan.
+
+### Atau manual lewat browser
+
+Kalau lebih nyaman mengecek satu-satu sambil melihat tampilannya:
 
 - [ ] `GET /api/health` membalas 200, `GET /api/ready` membalas 200 dengan `database: "siap"`.
 - [ ] Login admin berhasil.
@@ -95,8 +116,9 @@ Daftar periksa:
 - [ ] Membuat invoice, lalu menandainya lunas. Nomor invoice `INV/HI/2026/00001`, kuitansi `KWT/HI/2026/00001`.
 - [ ] Menekan tombol lunas dua kali tidak membuat nomor kuitansi kedua.
 - [ ] Mengirim pendaftaran publik dari formulir, lalu mengubah statusnya sebagai petugas.
+- [ ] Mengunggah satu PDF sebagai dokumen pendaftaran, lalu mengunduhnya kembali.
 
-Kalau ada yang gagal, hentikan di sini dan jangan lanjut ke production.
+Kalau ada yang gagal (lewat skrip atau manual), hentikan di sini dan jangan lanjut ke production.
 
 ---
 
