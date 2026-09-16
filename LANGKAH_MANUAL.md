@@ -23,7 +23,7 @@ git remote set-url origin https://github.com/<pemilik>/<nama-repo>.git
 
 ---
 
-## 2. Dorong 7 commit Phase 7 ke remote
+## 2. Dorong commit Phase 7 ke remote
 
 Kerjakan setelah langkah 1 selesai, supaya push tidak memakai token lama.
 
@@ -31,11 +31,13 @@ Kerjakan setelah langkah 1 selesai, supaya push tidak memakai token lama.
 git push origin main
 ```
 
-Isi 7 commit tersebut: mode dev PGlite, konversi tiga service menjadi async, store PostgreSQL untuk santri, LMS, dan operasional, migrasi `006_course_material_position.sql`, serta penghapusan seluruh penyimpanan JSON di runtime.
+Isi commit tersebut: mode dev PGlite, konversi tiga service menjadi async, store PostgreSQL untuk santri, LMS, dan operasional, migrasi `006_course_material_position.sql`, serta penghapusan seluruh penyimpanan JSON di runtime.
 
 ---
 
 ## 3. Terapkan migrasi 006 ke staging (Task 7.9)
+
+> **Sudah dikerjakan untuk production pada 16 Sep 2026.** Hasil: `Menerapkan: 006_course_material_position.sql`, lalu verifikasi melaporkan 6 migrasi, 21 tabel aplikasi, semua memakai Row Level Security. Bagian di bawah ini berlaku untuk project staging begitu dibuat.
 
 Migrasi 006 menambah kolom `position` pada `course_materials` dan mengisi urutan materi lama. Migrasi 001 sampai 005 sudah diterapkan ke production pada 16 September 2026.
 
@@ -57,6 +59,8 @@ $env:APP_ENV="staging"; npm run verify:database
 ---
 
 ## 4. Smoke test staging
+
+> Jangan menjalankan daftar periksa ini di production. Alurnya membuat santri, invoice, dan pendaftaran contoh; data fiktif tidak boleh masuk ke database yang dipakai keluarga sungguhan. Tunggu project staging dari langkah 1.
 
 Jalankan aplikasi ke staging, lalu periksa alur berikut lewat browser:
 
@@ -81,7 +85,7 @@ Kalau ada yang gagal, hentikan di sini dan jangan lanjut ke production.
 
 ---
 
-## 5. Terapkan migrasi 006 ke production
+## 5. Terapkan migrasi 006 ke production (selesai 16 Sep 2026)
 
 1. **Backup dulu.** Dashboard Supabase > Database > Backups, atau `supabase db dump` dengan Supabase CLI. Jangan lewati langkah ini.
 2. Isi `.env` dengan connection string production.
