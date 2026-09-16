@@ -27,20 +27,20 @@ function createMemoryStudentStore() {
   };
 
   return {
-    append(collection, entry) {
+    async append(collection, entry) {
       database[collection].push(clone(entry));
       return clone(entry);
     },
-    byStudent(collection, studentId) {
+    async byStudent(collection, studentId) {
       return clone(database[collection].filter(function belongsToStudent(entry) { return entry.studentId === studentId; }));
     },
-    getStudent(studentId) {
+    async getStudent(studentId) {
       return database.students[studentId] ? clone(database.students[studentId]) : null;
     },
-    listStudents() {
+    async listStudents() {
       return Object.values(database.students).map(clone);
     },
-    saveStudent(student) {
+    async saveStudent(student) {
       database.students[student.id] = clone(student);
       return clone(student);
     }
@@ -69,7 +69,7 @@ function createStudentPortalService(options) {
     return actor.role === 'parent' && student.parentAccountIds.includes(actor.id);
   }
 
-  function createStudent(input, actor) {
+  async function createStudent(input, actor) {
     if (!assertStaff(actor)) {
       return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
     }
@@ -82,7 +82,7 @@ function createStudentPortalService(options) {
       return { ok: false, error: 'Data santri belum lengkap atau belum valid.' };
     }
 
-    const student = store.saveStudent({
+    const student = await store.saveStudent({
       id: crypto.randomUUID(),
       name,
       program,
@@ -97,11 +97,11 @@ function createStudentPortalService(options) {
     return { ok: true, value: student };
   }
 
-  function linkAccounts(studentId, input, actor) {
+  async function linkAccounts(studentId, input, actor) {
     if (!assertStaff(actor)) {
       return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
     }
-    const student = store.getStudent(studentId);
+    const student = await store.getStudent(studentId);
     if (!student) {
       return { ok: false, error: 'Santri tidak ditemukan.' };
     }
@@ -109,7 +109,7 @@ function createStudentPortalService(options) {
     const parentAccountIds = Array.isArray(source.parentAccountIds)
       ? [...new Set(source.parentAccountIds.filter(Boolean))]
       : student.parentAccountIds;
-    const saved = store.saveStudent({
+    const saved = await store.saveStudent({
       ...student,
       studentAccountId: source.studentAccountId === undefined ? student.studentAccountId : source.studentAccountId || null,
       parentAccountIds,
@@ -118,11 +118,11 @@ function createStudentPortalService(options) {
     return { ok: true, value: saved };
   }
 
-  function addRecord(collection, studentId, input, actor) {
+  async function addRecord(collection, studentId, input, actor) {
     if (!assertStaff(actor)) {
       return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
     }
-    if (!store.getStudent(studentId)) {
+    if (!(await store.getStudent(studentId))) {
       return { ok: false, error: 'Santri tidak ditemukan.' };
     }
     const source = input || {};
@@ -164,11 +164,11 @@ function createStudentPortalService(options) {
       record = { id: crypto.randomUUID(), studentId, note, level: clean(source.level) || 'ringan', occurredAt, createdAt: now() };
     }
 
-    return { ok: true, value: store.append(collection, record) };
+    return { ok: true, value: await store.append(collection, record) };
   }
 
-  function dashboard(studentId, actor) {
-    const student = store.getStudent(studentId);
+  async function dashboard(studentId, actor) {
+    const student = await store.getStudent(studentId);
     if (!student) {
       return { ok: false, error: 'Santri tidak ditemukan.' };
     }
@@ -176,10 +176,16 @@ function createStudentPortalService(options) {
       return { ok: false, error: 'Akses dashboard santri tidak diizinkan.' };
     }
 
-    const attendance = store.byStudent('attendance', studentId).sort(function latestFirst(left, right) { return right.occurredAt.localeCompare(left.occurredAt); });
+    const latestFirst = function byLatest(left, right) { return right.occurredAt.localeCompare(left.occurredAt); };
+    const attendance = (await store.byStudent('attendance', studentId)).sort(latestFirst);
     const presentCount = attendance.filter(function present(entry) { return entry.status === 'present' || entry.status === 'late'; }).length;
     const attendanceRate = attendance.length ? Math.round((presentCount / attendance.length) * 100) : null;
-    const latestFirst = function byLatest(left, right) { return right.occurredAt.localeCompare(left.occurredAt); };
+    const [activities, achievements, evaluations, discipline] = await Promise.all([
+      store.byStudent('activities', studentId),
+      store.byStudent('achievements', studentId),
+      store.byStudent('evaluations', studentId),
+      store.byStudent('violations', studentId)
+    ]);
 
     return {
       ok: true,
@@ -193,19 +199,19 @@ function createStudentPortalService(options) {
           status: student.status
         },
         attendance: { total: attendance.length, present: presentCount, rate: attendanceRate, entries: attendance.slice(0, 30) },
-        activities: store.byStudent('activities', studentId).sort(latestFirst).slice(0, 20),
-        achievements: store.byStudent('achievements', studentId).sort(latestFirst),
-        evaluations: store.byStudent('evaluations', studentId).sort(latestFirst),
-        discipline: store.byStudent('violations', studentId).sort(latestFirst)
+        activities: activities.sort(latestFirst).slice(0, 20),
+        achievements: achievements.sort(latestFirst),
+        evaluations: evaluations.sort(latestFirst),
+        discipline: discipline.sort(latestFirst)
       }
     };
   }
 
-  function listForActor(actor) {
+  async function listForActor(actor) {
     if (!actor || !VIEWER_ROLES.includes(actor.role) || typeof store.listStudents !== 'function') {
       return [];
     }
-    return store.listStudents()
+    return (await store.listStudents())
       .filter(function readable(student) { return canView(student, actor); })
       .map(function summary(student) {
         return { id: student.id, name: student.name, program: student.program, city: student.city, status: student.status };

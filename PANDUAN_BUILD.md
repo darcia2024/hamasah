@@ -858,6 +858,13 @@ Setelah setiap konversi, jalankan `grep -nE "(Service|Store)\.[a-zA-Z]+\(" serve
 
 ---
 
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- `scripts/dev.js` mengisi `APP_ENV` dan `DATABASE_URL` sebelum `.env` dimuat, menjalankan migrasi, memanggil seed, menutup koneksi setup, lalu `require('../server.js')`. Jadi `npm run dev` tidak pernah bisa menyentuh Supabase.
+- Password dev sama untuk kelima akun: `kata-sandi-dev-hamasah` (dicetak ke console dengan label dev). Akun: `admin@`, `petugas@`, `musyrif@`, `wali@`, `santri@hamasah.test`.
+- `scripts/seed-dev.js` idempoten (aman dijalankan berulang) dan diuji di `scripts/seed-dev.test.js`.
+
+---
+
 ### Task 7.2 `[INTI]` Service santri menjadi async
 
 **Baca dulu:** `server/student-portal-service.js` beserta test-nya, `server/app.js`.
@@ -893,6 +900,16 @@ Pola sama dengan Task 7.2 untuk `server/lms-service.js` dan `server/lms-file-sto
 2. Nomor invoice dan kuitansi memakai `store.nextSequence('invoice', year)` dan `store.nextSequence('receipt', year)`, tahun menurut `Asia/Jakarta`. Hapus perhitungan `listInvoices().length + 1`.
 3. `markInvoicePaid` harus atomik: di Postgres memakai `UPDATE invoices SET ... WHERE id = $1 AND status = 'unpaid' RETURNING ...` di dalam transaksi yang sama dengan pengambilan nomor kuitansi. Jika 0 baris berubah, kembalikan invoice yang ada tanpa membuat nomor baru.
 4. Test: dua `markInvoicePaid` paralel pada invoice yang sama menghasilkan tepat satu nomor kuitansi.
+
+---
+
+**Catatan implementasi 7.2 sampai 7.4 (dikerjakan sekaligus, berlaku untuk task berikutnya):**
+- Ketiganya dikerjakan dalam satu commit karena saling mengunci: `app.js` memberi `canAccessStudent` ke LMS dan `studentExists` ke operasional. Kalau satu service async sementara pemanggilnya belum `await`, hasilnya Promise yang selalu truthy, artinya pemeriksaan akses diam-diam selalu lolos. Test regresi keamanan di `server/app.test.js` ditulis dan dijalankan **sebelum** konversi supaya terbukti benar-benar menangkap kasusnya.
+- Semua fungsi publik ketiga service kini `async`, begitu juga seluruh method store memori dan file store. Setiap pemanggilan store memakai `await`. Tidak ada `.map` yang mengembalikan Promise tanpa `Promise.all`.
+- `server/app.js`: 20 pemanggilan service diberi `await`. `canAccessStudent` menolak lebih dulu kalau role bukan santri, baru `(await studentPortalService.dashboard(...)).ok`. `studentExists` memakai `Boolean(await studentStore.getStudent(id))`.
+- Operasional: nomor invoice dan kuitansi berasal dari `store.nextSequence('invoice'|'receipt', tahun)` dengan tahun `Asia/Jakarta`, bukan lagi jumlah baris. Helper baru yang diekspor: `documentNumber(prefix, sequence, year)`, `yearInJakarta(date)`, dan batas `MAX_INVOICE_AMOUNT`.
+- `markInvoicePaid` pindah ke store (`store.markInvoicePaid(id, { paidAt, receiptNumber })`) dan hanya berubah kalau status masih `unpaid`; kalau tidak, invoice yang ada dikembalikan tanpa nomor baru. Dua pelunasan paralel diuji menghasilkan tepat satu nomor kuitansi.
+- Test service dijalankan lewat `run()` async dengan `run().catch()` yang menyetel `process.exitCode = 1`, supaya kegagalan tidak tertelan.
 
 ---
 
@@ -2454,13 +2471,13 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [x] 6.9 Dockerfile, shutdown, health check (bd0ad83)
 - [x] 6.10 Perbaikan kecil dari audit (4281d9f)
 
-**Sisa pekerjaan Phase 6 (manusia):** Task 6.0 (cabut token GitHub, bersihkan URL remote, buat project staging) dan penerapan migrasi 004 serta 005 ke production.
+**Sisa pekerjaan Phase 6 (manusia):** Task 6.0 (cabut token GitHub, bersihkan URL remote, buat project staging). Migrasi 001 sampai 005 sudah diterapkan ke production pada 16 Sep 2026.
 
 **Phase 7: Semua Data di PostgreSQL**
-- [ ] 7.1 Mode dev lokal dengan PGlite
-- [ ] 7.2 Service santri async
-- [ ] 7.3 Service LMS async
-- [ ] 7.4 Service operasional async dan counter
+- [x] 7.1 Mode dev lokal dengan PGlite (2902df5)
+- [x] 7.2 Service santri async
+- [x] 7.3 Service LMS async
+- [x] 7.4 Service operasional async dan counter
 - [ ] 7.5 Store PostgreSQL santri
 - [ ] 7.6 Store PostgreSQL LMS
 - [ ] 7.7 Store PostgreSQL operasional

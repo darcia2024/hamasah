@@ -14,27 +14,27 @@ function clean(value) {
 function createMemoryLmsStore() {
   const database = { courses: {}, enrollments: {}, completions: [] };
   return {
-    addCompletion(record) {
+    async addCompletion(record) {
       database.completions.push(clone(record));
       return clone(record);
     },
-    byStudent(studentId) {
+    async byStudent(studentId) {
       return clone(database.completions.filter(function belongsToStudent(entry) { return entry.studentId === studentId; }));
     },
-    getCourse(courseId) {
+    async getCourse(courseId) {
       return database.courses[courseId] ? clone(database.courses[courseId]) : null;
     },
-    listCourses() {
+    async listCourses() {
       return Object.values(database.courses).map(clone);
     },
-    getEnrollments(studentId) {
+    async getEnrollments(studentId) {
       return clone(database.enrollments[studentId] || []);
     },
-    saveCourse(course) {
+    async saveCourse(course) {
       database.courses[course.id] = clone(course);
       return clone(course);
     },
-    saveEnrollments(studentId, courseIds) {
+    async saveEnrollments(studentId, courseIds) {
       database.enrollments[studentId] = clone(courseIds);
       return clone(courseIds);
     }
@@ -45,17 +45,24 @@ function createLmsService(options) {
   const config = options || {};
   const store = config.store || createMemoryLmsStore();
   const now = config.now || function currentTime() { return new Date().toISOString(); };
-  const canAccessStudent = config.canAccessStudent || function noStudentAccess() { return false; };
+  const canAccessStudent = config.canAccessStudent || async function noStudentAccess() { return false; };
 
   function isStaff(actor) {
-    return actor && STAFF_ROLES.includes(actor.role);
+    return Boolean(actor && STAFF_ROLES.includes(actor.role));
   }
 
-  function canStudy(studentId, actor) {
-    return isStaff(actor) || Boolean(actor && actor.role === 'student' && canAccessStudent(studentId, actor));
+  // Wajib di-await. Tanpa await, Promise selalu bernilai benar dan akses santri lain terbuka.
+  async function canStudy(studentId, actor) {
+    if (isStaff(actor)) {
+      return true;
+    }
+    if (!actor || actor.role !== 'student') {
+      return false;
+    }
+    return Boolean(await canAccessStudent(studentId, actor));
   }
 
-  function createCourse(input, actor) {
+  async function createCourse(input, actor) {
     if (!isStaff(actor)) {
       return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
     }
@@ -64,17 +71,17 @@ function createLmsService(options) {
     if (title.length < 3 || description.length < 8) {
       return { ok: false, error: 'Judul dan deskripsi maddah belum valid.' };
     }
-    const course = store.saveCourse({
+    const course = await store.saveCourse({
       id: crypto.randomUUID(), title, description, materials: [], createdAt: now(), updatedAt: now()
     });
     return { ok: true, value: course };
   }
 
-  function addMaterial(courseId, input, actor) {
+  async function addMaterial(courseId, input, actor) {
     if (!isStaff(actor)) {
       return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
     }
-    const course = store.getCourse(courseId);
+    const course = await store.getCourse(courseId);
     if (!course) {
       return { ok: false, error: 'Maddah tidak ditemukan.' };
     }
@@ -94,36 +101,36 @@ function createLmsService(options) {
     }
 
     const material = { id: crypto.randomUUID(), type, title, content, summary, keyPoints, studyGuide, createdAt: now() };
-    const saved = store.saveCourse({ ...course, materials: course.materials.concat(material), updatedAt: now() });
+    const saved = await store.saveCourse({ ...course, materials: course.materials.concat(material), updatedAt: now() });
     return { ok: true, value: saved.materials.at(-1) };
   }
 
-  function enroll(studentId, courseId, actor) {
+  async function enroll(studentId, courseId, actor) {
     if (!isStaff(actor)) {
       return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
     }
-    if (!store.getCourse(courseId)) {
+    if (!(await store.getCourse(courseId))) {
       return { ok: false, error: 'Maddah tidak ditemukan.' };
     }
-    const enrolled = store.getEnrollments(studentId);
+    const enrolled = await store.getEnrollments(studentId);
     if (!enrolled.includes(courseId)) {
-      store.saveEnrollments(studentId, enrolled.concat(courseId));
+      await store.saveEnrollments(studentId, enrolled.concat(courseId));
     }
     return { ok: true };
   }
 
-  function getStudentCourse(studentId, courseId, actor) {
-    if (!canStudy(studentId, actor)) {
+  async function getStudentCourse(studentId, courseId, actor) {
+    if (!(await canStudy(studentId, actor))) {
       return { ok: false, error: 'Akses pembelajaran tidak diizinkan.' };
     }
-    if (!store.getEnrollments(studentId).includes(courseId)) {
+    if (!(await store.getEnrollments(studentId)).includes(courseId)) {
       return { ok: false, error: 'Santri belum terdaftar pada maddah ini.' };
     }
-    const course = store.getCourse(courseId);
+    const course = await store.getCourse(courseId);
     if (!course) {
       return { ok: false, error: 'Maddah tidak ditemukan.' };
     }
-    const completions = store.byStudent(studentId);
+    const completions = await store.byStudent(studentId);
     const completedMaterialIds = completions
       .filter(function currentCourse(entry) { return entry.courseId === courseId; })
       .map(function materialId(entry) { return entry.materialId; });
@@ -145,54 +152,60 @@ function createLmsService(options) {
     };
   }
 
-  function listStudentCourses(studentId, actor) {
-    if (!canStudy(studentId, actor)) {
+  async function listStudentCourses(studentId, actor) {
+    if (!(await canStudy(studentId, actor))) {
       return { ok: false, error: 'Akses pembelajaran tidak diizinkan.' };
     }
-    const courses = store.getEnrollments(studentId)
-      .map(function courseById(courseId) { return getStudentCourse(studentId, courseId, actor); })
-      .filter(function successful(result) { return result.ok; })
-      .map(function course(result) { return result.value; });
+    const courseIds = await store.getEnrollments(studentId);
+    const courses = [];
+    for (const courseId of courseIds) {
+      const result = await getStudentCourse(studentId, courseId, actor);
+      if (result.ok) {
+        courses.push(result.value);
+      }
+    }
     return { ok: true, value: courses };
   }
 
-  function listCourses(actor) {
+  async function listCourses(actor) {
     if (!isStaff(actor) || typeof store.listCourses !== 'function') {
       return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
     }
+    const courses = await store.listCourses();
     return {
       ok: true,
-      value: store.listCourses().sort(function byTitle(left, right) { return left.title.localeCompare(right.title, 'id-ID'); })
+      value: courses.sort(function byTitle(left, right) { return left.title.localeCompare(right.title, 'id-ID'); })
     };
   }
 
-  function completeMaterial(studentId, courseId, materialId, actor) {
-    if (!canStudy(studentId, actor)) {
+  async function completeMaterial(studentId, courseId, materialId, actor) {
+    if (!(await canStudy(studentId, actor))) {
       return { ok: false, error: 'Akses pembelajaran tidak diizinkan.' };
     }
-    if (!store.getEnrollments(studentId).includes(courseId)) {
+    if (!(await store.getEnrollments(studentId)).includes(courseId)) {
       return { ok: false, error: 'Santri belum terdaftar pada maddah ini.' };
     }
-    const course = store.getCourse(courseId);
+    const course = await store.getCourse(courseId);
     const material = course && course.materials.find(function matchingMaterial(entry) { return entry.id === materialId; });
     if (!material) {
       return { ok: false, error: 'Materi tidak ditemukan.' };
     }
-    const completed = store.byStudent(studentId).some(function alreadyCompleted(entry) {
+    const completions = await store.byStudent(studentId);
+    const completed = completions.some(function alreadyCompleted(entry) {
       return entry.courseId === courseId && entry.materialId === materialId;
     });
     if (!completed) {
-      store.addCompletion({ id: crypto.randomUUID(), studentId, courseId, materialId, completedAt: now() });
+      await store.addCompletion({ id: crypto.randomUUID(), studentId, courseId, materialId, completedAt: now() });
     }
     return getStudentCourse(studentId, courseId, actor);
   }
 
-  function studyHelp(studentId, courseId, materialId, question, actor) {
-    const courseResult = getStudentCourse(studentId, courseId, actor);
+  async function studyHelp(studentId, courseId, materialId, question, actor) {
+    const courseResult = await getStudentCourse(studentId, courseId, actor);
     if (!courseResult.ok) {
       return courseResult;
     }
-    const course = store.getCourse(courseId);
+    const course = await store.getCourse(courseId);
     const material = course.materials.find(function matchingMaterial(entry) { return entry.id === materialId; });
     if (!material) {
       return { ok: false, error: 'Materi tidak ditemukan.' };
@@ -222,8 +235,8 @@ function createLmsService(options) {
     createMemoryLmsStore,
     enroll,
     getStudentCourse,
-    listStudentCourses,
     listCourses,
+    listStudentCourses,
     studyHelp
   });
 }

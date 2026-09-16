@@ -181,14 +181,18 @@ function createHamasahApp(options) {
   const lmsStore = config.lmsStore || createLmsFileStore(path.join(dataDirectory, 'lms.json'));
   const lmsService = config.lmsService || createLmsService({
     store: lmsStore,
-    canAccessStudent(studentId, actor) {
-      return actor && actor.role === identity.ROLES.STUDENT && studentPortalService.dashboard(studentId, actor).ok;
+    async canAccessStudent(studentId, actor) {
+      if (!actor || actor.role !== identity.ROLES.STUDENT) {
+        return false;
+      }
+      // Wajib di-await. Tanpa await, Promise selalu bernilai benar dan santri bisa membuka maddah santri lain.
+      return (await studentPortalService.dashboard(studentId, actor)).ok;
     }
   });
   const operationsStore = config.operationsStore || createOperationsFileStore(path.join(dataDirectory, 'operations.json'));
   const operationsService = config.operationsService || createOperationsService({
     store: operationsStore,
-    studentExists(studentId) { return Boolean(studentStore.getStudent(studentId)); }
+    async studentExists(studentId) { return Boolean(await studentStore.getStudent(studentId)); }
   });
 
   // Mengembalikan akun petugas yang sedang login, atau null. Dipakai agar riwayat
@@ -344,70 +348,70 @@ function createHamasahApp(options) {
         json(response, 401, { error: 'Sesi login diperlukan.' });
         return true;
       }
-      json(response, 200, { items: studentPortalService.listForActor(actor) });
+      json(response, 200, { items: await studentPortalService.listForActor(actor) });
       return true;
     }
 
     if (request.method === 'GET' && pathname === '/api/operations') {
       if (!(await adminAuthorized(request))) { json(response, 401, { error: 'Akses admin diperlukan.' }); return true; }
-      json(response, 200, operationsService.list());
+      json(response, 200, await operationsService.list());
       return true;
     }
 
     if (request.method === 'POST' && pathname === '/api/operations/invoices') {
-      const created = operationsService.createInvoice(await readJsonBody(request), await sessionActor(request));
+      const created = await operationsService.createInvoice(await readJsonBody(request), await sessionActor(request));
       json(response, created.ok ? 201 : 422, created.ok ? { invoice: created.value } : publicError(created));
       return true;
     }
 
     const paymentMatch = pathname.match(/^\/api\/operations\/invoices\/([\w-]+)\/paid$/);
     if (request.method === 'PATCH' && paymentMatch) {
-      const paid = operationsService.markInvoicePaid(paymentMatch[1], await sessionActor(request));
+      const paid = await operationsService.markInvoicePaid(paymentMatch[1], await sessionActor(request));
       json(response, paid.ok ? 200 : 422, paid.ok ? { invoice: paid.value } : publicError(paid));
       return true;
     }
 
     if (request.method === 'POST' && pathname === '/api/operations/visas') {
-      const saved = operationsService.saveVisa(await readJsonBody(request), await sessionActor(request));
+      const saved = await operationsService.saveVisa(await readJsonBody(request), await sessionActor(request));
       json(response, saved.ok ? 201 : 422, saved.ok ? { visa: saved.value } : publicError(saved));
       return true;
     }
 
     if (request.method === 'POST' && pathname === '/api/operations/inventory') {
-      const saved = operationsService.saveInventory(await readJsonBody(request), await sessionActor(request));
+      const saved = await operationsService.saveInventory(await readJsonBody(request), await sessionActor(request));
       json(response, saved.ok ? 201 : 422, saved.ok ? { item: saved.value } : publicError(saved));
       return true;
     }
 
     if (request.method === 'POST' && pathname === '/api/students') {
       const actor = await sessionActor(request);
-      const created = studentPortalService.createStudent(await readJsonBody(request), actor);
+      const created = await studentPortalService.createStudent(await readJsonBody(request), actor);
       json(response, created.ok ? 201 : 422, created.ok ? { student: created.value } : publicError(created));
       return true;
     }
 
     if (request.method === 'POST' && pathname === '/api/courses') {
-      const created = lmsService.createCourse(await readJsonBody(request), await sessionActor(request));
+      const created = await lmsService.createCourse(await readJsonBody(request), await sessionActor(request));
       json(response, created.ok ? 201 : 422, created.ok ? { course: created.value } : publicError(created));
       return true;
     }
 
     if (request.method === 'GET' && pathname === '/api/courses') {
-      const courses = lmsService.listCourses(await sessionActor(request));
+      const courses = await lmsService.listCourses(await sessionActor(request));
       json(response, courses.ok ? 200 : 403, courses.ok ? { items: courses.value } : publicError(courses));
       return true;
     }
 
     const materialMatch = pathname.match(/^\/api\/courses\/([\w-]+)\/materials$/);
     if (request.method === 'POST' && materialMatch) {
-      const created = lmsService.addMaterial(materialMatch[1], await readJsonBody(request), await sessionActor(request));
+      const created = await lmsService.addMaterial(materialMatch[1], await readJsonBody(request), await sessionActor(request));
       json(response, created.ok ? 201 : 422, created.ok ? { material: created.value } : publicError(created));
       return true;
     }
 
     const enrollmentMatch = pathname.match(/^\/api\/students\/([\w-]+)\/courses\/([\w-]+)$/);
     if (request.method === 'POST' && enrollmentMatch) {
-      const enrolled = lmsService.enroll(enrollmentMatch[1], enrollmentMatch[2], await sessionActor(request));
+      const enrolled = await lmsService.enroll(enrollmentMatch[1], enrollmentMatch[2], await sessionActor(request));
       if (enrolled.ok) {
         response.writeHead(204).end();
       } else {
@@ -418,19 +422,19 @@ function createHamasahApp(options) {
 
     const courseListMatch = pathname.match(/^\/api\/students\/([\w-]+)\/courses$/);
     if (request.method === 'GET' && courseListMatch) {
-      const courses = lmsService.listStudentCourses(courseListMatch[1], await sessionActor(request));
+      const courses = await lmsService.listStudentCourses(courseListMatch[1], await sessionActor(request));
       json(response, courses.ok ? 200 : 403, courses.ok ? { items: courses.value } : publicError(courses));
       return true;
     }
     if (request.method === 'GET' && enrollmentMatch) {
-      const course = lmsService.getStudentCourse(enrollmentMatch[1], enrollmentMatch[2], await sessionActor(request));
+      const course = await lmsService.getStudentCourse(enrollmentMatch[1], enrollmentMatch[2], await sessionActor(request));
       json(response, course.ok ? 200 : 403, course.ok ? { course: course.value } : publicError(course));
       return true;
     }
 
     const completionMatch = pathname.match(/^\/api\/students\/([\w-]+)\/courses\/([\w-]+)\/materials\/([\w-]+)\/complete$/);
     if (request.method === 'POST' && completionMatch) {
-      const completed = lmsService.completeMaterial(completionMatch[1], completionMatch[2], completionMatch[3], await sessionActor(request));
+      const completed = await lmsService.completeMaterial(completionMatch[1], completionMatch[2], completionMatch[3], await sessionActor(request));
       json(response, completed.ok ? 200 : 422, completed.ok ? { course: completed.value } : publicError(completed));
       return true;
     }
@@ -438,7 +442,7 @@ function createHamasahApp(options) {
     const studyHelpMatch = pathname.match(/^\/api\/students\/([\w-]+)\/courses\/([\w-]+)\/materials\/([\w-]+)\/study-help$/);
     if (request.method === 'POST' && studyHelpMatch) {
       const body = await readJsonBody(request);
-      const help = lmsService.studyHelp(studyHelpMatch[1], studyHelpMatch[2], studyHelpMatch[3], body.question, await sessionActor(request));
+      const help = await lmsService.studyHelp(studyHelpMatch[1], studyHelpMatch[2], studyHelpMatch[3], body.question, await sessionActor(request));
       json(response, help.ok ? 200 : 422, help.ok ? { help: help.value } : publicError(help));
       return true;
     }
@@ -462,21 +466,21 @@ function createHamasahApp(options) {
           return true;
         }
       }
-      const linked = studentPortalService.linkAccounts(studentLinkMatch[1], body, actor);
+      const linked = await studentPortalService.linkAccounts(studentLinkMatch[1], body, actor);
       json(response, linked.ok ? 200 : 422, linked.ok ? { student: linked.value } : publicError(linked));
       return true;
     }
 
     const studentDashboardMatch = pathname.match(/^\/api\/students\/([\w-]+)\/dashboard$/);
     if (request.method === 'GET' && studentDashboardMatch) {
-      const dashboard = studentPortalService.dashboard(studentDashboardMatch[1], await sessionActor(request));
+      const dashboard = await studentPortalService.dashboard(studentDashboardMatch[1], await sessionActor(request));
       json(response, dashboard.ok ? 200 : 403, dashboard.ok ? { dashboard: dashboard.value } : publicError(dashboard));
       return true;
     }
 
     const studentReportMatch = pathname.match(/^\/api\/students\/([\w-]+)\/report$/);
     if (request.method === 'GET' && studentReportMatch) {
-      const report = studentPortalService.dashboard(studentReportMatch[1], await sessionActor(request));
+      const report = await studentPortalService.dashboard(studentReportMatch[1], await sessionActor(request));
       if (!report.ok) {
         json(response, 403, publicError(report));
       } else {
@@ -494,7 +498,7 @@ function createHamasahApp(options) {
         evaluations: 'addEvaluation',
         violations: 'addViolation'
       };
-      const result = studentPortalService[methods[studentRecordMatch[2]]](studentRecordMatch[1], await readJsonBody(request), await sessionActor(request));
+      const result = await studentPortalService[methods[studentRecordMatch[2]]](studentRecordMatch[1], await readJsonBody(request), await sessionActor(request));
       json(response, result.ok ? 201 : 422, result.ok ? { item: result.value } : publicError(result));
       return true;
     }

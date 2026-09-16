@@ -27,32 +27,32 @@ function createLmsFileStore(filePath) {
   }
 
   return {
-    addCompletion(record) {
+    async addCompletion(record) {
       const database = readDatabase();
       database.completions.push(clone(record));
       writeDatabase(database);
       return clone(record);
     },
-    byStudent(studentId) {
+    async byStudent(studentId) {
       return clone(readDatabase().completions.filter(function belongsToStudent(entry) { return entry.studentId === studentId; }));
     },
-    getCourse(courseId) {
+    async getCourse(courseId) {
       const course = readDatabase().courses[courseId];
       return course ? clone(course) : null;
     },
-    listCourses() {
+    async listCourses() {
       return Object.values(readDatabase().courses).map(clone);
     },
-    getEnrollments(studentId) {
+    async getEnrollments(studentId) {
       return clone(readDatabase().enrollments[studentId] || []);
     },
-    saveCourse(course) {
+    async saveCourse(course) {
       const database = readDatabase();
       database.courses[course.id] = clone(course);
       writeDatabase(database);
       return clone(course);
     },
-    saveEnrollments(studentId, courseIds) {
+    async saveEnrollments(studentId, courseIds) {
       const database = readDatabase();
       database.enrollments[studentId] = clone(courseIds);
       writeDatabase(database);

@@ -97,11 +97,40 @@ async function run() {
     });
     assert.equal(parentStudents.status, 200);
     assert.equal(parentStudents.body.items.length, 1);
+    // Regresi keamanan: santri yang tidak ada tidak boleh bisa ditagih.
+    // Jika pemeriksaan keberadaan santri lupa di-await, Promise selalu dianggap benar
+    // dan invoice akan terbentuk untuk santri yang tidak ada.
+    const invoiceSantriFiktif = await request(baseUrl, '/api/operations/invoices', {
+      method: 'POST', headers: adminHeaders,
+      body: JSON.stringify({ studentId: '00000000-0000-4000-8000-000000000000', description: 'SPP September', amount: 1500000 })
+    });
+    assert.equal(invoiceSantriFiktif.status, 422);
+
+    // Regresi keamanan: wali lain tidak boleh melihat rekam jejak santri ini.
+    const waliLain = await request(baseUrl, '/api/accounts', {
+      method: 'POST', headers: adminHeaders,
+      body: JSON.stringify({ name: 'Wali Lain', email: 'wali-lain@hamasah.test', role: 'parent', password: 'kata-sandi-wali-lain-aman' })
+    });
+    assert.equal(waliLain.status, 201);
+    const waliLainLogin = await request(baseUrl, '/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'wali-lain@hamasah.test', password: 'kata-sandi-wali-lain-aman' })
+    });
+    const waliLainHeaders = { Authorization: `Bearer ${waliLainLogin.body.accessToken}`, 'Content-Type': 'application/json' };
+    const dashboardWaliLain = await request(baseUrl, `/api/students/${studentId}/dashboard`, { headers: waliLainHeaders });
+    assert.equal(dashboardWaliLain.status, 403);
+    const daftarWaliLain = await request(baseUrl, '/api/my-students', { headers: waliLainHeaders });
+    assert.equal(daftarWaliLain.status, 200);
+    assert.equal(daftarWaliLain.body.items.length, 0);
+    const laporanWaliLain = await request(baseUrl, `/api/students/${studentId}/report`, { headers: waliLainHeaders });
+    assert.equal(laporanWaliLain.status, 403);
+
     const invoice = await request(baseUrl, '/api/operations/invoices', {
       method: 'POST', headers: adminHeaders,
       body: JSON.stringify({ studentId, description: 'SPP September', amount: 1500000 })
     });
     assert.equal(invoice.status, 201);
+    assert.match(invoice.body.invoice.number, /^INV\/HI\/\d{4}\/00001$/);
     const paidInvoice = await request(baseUrl, `/api/operations/invoices/${invoice.body.invoice.id}/paid`, { method: 'PATCH', headers: adminHeaders });
     assert.equal(paidInvoice.status, 200);
     assert.match(paidInvoice.body.invoice.receiptNumber, /^KWT\/HI\/2026\//);
@@ -120,7 +149,7 @@ async function run() {
     assert.match(report.body, /Fikri Santri/);
     const accounts = await request(baseUrl, '/api/accounts', { headers: adminHeaders });
     assert.equal(accounts.status, 200);
-    assert.equal(accounts.body.items.length, 4);
+    assert.equal(accounts.body.items.length, 5);
 
     const courseCreated = await request(baseUrl, '/api/courses', {
       method: 'POST', headers: adminHeaders,

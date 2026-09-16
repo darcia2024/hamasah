@@ -29,7 +29,7 @@ function createStudentFileStore(filePath) {
   }
 
   return {
-    append(collection, entry) {
+    async append(collection, entry) {
       if (!COLLECTIONS.includes(collection)) {
         throw new Error('Koleksi catatan tidak dikenal.');
       }
@@ -38,20 +38,20 @@ function createStudentFileStore(filePath) {
       writeDatabase(database);
       return clone(entry);
     },
-    byStudent(collection, studentId) {
+    async byStudent(collection, studentId) {
       if (!COLLECTIONS.includes(collection)) {
         return [];
       }
       return clone(readDatabase()[collection].filter(function belongsToStudent(entry) { return entry.studentId === studentId; }));
     },
-    getStudent(studentId) {
+    async getStudent(studentId) {
       const student = readDatabase().students[studentId];
       return student ? clone(student) : null;
     },
-    listStudents() {
+    async listStudents() {
       return Object.values(readDatabase().students).map(clone);
     },
-    saveStudent(student) {
+    async saveStudent(student) {
       const database = readDatabase();
       database.students[student.id] = clone(student);
       writeDatabase(database);
