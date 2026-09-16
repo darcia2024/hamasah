@@ -714,6 +714,15 @@ Dikerjakan manusia. Sonnet tidak ikut.
 
 **Jangan:** mengubah format nomor `HI-REG-YYYY-NNNNN`.
 
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- Store pendaftaran sekarang punya `nextSequence(scope, year)`, `insert(record)`, dan `update(record)`. Method `save` dihapus. `insert` memakai `INSERT` biasa, jadi nomor bentrok melempar error.
+- Data diperiksa sebelum nomor diambil, supaya kiriman tidak valid (termasuk dari bot) tidak menghabiskan nomor registrasi.
+- Tahun memakai `domain.yearInTimeZone(date, 'Asia/Jakarta')`. `formatRegistrationId(sequence, date, { year })` menerima tahun eksplisit supaya nomor dan penghitung selalu memakai tahun yang sama.
+- Tabel `document_counters` sudah disiapkan untuk nomor invoice dan kuitansi di Phase 10: pakai `nextSequence('invoice', year)` dan `nextSequence('receipt', year)`.
+- Migrasi `004` mengisi penghitung dari nomor tertinggi yang sudah ada di tabel `registrations`, dan jalur upgrade ini diuji di `database/migrate.test.js`.
+- Test `server/app-postgres.test.js` mengirim 10 pendaftaran bersamaan lewat API dan memastikan nomornya unik.
+- Test database menghitung jumlah migrasi dan tabel dari daftar migrasi, bukan angka tetap.
+
 ---
 
 ### Task 6.8 `[INTI]` Riwayat status mencatat akun pelaku

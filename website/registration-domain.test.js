@@ -14,6 +14,12 @@ const validApplicant = {
 
 assert.equal(registration.normalizePhone('0812 3456 7890'), '+6281234567890');
 assert.equal(registration.formatRegistrationId(7, '2026-09-15T00:00:00.000Z'), 'HI-REG-2026-00007');
+// Tahun mengikuti tanggal di Indonesia. Pukul 17.30 UTC tanggal 31 Desember sudah tahun baru di Jakarta.
+assert.equal(registration.formatRegistrationId(1, '2026-12-31T17:30:00.000Z'), 'HI-REG-2027-00001');
+assert.equal(registration.formatRegistrationId(1, '2026-12-31T10:00:00.000Z'), 'HI-REG-2026-00001');
+assert.equal(registration.formatRegistrationId(9, '2026-09-15T00:00:00.000Z', { year: 2030 }), 'HI-REG-2030-00009');
+assert.equal(registration.yearInTimeZone('2026-12-31T17:30:00.000Z'), 2027);
+assert.equal(registration.yearInTimeZone('2026-12-31T17:30:00.000Z', 'UTC'), 2026);
 
 const invalid = registration.validateApplicant({ ...validApplicant, guardianPhone: '', consent: false });
 assert.equal(invalid.valid, false);

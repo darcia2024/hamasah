@@ -29,7 +29,7 @@ Membangun aturan proses pendaftaran yang dapat digunakan bersama oleh form publi
 
 - Database dan penyimpanan dokumen terenkripsi dipilih dan dikonfigurasi.
 - Identitas calon pendaftar, wali, dan petugas terlindungi dengan autentikasi serta otorisasi berbasis peran.
-- Nomor urut registrasi dibuat oleh database dalam transaksi, bukan oleh browser.
+- Selesai: nomor urut registrasi dibuat database lewat tabel `document_counters` dengan satu perintah atomik, bukan dihitung dari jumlah baris atau oleh browser. Tahun pada nomor mengikuti zona `Asia/Jakarta`, dan pendaftar baru disimpan dengan `INSERT` biasa sehingga nomor yang bentrok menghasilkan error, bukan menimpa data lama.
 - Pengiriman formulir publik terhubung ke API dan memiliki halaman konfirmasi yang tidak membocorkan data pribadi.
 - Petugas dapat meminta revisi berkas dengan catatan yang tercatat pada riwayat pendaftaran.
 - Kunci API petugas sementara diganti dengan akun staf berbasis role pada Phase 3. Jangan menjalankan endpoint administrasi sebelum `HAMASAH_STAFF_API_KEY` diisi pada environment server.

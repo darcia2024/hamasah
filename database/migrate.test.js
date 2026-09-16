@@ -243,6 +243,30 @@ async function testBaselineRejectsPartialState() {
   fs.rmSync(directory, { recursive: true, force: true });
 }
 
+// Jalur upgrade production: database lama berisi pendaftaran, lalu penghitung nomor
+// harus melanjutkan dari nomor tertinggi yang sudah dipakai.
+async function testCounterSeedingFromExistingRegistrations() {
+  await withDatabase(async (database) => {
+    await applySchemaManually(database);
+    for (const [nomor, nama] of [['HI-REG-2026-00003', 'Pendaftar Lama Satu'], ['HI-REG-2026-00007', 'Pendaftar Lama Dua'], ['HI-REG-2025-00002', 'Pendaftar Tahun Lalu']]) {
+      await database.query(
+        `INSERT INTO registrations (id, registration_id, applicant_name, phone_e164, program, consented_at, status, progress, access_token_hash)
+         VALUES (gen_random_uuid(), $1, $2, '+628000000001', 'kuliah-al-azhar', now(), 'submitted', 15, 'hash-uji')`,
+        [nomor, nama]
+      );
+    }
+
+    await runMigrate(database, { baseline: true });
+    await runMigrate(database);
+
+    const { rows } = await database.query('SELECT scope, year, last_value FROM document_counters ORDER BY year');
+    assert.deepEqual(rows.map((row) => [row.scope, Number(row.year), Number(row.last_value)]), [
+      ['registration', 2025, 2],
+      ['registration', 2026, 7]
+    ]);
+  });
+}
+
 async function testConcurrentRunsApplyOnce() {
   await withDatabase(async (database) => {
     const jumlahMigrasi = repoMigrationFiles().length;
@@ -264,6 +288,7 @@ async function run() {
   await testBaselineForExistingDatabase();
   await testBaselineLeavesNewMigrationPending();
   await testBaselineRejectsPartialState();
+  await testCounterSeedingFromExistingRegistrations();
   await testConcurrentRunsApplyOnce();
   console.log('migration runner tests passed');
 }

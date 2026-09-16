@@ -15,7 +15,10 @@ function createTemporaryDirectory(files) {
 function run() {
   // Migrasi asli repo terbaca berurutan beserta tabelnya.
   const migrations = listMigrations();
-  assert.deepEqual(migrations.map((migration) => migration.version), ['001', '002', '003']);
+  const versions = migrations.map((migration) => migration.version);
+  assert.deepEqual(versions, [...versions].sort(), 'Migrasi harus terurut menurut nomor.');
+  assert.equal(new Set(versions).size, versions.length, 'Nomor migrasi harus unik.');
+  assert.ok(versions.includes('001') && versions.includes('002'));
   assert.equal(migrations[0].name, 'initial_schema');
   assert.ok(migrations[0].tables.includes('accounts'));
   assert.ok(migrations[0].tables.includes('inventory_items'));

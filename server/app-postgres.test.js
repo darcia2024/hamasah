@@ -71,9 +71,30 @@ async function run() {
     assert.equal(status.status, 200);
     assert.equal(status.body.registration.registrationId, registrationId);
 
+    // Sepuluh pendaftaran bersamaan harus mendapat nomor berbeda dan semuanya tersimpan.
+    const bersamaan = await Promise.all(Array.from({ length: 10 }, (unused, index) => request(baseUrl, '/api/registrations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        applicantName: `Calon Bersamaan ${index + 1}`,
+        phone: '081234567890',
+        guardianName: 'Wali Uji',
+        guardianPhone: '081298765432',
+        program: 'kuliah-al-azhar',
+        educationLevel: 'SMA',
+        city: 'Bandung',
+        consent: true
+      })
+    })));
+    assert.deepEqual([...new Set(bersamaan.map((entry) => entry.status))], [201]);
+    const nomorBersamaan = bersamaan.map((entry) => entry.body.registration.registrationId);
+    assert.equal(new Set(nomorBersamaan).size, 10, `Nomor registrasi harus unik: ${nomorBersamaan.join(', ')}`);
+    const tersimpan = await database.query('SELECT count(*)::int AS jumlah FROM registrations');
+    assert.equal(tersimpan.rows[0].jumlah, 11);
+
     const staffList = await request(baseUrl, '/api/registrations', { headers: adminHeaders });
     assert.equal(staffList.status, 200);
-    assert.equal(staffList.body.items.length, 1);
+    assert.equal(staffList.body.items.length, 11);
 
     // Artikel.
     const article = await request(baseUrl, '/api/articles', {

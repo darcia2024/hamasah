@@ -9,6 +9,8 @@
     root.HamasahRegistrationDomain = api;
   }
 })(typeof globalThis !== 'undefined' ? globalThis : null, function registrationDomainFactory() {
+  const REGISTRATION_TIME_ZONE = 'Asia/Jakarta';
+
   const PROGRAMS = Object.freeze({
     KULIAH: 'kuliah-al-azhar',
     MAHAD: 'mahad-al-azhar',
@@ -129,17 +131,23 @@
     };
   }
 
-  function formatRegistrationId(sequence, date) {
-    if (!Number.isInteger(sequence) || sequence < 1) {
-      throw new Error('Nomor urut pendaftaran harus berupa bilangan bulat positif.');
-    }
-
+  // Tahun pada nomor registrasi mengikuti tanggal di Indonesia, bukan UTC.
+  // Pendaftaran pukul 07.30 malam 31 Desember WIB sudah masuk tahun berikutnya menurut UTC.
+  function yearInTimeZone(date, timeZone) {
     const sourceDate = date instanceof Date ? date : new Date(date || Date.now());
     if (Number.isNaN(sourceDate.getTime())) {
       throw new Error('Tanggal pendaftaran tidak valid.');
     }
+    return Number(new Intl.DateTimeFormat('en-CA', { timeZone: timeZone || REGISTRATION_TIME_ZONE, year: 'numeric' }).format(sourceDate));
+  }
 
-    const year = sourceDate.getUTCFullYear();
+  function formatRegistrationId(sequence, date, options) {
+    const config = options || {};
+    if (!Number.isInteger(sequence) || sequence < 1) {
+      throw new Error('Nomor urut pendaftaran harus berupa bilangan bulat positif.');
+    }
+
+    const year = Number.isInteger(config.year) ? config.year : yearInTimeZone(date, config.timeZone);
     return `HI-REG-${year}-${String(sequence).padStart(5, '0')}`;
   }
 
@@ -167,7 +175,7 @@
     }
 
     const createdAt = config.createdAt || new Date().toISOString();
-    const registrationId = config.registrationId || formatRegistrationId(config.sequence || 1, createdAt);
+    const registrationId = config.registrationId || formatRegistrationId(config.sequence || 1, createdAt, { year: config.year });
     const application = {
       registrationId,
       status: STATUSES.SUBMITTED,
@@ -221,10 +229,12 @@
 
   return Object.freeze({
     PROGRAMS,
+    REGISTRATION_TIME_ZONE,
     ROLES,
     STATUSES,
     STATUS_LABELS,
     PROGRESS,
+    yearInTimeZone,
     normalizePhone,
     normalizeApplicant,
     validateApplicant,

@@ -46,8 +46,19 @@ async function run() {
     assert.equal(await store.count(), 0);
     assert.equal(await store.get('HI-REG-2026-00001'), null);
 
+    // Nomor urut diambil dari database dan selalu naik.
+    assert.equal(await store.nextSequence('registration', 2026), 1);
+    assert.equal(await store.nextSequence('registration', 2026), 2);
+    assert.equal(await store.nextSequence('registration', 2027), 1, 'Penghitung dipisah per tahun.');
+    assert.equal(await store.nextSequence('invoice', 2026), 1, 'Penghitung dipisah per jenis dokumen.');
+
+    // 20 permintaan bersamaan harus menghasilkan 20 nomor berbeda.
+    const paralel = await Promise.all(Array.from({ length: 20 }, () => store.nextSequence('registration', 2030)));
+    assert.equal(new Set(paralel).size, 20);
+    assert.equal(Math.max(...paralel), 20);
+
     // Round-trip lengkap: data, dokumen, dan riwayat.
-    const saved = await store.save(sampleRecord());
+    const saved = await store.insert(sampleRecord());
     assert.ok(saved.id);
     const loaded = await store.get('HI-REG-2026-00001');
     assert.equal(loaded.id, saved.id);
@@ -84,7 +95,11 @@ async function run() {
         uploadedBy: 'registration-officer'
       })
     };
-    await assert.rejects(store.save(brokenUpdate), /check constraint/i);
+    // Nomor yang sudah dipakai ditolak, bukan menimpa data lama.
+    await assert.rejects(store.insert(sampleRecord()), /duplicate key|unique/i);
+    assert.equal((await store.get('HI-REG-2026-00001')).applicant.applicantName, 'Calon Santri Uji');
+
+    await assert.rejects(store.update(brokenUpdate), /check constraint/i);
     const afterFailure = await store.get('HI-REG-2026-00001');
     assert.equal(afterFailure.status, 'submitted');
     assert.equal(afterFailure.progress, 15);
@@ -97,12 +112,18 @@ async function run() {
       ...brokenUpdate,
       documents: loaded.documents
     };
-    await store.save(validUpdate);
+    await store.update(validUpdate);
     const afterUpdate = await store.get('HI-REG-2026-00001');
     assert.equal(afterUpdate.status, 'document-review');
     assert.equal(afterUpdate.statusHistory.length, 2);
     assert.equal(afterUpdate.documents.length, 1);
     assert.equal(await store.count(), 1);
+
+    // Update untuk pendaftaran yang tidak ada ditolak.
+    await assert.rejects(
+      store.update({ ...validUpdate, id: undefined, registrationId: 'HI-REG-2026-09999' }),
+      /tidak ditemukan/
+    );
 
     console.log('postgres registration store tests passed');
   } finally {

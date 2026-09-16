@@ -4,6 +4,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { createDatabase } = require('../server/db.js');
 const { migrate } = require('./migrate.js');
+const { listMigrations } = require('./migrations.js');
 const { findMissingTables, verifyDatabase } = require('./verify.js');
 
 const SILENT_LOGGER = { log() {} };
@@ -68,9 +69,12 @@ function testPureHelper() {
 async function testHealthyDatabase() {
   await withDatabase(async (database) => {
     await runMigrate(database);
+    // Jumlah dihitung dari daftar migrasi supaya test tidak perlu diubah tiap ada migrasi baru.
+    const migrations = listMigrations(REPO_MIGRATIONS);
+    const expectedTables = new Set(migrations.flatMap((migration) => migration.tables));
     const result = await verify(database);
-    assert.equal(result.migrations, 3);
-    assert.equal(result.tables, 20);
+    assert.equal(result.migrations, migrations.length);
+    assert.equal(result.tables, expectedTables.size);
   });
 }
 

@@ -11,12 +11,13 @@ function createRegistrationFileStore(filePath) {
 
   function readDatabase() {
     if (!fs.existsSync(filePath)) {
-      return { registrations: {} };
+      return { registrations: {}, counters: {} };
     }
 
     const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     return {
-      registrations: parsed.registrations || {}
+      registrations: parsed.registrations || {},
+      counters: parsed.counters || {}
     };
   }
 
@@ -27,7 +28,25 @@ function createRegistrationFileStore(filePath) {
   }
 
   return {
-    save(record) {
+    // Baca dan tulis di bawah berjalan tanpa await, jadi tidak ada permintaan lain yang menyela.
+    nextSequence(scope, year) {
+      const database = readDatabase();
+      const key = `${scope}:${year}`;
+      const next = (database.counters[key] || 0) + 1;
+      database.counters[key] = next;
+      writeDatabase(database);
+      return next;
+    },
+    insert(record) {
+      const database = readDatabase();
+      if (database.registrations[record.registrationId]) {
+        throw new Error(`Nomor registrasi ${record.registrationId} sudah dipakai.`);
+      }
+      database.registrations[record.registrationId] = clone(record);
+      writeDatabase(database);
+      return clone(record);
+    },
+    update(record) {
       const database = readDatabase();
       database.registrations[record.registrationId] = clone(record);
       writeDatabase(database);

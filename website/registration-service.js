@@ -27,9 +27,23 @@
 
   function createMemoryStore() {
     const records = new Map();
+    const counters = new Map();
 
     return {
-      save(record) {
+      nextSequence(scope, year) {
+        const key = `${scope}:${year}`;
+        const next = (counters.get(key) || 0) + 1;
+        counters.set(key, next);
+        return next;
+      },
+      insert(record) {
+        if (records.has(record.registrationId)) {
+          throw new Error(`Nomor registrasi ${record.registrationId} sudah dipakai.`);
+        }
+        records.set(record.registrationId, clone(record));
+        return clone(record);
+      },
+      update(record) {
         records.set(record.registrationId, clone(record));
         return clone(record);
       },
@@ -114,19 +128,23 @@
     const config = options || {};
     const store = config.store || createMemoryStore();
     const getNow = config.now || function now() { return new Date().toISOString(); };
-    let nextSequence = Number.isInteger(config.startSequence) ? config.startSequence : null;
+    const timeZone = config.timeZone || domain.REGISTRATION_TIME_ZONE;
 
     async function create(payload, options) {
       const createOptions = options || {};
-      if (nextSequence === null) nextSequence = await store.count();
-      nextSequence += 1;
-      const created = domain.createApplication(payload, {
-        sequence: nextSequence,
-        createdAt: getNow()
-      });
 
+      // Data diperiksa lebih dulu supaya kiriman yang tidak valid tidak menghabiskan nomor registrasi.
+      const validation = domain.validateApplicant(payload);
+      if (!validation.valid) {
+        return { ok: false, errors: validation.errors };
+      }
+
+      // Nomor urut dibuat database dalam satu perintah atomik, bukan dihitung dari jumlah baris.
+      const createdAt = getNow();
+      const year = domain.yearInTimeZone(createdAt, timeZone);
+      const sequence = await store.nextSequence('registration', year);
+      const created = domain.createApplication(payload, { sequence, createdAt, year });
       if (!created.ok) {
-        nextSequence -= 1;
         return created;
       }
 
@@ -135,7 +153,8 @@
         documents: [],
         ...createOptions.privateData
       };
-      await store.save(record);
+      // insert, bukan upsert: nomor yang bentrok harus gagal keras, tidak menimpa data lama.
+      await store.insert(record);
 
       return {
         ok: true,
@@ -176,7 +195,7 @@
         return updated;
       }
 
-      const saved = await store.save({
+      const saved = await store.update({
         ...updated.value,
         documents: record.documents
       });
@@ -207,7 +226,7 @@
         uploadedAt: getNow(),
         uploadedBy: actorRole
       };
-      const saved = await store.save({
+      const saved = await store.update({
         ...record,
         documents: record.documents.concat(document),
         updatedAt: document.uploadedAt
