@@ -1,6 +1,8 @@
 # Penawaran Rancangan Digital Ekosistem Hamasah International (by Dar Dev)
 ### Disusun oleh: Dar Developer untuk Mendukung Visi Hamasah International
 
+[![Test](https://github.com/darcia2024/penawaran-konsep-mediator/actions/workflows/test.yml/badge.svg)](https://github.com/darcia2024/penawaran-konsep-mediator/actions/workflows/test.yml)
+
 Rancangan 1 Website Terpadu dengan 2 Layanan Utama (**Publik & App Portal**) dari Dar Developer untuk menyederhanakan pendaftaran, akademik, operasional staff, otomatisasi invoice & kuitansi, serta transparansi wali santri di Mesir.
 
 ---

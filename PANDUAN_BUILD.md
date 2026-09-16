@@ -1420,6 +1420,17 @@ Pola sama dengan Task 7.2 untuk `server/lms-service.js` dan `server/lms-file-sto
 
 ---
 
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- `.github/workflows/test.yml` menjalankan `npm ci` lalu `npm test` di `ubuntu-latest`, pada Node **20 dan 24**. 20 adalah versi image production (Dockerfile), 24 adalah versi di laptop pengembang.
+- **Hanya Linux, bukan Windows.** Pengembangan sehari-hari sudah berjalan di Windows, jadi yang belum pernah diuji justru Linux, dan itulah yang dipakai production. Menambah job Windows baru sepadan kalau nanti muncul lagi bug yang khusus Windows.
+- `npm ci`, bukan `npm install`, supaya versi dependency persis sama dengan `package-lock.json`.
+- CI tidak memakai satu pun secret, karena seluruh test berjalan di atas PGlite. Tidak ada database sungguhan yang tersentuh CI.
+- `concurrency` dengan `cancel-in-progress` membatalkan run lama saat ada push beruntun, dan `permissions: contents: read` menahan token CI supaya hanya bisa membaca.
+- `npm run check:docker` sengaja **tidak** dijalankan di CI: skrip itu memasang ulang dependency di folder sementara dan menyalakan server, jadi jauh lebih lambat, sementara isinya sudah dijamin oleh test biasa. Jalankan manual sebelum mengubah Dockerfile.
+- Sudah diverifikasi lokal dengan resep yang sama persis: `npm ci` dari nol lalu `APP_ENV=test npm test`, hasilnya 32 berkas test lulus.
+
+---
+
 ### Task 8.13 `[MANUSIA]` + Sonnet: Environment staging
 
 **Sonnet:**
@@ -2613,7 +2624,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [x] 8.9 Sesi per role
 - [ ] 8.10 Penyimpanan berkas privat
 - [ ] 8.11 Cloudflare Turnstile
-- [ ] 8.12 CI GitHub Actions
+- [x] 8.12 CI GitHub Actions
 - [ ] 8.13 `[MANUSIA]` + Sonnet: Environment staging
 
 **Phase 9: Layanan Publik dan Pendaftaran (Rilis A)**

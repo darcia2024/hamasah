@@ -138,3 +138,16 @@ Perintah ini memakai PostgreSQL in-process di `data/dev-db`, menerapkan seluruh 
 ```bash
 npm run dev:reset
 ```
+
+---
+
+## 8. Aktifkan branch protection (setelah push pertama)
+
+Begitu commit terdorong, GitHub akan menjalankan workflow `Test` secara otomatis. Supaya CI benar-benar berguna, hasilnya harus menjadi syarat merge:
+
+1. Buka **Settings > Branches > Add branch protection rule** pada repo.
+2. Branch name pattern: `main`.
+3. Centang **Require status checks to pass before merging**, lalu pilih check `Node 20.x` dan `Node 24.x`.
+4. Centang juga **Require a pull request before merging** kalau nanti ada lebih dari satu orang yang menulis kode.
+
+Badge status di README akan menampilkan hasil run terakhir di `main`. Selama belum pernah ada push, badge itu tampil sebagai "no status" dan itu wajar.

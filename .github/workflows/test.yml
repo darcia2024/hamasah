@@ -1,0 +1,55 @@
+name: Test
+
+# Berjalan pada setiap push ke main dan setiap pull request.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Push beruntun ke branch yang sama tidak perlu menunggu run lama selesai.
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+# Token hanya perlu membaca isi repo. Tidak ada yang ditulis balik dari CI.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      # Kalau satu versi gagal, versi lain tetap dijalankan supaya terlihat apakah
+      # masalahnya khusus satu versi atau bukan.
+      fail-fast: false
+      matrix:
+        # 20 adalah versi yang dipakai image production (Dockerfile), 24 adalah versi
+        # yang dipakai di laptop pengembang. Keduanya diuji supaya perbedaan versi
+        # ketahuan di CI, bukan saat deploy.
+        node: ['20.x', '24.x']
+
+    name: Node ${{ matrix.node }}
+
+    env:
+      # Test memakai PostgreSQL in-process (PGlite), jadi CI tidak butuh database
+      # sungguhan dan tidak butuh satu pun secret.
+      APP_ENV: test
+
+    steps:
+      - name: Ambil kode
+        uses: actions/checkout@v4
+
+      - name: Siapkan Node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      # npm ci, bukan npm install: versi dependency harus persis sama dengan
+      # package-lock.json, supaya hasil CI bisa dipercaya.
+      - name: Pasang dependency
+        run: npm ci
+
+      - name: Jalankan test
+        run: npm test
