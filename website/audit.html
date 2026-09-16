@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Catatan Audit | Hamasah International</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="website.css?v=17" />
+    <link rel="stylesheet" href="staff.css?v=1" />
+    <link rel="stylesheet" href="portal.css?v=1" />
+  </head>
+  <body class="staff-page">
+    <main class="staff-shell">
+      <header class="staff-header">
+        <a href="portal.html" class="staff-brand">Hamasah <span>Audit</span></a>
+        <a href="portal.html" class="button button--secondary">Portal akun</a>
+      </header>
+      <section id="audit-guard" class="staff-login" aria-live="polite">
+        <p class="eyebrow">Catatan audit</p>
+        <h1>Memeriksa akses.</h1>
+        <p id="audit-guard-copy">Silakan masuk melalui Portal Hamasah untuk menggunakan halaman ini.</p>
+      </section>
+      <section id="audit-console" hidden>
+        <div class="staff-intro">
+          <div>
+            <p class="eyebrow">Admin</p>
+            <h1>Siapa melakukan apa.</h1>
+            <p class="monitoring-hint">Catatan ini tidak dapat diubah dari halaman mana pun, dan dihapus otomatis setelah masa simpan berakhir. Alamat IP disimpan dalam bentuk teracak, bukan apa adanya.</p>
+          </div>
+          <button class="button button--secondary" id="reload-audit" type="button">Perbarui data</button>
+        </div>
+        <form id="audit-filter" class="staff-form record-form">
+          <label for="filter-from">Dari tanggal</label><input id="filter-from" type="date" />
+          <label for="filter-to">Sampai tanggal</label><input id="filter-to" type="date" />
+          <label for="filter-action">Jenis kejadian</label>
+          <select id="filter-action"><option value="">Semua kejadian</option></select>
+          <label for="filter-actor">Pelaku</label>
+          <select id="filter-actor"><option value="">Semua pelaku</option></select>
+          <button class="button button--primary" type="submit">Terapkan filter</button>
+          <button class="button button--secondary" id="reset-filter" type="button">Reset</button>
+          <p id="audit-status" class="form-status" role="status" aria-live="polite"></p>
+        </form>
+        <section class="portal-admin">
+          <div class="staff-intro">
+            <h2 class="portal-list-title">Hasil</h2>
+            <p id="audit-summary" class="form-status"></p>
+          </div>
+          <div id="audit-list" class="portal-account-list"></div>
+          <div class="staff-intro">
+            <button class="button button--secondary" id="audit-prev" type="button" disabled>Sebelumnya</button>
+            <button class="button button--secondary" id="audit-next" type="button" disabled>Berikutnya</button>
+          </div>
+        </section>
+      </section>
+    </main>
+    <script src="audit.js?v=1"></script>
+  </body>
+</html>

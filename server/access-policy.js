@@ -20,6 +20,8 @@ const PERMISSIONS = Object.freeze({
   // Daftar asrama dan penugasan musyrif. Hanya admin, karena ini menentukan
   // siapa boleh melihat santri yang mana.
   'dormitories.manage': Object.freeze([ROLES.ADMIN]),
+  // Catatan audit memuat siapa melakukan apa di seluruh sistem, jadi hanya admin.
+  'audit.read': Object.freeze([ROLES.ADMIN]),
 
   'registrations.read': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
   'registrations.update-status': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),

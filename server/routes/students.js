@@ -1,5 +1,6 @@
 const identity = require('../identity-service.js');
 const { csv, json, publicError } = require('../http/respond.js');
+const { ACTIONS } = require('../audit-service.js');
 
 const RECORD_METHODS = Object.freeze({
   activities: 'addActivity',
@@ -41,8 +42,14 @@ module.exports = [
     method: 'POST',
     pattern: /^\/api\/students$/,
     permission: 'students.manage',
-    async handler({ response, services, auth, readBody }) {
+    async handler({ response, services, auth, readBody, ip }) {
       const created = await services.studentPortalService.createStudent(await readBody(), await auth.actor());
+      if (created.ok) {
+        await services.auditService.record({
+          action: ACTIONS.STUDENT_CREATED, actor: await auth.actor(), ip,
+          entityType: 'student', entityId: created.value.id, metadata: { name: created.value.name, program: created.value.program }
+        });
+      }
       json(response, created.ok ? 201 : 422, created.ok ? { student: created.value } : publicError(created));
     }
   },
@@ -53,7 +60,7 @@ module.exports = [
     method: 'PATCH',
     pattern: /^\/api\/students\/([\w-]+)\/accounts$/,
     permission: 'students.manage',
-    async handler({ response, services, auth, params, readBody }) {
+    async handler({ response, services, auth, params, readBody, ip }) {
       const actor = await auth.actor();
       const body = await readBody();
       if (body.studentAccountId) {
@@ -72,6 +79,13 @@ module.exports = [
         }
       }
       const linked = await services.studentPortalService.linkAccounts(params[0], body, actor);
+      if (linked.ok) {
+        await services.auditService.record({
+          action: ACTIONS.STUDENT_ACCOUNTS_LINKED, actor, ip,
+          entityType: 'student', entityId: params[0],
+          metadata: { studentAccountId: linked.value.studentAccountId, jumlahWali: linked.value.parentAccountIds.length }
+        });
+      }
       json(response, linked.ok ? 200 : (linked.status || 422), linked.ok ? { student: linked.value } : publicError(linked));
     }
   },
@@ -82,8 +96,15 @@ module.exports = [
     method: 'PATCH',
     pattern: /^\/api\/students\/([\w-]+)\/placement$/,
     permission: 'students.manage',
-    async handler({ response, services, auth, params, readBody }) {
+    async handler({ response, services, auth, params, readBody, ip }) {
       const hasil = await services.studentPortalService.setPlacement(params[0], await readBody(), await auth.actor());
+      if (hasil.ok) {
+        await services.auditService.record({
+          action: ACTIONS.STUDENT_PLACEMENT_CHANGED, actor: await auth.actor(), ip,
+          entityType: 'student', entityId: params[0],
+          metadata: { gender: hasil.value.gender, dormitoryId: hasil.value.dormitoryId }
+        });
+      }
       json(response, hasil.ok ? 200 : (hasil.status || 422), hasil.ok ? { student: hasil.value } : publicError(hasil));
     }
   },
@@ -102,12 +123,17 @@ module.exports = [
     method: 'GET',
     pattern: /^\/api\/students\/([\w-]+)\/report$/,
     permission: 'students.read',
-    async handler({ response, services, auth, params }) {
+    async handler({ response, services, auth, params, ip }) {
       const report = await services.studentPortalService.dashboard(params[0], await auth.actor());
       if (!report.ok) {
         json(response, 403, publicError(report));
         return;
       }
+      // Ekspor data santri ke berkas dicatat, karena inilah cara data keluar dari sistem.
+      await services.auditService.record({
+        action: ACTIONS.STUDENT_REPORT_EXPORTED, actor: await auth.actor(), ip,
+        entityType: 'student', entityId: params[0]
+      });
       csv(response, { filename: `ringkasan-${report.value.student.id}.csv`, rows: reportRows(report.value) });
     }
   },

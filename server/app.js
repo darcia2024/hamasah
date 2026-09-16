@@ -18,6 +18,8 @@ const { createOperationsService } = require('./operations-service.js');
 const { createPostgresOperationsStore } = require('./postgres-operations-store.js');
 const { createDormitoryService } = require('./dormitory-service.js');
 const { createPostgresDormitoryStore } = require('./postgres-dormitory-store.js');
+const { createAuditService } = require('./audit-service.js');
+const { createPostgresAuditStore } = require('./postgres-audit-store.js');
 const { json, tooManyRequests } = require('./http/respond.js');
 const { MAX_REQUEST_BODY_BYTES, RequestBodyError, readJsonBody } = require('./http/body.js');
 const { serveStaticFile } = require('./http/static.js');
@@ -33,6 +35,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/health.js'),
   ...require('./routes/auth.js'),
   ...require('./routes/accounts.js'),
+  ...require('./routes/audit.js'),
   ...require('./routes/operations.js'),
   ...require('./routes/dormitories.js'),
   ...require('./routes/students.js'),
@@ -43,6 +46,9 @@ const ROUTES = Object.freeze([
 ]);
 
 const READINESS_TIMEOUT_MS = 2000;
+const AUDIT_PURGE_INTERVAL_MS = 24 * 60 * 60 * 1000;
+// Kunci pengembangan. readProductionConfig menolak nilai ini di staging dan production.
+const DEV_IP_HASH_SECRET = 'kunci-hash-ip-khusus-pengembangan';
 
 function createHamasahApp(options) {
   const config = options || {};
@@ -70,6 +76,13 @@ function createHamasahApp(options) {
   const accountStore = config.accountStore || createPostgresAccountStore({ database });
   const sessionStore = config.sessionStore || createPostgresSessionStore({ database });
   const identityService = config.identityService || identity.createIdentityService({ accountStore, sessionStore });
+  const auditStore = config.auditStore || createPostgresAuditStore({ database });
+  const auditService = config.auditService || createAuditService({
+    store: auditStore,
+    ipHashSecret: config.ipHashSecret || process.env.IP_HASH_SECRET || DEV_IP_HASH_SECRET
+  });
+  const auditRetentionDays = Number(config.auditRetentionDays || process.env.AUDIT_RETENTION_DAYS || 365);
+
   const dormitoryStore = config.dormitoryStore || createPostgresDormitoryStore({ database });
   const dormitoryService = config.dormitoryService || createDormitoryService({
     store: dormitoryStore,
@@ -118,6 +131,7 @@ function createHamasahApp(options) {
   const services = Object.freeze({
     accountStore,
     articleStore,
+    auditService,
     checkDatabaseReady,
     dormitoryService,
     identityService,
@@ -219,13 +233,43 @@ function createHamasahApp(options) {
     }
   }
 
+  // Pembersihan catatan audit lama. Dijalankan di dalam proses aplikasi karena
+  // belum ada penjadwal terpisah; timer di-unref supaya tidak menahan proses berhenti.
+  let auditPurgeTimer = null;
+  function startAuditRetention() {
+    async function bersihkan() {
+      try {
+        const dihapus = await auditService.purgeOlderThan(auditRetentionDays);
+        if (dihapus > 0) {
+          console.log(`[audit] ${dihapus} catatan lebih tua dari ${auditRetentionDays} hari dihapus.`);
+        }
+      } catch (error) {
+        console.error(`[audit] Pembersihan catatan lama gagal: ${error.message}`);
+      }
+    }
+    auditPurgeTimer = setInterval(bersihkan, AUDIT_PURGE_INTERVAL_MS);
+    if (typeof auditPurgeTimer.unref === 'function') {
+      auditPurgeTimer.unref();
+    }
+    return bersihkan();
+  }
+
   return {
     createServer() {
+      // Pembersihan pertama berjalan saat server benar-benar dinyalakan, bukan saat
+      // app dirakit, supaya test yang hanya merakit app tidak menyentuh database.
+      if (config.auditRetention !== false && !auditPurgeTimer) {
+        startAuditRetention();
+      }
       return http.createServer(requestListener);
     },
     // Menutup pool koneksi database yang dibuat app ini. Database dari luar (config.database) tidak ditutup.
     async close() {
       rateLimiter.stop();
+      if (auditPurgeTimer) {
+        clearInterval(auditPurgeTimer);
+        auditPurgeTimer = null;
+      }
       if (ownsDatabase) {
         await database.close();
       }
@@ -234,6 +278,7 @@ function createHamasahApp(options) {
     registrationService,
     studentPortalService,
     dormitoryService,
+    auditService,
     lmsService,
     operationsService
   };

@@ -321,6 +321,26 @@ async function run() {
     assert.equal(operationsPage.status, 200);
     assert.match(operationsPage.body, /Keuangan, visa, dan inventaris/);
 
+    const auditPage = await request(baseUrl, '/website/audit.html');
+    assert.equal(auditPage.status, 200);
+    assert.match(auditPage.body, /Siapa melakukan apa/);
+
+    // Kejadian penting benar-benar tercatat, bukan hanya ada modulnya.
+    const audit = await request(baseUrl, '/api/audit?limit=100', { headers: adminHeaders });
+    assert.equal(audit.status, 200);
+    const aksi = audit.body.items.map((event) => event.action);
+    for (const wajib of ['account.bootstrapped', 'auth.login.success', 'account.created', 'student.created', 'registration.created', 'invoice.created']) {
+      assert.ok(aksi.includes(wajib), `Kejadian ${wajib} seharusnya tercatat. Yang ada: ${[...new Set(aksi)].join(', ')}`);
+    }
+    // Isi catatan tidak boleh memuat kata sandi atau token, walau pemanggilnya lalai.
+    const teksAudit = JSON.stringify(audit.body);
+    assert.equal(teksAudit.includes('kata-sandi-admin-aman'), false, 'Kata sandi tidak boleh ada di catatan audit.');
+    assert.equal(teksAudit.includes(login.body.accessToken), false, 'Token sesi tidak boleh ada di catatan audit.');
+    assert.equal(teksAudit.includes('ipHash'), false, 'Hash alamat IP tidak ikut dikirim ke layar audit.');
+
+    // Audit hanya untuk admin.
+    assert.equal((await request(baseUrl, '/api/audit', { headers: waliLainHeaders })).status, 403);
+
     // Header keamanan terpasang di halaman maupun di API, termasuk pada 404.
     const headerHalaman = (await fetch(`${baseUrl}/website/`)).headers;
     assert.equal(headerHalaman.get('x-content-type-options'), 'nosniff');

@@ -20,7 +20,9 @@ try {
 const port = Number(process.env.PORT || 4273);
 const app = createHamasahApp({
   rootDirectory: path.resolve(__dirname),
-  databaseUrl: config.databaseUrl
+  databaseUrl: config.databaseUrl,
+  appEnvironment: config.appEnvironment,
+  ipHashSecret: config.ipHashSecret
 });
 
 const server = app.createServer();

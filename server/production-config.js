@@ -53,12 +53,20 @@ function readProductionConfig(environment) {
     ? requiredEnvironment(values, 'STORAGE_BUCKET', appEnvironment)
     : optionalEnvironment(values, 'STORAGE_BUCKET');
   const bootstrapKey = optionalEnvironment(values, 'HAMASAH_BOOTSTRAP_KEY');
+  // Kunci HMAC untuk alamat IP di catatan audit. Wajib di luar pengembangan, karena
+  // tanpa kunci, daftar alamat IP yang mungkin cukup pendek untuk dicoba satu per satu.
+  const ipHashSecret = ['staging', 'production'].includes(appEnvironment)
+    ? requiredEnvironment(values, 'IP_HASH_SECRET', appEnvironment)
+    : optionalEnvironment(values, 'IP_HASH_SECRET');
+  if (ipHashSecret && ipHashSecret.length < 32) {
+    throw new Error('IP_HASH_SECRET harus terdiri dari minimal 32 karakter.');
+  }
 
   if (bootstrapKey && bootstrapKey.length < 32) {
     throw new Error('HAMASAH_BOOTSTRAP_KEY harus terdiri dari minimal 32 karakter.');
   }
 
-  return Object.freeze({ appEnvironment, databaseUrl, bootstrapKey, storageBucket });
+  return Object.freeze({ appEnvironment, databaseUrl, bootstrapKey, ipHashSecret, storageBucket });
 }
 
 module.exports = { PGLITE_ENVIRONMENTS, assertDatabaseUrl, readProductionConfig };

@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const { assertDatabaseUrl, readProductionConfig } = require('./production-config.js');
 
 const DATABASE_URL = 'postgresql://user:password@db.example.com:5432/hamasah';
+const IP_HASH_SECRET = 'b'.repeat(32);
 
 // DATABASE_URL selalu wajib, di lingkungan mana pun.
 assert.throws(() => readProductionConfig({}), /DATABASE_URL/);
@@ -19,28 +20,36 @@ assert.equal(config.storageBucket, 'hamasah-private-documents');
 assert.equal(config.appEnvironment, 'development');
 
 // Di luar production, bucket dan bootstrap key tidak wajib.
-const staging = readProductionConfig({ APP_ENV: 'staging', DATABASE_URL });
+const staging = readProductionConfig({ APP_ENV: 'staging', DATABASE_URL, IP_HASH_SECRET });
 assert.equal(staging.appEnvironment, 'staging');
 assert.equal(staging.storageBucket, '');
 assert.equal(staging.bootstrapKey, '');
 
 // Production mewajibkan STORAGE_BUCKET.
-assert.throws(() => readProductionConfig({ APP_ENV: 'production', DATABASE_URL }), /STORAGE_BUCKET/);
+assert.throws(() => readProductionConfig({ APP_ENV: 'production', DATABASE_URL, IP_HASH_SECRET }), /STORAGE_BUCKET/);
 
 // Bootstrap key dihapus setelah admin pertama dibuat, jadi production tetap jalan tanpanya.
-const production = readProductionConfig({ APP_ENV: 'production', DATABASE_URL, STORAGE_BUCKET: 'hamasah-private-documents' });
+const production = readProductionConfig({ APP_ENV: 'production', DATABASE_URL, IP_HASH_SECRET, STORAGE_BUCKET: 'hamasah-private-documents' });
 assert.equal(production.appEnvironment, 'production');
 assert.equal(production.bootstrapKey, '');
 
 // Jika bootstrap key diisi, panjangnya tetap diperiksa.
-assert.throws(() => readProductionConfig({ APP_ENV: 'production', DATABASE_URL, STORAGE_BUCKET: 'bucket', HAMASAH_BOOTSTRAP_KEY: 'pendek' }), /32 karakter/);
-assert.throws(() => readProductionConfig({ APP_ENV: 'staging', DATABASE_URL, HAMASAH_BOOTSTRAP_KEY: 'pendek' }), /32 karakter/);
+assert.throws(() => readProductionConfig({ APP_ENV: 'production', DATABASE_URL, IP_HASH_SECRET, STORAGE_BUCKET: 'bucket', HAMASAH_BOOTSTRAP_KEY: 'pendek' }), /32 karakter/);
+assert.throws(() => readProductionConfig({ APP_ENV: 'staging', DATABASE_URL, IP_HASH_SECRET, HAMASAH_BOOTSTRAP_KEY: 'pendek' }), /32 karakter/);
+
+// IP_HASH_SECRET wajib di staging dan production, dan panjangnya diperiksa.
+assert.throws(() => readProductionConfig({ APP_ENV: 'staging', DATABASE_URL }), /IP_HASH_SECRET/);
+assert.throws(() => readProductionConfig({ APP_ENV: 'production', DATABASE_URL, STORAGE_BUCKET: 'bucket' }), /IP_HASH_SECRET/);
+assert.throws(() => readProductionConfig({ APP_ENV: 'staging', DATABASE_URL, IP_HASH_SECRET: 'pendek' }), /IP_HASH_SECRET harus terdiri dari minimal 32 karakter/);
+// Di pengembangan tidak wajib, karena datanya memang fiktif.
+assert.equal(readProductionConfig({ DATABASE_URL }).ipHashSecret, '');
+assert.equal(staging.ipHashSecret, IP_HASH_SECRET);
 
 // PGlite hanya boleh dipakai di development dan test.
 assert.equal(readProductionConfig({ APP_ENV: 'development', DATABASE_URL: 'pglite:./data/dev-db' }).databaseUrl, 'pglite:./data/dev-db');
 assert.equal(assertDatabaseUrl('pglite:memory', 'test'), 'pglite:memory');
 assert.throws(() => assertDatabaseUrl('pglite:memory', 'staging'), /pglite/);
-assert.throws(() => readProductionConfig({ APP_ENV: 'production', DATABASE_URL: 'pglite:memory', STORAGE_BUCKET: 'bucket' }), /pglite/);
+assert.throws(() => readProductionConfig({ APP_ENV: 'production', DATABASE_URL: 'pglite:memory', IP_HASH_SECRET, STORAGE_BUCKET: 'bucket' }), /pglite/);
 
 // URL yang tidak bisa dibaca ditolak tanpa menampilkan isinya.
 let urlError = '';

@@ -1202,6 +1202,18 @@ Pola sama dengan Task 7.2 untuk `server/lms-service.js` dan `server/lms-file-sto
 
 ---
 
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- Migrasi `009_audit_events.sql`. `actor_account_id` memakai `ON DELETE SET NULL`, jadi catatan bertahan walau akun pelakunya dihapus; `actor_role` disimpan sebagai teks supaya perannya tetap terbaca.
+- **Metadata disaring di dalam `audit-service.js`, bukan dipercayakan ke pemanggil.** Kunci seperti `password`, `token`, `phone`, `content`, dan `storageKey` dibuang, objek bersarang ditolak, dan nilai panjang dipotong. Pemanggil yang lalai tetap tidak bisa membocorkan apa pun.
+- Alamat IP disimpan sebagai **HMAC**, bukan hash biasa. Seluruh alamat IPv4 yang mungkin hanya 4 miliar, jadi hash tanpa kunci bisa dihitung satu per satu sampai ketemu dan tidak menyembunyikan apa pun. Kuncinya `IP_HASH_SECRET`, wajib minimal 32 karakter di staging dan production, dan `ip_hash` tidak pernah ikut keluar ke layar audit.
+- **Kegagalan mencatat tidak menggagalkan pekerjaan utama.** Errornya dicetak ke stderr dan permintaan tetap jalan, karena database yang bermasalah tidak boleh membuat wali gagal login. Konsekuensinya disadari: catatan bisa berlubang saat database bermasalah, dan itu sebabnya kegagalannya dicetak, bukan ditelan.
+- Nama aksi diambil dari konstanta `ACTIONS`. Aksi karangan ditolak, karena nama yang salah membuat penyaringan di layar audit tidak bisa dipercaya: filter "login gagal" akan melewatkan kejadian yang namanya meleset.
+- Pencatatan dilakukan di handler route, bukan di dispatcher, supaya tiap kejadian bisa membawa keterangan yang memang berguna (nomor invoice, status pendaftaran) dan bukan potongan URL.
+- Retensi berjalan sebagai timer 24 jam di dalam proses aplikasi, dimulai saat `createServer()` dipanggil, bukan saat app dirakit, supaya test yang hanya merakit app tidak menyentuh database. Diatur lewat `AUDIT_RETENTION_DAYS`, bawaan 365 hari.
+- `website/audit.html` belum tertaut dari halaman mana pun, sama seperti halaman staf lainnya. Penautan dan pengarahan setelah login dikerjakan di Task 9.6.
+
+---
+
 ### Task 8.6 `[INTI]` Header keamanan dan Content Security Policy
 
 **Langkah:**
@@ -2582,7 +2594,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [x] 8.2 Otorisasi konsisten dan role baru
 - [x] 8.3 Pembatasan musyrif per asrama
 - [x] 8.4 Rate limit
-- [ ] 8.5 Audit log
+- [x] 8.5 Audit log
 - [x] 8.6 Header keamanan dan CSP
 - [ ] 8.7 Notification outbox dan email
 - [ ] 8.8 Undangan akun, aktivasi, reset password
