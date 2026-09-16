@@ -39,7 +39,7 @@ Isi commit tersebut: mode dev PGlite, konversi tiga service menjadi async, store
 
 > Migrasi 006 sudah diterapkan ke production pada 16 Sep 2026 (6 migrasi, 21 tabel, semua ber-RLS).
 >
-> **Masih menunggu:** migrasi `007_role_finance_teacher.sql`, yang menambah role `teacher` dan `finance`. Perintahnya sama persis dengan bagian 5 di bawah. Migrasi ini hanya mengganti aturan CHECK pada kolom `role`, tidak menyentuh data akun yang sudah ada.
+> Migrasi 007 (role `teacher` dan `finance`) juga sudah diterapkan ke production pada 16 Sep 2026. Verifikasi: 7 migrasi, 21 tabel, semua ber-RLS.
 >
 > Bagian di bawah ini berlaku untuk project staging begitu dibuat.
 

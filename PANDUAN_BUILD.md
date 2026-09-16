@@ -2531,7 +2531,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 
 **Sisa pekerjaan Phase 6 (manusia):** Task 6.0 (cabut token GitHub, bersihkan URL remote, buat project staging). Migrasi 001 sampai 005 sudah diterapkan ke production pada 16 Sep 2026.
 
-**Sisa pekerjaan Phase 7 (manusia):** Migrasi 006 sudah diterapkan ke production pada 16 Sep 2026 (6 migrasi, 21 tabel aplikasi, semua ber-RLS). Yang tersisa: push commit Phase 7 ke remote, dan smoke test Task 7.9. Smoke test menunggu project staging ada, karena alurnya membuat santri, invoice, dan pendaftaran contoh yang tidak boleh masuk ke database production.
+**Sisa pekerjaan Phase 7 (manusia):** Migrasi 001 sampai 007 sudah diterapkan ke production pada 16 Sep 2026 (7 migrasi, 21 tabel aplikasi, semua ber-RLS). Yang tersisa: push commit Phase 7 ke remote, dan smoke test Task 7.9. Smoke test menunggu project staging ada, karena alurnya membuat santri, invoice, dan pendaftaran contoh yang tidak boleh masuk ke database production.
 
 **Phase 7: Semua Data di PostgreSQL**
 - [x] 7.1 Mode dev lokal dengan PGlite (2902df5)
