@@ -41,7 +41,7 @@ Isi commit tersebut: mode dev PGlite, konversi tiga service menjadi async, store
 > - **Production**: migrasi 001–007 diterapkan (7 migrasi, 21 tabel, semua ber-RLS). Migrasi 008–011 **belum** diterapkan ke production.
 > - **Staging**: migrasi 001–011 sudah diterapkan dan diverifikasi (11 migrasi, 25 tabel aplikasi, semua ber-RLS). Ini mencakup `008_dormitories.sql` (asrama dan penugasan musyrif), `009_audit_events.sql` (catatan audit), `010_session_last_seen.sql` (durasi sesi per role), dan `011_file_objects.sql` (penyimpanan berkas). Semuanya aditif — tidak ada data lama yang berubah.
 >
-> Langkah-langkah di bagian ini (3) sudah selesai untuk staging. Yang tersisa untuk staging adalah smoke test di bagian 4. Migrasi 008–011 ke **production** menyusul di bagian 5 setelah smoke test staging lulus.
+> Langkah-langkah di bagian ini (3) sudah selesai untuk staging. **Smoke test staging di bagian 4 sudah lulus 12/12** lewat `npm run smoke-test`, termasuk unggah-unduh berkas ke Supabase Storage sungguhan — driver storage-nya terbukti benar-benar tersambung, bukan cuma lolos test lawan server tiruan. Lanjut ke migrasi 008–011 ke **production** di bagian 5.
 >
 > **Sempat gagal, sudah diperbaiki:** `npm run verify:database` awalnya menolak dengan pesan "SUPABASE_URL harus diisi", padahal skrip migrasi tidak ada urusan dengan penyimpanan berkas sama sekali. Itu bug di sisi kode (perbaikan sudah di-commit) — bukan sesuatu yang perlu Anda ubah di konfigurasi.
 >
