@@ -384,3 +384,6 @@ input:focus, select:focus { outline: 0; border: 2px solid var(--gold-dark); box-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+/* Field yang tidak berlaku untuk program terpilih disembunyikan sepenuhnya. */
+.field-group[hidden] { display: none; }

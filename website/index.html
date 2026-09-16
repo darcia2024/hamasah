@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="website.css?v=16" />
+    <link rel="stylesheet" href="website.css?v=17" />
   </head>
   <body>
     <a class="skip-link" href="#konten">Lewati ke konten utama</a>
@@ -328,14 +328,14 @@
               <p class="field-error" id="phone-error"></p>
             </div>
             <div class="field-group">
-              <label for="program">Program tujuan <span aria-hidden="true">*</span></label>
-              <select id="program" name="program" aria-describedby="program-error">
+              <label for="program-tujuan">Program tujuan <span aria-hidden="true">*</span></label>
+              <select id="program-tujuan" name="program" aria-describedby="program-tujuan-error">
                 <option value="">Pilih program</option>
                 <option value="kuliah-al-azhar">Program Kuliah Al-Azhar</option>
                 <option value="mahad-al-azhar">Program Ma'had Al-Azhar</option>
                 <option value="hamasah-courses">Hamasah Courses</option>
               </select>
-              <p class="field-error" id="program-error"></p>
+              <p class="field-error" id="program-tujuan-error"></p>
             </div>
             <div class="field-group">
               <label for="education-level">Pendidikan terakhir <span aria-hidden="true">*</span></label>
@@ -343,7 +343,7 @@
               <p class="field-error" id="education-level-error"></p>
             </div>
             <div class="field-group">
-              <label for="city">Kota domisili <span aria-hidden="true">*</span></label>
+              <label for="city">Kota domisili</label>
               <input id="city" name="city" type="text" autocomplete="address-level2" aria-describedby="city-error" />
               <p class="field-error" id="city-error"></p>
             </div>
@@ -415,6 +415,7 @@
       </div>
     </footer>
 
-    <script src="website.js?v=4"></script>
+    <script src="registration-domain.js?v=1"></script>
+    <script src="website.js?v=6"></script>
   </body>
 </html>

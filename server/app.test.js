@@ -195,6 +195,23 @@ async function run() {
     const denied = await request(baseUrl, `/api/registrations/${registrationId}`);
     assert.equal(denied.status, 401);
 
+    // Isi permintaan yang rusak dan yang kebesaran punya status masing-masing.
+    const jsonRusak = await request(baseUrl, '/api/registrations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{bukan json'
+    });
+    assert.equal(jsonRusak.status, 400);
+    assert.match(jsonRusak.body.error, /JSON/);
+
+    const terlaluBesar = await request(baseUrl, '/api/registrations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ applicantName: 'a'.repeat(200000) })
+    });
+    assert.equal(terlaluBesar.status, 413);
+    assert.match(terlaluBesar.body.error, /terlalu besar/);
+
     const candidateHeaders = { Authorization: `Bearer ${created.body.accessToken}`, 'Content-Type': 'application/json' };
     const retrieved = await request(baseUrl, `/api/registrations/${registrationId}`, { headers: candidateHeaders });
     assert.equal(retrieved.status, 200);

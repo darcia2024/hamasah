@@ -142,7 +142,8 @@ const checkRegistrationStatus = document.querySelector('#check-registration-stat
 const fields = {
   fullName: form.querySelector('#full-name'),
   phone: form.querySelector('#phone'),
-  program: form.querySelector('#program'),
+  // id dibedakan dari section #program di halaman yang sama, supaya label tetap menunjuk ke select ini.
+  program: form.querySelector('#program-tujuan'),
   educationLevel: form.querySelector('#education-level'),
   city: form.querySelector('#city'),
   guardianName: form.querySelector('#guardian-name'),
@@ -158,20 +159,51 @@ function setFieldError(field, message) {
   if (error) error.textContent = message;
 }
 
-function validateForm() {
-  let valid = true;
-  setFieldError(fields.fullName, fields.fullName.value.trim() ? '' : 'Masukkan nama lengkap terlebih dahulu.');
-  setFieldError(fields.phone, fields.phone.value.trim().length >= 8 ? '' : 'Masukkan nomor WhatsApp yang dapat dihubungi.');
-  setFieldError(fields.program, fields.program.value ? '' : 'Pilih program tujuan.');
-  setFieldError(fields.educationLevel, fields.educationLevel.value.trim() ? '' : 'Masukkan pendidikan terakhir.');
-  setFieldError(fields.city, fields.city.value.trim() ? '' : 'Masukkan kota domisili.');
-  setFieldError(fields.guardianName, fields.guardianName.value.trim() ? '' : 'Masukkan nama wali.');
-  setFieldError(fields.guardianPhone, fields.guardianPhone.value.trim().length >= 8 ? '' : 'Masukkan nomor WhatsApp wali.');
-  setFieldError(fields.consent, fields.consent.checked ? '' : 'Persetujuan diperlukan sebelum melanjutkan.');
-  Object.values(fields).forEach((field) => {
-    if (field.getAttribute('aria-invalid') === 'true') valid = false;
+// Aturan validasi dipakai bersama dengan server lewat registration-domain.js,
+// supaya formulir tidak pernah mewajibkan sesuatu yang tidak diwajibkan server, atau sebaliknya.
+const registrationDomain = globalThis.HamasahRegistrationDomain;
+
+// Field yang hanya berlaku untuk jalur calon santri, bukan Hamasah Courses.
+const guardianFields = [fields.educationLevel, fields.guardianName, fields.guardianPhone];
+
+function readRegistrationForm() {
+  return {
+    applicantName: fields.fullName.value,
+    phone: fields.phone.value,
+    program: fields.program.value,
+    educationLevel: fields.educationLevel.value,
+    city: fields.city.value,
+    guardianName: fields.guardianName.value,
+    guardianPhone: fields.guardianPhone.value,
+    consent: fields.consent.checked
+  };
+}
+
+function syncProgramFields() {
+  const hanyaKursus = fields.program.value === registrationDomain.PROGRAMS.COURSES;
+  guardianFields.forEach((field) => {
+    const group = field.closest('.field-group');
+    if (group) group.hidden = hanyaKursus;
+    if (hanyaKursus) {
+      field.value = '';
+      setFieldError(field, '');
+    }
   });
-  return valid;
+}
+
+function validateForm() {
+  const result = registrationDomain.validateApplicant(readRegistrationForm());
+  const errorByField = [
+    [fields.fullName, result.errors.applicantName],
+    [fields.phone, result.errors.phone],
+    [fields.program, result.errors.program],
+    [fields.educationLevel, result.errors.educationLevel],
+    [fields.guardianName, result.errors.guardianName],
+    [fields.guardianPhone, result.errors.guardianPhone],
+    [fields.consent, result.errors.consent]
+  ];
+  errorByField.forEach(([field, message]) => setFieldError(field, message || ''));
+  return result.valid;
 }
 
 function readRegistrationSession() {
@@ -212,6 +244,9 @@ Object.values(fields).forEach((field) => {
   });
 });
 
+fields.program.addEventListener('change', syncProgramFields);
+syncProgramFields();
+
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
   status.classList.remove('is-error');
@@ -229,16 +264,7 @@ form.addEventListener('submit', async (event) => {
     const response = await fetch('/api/registrations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        applicantName: fields.fullName.value,
-        phone: fields.phone.value,
-        program: fields.program.value,
-        educationLevel: fields.educationLevel.value,
-        city: fields.city.value,
-        guardianName: fields.guardianName.value,
-        guardianPhone: fields.guardianPhone.value,
-        consent: fields.consent.checked
-      })
+      body: JSON.stringify(readRegistrationForm())
     });
     const contentType = response.headers.get('content-type') || '';
     const result = contentType.includes('application/json') ? await response.json() : {};

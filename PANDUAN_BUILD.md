@@ -813,6 +813,13 @@ Dikerjakan manusia. Sonnet tidak ikut.
 
 **Selesai jika:** test lulus, dan formulir Hamasah Courses bisa dikirim tanpa data wali. Uji di browser lewat `npm run dev` jika Task 7.1 sudah selesai. Jika belum, cukup test otomatis, lalu minta manusia mengecek di browser.
 
+**Catatan implementasi (sudah dikerjakan):**
+- Formulir publik memakai `registration-domain.js` yang sama dengan server, jadi aturan wajib isi tidak bisa lagi berbeda antara browser dan server. Field pendidikan dan wali disembunyikan saat program Hamasah Courses dipilih (`.field-group[hidden]` ditambahkan ke `website.css`).
+- Kota domisili tidak lagi ditandai wajib di formulir, karena server memang tidak mewajibkannya. Daftar field wajib yang final diputuskan bersama klien di Task 9.4.
+- `RequestBodyError` membawa status sendiri: 400 untuk JSON rusak, 413 untuk isi terlalu besar. Isi permintaan tetap dibaca sampai selesai (dengan batas keras 5 MB) supaya pengirim benar-benar menerima balasan 413, bukan koneksi terputus.
+- **Ditemukan dan diperbaiki saat verifikasi browser:** ada dua elemen dengan `id="program"` (section dan select), sehingga label "Program tujuan" tidak menunjuk ke select mana pun. Id select diubah menjadi `program-tujuan`. Saat menambah field baru, pastikan id-nya unik terhadap id section di halaman yang sama.
+- Verifikasi browser memakai server statis `.claude/launch.json` (`preview_start` dengan nama `static`), karena `npm run dev` baru ada setelah Task 7.1.
+
 ---
 
 ## 7. Phase 7: Semua Data di PostgreSQL

@@ -36,10 +36,14 @@ Membangun aturan proses pendaftaran yang dapat digunakan bersama oleh form publi
 
 ## Cara menguji aturan domain
 
-Jalankan dua perintah berikut dari root proyek.
+Jalankan seluruh test dari root proyek. Perintah ini menjalankan semua file `*.test.js`, termasuk aturan domain, service pendaftaran, dan API.
+
+```powershell
+npm test
+```
+
+Untuk menjalankan satu berkas saja, misalnya saat menelusuri kegagalan:
 
 ```powershell
 node website/registration-domain.test.js
-node website/registration-service.test.js
-node server/app.test.js
 ```
