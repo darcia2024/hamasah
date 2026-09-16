@@ -87,6 +87,7 @@
     };
   }
 
+  // Identitas pelaku hanya muncul di tampilan staf, tidak pada data yang dilihat pendaftar.
   function toStaffRegistration(record) {
     return {
       ...toPublicRegistration(record),
@@ -97,7 +98,18 @@
         guardianPhone: record.applicant.guardianPhone,
         educationLevel: record.applicant.educationLevel,
         city: record.applicant.city
-      }
+      },
+      history: record.statusHistory.map(function staffHistoryEntry(entry) {
+        return {
+          from: entry.from,
+          to: entry.to,
+          at: entry.changedAt,
+          note: entry.note,
+          byRole: entry.changedBy,
+          byAccountId: entry.changedByAccountId || null,
+          byName: entry.changedByName || null
+        };
+      })
     };
   }
 
@@ -189,7 +201,8 @@
       const actorData = actor || {};
       const updated = domain.transitionApplication(record, nextStatus, actorData.role, {
         changedAt: getNow(),
-        note: actorData.note
+        note: actorData.note,
+        accountId: actorData.accountId
       });
       if (!updated.ok) {
         return updated;
@@ -224,7 +237,8 @@
         ...validated.value,
         status: 'received',
         uploadedAt: getNow(),
-        uploadedBy: actorRole
+        uploadedBy: actorRole,
+        uploadedByAccountId: (actor && actor.accountId) || null
       };
       const saved = await store.update({
         ...record,

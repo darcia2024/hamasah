@@ -744,6 +744,14 @@ Dikerjakan manusia. Sonnet tidak ikut.
 
 **Selesai jika:** test lulus, dan `grep -rn "HAMASAH_STAFF_API_KEY\|staffApiKey" server website .env.example` tidak menghasilkan apa pun.
 
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- `server/app.js` punya `staffActor(request)` yang mengembalikan akun petugas dari sesi, dan `registrationRoleOf(actor)` yang menerjemahkan role akun ke role domain. Isi `role` pada body request diabaikan.
+- Identitas pelaku hanya muncul di `toStaffRegistration` (tampilan staf). Data yang dilihat pendaftar tidak memuat nama petugas, dan ini diuji.
+- Store membaca nama pelaku lewat `LEFT JOIN accounts`, jadi riwayat tetap utuh saat akun staf dihapus (`ON DELETE SET NULL`), hanya namanya yang hilang.
+- Berkas pendaftaran juga mencatat `uploaded_by_account_id` dengan pola yang sama.
+- Endpoint artikel sekarang wajib login sebagai admin atau petugas pendaftaran, karena kunci API dihapus.
+- Ditemukan di luar scope: `website/monitoring.js:58` dan `website/portal.js:57` masih memakai em dash. Perbaiki saat kedua halaman itu dikerjakan di Phase 9 dan 11.
+
 ---
 
 ### Task 6.9 `[INTI]` Dockerfile, shutdown yang rapi, dan health check

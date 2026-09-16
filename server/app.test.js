@@ -21,7 +21,6 @@ async function run() {
   const app = createHamasahApp({
     rootDirectory: path.resolve(__dirname, '..'),
     dataDirectory: temporaryDirectory,
-    staffApiKey: 'staff-test-key',
     bootstrapKey: 'bootstrap-test-key'
   });
   const server = app.createServer();
@@ -233,7 +232,7 @@ async function run() {
 
     const articleCreated = await request(baseUrl, '/api/articles', {
       method: 'POST',
-      headers: { Authorization: 'Bearer staff-test-key', 'Content-Type': 'application/json' },
+      headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title: 'Kegiatan pembinaan pekanan',
         excerpt: 'Catatan kegiatan santri bersama pembina.',

@@ -15,7 +15,7 @@ async function request(baseUrl, pathname, options) {
 async function run() {
   const rootDirectory = path.resolve(__dirname, '..');
   const database = await createTestDatabase();
-  const app = createHamasahApp({ rootDirectory, database, bootstrapKey: 'bootstrap-test-key', staffApiKey: '' });
+  const app = createHamasahApp({ rootDirectory, database, bootstrapKey: 'bootstrap-test-key' });
   const server = app.createServer();
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const baseUrl = `http://127.0.0.1:${server.address().port}`;
@@ -95,6 +95,51 @@ async function run() {
     const staffList = await request(baseUrl, '/api/registrations', { headers: adminHeaders });
     assert.equal(staffList.status, 200);
     assert.equal(staffList.body.items.length, 11);
+
+    // Riwayat status mencatat akun pelaku, dan peran diambil dari sesi, bukan dari isi request.
+    const officerAccount = await request(baseUrl, '/api/accounts', {
+      method: 'POST',
+      headers: adminHeaders,
+      body: JSON.stringify({ name: 'Petugas Uji', email: 'petugas@hamasah.test', role: 'registration-officer', password: 'kata-sandi-petugas-uji' })
+    });
+    assert.equal(officerAccount.status, 201);
+    const officerLogin = await request(baseUrl, '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'petugas@hamasah.test', password: 'kata-sandi-petugas-uji' })
+    });
+    assert.equal(officerLogin.status, 200);
+
+    const changed = await request(baseUrl, `/api/registrations/${registrationId}/status`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${officerLogin.body.accessToken}`, 'Content-Type': 'application/json' },
+      // Petugas mencoba mengaku admin lewat isi request.
+      body: JSON.stringify({ status: 'document-review', note: 'Berkas mulai diperiksa.', role: 'admin' })
+    });
+    assert.equal(changed.status, 200);
+
+    const detail = (await request(baseUrl, '/api/registrations', { headers: adminHeaders }))
+      .body.items.find((item) => item.registrationId === registrationId);
+    const terakhir = detail.history.at(-1);
+    assert.equal(terakhir.to, 'document-review');
+    assert.equal(terakhir.byRole, 'registration-officer', 'Peran wajib diambil dari sesi, bukan dari isi request.');
+    assert.equal(terakhir.byAccountId, officerAccount.body.account.id);
+    assert.equal(terakhir.byName, 'Petugas Uji');
+
+    // Pendaftar tidak boleh melihat nama petugas di riwayat miliknya.
+    const milikPendaftar = await request(baseUrl, `/api/registrations/${registrationId}`, {
+      headers: { Authorization: `Bearer ${registration.body.accessToken}` }
+    });
+    assert.equal(milikPendaftar.status, 200);
+    assert.equal(JSON.stringify(milikPendaftar.body).includes('Petugas Uji'), false);
+
+    // Tanpa sesi, perubahan status ditolak.
+    const tanpaSesi = await request(baseUrl, `/api/registrations/${registrationId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'academic-preparation' })
+    });
+    assert.equal(tanpaSesi.status, 401);
 
     // Artikel.
     const article = await request(baseUrl, '/api/articles', {

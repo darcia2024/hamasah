@@ -188,6 +188,7 @@
         to: STATUSES.SUBMITTED,
         changedAt: createdAt,
         changedBy: ROLES.APPLICANT,
+        changedByAccountId: null,
         note: 'Data pendaftaran awal dikirim.'
       }]
     };
@@ -212,6 +213,7 @@
       to: nextStatus,
       changedAt,
       changedBy: actor,
+      changedByAccountId: config.accountId || null,
       note
     });
 

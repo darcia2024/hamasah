@@ -32,6 +32,27 @@ function authHeaders() {
   return session ? { Authorization: `Bearer ${session.accessToken}` } : {};
 }
 
+const labelPeranPelaku = {
+  applicant: 'calon santri',
+  'registration-officer': 'petugas pendaftaran',
+  admin: 'admin'
+};
+
+// Dipakai jika akun pelaku sudah dihapus sehingga namanya tidak tersedia.
+function labelPeran(role) {
+  return labelPeranPelaku[role] || 'petugas';
+}
+
+function formatWaktu(value) {
+  const waktu = new Date(value);
+  if (Number.isNaN(waktu.getTime())) return 'waktu tidak tercatat';
+  return new Intl.DateTimeFormat('id-ID', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'Asia/Jakarta'
+  }).format(waktu);
+}
+
 function renderRegistrations(items) {
   registrationList.replaceChildren();
   if (!items.length) {
@@ -51,11 +72,14 @@ function renderRegistrations(items) {
     identity.textContent = `${registration.registrationId} · ${registration.program}`;
     const meta = document.createElement('div');
     meta.className = 'staff-registration__meta';
+    const terakhir = (registration.history || []).at(-1);
+    const pelaku = terakhir ? (terakhir.byName || labelPeran(terakhir.byRole)) : '';
     [
       `WhatsApp calon: ${registration.applicant.phone}`,
-      `Wali: ${registration.applicant.guardianName || 'Belum diisi'} · ${registration.applicant.guardianPhone || '—'}`,
-      `Pendidikan: ${registration.applicant.educationLevel || '—'} · Domisili: ${registration.applicant.city || '—'}`,
-      `Status: ${registration.statusLabel} · Progres ${registration.progress}%`
+      `Wali: ${registration.applicant.guardianName || 'Belum diisi'} · ${registration.applicant.guardianPhone || 'Belum diisi'}`,
+      `Pendidikan: ${registration.applicant.educationLevel || 'Belum diisi'} · Domisili: ${registration.applicant.city || 'Belum diisi'}`,
+      `Status: ${registration.statusLabel} · Progres ${registration.progress}%`,
+      terakhir ? `Terakhir diubah oleh ${pelaku} pada ${formatWaktu(terakhir.at)}` : 'Belum ada perubahan status.'
     ].forEach((text) => {
       const line = document.createElement('p');
       line.textContent = text;

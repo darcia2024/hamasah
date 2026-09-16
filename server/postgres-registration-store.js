@@ -11,11 +11,21 @@ function createPostgresRegistrationStore({ database } = {}) {
     const registration = rows[0];
     const [documents, history] = await Promise.all([
       database.query(
-        'SELECT document_type, storage_key, status, uploaded_at, uploaded_by_role FROM registration_documents WHERE registration_id = $1 ORDER BY uploaded_at',
+        `SELECT d.document_type, d.storage_key, d.status, d.uploaded_at, d.uploaded_by_role,
+                d.uploaded_by_account_id, a.name AS uploaded_by_name
+         FROM registration_documents d
+         LEFT JOIN accounts a ON a.id = d.uploaded_by_account_id
+         WHERE d.registration_id = $1
+         ORDER BY d.uploaded_at`,
         [registration.id]
       ),
       database.query(
-        'SELECT previous_status, next_status, changed_at, changed_by_role, note FROM registration_status_events WHERE registration_id = $1 ORDER BY changed_at',
+        `SELECT e.previous_status, e.next_status, e.changed_at, e.changed_by_role,
+                e.changed_by_account_id, a.name AS changed_by_name, e.note
+         FROM registration_status_events e
+         LEFT JOIN accounts a ON a.id = e.changed_by_account_id
+         WHERE e.registration_id = $1
+         ORDER BY e.changed_at`,
         [registration.id]
       )
     ]);
@@ -42,13 +52,17 @@ function createPostgresRegistrationStore({ database } = {}) {
         storageKey: row.storage_key,
         status: row.status,
         uploadedAt: row.uploaded_at.toISOString(),
-        uploadedBy: row.uploaded_by_role
+        uploadedBy: row.uploaded_by_role,
+        uploadedByAccountId: row.uploaded_by_account_id || null,
+        uploadedByName: row.uploaded_by_name || null
       })),
       statusHistory: history.rows.map((row) => ({
         from: row.previous_status,
         to: row.next_status,
         changedAt: row.changed_at.toISOString(),
         changedBy: row.changed_by_role,
+        changedByAccountId: row.changed_by_account_id || null,
+        changedByName: row.changed_by_name || null,
         note: row.note || ''
       }))
     };
@@ -58,16 +72,16 @@ function createPostgresRegistrationStore({ database } = {}) {
   async function writeChildRows(tx, id, record) {
     for (const entry of record.statusHistory) {
       await tx.query(
-        `INSERT INTO registration_status_events (id, registration_id, previous_status, next_status, changed_by_role, note, changed_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [crypto.randomUUID(), id, entry.from, entry.to, entry.changedBy, entry.note || null, entry.changedAt]
+        `INSERT INTO registration_status_events (id, registration_id, previous_status, next_status, changed_by_role, changed_by_account_id, note, changed_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [crypto.randomUUID(), id, entry.from, entry.to, entry.changedBy, entry.changedByAccountId || null, entry.note || null, entry.changedAt]
       );
     }
     for (const document of record.documents) {
       await tx.query(
-        `INSERT INTO registration_documents (id, registration_id, document_type, storage_key, status, uploaded_by_role, uploaded_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [crypto.randomUUID(), id, document.type, document.storageKey, document.status, document.uploadedBy, document.uploadedAt]
+        `INSERT INTO registration_documents (id, registration_id, document_type, storage_key, status, uploaded_by_role, uploaded_by_account_id, uploaded_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [crypto.randomUUID(), id, document.type, document.storageKey, document.status, document.uploadedBy, document.uploadedByAccountId || null, document.uploadedAt]
       );
     }
   }

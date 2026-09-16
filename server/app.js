@@ -126,7 +126,6 @@ function createHamasahApp(options) {
   const rootDirectory = config.rootDirectory || path.resolve(__dirname, '..');
   const dataDirectory = config.dataDirectory || path.join(rootDirectory, 'data');
   const databaseUrl = config.databaseUrl || '';
-  const staffApiKey = config.staffApiKey || process.env.HAMASAH_STAFF_API_KEY || '';
   const bootstrapKey = config.bootstrapKey || process.env.HAMASAH_BOOTSTRAP_KEY || '';
   // Satu database (satu pool koneksi) dibagikan ke semua store PostgreSQL.
   const database = config.database || (databaseUrl ? createDatabase({ connectionString: databaseUrl }) : null);
@@ -160,13 +159,24 @@ function createHamasahApp(options) {
     studentExists(studentId) { return Boolean(studentStore.getStudent(studentId)); }
   });
 
-  async function staffAuthorized(request) {
-    const token = getBearerToken(request);
-    if (Boolean(staffApiKey) && safeEqual(token, staffApiKey)) {
-      return true;
+  // Mengembalikan akun petugas yang sedang login, atau null. Dipakai agar riwayat
+  // perubahan bisa mencatat akun pelaku, bukan hanya perannya.
+  async function staffActor(request) {
+    const session = await identityService.authenticate(getBearerToken(request));
+    if (!session.ok || ![identity.ROLES.ADMIN, identity.ROLES.REGISTRATION_OFFICER].includes(session.value.role)) {
+      return null;
     }
-    const session = await identityService.authenticate(token);
-    return session.ok && [identity.ROLES.ADMIN, identity.ROLES.REGISTRATION_OFFICER].includes(session.value.role);
+    return session.value;
+  }
+
+  function registrationRoleOf(actor) {
+    return actor.role === identity.ROLES.ADMIN
+      ? registrationDomain.ROLES.ADMIN
+      : registrationDomain.ROLES.REGISTRATION_OFFICER;
+  }
+
+  async function staffAuthorized(request) {
+    return Boolean(await staffActor(request));
   }
 
   async function adminAuthorized(request) {
@@ -497,15 +507,17 @@ function createHamasahApp(options) {
     if (request.method === 'POST' && documentMatch) {
       const registrationId = documentMatch[1];
       const isCandidate = await candidateAuthorized(request, registrationId);
-      const isStaff = await staffAuthorized(request);
-      if (!isCandidate && !isStaff) {
+      const staff = isCandidate ? null : await staffActor(request);
+      if (!isCandidate && !staff) {
         json(response, 401, { error: 'Akses akun pendaftaran atau petugas diperlukan.' });
         return true;
       }
       const result = await registrationService.addDocument(
         registrationId,
         await readJsonBody(request),
-        { role: isStaff ? registrationDomain.ROLES.REGISTRATION_OFFICER : registrationDomain.ROLES.APPLICANT }
+        staff
+          ? { role: registrationRoleOf(staff), accountId: staff.id }
+          : { role: registrationDomain.ROLES.APPLICANT }
       );
       json(response, result.ok ? 201 : 422, result.ok ? { registration: result.value } : publicError(result));
       return true;
@@ -513,14 +525,17 @@ function createHamasahApp(options) {
 
     const statusMatch = pathname.match(/^\/api\/registrations\/(HI-REG-\d{4}-\d{5})\/status$/);
     if (request.method === 'PATCH' && statusMatch) {
-      if (!(await staffAuthorized(request))) {
+      const staff = await staffActor(request);
+      if (!staff) {
         json(response, 401, { error: 'Akses petugas diperlukan.' });
         return true;
       }
       const body = await readJsonBody(request);
+      // Peran diambil dari sesi. Nilai role pada isi request sengaja diabaikan.
       const result = await registrationService.changeStatus(statusMatch[1], body.status, {
-        role: body.role === registrationDomain.ROLES.ADMIN ? registrationDomain.ROLES.ADMIN : registrationDomain.ROLES.REGISTRATION_OFFICER,
-        note: body.note
+        role: registrationRoleOf(staff),
+        note: body.note,
+        accountId: staff.id
       });
       json(response, result.ok ? 200 : 422, result.ok ? { registration: result.value } : publicError(result));
       return true;

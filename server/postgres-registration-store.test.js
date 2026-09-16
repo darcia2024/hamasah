@@ -1,4 +1,5 @@
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const { createTestDatabase } = require('./test-support/database.js');
 const { createPostgresRegistrationStore } = require('./postgres-registration-store.js');
 
@@ -68,8 +69,16 @@ async function run() {
     assert.equal(loaded.applicant.guardianPhone, '+628000000002');
     assert.equal(loaded.accessTokenHash, 'hash-akses-uji');
     assert.equal(loaded.createdAt, CREATED_AT);
-    assert.deepEqual(loaded.documents, sampleRecord().documents);
-    assert.deepEqual(loaded.statusHistory, sampleRecord().statusHistory);
+    assert.deepEqual(loaded.documents, sampleRecord().documents.map((document) => ({
+      ...document,
+      uploadedByAccountId: null,
+      uploadedByName: null
+    })));
+    assert.deepEqual(loaded.statusHistory, sampleRecord().statusHistory.map((entry) => ({
+      ...entry,
+      changedByAccountId: null,
+      changedByName: null
+    })));
     assert.equal(await store.count(), 1);
     assert.equal((await store.list()).length, 1);
 
@@ -107,15 +116,40 @@ async function run() {
     assert.equal(afterFailure.documents.length, 1);
     assert.equal(afterFailure.statusHistory.length, 1);
 
-    // Perubahan yang valid tetap tersimpan setelah kegagalan sebelumnya.
+    // Perubahan yang valid tetap tersimpan setelah kegagalan sebelumnya,
+    // lengkap dengan akun petugas yang melakukannya.
+    const petugasId = crypto.randomUUID();
+    await database.query(
+      `INSERT INTO accounts (id, email, name, role, password_hash)
+       VALUES ($1, 'petugas@hamasah.test', 'Petugas Uji', 'registration-officer', 'scrypt$uji$hash')`,
+      [petugasId]
+    );
     const validUpdate = {
       ...brokenUpdate,
-      documents: loaded.documents
+      documents: loaded.documents,
+      statusHistory: loaded.statusHistory.concat({
+        from: 'submitted',
+        to: 'document-review',
+        changedAt: REVIEWED_AT,
+        changedBy: 'registration-officer',
+        changedByAccountId: petugasId,
+        note: 'Berkas mulai diperiksa.'
+      })
     };
     await store.update(validUpdate);
     const afterUpdate = await store.get('HI-REG-2026-00001');
     assert.equal(afterUpdate.status, 'document-review');
     assert.equal(afterUpdate.statusHistory.length, 2);
+    assert.equal(afterUpdate.statusHistory[1].changedByAccountId, petugasId);
+    assert.equal(afterUpdate.statusHistory[1].changedByName, 'Petugas Uji');
+    assert.equal(afterUpdate.statusHistory[0].changedByAccountId, null, 'Pendaftar tidak punya akun.');
+
+    // Riwayat tetap ada walaupun akun petugas dihapus.
+    await database.query('DELETE FROM accounts WHERE id = $1', [petugasId]);
+    const afterAccountRemoved = await store.get('HI-REG-2026-00001');
+    assert.equal(afterAccountRemoved.statusHistory.length, 2);
+    assert.equal(afterAccountRemoved.statusHistory[1].changedByAccountId, null);
+    assert.equal(afterAccountRemoved.statusHistory[1].changedBy, 'registration-officer');
     assert.equal(afterUpdate.documents.length, 1);
     assert.equal(await store.count(), 1);
 
