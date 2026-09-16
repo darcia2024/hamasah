@@ -307,7 +307,7 @@ async function run() {
     assert.match(portalPage.body, /Portal Hamasah/);
     const staffPage = await request(baseUrl, '/website/staff.html');
     assert.equal(staffPage.status, 200);
-    assert.match(staffPage.body, /Konsol operasional/);
+    assert.match(staffPage.body, /Konsol pendaftaran/);
     const articlePage = await request(baseUrl, '/website/article.html?slug=pendampingan-santri-di-kairo');
     assert.equal(articlePage.status, 200);
     assert.match(articlePage.body, /Pena Hamasah/);
