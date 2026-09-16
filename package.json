@@ -8,6 +8,8 @@
   },
   "scripts": {
     "start": "node server.js",
+    "dev": "node scripts/dev.js",
+    "dev:reset": "node scripts/dev-reset.js",
     "migrate": "node database/migrate.js",
     "verify:database": "node database/verify.js",
     "seed:articles": "node database/seed-articles.js",

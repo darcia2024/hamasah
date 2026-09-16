@@ -49,6 +49,17 @@ Selesai sebagai API pembelajaran inti.
 
 ## Menjalankan secara lokal
 
+Cara termudah, tanpa database luar dan tanpa file `.env`:
+
+```powershell
+npm install
+npm run dev
+```
+
+`npm run dev` memakai PostgreSQL in-process (PGlite) di folder `data/dev-db`, menerapkan seluruh migrasi, lalu mengisi akun contoh untuk setiap role. Kata sandi akun contoh dicetak di terminal. Gunakan `npm run dev:reset` untuk mulai dari database kosong.
+
+Untuk menjalankan aplikasi terhadap database PostgreSQL sungguhan (staging atau production):
+
 ```powershell
 Copy-Item .env.example .env
 # Sesuaikan APP_ENV dengan database yang dituju DATABASE_URL.
