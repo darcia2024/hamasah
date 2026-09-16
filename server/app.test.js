@@ -320,6 +320,54 @@ async function run() {
     const operationsPage = await request(baseUrl, '/website/operations.html');
     assert.equal(operationsPage.status, 200);
     assert.match(operationsPage.body, /Keuangan, visa, dan inventaris/);
+
+    // Header keamanan terpasang di halaman maupun di API, termasuk pada 404.
+    const headerHalaman = (await fetch(`${baseUrl}/website/`)).headers;
+    assert.equal(headerHalaman.get('x-content-type-options'), 'nosniff');
+    assert.equal(headerHalaman.get('referrer-policy'), 'strict-origin-when-cross-origin');
+    assert.equal(headerHalaman.get('permissions-policy'), 'camera=(), microphone=(), geolocation=()');
+    assert.equal(headerHalaman.get('cross-origin-opener-policy'), 'same-origin');
+    assert.match(headerHalaman.get('content-security-policy') || '', /frame-ancestors 'none'/);
+    // APP_ENV saat test bukan production, jadi halaman tidak boleh terindeks.
+    assert.equal(headerHalaman.get('x-robots-tag'), 'noindex, nofollow');
+    assert.equal(headerHalaman.get('strict-transport-security'), null);
+
+    const headerApi = (await fetch(`${baseUrl}/api/health`)).headers;
+    assert.equal(headerApi.get('x-content-type-options'), 'nosniff');
+    assert.equal(headerApi.get('referrer-policy'), 'strict-origin-when-cross-origin');
+
+    const headerTidakAda = (await fetch(`${baseUrl}/api/endpoint-yang-tidak-ada`)).headers;
+    assert.equal(headerTidakAda.get('x-content-type-options'), 'nosniff', 'Header keamanan harus ikut pada 404.');
+
+    // Batas percobaan login benar-benar terpasang, bukan hanya ada modulnya.
+    // Email khusus supaya tidak mengganggu login lain di test ini.
+    const percobaan = [];
+    for (let ke = 0; ke < 6; ke += 1) {
+      percobaan.push(await request(baseUrl, '/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'penebak@hamasah.test', password: `salah-${ke}` })
+      }));
+    }
+    assert.deepEqual(percobaan.slice(0, 5).map((hasil) => hasil.status), [401, 401, 401, 401, 401]);
+    assert.equal(percobaan[5].status, 429, 'Percobaan keenam harus ditolak.');
+    assert.equal(percobaan[5].body.error, 'Terlalu banyak percobaan. Silakan coba lagi dalam beberapa menit.');
+
+    const balasanTerkunci = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'penebak@hamasah.test', password: 'salah-lagi' })
+    });
+    assert.equal(balasanTerkunci.status, 429);
+    assert.ok(Number(balasanTerkunci.headers.get('retry-after')) > 0, 'Retry-After harus berisi jumlah detik.');
+
+    // Penguncian terikat pada email, bukan seluruh halaman login: akun lain tetap bisa masuk.
+    const tetapBisa = await request(baseUrl, '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'admin@hamasah.test', password: 'kata-sandi-admin-aman' })
+    });
+    assert.equal(tetapBisa.status, 200, 'Akun lain tidak boleh ikut terkunci.');
   } finally {
     await new Promise(function close(resolve) { server.close(resolve); });
     await app.close();

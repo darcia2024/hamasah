@@ -30,6 +30,17 @@ function csv(response, { filename, rows }) {
   response.end(content);
 }
 
+// Retry-After memberi tahu pemanggil kapan boleh mencoba lagi, dalam detik.
+function tooManyRequests(response, retryAfterSeconds, message) {
+  response.writeHead(429, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'no-store',
+    'X-Content-Type-Options': 'nosniff',
+    'Retry-After': String(retryAfterSeconds)
+  });
+  response.end(JSON.stringify({ error: message }));
+}
+
 // Hanya pesan yang memang boleh dilihat pemanggil. Detail teknis tidak pernah ikut.
 function publicError(result) {
   return {
@@ -38,4 +49,4 @@ function publicError(result) {
   };
 }
 
-module.exports = { csv, csvCell, json, noContent, publicError };
+module.exports = { csv, csvCell, json, noContent, publicError, tooManyRequests };

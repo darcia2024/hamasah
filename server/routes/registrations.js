@@ -9,6 +9,7 @@ module.exports = [
   {
     method: 'POST',
     pattern: /^\/api\/registrations$/,
+    rateLimit: { rule: 'registration-create', identity: ({ ip }) => ip },
     async handler({ response, services, readBody }) {
       const accessToken = createAccessToken();
       const created = await services.registrationService.create(await readBody(), {
@@ -32,6 +33,8 @@ module.exports = [
   {
     method: 'GET',
     pattern: new RegExp(`^/api/registrations/(${REGISTRATION_ID})$`),
+    // Dibatasi per nomor pendaftaran, karena yang mungkin ditebak adalah tokennya.
+    rateLimit: { rule: 'applicant-login', identity: ({ params }) => params[0] },
     async handler({ response, services, auth, params }) {
       const registrationId = params[0];
       if (!(await auth.isCandidate(registrationId))) {

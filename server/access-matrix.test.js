@@ -14,6 +14,7 @@ const path = require('node:path');
 const { ROUTES, createHamasahApp } = require('./app.js');
 const { NOT_ALLOWED, NOT_SIGNED_IN, PERMISSIONS, ROLES } = require('./access-policy.js');
 const { createTestDatabase } = require('./test-support/database.js');
+const { createRelaxedRateLimiter } = require('./test-support/rate-limit.js');
 
 const SEMUA_ROLE = Object.values(ROLES);
 const KATA_SANDI = 'kata-sandi-matriks-uji';
@@ -35,10 +36,13 @@ async function request(baseUrl, method, pathname, { token, body } = {}) {
 
 async function run() {
   const database = await createTestDatabase();
+  // Matriks mengirim ratusan permintaan dari satu alamat; yang diuji di sini
+  // otorisasi, bukan batas laju.
   const app = createHamasahApp({
     rootDirectory: path.resolve(__dirname, '..'),
     database,
-    bootstrapKey: 'bootstrap-matriks-uji'
+    bootstrapKey: 'bootstrap-matriks-uji',
+    rateLimiter: createRelaxedRateLimiter()
   });
   const server = app.createServer();
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));

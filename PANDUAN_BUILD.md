@@ -1150,6 +1150,18 @@ Pola sama dengan Task 7.2 untuk `server/lms-service.js` dan `server/lms-file-sto
 
 ---
 
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- `server/rate-limit.js` menyimpan hitungan di memori proses. Asumsi satu instance sudah ditulis di `PRODUCTION_DEPLOYMENT.md`. Nama aturan yang tidak dikenal melempar error, sama seperti peta izin.
+- Route berbasis IP menyatakan `rateLimit: { rule, identity }` dan dijaga dispatcher **sebelum** pemeriksaan sesi, supaya penebak kata sandi tetap terbatasi walau belum punya sesi.
+- Login dan permintaan reset kata sandi dibatasi di dalam handler, bukan di dispatcher, karena identitasnya perlu email dari isi permintaan. Login memakai kunci gabungan `email|ip`: kalau hanya IP, satu jaringan bersama ikut terkunci gara-gara satu orang; kalau hanya email, penyerang bisa sengaja salah memasukkan kata sandi untuk mengunci akun orang lain.
+- Hitungan login dikosongkan setelah kata sandi terbukti benar, supaya pengguna sah yang masuk dari beberapa perangkat tidak ikut terkunci.
+- `api-default` dihitung juga untuk permintaan ke endpoint yang tidak ada, supaya penyisiran endpoint ikut terbatasi.
+- Aturan `ai-ask` dan `upload` sudah ada di tabel tetapi belum dipasang di route mana pun, karena fiturnya baru ada di Task 8.10 dan Phase 13.
+- Test yang mengirim banyak permintaan dari satu alamat memakai `server/test-support/rate-limit.js` (batas dilonggarkan). Perilaku batas yang sebenarnya diuji di `server/rate-limit.test.js` dengan jam palsu, dan satu skenario nyata di `server/app.test.js`.
+- Saat ditulis, test 11 pendaftaran bersamaan di `app-postgres.test.js` langsung gagal karena menabrak batas 5 per jam. Itu bukti pembatasnya terpasang, bukan sekadar ada modulnya.
+
+---
+
 ### Task 8.5 `[INTI]` Audit log
 
 **Langkah:**
@@ -1191,6 +1203,14 @@ Pola sama dengan Task 7.2 untuk `server/lms-service.js` dan `server/lms-file-sto
 5. Test: header ada di `/website/` dan `/api/health`.
 
 **Verifikasi:** `npm run dev`, buka semua halaman di browser, pastikan tidak ada pelanggaran CSP di console.
+
+---
+
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- Header dipasang di `requestListener` lewat `response.setHeader` **sebelum** respons ditulis, jadi ikut terbawa pada 404 dan 500 yang tidak melewati helper respons.
+- CSP hanya dipasang pada respons non-API. Menambah domain dilakukan lewat `extraCspSources`, bukan dengan menulis ulang seluruh aturan, supaya tidak ada direktif yang tidak sengaja hilang.
+- `Strict-Transport-Security` hanya di production. Di localhost header ini memaksa HTTPS yang tidak ada dan browser mengingatnya lama, jadi sulit dibatalkan saat pengembangan.
+- Sudah diverifikasi di browser dengan `npm run dev`: tujuh halaman dibuka, tidak ada satu pun pelanggaran CSP di console, dan Google Fonts tetap termuat (CSS dari googleapis, berkas font dari gstatic). Seluruh HTML yang ada memang tidak memakai skrip inline maupun atribut style inline, jadi `script-src 'self'` tidak perlu dilonggarkan.
 
 ---
 
@@ -2548,9 +2568,9 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [x] 8.1 Pecah router `server/app.js`
 - [x] 8.2 Otorisasi konsisten dan role baru
 - [ ] 8.3 Pembatasan musyrif per asrama
-- [ ] 8.4 Rate limit
+- [x] 8.4 Rate limit
 - [ ] 8.5 Audit log
-- [ ] 8.6 Header keamanan dan CSP
+- [x] 8.6 Header keamanan dan CSP
 - [ ] 8.7 Notification outbox dan email
 - [ ] 8.8 Undangan akun, aktivasi, reset password
 - [ ] 8.9 Sesi per role

@@ -1,5 +1,6 @@
 const identity = require('../identity-service.js');
-const { json, noContent, publicError } = require('../http/respond.js');
+const { json, noContent, publicError, tooManyRequests } = require('../http/respond.js');
+const { TOO_MANY_REQUESTS } = require('../rate-limit.js');
 const { permissionsForRole } = require('../access-policy.js');
 const { safeEqual } = require('../http/auth.js');
 
@@ -27,12 +28,27 @@ module.exports = [
     }
   },
 
+  // Dibatasi per email dan per IP sekaligus. Kalau hanya per IP, satu jaringan
+  // bersama (asrama, kantor) ikut terkunci gara-gara satu orang. Kalau hanya per
+  // email, penyerang bisa sengaja salah memasukkan kata sandi untuk mengunci akun
+  // orang lain.
   {
     method: 'POST',
     pattern: /^\/api\/auth\/login$/,
-    async handler({ response, services, readBody }) {
+    async handler({ response, services, readBody, rateLimit, ip }) {
       const body = await readBody();
+      const identitas = `${String(body.email || '').trim().toLocaleLowerCase('en-US')}|${ip}`;
+      const jatah = rateLimit.check('login', identitas);
+      if (!jatah.allowed) {
+        tooManyRequests(response, jatah.retryAfterSeconds, TOO_MANY_REQUESTS);
+        return;
+      }
       const loggedIn = await services.identityService.login(body.email, body.password);
+      if (loggedIn.ok) {
+        // Masuk dari beberapa perangkat dalam waktu dekat itu wajar, jadi hitungan
+        // dikosongkan begitu kata sandi terbukti benar.
+        rateLimit.reset('login', identitas);
+      }
       json(response, loggedIn.ok ? 200 : 401, loggedIn.ok
         ? { accessToken: loggedIn.value.accessToken, account: loggedIn.value.account }
         : publicError(loggedIn));
@@ -64,8 +80,15 @@ module.exports = [
   {
     method: 'POST',
     pattern: /^\/api\/auth\/password-reset-request$/,
-    async handler({ response, services, readBody }) {
+    async handler({ response, services, readBody, rateLimit }) {
       const body = await readBody();
+      const email = String(body.email || '').trim().toLocaleLowerCase('en-US');
+      // Dibatasi per email supaya tidak bisa dipakai membanjiri kotak masuk orang lain.
+      const jatah = rateLimit.check('password-reset-request', email);
+      if (!jatah.allowed) {
+        tooManyRequests(response, jatah.retryAfterSeconds, TOO_MANY_REQUESTS);
+        return;
+      }
       await services.identityService.issuePasswordReset(body.email);
       json(response, 202, { message: 'Jika akun tersedia, instruksi reset akan dikirim melalui kanal resmi.' });
     }

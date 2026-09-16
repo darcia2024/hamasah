@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 const { createHamasahApp } = require('./app.js');
 const { createTestDatabase } = require('./test-support/database.js');
+const { createRelaxedRateLimiter } = require('./test-support/rate-limit.js');
 
 async function request(baseUrl, pathname, options) {
   const response = await fetch(`${baseUrl}${pathname}`, options);
@@ -15,7 +16,12 @@ async function request(baseUrl, pathname, options) {
 async function run() {
   const rootDirectory = path.resolve(__dirname, '..');
   const database = await createTestDatabase();
-  const app = createHamasahApp({ rootDirectory, database, bootstrapKey: 'bootstrap-test-key' });
+  // Test ini mengirim sebelas pendaftaran sekaligus dari satu alamat untuk menguji
+  // penomoran, jadi batas laju sengaja dilonggarkan di sini.
+  const app = createHamasahApp({
+    rootDirectory, database, bootstrapKey: 'bootstrap-test-key',
+    rateLimiter: createRelaxedRateLimiter()
+  });
   const server = app.createServer();
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const baseUrl = `http://127.0.0.1:${server.address().port}`;

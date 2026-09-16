@@ -59,3 +59,25 @@ Setiap migrasi berjalan dalam satu transaksi dan tercatat di tabel `schema_migra
 ## Batas implementasi saat ini
 
 Seluruh data aplikasi berada di PostgreSQL. `server.js` menolak start jika `DATABASE_URL` kosong, bukan `postgresql://`, atau memakai `pglite:` di staging dan production, karena database sementara hilang begitu proses berhenti. Terapkan migrasi dengan `npm run migrate` lalu periksa dengan `npm run verify:database` sebelum aplikasi dijalankan.
+
+## Pembatas laju: asumsi satu instance
+
+Pembatas laju (`server/rate-limit.js`) menyimpan hitungannya di memori proses. Artinya:
+
+- **Jalankan satu instance aplikasi.** Kalau dijalankan dua instance atau lebih di belakang load balancer, setiap instance punya hitungan sendiri, sehingga batas efektifnya menjadi batas dikali jumlah instance. Batas login 5 kali per 15 menit akan menjadi 10 kali kalau ada dua instance.
+- **Hitungan hilang saat restart.** Deploy atau restart mengosongkan seluruh hitungan. Ini dapat diterima untuk skala lembaga ini, tetapi berarti pembatas bukan pengaman mutlak.
+- Kalau nanti perlu lebih dari satu instance, pembatas harus pindah ke penyimpanan bersama (Redis) atau ke lapisan proxy platform.
+
+### `TRUST_PROXY`
+
+Secara bawaan alamat IP diambil dari `request.socket.remoteAddress`. Header `X-Forwarded-For` **diabaikan**, karena siapa pun bisa mengisinya, dan kalau dipercaya tanpa syarat penyerang cukup menggantinya setiap permintaan agar pembatas laju tidak berguna.
+
+Set `TRUST_PROXY=true` **hanya** kalau aplikasi benar-benar berjalan di belakang proxy platform (Railway, Render, Fly.io, Cloud Run) yang menulis header itu sendiri. Saat dipercaya, yang dibaca adalah alamat paling kanan pada header, yaitu yang ditambahkan proxy terdekat.
+
+## Header keamanan
+
+Semua respons membawa `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, dan `Cross-Origin-Opener-Policy`. Respons halaman menambahkan Content Security Policy.
+
+- `Strict-Transport-Security` hanya dikirim saat `APP_ENV=production`. Jangan mengaktifkannya di localhost: browser mengingat header ini lama dan akan memaksa HTTPS yang tidak ada.
+- Selain production, respons membawa `X-Robots-Tag: noindex, nofollow` supaya staging tidak muncul di mesin pencari.
+- CSP disusun di `server/http/security-headers.js`. Untuk menambah domain (anti-bot, penyimpanan berkas, penyedia video), tambahkan lewat `extraCspSources`, jangan menulis ulang seluruh aturan.

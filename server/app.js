@@ -16,11 +16,15 @@ const { createLmsService } = require('./lms-service.js');
 const { createPostgresLmsStore } = require('./postgres-lms-store.js');
 const { createOperationsService } = require('./operations-service.js');
 const { createPostgresOperationsStore } = require('./postgres-operations-store.js');
-const { json } = require('./http/respond.js');
+const { json, tooManyRequests } = require('./http/respond.js');
 const { MAX_REQUEST_BODY_BYTES, RequestBodyError, readJsonBody } = require('./http/body.js');
 const { serveStaticFile } = require('./http/static.js');
 const { createRequestAuth, hashToken, safeEqual } = require('./http/auth.js');
 const { NOT_ALLOWED, NOT_SIGNED_IN, roleHasPermission } = require('./access-policy.js');
+const { TOO_MANY_REQUESTS, createRateLimiter } = require('./rate-limit.js');
+const { clientIp } = require('./http/client-ip.js');
+const { applyHeaders, createSecurityHeaders } = require('./http/security-headers.js');
+const { readAppEnvironment } = require('./environment.js');
 
 // Urutan berpengaruh: route pertama yang cocok yang dipakai.
 const ROUTES = Object.freeze([
@@ -50,6 +54,11 @@ function createHamasahApp(options) {
     throw new Error('createHamasahApp membutuhkan database atau databaseUrl.');
   }
   const ownsDatabase = !config.database;
+  const appEnvironment = config.appEnvironment || readAppEnvironment(process.env);
+  // X-Forwarded-For hanya dipercaya kalau aplikasi memang di belakang proxy platform.
+  const trustProxy = config.trustProxy === undefined ? process.env.TRUST_PROXY === 'true' : Boolean(config.trustProxy);
+  const rateLimiter = config.rateLimiter || createRateLimiter();
+  const securityHeaders = createSecurityHeaders({ appEnvironment });
   const registrationStore = config.registrationStore || createPostgresRegistrationStore({ database });
   const registrationService = config.registrationService || registrationServiceModule.createRegistrationService({
     store: registrationStore
@@ -105,6 +114,16 @@ function createHamasahApp(options) {
   });
 
   async function handleApi(request, response, url) {
+    const ip = clientIp(request, { trustProxy });
+
+    // Jaring pengaman untuk seluruh API, termasuk permintaan ke endpoint yang tidak
+    // ada, supaya penyisiran endpoint ikut terbatasi.
+    const umum = rateLimiter.check('api-default', ip);
+    if (!umum.allowed) {
+      tooManyRequests(response, umum.retryAfterSeconds, TOO_MANY_REQUESTS);
+      return true;
+    }
+
     for (const route of ROUTES) {
       if (route.method !== request.method) {
         continue;
@@ -112,6 +131,19 @@ function createHamasahApp(options) {
       const match = url.pathname.match(route.pattern);
       if (!match) {
         continue;
+      }
+
+      const params = match.slice(1);
+
+      // Pembatasan khusus route dijalankan sebelum pemeriksaan sesi, supaya penebak
+      // kata sandi tetap terbatasi walau belum punya sesi sama sekali.
+      if (route.rateLimit) {
+        const identitas = route.rateLimit.identity({ ip, params });
+        const hasil = rateLimiter.check(route.rateLimit.rule, identitas);
+        if (!hasil.allowed) {
+          tooManyRequests(response, hasil.retryAfterSeconds, TOO_MANY_REQUESTS);
+          return true;
+        }
       }
 
       const auth = createRequestAuth({ request, identityService, registrationService });
@@ -134,9 +166,11 @@ function createHamasahApp(options) {
         request,
         response,
         url,
-        params: match.slice(1),
+        params,
         services,
         config: { bootstrapKey, rootDirectory },
+        ip,
+        rateLimit: rateLimiter,
         auth,
         // Isi permintaan sengaja dibaca oleh handler, bukan oleh dispatcher, supaya
         // pemeriksaan akses tetap berjalan lebih dulu untuk route yang memang begitu.
@@ -149,8 +183,11 @@ function createHamasahApp(options) {
 
   async function requestListener(request, response) {
     const url = new URL(request.url, 'http://localhost');
+    const isApi = url.pathname.startsWith('/api/');
+    // Dipasang lebih dulu supaya berlaku juga untuk 404 dan 500.
+    applyHeaders(response, isApi ? securityHeaders.forApi() : securityHeaders.forDocument());
     try {
-      if (url.pathname.startsWith('/api/')) {
+      if (isApi) {
         const handled = await handleApi(request, response, url);
         if (!handled) {
           json(response, 404, { error: 'Endpoint tidak ditemukan.' });
@@ -174,6 +211,7 @@ function createHamasahApp(options) {
     },
     // Menutup pool koneksi database yang dibuat app ini. Database dari luar (config.database) tidak ditutup.
     async close() {
+      rateLimiter.stop();
       if (ownsDatabase) {
         await database.close();
       }
