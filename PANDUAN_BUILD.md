@@ -975,6 +975,14 @@ Pola sama dengan Task 7.2 untuk `server/lms-service.js` dan `server/lms-file-sto
 
 ---
 
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- SQL penghitung nomor dokumen dipindah ke `server/document-counters.js` (`nextSequence(runner, scope, year)`) dan dipakai bersama oleh store pendaftaran dan store operasional. `runner` bisa `database` atau `tx`, sehingga penghitung bisa ikut di dalam transaksi.
+- `markInvoicePaid(id, payment)` menerima `{ paidAt, year, receiptNumberFor(sequence) }`, bukan nomor jadi. Store mengklaim invoice lebih dulu (`UPDATE ... WHERE id = $1 AND status = 'unpaid'`), baru mengambil nomor kuitansi di transaksi yang sama. Kalau invoice sudah lunas, tidak ada nomor yang terpakai, jadi penomoran kuitansi tidak berlubang. Auditor menanyakan nomor yang hilang.
+- Urutan itu bukan hiasan: waktu store memori mengambil nomor lebih dulu lalu `await`, test pelunasan paralel langsung menemukan dua nomor kuitansi untuk satu invoice. Store memori dan file store sekarang ikut pola klaim dulu.
+- `amount_rupiah` BIGINT selalu dibungkus `Number()` karena `pg` mengembalikannya sebagai teks sedangkan PGlite sebagai angka. Tanggal paspor dan visa dibaca `::text`.
+
+---
+
 ### Task 7.8 `[INTI]` Satu jalur data: wiring app dan hapus file store
 
 **Langkah:**
@@ -2497,7 +2505,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [x] 7.4 Service operasional async dan counter
 - [x] 7.5 Store PostgreSQL santri
 - [x] 7.6 Store PostgreSQL LMS
-- [ ] 7.7 Store PostgreSQL operasional
+- [x] 7.7 Store PostgreSQL operasional
 - [ ] 7.8 Satu jalur data, hapus file store
 - [ ] 7.9 `[MANUSIA]` Migrasi staging dan production
 

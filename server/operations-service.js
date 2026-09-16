@@ -16,22 +16,29 @@ function documentNumber(prefix, sequence, year) {
   return `${prefix}/HI/${year}/${String(sequence).padStart(5, '0')}`;
 }
 
+// Antarmuka store operasional sama persis dengan postgres-operations-store.js.
 function createMemoryOperationsStore() {
   const database = { invoices: {}, inventory: {}, visas: {}, counters: {} };
+  async function nextSequence(scope, year) {
+    const key = `${scope}:${year}`;
+    const next = (database.counters[key] || 0) + 1;
+    database.counters[key] = next;
+    return next;
+  }
   return {
-    async nextSequence(scope, year) {
-      const key = `${scope}:${year}`;
-      const next = (database.counters[key] || 0) + 1;
-      database.counters[key] = next;
-      return next;
-    },
+    nextSequence,
     async getInvoice(id) { return database.invoices[id] ? clone(database.invoices[id]) : null; },
     async listInvoices() { return Object.values(database.invoices).map(clone); },
     async saveInvoice(value) { database.invoices[value.id] = clone(value); return clone(value); },
     async markInvoicePaid(id, payment) {
       const invoice = database.invoices[id];
       if (!invoice || invoice.status !== 'unpaid') return null;
-      database.invoices[id] = { ...clone(invoice), status: 'paid', paidAt: payment.paidAt, receiptNumber: payment.receiptNumber };
+      // Status diubah lebih dulu tanpa await, meniru UPDATE ... WHERE status = 'unpaid'
+      // di PostgreSQL. Kalau nomor diambil lebih dulu, permintaan kedua sempat menyela
+      // di titik await dan invoice yang sama mendapat dua nomor kuitansi.
+      database.invoices[id] = { ...clone(invoice), status: 'paid', paidAt: payment.paidAt, receiptNumber: null };
+      const sequence = await nextSequence('receipt', payment.year);
+      database.invoices[id].receiptNumber = payment.receiptNumberFor(sequence);
       return clone(database.invoices[id]);
     },
     async getVisa(studentId) { return database.visas[studentId] ? clone(database.visas[studentId]) : null; },
@@ -88,10 +95,15 @@ function createOperationsService(options) {
 
     const paidAt = now();
     const year = yearInJakarta(paidAt);
-    const sequence = await store.nextSequence('receipt', year);
     // markInvoicePaid hanya berhasil jika invoice masih berstatus unpaid, sehingga dua
     // permintaan bersamaan tidak menghasilkan dua nomor kuitansi untuk invoice yang sama.
-    const paid = await store.markInvoicePaid(invoiceId, { paidAt, receiptNumber: documentNumber('KWT', sequence, year) });
+    // Nomor diambil di dalam store, dalam perubahan status yang sama, supaya nomor
+    // kuitansi tidak terpakai sia-sia dan penomoran resmi tidak berlubang.
+    const paid = await store.markInvoicePaid(invoiceId, {
+      paidAt,
+      year,
+      receiptNumberFor: (sequence) => documentNumber('KWT', sequence, year)
+    });
     if (!paid) {
       const terkini = await store.getInvoice(invoiceId);
       return terkini ? { ok: true, value: terkini } : { ok: false, error: 'Invoice tidak ditemukan.' };

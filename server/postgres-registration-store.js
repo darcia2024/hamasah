@@ -1,4 +1,5 @@
 const crypto = require('node:crypto');
+const { nextSequence } = require('./document-counters.js');
 
 function createPostgresRegistrationStore({ database } = {}) {
   if (!database) {
@@ -100,16 +101,8 @@ function createPostgresRegistrationStore({ database } = {}) {
     },
 
     // Satu perintah atomik: dua permintaan bersamaan tidak mungkin mendapat nomor yang sama.
-    async nextSequence(scope, year) {
-      const { rows } = await database.query(
-        `INSERT INTO document_counters (scope, year, last_value) VALUES ($1, $2, 1)
-         ON CONFLICT (scope, year) DO UPDATE SET
-           last_value = document_counters.last_value + 1,
-           updated_at = now()
-         RETURNING last_value`,
-        [scope, year]
-      );
-      return Number(rows[0].last_value);
+    nextSequence(scope, year) {
+      return nextSequence(database, scope, year);
     },
 
     // INSERT biasa tanpa ON CONFLICT: nomor yang bentrok menghasilkan error,

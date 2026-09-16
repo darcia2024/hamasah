@@ -45,16 +45,18 @@ function createOperationsFileStore(filePath) {
   const visas = collection('visas', (value) => value.studentId);
   const inventory = collection('inventory', (value) => value.id);
 
+  // Baca dan tulis berjalan tanpa await, jadi tidak ada permintaan lain yang menyela.
+  async function nextSequence(scope, year) {
+    const data = read();
+    const key = `${scope}:${year}`;
+    const next = (data.counters[key] || 0) + 1;
+    data.counters[key] = next;
+    write(data);
+    return next;
+  }
+
   return {
-    // Baca dan tulis berjalan tanpa await, jadi tidak ada permintaan lain yang menyela.
-    async nextSequence(scope, year) {
-      const data = read();
-      const key = `${scope}:${year}`;
-      const next = (data.counters[key] || 0) + 1;
-      data.counters[key] = next;
-      write(data);
-      return next;
-    },
+    nextSequence,
     getInvoice: invoices.get,
     listInvoices: invoices.list,
     saveInvoice: invoices.save,
@@ -62,9 +64,15 @@ function createOperationsFileStore(filePath) {
       const data = read();
       const invoice = data.invoices[id];
       if (!invoice || invoice.status !== 'unpaid') return null;
-      data.invoices[id] = { ...clone(invoice), status: 'paid', paidAt: payment.paidAt, receiptNumber: payment.receiptNumber };
+      // Klaim dulu (baca, cek, tulis tanpa await di antaranya), baru ambil nomor kuitansi,
+      // supaya permintaan kedua atas invoice yang sama langsung ditolak.
+      data.invoices[id] = { ...clone(invoice), status: 'paid', paidAt: payment.paidAt, receiptNumber: null };
       write(data);
-      return clone(data.invoices[id]);
+      const receiptNumber = payment.receiptNumberFor(await nextSequence('receipt', payment.year));
+      const terbaru = read();
+      terbaru.invoices[id].receiptNumber = receiptNumber;
+      write(terbaru);
+      return clone(terbaru.invoices[id]);
     },
     getVisa: visas.get,
     listVisas: visas.list,
