@@ -793,6 +793,13 @@ Dikerjakan manusia. Sonnet tidak ikut.
 
 **Catatan:** image hasil build yang sesungguhnya diverifikasi di platform hosting pada Task 8.13.
 
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- `COPY --chown=node:node` dipakai di setiap baris, supaya `USER node` tetap bisa membaca file.
+- Logika penutupan dipisah ke `server/shutdown.js` dan diuji di `server/shutdown.test.js`. Alasannya: **Windows tidak mengirim SIGTERM sungguhan**, jadi penutupan rapi tidak bisa diuji lewat sinyal di laptop. Skrip `check:docker` melewati pemeriksaan itu di Windows dan menjalankannya di Linux.
+- `npm run check:docker` menjalankan 8 pemeriksaan: kelengkapan file `COPY`, `npm ci --omit=dev`, kelengkapan modul, server start, `/api/health` 200, `/api/ready` 503 saat database mati, kebocoran detail error, dan penutupan rapi.
+- `/api/ready` memakai batas waktu 2 detik dan hanya membalas `{ ok, database }` tanpa detail error.
+- Di dalam skrip pemeriksaan, `spawnSync` untuk Node dijalankan **tanpa** shell. Dengan shell, argumen `-e` rusak di Windows.
+
 ---
 
 ### Task 6.10 `[PENYEMPURNA]` Perbaikan kecil dari audit

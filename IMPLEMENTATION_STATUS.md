@@ -76,7 +76,8 @@ Halaman internal tersedia di `/website/staff.html`, `/website/portal.html`, `/we
 
 ## Sebelum go-live penuh
 
-- Container Node tersedia melalui `Dockerfile`; jalankan pada platform yang menyediakan volume atau database terkelola.
+- Container Node tersedia melalui `Dockerfile` dan sudah diperiksa dengan `npm run check:docker`: dependency production terpasang, seluruh modul lengkap, server start, dan proses berhenti rapi saat menerima SIGTERM.
+- Pemeriksaan kesehatan dipisah: `GET /api/health` untuk liveness (tanpa database) dan `GET /api/ready` untuk readiness (memeriksa database, batas waktu 2 detik). Platform hosting sebaiknya memakai `/api/health` sebagai health check container.
 - Validasi environment tersedia: `DATABASE_URL` selalu wajib, bucket privat wajib saat `APP_ENV=production`, dan bootstrap key diperiksa panjangnya jika diisi.
 - Skrip yang menulis ke database (migrate, seed artikel, auth-live-check) menolak `APP_ENV` kosong, dan menolak production tanpa konfirmasi `ALLOW_PRODUCTION_WRITE=I_UNDERSTAND` di terminal. Lihat `PRODUCTION_DEPLOYMENT.md`.
 - Ganti repository JSON yang tersisa dengan adapter PostgreSQL dan object storage privat untuk dokumen.

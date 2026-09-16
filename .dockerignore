@@ -1,6 +1,15 @@
 .git
+.github
+.claude
+.vercel
 .env
+.env.*
+!.env.example
 data/*.json
 !data/articles.json
+data/dev-db
+data/dev-storage
 node_modules
+coverage
 *.log
+*.tmp

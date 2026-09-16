@@ -21,6 +21,13 @@ async function run() {
   const baseUrl = `http://127.0.0.1:${server.address().port}`;
 
   try {
+    // Liveness selalu 200, readiness memeriksa database.
+    const health = await request(baseUrl, '/api/health');
+    assert.equal(health.status, 200);
+    const ready = await request(baseUrl, '/api/ready');
+    assert.equal(ready.status, 200);
+    assert.equal(ready.body.ok, true);
+
     // Akun dan sesi tersimpan di PostgreSQL.
     const bootstrap = await request(baseUrl, '/api/auth/bootstrap', {
       method: 'POST',
@@ -168,6 +175,31 @@ async function run() {
   // Database yang dibuat app sendiri ditutup oleh app.close().
   const ownedApp = createHamasahApp({ rootDirectory, databaseUrl: 'pglite:memory' });
   await ownedApp.close();
+
+  // Saat database tidak dapat dihubungi: liveness tetap 200, readiness 503 tanpa detail error.
+  const brokenApp = createHamasahApp({
+    rootDirectory,
+    database: {
+      kind: 'uji',
+      async query() { throw new Error('koneksi ke db.contoh.internal ditolak'); },
+      async withTransaction() { throw new Error('koneksi ke db.contoh.internal ditolak'); },
+      async exec() {},
+      async close() {}
+    }
+  });
+  const brokenServer = brokenApp.createServer();
+  await new Promise((resolve) => brokenServer.listen(0, '127.0.0.1', resolve));
+  const brokenUrl = `http://127.0.0.1:${brokenServer.address().port}`;
+  try {
+    assert.equal((await request(brokenUrl, '/api/health')).status, 200);
+    const gagal = await request(brokenUrl, '/api/ready');
+    assert.equal(gagal.status, 503);
+    assert.equal(gagal.body.ok, false);
+    assert.equal(JSON.stringify(gagal.body).includes('db.contoh.internal'), false, 'Detail error tidak boleh bocor ke pemanggil.');
+  } finally {
+    await new Promise((resolve) => brokenServer.close(resolve));
+    await brokenApp.close();
+  }
 
   console.log('app postgres integration tests passed');
 }

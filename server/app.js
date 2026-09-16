@@ -34,6 +34,8 @@ const MIME_TYPES = Object.freeze({
   '.webp': 'image/webp'
 });
 
+const READINESS_TIMEOUT_MS = 2000;
+
 function createAccessToken() {
   return crypto.randomBytes(32).toString('base64url');
 }
@@ -179,6 +181,25 @@ function createHamasahApp(options) {
     return Boolean(await staffActor(request));
   }
 
+  async function checkDatabaseReady() {
+    if (!database) {
+      return { ok: true, database: 'tidak dipakai' };
+    }
+    let timer;
+    try {
+      const timeout = new Promise((resolve, reject) => {
+        timer = setTimeout(() => reject(new Error('timeout')), READINESS_TIMEOUT_MS);
+      });
+      await Promise.race([database.query('SELECT 1'), timeout]);
+      return { ok: true, database: 'siap' };
+    } catch (error) {
+      console.error(`[database] Pemeriksaan kesiapan gagal: ${error.message}`);
+      return { ok: false, database: 'tidak siap' };
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   async function adminAuthorized(request) {
     const session = await identityService.authenticate(getBearerToken(request));
     return session.ok && session.value.role === identity.ROLES.ADMIN;
@@ -200,8 +221,17 @@ function createHamasahApp(options) {
   async function handleApi(request, response, url) {
     const pathname = url.pathname;
 
+    // Liveness: hanya memastikan proses masih melayani permintaan. Tidak menyentuh database,
+    // supaya gangguan database tidak membuat platform terus menghidupkan ulang container.
     if (request.method === 'GET' && pathname === '/api/health') {
       json(response, 200, { ok: true, service: 'hamasah-api' });
+      return true;
+    }
+
+    // Readiness: memastikan database dapat dihubungi. Detail error tidak ditampilkan.
+    if (request.method === 'GET' && pathname === '/api/ready') {
+      const ready = await checkDatabaseReady();
+      json(response, ready.ok ? 200 : 503, ready);
       return true;
     }
 
