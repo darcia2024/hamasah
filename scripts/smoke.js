@@ -54,6 +54,12 @@ async function langkah(nama, kerjakan) {
     langkahGagal += 1;
     console.error(`✖ ${nama}`);
     console.error(`  ${error.message}`);
+    // fetch() membungkus kegagalan koneksi (server mati, salah alamat, dsb.)
+    // menjadi pesan generik "fetch failed" dan menaruh detail aslinya di sini.
+    // Tanpa ini, kegagalan koneksi tidak bisa dibedakan dari kegagalan lain.
+    if (error.cause) {
+      console.error(`  Penyebab: ${error.cause.message || error.cause}`);
+    }
   }
 }
 
