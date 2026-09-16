@@ -2417,7 +2417,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [x] 6.3 Pengaman environment skrip database (5fd284e)
 - [x] 6.4 Lapisan database bersama dan harness PGlite (5e8c40a, 1f5da20)
 - [x] 6.5 Migration runner berversi (9cdfa2f)
-- [x] 6.6 Migrasi 003: Row Level Security (57c8011, penerapan ke staging dan production menunggu manusia)
+- [x] 6.6 Migrasi 003: Row Level Security (57c8011, diterapkan ke production 16 Sep 2026)
 - [ ] 6.7 Perbaiki penomoran registrasi
 - [ ] 6.8 Riwayat status mencatat akun pelaku
 - [ ] 6.9 Dockerfile, shutdown, health check

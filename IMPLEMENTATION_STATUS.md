@@ -63,7 +63,8 @@ Halaman internal tersedia di `/website/staff.html`, `/website/portal.html`, `/we
 ## Infrastruktur production
 
 - Schema PostgreSQL seluruh modul telah dimigrasikan dan 19 tabel aplikasi sudah tervalidasi di Supabase.
-- Seluruh tabel memakai Row Level Security tanpa policy (`003_enable_row_level_security.sql`), sehingga tertutup dari Data API Supabase. Aplikasi tetap berjalan karena terhubung sebagai pemilik tabel.
+- Seluruh tabel memakai Row Level Security tanpa policy (`003_enable_row_level_security.sql`), sehingga tertutup dari Data API Supabase. Aplikasi tetap berjalan karena terhubung sebagai pemilik tabel. Diterapkan ke database production pada 16 September 2026, hasil `npm run verify:database`: 3 migrasi diterapkan, 20 tabel tersedia, semua memakai Row Level Security.
+- Database production sudah memakai catatan migrasi (`schema_migrations`) setelah dijalankan dalam mode baseline, jadi migrasi berikutnya cukup dengan `npm run migrate`.
 - Schema diterapkan lewat migration runner berversi (`npm run migrate`) yang mencatat setiap migrasi di tabel `schema_migrations`, menolak file migrasi yang sudah diterapkan lalu diubah, dan menyediakan mode `--baseline` untuk database yang dulu disiapkan manual. `npm run verify:database` memeriksa migrasi, tabel, dan status Row Level Security.
 - `npm run seed:articles` menyinkronkan artikel publik ke PostgreSQL secara idempoten.
 - Endpoint `GET /api/articles` dan `GET /api/articles/:slug` sudah membaca PostgreSQL saat `DATABASE_URL` tersedia.
