@@ -37,7 +37,11 @@ Isi commit tersebut: mode dev PGlite, konversi tiga service menjadi async, store
 
 ## 3. Terapkan migrasi 006 ke staging (Task 7.9)
 
-> **Sudah dikerjakan untuk production pada 16 Sep 2026.** Hasil: `Menerapkan: 006_course_material_position.sql`, lalu verifikasi melaporkan 6 migrasi, 21 tabel aplikasi, semua memakai Row Level Security. Bagian di bawah ini berlaku untuk project staging begitu dibuat.
+> Migrasi 006 sudah diterapkan ke production pada 16 Sep 2026 (6 migrasi, 21 tabel, semua ber-RLS).
+>
+> **Masih menunggu:** migrasi `007_role_finance_teacher.sql`, yang menambah role `teacher` dan `finance`. Perintahnya sama persis dengan bagian 5 di bawah. Migrasi ini hanya mengganti aturan CHECK pada kolom `role`, tidak menyentuh data akun yang sudah ada.
+>
+> Bagian di bawah ini berlaku untuk project staging begitu dibuat.
 
 Migrasi 006 menambah kolom `position` pada `course_materials` dan mengisi urutan materi lama. Migrasi 001 sampai 005 sudah diterapkan ke production pada 16 September 2026.
 

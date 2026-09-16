@@ -1,7 +1,9 @@
 const crypto = require('node:crypto');
 
 const MATERIAL_TYPES = Object.freeze(['video', 'pdf', 'text', 'assignment', 'quiz']);
-const STAFF_ROLES = Object.freeze(['admin', 'supervisor']);
+// Harus sepadan dengan izin courses.manage dan courses.read di server/access-policy.js.
+const MANAGE_ROLES = Object.freeze(['admin', 'teacher']);
+const VIEW_ROLES = Object.freeze(['admin', 'teacher', 'supervisor']);
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -64,12 +66,13 @@ function createLmsService(options) {
   const canAccessStudent = config.canAccessStudent || async function noStudentAccess() { return false; };
 
   function isStaff(actor) {
-    return Boolean(actor && STAFF_ROLES.includes(actor.role));
+    return Boolean(actor && MANAGE_ROLES.includes(actor.role));
   }
 
   // Wajib di-await. Tanpa await, Promise selalu bernilai benar dan akses santri lain terbuka.
   async function canStudy(studentId, actor) {
-    if (isStaff(actor)) {
+    // Musyrif boleh melihat pembelajaran santri walau tidak boleh mengelola maddah.
+    if (actor && VIEW_ROLES.includes(actor.role)) {
       return true;
     }
     if (!actor || actor.role !== 'student') {

@@ -20,6 +20,7 @@ const { json } = require('./http/respond.js');
 const { MAX_REQUEST_BODY_BYTES, RequestBodyError, readJsonBody } = require('./http/body.js');
 const { serveStaticFile } = require('./http/static.js');
 const { createRequestAuth, hashToken, safeEqual } = require('./http/auth.js');
+const { NOT_ALLOWED, NOT_SIGNED_IN, roleHasPermission } = require('./access-policy.js');
 
 // Urutan berpengaruh: route pertama yang cocok yang dipakai.
 const ROUTES = Object.freeze([
@@ -112,6 +113,23 @@ function createHamasahApp(options) {
       if (!match) {
         continue;
       }
+
+      const auth = createRequestAuth({ request, identityService, registrationService });
+      // Penjagaan di lapisan route: belum masuk 401, role tidak berhak 403.
+      // Route tanpa `permission` dan tanpa `session` memang terbuka untuk umum,
+      // atau memakai token khusus seperti token pendaftaran.
+      if (route.permission || route.session) {
+        const actor = await auth.actor();
+        if (!actor) {
+          json(response, 401, { error: NOT_SIGNED_IN });
+          return true;
+        }
+        if (route.permission && !roleHasPermission(actor.role, route.permission)) {
+          json(response, 403, { error: NOT_ALLOWED });
+          return true;
+        }
+      }
+
       await route.handler({
         request,
         response,
@@ -119,7 +137,7 @@ function createHamasahApp(options) {
         params: match.slice(1),
         services,
         config: { bootstrapKey, rootDirectory },
-        auth: createRequestAuth({ request, identityService, registrationService }),
+        auth,
         // Isi permintaan sengaja dibaca oleh handler, bukan oleh dispatcher, supaya
         // pemeriksaan akses tetap berjalan lebih dulu untuk route yang memang begitu.
         readBody: () => readJsonBody(request)
@@ -168,4 +186,4 @@ function createHamasahApp(options) {
   };
 }
 
-module.exports = { MAX_REQUEST_BODY_BYTES, RequestBodyError, createHamasahApp, hashToken, safeEqual };
+module.exports = { MAX_REQUEST_BODY_BYTES, ROUTES, RequestBodyError, createHamasahApp, hashToken, safeEqual };

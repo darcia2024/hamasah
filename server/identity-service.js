@@ -1,11 +1,15 @@
 const crypto = require('node:crypto');
 
+// Daftar role tunggal. Nilainya harus sama dengan CHECK constraint di
+// database/007_role_finance_teacher.sql dan dengan server/access-policy.js.
 const ROLES = Object.freeze({
   ADMIN: 'admin',
   REGISTRATION_OFFICER: 'registration-officer',
   PARENT: 'parent',
   STUDENT: 'student',
-  SUPERVISOR: 'supervisor'
+  SUPERVISOR: 'supervisor',
+  TEACHER: 'teacher',
+  FINANCE: 'finance'
 });
 
 const ROLE_VALUES = Object.freeze(Object.values(ROLES));

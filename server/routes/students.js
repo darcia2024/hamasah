@@ -31,19 +31,16 @@ module.exports = [
   {
     method: 'GET',
     pattern: /^\/api\/my-students$/,
+    permission: 'students.read',
     async handler({ response, services, auth }) {
-      const actor = await auth.actor();
-      if (!actor) {
-        json(response, 401, { error: 'Sesi login diperlukan.' });
-        return;
-      }
-      json(response, 200, { items: await services.studentPortalService.listForActor(actor) });
+      json(response, 200, { items: await services.studentPortalService.listForActor(await auth.actor()) });
     }
   },
 
   {
     method: 'POST',
     pattern: /^\/api\/students$/,
+    permission: 'students.manage',
     async handler({ response, services, auth, readBody }) {
       const created = await services.studentPortalService.createStudent(await readBody(), await auth.actor());
       json(response, created.ok ? 201 : 422, created.ok ? { student: created.value } : publicError(created));
@@ -55,6 +52,7 @@ module.exports = [
   {
     method: 'PATCH',
     pattern: /^\/api\/students\/([\w-]+)\/accounts$/,
+    permission: 'students.manage',
     async handler({ response, services, auth, params, readBody }) {
       const actor = await auth.actor();
       const body = await readBody();
@@ -81,6 +79,7 @@ module.exports = [
   {
     method: 'GET',
     pattern: /^\/api\/students\/([\w-]+)\/dashboard$/,
+    permission: 'students.read',
     async handler({ response, services, auth, params }) {
       const dashboard = await services.studentPortalService.dashboard(params[0], await auth.actor());
       json(response, dashboard.ok ? 200 : 403, dashboard.ok ? { dashboard: dashboard.value } : publicError(dashboard));
@@ -90,6 +89,7 @@ module.exports = [
   {
     method: 'GET',
     pattern: /^\/api\/students\/([\w-]+)\/report$/,
+    permission: 'students.read',
     async handler({ response, services, auth, params }) {
       const report = await services.studentPortalService.dashboard(params[0], await auth.actor());
       if (!report.ok) {
@@ -104,6 +104,7 @@ module.exports = [
   {
     method: 'POST',
     pattern: /^\/api\/students\/([\w-]+)\/(activities|achievements|attendance|evaluations|violations)$/,
+    permission: 'students.manage',
     async handler({ response, services, auth, params, readBody }) {
       const method = RECORD_METHODS[params[1]];
       const result = await services.studentPortalService[method](params[0], await readBody(), await auth.actor());

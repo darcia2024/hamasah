@@ -1,5 +1,6 @@
 const crypto = require('node:crypto');
 
+const FINANCE_ROLES = Object.freeze(['admin', 'finance']);
 const VISA_STATUSES = Object.freeze(['not-started', 'collecting-documents', 'legalization', 'submitted', 'approved', 'expired']);
 const FINANCE_TIME_ZONE = 'Asia/Jakarta';
 const MAX_INVOICE_AMOUNT = 1000000000;
@@ -55,7 +56,8 @@ function createOperationsService(options) {
   const now = config.now || function currentTime() { return new Date().toISOString(); };
   const studentExists = config.studentExists || async function missingStudent() { return false; };
 
-  function adminOnly(actor) { return Boolean(actor && actor.role === 'admin'); }
+  // Harus sepadan dengan izin finance.manage dan operations.manage di server/access-policy.js.
+  function adminOnly(actor) { return Boolean(actor && FINANCE_ROLES.includes(actor.role)); }
 
   async function createInvoice(input, actor) {
     if (!adminOnly(actor)) return { ok: false, error: 'Akses admin diperlukan.' };

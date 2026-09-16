@@ -14,7 +14,10 @@ async function run() {
     assert.equal(pertama.courses.length, 1);
 
     const akun = await database.query('SELECT email, role FROM accounts ORDER BY email');
-    assert.deepEqual(akun.rows.map((row) => row.role).sort(), ['admin', 'parent', 'registration-officer', 'student', 'supervisor']);
+    assert.deepEqual(
+      akun.rows.map((row) => row.role).sort(),
+      ['admin', 'finance', 'parent', 'registration-officer', 'student', 'supervisor', 'teacher']
+    );
 
     // Santri contoh punya relasi wali, presensi, kegiatan, dan maddah.
     const relasi = await database.query('SELECT count(*)::int AS jumlah FROM student_parent_accounts');

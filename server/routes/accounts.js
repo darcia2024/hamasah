@@ -4,11 +4,8 @@ module.exports = [
   {
     method: 'POST',
     pattern: /^\/api\/accounts$/,
-    async handler({ response, services, auth, readBody }) {
-      if (!(await auth.isAdmin())) {
-        json(response, 401, { error: 'Akses admin diperlukan.' });
-        return;
-      }
+    permission: 'accounts.manage',
+    async handler({ response, services, readBody }) {
       const created = await services.identityService.createAccount(await readBody());
       json(response, created.ok ? 201 : 422, created.ok ? { account: created.value } : publicError(created));
     }
@@ -17,11 +14,8 @@ module.exports = [
   {
     method: 'GET',
     pattern: /^\/api\/accounts$/,
-    async handler({ response, services, auth }) {
-      if (!(await auth.isAdmin())) {
-        json(response, 401, { error: 'Akses admin diperlukan.' });
-        return;
-      }
+    permission: 'accounts.manage',
+    async handler({ response, services }) {
       json(response, 200, { items: await services.identityService.listAccounts() });
     }
   }

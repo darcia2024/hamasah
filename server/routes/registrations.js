@@ -23,11 +23,8 @@ module.exports = [
   {
     method: 'GET',
     pattern: /^\/api\/registrations$/,
-    async handler({ response, services, auth }) {
-      if (!(await auth.staffActor())) {
-        json(response, 401, { error: 'Akses petugas diperlukan.' });
-        return;
-      }
+    permission: 'registrations.read',
+    async handler({ response, services }) {
       json(response, 200, { items: await services.registrationService.listForStaff() });
     }
   },
@@ -72,12 +69,9 @@ module.exports = [
   {
     method: 'PATCH',
     pattern: new RegExp(`^/api/registrations/(${REGISTRATION_ID})/status$`),
+    permission: 'registrations.update-status',
     async handler({ response, services, auth, params, readBody }) {
-      const staff = await auth.staffActor();
-      if (!staff) {
-        json(response, 401, { error: 'Akses petugas diperlukan.' });
-        return;
-      }
+      const staff = await auth.actor();
       const body = await readBody();
       // Peran diambil dari sesi. Nilai role pada isi request sengaja diabaikan.
       const result = await services.registrationService.changeStatus(params[0], body.status, {

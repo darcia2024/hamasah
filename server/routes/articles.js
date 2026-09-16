@@ -25,11 +25,8 @@ module.exports = [
   {
     method: 'POST',
     pattern: /^\/api\/articles$/,
-    async handler({ response, services, auth, readBody }) {
-      if (!(await auth.staffActor())) {
-        json(response, 401, { error: 'Akses petugas diperlukan.' });
-        return;
-      }
+    permission: 'articles.write',
+    async handler({ response, services, readBody }) {
       const created = await services.articleStore.create(await readBody(), new Date().toISOString());
       json(response, created.ok ? 201 : 422, created.ok ? { item: created.value } : publicError(created));
     }

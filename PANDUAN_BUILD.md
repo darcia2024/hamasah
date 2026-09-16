@@ -348,7 +348,7 @@ Isi kolom **Status** dengan `Diputuskan: <pilihan> (tanggal)`. Sonnet hanya bole
 | K4 | Domain resmi dan alamat email pengirim | contoh `hamasah.id` dan `no-reply@...` | Domain atas nama lembaga | Task 8.7 | Belum |
 | K5 | Provider email | Resend, SMTP, layanan lain | Resend (API sederhana), domain diverifikasi SPF/DKIM | Task 8.7 | Belum |
 | K6 | Cara calon santri mengakses status pendaftaran | (a) nomor registrasi + kode akses + pemulihan via email; (b) OTP email setiap masuk; (c) akun penuh sejak mendaftar | (a) | Task 9.4 | Belum |
-| K7 | Pembagian role | Tetap 5 role, atau tambah `finance` dan `teacher`, plus pembatasan musyrif per asrama | Tambah `finance` dan `teacher`; musyrif hanya melihat santri di asrama yang ditugaskan | Task 8.2 | Belum |
+| K7 | Pembagian role | Tetap 5 role, atau tambah `finance` dan `teacher`, plus pembatasan musyrif per asrama | Tambah `finance` dan `teacher`; musyrif hanya melihat santri di asrama yang ditugaskan | Task 8.2 | **Diputuskan: tambah `finance` dan `teacher`, plus pembatasan musyrif per asrama (16 Sep 2026)** |
 | K8 | Hosting video LMS | YouTube unlisted, Bunny Stream, Vimeo, Cloudflare Stream | Bunny Stream jika video harus privat; YouTube unlisted jika anggaran nol dan video boleh diakses siapa pun yang memegang tautan | Phase 12 | Belum |
 | K9 | Model AI dan anggaran bulanan | `claude-opus-5` (default), `claude-sonnet-5`, `claude-haiku-4-5`; batas biaya harian | Default `claude-opus-5` lewat env `HAMASAH_AI_MODEL`, dengan batas biaya harian. Lihat perkiraan biaya di Task 13.1. | Phase 13 | Belum |
 | K10 | WhatsApp | Tanpa WA, WA resmi (Cloud API atau BSP) | Tanpa WA untuk Paket Professional (email saja). WA resmi hanya di Phase 16. Jangan pakai gateway tidak resmi. | Phase 10 | Belum |
@@ -358,7 +358,7 @@ Isi kolom **Status** dengan `Diputuskan: <pilihan> (tanggal)`. Sonnet hanya bole
 | K14 | Retensi data | Berapa lama data pendaftar batal/tidak lanjut disimpan | Anonimkan setelah 12 bulan | Task 9.10 | Belum |
 | K15 | Bea meterai kuitansi | Kuitansi di atas Rp5.000.000 memakai e-Meterai atau tidak | Konfirmasi ke bagian keuangan/konsultan pajak lembaga | Task 10.3 | Belum |
 | K16 | Klaim dan konten publik | Wording "pasti berangkat", biaya, syarat, testimoni, foto | Semua klaim dikonfirmasi tertulis oleh klien sebelum Rilis A | Task 9.11 | Belum |
-| K17 | Durasi sesi login | Sama untuk semua, atau berbeda per role | Staf 12 jam; wali dan santri 30 hari (diperpanjang saat aktif) | Task 8.9 | Belum |
+| K17 | Durasi sesi login | Sama untuk semua, atau berbeda per role | Staf 12 jam; wali dan santri 30 hari (diperpanjang saat aktif) | Task 8.9 | **Diputuskan: staf 12 jam; wali dan santri 30 hari, diperpanjang saat aktif (16 Sep 2026)** |
 | K18 | Hamasah Courses (program online) | Pakai LMS yang sama untuk peserta non-santri, atau di luar scope | Di luar scope versi pertama | Phase 12 | Belum |
 | K19 | Analytics | Tanpa analytics, Plausible/Umami, GA4 dengan persetujuan | Plausible atau Umami (tanpa cookie) | Task 14.4 | Belum |
 
@@ -1085,6 +1085,18 @@ Pola sama dengan Task 7.2 untuk `server/lms-service.js` dan `server/lms-file-sto
 5. Test **berbasis tabel**: untuk setiap route, pastikan setiap role mendapat status yang benar (200/201, 401, atau 403).
 
 **Selesai jika:** test matriks lulus, dan tidak ada lagi error otorisasi yang dikembalikan dengan status 422.
+
+---
+
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- Role sekarang tujuh: `admin`, `registration-officer`, `supervisor`, `teacher`, `finance`, `parent`, `student`. Migrasi `007_role_finance_teacher.sql` mengganti CHECK constraint pada `accounts`. Daftar role ada di tiga tempat yang harus selalu sama: migrasi itu, `ROLES` di `server/identity-service.js`, dan `ROLES` di `server/access-policy.js`.
+- Peta izin ada di `server/access-policy.js`. `rolesFor` melempar error untuk nama izin yang tidak dikenal, supaya salah ketik tidak berakhir menjadi "semua boleh".
+- Route menyatakan `permission: 'nama.izin'` atau `session: true`. Dispatcher di `server/app.js` yang menolak: 401 `Silakan masuk terlebih dahulu.` kalau belum masuk, 403 `Anda tidak memiliki akses ke fitur ini.` kalau rolenya tidak berhak. Handler tidak lagi memeriksa role sendiri.
+- Service tetap memeriksa izinnya sendiri. Karena itu ada dua daftar role yang harus sepadan dengan peta izin, dan keduanya diberi komentar penunjuk: `FINANCE_ROLES` di `operations-service.js`, serta `MANAGE_ROLES` dan `VIEW_ROLES` di `lms-service.js`. Musyrif boleh melihat pembelajaran santri, tetapi tidak mengelola maddah.
+- `GET /api/me` kini mengembalikan `permissions: [...]` untuk menyusun menu di layar.
+- `server/access-matrix.test.js` mencoba 25 endpoint dikali 7 role, ditambah percobaan tanpa sesi dan dengan token palsu: 175 pemeriksaan. Test itu juga memastikan setiap izin di peta dan setiap route ber-izin benar-benar terwakili, jadi endpoint baru yang lupa diuji akan ketahuan.
+- Test matriks sudah dibuktikan gagal ketika penjagaan 403 di dispatcher dimatikan. Kebocoran pertama yang ditangkapnya: petugas pendaftaran bisa membaca seluruh daftar akun.
+- Akun dev bertambah `guru@hamasah.test` dan `keuangan@hamasah.test`.
 
 ---
 
@@ -2534,7 +2546,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 
 **Phase 8: Keamanan, Akun, dan Layanan Pendukung**
 - [x] 8.1 Pecah router `server/app.js`
-- [ ] 8.2 Otorisasi konsisten dan role baru
+- [x] 8.2 Otorisasi konsisten dan role baru
 - [ ] 8.3 Pembatasan musyrif per asrama
 - [ ] 8.4 Rate limit
 - [ ] 8.5 Audit log

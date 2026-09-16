@@ -1,5 +1,6 @@
 const identity = require('../identity-service.js');
 const { json, noContent, publicError } = require('../http/respond.js');
+const { permissionsForRole } = require('../access-policy.js');
 const { safeEqual } = require('../http/auth.js');
 
 module.exports = [
@@ -52,7 +53,9 @@ module.exports = [
     pattern: /^\/api\/me$/,
     async handler({ response, auth }) {
       const session = await auth.session();
-      json(response, session.ok ? 200 : 401, session.ok ? { account: session.value } : publicError(session));
+      json(response, session.ok ? 200 : 401, session.ok
+        ? { account: session.value, permissions: permissionsForRole(session.value.role) }
+        : publicError(session));
     }
   },
 
