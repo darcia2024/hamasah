@@ -932,6 +932,14 @@ Pola sama dengan Task 7.2 untuk `server/lms-service.js` dan `server/lms-file-sto
 
 ---
 
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- `server/postgres-student-store.js` memakai peta konstanta `COLLECTIONS` berisi nama tabel, daftar kolom, dan konversi baris untuk tiap koleksi. Nama koleksi dari luar dicek dengan `Object.prototype.hasOwnProperty` supaya nama seperti `constructor` tidak lolos, lalu melempar `Koleksi catatan tidak dikenal.`
+- `saveStudent` berjalan dalam satu transaksi: upsert `students`, `DELETE FROM student_parent_accounts WHERE student_id = $1 AND parent_account_id <> ALL($2::uuid[])`, lalu insert `ON CONFLICT DO NOTHING`. Array kosong menghapus semua relasi wali, dan itu diuji, karena wali yang dicabut tidak boleh masih bisa membuka dashboard.
+- `join_date` selalu dibaca `::text`. Kalau dibaca sebagai DATE, PGlite dan `pg` memberi hasil berbeda dan tanggal bisa bergeser sehari.
+- Test memakai akun sungguhan di tabel `accounts` karena `student_account_id` dan `parent_account_id` punya foreign key.
+
+---
+
 ### Task 7.6 `[INTI]` Store PostgreSQL untuk LMS
 
 **Langkah:**
@@ -2478,7 +2486,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [x] 7.2 Service santri async
 - [x] 7.3 Service LMS async
 - [x] 7.4 Service operasional async dan counter
-- [ ] 7.5 Store PostgreSQL santri
+- [x] 7.5 Store PostgreSQL santri
 - [ ] 7.6 Store PostgreSQL LMS
 - [ ] 7.7 Store PostgreSQL operasional
 - [ ] 7.8 Satu jalur data, hapus file store
