@@ -2452,7 +2452,9 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [x] 6.7 Perbaiki penomoran registrasi (d20d0e5, migrasi 004 menunggu diterapkan ke production)
 - [x] 6.8 Riwayat status mencatat akun pelaku (b5c9903, migrasi 005 menunggu diterapkan ke production)
 - [x] 6.9 Dockerfile, shutdown, health check (bd0ad83)
-- [ ] 6.10 Perbaikan kecil dari audit
+- [x] 6.10 Perbaikan kecil dari audit (4281d9f)
+
+**Sisa pekerjaan Phase 6 (manusia):** Task 6.0 (cabut token GitHub, bersihkan URL remote, buat project staging) dan penerapan migrasi 004 serta 005 ke production.
 
 **Phase 7: Semua Data di PostgreSQL**
 - [ ] 7.1 Mode dev lokal dengan PGlite
