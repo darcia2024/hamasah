@@ -37,23 +37,24 @@ Isi commit tersebut: mode dev PGlite, konversi tiga service menjadi async, store
 
 ## 3. Terapkan migrasi 006 ke staging (Task 7.9)
 
-> Migrasi 006 sudah diterapkan ke production pada 16 Sep 2026 (6 migrasi, 21 tabel, semua ber-RLS).
+> **Status per 16 Sep 2026:**
+> - **Production**: migrasi 001–007 diterapkan (7 migrasi, 21 tabel, semua ber-RLS). Migrasi 008–011 **belum** diterapkan ke production.
+> - **Staging**: migrasi 001–011 sudah diterapkan dan diverifikasi (11 migrasi, 25 tabel aplikasi, semua ber-RLS). Ini mencakup `008_dormitories.sql` (asrama dan penugasan musyrif), `009_audit_events.sql` (catatan audit), `010_session_last_seen.sql` (durasi sesi per role), dan `011_file_objects.sql` (penyimpanan berkas). Semuanya aditif — tidak ada data lama yang berubah.
 >
-> Migrasi 007 (role `teacher` dan `finance`) juga sudah diterapkan ke production pada 16 Sep 2026. Verifikasi: 7 migrasi, 21 tabel, semua ber-RLS.
+> Langkah-langkah di bagian ini (3) sudah selesai untuk staging. Yang tersisa untuk staging adalah smoke test di bagian 4. Migrasi 008–011 ke **production** menyusul di bagian 5 setelah smoke test staging lulus.
 >
-> **Masih menunggu:** migrasi `008_dormitories.sql` (asrama dan penugasan musyrif), `009_audit_events.sql` (catatan audit), dan `010_session_last_seen.sql` (durasi sesi per role). Ketiganya diterapkan sekaligus dengan perintah yang sama persis seperti bagian 5 di bawah. Semuanya menambah tabel atau kolom baru yang boleh kosong, jadi data yang sudah ada tidak berubah.
+> **Sempat gagal, sudah diperbaiki:** `npm run verify:database` awalnya menolak dengan pesan "SUPABASE_URL harus diisi", padahal skrip migrasi tidak ada urusan dengan penyimpanan berkas sama sekali. Itu bug di sisi kode (perbaikan sudah di-commit) — bukan sesuatu yang perlu Anda ubah di konfigurasi.
 >
-> **Variabel environment baru yang wajib diisi sebelum deploy berikutnya:** `IP_HASH_SECRET`, minimal 32 karakter acak. Dipakai mengacak alamat IP di catatan audit. Tanpa ini, `npm start` akan berhenti dengan pesan jelas di staging dan production. Buat nilainya dengan perintah di bawah, lalu simpan di `.env` server (bukan di repo):
+> **Variabel environment yang wajib diisi sebelum `npm start` di staging atau production** (migrasi sendiri tidak butuh ini, tapi menjalankan aplikasinya butuh):
+> - `IP_HASH_SECRET`, minimal 32 karakter acak, dipakai mengacak alamat IP di catatan audit. Anda sudah membuat satu nilai di terminal — **simpan nilai itu ke `.env` staging sekarang juga** sebelum hilang, dan buat nilai terpisah untuk `.env` production nanti:
+>   ```bash
+>   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+>   ```
+> - `STORAGE_DRIVER`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `STORAGE_BUCKET`, `STORAGE_PUBLIC_BUCKET` — lihat bagian 9 di bawah. Belum diisi berarti `npm start` (bukan `npm run migrate`) akan berhenti dengan pesan jelas di staging dan production.
 >
-> ```bash
-> node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-> ```
->
-> Setelah migrasi 008 diterapkan, **perhatikan ini:** musyrif yang belum ditugaskan ke asrama tidak akan melihat santri mana pun. Jadi begitu ada akun musyrif, admin harus membuat daftar asrama dan menugaskan musyrifnya lewat halaman Monitoring, lalu menempatkan setiap santri ke asramanya.
->
-> Bagian di bawah ini berlaku untuk project staging begitu dibuat.
+> **Perhatikan ini soal asrama:** musyrif yang belum ditugaskan ke asrama tidak akan melihat santri mana pun. Begitu ada akun musyrif, admin harus membuat daftar asrama dan menugaskan musyrifnya lewat halaman Monitoring, lalu menempatkan setiap santri ke asramanya.
 
-Migrasi 006 menambah kolom `position` pada `course_materials` dan mengisi urutan materi lama. Migrasi 001 sampai 005 sudah diterapkan ke production pada 16 September 2026.
+Migrasi 006 menambah kolom `position` pada `course_materials` dan mengisi urutan materi lama. Migrasi 001 sampai 005 sudah diterapkan ke production pada 16 September 2026. Perintah di bawah ini yang dipakai untuk menerapkan migrasi ke staging (sudah dijalankan untuk migrasi 001–011); simpan untuk referensi migrasi berikutnya.
 
 1. Isi `.env` dengan connection string **staging**. Gunakan port sesi `5432` untuk `DATABASE_MIGRATION_URL` (bukan pooler `6543`), karena migrasi memakai advisory lock.
 2. Jalankan:
@@ -99,7 +100,9 @@ Kalau ada yang gagal, hentikan di sini dan jangan lanjut ke production.
 
 ---
 
-## 5. Terapkan migrasi 006 ke production (selesai 16 Sep 2026)
+## 5. Terapkan migrasi ke production
+
+> Migrasi 001–007 sudah diterapkan ke production (terakhir 16 Sep 2026). Migrasi **008–011 belum**. Perintah di bawah ini yang sama dipakai lagi untuk menyusulkan 008–011, setelah smoke test staging di bagian 4 lulus — jangan lewati smoke test, karena 008–011 mengubah otorisasi (asrama), audit, sesi, dan penyimpanan berkas sekaligus.
 
 1. **Backup dulu.** Dashboard Supabase > Database > Backups, atau `supabase db dump` dengan Supabase CLI. Jangan lewati langkah ini.
 2. Isi `.env` dengan connection string production.
