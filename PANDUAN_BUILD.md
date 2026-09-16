@@ -1047,6 +1047,17 @@ Pola sama dengan Task 7.2 untuk `server/lms-service.js` dan `server/lms-file-sto
 
 ---
 
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- `server/app.js` turun dari 672 baris menjadi 171: hanya wiring, `checkDatabaseReady`, dan dispatcher. File route terbesar 113 baris.
+- Bentuk route: `{ method, pattern, handler }`. Handler menerima `{ request, response, url, params, services, config, auth, readBody }`. `params` adalah `match.slice(1)`.
+- `readBody` sengaja dipanggil handler, bukan dispatcher. Kalau dispatcher yang membaca isi permintaan lebih dulu, kiriman raksasa akan dibalas 413 sebelum pemeriksaan akses berjalan, padahal sekarang beberapa route memeriksa akses lebih dulu. Perilaku itu harus tetap sama.
+- `auth` dibuat per permintaan dan mengingat hasil `authenticate`, karena satu route bisa menanyakannya lebih dari sekali. Token tidak berubah di tengah permintaan, jadi aman, dan menghemat satu query database.
+- `server/http/static.js` menyeragamkan `\` menjadi `/` sebelum `path.posix.normalize`. Di Windows `path.resolve` memperlakukan `\` sebagai pemisah folder sedangkan `path.posix.normalize` tidak, jadi `/website/..\.env` bisa keluar dari folder. Parser URL sebenarnya sudah merapikannya, tetapi modul ini tidak boleh bergantung pada pemanggilnya.
+- `server/http/static.test.js` menguji percobaan keluar folder di folder sementara berisi berkas rahasia **palsu**, bukan di root repo, supaya pesan kegagalan assert tidak pernah mencetak isi `.env` sungguhan. Test itu sudah dibuktikan gagal ketika pengamanannya dimatikan.
+- `server/app.test.js` **tidak diubah** sama sekali dan tetap lulus.
+
+---
+
 ### Task 8.2 `[INTI]` `[KEPUTUSAN K7]` Otorisasi konsisten dan role baru
 
 **Langkah:**
@@ -2522,7 +2533,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [ ] 7.9 `[MANUSIA]` Migrasi staging dan production
 
 **Phase 8: Keamanan, Akun, dan Layanan Pendukung**
-- [ ] 8.1 Pecah router `server/app.js`
+- [x] 8.1 Pecah router `server/app.js`
 - [ ] 8.2 Otorisasi konsisten dan role baru
 - [ ] 8.3 Pembatasan musyrif per asrama
 - [ ] 8.4 Rate limit
