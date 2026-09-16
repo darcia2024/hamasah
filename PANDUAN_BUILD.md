@@ -954,6 +954,15 @@ Pola sama dengan Task 7.2 untuk `server/lms-service.js` dan `server/lms-file-sto
 
 ---
 
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- Antarmuka store LMS sekarang: `createCourse`, `getCourse`, `listCourses`, `addMaterial(courseId, material)`, `getEnrollments`, `addEnrollment(studentId, courseId, enrolledAt)`, `listCompletions(studentId)`, `addCompletion(record)`. Method lama `saveCourse`, `saveEnrollments`, dan `byStudent` sudah hilang dari store memori, file store, maupun Postgres.
+- `position` diisi di dalam perintah INSERT yang sama (`COALESCE((SELECT MAX(position) + 1 FROM course_materials WHERE course_id = $2), 0)`), bukan dibaca dulu lalu ditulis, supaya tidak ada jeda yang bisa disela permintaan lain. Urutan baca: `position ASC, created_at ASC, id ASC`.
+- Anti-duplikat pindah ke store: `addEnrollment` dan `addCompletion` memakai `ON CONFLICT DO NOTHING`, jadi service tidak perlu lagi memeriksa "sudah ada atau belum" yang selalu punya celah antara cek dan tulis.
+- `key_points` dan `study_guide` ditulis `$n::jsonb` dari `JSON.stringify`, dan saat dibaca tetap diterima kalau driver mengembalikan string.
+- `lms-file-store.js` ikut disesuaikan ke antarmuka baru supaya app tetap jalan sampai dihapus di Task 7.8.
+
+---
+
 ### Task 7.7 `[INTI]` Store PostgreSQL untuk operasional
 
 **Buat:** `server/postgres-operations-store.js` dan test-nya.
@@ -2487,7 +2496,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [x] 7.3 Service LMS async
 - [x] 7.4 Service operasional async dan counter
 - [x] 7.5 Store PostgreSQL santri
-- [ ] 7.6 Store PostgreSQL LMS
+- [x] 7.6 Store PostgreSQL LMS
 - [ ] 7.7 Store PostgreSQL operasional
 - [ ] 7.8 Satu jalur data, hapus file store
 - [ ] 7.9 `[MANUSIA]` Migrasi staging dan production

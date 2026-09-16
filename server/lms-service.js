@@ -11,32 +11,48 @@ function clean(value) {
   return String(value || '').trim();
 }
 
+// Antarmuka store LMS sama persis dengan postgres-lms-store.js, supaya service
+// tidak perlu tahu data disimpan di mana.
 function createMemoryLmsStore() {
   const database = { courses: {}, enrollments: {}, completions: [] };
   return {
-    async addCompletion(record) {
-      database.completions.push(clone(record));
-      return clone(record);
-    },
-    async byStudent(studentId) {
-      return clone(database.completions.filter(function belongsToStudent(entry) { return entry.studentId === studentId; }));
+    async createCourse(course) {
+      database.courses[course.id] = clone({ ...course, materials: [] });
+      return clone(database.courses[course.id]);
     },
     async getCourse(courseId) {
       return database.courses[courseId] ? clone(database.courses[courseId]) : null;
     },
     async listCourses() {
-      return Object.values(database.courses).map(clone);
+      return Object.values(database.courses).map(clone).sort(function byTitle(left, right) {
+        return left.title.localeCompare(right.title, 'id-ID');
+      });
+    },
+    async addMaterial(courseId, material) {
+      const course = database.courses[courseId];
+      course.materials.push(clone(material));
+      course.updatedAt = material.createdAt;
+      return clone(material);
     },
     async getEnrollments(studentId) {
       return clone(database.enrollments[studentId] || []);
     },
-    async saveCourse(course) {
-      database.courses[course.id] = clone(course);
-      return clone(course);
+    async addEnrollment(studentId, courseId) {
+      const enrolled = database.enrollments[studentId] || [];
+      if (!enrolled.includes(courseId)) {
+        database.enrollments[studentId] = enrolled.concat(courseId);
+      }
     },
-    async saveEnrollments(studentId, courseIds) {
-      database.enrollments[studentId] = clone(courseIds);
-      return clone(courseIds);
+    async listCompletions(studentId) {
+      return clone(database.completions.filter(function belongsToStudent(entry) { return entry.studentId === studentId; }));
+    },
+    async addCompletion(record) {
+      const sudahAda = database.completions.some(function sama(entry) {
+        return entry.studentId === record.studentId && entry.materialId === record.materialId;
+      });
+      if (!sudahAda) {
+        database.completions.push(clone(record));
+      }
     }
   };
 }
@@ -71,8 +87,8 @@ function createLmsService(options) {
     if (title.length < 3 || description.length < 8) {
       return { ok: false, error: 'Judul dan deskripsi maddah belum valid.' };
     }
-    const course = await store.saveCourse({
-      id: crypto.randomUUID(), title, description, materials: [], createdAt: now(), updatedAt: now()
+    const course = await store.createCourse({
+      id: crypto.randomUUID(), title, description, createdAt: now(), updatedAt: now()
     });
     return { ok: true, value: course };
   }
@@ -100,9 +116,10 @@ function createLmsService(options) {
       return { ok: false, error: 'Materi belum lengkap atau jenis materi tidak valid.' };
     }
 
-    const material = { id: crypto.randomUUID(), type, title, content, summary, keyPoints, studyGuide, createdAt: now() };
-    const saved = await store.saveCourse({ ...course, materials: course.materials.concat(material), updatedAt: now() });
-    return { ok: true, value: saved.materials.at(-1) };
+    const saved = await store.addMaterial(courseId, {
+      id: crypto.randomUUID(), type, title, content, summary, keyPoints, studyGuide, createdAt: now()
+    });
+    return { ok: true, value: saved };
   }
 
   async function enroll(studentId, courseId, actor) {
@@ -112,10 +129,7 @@ function createLmsService(options) {
     if (!(await store.getCourse(courseId))) {
       return { ok: false, error: 'Maddah tidak ditemukan.' };
     }
-    const enrolled = await store.getEnrollments(studentId);
-    if (!enrolled.includes(courseId)) {
-      await store.saveEnrollments(studentId, enrolled.concat(courseId));
-    }
+    await store.addEnrollment(studentId, courseId, now());
     return { ok: true };
   }
 
@@ -130,7 +144,7 @@ function createLmsService(options) {
     if (!course) {
       return { ok: false, error: 'Maddah tidak ditemukan.' };
     }
-    const completions = await store.byStudent(studentId);
+    const completions = await store.listCompletions(studentId);
     const completedMaterialIds = completions
       .filter(function currentCourse(entry) { return entry.courseId === courseId; })
       .map(function materialId(entry) { return entry.materialId; });
@@ -171,11 +185,7 @@ function createLmsService(options) {
     if (!isStaff(actor) || typeof store.listCourses !== 'function') {
       return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
     }
-    const courses = await store.listCourses();
-    return {
-      ok: true,
-      value: courses.sort(function byTitle(left, right) { return left.title.localeCompare(right.title, 'id-ID'); })
-    };
+    return { ok: true, value: await store.listCourses() };
   }
 
   async function completeMaterial(studentId, courseId, materialId, actor) {
@@ -190,13 +200,8 @@ function createLmsService(options) {
     if (!material) {
       return { ok: false, error: 'Materi tidak ditemukan.' };
     }
-    const completions = await store.byStudent(studentId);
-    const completed = completions.some(function alreadyCompleted(entry) {
-      return entry.courseId === courseId && entry.materialId === materialId;
-    });
-    if (!completed) {
-      await store.addCompletion({ id: crypto.randomUUID(), studentId, courseId, materialId, completedAt: now() });
-    }
+    // Store menolak duplikat sendiri, jadi klik ganda tidak membuat baris kedua.
+    await store.addCompletion({ id: crypto.randomUUID(), studentId, courseId, materialId, completedAt: now() });
     return getStudentCourse(studentId, courseId, actor);
   }
 
