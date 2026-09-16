@@ -829,7 +829,7 @@ Dikerjakan manusia. Sonnet tidak ikut.
 **Selesai jika:**
 - [ ] Task 7.1 sampai 7.9 dicentang.
 - [x] `grep -rln "file-store" server website database` tidak menghasilkan apa pun.
-- [ ] `npm run dev` menjalankan aplikasi lengkap dengan data contoh.
+- [x] `npm run dev` menjalankan aplikasi lengkap dengan data contoh (diuji 16 Sep 2026: migrasi 006 diterapkan ke database dev yang sudah ada, seed menambah 2 santri dan 1 maddah, login admin dan wali berhasil, invoice dibuat dan dilunasi lewat HTTP).
 - [ ] Staging berjalan dengan PostgreSQL untuk semua modul `[MANUSIA]`.
 
 **Aturan khusus phase ini:** Task 7.2 sampai 7.4 mengubah fungsi sinkron menjadi `async`. Kesalahan paling berbahaya adalah **lupa `await`**, karena Promise selalu truthy. Contoh nyata di kode sekarang:
@@ -2507,6 +2507,8 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [x] 6.10 Perbaikan kecil dari audit (4281d9f)
 
 **Sisa pekerjaan Phase 6 (manusia):** Task 6.0 (cabut token GitHub, bersihkan URL remote, buat project staging). Migrasi 001 sampai 005 sudah diterapkan ke production pada 16 Sep 2026.
+
+**Sisa pekerjaan Phase 7 (manusia):** Task 7.9 (terapkan migrasi 006 ke staging dan production, lalu smoke test) dan push commit Phase 7 ke remote.
 
 **Phase 7: Semua Data di PostgreSQL**
 - [x] 7.1 Mode dev lokal dengan PGlite (2902df5)
