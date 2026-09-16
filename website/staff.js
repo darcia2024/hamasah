@@ -8,6 +8,9 @@ const registrationList = document.querySelector('#registration-list');
 const registrationListStatus = document.querySelector('#registration-list-status');
 const articleForm = document.querySelector('#article-form');
 const articleFormStatus = document.querySelector('#article-form-status');
+const staffNav = document.querySelector('#staff-nav');
+
+const STAFF_ROLES = Object.freeze(['admin', 'registration-officer']);
 
 const statusOptions = [
   ['submitted', 'Data dikirim'], ['document-review', 'Pemeriksaan berkas'], ['needs-revision', 'Perlu perbaikan'],
@@ -15,16 +18,18 @@ const statusOptions = [
   ['completed', 'Selesai'], ['cancelled', 'Dibatalkan']
 ];
 
+// Kunci penyimpanan sesi disamakan dengan halaman lain (hamasahPortalSession), supaya
+// akun yang sudah masuk lewat Portal atau halaman lain tidak perlu login ulang di sini.
 function getSession() {
   try {
-    return JSON.parse(sessionStorage.getItem('hamasahStaffSession') || 'null');
+    return JSON.parse(sessionStorage.getItem('hamasahPortalSession') || 'null');
   } catch {
     return null;
   }
 }
 
 function clearSession() {
-  sessionStorage.removeItem('hamasahStaffSession');
+  sessionStorage.removeItem('hamasahPortalSession');
 }
 
 function authHeaders() {
@@ -135,10 +140,11 @@ async function loadRegistrations() {
   registrationListStatus.textContent = `${result.items.length} pendaftaran tersedia.`;
 }
 
-function showConsole() {
+function showConsole(role) {
   loginSection.hidden = true;
   consoleSection.hidden = false;
   logoutButton.hidden = false;
+  renderStaffNav(staffNav, role, 'staff');
   loadRegistrations().catch((error) => {
     registrationListStatus.textContent = error.message || 'Data pendaftar belum dapat dimuat.';
     registrationListStatus.classList.add('is-error');
@@ -154,11 +160,11 @@ loginForm.addEventListener('submit', async (event) => {
       body: JSON.stringify({ email: document.querySelector('#staff-email').value, password: document.querySelector('#staff-password').value })
     });
     const result = await response.json();
-    if (!response.ok || !['admin', 'registration-officer'].includes(result.account.role)) {
+    if (!response.ok || !STAFF_ROLES.includes(result.account.role)) {
       throw new Error(result.error || 'Akun ini tidak memiliki akses petugas.');
     }
-    sessionStorage.setItem('hamasahStaffSession', JSON.stringify({ accessToken: result.accessToken, account: result.account }));
-    showConsole();
+    sessionStorage.setItem('hamasahPortalSession', JSON.stringify({ accessToken: result.accessToken }));
+    showConsole(result.account.role);
   } catch (error) {
     loginStatus.textContent = error.message || 'Login belum berhasil.';
     loginStatus.classList.add('is-error');
@@ -201,4 +207,19 @@ logoutButton.addEventListener('click', async () => {
   window.location.reload();
 });
 
-if (getSession()) showConsole();
+// Dipanggil saat halaman dibuka dengan sesi yang sudah ada (misal masuk lewat Portal
+// lebih dulu, lalu klik menu Pendaftaran). Role tetap diperiksa ulang lewat /api/me,
+// bukan sekadar percaya token ada, supaya konsisten dengan halaman staf lainnya.
+(async function initialize() {
+  if (!getSession()) return;
+  try {
+    const response = await fetch('/api/me', { headers: authHeaders() });
+    const result = await response.json();
+    if (!response.ok || !STAFF_ROLES.includes(result.account.role)) {
+      throw new Error('Halaman ini hanya dapat dibuka oleh admin atau petugas pendaftaran.');
+    }
+    showConsole(result.account.role);
+  } catch (error) {
+    clearSession();
+  }
+}());

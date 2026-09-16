@@ -36,6 +36,7 @@ const studentGender = document.querySelector('#student-gender');
 const studentDormitory = document.querySelector('#student-dormitory');
 let currentRole = null;
 let dormitories = [];
+const staffNav = document.querySelector('#staff-nav');
 
 function session() {
   try { return JSON.parse(sessionStorage.getItem('hamasahPortalSession') || 'null'); } catch { return null; }
@@ -297,6 +298,7 @@ setRecordFields();
     const result = await response.json();
     if (!response.ok || !['admin', 'supervisor'].includes(result.account.role)) throw new Error('Halaman ini hanya dapat dibuka oleh admin atau pengawas.');
     currentRole = result.account.role; guard.hidden = true; consoleSection.hidden = false;
+    renderStaffNav(staffNav, currentRole, 'monitoring');
     if (currentRole === 'admin') {
       accountLinkSection.hidden = false;
       dormitorySection.hidden = false;

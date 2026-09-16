@@ -11,6 +11,7 @@ const list = document.querySelector('#audit-list');
 const summary = document.querySelector('#audit-summary');
 const prevButton = document.querySelector('#audit-prev');
 const nextButton = document.querySelector('#audit-next');
+const staffNav = document.querySelector('#staff-nav');
 
 const PAGE_SIZE = 25;
 let offset = 0;
@@ -163,6 +164,7 @@ nextButton.addEventListener('click', () => { if (offset + PAGE_SIZE < total) { o
     }
     guard.hidden = true;
     consoleSection.hidden = false;
+    renderStaffNav(staffNav, result.account.role, 'audit');
     await loadActors();
     await loadEvents();
   } catch (error) {

@@ -16,6 +16,7 @@
     <main class="staff-shell">
       <header class="staff-header">
         <a href="index.html" class="staff-brand">Hamasah <span>Portal</span></a>
+        <nav class="staff-nav" id="staff-nav" hidden></nav>
         <button class="button button--secondary" id="portal-logout" type="button" hidden>Keluar</button>
       </header>
       <section class="staff-login" id="portal-login" aria-labelledby="portal-login-title">
@@ -60,7 +61,9 @@
               <label for="account-role">Peran</label>
               <select id="account-role">
                 <option value="registration-officer">Petugas pendaftaran</option>
-                <option value="supervisor">Pengawas</option>
+                <option value="supervisor">Pengawas (musyrif)</option>
+                <option value="teacher">Guru</option>
+                <option value="finance">Keuangan</option>
                 <option value="parent">Wali</option>
                 <option value="student">Santri</option>
                 <option value="admin">Admin</option>
@@ -78,6 +81,7 @@
         </section>
       </section>
     </main>
+    <script src="nav.js?v=1"></script>
     <script src="portal.js?v=1"></script>
   </body>
 </html>

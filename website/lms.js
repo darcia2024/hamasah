@@ -15,6 +15,12 @@ const enrollmentForm = document.querySelector('#enrollment-form');
 const enrollmentStatus = document.querySelector('#enrollment-form-status');
 const enrollmentCourse = document.querySelector('#enrollment-course');
 let role = null;
+const staffNav = document.querySelector('#staff-nav');
+
+// Harus sama persis dengan izin courses.manage dan courses.read di
+// server/access-policy.js: guru bisa mengelola maddah, musyrif hanya melihat.
+const LMS_MANAGE_ROLES = Object.freeze(['admin', 'teacher']);
+const LMS_VIEW_ROLES = Object.freeze(['admin', 'teacher', 'supervisor', 'student']);
 
 function session() { try { return JSON.parse(sessionStorage.getItem('hamasahPortalSession') || 'null'); } catch { return null; } }
 function headers() { const current = session(); return current ? { Authorization: `Bearer ${current.accessToken}` } : {}; }
@@ -78,7 +84,7 @@ function renderStaffCourses(courses) {
 }
 
 async function loadStaffCourses() {
-  if (!['admin', 'supervisor'].includes(role)) return;
+  if (!LMS_MANAGE_ROLES.includes(role)) return;
   const response = await fetch('/api/courses', { headers: headers() });
   const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Daftar maddah belum dapat dimuat.');
   renderStaffCourses(result.items);
@@ -108,5 +114,5 @@ enrollmentForm.addEventListener('submit', async (event) => {
 });
 
 (async function initialize() {
-  try { const response = await fetch('/api/me', { headers: headers() }); const result = await response.json(); if (!response.ok || !['admin', 'supervisor', 'student'].includes(result.account.role)) throw new Error('Halaman ini hanya tersedia untuk santri, pengawas, atau admin.'); role = result.account.role; guard.hidden = true; consoleSection.hidden = false; if (['admin', 'supervisor'].includes(role)) { staffSection.hidden = false; await loadStaffCourses(); } await loadStudents(); } catch (error) { guardCopy.textContent = error.message || 'Silakan masuk melalui Portal Hamasah.'; }
+  try { const response = await fetch('/api/me', { headers: headers() }); const result = await response.json(); if (!response.ok || !LMS_VIEW_ROLES.includes(result.account.role)) throw new Error('Halaman ini hanya tersedia untuk santri, guru, pengawas, atau admin.'); role = result.account.role; guard.hidden = true; consoleSection.hidden = false; renderStaffNav(staffNav, role, 'lms'); if (LMS_MANAGE_ROLES.includes(role)) { staffSection.hidden = false; await loadStaffCourses(); } if (role !== 'teacher') { await loadStudents(); } } catch (error) { guardCopy.textContent = error.message || 'Silakan masuk melalui Portal Hamasah.'; }
 }());

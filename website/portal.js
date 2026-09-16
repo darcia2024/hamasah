@@ -13,10 +13,14 @@ const accountForm = document.querySelector('#account-form');
 const accountFormStatus = document.querySelector('#account-form-status');
 const accountList = document.querySelector('#account-list');
 
+const staffNav = document.querySelector('#staff-nav');
+
 const roleLabels = {
   admin: 'Admin',
   'registration-officer': 'Petugas Pendaftaran',
   supervisor: 'Pengawas',
+  teacher: 'Guru',
+  finance: 'Keuangan',
   parent: 'Portal Wali',
   student: 'Portal Santri'
 };
@@ -140,6 +144,7 @@ async function showPortal() {
   portalLogout.hidden = false;
   portalRoleLabel.textContent = roleLabels[result.account.role] || 'Portal Hamasah';
   portalTitle.textContent = `Assalamu'alaikum, ${result.account.name}.`;
+  renderStaffNav(staffNav, result.account.role, 'portal');
   await loadStudents();
   if (result.account.role === 'admin') {
     portalAdmin.hidden = false;
