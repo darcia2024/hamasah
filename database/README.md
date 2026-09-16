@@ -30,7 +30,7 @@ Mode ini **mencatat** migrasi yang seluruh tabelnya sudah ada, **tanpa menjalank
 npm run verify:database
 ```
 
-Perintah ini gagal jika ada migrasi yang belum diterapkan, isi file migrasi berbeda dari yang tercatat, atau ada tabel yang hilang. Tabel yang belum memakai Row Level Security ditampilkan sebagai peringatan sampai Task 6.6 selesai.
+Perintah ini gagal jika ada migrasi yang belum diterapkan, isi file migrasi berbeda dari yang tercatat, ada tabel yang hilang, atau ada tabel di schema `public` yang belum memakai Row Level Security.
 
 Kontrak schema bisa diperiksa tanpa database:
 
@@ -44,5 +44,5 @@ node database/validate-schema.js
 - **File yang sudah diterapkan tidak boleh diubah.** Checksum-nya dicatat, dan runner akan menolak. Perbaikan dilakukan lewat file migrasi baru.
 - Jangan menulis `BEGIN`, `COMMIT`, atau `ROLLBACK` di dalam file. Runner sudah membungkus setiap file dalam satu transaksi.
 - Jangan memakai `CREATE INDEX CONCURRENTLY` karena tidak bisa berjalan di dalam transaksi.
-- Setiap tabel baru wajib disertai `ALTER TABLE <nama> ENABLE ROW LEVEL SECURITY;`.
+- Setiap tabel baru wajib disertai `ALTER TABLE <nama> ENABLE ROW LEVEL SECURITY;`. Aturan ini diperiksa dua kali: tanpa database oleh `node database/validate-schema.js`, dan terhadap database oleh `npm run verify:database`.
 - Checksum dihitung setelah akhiran baris dinormalkan, jadi file yang sama tetap dikenali di Windows maupun Linux.

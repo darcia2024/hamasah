@@ -660,6 +660,12 @@ Dikerjakan manusia. Sonnet tidak ikut.
 3. Jika aplikasi tidak memakai Data API sama sekali, pertimbangkan mengeluarkan `public` dari daftar Exposed schemas di pengaturan API.
 4. Production: backup dulu, lalu jalankan migrasi dengan izin `ALLOW_PRODUCTION_WRITE`.
 
+**Catatan implementasi (sudah dikerjakan):**
+- Daftar tabel di `003_enable_row_level_security.sql` dibuat dari hasil pembacaan file migrasi, bukan diketik manual. Isinya 20 tabel.
+- Aturan ini sekarang dijaga dua lapis: `validate-schema.js` memeriksa tanpa database bahwa setiap tabel yang dibuat migrasi punya `ENABLE ROW LEVEL SECURITY`, dan `npm run verify:database` menolak jika ada tabel di `public` tanpa RLS.
+- Seluruh test (termasuk test integrasi API) berjalan di atas database ber-RLS, jadi terbukti aplikasi tidak terpengaruh.
+- Langkah penerapan ke staging dan production ada di `PRODUCTION_DEPLOYMENT.md` bagian Row Level Security.
+
 ---
 
 ### Task 6.7 `[INTI]` `[KOMPLEKS]` Perbaiki penomoran registrasi (anti tertimpa)

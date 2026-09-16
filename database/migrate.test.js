@@ -17,8 +17,13 @@ function temporaryDirectory(files = {}) {
   return directory;
 }
 
+// Daftar migrasi dibaca dari repo supaya test tidak perlu diperbarui setiap ada migrasi baru.
+function repoMigrationFiles() {
+  return fs.readdirSync(REPO_MIGRATIONS).filter((file) => /^\d{3}_.+\.sql$/.test(file)).sort();
+}
+
 function copyRepoMigrations(directory, { crlf = false } = {}) {
-  for (const file of ['001_initial_schema.sql', '002_account_sessions.sql']) {
+  for (const file of repoMigrationFiles()) {
     const content = fs.readFileSync(path.join(REPO_MIGRATIONS, file), 'utf8');
     fs.writeFileSync(path.join(directory, file), crlf ? content.replace(/\r?\n/g, '\r\n') : content);
   }
@@ -65,10 +70,17 @@ async function tableExists(database, name) {
   return Boolean(rows[0].relasi);
 }
 
+// Meniru database lama: schema tabel diterapkan manual, tanpa catatan migrasi.
 async function applySchemaManually(database) {
   for (const file of ['001_initial_schema.sql', '002_account_sessions.sql']) {
     await database.exec(fs.readFileSync(path.join(REPO_MIGRATIONS, file), 'utf8'));
   }
+}
+
+// Migrasi yang hanya berisi ALTER TABLE (misalnya 003) tidak membuat tabel,
+// sehingga mode baseline membiarkannya berstatus pending.
+function migrationsWithoutNewTables() {
+  return repoMigrationFiles().filter((file) => !/^(001|002)_/.test(file));
 }
 
 async function testEnvironmentFile() {
@@ -108,17 +120,16 @@ async function testGuardRunsBeforeDatabase() {
 async function testFreshApplyAndRerun() {
   await withDatabase(async (database) => {
     const first = await runMigrate(database);
-    assert.deepEqual(first.applied, ['001_initial_schema.sql', '002_account_sessions.sql']);
-    assert.deepEqual(await ledgerVersions(database), ['001', '002']);
+    assert.deepEqual(first.applied, repoMigrationFiles());
     assert.equal(await tableExists(database, 'accounts'), true);
     assert.equal(await tableExists(database, 'account_sessions'), true);
 
-    const rls = await database.query("SELECT relrowsecurity FROM pg_class WHERE relname = 'schema_migrations'");
-    assert.equal(rls.rows[0].relrowsecurity, true);
+    const rls = await database.query("SELECT relrowsecurity FROM pg_class WHERE relname IN ('schema_migrations', 'accounts') ORDER BY relname");
+    assert.deepEqual(rls.rows.map((row) => row.relrowsecurity), [true, true]);
 
     const second = await runMigrate(database);
     assert.deepEqual(second.applied, []);
-    assert.deepEqual(second.skipped, ['001_initial_schema.sql', '002_account_sessions.sql']);
+    assert.deepEqual(second.skipped, repoMigrationFiles());
   });
 }
 
@@ -128,7 +139,7 @@ async function testLineEndingsDoNotChangeChecksum() {
     await runMigrate(database);
     const result = await runMigrate(database, { migrationsDirectory: directory });
     assert.deepEqual(result.applied, [], 'File dengan akhiran baris CRLF tidak boleh dianggap migrasi baru.');
-    assert.deepEqual(result.skipped.length, 2);
+    assert.equal(result.skipped.length, repoMigrationFiles().length);
   });
   fs.rmSync(directory, { recursive: true, force: true });
 }
@@ -155,25 +166,25 @@ async function testMissingFileForRecordIsRejected() {
 
 async function testNewMigrationIsApplied() {
   const directory = copyRepoMigrations(temporaryDirectory({
-    '003_contoh_tabel.sql': 'CREATE TABLE contoh_tabel (id UUID PRIMARY KEY);\nALTER TABLE contoh_tabel ENABLE ROW LEVEL SECURITY;\n'
+    '900_contoh_tabel.sql': 'CREATE TABLE contoh_tabel (id UUID PRIMARY KEY);\nALTER TABLE contoh_tabel ENABLE ROW LEVEL SECURITY;\n'
   }));
   await withDatabase(async (database) => {
     const result = await runMigrate(database, { migrationsDirectory: directory });
-    assert.deepEqual(result.applied.length, 3);
+    assert.equal(result.applied.length, repoMigrationFiles().length + 1);
     assert.equal(await tableExists(database, 'contoh_tabel'), true);
-    assert.deepEqual(await ledgerVersions(database), ['001', '002', '003']);
+    assert.ok((await ledgerVersions(database)).includes('900'));
   });
   fs.rmSync(directory, { recursive: true, force: true });
 }
 
 async function testFailingMigrationRollsBack() {
   const directory = copyRepoMigrations(temporaryDirectory({
-    '003_gagal.sql': 'CREATE TABLE harus_hilang (id UUID PRIMARY KEY);\nSELECT * FROM tabel_tidak_ada;\n'
+    '900_gagal.sql': 'CREATE TABLE harus_hilang (id UUID PRIMARY KEY);\nSELECT * FROM tabel_tidak_ada;\n'
   }));
   await withDatabase(async (database) => {
     await assert.rejects(runMigrate(database, { migrationsDirectory: directory }), /tabel_tidak_ada/);
     assert.equal(await tableExists(database, 'harus_hilang'), false, 'Migrasi yang gagal tidak boleh meninggalkan tabel.');
-    assert.deepEqual(await ledgerVersions(database), ['001', '002']);
+    assert.equal((await ledgerVersions(database)).includes('900'), false);
   });
   fs.rmSync(directory, { recursive: true, force: true });
 }
@@ -188,26 +199,30 @@ async function testBaselineForExistingDatabase() {
     const baselined = await runMigrate(database, { baseline: true });
     assert.deepEqual(baselined.baselined, ['001_initial_schema.sql', '002_account_sessions.sql']);
     assert.deepEqual(baselined.applied, []);
-    assert.deepEqual(await ledgerVersions(database), ['001', '002']);
+    // Migrasi yang tidak membuat tabel (misalnya pengaktifan RLS) tetap menunggu dijalankan.
+    assert.deepEqual(baselined.pending, migrationsWithoutNewTables());
 
+    // Setelah baseline, migrasi yang tersisa diterapkan seperti biasa, lalu tidak ada lagi yang tertunda.
     const afterBaseline = await runMigrate(database);
-    assert.deepEqual(afterBaseline.applied, []);
+    assert.deepEqual(afterBaseline.applied, migrationsWithoutNewTables());
+    const rerun = await runMigrate(database);
+    assert.deepEqual(rerun.applied, []);
   });
 }
 
 async function testBaselineLeavesNewMigrationPending() {
   const directory = copyRepoMigrations(temporaryDirectory({
-    '003_contoh_tabel.sql': 'CREATE TABLE contoh_tabel (id UUID PRIMARY KEY);\n'
+    '900_contoh_tabel.sql': 'CREATE TABLE contoh_tabel (id UUID PRIMARY KEY);\nALTER TABLE contoh_tabel ENABLE ROW LEVEL SECURITY;\n'
   }));
   await withDatabase(async (database) => {
     await applySchemaManually(database);
     const baselined = await runMigrate(database, { migrationsDirectory: directory, baseline: true });
-    assert.deepEqual(baselined.baselined.length, 2);
-    assert.deepEqual(baselined.pending, ['003_contoh_tabel.sql']);
+    assert.deepEqual(baselined.baselined, ['001_initial_schema.sql', '002_account_sessions.sql']);
+    assert.ok(baselined.pending.includes('900_contoh_tabel.sql'));
     assert.equal(await tableExists(database, 'contoh_tabel'), false, 'Mode baseline tidak boleh menjalankan SQL.');
 
     const applied = await runMigrate(database, { migrationsDirectory: directory });
-    assert.deepEqual(applied.applied, ['003_contoh_tabel.sql']);
+    assert.ok(applied.applied.includes('900_contoh_tabel.sql'));
     assert.equal(await tableExists(database, 'contoh_tabel'), true);
   });
   fs.rmSync(directory, { recursive: true, force: true });
@@ -215,14 +230,14 @@ async function testBaselineLeavesNewMigrationPending() {
 
 async function testBaselineRejectsPartialState() {
   const directory = copyRepoMigrations(temporaryDirectory({
-    '003_dua_tabel.sql': 'CREATE TABLE tabel_satu (id UUID PRIMARY KEY);\nCREATE TABLE tabel_dua (id UUID PRIMARY KEY);\n'
+    '900_dua_tabel.sql': 'CREATE TABLE tabel_satu (id UUID PRIMARY KEY);\nCREATE TABLE tabel_dua (id UUID PRIMARY KEY);\n'
   }));
   await withDatabase(async (database) => {
     await applySchemaManually(database);
     await database.exec('CREATE TABLE tabel_satu (id UUID PRIMARY KEY);');
     await assert.rejects(
       runMigrate(database, { migrationsDirectory: directory, baseline: true }),
-      /003_dua_tabel\.sql/
+      /900_dua_tabel\.sql/
     );
   });
   fs.rmSync(directory, { recursive: true, force: true });
@@ -230,9 +245,10 @@ async function testBaselineRejectsPartialState() {
 
 async function testConcurrentRunsApplyOnce() {
   await withDatabase(async (database) => {
+    const jumlahMigrasi = repoMigrationFiles().length;
     const [pertama, kedua] = await Promise.all([runMigrate(database), runMigrate(database)]);
-    assert.deepEqual(await ledgerVersions(database), ['001', '002']);
-    assert.equal(pertama.applied.length + kedua.applied.length, 2, 'Setiap migrasi hanya boleh diterapkan sekali.');
+    assert.equal((await ledgerVersions(database)).length, jumlahMigrasi);
+    assert.equal(pertama.applied.length + kedua.applied.length, jumlahMigrasi, 'Setiap migrasi hanya boleh diterapkan sekali.');
   });
 }
 

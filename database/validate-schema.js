@@ -22,6 +22,17 @@ assert.match(schema, /password_hash TEXT NOT NULL/);
 assert.match(schema, /student_parent_accounts[\s\S]*parent_account_id UUID NOT NULL REFERENCES accounts/);
 assert.match(schema, /course_completions[\s\S]*UNIQUE \(student_id, material_id\)/);
 
+// Setiap tabel yang dibuat migrasi wajib memakai Row Level Security, karena Supabase
+// menyajikan schema public lewat Data API. Pemeriksaan ini berjalan tanpa database.
+const createdTables = [...new Set(migrations.flatMap((migration) => migration.tables))];
+const protectedTables = new Set(migrations.flatMap((migration) => migration.tablesWithRls));
+const unprotectedTables = createdTables.filter((table) => !protectedTables.has(table));
+assert.deepEqual(
+  unprotectedTables,
+  [],
+  `Tabel berikut belum diberi ALTER TABLE ... ENABLE ROW LEVEL SECURITY di migrasi mana pun: ${unprotectedTables.join(', ')}.`
+);
+
 // Runner yang membungkus tiap migrasi dalam transaksi, jadi file tidak boleh mengatur transaksi sendiri.
 migrations.forEach((migration) => {
   assert.doesNotMatch(migration.sql, /(?:^|\n)\s*(BEGIN|COMMIT|ROLLBACK)\s*;/i, `${migration.file} tidak boleh memuat BEGIN, COMMIT, atau ROLLBACK.`);

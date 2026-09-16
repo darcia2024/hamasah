@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { checksumOf, listMigrations, normalizeSql, tablesCreatedBy } = require('./migrations.js');
+const { checksumOf, listMigrations, normalizeSql, tablesCreatedBy, tablesWithRowLevelSecurity } = require('./migrations.js');
 
 function createTemporaryDirectory(files) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hamasah-migrations-'));
@@ -15,12 +15,23 @@ function createTemporaryDirectory(files) {
 function run() {
   // Migrasi asli repo terbaca berurutan beserta tabelnya.
   const migrations = listMigrations();
-  assert.deepEqual(migrations.map((migration) => migration.version), ['001', '002']);
+  assert.deepEqual(migrations.map((migration) => migration.version), ['001', '002', '003']);
   assert.equal(migrations[0].name, 'initial_schema');
   assert.ok(migrations[0].tables.includes('accounts'));
   assert.ok(migrations[0].tables.includes('inventory_items'));
   assert.deepEqual(migrations[1].tables, ['account_sessions']);
   assert.match(migrations[0].checksum, /^[a-f0-9]{64}$/);
+
+  // Setiap tabel yang dibuat migrasi harus punya perintah ENABLE ROW LEVEL SECURITY di suatu migrasi.
+  const created = new Set(migrations.flatMap((migration) => migration.tables));
+  const protectedTables = new Set(migrations.flatMap((migration) => migration.tablesWithRls));
+  assert.deepEqual([...created].filter((table) => !protectedTables.has(table)), []);
+  assert.equal(protectedTables.size, created.size);
+
+  assert.deepEqual(
+    tablesWithRowLevelSecurity('ALTER TABLE satu ENABLE ROW LEVEL SECURITY;\nALTER TABLE dua ENABLE ROW LEVEL SECURITY;'),
+    ['satu', 'dua']
+  );
 
   // Akhiran baris CRLF tidak mengubah checksum.
   const lf = 'CREATE TABLE contoh (id INT);\nCREATE INDEX contoh_idx ON contoh (id);\n';

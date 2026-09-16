@@ -16,6 +16,20 @@
 5. Build container dari `Dockerfile`, deploy, lalu jalankan smoke test ke `/api/health` dan halaman publik.
 6. Buat akun admin pertama melalui endpoint bootstrap yang hanya aktif sekali, lalu hapus `HAMASAH_BOOTSTRAP_KEY` dari environment.
 
+## Row Level Security
+
+Supabase menyajikan schema `public` lewat Data API. Tanpa Row Level Security, seluruh tabel dapat dibaca dan ditulis oleh siapa pun yang memegang anon key, termasuk `accounts` (hash kata sandi) dan `registrations` (nomor telepon calon santri dan wali). Migrasi `003_enable_row_level_security.sql` mengaktifkan RLS pada semua tabel tanpa policy, sehingga akses lewat Data API ditolak.
+
+Aplikasi tidak terpengaruh karena terhubung sebagai pemilik tabel, dan pemilik tabel melewati RLS selama `FORCE ROW LEVEL SECURITY` tidak diaktifkan.
+
+Urutan penerapan:
+
+1. Terapkan di staging (`npm run migrate`), lalu jalankan smoke test: login, buat pendaftaran dari halaman publik, buka daftar artikel, dan buat invoice.
+2. Jika muncul error `permission denied` atau error terkait RLS, batalkan sementara dengan `ALTER TABLE <nama> DISABLE ROW LEVEL SECURITY;` lalu laporkan sebelum melanjutkan.
+3. Buka Dashboard Supabase, menu Advisors, bagian Security, lalu pastikan peringatan RLS sudah hilang.
+4. Jika aplikasi tidak memakai Data API sama sekali, pertimbangkan mengeluarkan schema `public` dari daftar Exposed schemas pada pengaturan API.
+5. Ulangi di production setelah backup.
+
 ## Pengaman skrip database
 
 Skrip yang menulis ke database (`npm run migrate`, `npm run seed:articles`, dan `database/auth-live-check.js`) memeriksa `APP_ENV` sebelum membuka koneksi:

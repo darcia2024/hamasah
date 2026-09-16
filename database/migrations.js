@@ -22,6 +22,11 @@ function tablesCreatedBy(sql) {
   return [...new Set([...matches].map((match) => match[1].toLowerCase()))];
 }
 
+function tablesWithRowLevelSecurity(sql) {
+  const matches = normalizeSql(sql).matchAll(/ALTER TABLE (?:IF EXISTS )?([a-z0-9_]+) ENABLE ROW LEVEL SECURITY/gi);
+  return [...new Set([...matches].map((match) => match[1].toLowerCase()))];
+}
+
 function listMigrations(directory = DEFAULT_MIGRATIONS_DIRECTORY) {
   const files = fs.readdirSync(directory).filter((name) => name.toLowerCase().endsWith('.sql')).sort();
   const versions = new Map();
@@ -39,7 +44,15 @@ function listMigrations(directory = DEFAULT_MIGRATIONS_DIRECTORY) {
     versions.set(version, file);
 
     const sql = normalizeSql(fs.readFileSync(path.join(directory, file), 'utf8'));
-    return { version, name, file, sql, checksum: checksumOf(sql), tables: tablesCreatedBy(sql) };
+    return {
+      version,
+      name,
+      file,
+      sql,
+      checksum: checksumOf(sql),
+      tables: tablesCreatedBy(sql),
+      tablesWithRls: tablesWithRowLevelSecurity(sql)
+    };
   });
 }
 
@@ -49,5 +62,6 @@ module.exports = {
   checksumOf,
   listMigrations,
   normalizeSql,
-  tablesCreatedBy
+  tablesCreatedBy,
+  tablesWithRowLevelSecurity
 };

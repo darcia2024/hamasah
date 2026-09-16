@@ -2,8 +2,8 @@ const { DEFAULT_ENV_FILE, loadEnvironmentFile, resolveMigrationUrl } = require('
 const { DEFAULT_MIGRATIONS_DIRECTORY, listMigrations } = require('./migrations');
 const { createDatabase } = require('../server/db');
 
-// Query tabel di schema public yang belum memakai Row Level Security.
-// Sejak Task 6.6, daftar ini harus kosong.
+// Query tabel di schema public yang belum memakai Row Level Security. Daftar ini harus kosong:
+// tanpa RLS, tabel terbuka lewat Data API Supabase bagi pemegang anon key.
 const TABLES_WITHOUT_RLS_SQL = `
 SELECT c.relname
 FROM pg_class c
@@ -63,11 +63,12 @@ async function verifyDatabase({
     }
 
     const rlsRows = await database.query(TABLES_WITHOUT_RLS_SQL);
-    return {
-      migrations: migrations.length,
-      tables: expectedTables.length,
-      tablesWithoutRls: rlsRows.rows.map((row) => row.relname)
-    };
+    const tablesWithoutRls = rlsRows.rows.map((row) => row.relname);
+    if (tablesWithoutRls.length) {
+      throw new Error(`Tabel berikut belum memakai Row Level Security: ${tablesWithoutRls.join(', ')}. Tambahkan ALTER TABLE ... ENABLE ROW LEVEL SECURITY lewat migrasi baru.`);
+    }
+
+    return { migrations: migrations.length, tables: expectedTables.length };
   } finally {
     if (!injectedDatabase) {
       await database.close();
@@ -78,10 +79,7 @@ async function verifyDatabase({
 if (require.main === module) {
   verifyDatabase()
     .then((result) => {
-      console.log(`Verifikasi PostgreSQL selesai: ${result.migrations} migrasi diterapkan, ${result.tables} tabel aplikasi tersedia.`);
-      if (result.tablesWithoutRls.length) {
-        console.warn(`Peringatan: ${result.tablesWithoutRls.length} tabel belum memakai Row Level Security: ${result.tablesWithoutRls.join(', ')}.`);
-      }
+      console.log(`Verifikasi PostgreSQL selesai: ${result.migrations} migrasi diterapkan, ${result.tables} tabel aplikasi tersedia, semua memakai Row Level Security.`);
     })
     .catch((error) => {
       console.error(`Verifikasi database gagal: ${error.message}`);

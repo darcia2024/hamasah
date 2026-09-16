@@ -12,7 +12,7 @@ const REPO_MIGRATIONS = __dirname;
 
 function temporaryMigrations(extraFiles = {}) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hamasah-verify-'));
-  for (const file of ['001_initial_schema.sql', '002_account_sessions.sql']) {
+  for (const file of fs.readdirSync(REPO_MIGRATIONS).filter((name) => /^\d{3}_.+\.sql$/.test(name))) {
     fs.copyFileSync(path.join(REPO_MIGRATIONS, file), path.join(directory, file));
   }
   for (const [name, content] of Object.entries(extraFiles)) {
@@ -69,11 +69,16 @@ async function testHealthyDatabase() {
   await withDatabase(async (database) => {
     await runMigrate(database);
     const result = await verify(database);
-    assert.equal(result.migrations, 2);
+    assert.equal(result.migrations, 3);
     assert.equal(result.tables, 20);
-    // Sebelum Task 6.6, tabel aplikasi memang belum memakai RLS. Ini dilaporkan sebagai peringatan.
-    assert.ok(result.tablesWithoutRls.includes('accounts'));
-    assert.equal(result.tablesWithoutRls.includes('schema_migrations'), false);
+  });
+}
+
+async function testTableWithoutRowLevelSecurity() {
+  await withDatabase(async (database) => {
+    await runMigrate(database);
+    await database.exec('CREATE TABLE tabel_tanpa_rls (id UUID PRIMARY KEY);');
+    await assert.rejects(verify(database), /tabel_tanpa_rls/);
   });
 }
 
@@ -84,10 +89,10 @@ async function testLedgerMissing() {
 }
 
 async function testPendingMigration() {
-  const directory = temporaryMigrations({ '003_belum_diterapkan.sql': 'CREATE TABLE belum (id UUID PRIMARY KEY);\n' });
+  const directory = temporaryMigrations({ '900_belum_diterapkan.sql': 'CREATE TABLE belum (id UUID PRIMARY KEY);\n' });
   await withDatabase(async (database) => {
     await runMigrate(database);
-    await assert.rejects(verify(database, { migrationsDirectory: directory }), /belum diterapkan: 003_belum_diterapkan\.sql/);
+    await assert.rejects(verify(database, { migrationsDirectory: directory }), /belum diterapkan: 900_belum_diterapkan\.sql/);
   });
   fs.rmSync(directory, { recursive: true, force: true });
 }
@@ -113,6 +118,7 @@ async function testMissingTable() {
 async function run() {
   testPureHelper();
   await testHealthyDatabase();
+  await testTableWithoutRowLevelSecurity();
   await testLedgerMissing();
   await testPendingMigration();
   await testChangedChecksum();
