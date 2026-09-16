@@ -58,6 +58,8 @@ function toStudent(row) {
     // join_date dibaca sebagai ::text supaya tidak bergeser sehari karena zona waktu.
     joinDate: row.join_date,
     status: row.status,
+    gender: row.gender || null,
+    dormitoryId: row.dormitory_id || null,
     studentAccountId: row.student_account_id || null,
     parentAccountIds: (row.parent_account_ids || []).filter(Boolean),
     createdAt: toIso(row.created_at),
@@ -67,7 +69,7 @@ function toStudent(row) {
 
 const SELECT_STUDENT = `
   SELECT s.id, s.name, s.program, s.city, s.join_date::text AS join_date, s.status,
-         s.student_account_id, s.created_at, s.updated_at,
+         s.gender, s.dormitory_id, s.student_account_id, s.created_at, s.updated_at,
          COALESCE(array_agg(p.parent_account_id) FILTER (WHERE p.parent_account_id IS NOT NULL), '{}') AS parent_account_ids
     FROM students s
     LEFT JOIN student_parent_accounts p ON p.student_id = s.id`;
@@ -95,14 +97,16 @@ function createPostgresStudentStore({ database } = {}) {
       // Satu transaksi: data santri dan daftar wali harus berubah bersama.
       return database.withTransaction(async (tx) => {
         await tx.query(
-          `INSERT INTO students (id, name, program, city, join_date, status, student_account_id, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          `INSERT INTO students (id, name, program, city, join_date, status, gender, dormitory_id, student_account_id, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
            ON CONFLICT (id) DO UPDATE
              SET name = EXCLUDED.name,
                  program = EXCLUDED.program,
                  city = EXCLUDED.city,
                  join_date = EXCLUDED.join_date,
                  status = EXCLUDED.status,
+                 gender = EXCLUDED.gender,
+                 dormitory_id = EXCLUDED.dormitory_id,
                  student_account_id = EXCLUDED.student_account_id,
                  updated_at = EXCLUDED.updated_at`,
           [
@@ -112,6 +116,8 @@ function createPostgresStudentStore({ database } = {}) {
             student.city,
             student.joinDate,
             student.status,
+            student.gender || null,
+            student.dormitoryId || null,
             student.studentAccountId || null,
             student.createdAt,
             student.updatedAt

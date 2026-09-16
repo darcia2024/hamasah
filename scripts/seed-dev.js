@@ -9,6 +9,8 @@ const { createPostgresStudentStore } = require('../server/postgres-student-store
 const { createPostgresLmsStore } = require('../server/postgres-lms-store.js');
 const { createStudentPortalService } = require('../server/student-portal-service.js');
 const { createLmsService } = require('../server/lms-service.js');
+const { createPostgresDormitoryStore } = require('../server/postgres-dormitory-store.js');
+const { createDormitoryService } = require('../server/dormitory-service.js');
 
 const DEV_PASSWORD = 'kata-sandi-dev-hamasah';
 
@@ -22,9 +24,16 @@ const DEV_ACCOUNTS = Object.freeze([
   { name: 'Santri Dev', email: 'santri@hamasah.test', role: identity.ROLES.STUDENT }
 ]);
 
+// Nama asrama di sini fiktif dan hanya untuk pengembangan. Di staging dan
+// production, daftar asrama diisi admin lewat halaman monitoring.
+const DEV_DORMITORIES = Object.freeze([
+  { name: 'Asrama Contoh Putra', area: 'Hay Asyir', gender: 'putra' },
+  { name: 'Asrama Contoh Putri', area: 'Hay Sabi', gender: 'putri' }
+]);
+
 const DEV_STUDENTS = Object.freeze([
-  { name: 'Santri Contoh Pertama', program: 'Kuliah Al-Azhar', city: 'Kairo', joinDate: '2026-08-20', pakaiAkunSantri: true },
-  { name: 'Santri Contoh Kedua', program: 'Mahad Al-Azhar', city: 'Kairo', joinDate: '2026-08-21', pakaiAkunSantri: false }
+  { name: 'Santri Contoh Pertama', program: 'Kuliah Al-Azhar', city: 'Kairo', joinDate: '2026-08-20', pakaiAkunSantri: true, gender: 'putra' },
+  { name: 'Santri Contoh Kedua', program: 'Mahad Al-Azhar', city: 'Kairo', joinDate: '2026-08-21', pakaiAkunSantri: false, gender: 'putri' }
 ]);
 
 const DEV_COURSE = Object.freeze({
@@ -83,8 +92,35 @@ async function seedDevelopmentData({ database, logger = console }) {
     if (created.ok) createdArticles.push(created.value.slug);
   }
 
+  // Asrama dibuat lebih dulu, karena santri contoh langsung ditempatkan.
+  const dormitoryStore = createPostgresDormitoryStore({ database });
+  const dormitoryService = createDormitoryService({
+    store: dormitoryStore,
+    getAccount: (accountId) => accountStore.getById(accountId)
+  });
+  const musyrif = await accountStore.getByEmail('musyrif@hamasah.test');
+  const adminAwal = await accountStore.getByEmail('admin@hamasah.test');
+  const createdDormitories = [];
+  const asramaTerpakai = new Set((await dormitoryStore.listDormitories()).map((asrama) => asrama.name));
+  for (const contoh of DEV_DORMITORIES) {
+    if (asramaTerpakai.has(contoh.name)) continue;
+    const dibuat = assertOk(
+      await dormitoryService.create(contoh, { id: adminAwal.id, role: adminAwal.role }),
+      `Gagal membuat asrama ${contoh.name}`
+    );
+    createdDormitories.push(dibuat.name);
+  }
+  const asramaPerJenis = new Map((await dormitoryStore.listDormitories()).map((asrama) => [asrama.gender, asrama.id]));
+  // Musyrif dev ditugaskan ke asrama putra saja, supaya pembatasan per asrama
+  // langsung terlihat saat mencoba aplikasi.
+  await dormitoryStore.assignStaff(musyrif.id, asramaPerJenis.get('putra'));
+
   const studentStore = createPostgresStudentStore({ database });
-  const studentService = createStudentPortalService({ store: studentStore });
+  const studentService = createStudentPortalService({
+    store: studentStore,
+    supervisorDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId),
+    getDormitory: (dormitoryId) => dormitoryStore.getDormitory(dormitoryId)
+  });
   const admin = await accountStore.getByEmail('admin@hamasah.test');
   const wali = await accountStore.getByEmail('wali@hamasah.test');
   const akunSantri = await accountStore.getByEmail('santri@hamasah.test');
@@ -100,6 +136,8 @@ async function seedDevelopmentData({ database, logger = console }) {
       program: contoh.program,
       city: contoh.city,
       joinDate: contoh.joinDate,
+      gender: contoh.gender,
+      dormitoryId: asramaPerJenis.get(contoh.gender) || null,
       studentAccountId: contoh.pakaiAkunSantri ? akunSantri.id : null,
       parentAccountIds: [wali.id]
     }, adminActor), `Gagal membuat santri ${contoh.name}`);
@@ -132,16 +170,17 @@ async function seedDevelopmentData({ database, logger = console }) {
     assertOk(await lmsService.enroll(student.id, maddah.id, adminActor), 'Gagal mendaftarkan santri ke maddah');
   }
 
-  if (createdAccounts.length || createdArticles.length || createdStudents.length || createdCourses.length) {
-    logger.log(`[dev] Data contoh ditambahkan: ${createdAccounts.length} akun, ${createdArticles.length} artikel, ${createdStudents.length} santri, ${createdCourses.length} maddah.`);
+  if (createdAccounts.length || createdArticles.length || createdStudents.length || createdCourses.length || createdDormitories.length) {
+    logger.log(`[dev] Data contoh ditambahkan: ${createdAccounts.length} akun, ${createdArticles.length} artikel, ${createdDormitories.length} asrama, ${createdStudents.length} santri, ${createdCourses.length} maddah.`);
   }
   return {
     accounts: createdAccounts,
     articles: createdArticles,
+    dormitories: createdDormitories,
     students: createdStudents,
     courses: createdCourses,
     password: DEV_PASSWORD
   };
 }
 
-module.exports = { DEV_ACCOUNTS, DEV_COURSE, DEV_PASSWORD, DEV_STUDENTS, seedDevelopmentData };
+module.exports = { DEV_ACCOUNTS, DEV_COURSE, DEV_DORMITORIES, DEV_PASSWORD, DEV_STUDENTS, seedDevelopmentData };

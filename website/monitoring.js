@@ -19,7 +19,23 @@ const accountLinkStatus = document.querySelector('#account-link-status');
 const linkedStudentAccount = document.querySelector('#linked-student-account');
 const linkedParentAccounts = document.querySelector('#linked-parent-accounts');
 const downloadReport = document.querySelector('#download-report');
+const placementSection = document.querySelector('#placement-section');
+const placementForm = document.querySelector('#placement-form');
+const placementStatus = document.querySelector('#placement-status');
+const placementGender = document.querySelector('#placement-gender');
+const placementDormitory = document.querySelector('#placement-dormitory');
+const dormitorySection = document.querySelector('#dormitory-section');
+const dormitoryForm = document.querySelector('#dormitory-form');
+const dormitoryStatus = document.querySelector('#dormitory-status');
+const assignmentForm = document.querySelector('#assignment-form');
+const assignmentStatus = document.querySelector('#assignment-status');
+const assignmentAccount = document.querySelector('#assignment-account');
+const assignmentDormitory = document.querySelector('#assignment-dormitory');
+const assignmentList = document.querySelector('#assignment-list');
+const studentGender = document.querySelector('#student-gender');
+const studentDormitory = document.querySelector('#student-dormitory');
 let currentRole = null;
+let dormitories = [];
 
 function session() {
   try { return JSON.parse(sessionStorage.getItem('hamasahPortalSession') || 'null'); } catch { return null; }
@@ -62,11 +78,76 @@ function renderDashboard(data) {
 
 async function loadDashboard() {
   const studentId = studentSelect.value;
-  if (!studentId) { dashboard.hidden = true; recordSection.hidden = true; downloadReport.hidden = true; return; }
+  if (!studentId) { dashboard.hidden = true; recordSection.hidden = true; downloadReport.hidden = true; placementSection.hidden = true; return; }
   const response = await fetch(`/api/students/${encodeURIComponent(studentId)}/dashboard`, { headers: headers() });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Dashboard belum dapat dimuat.');
   renderDashboard(result.dashboard); recordSection.hidden = false; downloadReport.hidden = false;
+  placementSection.hidden = false;
+  placementGender.value = result.dashboard.student.gender || '';
+  fillDormitorySelect(placementDormitory, result.dashboard.student.dormitoryId, 'Belum ditempatkan');
+  placementStatus.textContent = '';
+}
+
+function fillDormitorySelect(select, selected, placeholder) {
+  select.replaceChildren(new Option(placeholder, ''));
+  dormitories.forEach((asrama) => select.add(new Option(`${asrama.name} · ${asrama.area} · ${asrama.gender}`, asrama.id)));
+  select.value = selected || '';
+}
+
+function renderAssignments(assignments) {
+  if (!assignments.length) {
+    const kosong = document.createElement('p');
+    kosong.className = 'form-status';
+    kosong.textContent = 'Belum ada musyrif yang ditugaskan. Selama belum ditugaskan, musyrif tidak melihat santri mana pun.';
+    assignmentList.replaceChildren(kosong);
+    return;
+  }
+  assignmentList.replaceChildren(...assignments.map((tugas) => {
+    const baris = document.createElement('div');
+    baris.className = 'portal-account';
+    const nama = document.createElement('strong');
+    nama.textContent = tugas.accountName;
+    const asrama = document.createElement('span');
+    asrama.textContent = `${tugas.dormitoryName} · ${tugas.email}`;
+    const cabut = document.createElement('button');
+    cabut.type = 'button';
+    cabut.className = 'button button--secondary';
+    cabut.textContent = 'Cabut';
+    cabut.addEventListener('click', () => unassign(tugas.dormitoryId, tugas.accountId));
+    baris.append(nama, asrama, cabut);
+    return baris;
+  }));
+}
+
+async function unassign(dormitoryId, accountId) {
+  assignmentStatus.classList.remove('is-error');
+  try {
+    const response = await fetch(`/api/dormitories/${encodeURIComponent(dormitoryId)}/staff/${encodeURIComponent(accountId)}`, {
+      method: 'DELETE', headers: headers()
+    });
+    if (!response.ok) {
+      const result = await response.json();
+      throw new Error(result.error || 'Penugasan belum dapat dicabut.');
+    }
+    assignmentStatus.textContent = 'Penugasan dicabut.';
+    await loadDormitories();
+  } catch (error) {
+    assignmentStatus.textContent = error.message || 'Penugasan belum dapat dicabut.';
+    assignmentStatus.classList.add('is-error');
+  }
+}
+
+async function loadDormitories() {
+  if (currentRole !== 'admin') return;
+  const response = await fetch('/api/dormitories', { headers: headers() });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || 'Daftar asrama belum dapat dimuat.');
+  dormitories = result.dormitories;
+  fillDormitorySelect(studentDormitory, '', 'Belum ditempatkan');
+  fillDormitorySelect(assignmentDormitory, '', 'Pilih asrama');
+  fillDormitorySelect(placementDormitory, placementDormitory.value, 'Belum ditempatkan');
+  renderAssignments(result.assignments);
 }
 
 async function loadAssignableAccounts() {
@@ -78,6 +159,8 @@ async function loadAssignableAccounts() {
   linkedParentAccounts.replaceChildren();
   result.items.filter((account) => account.role === 'student').forEach((account) => linkedStudentAccount.add(new Option(`${account.name} · ${account.email}`, account.id)));
   result.items.filter((account) => account.role === 'parent').forEach((account) => linkedParentAccounts.add(new Option(`${account.name} · ${account.email}`, account.id)));
+  assignmentAccount.replaceChildren(new Option('Pilih musyrif', ''));
+  result.items.filter((account) => account.role === 'supervisor').forEach((account) => assignmentAccount.add(new Option(`${account.name} · ${account.email}`, account.id)));
 }
 
 async function loadStudents() {
@@ -96,7 +179,14 @@ studentForm.addEventListener('submit', async (event) => {
   try {
     const response = await fetch('/api/students', {
       method: 'POST', headers: { ...headers(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: document.querySelector('#student-name').value, program: document.querySelector('#student-program').value, city: document.querySelector('#student-city').value, joinDate: document.querySelector('#student-join-date').value })
+      body: JSON.stringify({
+        name: document.querySelector('#student-name').value,
+        program: document.querySelector('#student-program').value,
+        city: document.querySelector('#student-city').value,
+        joinDate: document.querySelector('#student-join-date').value,
+        gender: studentGender.value || undefined,
+        dormitoryId: studentDormitory.value || undefined
+      })
     });
     const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Profil santri belum dapat disimpan.');
     studentForm.reset(); document.querySelector('#student-city').value = 'Kairo'; document.querySelector('#student-join-date').value = today();
@@ -137,6 +227,56 @@ accountLinkForm.addEventListener('submit', async (event) => {
   } catch (error) { accountLinkStatus.textContent = error.message || 'Relasi akun belum dapat disimpan.'; accountLinkStatus.classList.add('is-error'); }
 });
 
+placementForm.addEventListener('submit', async (event) => {
+  event.preventDefault(); placementStatus.classList.remove('is-error');
+  if (!studentSelect.value) { placementStatus.textContent = 'Pilih profil santri terlebih dahulu.'; placementStatus.classList.add('is-error'); return; }
+  try {
+    const response = await fetch(`/api/students/${encodeURIComponent(studentSelect.value)}/placement`, {
+      method: 'PATCH', headers: { ...headers(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gender: placementGender.value || null, dormitoryId: placementDormitory.value || null })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Penempatan belum dapat disimpan.');
+    placementStatus.textContent = 'Penempatan berhasil disimpan.';
+    await loadStudents();
+  } catch (error) { placementStatus.textContent = error.message || 'Penempatan belum dapat disimpan.'; placementStatus.classList.add('is-error'); }
+});
+
+dormitoryForm.addEventListener('submit', async (event) => {
+  event.preventDefault(); dormitoryStatus.classList.remove('is-error');
+  try {
+    const response = await fetch('/api/dormitories', {
+      method: 'POST', headers: { ...headers(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: document.querySelector('#dormitory-name').value,
+        area: document.querySelector('#dormitory-area').value,
+        gender: document.querySelector('#dormitory-gender').value
+      })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Asrama belum dapat disimpan.');
+    dormitoryForm.reset();
+    dormitoryStatus.textContent = `${result.dormitory.name} berhasil ditambahkan.`;
+    await loadDormitories();
+  } catch (error) { dormitoryStatus.textContent = error.message || 'Asrama belum dapat disimpan.'; dormitoryStatus.classList.add('is-error'); }
+});
+
+assignmentForm.addEventListener('submit', async (event) => {
+  event.preventDefault(); assignmentStatus.classList.remove('is-error');
+  if (!assignmentAccount.value || !assignmentDormitory.value) {
+    assignmentStatus.textContent = 'Pilih musyrif dan asrama terlebih dahulu.'; assignmentStatus.classList.add('is-error'); return;
+  }
+  try {
+    const response = await fetch(`/api/dormitories/${encodeURIComponent(assignmentDormitory.value)}/staff/${encodeURIComponent(assignmentAccount.value)}`, {
+      method: 'POST', headers: headers()
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Penugasan belum dapat disimpan.');
+    assignmentStatus.textContent = 'Musyrif berhasil ditugaskan.';
+    await loadDormitories();
+  } catch (error) { assignmentStatus.textContent = error.message || 'Penugasan belum dapat disimpan.'; assignmentStatus.classList.add('is-error'); }
+});
+
 downloadReport.addEventListener('click', async () => {
   try {
     const response = await fetch(`/api/students/${encodeURIComponent(studentSelect.value)}/report`, { headers: headers() });
@@ -157,7 +297,12 @@ setRecordFields();
     const result = await response.json();
     if (!response.ok || !['admin', 'supervisor'].includes(result.account.role)) throw new Error('Halaman ini hanya dapat dibuka oleh admin atau pengawas.');
     currentRole = result.account.role; guard.hidden = true; consoleSection.hidden = false;
-    if (currentRole === 'admin') { accountLinkSection.hidden = false; await loadAssignableAccounts(); }
+    if (currentRole === 'admin') {
+      accountLinkSection.hidden = false;
+      dormitorySection.hidden = false;
+      await loadAssignableAccounts();
+      await loadDormitories();
+    }
     await loadStudents();
   } catch (error) { guardCopy.textContent = error.message || 'Silakan masuk melalui Portal Hamasah.'; }
 }());

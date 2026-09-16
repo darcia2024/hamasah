@@ -118,6 +118,13 @@ async function run() {
     assert.equal(tagihan.status, 201);
     const invoiceId = tagihan.body.invoice.id;
 
+    const asrama = await request(baseUrl, 'POST', '/api/dormitories', {
+      token: token[ROLES.ADMIN],
+      body: { name: 'Asrama Matriks', area: 'Hay Asyir', gender: 'putra' }
+    });
+    assert.equal(asrama.status, 201, JSON.stringify(asrama.body));
+    const dormitoryId = asrama.body.dormitory.id;
+
     const pendaftaran = await request(baseUrl, 'POST', '/api/registrations', {
       body: {
         applicantName: 'Calon Matriks', phone: '081234567890', guardianName: 'Wali Matriks',
@@ -135,6 +142,14 @@ async function run() {
         body: () => ({ name: 'Akun Tambahan', email: `tambahan-${Math.random().toString(36).slice(2)}@hamasah.test`, role: R.PARENT, password: KATA_SANDI })
       },
 
+      { permission: 'dormitories.manage', method: 'GET', path: '/api/dormitories' },
+      {
+        permission: 'dormitories.manage', method: 'POST', path: '/api/dormitories',
+        body: () => ({ name: `Asrama ${Math.random().toString(36).slice(2, 8)}`, area: 'Hay Sabi', gender: 'putri' })
+      },
+      { permission: 'dormitories.manage', method: 'POST', path: () => `/api/dormitories/${dormitoryId}/staff/${akunId[R.SUPERVISOR]}` },
+      { permission: 'dormitories.manage', method: 'DELETE', path: () => `/api/dormitories/${dormitoryId}/staff/${akunId[R.SUPERVISOR]}` },
+
       { permission: 'students.read', method: 'GET', path: '/api/my-students' },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/dashboard` },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/report` },
@@ -145,6 +160,10 @@ async function run() {
       {
         permission: 'students.manage', method: 'PATCH', path: () => `/api/students/${studentId}/accounts`,
         body: () => ({ parentAccountIds: [akunId[R.PARENT]] })
+      },
+      {
+        permission: 'students.manage', method: 'PATCH', path: () => `/api/students/${studentId}/placement`,
+        body: () => ({ gender: 'putra', dormitoryId })
       },
       {
         permission: 'students.manage', method: 'POST', path: () => `/api/students/${studentId}/attendance`,

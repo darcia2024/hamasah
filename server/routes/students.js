@@ -72,7 +72,19 @@ module.exports = [
         }
       }
       const linked = await services.studentPortalService.linkAccounts(params[0], body, actor);
-      json(response, linked.ok ? 200 : 422, linked.ok ? { student: linked.value } : publicError(linked));
+      json(response, linked.ok ? 200 : (linked.status || 422), linked.ok ? { student: linked.value } : publicError(linked));
+    }
+  },
+
+  // Penempatan asrama dan jenis santri. Dipisah dari /accounts karena ini soal
+  // pembinaan, bukan soal akun.
+  {
+    method: 'PATCH',
+    pattern: /^\/api\/students\/([\w-]+)\/placement$/,
+    permission: 'students.manage',
+    async handler({ response, services, auth, params, readBody }) {
+      const hasil = await services.studentPortalService.setPlacement(params[0], await readBody(), await auth.actor());
+      json(response, hasil.ok ? 200 : (hasil.status || 422), hasil.ok ? { student: hasil.value } : publicError(hasil));
     }
   },
 
@@ -108,7 +120,7 @@ module.exports = [
     async handler({ response, services, auth, params, readBody }) {
       const method = RECORD_METHODS[params[1]];
       const result = await services.studentPortalService[method](params[0], await readBody(), await auth.actor());
-      json(response, result.ok ? 201 : 422, result.ok ? { item: result.value } : publicError(result));
+      json(response, result.ok ? 201 : (result.status || 422), result.ok ? { item: result.value } : publicError(result));
     }
   }
 ];

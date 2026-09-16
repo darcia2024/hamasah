@@ -3,6 +3,7 @@ const crypto = require('node:crypto');
 const STAFF_ROLES = Object.freeze(['admin', 'supervisor']);
 const VIEWER_ROLES = Object.freeze(['admin', 'supervisor', 'parent', 'student']);
 const ATTENDANCE_STATUSES = Object.freeze(['present', 'late', 'excused', 'absent']);
+const GENDERS = Object.freeze(['putra', 'putri']);
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -51,14 +52,36 @@ function createStudentPortalService(options) {
   const config = options || {};
   const store = config.store || createMemoryStudentStore();
   const now = config.now || function currentTime() { return new Date().toISOString(); };
+  // Id asrama yang ditugaskan kepada satu akun musyrif. Bawaannya daftar kosong,
+  // artinya musyrif tidak melihat siapa pun sampai admin menugaskannya.
+  const supervisorDormitories = config.supervisorDormitories || async function belumDitugaskan() { return []; };
+  // Dipakai untuk memeriksa asrama tujuan saat menempatkan santri.
+  const getDormitory = config.getDormitory || async function tanpaAsrama() { return null; };
 
   function assertStaff(actor) {
     return actor && STAFF_ROLES.includes(actor.role);
   }
 
-  function canView(student, actor) {
+  // Daftar id asrama yang boleh diakses satu musyrif. Mengembalikan null untuk role
+  // yang memang tidak dibatasi asrama (admin, wali, santri).
+  //
+  // Musyrif yang belum ditugaskan ke asrama mana pun mendapat daftar kosong, artinya
+  // tidak melihat santri sama sekali. Itu disengaja: pilihan lain adalah "belum
+  // ditugaskan berarti melihat semua", dan itu membuat pembatasan ini tidak ada artinya
+  // karena cukup dengan lupa menugaskan.
+  async function dormitoryLimitFor(actor) {
+    if (!actor || actor.role !== 'supervisor') {
+      return null;
+    }
+    return new Set(await supervisorDormitories(actor.id));
+  }
+
+  function canView(student, actor, dormitoryLimit) {
     if (!student || !actor || !VIEWER_ROLES.includes(actor.role)) {
       return false;
+    }
+    if (actor.role === 'supervisor') {
+      return Boolean(dormitoryLimit && student.dormitoryId && dormitoryLimit.has(student.dormitoryId));
     }
     if (STAFF_ROLES.includes(actor.role)) {
       return true;
@@ -67,6 +90,19 @@ function createStudentPortalService(options) {
       return student.studentAccountId === actor.id;
     }
     return actor.role === 'parent' && student.parentAccountIds.includes(actor.id);
+  }
+
+  // Staf yang menulis catatan juga dibatasi asrama, bukan hanya yang membaca.
+  // Tanpa ini, musyrif asrama lain tetap bisa mencatat pelanggaran untuk santri
+  // yang bukan tanggung jawabnya.
+  async function canWrite(student, actor) {
+    if (!assertStaff(actor)) {
+      return false;
+    }
+    if (actor.role !== 'supervisor') {
+      return true;
+    }
+    return canView(student, actor, await dormitoryLimitFor(actor));
   }
 
   async function createStudent(input, actor) {
@@ -82,6 +118,11 @@ function createStudentPortalService(options) {
       return { ok: false, error: 'Data santri belum lengkap atau belum valid.' };
     }
 
+    const gender = clean(source.gender);
+    if (gender && !GENDERS.includes(gender)) {
+      return { ok: false, error: 'Jenis santri tidak valid.' };
+    }
+
     const student = await store.saveStudent({
       id: crypto.randomUUID(),
       name,
@@ -89,6 +130,8 @@ function createStudentPortalService(options) {
       city,
       joinDate,
       status: 'active',
+      gender: gender || null,
+      dormitoryId: source.dormitoryId || null,
       studentAccountId: source.studentAccountId || null,
       parentAccountIds: Array.isArray(source.parentAccountIds) ? source.parentAccountIds.filter(Boolean) : [],
       createdAt: now(),
@@ -104,6 +147,10 @@ function createStudentPortalService(options) {
     const student = await store.getStudent(studentId);
     if (!student) {
       return { ok: false, error: 'Santri tidak ditemukan.' };
+    }
+    if (!(await canWrite(student, actor))) {
+      // Ini penolakan akses, bukan soal data, jadi statusnya 403 dan bukan 422.
+      return { ok: false, status: 403, error: 'Santri ini berada di luar asrama yang Anda tangani.' };
     }
     const source = input || {};
     const parentAccountIds = Array.isArray(source.parentAccountIds)
@@ -122,8 +169,13 @@ function createStudentPortalService(options) {
     if (!assertStaff(actor)) {
       return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
     }
-    if (!(await store.getStudent(studentId))) {
+    const santri = await store.getStudent(studentId);
+    if (!santri) {
       return { ok: false, error: 'Santri tidak ditemukan.' };
+    }
+    if (!(await canWrite(santri, actor))) {
+      // Ini penolakan akses, bukan soal data, jadi statusnya 403 dan bukan 422.
+      return { ok: false, status: 403, error: 'Santri ini berada di luar asrama yang Anda tangani.' };
     }
     const source = input || {};
     const occurredAt = clean(source.occurredAt) || now();
@@ -167,12 +219,48 @@ function createStudentPortalService(options) {
     return { ok: true, value: await store.append(collection, record) };
   }
 
+  // Menempatkan santri ke asrama. Dipisahkan dari linkAccounts karena ini soal
+  // pembinaan, bukan soal akun.
+  async function setPlacement(studentId, input, actor) {
+    if (!assertStaff(actor)) {
+      return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
+    }
+    const student = await store.getStudent(studentId);
+    if (!student) {
+      return { ok: false, error: 'Santri tidak ditemukan.' };
+    }
+    if (!(await canWrite(student, actor))) {
+      // Ini penolakan akses, bukan soal data, jadi statusnya 403 dan bukan 422.
+      return { ok: false, status: 403, error: 'Santri ini berada di luar asrama yang Anda tangani.' };
+    }
+    const source = input || {};
+    const gender = source.gender === undefined ? student.gender : clean(source.gender) || null;
+    if (gender && !GENDERS.includes(gender)) {
+      return { ok: false, error: 'Jenis santri tidak valid.' };
+    }
+    const dormitoryId = source.dormitoryId === undefined ? student.dormitoryId : source.dormitoryId || null;
+
+    if (dormitoryId) {
+      const asrama = await getDormitory(dormitoryId);
+      if (!asrama) {
+        return { ok: false, error: 'Asrama tidak ditemukan.' };
+      }
+      // Santri putri tidak boleh ditempatkan di asrama putra, dan sebaliknya.
+      if (gender && asrama.gender !== gender) {
+        return { ok: false, error: 'Jenis santri tidak sesuai dengan jenis asrama.' };
+      }
+    }
+
+    const saved = await store.saveStudent({ ...student, gender, dormitoryId, updatedAt: now() });
+    return { ok: true, value: saved };
+  }
+
   async function dashboard(studentId, actor) {
     const student = await store.getStudent(studentId);
     if (!student) {
       return { ok: false, error: 'Santri tidak ditemukan.' };
     }
-    if (!canView(student, actor)) {
+    if (!canView(student, actor, await dormitoryLimitFor(actor))) {
       return { ok: false, error: 'Akses dashboard santri tidak diizinkan.' };
     }
 
@@ -196,7 +284,9 @@ function createStudentPortalService(options) {
           program: student.program,
           city: student.city,
           joinDate: student.joinDate,
-          status: student.status
+          status: student.status,
+          gender: student.gender || null,
+          dormitoryId: student.dormitoryId || null
         },
         attendance: { total: attendance.length, present: presentCount, rate: attendanceRate, entries: attendance.slice(0, 30) },
         activities: activities.sort(latestFirst).slice(0, 20),
@@ -211,14 +301,26 @@ function createStudentPortalService(options) {
     if (!actor || !VIEWER_ROLES.includes(actor.role) || typeof store.listStudents !== 'function') {
       return [];
     }
+    // Batas asrama diambil sekali, bukan per santri, supaya daftar panjang tidak
+    // menghasilkan satu query untuk setiap barisnya.
+    const dormitoryLimit = await dormitoryLimitFor(actor);
     return (await store.listStudents())
-      .filter(function readable(student) { return canView(student, actor); })
+      .filter(function readable(student) { return canView(student, actor, dormitoryLimit); })
       .map(function summary(student) {
-        return { id: student.id, name: student.name, program: student.program, city: student.city, status: student.status };
+        return {
+          id: student.id,
+          name: student.name,
+          program: student.program,
+          city: student.city,
+          status: student.status,
+          gender: student.gender || null,
+          dormitoryId: student.dormitoryId || null
+        };
       });
   }
 
   return Object.freeze({
+    setPlacement,
     addActivity(studentId, input, actor) { return addRecord('activities', studentId, input, actor); },
     addAchievement(studentId, input, actor) { return addRecord('achievements', studentId, input, actor); },
     addAttendance(studentId, input, actor) { return addRecord('attendance', studentId, input, actor); },

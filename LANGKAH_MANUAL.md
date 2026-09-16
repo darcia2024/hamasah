@@ -41,6 +41,10 @@ Isi commit tersebut: mode dev PGlite, konversi tiga service menjadi async, store
 >
 > Migrasi 007 (role `teacher` dan `finance`) juga sudah diterapkan ke production pada 16 Sep 2026. Verifikasi: 7 migrasi, 21 tabel, semua ber-RLS.
 >
+> **Masih menunggu:** migrasi `008_dormitories.sql` (tabel asrama, penempatan santri, penugasan musyrif). Perintahnya sama persis dengan bagian 5 di bawah. Migrasi ini menambah 2 tabel dan 2 kolom yang boleh kosong, jadi data santri yang sudah ada tidak berubah.
+>
+> Setelah migrasi 008 diterapkan, **perhatikan ini:** musyrif yang belum ditugaskan ke asrama tidak akan melihat santri mana pun. Jadi begitu ada akun musyrif, admin harus membuat daftar asrama dan menugaskan musyrifnya lewat halaman Monitoring, lalu menempatkan setiap santri ke asramanya.
+>
 > Bagian di bawah ini berlaku untuk project staging begitu dibuat.
 
 Migrasi 006 menambah kolom `position` pada `course_materials` dan mengisi urutan materi lama. Migrasi 001 sampai 005 sudah diterapkan ke production pada 16 September 2026.

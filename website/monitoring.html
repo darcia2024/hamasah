@@ -34,6 +34,10 @@
             <label for="student-program">Program</label><input id="student-program" type="text" placeholder="Kuliah Al-Azhar" required />
             <label for="student-city">Kota</label><input id="student-city" type="text" value="Kairo" required />
             <label for="student-join-date">Tanggal bergabung</label><input id="student-join-date" type="date" required />
+            <label for="student-gender">Jenis santri</label>
+            <select id="student-gender"><option value="">Belum diisi</option><option value="putra">Putra</option><option value="putri">Putri</option></select>
+            <label for="student-dormitory">Asrama</label>
+            <select id="student-dormitory"><option value="">Belum ditempatkan</option></select>
             <button class="button button--primary" type="submit">Simpan profil santri</button>
             <p id="student-form-status" class="form-status" role="status" aria-live="polite"></p>
           </form>
@@ -44,6 +48,43 @@
             <section id="monitoring-dashboard" class="portal-dashboard" hidden></section>
           </div>
         </div>
+        <section id="placement-section" class="portal-admin" hidden>
+          <div><p class="eyebrow">Penempatan</p><h2>Asrama santri terpilih.</h2></div>
+          <form id="placement-form" class="staff-form record-form">
+            <label for="placement-gender">Jenis santri</label>
+            <select id="placement-gender"><option value="">Belum diisi</option><option value="putra">Putra</option><option value="putri">Putri</option></select>
+            <label for="placement-dormitory">Asrama</label>
+            <select id="placement-dormitory"><option value="">Belum ditempatkan</option></select>
+            <button class="button button--primary" type="submit">Simpan penempatan</button>
+            <p id="placement-status" class="form-status" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+        <section id="dormitory-section" class="portal-admin" hidden>
+          <div>
+            <p class="eyebrow">Asrama</p>
+            <h2>Daftar asrama dan penugasan musyrif.</h2>
+            <p class="monitoring-hint">Musyrif hanya melihat santri di asrama yang ditugaskan kepadanya. Musyrif yang belum ditugaskan tidak melihat santri mana pun.</p>
+          </div>
+          <div class="portal-admin-grid">
+            <form id="dormitory-form" class="staff-form">
+              <h3>Tambah asrama</h3>
+              <label for="dormitory-name">Nama asrama</label><input id="dormitory-name" type="text" placeholder="Hay Asyir Putra" required />
+              <label for="dormitory-area">Wilayah</label><input id="dormitory-area" type="text" placeholder="Hay Asyir" required />
+              <label for="dormitory-gender">Jenis asrama</label>
+              <select id="dormitory-gender" required><option value="putra">Putra</option><option value="putri">Putri</option></select>
+              <button class="button button--secondary" type="submit">Simpan asrama</button>
+              <p id="dormitory-status" class="form-status" role="status" aria-live="polite"></p>
+            </form>
+            <form id="assignment-form" class="staff-form">
+              <h3>Tugaskan musyrif</h3>
+              <label for="assignment-account">Akun musyrif</label><select id="assignment-account"></select>
+              <label for="assignment-dormitory">Asrama</label><select id="assignment-dormitory"></select>
+              <button class="button button--secondary" type="submit">Tugaskan</button>
+              <p id="assignment-status" class="form-status" role="status" aria-live="polite"></p>
+            </form>
+          </div>
+          <div id="assignment-list" class="portal-account-list"></div>
+        </section>
         <section id="account-link-section" class="portal-admin" hidden>
           <div><p class="eyebrow">Relasi akun</p><h2>Hubungkan akun wali dan santri.</h2></div>
           <form id="account-link-form" class="staff-form record-form">

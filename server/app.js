@@ -16,6 +16,8 @@ const { createLmsService } = require('./lms-service.js');
 const { createPostgresLmsStore } = require('./postgres-lms-store.js');
 const { createOperationsService } = require('./operations-service.js');
 const { createPostgresOperationsStore } = require('./postgres-operations-store.js');
+const { createDormitoryService } = require('./dormitory-service.js');
+const { createPostgresDormitoryStore } = require('./postgres-dormitory-store.js');
 const { json, tooManyRequests } = require('./http/respond.js');
 const { MAX_REQUEST_BODY_BYTES, RequestBodyError, readJsonBody } = require('./http/body.js');
 const { serveStaticFile } = require('./http/static.js');
@@ -32,6 +34,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/auth.js'),
   ...require('./routes/accounts.js'),
   ...require('./routes/operations.js'),
+  ...require('./routes/dormitories.js'),
   ...require('./routes/students.js'),
   ...require('./routes/lms.js'),
   ...require('./routes/articles.js'),
@@ -67,8 +70,18 @@ function createHamasahApp(options) {
   const accountStore = config.accountStore || createPostgresAccountStore({ database });
   const sessionStore = config.sessionStore || createPostgresSessionStore({ database });
   const identityService = config.identityService || identity.createIdentityService({ accountStore, sessionStore });
+  const dormitoryStore = config.dormitoryStore || createPostgresDormitoryStore({ database });
+  const dormitoryService = config.dormitoryService || createDormitoryService({
+    store: dormitoryStore,
+    getAccount: (accountId) => accountStore.getById(accountId)
+  });
   const studentStore = config.studentStore || createPostgresStudentStore({ database });
-  const studentPortalService = config.studentPortalService || createStudentPortalService({ store: studentStore });
+  const studentPortalService = config.studentPortalService || createStudentPortalService({
+    store: studentStore,
+    // Musyrif hanya melihat santri di asrama yang ditugaskan kepadanya.
+    supervisorDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId),
+    getDormitory: (dormitoryId) => dormitoryStore.getDormitory(dormitoryId)
+  });
   const lmsStore = config.lmsStore || createPostgresLmsStore({ database });
   const lmsService = config.lmsService || createLmsService({
     store: lmsStore,
@@ -106,6 +119,7 @@ function createHamasahApp(options) {
     accountStore,
     articleStore,
     checkDatabaseReady,
+    dormitoryService,
     identityService,
     lmsService,
     operationsService,
@@ -219,6 +233,7 @@ function createHamasahApp(options) {
     identityService,
     registrationService,
     studentPortalService,
+    dormitoryService,
     lmsService,
     operationsService
   };

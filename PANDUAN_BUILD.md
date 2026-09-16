@@ -1126,6 +1126,19 @@ Pola sama dengan Task 7.2 untuk `server/lms-service.js` dan `server/lms-file-sto
 
 ---
 
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- Migrasi `008_dormitories.sql`: tabel `dormitories`, kolom `gender` dan `dormitory_id` pada `students`, tabel `staff_dormitory_assignments`, ketiganya ber-RLS. Nama asrama tidak ditanam di migrasi; daftarnya diisi admin lewat halaman monitoring karena itu milik lembaga.
+- **Musyrif yang belum ditugaskan tidak melihat santri mana pun.** Pilihan lain, "belum ditugaskan berarti melihat semua", membuat pembatasan ini tidak ada artinya karena cukup dengan lupa menugaskan. Keterangan itu ditampilkan di layar admin.
+- Pembatasan berlaku untuk menulis, bukan hanya membaca: `canWrite` dipakai di `addRecord`, `linkAccounts`, dan `setPlacement`. Tanpa itu, musyrif asrama lain tetap bisa mencatat pelanggaran untuk santri yang bukan tanggung jawabnya.
+- Penolakan karena asrama memakai **403**, bukan 422, karena itu soal akses dan bukan soal data. Service mengembalikan `{ ok: false, status: 403, error }` dan route memakai `hasil.status || 422`. Pola ini bisa dipakai lagi untuk penolakan akses lain di dalam service.
+- `dormitoryLimitFor` dipanggil sekali per permintaan, lalu hasilnya dioper ke `canView`. Kalau dipanggil di dalam filter, daftar santri yang panjang akan menghasilkan satu query untuk setiap barisnya.
+- Penugasan hanya menerima akun ber-role `supervisor`. Penugasan untuk role lain tidak berarti apa-apa dan hanya membingungkan saat dibaca.
+- Santri putri tidak bisa ditempatkan di asrama putra, dan sebaliknya.
+- `server/dormitory-access.test.js` menguji seluruhnya lewat HTTP di atas PGlite, termasuk pencabutan penugasan yang langsung menutup akses. Test itu sudah dibuktikan gagal ketika pembatasan asramanya dimatikan.
+- Sudah dicoba di browser lewat `npm run dev`: admin melihat 2 santri, musyrif dev (ditugaskan ke asrama putra) hanya melihat 1, dan mencatat pelanggaran untuk santri di luar asramanya dibalas 403.
+
+---
+
 ### Task 8.4 `[INTI]` Rate limit dan perlindungan brute force
 
 **Langkah:**
@@ -2567,7 +2580,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 **Phase 8: Keamanan, Akun, dan Layanan Pendukung**
 - [x] 8.1 Pecah router `server/app.js`
 - [x] 8.2 Otorisasi konsisten dan role baru
-- [ ] 8.3 Pembatasan musyrif per asrama
+- [x] 8.3 Pembatasan musyrif per asrama
 - [x] 8.4 Rate limit
 - [ ] 8.5 Audit log
 - [x] 8.6 Header keamanan dan CSP
