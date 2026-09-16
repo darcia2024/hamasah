@@ -58,4 +58,4 @@ Setiap migrasi berjalan dalam satu transaksi dan tercatat di tabel `schema_migra
 
 ## Batas implementasi saat ini
 
-Runtime masih memakai repository JSON lokal. Schema, validasi environment, dan container sudah siap, tetapi adapter PostgreSQL hanya dapat diuji dan diaktifkan setelah tersedia `DATABASE_URL` yang dapat diakses. Jangan memakai file JSON lokal untuk data santri production.
+Seluruh data aplikasi berada di PostgreSQL. `server.js` menolak start jika `DATABASE_URL` kosong, bukan `postgresql://`, atau memakai `pglite:` di staging dan production, karena database sementara hilang begitu proses berhenti. Terapkan migrasi dengan `npm run migrate` lalu periksa dengan `npm run verify:database` sebelum aplikasi dijalankan.

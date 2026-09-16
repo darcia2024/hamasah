@@ -1,5 +1,5 @@
 // Penyimpanan keuangan, visa, dan inventaris di PostgreSQL.
-// Menggantikan operations-file-store.js.
+// Menggantikan penyimpanan berkas JSON yang lama.
 
 const { nextSequence } = require('./document-counters.js');
 

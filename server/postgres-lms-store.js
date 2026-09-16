@@ -1,5 +1,5 @@
 // Penyimpanan maddah, materi, pendaftaran kelas, dan penyelesaian materi di PostgreSQL.
-// Menggantikan lms-file-store.js.
+// Menggantikan penyimpanan berkas JSON yang lama.
 
 function toIso(value) {
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString();

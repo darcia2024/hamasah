@@ -5,17 +5,8 @@ Thumbs.db
 *.log
 .vercel
 .env
-data/registrations.json
-data/registrations.json.tmp
-data/accounts.json
-data/accounts.json.tmp
-data/students.json
-data/students.json.tmp
-data/lms.json
-data/lms.json.tmp
-data/operations.json
-data/operations.json.tmp
 node_modules/
+# Database pengembangan lokal (PGlite) dan berkas unggahan lokal.
 data/dev-db/
 data/dev-storage/
 *.tmp

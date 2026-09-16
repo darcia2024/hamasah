@@ -82,7 +82,7 @@ Halaman internal tersedia di `/website/staff.html`, `/website/portal.html`, `/we
 - `npm run seed:articles` menyinkronkan artikel publik ke PostgreSQL secara idempoten.
 - Endpoint `GET /api/articles` dan `GET /api/articles/:slug` sudah membaca PostgreSQL saat `DATABASE_URL` tersedia.
 - Pendaftaran, artikel, akun, dan sesi memakai PostgreSQL saat `DATABASE_URL` tersedia. Keempat store berbagi satu pool koneksi (`server/db.js`), dan penyimpanan pendaftaran memakai transaksi sungguhan pada satu koneksi.
-- Endpoint monitoring, LMS, dan operasional masih menggunakan repository JSON sampai adapter PostgreSQL masing-masing selesai.
+- Seluruh endpoint (pendaftaran, akun, monitoring santri, LMS, dan operasional) membaca dan menulis ke PostgreSQL lewat satu koneksi bersama. Tidak ada lagi penyimpanan berkas JSON di runtime.
 - Test store PostgreSQL berjalan offline di atas PGlite (`server/test-support/database.js`), termasuk test integrasi API di `server/app-postgres.test.js`.
 
 ## Sebelum go-live penuh
@@ -91,7 +91,7 @@ Halaman internal tersedia di `/website/staff.html`, `/website/portal.html`, `/we
 - Pemeriksaan kesehatan dipisah: `GET /api/health` untuk liveness (tanpa database) dan `GET /api/ready` untuk readiness (memeriksa database, batas waktu 2 detik). Platform hosting sebaiknya memakai `/api/health` sebagai health check container.
 - Validasi environment tersedia: `DATABASE_URL` selalu wajib, bucket privat wajib saat `APP_ENV=production`, dan bootstrap key diperiksa panjangnya jika diisi.
 - Skrip yang menulis ke database (migrate, seed artikel, auth-live-check) menolak `APP_ENV` kosong, dan menolak production tanpa konfirmasi `ALLOW_PRODUCTION_WRITE=I_UNDERSTAND` di terminal. Lihat `PRODUCTION_DEPLOYMENT.md`.
-- Ganti repository JSON yang tersisa dengan adapter PostgreSQL dan object storage privat untuk dokumen.
+- Pindahkan penyimpanan dokumen (paspor, ijazah, surat kesehatan) ke object storage privat dengan tautan bertanda tangan.
 - Hubungkan reset password ke email atau WhatsApp resmi.
 - Simpan rahasia pada environment deployment, bukan file `.env` di repositori.
 - Jika ingin jawaban generatif, hubungkan Study Partner ke provider AI melalui backend dengan konteks maddah yang dibatasi.

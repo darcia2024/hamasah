@@ -1,5 +1,5 @@
 const crypto = require('node:crypto');
-const { normalizeSlug } = require('./article-store.js');
+const { normalizeSlug } = require('./text-utils.js');
 
 function toArticle(row) {
   return {

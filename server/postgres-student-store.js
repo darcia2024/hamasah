@@ -1,4 +1,4 @@
-// Penyimpanan data santri di PostgreSQL. Menggantikan student-file-store.js.
+// Penyimpanan data santri di PostgreSQL. Menggantikan penyimpanan berkas JSON yang lama.
 //
 // Nama tabel untuk catatan (kegiatan, presensi, dan lain-lain) diambil dari peta
 // konstanta di bawah, tidak pernah dari input, karena nama tabel tidak bisa

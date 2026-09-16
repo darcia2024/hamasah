@@ -260,8 +260,8 @@ Section prototype yang dipakai sebagai acuan visual:
 | `server/lms-service.js` | Maddah, materi, enrollment, progress, Study Partner berbasis kata kunci. |
 | `server/operations-service.js` | Invoice `INV/HI/YYYY/NNNNN`, kuitansi `KWT/...`, visa, inventaris. |
 | `server/faq-service.js` | FAQ publik berbasis kata kunci, knowledge base hardcoded. |
-| `server/postgres-*-store.js` | Store PostgreSQL untuk pendaftaran, artikel, akun, sesi. |
-| `server/*-file-store.js`, `server/article-store.js` | Store file JSON (dihapus di Phase 7). `article-store.js` juga berisi `normalizeSlug` yang dipakai store Postgres. |
+| `server/postgres-*-store.js` | Store PostgreSQL untuk pendaftaran, artikel, akun, sesi, santri, LMS, dan operasional. Satu-satunya jalur data aplikasi. |
+| `server/document-counters.js`, `server/text-utils.js` | Pengambil nomor dokumen resmi (dipakai bersama) dan `normalizeSlug`. |
 | `server/production-config.js` | Validasi environment production. |
 | `website/registration-domain.js` | Aturan domain pendaftaran (format UMD, bisa dipakai browser dan server, tapi saat ini belum dimuat di browser). |
 | `website/registration-service.js` | Service pendaftaran (penomoran, dokumen, status). |
@@ -828,7 +828,7 @@ Dikerjakan manusia. Sonnet tidak ikut.
 
 **Selesai jika:**
 - [ ] Task 7.1 sampai 7.9 dicentang.
-- [ ] `grep -rln "file-store" server website database` tidak menghasilkan apa pun.
+- [x] `grep -rln "file-store" server website database` tidak menghasilkan apa pun.
 - [ ] `npm run dev` menjalankan aplikasi lengkap dengan data contoh.
 - [ ] Staging berjalan dengan PostgreSQL untuk semua modul `[MANUSIA]`.
 
@@ -994,6 +994,16 @@ Pola sama dengan Task 7.2 untuk `server/lms-service.js` dan `server/lms-file-sto
 6. Perbarui `IMPLEMENTATION_STATUS.md` dan `PRODUCTION_DEPLOYMENT.md`: hapus kalimat "runtime masih memakai repository JSON".
 
 **Selesai jika:** `npm test` lulus, `npm run dev` berjalan, dan grep file store kosong.
+
+---
+
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- `createHamasahApp` sekarang melempar error kalau tidak diberi `database` atau `databaseUrl`. Tidak ada lagi jalur diam-diam ke berkas JSON, jadi tidak mungkin ada dua sumber kebenaran yang berbeda isinya.
+- `server/*-file-store.js` dan `server/article-store.js` sudah dihapus. `normalizeSlug` pindah ke `server/text-utils.js`.
+- `server/app.test.js` kini berjalan di atas PGlite lewat `createTestDatabase()`, sama seperti `app-postgres.test.js`, dan menutup `app` serta `database` di blok `finally`.
+- `server.js` memanggil `readProductionConfig(process.env)` sebelum server menyala, lalu keluar dengan kode 1 bila konfigurasi belum siap. Pemeriksaan ini sekaligus menolak `pglite:` di staging dan production. Isi `DATABASE_URL` tidak pernah dicetak.
+- Seed dev bertambah: 2 santri fiktif dengan relasi wali, presensi, kegiatan, evaluasi, dan 1 maddah berisi 2 materi, semuanya idempoten dan diuji.
+- `.gitignore` tidak lagi menyebut `data/*.json` yang sudah tidak ada; yang tersisa hanya `data/dev-db/` dan `data/dev-storage/`. `data/articles.json` tetap dilacak git karena dipakai seed.
 
 ---
 
@@ -2506,7 +2516,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [x] 7.5 Store PostgreSQL santri
 - [x] 7.6 Store PostgreSQL LMS
 - [x] 7.7 Store PostgreSQL operasional
-- [ ] 7.8 Satu jalur data, hapus file store
+- [x] 7.8 Satu jalur data, hapus file store
 - [ ] 7.9 `[MANUSIA]` Migrasi staging dan production
 
 **Phase 8: Keamanan, Akun, dan Layanan Pendukung**

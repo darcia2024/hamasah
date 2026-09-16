@@ -5,21 +5,18 @@ const path = require('node:path');
 const registrationDomain = require('../website/registration-domain.js');
 const registrationServiceModule = require('../website/registration-service.js');
 const { createDatabase } = require('./db.js');
-const { createRegistrationFileStore } = require('./registration-file-store.js');
 const { createPostgresRegistrationStore } = require('./postgres-registration-store.js');
-const { createArticleStore } = require('./article-store.js');
 const { createPostgresArticleStore } = require('./postgres-article-store.js');
 const { answerQuestion } = require('./faq-service.js');
 const identity = require('./identity-service.js');
-const { createAccountFileStore } = require('./account-file-store.js');
 const { createPostgresAccountStore } = require('./postgres-account-store.js');
 const { createPostgresSessionStore } = require('./postgres-session-store.js');
 const { createStudentPortalService } = require('./student-portal-service.js');
-const { createStudentFileStore } = require('./student-file-store.js');
+const { createPostgresStudentStore } = require('./postgres-student-store.js');
 const { createLmsService } = require('./lms-service.js');
-const { createLmsFileStore } = require('./lms-file-store.js');
+const { createPostgresLmsStore } = require('./postgres-lms-store.js');
 const { createOperationsService } = require('./operations-service.js');
-const { createOperationsFileStore } = require('./operations-file-store.js');
+const { createPostgresOperationsStore } = require('./postgres-operations-store.js');
 
 const MIME_TYPES = Object.freeze({
   '.css': 'text/css; charset=utf-8',
@@ -156,29 +153,27 @@ function publicError(result) {
 function createHamasahApp(options) {
   const config = options || {};
   const rootDirectory = config.rootDirectory || path.resolve(__dirname, '..');
-  const dataDirectory = config.dataDirectory || path.join(rootDirectory, 'data');
   const databaseUrl = config.databaseUrl || '';
   const bootstrapKey = config.bootstrapKey || process.env.HAMASAH_BOOTSTRAP_KEY || '';
-  // Satu database (satu pool koneksi) dibagikan ke semua store PostgreSQL.
+  // Satu database (satu pool koneksi) dibagikan ke semua store. Tidak ada lagi
+  // penyimpanan berkas JSON: seluruh data aplikasi berada di PostgreSQL, sehingga
+  // tidak mungkin ada dua sumber kebenaran yang berbeda isinya.
   const database = config.database || (databaseUrl ? createDatabase({ connectionString: databaseUrl }) : null);
-  const ownsDatabase = Boolean(database) && !config.database;
-  const registrationStore = config.registrationStore || (database
-    ? createPostgresRegistrationStore({ database })
-    : createRegistrationFileStore(path.join(dataDirectory, 'registrations.json')));
+  if (!database) {
+    throw new Error('createHamasahApp membutuhkan database atau databaseUrl.');
+  }
+  const ownsDatabase = !config.database;
+  const registrationStore = config.registrationStore || createPostgresRegistrationStore({ database });
   const registrationService = config.registrationService || registrationServiceModule.createRegistrationService({
     store: registrationStore
   });
-  const articleStore = config.articleStore || (database
-    ? createPostgresArticleStore({ database })
-    : createArticleStore(path.join(dataDirectory, 'articles.json')));
-  const accountStore = config.accountStore || (database
-    ? createPostgresAccountStore({ database })
-    : createAccountFileStore(path.join(dataDirectory, 'accounts.json')));
-  const sessionStore = config.sessionStore || (database ? createPostgresSessionStore({ database }) : undefined);
+  const articleStore = config.articleStore || createPostgresArticleStore({ database });
+  const accountStore = config.accountStore || createPostgresAccountStore({ database });
+  const sessionStore = config.sessionStore || createPostgresSessionStore({ database });
   const identityService = config.identityService || identity.createIdentityService({ accountStore, sessionStore });
-  const studentStore = config.studentStore || createStudentFileStore(path.join(dataDirectory, 'students.json'));
+  const studentStore = config.studentStore || createPostgresStudentStore({ database });
   const studentPortalService = config.studentPortalService || createStudentPortalService({ store: studentStore });
-  const lmsStore = config.lmsStore || createLmsFileStore(path.join(dataDirectory, 'lms.json'));
+  const lmsStore = config.lmsStore || createPostgresLmsStore({ database });
   const lmsService = config.lmsService || createLmsService({
     store: lmsStore,
     async canAccessStudent(studentId, actor) {
@@ -189,7 +184,7 @@ function createHamasahApp(options) {
       return (await studentPortalService.dashboard(studentId, actor)).ok;
     }
   });
-  const operationsStore = config.operationsStore || createOperationsFileStore(path.join(dataDirectory, 'operations.json'));
+  const operationsStore = config.operationsStore || createPostgresOperationsStore({ database });
   const operationsService = config.operationsService || createOperationsService({
     store: operationsStore,
     async studentExists(studentId) { return Boolean(await studentStore.getStudent(studentId)); }
@@ -216,9 +211,6 @@ function createHamasahApp(options) {
   }
 
   async function checkDatabaseReady() {
-    if (!database) {
-      return { ok: true, database: 'tidak dipakai' };
-    }
     let timer;
     try {
       const timeout = new Promise((resolve, reject) => {

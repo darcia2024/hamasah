@@ -1,8 +1,7 @@
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const os = require('node:os');
 const path = require('node:path');
 const { createHamasahApp } = require('./app.js');
+const { createTestDatabase } = require('./test-support/database.js');
 
 async function request(baseUrl, pathname, options) {
   const response = await fetch(`${baseUrl}${pathname}`, options);
@@ -17,10 +16,10 @@ async function request(baseUrl, pathname, options) {
 }
 
 async function run() {
-  const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'hamasah-api-'));
+  const database = await createTestDatabase();
   const app = createHamasahApp({
     rootDirectory: path.resolve(__dirname, '..'),
-    dataDirectory: temporaryDirectory,
+    database,
     bootstrapKey: 'bootstrap-test-key'
   });
   const server = app.createServer();
@@ -323,7 +322,8 @@ async function run() {
     assert.match(operationsPage.body, /Keuangan, visa, dan inventaris/);
   } finally {
     await new Promise(function close(resolve) { server.close(resolve); });
-    fs.rmSync(temporaryDirectory, { recursive: true, force: true });
+    await app.close();
+    await database.close();
   }
 }
 
