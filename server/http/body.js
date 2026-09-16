@@ -56,9 +56,58 @@ function readJsonBody(request) {
   });
 }
 
+// Isi permintaan sebagai byte mentah, untuk unggahan berkas.
+//
+// Batasnya diberikan pemanggil, karena tiap jenis unggahan punya batas sendiri.
+// Pembacaan dihentikan begitu batas terlampaui, jadi berkas 500 MB tidak pernah
+// ditampung di memori hanya untuk kemudian ditolak.
+// Kelebihan yang masih dibaca sampai habis sebelum menjawab 413. Kalau soket
+// langsung diputus, pengirim tidak pernah menerima status apa pun dan hanya
+// melihat koneksi terputus, sehingga tidak tahu bahwa berkasnya kebesaran.
+const RAW_BODY_DRAIN_SLACK_BYTES = 5 * 1024 * 1024;
+
+function readRawBody(request, maxBytes) {
+  return new Promise(function resolveBody(resolve, reject) {
+    let potongan = [];
+    let received = 0;
+    let tooLarge = false;
+
+    request.on('data', function receiveChunk(chunk) {
+      received += chunk.length;
+      if (!tooLarge && received > maxBytes) {
+        // Isi dibuang, tetapi pembacaan diteruskan supaya pengirim menerima 413.
+        tooLarge = true;
+        potongan = [];
+      }
+      if (tooLarge) {
+        // Kiriman yang jauh melebihi batas tetap diputus, supaya tidak ada yang
+        // bisa membuat server membaca berkas ratusan megabyte tanpa henti.
+        if (received > maxBytes + RAW_BODY_DRAIN_SLACK_BYTES) {
+          request.destroy();
+          reject(new RequestBodyError('Ukuran berkas melebihi batas.', 413));
+        }
+        return;
+      }
+      potongan.push(chunk);
+    });
+
+    request.on('end', function selesai() {
+      if (tooLarge) {
+        reject(new RequestBodyError('Ukuran berkas melebihi batas.', 413));
+        return;
+      }
+      resolve(Buffer.concat(potongan));
+    });
+
+    request.on('error', reject);
+  });
+}
+
 module.exports = {
   ABSOLUTE_REQUEST_BODY_LIMIT_BYTES,
+  RAW_BODY_DRAIN_SLACK_BYTES,
   MAX_REQUEST_BODY_BYTES,
   RequestBodyError,
-  readJsonBody
+  readJsonBody,
+  readRawBody
 };

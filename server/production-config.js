@@ -52,6 +52,24 @@ function readProductionConfig(environment) {
   const storageBucket = isProduction
     ? requiredEnvironment(values, 'STORAGE_BUCKET', appEnvironment)
     : optionalEnvironment(values, 'STORAGE_BUCKET');
+  const storagePublicBucket = optionalEnvironment(values, 'STORAGE_PUBLIC_BUCKET');
+
+  // Driver penyimpanan berkas. 'local' menyimpan ke disk dan hanya untuk
+  // pengembangan: berkasnya ikut hilang setiap kali container diganti.
+  const butuhStorageSungguhan = ['staging', 'production'].includes(appEnvironment);
+  const storageDriver = optionalEnvironment(values, 'STORAGE_DRIVER') || (butuhStorageSungguhan ? 'supabase' : 'local');
+  if (!['local', 'supabase'].includes(storageDriver)) {
+    throw new Error("STORAGE_DRIVER harus 'local' atau 'supabase'.");
+  }
+  if (storageDriver === 'local' && butuhStorageSungguhan) {
+    throw new Error(`STORAGE_DRIVER 'local' tidak boleh dipakai di lingkungan ${appEnvironment}.`);
+  }
+  const supabaseUrl = storageDriver === 'supabase' ? requiredEnvironment(values, 'SUPABASE_URL', appEnvironment) : '';
+  // Key ini melewati seluruh aturan Row Level Security, jadi hanya boleh ada di
+  // environment server dan tidak pernah dikirim ke browser.
+  const supabaseServiceRoleKey = storageDriver === 'supabase'
+    ? requiredEnvironment(values, 'SUPABASE_SERVICE_ROLE_KEY', appEnvironment)
+    : '';
   const bootstrapKey = optionalEnvironment(values, 'HAMASAH_BOOTSTRAP_KEY');
   // Kunci HMAC untuk alamat IP di catatan audit. Wajib di luar pengembangan, karena
   // tanpa kunci, daftar alamat IP yang mungkin cukup pendek untuk dicoba satu per satu.
@@ -66,7 +84,17 @@ function readProductionConfig(environment) {
     throw new Error('HAMASAH_BOOTSTRAP_KEY harus terdiri dari minimal 32 karakter.');
   }
 
-  return Object.freeze({ appEnvironment, databaseUrl, bootstrapKey, ipHashSecret, storageBucket });
+  return Object.freeze({
+    appEnvironment,
+    databaseUrl,
+    bootstrapKey,
+    ipHashSecret,
+    storageBucket,
+    storagePublicBucket,
+    storageDriver,
+    supabaseUrl,
+    supabaseServiceRoleKey
+  });
 }
 
 module.exports = { PGLITE_ENVIRONMENTS, assertDatabaseUrl, readProductionConfig };

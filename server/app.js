@@ -20,6 +20,10 @@ const { createDormitoryService } = require('./dormitory-service.js');
 const { createPostgresDormitoryStore } = require('./postgres-dormitory-store.js');
 const { createAuditService } = require('./audit-service.js');
 const { createPostgresAuditStore } = require('./postgres-audit-store.js');
+const { createFileService } = require('./file-service.js');
+const { createPostgresFileStore } = require('./postgres-file-store.js');
+const { createLocalStorage } = require('./storage/local.js');
+const { createSupabaseStorage } = require('./storage/supabase.js');
 const { json, tooManyRequests } = require('./http/respond.js');
 const { MAX_REQUEST_BODY_BYTES, RequestBodyError, readJsonBody } = require('./http/body.js');
 const { serveStaticFile } = require('./http/static.js');
@@ -36,6 +40,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/auth.js'),
   ...require('./routes/accounts.js'),
   ...require('./routes/audit.js'),
+  ...require('./routes/files.js'),
   ...require('./routes/operations.js'),
   ...require('./routes/dormitories.js'),
   ...require('./routes/students.js'),
@@ -84,6 +89,11 @@ function createHamasahApp(options) {
   });
   const auditRetentionDays = Number(config.auditRetentionDays || process.env.AUDIT_RETENTION_DAYS || 365);
 
+  const fileStore = config.fileStore || createPostgresFileStore({ database });
+  const storage = config.storage || (config.storageDriver === 'supabase'
+    ? createSupabaseStorage({ url: config.supabaseUrl, serviceRoleKey: config.supabaseServiceRoleKey })
+    : createLocalStorage({ rootDirectory: path.join(rootDirectory, 'data', 'dev-storage') }));
+
   const dormitoryStore = config.dormitoryStore || createPostgresDormitoryStore({ database });
   const dormitoryService = config.dormitoryService || createDormitoryService({
     store: dormitoryStore,
@@ -129,10 +139,27 @@ function createHamasahApp(options) {
     }
   }
 
+  const fileService = config.fileService || createFileService({
+    store: fileStore,
+    storage,
+    buckets: {
+      private: config.storageBucket || 'hamasah-private',
+      public: config.storagePublicBucket || 'hamasah-public'
+    },
+    // Diisi setelah seluruh service siap, karena aturan unggah memerlukan
+    // service santri, LMS, dan operasional untuk memeriksa kepemilikan.
+    services: {
+      get studentPortalService() { return studentPortalService; },
+      get lmsService() { return lmsService; },
+      get operationsStore() { return operationsStore; }
+    }
+  });
+
   const services = Object.freeze({
     accountStore,
     articleStore,
     auditService,
+    fileService,
     checkDatabaseReady,
     dormitoryService,
     identityService,
@@ -265,6 +292,22 @@ function createHamasahApp(options) {
 
   // Sesi kedaluwarsa memang sudah ditolak saat dipakai, tetapi barisnya tetap
   // menumpuk di database kalau tidak pernah dibuang.
+  // Baris unggahan yang isinya tidak pernah dikirim hanya menumpuk.
+  function startStaleUploadCleanup() {
+    async function bersihkan() {
+      try {
+        const dihapus = await fileService.purgeStalePending();
+        if (dihapus > 0) {
+          console.log(`[berkas] ${dihapus} unggahan yang tidak pernah selesai dihapus.`);
+        }
+      } catch (error) {
+        console.error(`[berkas] Pembersihan unggahan tertunda gagal: ${error.message}`);
+      }
+    }
+    jadwalkan(bersihkan, SESSION_PURGE_INTERVAL_MS);
+    return bersihkan();
+  }
+
   function startSessionCleanup() {
     async function bersihkan() {
       try {
@@ -287,6 +330,7 @@ function createHamasahApp(options) {
       if (config.auditRetention !== false && !auditPurgeTimer) {
         startAuditRetention();
         startSessionCleanup();
+        startStaleUploadCleanup();
       }
       return http.createServer(requestListener);
     },
@@ -310,6 +354,7 @@ function createHamasahApp(options) {
     studentPortalService,
     dormitoryService,
     auditService,
+    fileService,
     lmsService,
     operationsService
   };

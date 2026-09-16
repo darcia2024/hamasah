@@ -43,7 +43,7 @@ Isi commit tersebut: mode dev PGlite, konversi tiga service menjadi async, store
 >
 > **Masih menunggu:** migrasi `008_dormitories.sql` (asrama dan penugasan musyrif), `009_audit_events.sql` (catatan audit), dan `010_session_last_seen.sql` (durasi sesi per role). Ketiganya diterapkan sekaligus dengan perintah yang sama persis seperti bagian 5 di bawah. Semuanya menambah tabel atau kolom baru yang boleh kosong, jadi data yang sudah ada tidak berubah.
 >
-> **Satu variabel environment baru wajib diisi sebelum deploy berikutnya:** `IP_HASH_SECRET`, minimal 32 karakter acak. Dipakai mengacak alamat IP di catatan audit. Tanpa ini, `npm start` akan berhenti dengan pesan jelas di staging dan production. Buat nilainya dengan perintah di bawah, lalu simpan di `.env` server (bukan di repo):
+> **Variabel environment baru yang wajib diisi sebelum deploy berikutnya:** `IP_HASH_SECRET`, minimal 32 karakter acak. Dipakai mengacak alamat IP di catatan audit. Tanpa ini, `npm start` akan berhenti dengan pesan jelas di staging dan production. Buat nilainya dengan perintah di bawah, lalu simpan di `.env` server (bukan di repo):
 >
 > ```bash
 > node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
@@ -151,3 +151,28 @@ Begitu commit terdorong, GitHub akan menjalankan workflow `Test` secara otomatis
 4. Centang juga **Require a pull request before merging** kalau nanti ada lebih dari satu orang yang menulis kode.
 
 Badge status di README akan menampilkan hasil run terakhir di `main`. Selama belum pernah ada push, badge itu tampil sebagai "no status" dan itu wajar.
+
+---
+
+## 9. Siapkan penyimpanan berkas (sebelum staging dipakai)
+
+Paspor, ijazah, dan surat kesehatan santri disimpan di object storage, bukan di database dan bukan di disk server.
+
+1. Di project Supabase, buka **Storage** lalu buat dua bucket:
+   - `hamasah-private` — **Public bucket: OFF**. Berisi dokumen pribadi.
+   - `hamasah-public` — Public bucket: ON. Hanya untuk gambar sampul artikel.
+2. Pada masing-masing bucket, atur batas ukuran berkas (20 MB cukup) dan daftar tipe MIME yang diizinkan.
+3. Salin **Project URL** dan **service_role key** dari Settings > API.
+4. Isi `.env` server dengan:
+
+```bash
+STORAGE_DRIVER=supabase
+SUPABASE_URL=<project url>
+SUPABASE_SERVICE_ROLE_KEY=<service role key>
+STORAGE_BUCKET=hamasah-private
+STORAGE_PUBLIC_BUCKET=hamasah-public
+```
+
+**`service_role key` melewati seluruh aturan Row Level Security.** Kunci ini hanya boleh ada di environment server. Jangan pernah menaruhnya di kode frontend, di repo, atau mengirimkannya lewat chat.
+
+Saat smoke test staging, tambahkan satu langkah: unggah satu PDF sebagai dokumen pendaftaran, lalu unduh kembali. Driver Supabase ditulis tanpa memakai paket resmi dan belum pernah diuji terhadap Supabase sungguhan, jadi inilah pembuktiannya.

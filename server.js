@@ -22,7 +22,12 @@ const app = createHamasahApp({
   rootDirectory: path.resolve(__dirname),
   databaseUrl: config.databaseUrl,
   appEnvironment: config.appEnvironment,
-  ipHashSecret: config.ipHashSecret
+  ipHashSecret: config.ipHashSecret,
+  storageDriver: config.storageDriver,
+  storageBucket: config.storageBucket,
+  storagePublicBucket: config.storagePublicBucket,
+  supabaseUrl: config.supabaseUrl,
+  supabaseServiceRoleKey: config.supabaseServiceRoleKey
 });
 
 const server = app.createServer();

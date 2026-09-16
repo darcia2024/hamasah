@@ -35,6 +35,8 @@ const ACTIONS = Object.freeze({
   DORMITORY_CREATED: 'dormitory.created',
   DORMITORY_STAFF_ASSIGNED: 'dormitory.staff-assigned',
   DORMITORY_STAFF_UNASSIGNED: 'dormitory.staff-unassigned',
+  FILE_UPLOADED: 'file.uploaded',
+  FILE_DOWNLOADED: 'file.downloaded',
   INVOICE_CREATED: 'invoice.created',
   INVOICE_PAID: 'invoice.paid'
 });

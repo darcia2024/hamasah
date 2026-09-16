@@ -1399,6 +1399,22 @@ Pola sama dengan Task 7.2 untuk `server/lms-service.js` dan `server/lms-file-sto
 
 ---
 
+**Catatan implementasi (sudah dikerjakan, berlaku untuk task berikutnya):**
+- **Menyimpang dari panduan: paket `@supabase/supabase-js` TIDAK dipasang.** Yang dibutuhkan hanya tiga operasi HTTP (unggah, tautan bertanda tangan, hapus), sementara paket itu membawa belasan dependency turunan. Untuk aplikasi yang menyimpan paspor dan ijazah anak orang, setiap dependency tambahan adalah pintu masuk tambahan yang ikut harus dipercaya. Driver ditulis memakai `fetch` bawaan Node, dan bentuk ketiga permintaannya dikunci oleh `server/storage/supabase.test.js` terhadap server tiruan.
+- **Yang belum terbukti:** apakah Supabase sungguhan menerima bentuk permintaan itu. Itu baru terbukti saat smoke test staging. Kalau ternyata ada yang meleset, perbaikannya ada di satu berkas.
+- Aturan siapa boleh apa terkumpul di `server/storage/upload-policies.js`, satu tempat untuk menjawab "siapa bisa membuka paspor santri". Tiap tujuan punya `canUpload` dan `canDownload` terpisah, karena keduanya memang berbeda: musyrif mengunggah foto santri, tetapi wali dan santri juga boleh melihatnya.
+- Unggahan dipecah dua langkah (`POST /api/uploads` lalu `PUT /api/uploads/:id/content`) supaya izin dan batas ukuran diperiksa **sebelum** satu byte pun diterima. Kalau digabung, server harus menampung 20 MB dulu baru menolaknya.
+- **Endpoint unggah sengaja tidak mensyaratkan sesi.** Calon santri belum punya akun, yang dipegangnya hanya token pendaftaran. Yang memutuskan adalah aturan per tujuan, bukan ada tidaknya sesi. Ini ketahuan saat test: awalnya route diberi `session: true` dan unggahan pendaftar langsung ditolak 401.
+- Byte awal berkas dicocokkan dengan tipe yang diakui pengirim. Nama berkas dan `Content-Type` keduanya berasal dari pengirim, jadi berkas `.exe` cukup diganti namanya menjadi `.pdf` untuk lolos kalau hanya nama yang diperiksa. Untuk WebP, "RIFF" saja tidak cukup: byte 8 sampai 11 harus "WEBP".
+- Kunci penyimpanan **tidak pernah** memuat nama asli berkas, karena kunci ikut menjadi bagian URL. Nama asli disimpan terpisah, dibersihkan, dan hanya dipakai di header `Content-Disposition`.
+- Unduhan selalu memakai `Content-Disposition: attachment` dan `nosniff`. Tanpa itu, berkas yang lolos pemeriksaan bisa dijalankan sebagai halaman di origin yang sama dan ikut membawa sesi pengguna.
+- `readRawBody` membuang kelebihan isi tetapi tetap membaca sampai selesai sebelum menjawab 413, sama seperti pembaca body JSON. Memutus soket langsung membuat pengirim hanya melihat koneksi terputus, tanpa tahu berkasnya kebesaran. Kiriman yang melebihi batas lebih dari 5 MB tetap diputus.
+- Driver `local` menyimpan ke `data/dev-storage/`, di luar folder yang disajikan web. `readProductionConfig` menolak driver `local` di staging dan production, karena berkas di disk container ikut hilang setiap kali container diganti.
+- Setiap unduhan dicatat di audit, karena inilah cara dokumen pribadi keluar dari sistem.
+- Belum ada tampilan unggah di halaman mana pun; yang ada baru API. Formulir unggahnya menyusul bersama layar yang membutuhkannya (Phase 9 dan 10).
+
+---
+
 ### Task 8.11 `[PENYEMPURNA]` Anti-bot formulir publik (Cloudflare Turnstile)
 
 **Langkah:**
@@ -2622,7 +2638,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [ ] 8.7 Notification outbox dan email
 - [ ] 8.8 Undangan akun, aktivasi, reset password
 - [x] 8.9 Sesi per role
-- [ ] 8.10 Penyimpanan berkas privat
+- [x] 8.10 Penyimpanan berkas privat
 - [ ] 8.11 Cloudflare Turnstile
 - [x] 8.12 CI GitHub Actions
 - [ ] 8.13 `[MANUSIA]` + Sonnet: Environment staging
