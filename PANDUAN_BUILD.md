@@ -2444,7 +2444,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [x] 6.6 Migrasi 003: Row Level Security (57c8011, diterapkan ke production 16 Sep 2026)
 - [x] 6.7 Perbaiki penomoran registrasi (d20d0e5, migrasi 004 menunggu diterapkan ke production)
 - [x] 6.8 Riwayat status mencatat akun pelaku (b5c9903, migrasi 005 menunggu diterapkan ke production)
-- [ ] 6.9 Dockerfile, shutdown, health check
+- [x] 6.9 Dockerfile, shutdown, health check (bd0ad83)
 - [ ] 6.10 Perbaikan kecil dari audit
 
 **Phase 7: Semua Data di PostgreSQL**
