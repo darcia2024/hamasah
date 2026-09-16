@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { createDatabase } = require('../server/db.js');
-const { loadEnvironmentFile, migrate } = require('./migrate.js');
+const { loadEnvironmentFile, migrate, resolveMigrationUrl } = require('./migrate.js');
 
 const SILENT_LOGGER = { log() {} };
 const TEST_ENVIRONMENT = Object.freeze({ APP_ENV: 'test' });
@@ -115,6 +115,32 @@ async function testGuardRunsBeforeDatabase() {
     migrate({ environment: { APP_ENV: 'production' }, database: forbidden, envFilePath: null, logger: SILENT_LOGGER }),
     /ALLOW_PRODUCTION_WRITE/
   );
+}
+
+// Regresi: npm run migrate di staging/production sempat gagal dengan
+// "SUPABASE_URL harus diisi", padahal migrasi hanya butuh koneksi database dan
+// tidak ada urusan dengan penyimpanan berkas sama sekali. Penyebabnya
+// resolveMigrationUrl memanggil readProductionConfig penuh (yang juga
+// memvalidasi storage) hanya untuk mengambil satu field databaseUrl.
+async function testResolveMigrationUrlIgnoresStorageConfig() {
+  const url = 'postgresql://user:password@db.example.com:5432/hamasah';
+
+  // Tanpa DATABASE_MIGRATION_URL, tanpa SUPABASE_URL/IP_HASH_SECRET/STORAGE_BUCKET:
+  // dulu ini melempar error soal SUPABASE_URL. Sekarang harus lolos, karena
+  // migrasi tidak pernah menyentuh storage.
+  assert.equal(resolveMigrationUrl({ APP_ENV: 'staging', DATABASE_URL: url }), url);
+  assert.equal(resolveMigrationUrl({ APP_ENV: 'production', DATABASE_URL: url }), url);
+
+  // DATABASE_MIGRATION_URL tetap didahulukan kalau diisi (koneksi session,
+  // bukan pooler mode transaksi).
+  const migrationUrl = 'postgresql://user:password@db.example.com:5432/hamasah_migration';
+  assert.equal(
+    resolveMigrationUrl({ APP_ENV: 'staging', DATABASE_URL: url, DATABASE_MIGRATION_URL: migrationUrl }),
+    migrationUrl
+  );
+
+  // DATABASE_URL tetap wajib.
+  assert.throws(() => resolveMigrationUrl({ APP_ENV: 'staging' }), /DATABASE_URL/);
 }
 
 async function testFreshApplyAndRerun() {
@@ -279,6 +305,7 @@ async function testConcurrentRunsApplyOnce() {
 async function run() {
   await testEnvironmentFile();
   await testGuardRunsBeforeDatabase();
+  await testResolveMigrationUrlIgnoresStorageConfig();
   await testFreshApplyAndRerun();
   await testLineEndingsDoNotChangeChecksum();
   await testChangedFileIsRejected();

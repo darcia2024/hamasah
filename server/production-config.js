@@ -39,6 +39,18 @@ function optionalEnvironment(environment, key) {
   return String(environment[key] || '').trim();
 }
 
+// Hanya menyelesaikan DATABASE_URL, tanpa mewajibkan konfigurasi penyimpanan berkas
+// atau IP_HASH_SECRET. Dipakai oleh skrip database (migrate, verify) yang memang
+// hanya butuh koneksi database dan tidak pernah menyentuh storage atau audit.
+// Kalau skrip ini memakai readProductionConfig penuh, menjalankan migrasi di
+// staging/production akan gagal semata-mata karena SUPABASE_URL belum diisi,
+// padahal migrasi tidak ada urusan dengan penyimpanan berkas sama sekali.
+function resolveDatabaseUrl(environment) {
+  const values = environment || process.env;
+  const appEnvironment = readAppEnvironment(values);
+  return assertDatabaseUrl(values.DATABASE_URL, appEnvironment, 'DATABASE_URL');
+}
+
 // DATABASE_URL selalu wajib karena dipakai skrip database di semua lingkungan.
 // STORAGE_BUCKET hanya wajib di production.
 // HAMASAH_BOOTSTRAP_KEY tidak pernah wajib: kunci ini dihapus setelah admin pertama dibuat,
@@ -97,4 +109,4 @@ function readProductionConfig(environment) {
   });
 }
 
-module.exports = { PGLITE_ENVIRONMENTS, assertDatabaseUrl, readProductionConfig };
+module.exports = { PGLITE_ENVIRONMENTS, assertDatabaseUrl, readProductionConfig, resolveDatabaseUrl };

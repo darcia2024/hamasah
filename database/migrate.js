@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { assertDatabaseWriteAllowed, readAppEnvironment } = require('../server/environment');
-const { assertDatabaseUrl, readProductionConfig } = require('../server/production-config');
+const { assertDatabaseUrl, resolveDatabaseUrl } = require('../server/production-config');
 const { createDatabase } = require('../server/db');
 const { DEFAULT_MIGRATIONS_DIRECTORY, listMigrations } = require('./migrations');
 
@@ -51,7 +51,7 @@ function resolveMigrationUrl(environment) {
   if (migrationUrl) {
     return assertDatabaseUrl(migrationUrl, appEnvironment, 'DATABASE_MIGRATION_URL');
   }
-  return readProductionConfig(environment).databaseUrl;
+  return resolveDatabaseUrl(environment);
 }
 
 async function tableExists(database, name) {

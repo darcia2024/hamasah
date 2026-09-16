@@ -1412,6 +1412,7 @@ Pola sama dengan Task 7.2 untuk `server/lms-service.js` dan `server/lms-file-sto
 - Driver `local` menyimpan ke `data/dev-storage/`, di luar folder yang disajikan web. `readProductionConfig` menolak driver `local` di staging dan production, karena berkas di disk container ikut hilang setiap kali container diganti.
 - Setiap unduhan dicatat di audit, karena inilah cara dokumen pribadi keluar dari sistem.
 - Belum ada tampilan unggah di halaman mana pun; yang ada baru API. Formulir unggahnya menyusul bersama layar yang membutuhkannya (Phase 9 dan 10).
+- **Bug ditemukan saat pemilik menjalankan `npm run migrate` di staging** (bukan lewat test): `readProductionConfig()` yang baru mewajibkan `SUPABASE_URL` membuat `resolveMigrationUrl()` di `database/migrate.js` ikut gagal, padahal migrasi cuma butuh `DATABASE_URL` dan sama sekali tidak menyentuh penyimpanan berkas. Diperbaiki dengan menambahkan `resolveDatabaseUrl()` yang ringan di `server/production-config.js` — hanya menyelesaikan `DATABASE_URL`, tanpa memvalidasi storage atau `IP_HASH_SECRET` — lalu `migrate.js` dipindah memakainya. `readProductionConfig()` penuh tetap dipakai `server.js` seperti semula. Test suite sebelumnya tidak menangkap ini karena tidak ada test yang memanggil `resolveMigrationUrl` dengan `APP_ENV=staging/production` tanpa `DATABASE_MIGRATION_URL`; sudah ditambahkan di `database/migrate.test.js`.
 
 ---
 
