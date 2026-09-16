@@ -63,7 +63,9 @@
   function toPublicRegistration(record) {
     return {
       registrationId: record.registrationId,
-      program: record.program,
+      // Disimpan bersarang di applicant.program (lihat postgres-registration-store.js),
+      // bukan langsung di record.program.
+      program: record.applicant.program,
       status: record.status,
       statusLabel: domain.STATUS_LABELS[record.status],
       progress: domain.PROGRESS[record.status],

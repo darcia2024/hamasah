@@ -78,13 +78,21 @@ async function testNormalFlow() {
   const submitted = await service.create(applicant('Naufal Rizki'));
   assert.equal(submitted.ok, true);
   assert.equal(submitted.value.registrationId, 'HI-REG-2026-00001');
+  // Regresi: program disimpan bersarang di applicant.program, dan toPublicRegistration
+  // sempat membacanya dari record.program (tidak ada), sehingga selalu tampil "undefined"
+  // di daftar pendaftaran staf. Ketahuan lewat pengecekan manual di browser, bukan test.
+  assert.equal(submitted.value.program, domain.PROGRAMS.MAHAD);
 
   const id = submitted.value.registrationId;
   assert.equal((await service.addDocument(id, { type: 'passport', storageKey: `registrations/${id}/passport.pdf` }, { role: domain.ROLES.APPLICANT })).ok, true);
   assert.equal((await service.changeStatus(id, domain.STATUSES.DOCUMENT_REVIEW, { role: domain.ROLES.APPLICANT })).ok, false);
   assert.equal((await service.changeStatus(id, domain.STATUSES.DOCUMENT_REVIEW, { role: domain.ROLES.REGISTRATION_OFFICER, note: 'Berkas diperiksa.' })).value.status, domain.STATUSES.DOCUMENT_REVIEW);
-  assert.equal((await service.getPublic(id)).value.history.length, 2);
-  assert.equal((await service.listForStaff()).length, 1);
+  const publicView = await service.getPublic(id);
+  assert.equal(publicView.value.history.length, 2);
+  assert.equal(publicView.value.program, domain.PROGRAMS.MAHAD);
+  const staffList = await service.listForStaff();
+  assert.equal(staffList.length, 1);
+  assert.equal(staffList[0].program, domain.PROGRAMS.MAHAD, 'Tampilan staf juga harus membawa program, bukan undefined.');
 }
 
 // Skenario A: dua pendaftar mengirim formulir hampir bersamaan.
