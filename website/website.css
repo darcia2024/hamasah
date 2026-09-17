@@ -27,6 +27,11 @@
 }
 
 * { box-sizing: border-box; font-synthesis: none; }
+/* CSS penulis (mis. class dengan display: grid/flex) mengalahkan display: none
+   bawaan atribut hidden milik browser. Tanpa baris ini, elemen yang classnya
+   sudah punya aturan display sendiri (contoh: .portal-dashboard, .registration-tracker)
+   tetap tampil kosong walau diberi atribut hidden. */
+[hidden] { display: none !important; }
 html { scroll-behavior: smooth; }
 body { min-width: 320px; margin: 0; color: var(--ink); background: var(--paper); font-weight: 400; }
 body.menu-open { overflow: hidden; }
