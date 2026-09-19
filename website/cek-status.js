@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const docListContainer = document.querySelector('#doc-list-container');
   const docUploadForm = document.querySelector('#doc-upload-form');
   const docTypeSelect = document.querySelector('#doc-type-select');
-  const docStorageKey = document.querySelector('#doc-storage-key');
+  const docFileInput = document.querySelector('#doc-file-input');
   const docUploadStatus = document.querySelector('#doc-upload-status');
   const historyTimeline = document.querySelector('#history-timeline');
 
@@ -182,10 +182,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!currentRegId || !currentToken) return;
 
     const docType = docTypeSelect.value;
-    const storageKey = docStorageKey.value.trim();
+    const file = docFileInput.files && docFileInput.files[0];
 
-    if (!storageKey) {
-      docUploadStatus.textContent = 'Nama berkas atau rujukan harus diisi.';
+    if (!file) {
+      docUploadStatus.textContent = 'Pilih berkas yang akan diunggah.';
       docUploadStatus.className = 'form-status is-error';
       return;
     }
@@ -194,6 +194,34 @@ document.addEventListener('DOMContentLoaded', () => {
     docUploadStatus.className = 'form-status';
 
     try {
+      const uploadRequest = await fetch('/api/uploads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentToken}`
+        },
+        body: JSON.stringify({
+          purpose: 'registration-document',
+          entityId: currentRegId,
+          fileName: file.name,
+          contentType: file.type || 'application/octet-stream',
+          size: file.size
+        })
+      });
+      const uploadData = await uploadRequest.json().catch(() => ({}));
+      if (!uploadRequest.ok) throw new Error(uploadData.error || 'Tempat unggah belum dapat dibuat.');
+
+      const contentResponse = await fetch(`/api/uploads/${encodeURIComponent(uploadData.upload.id)}/content`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type || 'application/octet-stream',
+          'Authorization': `Bearer ${currentToken}`
+        },
+        body: file
+      });
+      const contentData = await contentResponse.json().catch(() => ({}));
+      if (!contentResponse.ok) throw new Error(contentData.error || 'Isi berkas belum dapat disimpan.');
+
       const res = await fetch(`/api/registrations/${encodeURIComponent(currentRegId)}/documents`, {
         method: 'POST',
         headers: {
@@ -202,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         body: JSON.stringify({
           type: docType,
-          storageKey: storageKey
+          fileObjectId: uploadData.upload.id
         })
       });
 
@@ -213,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       docUploadStatus.textContent = 'Berkas berhasil dicatat ke sistem!';
       docUploadStatus.className = 'form-status is-success';
-      docStorageKey.value = '';
+      docFileInput.value = '';
 
       // Re-fetch registration to update document list
       fetchRegistration(currentRegId, currentToken);

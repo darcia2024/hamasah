@@ -81,7 +81,8 @@ function createHamasahApp(options) {
   const securityHeaders = createSecurityHeaders({ appEnvironment });
   const registrationStore = config.registrationStore || createPostgresRegistrationStore({ database });
   const registrationService = config.registrationService || registrationServiceModule.createRegistrationService({
-    store: registrationStore
+    store: registrationStore,
+    getFile: (fileId) => fileStore.get(fileId)
   });
   const applicantSessionStore = config.applicantSessionStore || createPostgresApplicantSessionStore({ database });
   const applicantService = config.applicantService || createApplicantService({ registrationStore, sessionStore: applicantSessionStore });
@@ -222,7 +223,7 @@ function createHamasahApp(options) {
         }
       }
 
-      const auth = createRequestAuth({ request, identityService, registrationService });
+      const auth = createRequestAuth({ request, identityService, registrationService, applicantService });
       // Penjagaan di lapisan route: belum masuk 401, role tidak berhak 403.
       // Route tanpa `permission` dan tanpa `session` memang terbuka untuk umum,
       // atau memakai token khusus seperti token pendaftaran.

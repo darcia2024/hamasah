@@ -369,3 +369,12 @@ Checkpoint lokal branch `codex/phase-0-stabilization`.
 Bukti checkpoint: `node --test server/identity-service.test.js website/registration-domain.test.js server/http/security-headers.test.js` lulus. `npm test` masih gagal hanya pada A01 (`registrations.convert` belum memiliki endpoint dan matriks test), sesuai rencana; belum boleh disebut release-ready.
 
 Tahap 1 berjalan sebagian: sender email sekarang memiliki timeout yang dapat diuji dan tidak menggantung proses. Outbox durable worker, claim/retry lintas restart, dan payload terenkripsi belum ditutup; fitur itu tetap menjadi pekerjaan Tahap 1 berikutnya.
+
+Tahap 2 checkpoint berjalan sebagian:
+
+- [x] Endpoint kandidat lama mengenali applicant session baru sebelum fallback token lama.
+- [x] Form dokumen publik mengunggah bytes melalui `/api/uploads`, lalu menautkan `fileObjectId`.
+- [x] Registration service menolak storage key manual, file asing, file pending, purpose/entity yang salah.
+- [x] Test app menguji upload PDF nyata sampai dokumen tertaut; test service menguji referensi palsu.
+- [ ] Login UI calon berbasis registration ID + access code belum menggantikan form token lama sepenuhnya.
+- [ ] Logout/recovery/cleanup applicant session dan update registration dengan locking masih terbuka.

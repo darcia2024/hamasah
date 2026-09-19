@@ -154,7 +154,7 @@
 
                 <form id="doc-upload-form" class="doc-upload-box">
                   <h4>Unggah Berkas Susulan</h4>
-                  <p class="form-subnote">Pilih jenis dokumen dan masukkan rujukan/nama berkas digital Anda.</p>
+                  <p class="form-subnote">Pilih jenis dokumen lalu unggah berkas PDF atau gambar. Berkas diperiksa sebelum ditautkan ke pendaftaran.</p>
                   
                   <div class="field-group">
                     <label for="doc-type-select">Jenis Berkas</label>
@@ -171,12 +171,12 @@
                   </div>
 
                   <div class="field-group">
-                    <label for="doc-storage-key">Nama / Rujukan Berkas</label>
-                    <input id="doc-storage-key" type="text" placeholder="Contoh: paspor-ahmad-raihan-2026.pdf" required />
+                    <label for="doc-file-input">Berkas</label>
+                    <input id="doc-file-input" type="file" accept="application/pdf,image/jpeg,image/png" required />
                   </div>
 
                   <button id="btn-upload-doc" class="button button--secondary" type="submit">
-                    <span>Kirim Catatan Dokumen</span>
+                    <span>Unggah Dokumen</span>
                     <span class="btn-arrow" aria-hidden="true">↑</span>
                   </button>
                   <p id="doc-upload-status" class="form-status" role="status" aria-live="polite"></p>

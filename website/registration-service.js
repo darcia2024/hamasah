@@ -75,6 +75,7 @@
         return {
           id: document.id,
           type: document.type,
+          fileObjectId: document.fileObjectId || null,
           status: document.status,
           uploadedAt: document.uploadedAt,
           reviewStatus: document.reviewStatus || 'pending',
@@ -127,13 +128,13 @@
     const source = input || {};
     const errors = {};
     const type = String(source.type || '').trim();
-    const storageKey = String(source.storageKey || '').trim();
+    const fileObjectId = String(source.fileObjectId || '').trim();
 
     if (!DOCUMENT_TYPES.includes(type)) {
       errors.type = 'Jenis berkas tidak dikenali.';
     }
-    if (!storageKey || storageKey.length > 255) {
-      errors.storageKey = 'Referensi penyimpanan berkas tidak valid.';
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(fileObjectId)) {
+      errors.fileObjectId = 'Berkas unggahan belum dipilih.';
     }
 
     return {
@@ -141,7 +142,7 @@
       errors,
       value: {
         type,
-        storageKey
+        fileObjectId
       }
     };
   }
@@ -149,6 +150,7 @@
   function createRegistrationService(options) {
     const config = options || {};
     const store = config.store || createMemoryStore();
+    const getFile = config.getFile || (async () => null);
     const getNow = config.now || function now() { return new Date().toISOString(); };
     const timeZone = config.timeZone || domain.REGISTRATION_TIME_ZONE;
 
@@ -243,9 +245,17 @@
         return { ok: false, errors: validated.errors };
       }
 
+      const file = await getFile(validated.value.fileObjectId);
+      if (!file || file.status !== 'ready' || file.purpose !== 'registration-document' ||
+        file.entityType !== 'registration' || file.entityId !== registrationId) {
+        return { ok: false, error: 'Berkas belum siap atau tidak terhubung ke pendaftaran ini.' };
+      }
+
       const document = {
         id: globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function' ? globalThis.crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
         ...validated.value,
+        storageKey: file.storageKey,
+        fileObjectId: file.id,
         status: 'received',
         reviewStatus: 'pending', reviewNote: '', reviewedAt: null, reviewedByAccountId: null,
         uploadedAt: getNow(),

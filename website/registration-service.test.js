@@ -70,6 +70,9 @@ function namesById(database) {
 async function testNormalFlow() {
   let clock = 0;
   const service = serviceModule.createRegistrationService({
+    getFile: async (fileId) => fileId === '123e4567-e89b-12d3-a456-426614174000' ? {
+      id: fileId, status: 'ready', purpose: 'registration-document', entityType: 'registration', entityId: 'HI-REG-2026-00001', storageKey: 'registration-document/HI-REG-2026-00001/file.pdf'
+    } : null,
     now() {
       clock += 1;
       return `2026-09-15T00:00:0${clock}.000Z`;
@@ -84,8 +87,10 @@ async function testNormalFlow() {
   assert.equal(submitted.value.program, domain.PROGRAMS.MAHAD);
 
   const id = submitted.value.registrationId;
-  const documentAdded = await service.addDocument(id, { type: 'passport', storageKey: `registrations/${id}/passport.pdf` }, { role: domain.ROLES.APPLICANT });
+  const documentAdded = await service.addDocument(id, { type: 'passport', fileObjectId: '123e4567-e89b-12d3-a456-426614174000' }, { role: domain.ROLES.APPLICANT });
   assert.equal(documentAdded.ok, true);
+  assert.equal((await service.addDocument(id, { type: 'passport', storageKey: 'registrations/forged.pdf' }, { role: domain.ROLES.APPLICANT })).ok, false, 'Storage key dari browser harus ditolak.');
+  assert.equal((await service.addDocument(id, { type: 'passport', fileObjectId: '123e4567-e89b-12d3-a456-426614174001' }, { role: domain.ROLES.APPLICANT })).ok, false, 'File yang tidak dikenal harus ditolak.');
   const documentId = documentAdded.value.documentSummary[0].id;
   assert.equal((await service.reviewDocument(id, documentId, { reviewStatus: 'rejected', note: '' }, { role: domain.ROLES.REGISTRATION_OFFICER, accountId: 'staff-1' })).ok, false);
   assert.equal((await service.reviewDocument(id, documentId, { reviewStatus: 'accepted' }, { role: domain.ROLES.REGISTRATION_OFFICER, accountId: 'staff-1' })).ok, true);

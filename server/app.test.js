@@ -245,10 +245,25 @@ async function run() {
     assert.equal(retrieved.status, 200);
     assert.equal(retrieved.body.registration.status, 'submitted');
 
+    const uploadRequest = await request(baseUrl, '/api/uploads', {
+      method: 'POST',
+      headers: candidateHeaders,
+      body: JSON.stringify({
+        purpose: 'registration-document', entityId: registrationId,
+        fileName: 'passport.pdf', contentType: 'application/pdf', size: 5
+      })
+    });
+    assert.equal(uploadRequest.status, 201);
+    const uploaded = await fetch(`${baseUrl}/api/uploads/${uploadRequest.body.upload.id}/content`, {
+      method: 'PUT', headers: { Authorization: candidateHeaders.Authorization, 'Content-Type': 'application/pdf' },
+      body: Buffer.from('%PDF-test')
+    });
+    assert.equal(uploaded.status, 200);
+
     const documentAdded = await request(baseUrl, `/api/registrations/${registrationId}/documents`, {
       method: 'POST',
       headers: candidateHeaders,
-      body: JSON.stringify({ type: 'passport', storageKey: `registrations/${registrationId}/passport.pdf` })
+      body: JSON.stringify({ type: 'passport', fileObjectId: uploadRequest.body.upload.id })
     });
     assert.equal(documentAdded.status, 201);
     assert.equal(documentAdded.body.registration.documentSummary.length, 1);

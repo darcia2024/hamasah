@@ -37,7 +37,7 @@ function registrationRoleOf(actor) {
     : registrationDomain.ROLES.REGISTRATION_OFFICER;
 }
 
-function createRequestAuth({ request, identityService, registrationService }) {
+function createRequestAuth({ request, identityService, registrationService, applicantService }) {
   const token = getBearerToken(request);
   let sessionPromise = null;
 
@@ -69,6 +69,10 @@ function createRequestAuth({ request, identityService, registrationService }) {
     },
     // Pemilik satu pendaftaran, dikenali dari token akses pendaftaran itu sendiri.
     async isCandidate(registrationId) {
+      if (applicantService && typeof applicantService.authenticate === 'function') {
+        const applicantSession = await applicantService.authenticate(token, registrationId);
+        if (applicantSession.ok) return true;
+      }
       const record = await registrationService.store.get(registrationId);
       if (!record || !record.accessTokenHash) {
         return false;
