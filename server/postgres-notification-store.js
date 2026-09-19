@@ -22,7 +22,11 @@ function toNotification(row) {
 
 const FIELDS = `id, notification_type, recipient_email, provider, account_id, status, attempts,
   provider_message_id, last_error, created_at, sent_at, updated_at`;
-const CLAIM_FIELDS = `${FIELDS}, payload_ciphertext, payload_nonce, payload_tag, claim_token, next_attempt_at`;
+// UPDATE ... FROM memiliki dua sumber kolom `id`; prefix outbox mencegah
+// PostgreSQL menganggap RETURNING id ambigu saat worker melakukan claim.
+const CLAIM_FIELDS = `outbox.id, outbox.notification_type, outbox.recipient_email, outbox.provider, outbox.account_id, outbox.status, outbox.attempts,
+  outbox.provider_message_id, outbox.last_error, outbox.created_at, outbox.sent_at, outbox.updated_at,
+  outbox.payload_ciphertext, outbox.payload_nonce, outbox.payload_tag, outbox.claim_token, outbox.next_attempt_at`;
 
 function createPostgresNotificationStore({ database } = {}) {
   if (!database) {
