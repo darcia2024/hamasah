@@ -6,6 +6,7 @@ const logoutButton = document.querySelector('#logout-button');
 const refreshButton = document.querySelector('#refresh-registrations');
 const registrationList = document.querySelector('#registration-list');
 const registrationListStatus = document.querySelector('#registration-list-status');
+const conversionResult = document.querySelector('#conversion-result');
 const articleForm = document.querySelector('#article-form');
 const articleFormStatus = document.querySelector('#article-form-status');
 const staffNav = document.querySelector('#staff-nav');
@@ -56,6 +57,42 @@ function formatWaktu(value) {
     timeStyle: 'short',
     timeZone: 'Asia/Jakarta'
   }).format(waktu);
+}
+
+function renderConversionResult(conversion) {
+  if (!conversionResult || !conversion || !conversion.student) return;
+  conversionResult.replaceChildren();
+  conversionResult.hidden = false;
+  const title = document.createElement('h3');
+  title.id = 'conversion-result-title';
+  title.textContent = conversion.alreadyConverted ? 'Onboarding sudah tersedia' : 'Onboarding santri dimulai';
+  const copy = document.createElement('p');
+  copy.textContent = `${conversion.student.name} · ${conversion.student.program} · ${conversion.student.city || 'Kairo'}`;
+  const list = document.createElement('div');
+  list.className = 'conversion-result__accounts';
+  (conversion.accounts || []).forEach((account) => {
+    const item = document.createElement('div');
+    item.className = 'conversion-result__account';
+    const label = document.createElement('strong');
+    label.textContent = account.role === 'student' ? 'Akun santri' : 'Akun wali';
+    const email = document.createElement('span');
+    email.textContent = account.email;
+    const status = document.createElement('span');
+    status.className = 'conversion-result__status';
+    status.textContent = account.onboardingStatus === 'active'
+      ? 'Aktif'
+      : account.onboardingStatus === 'invitation-sent'
+        ? 'Undangan terkirim'
+        : account.onboardingStatus === 'invitation-pending'
+          ? 'Menunggu pengiriman'
+          : 'Undangan belum tersedia';
+    item.append(label, email, status);
+    list.append(item);
+  });
+  const next = document.createElement('p');
+  next.className = 'conversion-result__next';
+  next.textContent = 'Langkah berikutnya: akun menerima email aktivasi, membuat kata sandi, lalu masuk ke portal sesuai perannya.';
+  conversionResult.append(title, copy, list, next);
 }
 
 function renderRegistrations(items) {
@@ -144,6 +181,7 @@ function renderRegistrations(items) {
           registrationListStatus.textContent = conversion.alreadyConverted
             ? `Pendaftaran sudah terhubung ke santri (${conversion.studentId}).`
             : `Santri berhasil dibuat (${conversion.studentId}). ${conversion.invitationsQueued} undangan masuk antrean.`;
+          renderConversionResult(conversion);
           await loadRegistrations();
         } catch (error) {
           registrationListStatus.textContent = error.message || 'Konversi belum dapat dilakukan.';

@@ -294,6 +294,10 @@ async function run() {
     });
     assert.equal(converted.status, 200, JSON.stringify(converted.body));
     assert.equal(converted.body.conversion.alreadyConverted, false);
+    assert.equal(converted.body.conversion.student.name, 'Naufal Rizki');
+    assert.equal(converted.body.conversion.accounts.length, 2);
+    assert.deepEqual(converted.body.conversion.accounts.map((account) => account.role).sort(), ['parent', 'student']);
+    assert.ok(converted.body.conversion.accounts.every((account) => account.onboardingStatus === 'invitation-pending'));
     const queuedInvitations = await database.query("SELECT account_id, payload_ciphertext, payload_nonce, payload_tag FROM notification_outbox WHERE notification_type = 'account-invitation'");
     assert.equal(queuedInvitations.rows.length, 2);
     assert.ok(queuedInvitations.rows.every((row) => row.account_id && row.payload_ciphertext && row.payload_nonce && row.payload_tag));
@@ -310,6 +314,7 @@ async function run() {
     });
     assert.equal(convertedAgain.status, 200);
     assert.equal(convertedAgain.body.conversion.alreadyConverted, true);
+    assert.equal(convertedAgain.body.conversion.accounts.length, 2);
     const registrationList = await request(baseUrl, '/api/registrations', {
       headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}` }
     });

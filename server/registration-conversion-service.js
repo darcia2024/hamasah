@@ -12,6 +12,34 @@ function normalizeEmail(value) {
 function createRegistrationConversionService({ database, notificationPayloadKey = 'development-only-key', now = () => new Date() } = {}) {
   if (!database) throw new Error('createRegistrationConversionService membutuhkan database.');
 
+  async function conversionSummary(tx, studentId, studentAccountId, parentAccountId) {
+    const studentResult = await tx.query(
+      'SELECT id, name, program, city, status, student_account_id, registration_id FROM students WHERE id = $1',
+      [studentId]
+    );
+    const accounts = [];
+    for (const accountId of [studentAccountId, parentAccountId]) {
+      const accountResult = await tx.query(
+        `SELECT a.id, a.email, a.role, a.active,
+                CASE WHEN a.active THEN 'active'
+                     WHEN EXISTS (SELECT 1 FROM notification_outbox n WHERE n.account_id = a.id AND n.status IN ('pending', 'processing')) THEN 'invitation-pending'
+                     WHEN EXISTS (SELECT 1 FROM notification_outbox n WHERE n.account_id = a.id AND n.status = 'sent') THEN 'invitation-sent'
+                     ELSE 'invitation-not-queued' END AS onboarding_status
+         FROM accounts a WHERE a.id = $1`,
+        [accountId]
+      );
+      if (accountResult.rows[0]) {
+        const row = accountResult.rows[0];
+        accounts.push({ id: row.id, email: row.email, role: row.role, active: Boolean(row.active), onboardingStatus: row.onboarding_status });
+      }
+    }
+    const student = studentResult.rows[0];
+    return {
+      student: student ? { id: student.id, name: student.name, program: student.program, city: student.city, status: student.status } : null,
+      accounts
+    };
+  }
+
   async function convert(registrationId, actor) {
     if (!actor || ![ROLES.ADMIN, ROLES.REGISTRATION_OFFICER].includes(actor.role)) {
       return { ok: false, status: 403, error: 'Akses petugas pendaftaran diperlukan.' };
@@ -29,11 +57,13 @@ function createRegistrationConversionService({ database, notificationPayloadKey 
         if (!registration) return { ok: false, error: 'Pendaftaran tidak ditemukan.' };
 
         const existing = await tx.query(
-          'SELECT id FROM students WHERE registration_id = $1 FOR UPDATE',
+          'SELECT id, student_account_id FROM students WHERE registration_id = $1 FOR UPDATE',
           [registration.id]
         );
         if (existing.rows[0]) {
-          return { ok: true, value: { studentId: existing.rows[0].id, alreadyConverted: true } };
+          const parent = await tx.query('SELECT parent_account_id FROM student_parent_accounts WHERE student_id = $1 LIMIT 1', [existing.rows[0].id]);
+          const summary = await conversionSummary(tx, existing.rows[0].id, existing.rows[0].student_account_id, parent.rows[0] && parent.rows[0].parent_account_id);
+          return { ok: true, value: { studentId: existing.rows[0].id, alreadyConverted: true, ...summary } };
         }
         if (!CONVERSION_STATUSES.includes(registration.status)) {
           return { ok: false, error: 'Pendaftaran belum memenuhi syarat untuk dikonversi menjadi santri.' };
@@ -100,7 +130,8 @@ function createRegistrationConversionService({ database, notificationPayloadKey 
             [crypto.randomUUID(), account.email, createdAtIso, account.id, encrypted.ciphertext, encrypted.nonce, encrypted.tag]
           );
         }
-        return { ok: true, value: { studentId, studentAccountId, parentAccountId, invitationsQueued: accountsToInvite.length, alreadyConverted: false } };
+        const summary = await conversionSummary(tx, studentId, studentAccountId, parentAccountId);
+        return { ok: true, value: { studentId, studentAccountId, parentAccountId, invitationsQueued: accountsToInvite.length, alreadyConverted: false, ...summary } };
       });
     } catch (error) {
       if (error && error.code === '23505') return { ok: false, error: 'Data konversi bentrok dengan akun atau santri yang sudah ada.' };
