@@ -206,5 +206,15 @@ module.exports = [
       if (result.ok) await services.auditService.record({ action: ACTIONS.REGISTRATION_NOTE_ADDED, actor: staff, ip, entityType: 'registration', entityId: params[0] });
       json(response, result.ok ? 201 : 422, result.ok ? { registration: result.value } : publicError(result));
     }
+  },
+  {
+    method: 'POST',
+    pattern: new RegExp(`^/api/registrations/(${REGISTRATION_ID})/next-steps$`),
+    permission: 'registrations.update-status',
+    async handler({ response, services, auth, params, readBody }) {
+      const staff = await auth.actor();
+      const result = await services.registrationService.addNextStep(params[0], await readBody(), { role: registrationRoleOf(staff), accountId: staff.id });
+      json(response, result.ok ? 201 : 422, result.ok ? { registration: result.value } : publicError(result));
+    }
   }
 ];

@@ -225,6 +225,21 @@ function renderRegistrations(items) {
       finally { addNote.disabled = false; }
     });
     noteBox.append(noteInput, visibility, addNote); controls.append(noteBox);
+    const nextStepBox = document.createElement('div'); nextStepBox.className = 'staff-note-box';
+    const nextStepTitle = document.createElement('input'); nextStepTitle.placeholder = 'Tindak lanjut berikutnya';
+    const nextStepDue = document.createElement('input'); nextStepDue.type = 'date';
+    const addNextStep = document.createElement('button'); addNextStep.type = 'button'; addNextStep.className = 'button button--secondary'; addNextStep.textContent = 'Tambah tindak lanjut';
+    addNextStep.addEventListener('click', async () => {
+      if (!nextStepTitle.value.trim()) return;
+      addNextStep.disabled = true;
+      try {
+        const response = await fetch(`/api/registrations/${encodeURIComponent(registration.registrationId)}/next-steps`, { method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ title: nextStepTitle.value, dueOn: nextStepDue.value || null }) });
+        const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Tindak lanjut belum dapat disimpan.');
+        nextStepTitle.value = ''; nextStepDue.value = ''; await loadRegistrations();
+      } catch (error) { registrationListStatus.textContent = error.message; registrationListStatus.classList.add('is-error'); }
+      finally { addNextStep.disabled = false; }
+    });
+    nextStepBox.append(nextStepTitle, nextStepDue, addNextStep); controls.append(nextStepBox);
     if (['ready-for-departure', 'completed'].includes(registration.status)) {
       const convert = document.createElement('button');
       convert.className = 'button button--primary';

@@ -362,6 +362,12 @@ async function run() {
     assert.equal(searchedRegistrations.status, 200);
     assert.equal(searchedRegistrations.body.total, 1);
     assert.equal(searchedRegistrations.body.items[0].registrationId, registrationId);
+    const nextStep = await request(baseUrl, `/api/registrations/${registrationId}/next-steps`, {
+      method: 'POST', headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Verifikasi terjemah ijazah', dueOn: '2026-10-01' })
+    });
+    assert.equal(nextStep.status, 201);
+    assert.equal(nextStep.body.registration.nextSteps[0].title, 'Verifikasi terjemah ijazah');
 
     const articleDenied = await request(baseUrl, '/api/articles', {
       method: 'POST',

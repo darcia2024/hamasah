@@ -349,9 +349,21 @@
       return record ? { ok: true, value: toPublicRegistration(record) } : { ok: false, error: 'Pendaftaran tidak ditemukan.' };
     }
 
+    async function addNextStep(registrationId, input, actor) {
+      if (!actor || ![domain.ROLES.ADMIN, domain.ROLES.REGISTRATION_OFFICER].includes(actor.role)) return { ok: false, error: 'Akses petugas diperlukan.' };
+      const title = String((input || {}).title || '').trim();
+      const dueOn = String((input || {}).dueOn || '').trim() || null;
+      if (!title || title.length > 240) return { ok: false, error: 'Judul tindak lanjut wajib diisi maksimal 240 karakter.' };
+      if (dueOn && !/^\d{4}-\d{2}-\d{2}$/.test(dueOn)) return { ok: false, error: 'Tanggal tindak lanjut belum valid.' };
+      const step = { id: globalThis.crypto && globalThis.crypto.randomUUID ? globalThis.crypto.randomUUID() : `${Date.now()}-${Math.random()}`, title, dueOn, doneAt: null, createdAt: getNow() };
+      const record = typeof store.addNextStep === 'function' ? await store.addNextStep(registrationId, step) : null;
+      return record ? { ok: true, value: toPublicRegistration(record) } : { ok: false, error: 'Pendaftaran tidak ditemukan.' };
+    }
+
     return Object.freeze({
       addDocument,
       addNote,
+      addNextStep,
       changeStatus,
       create,
       getPublic,
