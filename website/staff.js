@@ -125,6 +125,35 @@ function renderRegistrations(items) {
       }
     });
     controls.append(select, update);
+    if (['ready-for-departure', 'completed'].includes(registration.status)) {
+      const convert = document.createElement('button');
+      convert.className = 'button button--primary';
+      convert.type = 'button';
+      convert.textContent = 'Konversi jadi santri';
+      convert.addEventListener('click', async () => {
+        if (!window.confirm(`Konversi ${registration.applicant.applicantName} menjadi santri sekarang?`)) return;
+        convert.disabled = true;
+        try {
+          const response = await fetch(`/api/registrations/${encodeURIComponent(registration.registrationId)}/convert`, {
+            method: 'POST', headers: authHeaders()
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || 'Konversi belum dapat dilakukan.');
+          const conversion = result.conversion;
+          registrationListStatus.classList.remove('is-error');
+          registrationListStatus.textContent = conversion.alreadyConverted
+            ? `Pendaftaran sudah terhubung ke santri (${conversion.studentId}).`
+            : `Santri berhasil dibuat (${conversion.studentId}). ${conversion.invitationsQueued} undangan masuk antrean.`;
+          await loadRegistrations();
+        } catch (error) {
+          registrationListStatus.textContent = error.message || 'Konversi belum dapat dilakukan.';
+          registrationListStatus.classList.add('is-error');
+        } finally {
+          convert.disabled = false;
+        }
+      });
+      controls.append(convert);
+    }
     card.append(content, controls);
     registrationList.append(card);
   });
