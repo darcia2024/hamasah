@@ -7,7 +7,7 @@ function memoryStore() {
     items,
     async create(item) { const saved = { ...item, status: 'pending', attempts: 0 }; items.push(saved); return saved; },
     async markSent(id, values) { const item = items.find((entry) => entry.id === id); Object.assign(item, { status: 'sent', attempts: item.attempts + 1, ...values }); return item; },
-    async markFailed(id, values) { const item = items.find((entry) => entry.id === id); Object.assign(item, { status: 'failed', attempts: item.attempts + 1, ...values }); return item; },
+    async markFailed(id, values) { const item = items.find((entry) => entry.id === id); Object.assign(item, { status: 'failed', attempts: item.attempts + 1, lastError: values.message, ...values }); return item; },
     async list() { return { items, total: items.length, limit: 50, offset: 0 }; }
   };
 }
@@ -34,6 +34,15 @@ async function run() {
   assert.equal((await failed.sendInvitation({ email: 'wali@hamasah.test', name: 'Wali', activationUrl: 'https://app.test/a?token=secret' })).ok, false);
   assert.equal(failedStore.items[0].status, 'failed');
   assert.equal(JSON.stringify(failedStore.items).includes('secret'), false);
+
+  const timeoutStore = memoryStore();
+  const timeout = createNotificationService({
+    store: timeoutStore,
+    sender: { provider: 'test', configured: true, send() { return new Promise(() => {}); } },
+    senderTimeoutMs: 10
+  });
+  assert.equal((await timeout.sendInvitation({ email: 'wali@hamasah.test', name: 'Wali', activationUrl: 'https://app.test/a' })).ok, false);
+  assert.match(timeoutStore.items[0].lastError, /batas waktu/);
   console.log('notification service tests passed');
 }
 

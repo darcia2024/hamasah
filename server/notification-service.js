@@ -6,15 +6,29 @@ function escapeHtml(value) {
   return String(value || '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 }
 
-function createNotificationService({ store, sender, now = () => new Date() } = {}) {
+function createNotificationService({ store, sender, now = () => new Date(), senderTimeoutMs = 10000 } = {}) {
   if (!store) throw new Error('createNotificationService membutuhkan store.');
   if (!sender) throw new Error('createNotificationService membutuhkan sender.');
+
+  async function sendWithTimeout(message) {
+    let timer;
+    try {
+      return await Promise.race([
+        sender.send(message),
+        new Promise((resolve, reject) => {
+          timer = setTimeout(() => reject(new Error('Penyedia email melebihi batas waktu.')), senderTimeoutMs);
+        })
+      ]);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
 
   async function send({ notificationType, recipientEmail, subject, html }) {
     const createdAt = now().toISOString();
     const item = await store.create({ id: crypto.randomUUID(), notificationType, recipientEmail, provider: sender.provider, createdAt });
     try {
-      const sent = await sender.send({ type: notificationType, to: recipientEmail, subject, html });
+      const sent = await sendWithTimeout({ type: notificationType, to: recipientEmail, subject, html });
       return { ok: true, value: await store.markSent(item.id, { providerMessageId: sent.id, sentAt: now().toISOString() }) };
     } catch (error) {
       await store.markFailed(item.id, { message: error.message, failedAt: now().toISOString() });

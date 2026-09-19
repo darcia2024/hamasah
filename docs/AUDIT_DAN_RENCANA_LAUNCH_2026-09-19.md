@@ -367,3 +367,5 @@ Checkpoint lokal branch `codex/phase-0-stabilization`.
 - [~] T00.5 Statistik dashboard yang sebelumnya mengklaim progress nyata diubah menjadi empty state. Kartu aktivitas contoh lain masih menunggu penggantian dengan data API pada Tahap 6/7.
 
 Bukti checkpoint: `node --test server/identity-service.test.js website/registration-domain.test.js server/http/security-headers.test.js` lulus. `npm test` masih gagal hanya pada A01 (`registrations.convert` belum memiliki endpoint dan matriks test), sesuai rencana; belum boleh disebut release-ready.
+
+Tahap 1 berjalan sebagian: sender email sekarang memiliki timeout yang dapat diuji dan tidak menggantung proses. Outbox durable worker, claim/retry lintas restart, dan payload terenkripsi belum ditutup; fitur itu tetap menjadi pekerjaan Tahap 1 berikutnya.

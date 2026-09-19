@@ -20,7 +20,7 @@ function createConsoleEmailSender({ logger = console } = {}) {
   });
 }
 
-function createResendEmailSender({ apiKey, from, fetchImpl = globalThis.fetch } = {}) {
+function createResendEmailSender({ apiKey, from, fetchImpl = globalThis.fetch, timeoutMs = 10000 } = {}) {
   const secret = requireString(apiKey, 'RESEND_API_KEY');
   const sender = requireString(from, 'EMAIL_FROM');
   if (typeof fetchImpl !== 'function') throw new Error('fetch tidak tersedia untuk pengiriman email.');
@@ -28,11 +28,19 @@ function createResendEmailSender({ apiKey, from, fetchImpl = globalThis.fetch } 
     provider: 'resend',
     configured: true,
     async send(message) {
-      const response = await fetchImpl('https://api.resend.com/emails', {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
+      let response;
+      try {
+        response = await fetchImpl('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: `Bearer ${secret}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from: sender, to: [message.to], subject: message.subject, html: message.html })
-      });
+          body: JSON.stringify({ from: sender, to: [message.to], subject: message.subject, html: message.html }),
+          signal: controller.signal
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
       const body = await response.json().catch(() => ({}));
       if (!response.ok || !body.id) throw new Error('Penyedia email menolak pengiriman.');
       return { id: body.id };
