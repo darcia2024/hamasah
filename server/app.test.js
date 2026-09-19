@@ -272,6 +272,11 @@ async function run() {
     assert.equal(documentAdded.status, 201);
     assert.equal(documentAdded.body.registration.documentSummary.length, 1);
     assert.equal('storageKey' in documentAdded.body.registration.documentSummary[0], false);
+    const reviewStatus = await request(baseUrl, `/api/registrations/${registrationId}/status`, {
+      method: 'PATCH', headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'document-review', note: 'Berkas mulai diperiksa.' })
+    });
+    assert.equal(reviewStatus.status, 200);
     const rejectedDocument = await request(baseUrl, `/api/registrations/${registrationId}/documents/${documentAdded.body.registration.documentSummary[0].id}/review`, {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}`, 'Content-Type': 'application/json' },
@@ -281,6 +286,11 @@ async function run() {
     const candidateAfterReview = await request(baseUrl, `/api/registrations/${registrationId}`, { headers: candidateHeaders });
     assert.equal(candidateAfterReview.body.registration.documentSummary[0].reviewStatus, 'rejected');
     assert.equal(candidateAfterReview.body.registration.documentSummary[0].reviewNote, 'Foto paspor kurang jelas, mohon unggah ulang.');
+    const needsRevision = await request(baseUrl, `/api/registrations/${registrationId}/status`, {
+      method: 'PATCH', headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'needs-revision', note: 'Mohon perbaiki dokumen yang ditolak.' })
+    });
+    assert.equal(needsRevision.status, 200);
     const replacementUpload = await request(baseUrl, '/api/uploads', {
       method: 'POST', headers: candidateHeaders,
       body: JSON.stringify({ purpose: 'registration-document', entityId: registrationId, fileName: 'passport-replacement.pdf', contentType: 'application/pdf', size: 5 })
@@ -296,14 +306,8 @@ async function run() {
     });
     assert.equal(replacementDocument.status, 201);
     assert.equal(replacementDocument.body.registration.documentSummary.length, 2);
+    assert.equal(replacementDocument.body.registration.status, 'document-review');
 
-    const changed = await request(baseUrl, `/api/registrations/${registrationId}/status`, {
-      method: 'PATCH',
-      headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'document-review', note: 'Berkas mulai diperiksa.' })
-    });
-    assert.equal(changed.status, 200);
-    assert.equal(changed.body.registration.status, 'document-review');
     for (const nextStatus of ['academic-preparation', 'ready-for-departure']) {
       const transitioned = await request(baseUrl, `/api/registrations/${registrationId}/status`, {
         method: 'PATCH',

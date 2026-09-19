@@ -268,11 +268,25 @@
         uploadedBy: actorRole,
         uploadedByAccountId: (actor && actor.accountId) || null
       };
-      const saved = await store.update({
+      const replacement = record.status === domain.STATUSES.NEEDS_REVISION && record.documents.some((entry) => entry.type === document.type && entry.reviewStatus === 'rejected');
+      const nextRecord = {
         ...record,
         documents: record.documents.concat(document),
         updatedAt: document.uploadedAt
-      });
+      };
+      if (actorRole === domain.ROLES.APPLICANT && replacement) {
+        nextRecord.status = domain.STATUSES.DOCUMENT_REVIEW;
+        nextRecord.progress = domain.PROGRESS[domain.STATUSES.DOCUMENT_REVIEW];
+        nextRecord.statusHistory = (record.statusHistory || []).concat({
+          from: domain.STATUSES.NEEDS_REVISION,
+          to: domain.STATUSES.DOCUMENT_REVIEW,
+          changedAt: document.uploadedAt,
+          changedBy: domain.ROLES.APPLICANT,
+          changedByAccountId: null,
+          note: 'Dokumen revisi dikirim dan menunggu pemeriksaan petugas.'
+        });
+      }
+      const saved = await store.update(nextRecord);
 
       return { ok: true, value: toPublicRegistration(saved) };
     }
