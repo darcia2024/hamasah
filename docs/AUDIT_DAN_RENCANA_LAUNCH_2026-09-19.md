@@ -382,3 +382,16 @@ Tahap 2 checkpoint berjalan sebagian:
 - [ ] Recovery calon, optimistic version parent snapshot, dan stress test dua update SQL masih terbuka.
 
 Regression terakhir Tahap 2: 35 dari 36 file test lulus. Semua test modul yang disentuh lulus; satu kegagalan tetap A01 karena `registrations.convert` belum memiliki route dan skenario matriks akses.
+
+## 13. Log eksekusi Tahap 3
+
+- [x] Migrasi 017 menambahkan `registrations.row_version` untuk optimistic concurrency.
+- [x] Migrasi 018 menautkan notification outbox ke akun yang diundang.
+- [x] Migrasi 019 menambahkan payload undangan terenkripsi (ciphertext/nonce/tag); token mentah tidak masuk database.
+- [x] `registration-conversion-service` mengunci registrasi, memvalidasi status/email/role, membuat akun santri dan wali, membuat relasi, serta menulis outbox dalam satu transaksi.
+- [x] Endpoint `POST /api/registrations/:id/convert` tersedia untuk admin dan registration officer.
+- [x] Retry setelah konversi mengembalikan hasil idempotent tanpa membuat santri/akun ganda.
+- [x] Matriks akses mencakup izin `registrations.convert` dan seluruh route berizin.
+- [x] Full `npm test`: 36/36 file test lulus.
+
+Migrasi 017–019 baru tervalidasi di database test/PGlite dan integration test. Belum diterapkan ke database staging/produksi; lakukan backup, staging migration, dan restore rehearsal sesuai gate sebelum deployment.

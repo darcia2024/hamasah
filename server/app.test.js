@@ -209,6 +209,9 @@ async function run() {
         phone: '0812 3456 7890',
         guardianName: 'Ahmad Rizki',
         guardianPhone: '0813 2222 3333',
+        email: 'naufal@hamasah.test',
+        guardianEmail: 'wali-naufal@hamasah.test',
+        birthDate: '2007-04-12', gender: 'putra', schoolOrigin: 'SMA Uji', guardianConsent: true,
         program: 'mahad-al-azhar',
         educationLevel: 'MA',
         city: 'Bandung',
@@ -276,6 +279,29 @@ async function run() {
     });
     assert.equal(changed.status, 200);
     assert.equal(changed.body.registration.status, 'document-review');
+    for (const nextStatus of ['academic-preparation', 'ready-for-departure']) {
+      const transitioned = await request(baseUrl, `/api/registrations/${registrationId}/status`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextStatus, note: `Transisi ${nextStatus}.` })
+      });
+      assert.equal(transitioned.status, 200);
+    }
+    const converted = await request(baseUrl, `/api/registrations/${registrationId}/convert`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}` }
+    });
+    assert.equal(converted.status, 200, JSON.stringify(converted.body));
+    assert.equal(converted.body.conversion.alreadyConverted, false);
+    const queuedInvitations = await database.query("SELECT account_id, payload_ciphertext, payload_nonce, payload_tag FROM notification_outbox WHERE notification_type = 'account-invitation'");
+    assert.equal(queuedInvitations.rows.length, 2);
+    assert.ok(queuedInvitations.rows.every((row) => row.account_id && row.payload_ciphertext && row.payload_nonce && row.payload_tag));
+    const convertedAgain = await request(baseUrl, `/api/registrations/${registrationId}/convert`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}` }
+    });
+    assert.equal(convertedAgain.status, 200);
+    assert.equal(convertedAgain.body.conversion.alreadyConverted, true);
     const registrationList = await request(baseUrl, '/api/registrations', {
       headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}` }
     });

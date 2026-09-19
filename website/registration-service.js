@@ -43,9 +43,14 @@
         records.set(record.registrationId, clone(record));
         return clone(record);
       },
-      update(record) {
-        records.set(record.registrationId, clone(record));
-        return clone(record);
+      async update(record) {
+        const existing = records.get(record.registrationId);
+        if (existing && record.version !== undefined && record.version !== existing.version) {
+          throw new Error('Konflik versi pendaftaran. Muat ulang data terbaru.');
+        }
+        const saved = { ...record, version: (existing && existing.version || record.version || 1) + 1 };
+        records.set(record.registrationId, clone(saved));
+        return clone(saved);
       },
       get(registrationId) {
         const record = records.get(registrationId);
@@ -174,6 +179,7 @@
 
       const record = {
         ...created.value,
+        version: 1,
         documents: [], notes: [], nextSteps: [],
         ...createOptions.privateData
       };

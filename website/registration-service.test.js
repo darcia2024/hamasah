@@ -105,6 +105,14 @@ async function testNormalFlow() {
   const staffList = await service.listForStaff();
   assert.equal(staffList.length, 1);
   assert.equal(staffList[0].program, domain.PROGRAMS.MAHAD, 'Tampilan staf juga harus membawa program, bukan undefined.');
+  const snapshot = await service.store.get(id);
+  const current = await service.store.get(id);
+  await service.store.update({ ...current, updatedAt: '2026-09-15T00:00:30.000Z' });
+  await assert.rejects(
+    service.store.update(snapshot),
+    /Konflik versi/,
+    'Snapshot registrasi lama harus ditolak.'
+  );
 }
 
 // Skenario A: dua pendaftar mengirim formulir hampir bersamaan.

@@ -69,6 +69,7 @@ function createPostgresRegistrationStore({ database } = {}) {
       accessCodeHash: registration.access_code_hash,
       createdAt: registration.created_at.toISOString(),
       updatedAt: registration.updated_at.toISOString(),
+      version: Number(registration.row_version || 1),
       documents: documents.rows.map((row) => ({
         id: row.id,
         type: row.document_type,
@@ -257,8 +258,10 @@ function createPostgresRegistrationStore({ database } = {}) {
              privacy_policy_version = $19,
              guardian_email = $20,
              guardian_consent_at = $21,
-             updated_at = $22
-           WHERE id = $1`,
+             updated_at = $22,
+             row_version = row_version + 1
+           WHERE id = $1 AND row_version = $23
+           RETURNING row_version`,
           [
             id,
             record.applicant.applicantName,
@@ -281,14 +284,15 @@ function createPostgresRegistrationStore({ database } = {}) {
             record.applicant.privacyPolicyVersion || 'v1',
             record.applicant.guardianEmail || null,
             record.applicant.guardianConsent ? record.updatedAt : null,
-            record.updatedAt
+            record.updatedAt,
+            Number(record.version || 1)
           ]
         );
         if (updated.rowCount === 0) {
-          throw new Error(`Pendaftaran ${record.registrationId} tidak ditemukan.`);
+          throw new Error(`Pendaftaran ${record.registrationId} tidak ditemukan atau sudah berubah. Muat ulang data terbaru.`);
         }
         await writeChildRows(tx, id, record);
-        return { ...record, id };
+        return { ...record, id, version: Number(updated.rows[0].row_version) };
       });
     }
   };

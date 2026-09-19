@@ -26,6 +26,7 @@ const { createPostgresDormitoryStore } = require('./postgres-dormitory-store.js'
 const { createAuditService } = require('./audit-service.js');
 const { createPostgresAuditStore } = require('./postgres-audit-store.js');
 const { createFileService } = require('./file-service.js');
+const { createRegistrationConversionService } = require('./registration-conversion-service.js');
 const { createPostgresFileStore } = require('./postgres-file-store.js');
 const { createLocalStorage } = require('./storage/local.js');
 const { createSupabaseStorage } = require('./storage/supabase.js');
@@ -83,6 +84,10 @@ function createHamasahApp(options) {
   const registrationService = config.registrationService || registrationServiceModule.createRegistrationService({
     store: registrationStore,
     getFile: (fileId) => fileStore.get(fileId)
+  });
+  const registrationConversionService = config.registrationConversionService || createRegistrationConversionService({
+    database,
+    notificationPayloadKey: config.notificationPayloadKey || process.env.NOTIFICATION_PAYLOAD_KEY || process.env.IP_HASH_SECRET || 'development-only-key'
   });
   const applicantSessionStore = config.applicantSessionStore || createPostgresApplicantSessionStore({ database });
   const applicantService = config.applicantService || createApplicantService({ registrationStore, sessionStore: applicantSessionStore });
@@ -187,6 +192,7 @@ function createHamasahApp(options) {
     notificationService,
     operationsService,
     registrationService,
+    registrationConversionService,
     studentPortalService
   });
 
@@ -380,6 +386,7 @@ function createHamasahApp(options) {
     },
     identityService,
     registrationService,
+    registrationConversionService,
     applicantService,
     studentPortalService,
     dormitoryService,

@@ -9,6 +9,7 @@ function toNotification(row) {
     notificationType: row.notification_type,
     recipientEmail: row.recipient_email,
     provider: row.provider,
+    accountId: row.account_id || null,
     status: row.status,
     attempts: Number(row.attempts),
     providerMessageId: row.provider_message_id || null,

@@ -223,6 +223,13 @@ async function run() {
         permission: 'registrations.update-status', method: 'PATCH', path: () => `/api/registrations/${registrationId}/status`,
         body: () => ({ status: 'document-review', note: 'Berkas mulai diperiksa.' })
       },
+      {
+        permission: 'registrations.update-status', method: 'POST', path: () => `/api/registrations/${registrationId}/notes`,
+        body: () => ({ visibility: 'internal', body: 'Catatan matriks.' })
+      },
+      {
+        permission: 'registrations.convert', method: 'POST', path: () => `/api/registrations/${registrationId}/convert`
+      },
 
       {
         permission: 'articles.write', method: 'POST', path: '/api/articles',

@@ -34,6 +34,7 @@ const ACTIONS = Object.freeze({
   REGISTRATION_STATUS_CHANGED: 'registration.status-changed',
   REGISTRATION_DOCUMENT_ADDED: 'registration.document-added',
   REGISTRATION_DOCUMENT_REVIEWED: 'registration.document-reviewed',
+  REGISTRATION_CONVERTED: 'registration.converted',
   REGISTRATION_NOTE_ADDED: 'registration.note-added',
   STUDENT_CREATED: 'student.created',
   STUDENT_ACCOUNTS_LINKED: 'student.accounts-linked',
