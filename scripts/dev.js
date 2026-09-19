@@ -10,6 +10,10 @@ const DEV_DATABASE_URL = 'pglite:./data/dev-db';
 
 process.env.APP_ENV = 'development';
 process.env.DATABASE_URL = DEV_DATABASE_URL;
+// Development harus selalu memakai disk lokal. Nilai STORAGE_DRIVER dari .env
+// production tidak boleh membuat smoke test menghubungi Supabase atau jaringan.
+process.env.STORAGE_DRIVER = 'local';
+process.env.STORAGE_DRIVER = 'local';
 
 async function main() {
   console.log('[dev] Menyiapkan database lokal di data/dev-db.');

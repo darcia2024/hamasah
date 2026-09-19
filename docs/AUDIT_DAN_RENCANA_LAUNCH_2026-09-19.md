@@ -400,3 +400,16 @@ Regression Tahap 3: 36 dari 36 file test lulus. A01 sudah ditutup dengan route k
 Migrasi 017–019 baru tervalidasi di database test/PGlite dan integration test. Belum diterapkan ke database staging/produksi; lakukan backup, staging migration, dan restore rehearsal sesuai gate sebelum deployment.
 
 Payload undangan sudah disimpan sebagai AES-GCM dan dapat didekripsi oleh worker melalui `server/notification-payload.js`. Pemanggilan terjadwal worker dan observability provider tetap harus diaktifkan pada deployment staging/produksi; kode aplikasi belum menganggap scheduler eksternal sudah berjalan.
+
+## 14. UAT lokal
+
+- [x] Health dan readiness API membalas siap.
+- [x] Login admin dan pembuatan akun wali/santri berjalan.
+- [x] Pembuatan santri, relasi wali, presensi, kegiatan, dan dashboard wali berjalan.
+- [x] Akses wali lain ke dashboard santri ditolak dengan `403`.
+- [x] Pembuatan maddah, materi, progress, invoice, dan kuitansi berjalan.
+- [x] Pendaftaran publik, perubahan status, upload PDF, dan download kembali menghasilkan isi byte yang sama.
+
+Bukti eksekusi: `SMOKE_BASE_URL=http://127.0.0.1:4273 SMOKE_ADMIN_EMAIL=admin@hamasah.test SMOKE_ADMIN_PASSWORD=(dev secret) node scripts/smoke.js` menghasilkan **12/12 langkah lulus**. Kegagalan pertama disebabkan environment development membaca `STORAGE_DRIVER=supabase` dari `.env`; `scripts/dev.js` sekarang memaksa driver lokal agar UAT development tidak bergantung jaringan.
+
+Konversi pendaftar menjadi santri, retry idempotent, enkripsi payload undangan, dan matriks otorisasi sudah dibuktikan oleh integration test `npm test` (**37/37 file lulus**). UAT staging yang masih wajib: migrasi 017–020, storage provider nyata, email aktivasi, scheduler worker, backup/restore, domain HTTPS, dan persetujuan pemilik proses.
