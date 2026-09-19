@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const applicantEditCard = document.querySelector('#applicant-edit-card');
   const applicantEditForm = document.querySelector('#applicant-edit-form');
   const applicantEditStatus = document.querySelector('#applicant-edit-status');
+  const recoveryForm = document.querySelector('#recovery-form');
+  const recoveryEmail = document.querySelector('#recovery-email');
+  const recoveryStatus = document.querySelector('#recovery-status');
 
   function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (character) => ({
@@ -229,6 +232,27 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
       applicantEditStatus.textContent = error.message;
       applicantEditStatus.className = 'form-status is-error';
+    }
+  });
+
+  recoveryForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const registrationId = regIdInput.value.trim().toUpperCase();
+    const email = recoveryEmail.value.trim();
+    recoveryStatus.textContent = 'Memproses permintaan...';
+    recoveryStatus.className = 'form-status';
+    try {
+      const response = await fetch('/api/applicant/recovery', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ registrationId, email })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'Permintaan belum dapat diproses.');
+      recoveryStatus.textContent = data.message || 'Jika data cocok, kode akses baru akan dikirim ke email terdaftar.';
+      recoveryStatus.className = 'form-status is-success';
+    } catch (error) {
+      recoveryStatus.textContent = error.message;
+      recoveryStatus.className = 'form-status is-error';
     }
   });
 

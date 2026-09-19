@@ -25,6 +25,10 @@ async function run() {
   assert.equal(delivered.length, 1);
   assert.equal(store.items[0].status, 'sent');
   assert.equal(JSON.stringify(store.items).includes('secret-token'), false, 'Outbox tidak boleh menyimpan token reset.');
+  const recovery = await service.sendApplicantRecovery({ email: 'naufal@hamasah.test', name: 'Naufal', registrationId: 'HI-REG-2026-00001', accessCode: 'ABCD234567' });
+  assert.equal(recovery.ok, true);
+  assert.match(delivered[1].html, /ABCD234567/);
+  assert.equal(store.items[1].notificationType, 'password-reset');
 
   const failedStore = memoryStore();
   const failed = createNotificationService({

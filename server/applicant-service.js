@@ -21,6 +21,26 @@ function createApplicantService({ registrationStore, sessionStore, now = () => n
     await sessionStore.save({ tokenHash: hashToken(token), registrationId: registration.id, expiresAt: new Date(issuedAt.getTime() + SESSION_TTL_MS).toISOString(), createdAt: issuedAt.toISOString() });
     return { ok: true, value: { accessToken: token, registrationId: registration.registrationId } };
   }
+  async function recoverAccessCode(registrationId, email) {
+    const registration = await registrationStore.get(registrationId);
+    const requestedEmail = String(email || '').trim().toLocaleLowerCase('id-ID');
+    const registeredEmail = String(registration?.applicant?.email || '').trim().toLocaleLowerCase('id-ID');
+    if (!registration || !requestedEmail || !registeredEmail || requestedEmail !== registeredEmail) {
+      return { ok: false, error: 'Data pemulihan tidak cocok.' };
+    }
+    const accessCode = createAccessCode();
+    const updatedAt = now().toISOString();
+    await registrationStore.update({ ...registration, accessCodeHash: await hashPassword(accessCode), updatedAt });
+    return {
+      ok: true,
+      value: {
+        registrationId: registration.registrationId,
+        email: registration.applicant.email,
+        name: registration.applicant.applicantName,
+        accessCode
+      }
+    };
+  }
   async function authenticate(token, registrationId) {
     const session = await sessionStore.get(hashToken(token || ''));
     if (!session || new Date(session.expiresAt).getTime() <= now().getTime()) return { ok: false, error: 'Sesi pendaftar berakhir.' };
@@ -36,7 +56,7 @@ function createApplicantService({ registrationStore, sessionStore, now = () => n
     if (typeof sessionStore.removeExpired !== 'function') return 0;
     return sessionStore.removeExpired(now().toISOString());
   }
-  return Object.freeze({ authenticate, createAccessCode, hashAccessCode: hashPassword, login, logout, purgeExpiredSessions });
+  return Object.freeze({ authenticate, createAccessCode, hashAccessCode: hashPassword, login, logout, purgeExpiredSessions, recoverAccessCode });
 }
 
 module.exports = { ACCESS_CODE_ALPHABET, SESSION_TTL_MS, createAccessCode, createApplicantService };

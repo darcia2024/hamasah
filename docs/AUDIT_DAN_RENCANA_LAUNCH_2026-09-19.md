@@ -379,7 +379,8 @@ Tahap 2 checkpoint berjalan sebagian:
 - [x] Login UI cek pendaftaran memakai registration ID + access code dan endpoint applicant session; logout applicant juga tersedia.
 - [x] Applicant session punya logout dan pembersihan kedaluwarsa; timer upload stale juga sekarang ditutup saat shutdown.
 - [x] Update registration mengunci row induk dan tidak lagi menghapus child rows; review dokumen/history dipertahankan melalui insert/upsert terarah.
-- [ ] Recovery calon, optimistic version parent snapshot, dan stress test dua update SQL masih terbuka.
+- [x] Recovery calon tersedia lewat endpoint generik `POST /api/applicant/recovery`, rate limit 3/jam, pencocokan email case-insensitive, hash kode baru, dan notifikasi tanpa membocorkan apakah data cocok.
+- [ ] Optimistic version parent snapshot dan stress test dua update SQL masih terbuka.
 
 Regression Tahap 3: 36 dari 36 file test lulus. A01 sudah ditutup dengan route konversi, transaksi idempotent, dan skenario matriks akses.
 
@@ -402,6 +403,7 @@ Regression Tahap 3: 36 dari 36 file test lulus. A01 sudah ditutup dengan route k
 - [x] Workspace petugas memiliki review dokumen (terima/tolak dengan alasan) dan catatan internal/untuk pendaftar yang tersambung ke endpoint audit.
 - [x] UI cek status menampilkan alasan penolakan dan memandu unggah ulang dokumen dengan jenis yang sama; integration test membuktikan reject → reupload → link berkas baru tanpa menghapus histori.
 - [x] Pengiriman revisi oleh calon dari status `needs-revision` otomatis mengembalikan status ke `document-review` dan menambah histori yang dapat dilihat petugas.
+- [x] Calon dapat meminta kode akses baru dari halaman cek status; respons selalu generik, kode lama langsung tidak berlaku, dan pengiriman memakai notification service dengan timeout.
 
 Migrasi 017–019 baru tervalidasi di database test/PGlite dan integration test. Belum diterapkan ke database staging/produksi; lakukan backup, staging migration, dan restore rehearsal sesuai gate sebelum deployment.
 
@@ -419,5 +421,7 @@ Payload undangan sudah disimpan sebagai AES-GCM dan dapat didekripsi oleh worker
 Bukti eksekusi: `SMOKE_BASE_URL=http://127.0.0.1:4273 SMOKE_ADMIN_EMAIL=admin@hamasah.test SMOKE_ADMIN_PASSWORD=(dev secret) node scripts/smoke.js` menghasilkan **12/12 langkah lulus**. Kegagalan pertama disebabkan environment development membaca `STORAGE_DRIVER=supabase` dari `.env`; `scripts/dev.js` sekarang memaksa driver lokal agar UAT development tidak bergantung jaringan.
 
 Konversi pendaftar menjadi santri, retry idempotent, enkripsi payload undangan, dan matriks otorisasi sudah dibuktikan oleh integration test `npm test` (**37/37 file lulus**). UAT staging yang masih wajib: migrasi 017–020, storage provider nyata, email aktivasi, scheduler worker, backup/restore, domain HTTPS, dan persetujuan pemilik proses.
+
+Recovery kode akses sudah dibuktikan lewat unit test applicant/notification dan integration test `server/app.test.js`. Email recovery masih memakai tipe outbox `password-reset` agar kompatibel dengan constraint schema saat ini; perlu migrasi tipe notifikasi tersendiri bila ingin pelacakan dan worker recovery dipisahkan.
 
 Untuk staging, jalankan `npm run worker:notifications -- --once` setelah env email, `NOTIFICATION_PAYLOAD_KEY`, dan migrasi 020 siap. Untuk daemon gunakan `npm run worker:notifications` di service manager dengan restart policy; jangan menjalankannya dari browser atau proses web request.

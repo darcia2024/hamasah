@@ -3798,3 +3798,17 @@ h1, h2, h3, h4 {
 }
 
 
+
+.recovery-card {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border-subtle, #e5e7eb);
+  border-radius: 1rem;
+  background: var(--surface-container-low, #fafafa);
+}
+.recovery-card h3 { margin: .25rem 0 .35rem; }
+.recovery-card p { margin: 0; color: var(--text-secondary, #5f6368); font-size: .9rem; }
+.recovery-fields { display: flex; gap: .75rem; align-items: end; margin-top: 1rem; }
+.recovery-fields label { flex: 1; display: grid; gap: .35rem; font-size: .85rem; font-weight: 600; }
+.recovery-fields input { width: 100%; }
+@media (max-width: 640px) { .recovery-fields { flex-direction: column; align-items: stretch; } }

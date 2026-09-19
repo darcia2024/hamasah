@@ -56,7 +56,17 @@ function createNotificationService({ store, sender, now = () => new Date(), send
     });
   }
 
-  return Object.freeze({ canSend, list: (query) => store.list(query), sendInvitation, sendPasswordReset });
+  async function sendApplicantRecovery({ email, name, registrationId, accessCode }) {
+    return send({
+      // Reuse the existing database enum until notification types are expanded in a later migration.
+      notificationType: NOTIFICATION_TYPES.PASSWORD_RESET,
+      recipientEmail: email,
+      subject: 'Kode akses pendaftaran Hamasah International',
+      html: `<p>Assalamu'alaikum ${escapeHtml(name)},</p><p>Berikut kode akses baru untuk memeriksa pendaftaran ${escapeHtml(registrationId)}:</p><p style="font-size:24px;font-weight:700;letter-spacing:3px">${escapeHtml(accessCode)}</p><p>Jangan bagikan kode ini kepada orang lain. Jika Anda tidak meminta kode baru, segera hubungi admin Hamasah International.</p>`
+    });
+  }
+
+  return Object.freeze({ canSend, list: (query) => store.list(query), sendApplicantRecovery, sendInvitation, sendPasswordReset });
 }
 
 module.exports = { NOTIFICATION_TYPES, createNotificationService, escapeHtml };

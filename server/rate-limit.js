@@ -18,6 +18,8 @@ const RULES = Object.freeze({
   'registration-create': Object.freeze({ limit: 5, windowMs: 1 * JAM }),
   // Menebak token akses pendaftaran.
   'applicant-login': Object.freeze({ limit: 5, windowMs: 15 * MENIT }),
+  // Meminta kode akses baru harus lebih ketat karena selalu mengirim email.
+  'applicant-recovery': Object.freeze({ limit: 3, windowMs: 1 * JAM }),
   'faq-ask': Object.freeze({ limit: 20, windowMs: 10 * MENIT }),
   // Dipakai mulai Phase 13, saat pertanyaan diteruskan ke model AI berbayar.
   'ai-ask': Object.freeze({ limit: 10, windowMs: 10 * MENIT }),

@@ -224,6 +224,17 @@ async function run() {
     assert.equal('phone' in created.body.registration, false);
 
     const registrationId = created.body.registration.registrationId;
+    const recoveryUnknown = await request(baseUrl, '/api/applicant/recovery', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ registrationId, email: 'bukan@naufal.test' })
+    });
+    assert.equal(recoveryUnknown.status, 202);
+    const recovery = await request(baseUrl, '/api/applicant/recovery', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ registrationId, email: 'naufal@hamasah.test' })
+    });
+    assert.equal(recovery.status, 202);
+    assert.match(recovery.body.message, /kode akses baru/);
     const denied = await request(baseUrl, `/api/registrations/${registrationId}`);
     assert.equal(denied.status, 401);
 

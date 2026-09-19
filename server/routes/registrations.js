@@ -1,7 +1,8 @@
 const registrationDomain = require('../../website/registration-domain.js');
-const { json, publicError } = require('../http/respond.js');
+const { json, publicError, tooManyRequests } = require('../http/respond.js');
 const { createAccessToken, hashToken, registrationRoleOf } = require('../http/auth.js');
 const { ACTIONS } = require('../audit-service.js');
+const { TOO_MANY_REQUESTS } = require('../rate-limit.js');
 
 const REGISTRATION_ID = String.raw`HI-REG-\d{4}-\d{5}`;
 
@@ -46,6 +47,27 @@ module.exports = [
       }
       const loggedIn = await services.applicantService.login(registrationId, body.accessCode);
       json(response, loggedIn.ok ? 200 : 401, loggedIn.ok ? loggedIn.value : publicError(loggedIn));
+    }
+  },
+
+  {
+    method: 'POST',
+    pattern: /^\/api\/applicant\/recovery$/,
+    async handler({ response, services, readBody, rateLimit, ip }) {
+      const body = await readBody();
+      const registrationId = String(body.registrationId || '').trim().toUpperCase();
+      const limit = rateLimit.check('applicant-recovery', `${ip}:${registrationId}`);
+      if (!limit.allowed) {
+        tooManyRequests(response, limit.retryAfterSeconds, TOO_MANY_REQUESTS);
+        return;
+      }
+
+      // Selalu balas 202 agar nomor pendaftaran dan email tidak dapat ditebak.
+      const recovered = await services.applicantService.recoverAccessCode(registrationId, body.email);
+      if (recovered.ok && services.notificationService.canSend()) {
+        await services.notificationService.sendApplicantRecovery(recovered.value);
+      }
+      json(response, 202, { message: 'Jika data cocok, kode akses baru akan dikirim ke email terdaftar.' });
     }
   },
 
