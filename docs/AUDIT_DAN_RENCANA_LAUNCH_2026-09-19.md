@@ -354,7 +354,7 @@ Developer bertanggung jawab menyiapkan implementasi, validasi env, panduan langk
 7. Update `IMPLEMENTATION_STATUS.md` berdasarkan audit dan hasil test setelah perbaikan, bukan menyalin klaim progres lama.
 8. Jangan menjalankan migrasi produksi sebagai pengganti pengujian staging. Keberhasilan SQL bukan bukti alur produk selesai.
 
-**Pekerjaan berikutnya:** Tahap 1 durable notification worker dan validasi staging. Setelah itu lanjutkan UAT alur pendaftaran sampai akun santri sebelum membuka gate rilis.
+**Pekerjaan berikutnya:** UAT lokal sudah lulus. Pekerjaan berikutnya adalah menyelesaikan gap produk yang masih parsial, lalu menjalankan gate staging dan production secara terpisah.
 
 ## 12. Log eksekusi checkpoint
 
@@ -366,7 +366,7 @@ Checkpoint lokal branch `codex/phase-0-stabilization`.
 - [x] T00.4 Sink utama catatan status, poin materi, deskripsi course, dan kartu aktivitas memakai escaping; regresi sintaks/test terarah lulus.
 - [~] T00.5 Statistik dashboard yang sebelumnya mengklaim progress nyata diubah menjadi empty state. Kartu aktivitas contoh lain masih menunggu penggantian dengan data API pada Tahap 6/7.
 
-Bukti checkpoint: `node --test server/identity-service.test.js website/registration-domain.test.js server/http/security-headers.test.js` lulus. `npm test` masih gagal hanya pada A01 (`registrations.convert` belum memiliki endpoint dan matriks test), sesuai rencana; belum boleh disebut release-ready.
+Bukti checkpoint historis: `node --test server/identity-service.test.js website/registration-domain.test.js server/http/security-headers.test.js` lulus. Temuan A01 pada baseline sudah ditutup pada Tahap 3; validasi terbaru `npm test` menghasilkan 39/39 file lulus.
 
 Tahap 1 berjalan sebagian: sender email sekarang memiliki timeout yang dapat diuji dan tidak menggantung proses. Outbox durable worker, claim/retry lintas restart, dan payload terenkripsi belum ditutup; fitur itu tetap menjadi pekerjaan Tahap 1 berikutnya.
 
@@ -380,7 +380,7 @@ Tahap 2 checkpoint berjalan sebagian:
 - [x] Applicant session punya logout dan pembersihan kedaluwarsa; timer upload stale juga sekarang ditutup saat shutdown.
 - [x] Update registration mengunci row induk dan tidak lagi menghapus child rows; review dokumen/history dipertahankan melalui insert/upsert terarah.
 - [x] Recovery calon tersedia lewat endpoint generik `POST /api/applicant/recovery`, rate limit 3/jam, pencocokan email case-insensitive, hash kode baru, dan notifikasi tanpa membocorkan apakah data cocok.
-- [ ] Optimistic version parent snapshot dan stress test dua update SQL masih terbuka.
+- [x] Optimistic version parent snapshot dan stress test dua update SQL sudah dibuktikan oleh regression test PostgreSQL; tepat satu dari dua update snapshot yang sama berhasil.
 
 Regression Tahap 3: 36 dari 36 file test lulus. A01 sudah ditutup dengan route konversi, transaksi idempotent, dan skenario matriks akses.
 
@@ -424,10 +424,25 @@ Payload undangan sudah disimpan sebagai AES-GCM dan dapat didekripsi oleh worker
 - [x] Query claim notification PostgreSQL diperbaiki agar worker tidak gagal karena kolom `id` ambigu; integration test store dan worker lokal lulus.
 - [x] Browser UAT lokal memverifikasi landing page, validasi form pendaftaran kosong, halaman cek status, recovery kode akses, dan tidak menemukan error/warning JavaScript.
 
-Bukti eksekusi: `SMOKE_BASE_URL=http://127.0.0.1:4273 SMOKE_ADMIN_EMAIL=admin@hamasah.test SMOKE_ADMIN_PASSWORD=(dev secret) node scripts/smoke.js` menghasilkan **12/12 langkah lulus**. Kegagalan pertama disebabkan environment development membaca `STORAGE_DRIVER=supabase` dari `.env`; `scripts/dev.js` sekarang memaksa driver lokal agar UAT development tidak bergantung jaringan.
+Bukti eksekusi: `SMOKE_BASE_URL=http://127.0.0.1:4273 SMOKE_ADMIN_EMAIL=admin@hamasah.test SMOKE_ADMIN_PASSWORD=(dev secret) node scripts/smoke.js` menghasilkan **13/13 langkah lulus**. Kegagalan pertama disebabkan environment development membaca `STORAGE_DRIVER=supabase` dari `.env`; `scripts/dev.js` sekarang memaksa driver lokal agar UAT development tidak bergantung jaringan.
 
-Konversi pendaftar menjadi santri, retry idempotent, enkripsi payload undangan, dan matriks otorisasi sudah dibuktikan oleh integration test `npm test` (**37/37 file lulus**). UAT staging yang masih wajib: migrasi 017–020, storage provider nyata, email aktivasi, scheduler worker, backup/restore, domain HTTPS, dan persetujuan pemilik proses.
+Konversi pendaftar menjadi santri, retry idempotent, enkripsi payload undangan, matriks otorisasi, dan claim worker PostgreSQL sudah dibuktikan oleh integration test `npm test` (**39/39 file lulus**). UAT staging yang masih wajib: migrasi 017–020, storage provider nyata, email aktivasi, scheduler worker, backup/restore, domain HTTPS, dan persetujuan pemilik proses.
 
 Recovery kode akses sudah dibuktikan lewat unit test applicant/notification dan integration test `server/app.test.js`. Email recovery masih memakai tipe outbox `password-reset` agar kompatibel dengan constraint schema saat ini; perlu migrasi tipe notifikasi tersendiri bila ingin pelacakan dan worker recovery dipisahkan.
+
+## 15. Status aktual per tahap
+
+Snapshot ini menjadi acuan progres setelah UAT lokal terakhir; checklist tahap di atas mempertahankan rencana awal agar scope tidak hilang.
+
+- **Tahap 0 — fondasi:** selesai untuk baseline, CSP, lifecycle token, escaping, dan penghilangan metrik palsu utama. T00.5 masih parsial karena beberapa kartu aktivitas/dashboard non-inti masih berupa empty state atau data contoh.
+- **Tahap 1 — notifikasi:** worker durable untuk undangan sudah selesai dengan claim, lease, retry, timeout, recovery, dan payload terenkripsi. UI resend/invitation dan email provider nyata belum selesai; recovery calon masih dikirim sinkron dan masih memakai tipe outbox `password-reset`.
+- **Tahap 2 — pendaftaran:** alur inti selesai dan lulus UAT lokal: auth calon, edit data, upload/download terotorisasi, review, revisi, catatan, next steps, recovery, locking, dan optimistic concurrency. Penghapusan dokumen sesuai retensi serta verifikasi storage provider nyata belum selesai. Kontrak profil program masih mempertahankan kompatibilitas legacy dan perlu keputusan field wajib final.
+- **Tahap 3 — konversi:** service transaksional, row lock, idempotent retry, permission matrix, audit, outbox, dan UI petugas sudah tersedia. Aturan bisnis untuk existing parent, konflik email, dan parent beberapa saudara masih perlu disahkan serta diuji dengan data bisnis nyata.
+- **Tahap 4 — Rilis A publik:** belum siap launch. Konten perlu disahkan pemilik, CMS artikel draft/publish/media belum lengkap, SEO/404/sitemap dan consent/retensi belum ditutup, serta browser UAT responsive/keyboard penuh belum dilakukan.
+- **Tahap 5 — operasional/keuangan:** modul dasar invoice, pembayaran, kuitansi, asrama, visa, dan operasi sudah ada, tetapi gate koreksi berjejak, dokumen visa, inventaris, import data, dan UAT peran belum lengkap.
+- **Tahap 6 — keluarga/rekam jejak:** dashboard dasar wali dan pembatasan akses sudah ada. Visibility catatan/media, sibling selector, laporan lintas periode, retensi, dan UAT pengawas/wali belum lengkap.
+- **Tahap 7 — LMS:** course, materi, enrollment, progress, dan study-help dasar tersedia. Media nyata, tugas/submission, quiz/attempt/scoring, aturan kelulusan server-side, dan pengujian isolasi course belum selesai.
+- **Tahap 8 — AI:** FAQ lokal dan study-help berbasis materi tersedia sebagai fondasi. Provider/model, biaya, quota, evaluasi prompt injection, fallback, dan AI produksi belum dipilih atau dibangun.
+- **Tahap 9 — penutupan:** belum dimulai penuh. Runbook deploy, backup/restore rehearsal, monitoring/alert, security/dependency review, dokumentasi per role, UAT sign-off, dan keputusan launch masih tersisa.
 
 Untuk staging, jalankan `npm run worker:notifications -- --once` setelah env email, `NOTIFICATION_PAYLOAD_KEY`, dan migrasi 020 siap. Untuk daemon gunakan `npm run worker:notifications` di service manager dengan restart policy; jangan menjalankannya dari browser atau proses web request.
