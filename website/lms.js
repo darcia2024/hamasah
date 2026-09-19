@@ -26,6 +26,12 @@ function session() { try { return JSON.parse(sessionStorage.getItem('hamasahPort
 function headers() { const current = session(); return current ? { Authorization: `Bearer ${current.accessToken}` } : {}; }
 function setStatus(target, message, error) { target.textContent = message; target.classList.toggle('is-error', Boolean(error)); }
 
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[character]));
+}
+
 // Outline SVG icon helpers
 const ICONS = {
   back: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
@@ -242,7 +248,7 @@ function renderCourse(course, activeMaterialId) {
       activeMaterial.keyPoints.forEach((pt) => {
         const item = document.createElement('div');
         item.className = 'lms-learn-item';
-        item.innerHTML = `<span class="lms-learn-icon">${ICONS.checkCircle}</span><span>${pt}</span>`;
+        item.innerHTML = `<span class="lms-learn-icon">${ICONS.checkCircle}</span><span>${escapeHtml(pt)}</span>`;
         pointsGrid.append(item);
       });
       activeCard.append(pointsTitle, pointsGrid);
@@ -285,7 +291,7 @@ function renderCourse(course, activeMaterialId) {
   overviewPanel.className = 'lms-content-card';
   overviewPanel.innerHTML = `
     <h3>Tentang Maddah Ini</h3>
-    <p class="lms-about-text">${course.description || "Silabus resmi persiapan santri Al-Azhar Kairo yang disusun secara terstruktur sesuai kurikulum Ma'had & Kulliyyah Al-Azhar Asy-Syarif Mesir."}</p>
+    <p class="lms-about-text">${escapeHtml(course.description || "Silabus resmi persiapan santri Al-Azhar Kairo yang disusun secara terstruktur sesuai kurikulum Ma'had & Kulliyyah Al-Azhar Asy-Syarif Mesir.")}</p>
     <div style="border-top: 1px solid #F1F5F9; margin: 4px 0;"></div>
     <h3>Yang Akan Dipelajari</h3>
     <div class="lms-learn-grid">

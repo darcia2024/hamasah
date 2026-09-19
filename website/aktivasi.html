@@ -7,7 +7,7 @@
   <title>Aktivasi akun | Hamasah International</title>
   <link rel="stylesheet" href="auth-pages.css">
 </head>
-<body>
+<body data-password-endpoint="/api/auth/invitations/accept" data-password-success="Akun aktif. Silakan masuk dengan kata sandi baru Anda.">
   <main>
     <p class="eyebrow">Hamasah International</p>
     <h1>Aktivasi akun</h1>
@@ -20,7 +20,6 @@
     <p class="status" data-status aria-live="polite"></p>
     <p><a href="portal.html">Kembali ke halaman masuk</a></p>
   </main>
-  <script src="auth-pages.js"></script>
-  <script>attachPasswordForm({ endpoint: '/api/auth/invitations/accept', successMessage: 'Akun aktif. Silakan masuk dengan kata sandi baru Anda.' });</script>
+  <script src="auth-pages.js" defer></script>
 </body>
 </html>

@@ -52,3 +52,34 @@ function attachPasswordForm({ endpoint, successMessage }) {
     }
   });
 }
+
+function attachForgotPasswordForm() {
+  const form = document.querySelector('#forgot-password-form');
+  const status = document.querySelector('[data-status]');
+  if (!form || !status) return;
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    setSubmitting(form, true);
+    setStatus(status, '');
+    try {
+      const data = await requestJson('/api/auth/password-reset-request', { email: form.elements.email.value });
+      form.reset();
+      setStatus(status, data.message, 'success');
+    } catch (error) {
+      setStatus(status, error.message, 'error');
+    } finally {
+      setSubmitting(form, false);
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const page = document.body;
+  if (page.dataset.passwordEndpoint) {
+    attachPasswordForm({
+      endpoint: page.dataset.passwordEndpoint,
+      successMessage: page.dataset.passwordSuccess || 'Kata sandi berhasil diperbarui.'
+    });
+  }
+  if (page.hasAttribute('data-forgot-password')) attachForgotPasswordForm();
+});

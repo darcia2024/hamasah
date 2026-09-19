@@ -19,6 +19,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const docUploadStatus = document.querySelector('#doc-upload-status');
   const historyTimeline = document.querySelector('#history-timeline');
 
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[character]));
+  }
+
   let currentRegId = '';
   let currentToken = '';
 
@@ -97,10 +103,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="history-dot"></div>
           <div class="history-body">
             <div class="history-header">
-              <strong>${h.to || 'Pembaruan'}</strong>
-              <small>${dateStr}</small>
+            <strong>${escapeHtml(h.to || 'Pembaruan')}</strong>
+            <small>${escapeHtml(dateStr)}</small>
             </div>
-            <p>${h.note || 'Pembaruan otomatis dari sistem pendaftaran.'}</p>
+            <p>${escapeHtml(h.note || 'Pembaruan otomatis dari sistem pendaftaran.')}</p>
           </div>
         </div>
       `;

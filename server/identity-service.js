@@ -101,7 +101,7 @@ function verifyPassword(password, storedHash) {
   });
 }
 
-function createMemoryAccountStore() {
+  function createMemoryAccountStore() {
   const accounts = new Map();
   return {
     count() { return accounts.size; },
@@ -127,6 +127,31 @@ function createMemoryAccountStore() {
     save(account) {
       accounts.set(account.id, clone(account));
       return clone(account);
+    },
+    consumeResetToken(tokenHash, passwordHash, nowIso) {
+      const account = [...accounts.values()].find((entry) => entry.active && entry.resetTokenHash === tokenHash && entry.resetExpiresAt > nowIso);
+      if (!account) return null;
+      accounts.set(account.id, {
+        ...account,
+        passwordHash,
+        resetTokenHash: null,
+        resetExpiresAt: null,
+        updatedAt: nowIso
+      });
+      return account.id;
+    },
+    consumeInvitationToken(tokenHash, passwordHash, nowIso) {
+      const account = [...accounts.values()].find((entry) => !entry.active && entry.invitationTokenHash === tokenHash && entry.invitationExpiresAt > nowIso);
+      if (!account) return null;
+      accounts.set(account.id, {
+        ...account,
+        active: true,
+        passwordHash,
+        invitationTokenHash: null,
+        invitationExpiresAt: null,
+        updatedAt: nowIso
+      });
+      return account.id;
     }
   };
 }
@@ -383,38 +408,24 @@ function createIdentityService(options) {
 
   async function acceptInvitation(invitationToken, nextPassword) {
     const passwordError = validatePassword(nextPassword);
-    const account = typeof accountStore.getByInvitationTokenHash === 'function'
-      ? await accountStore.getByInvitationTokenHash(hashSecret(invitationToken || ''))
-      : null;
-    if (!account || account.active || passwordError || !account.invitationTokenHash ||
-      new Date(account.invitationExpiresAt).getTime() <= now().getTime() ||
-      !safeEqual(hashSecret(invitationToken || ''), account.invitationTokenHash)) {
+    if (passwordError || typeof accountStore.consumeInvitationToken !== 'function') {
       return { ok: false, error: passwordError || 'Undangan tidak berlaku.' };
     }
     const updatedAt = now().toISOString();
-    await accountStore.save({
-      ...account, active: true, passwordHash: await hashPassword(nextPassword),
-      invitationTokenHash: null, invitationExpiresAt: null, updatedAt
-    });
+    const accountId = await accountStore.consumeInvitationToken(hashSecret(invitationToken || ''), await hashPassword(nextPassword), updatedAt);
+    if (!accountId) return { ok: false, error: 'Undangan tidak berlaku.' };
     return { ok: true };
   }
 
   async function resetPassword(resetToken, nextPassword) {
     const passwordError = validatePassword(nextPassword);
-    const account = typeof accountStore.getByResetTokenHash === 'function'
-      ? await accountStore.getByResetTokenHash(hashSecret(resetToken || ''))
-      : null;
-    if (!account || passwordError || !account.resetTokenHash || new Date(account.resetExpiresAt).getTime() <= now().getTime() || !safeEqual(hashSecret(resetToken || ''), account.resetTokenHash)) {
+    if (passwordError || typeof accountStore.consumeResetToken !== 'function') {
       return { ok: false, error: passwordError || 'Token reset tidak berlaku.' };
     }
     const updatedAt = now().toISOString();
-    await accountStore.save({
-      ...account,
-      passwordHash: await hashPassword(nextPassword),
-      resetTokenHash: null,
-      resetExpiresAt: null,
-      updatedAt
-    });
+    const accountId = await accountStore.consumeResetToken(hashSecret(resetToken || ''), await hashPassword(nextPassword), updatedAt);
+    if (!accountId) return { ok: false, error: 'Token reset tidak berlaku.' };
+    await logoutAll(accountId);
     return { ok: true };
   }
 

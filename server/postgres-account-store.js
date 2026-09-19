@@ -50,6 +50,29 @@ function createPostgresAccountStore({ database } = {}) {
       return rows[0] ? toAccount(rows[0]) : null;
     },
 
+    async consumeResetToken(tokenHash, passwordHash, nowIso) {
+      const { rows } = await database.query(
+        `UPDATE accounts
+         SET password_hash = $2, reset_token_hash = NULL, reset_expires_at = NULL, updated_at = $3
+         WHERE reset_token_hash = $1 AND reset_expires_at > $3 AND active = TRUE
+         RETURNING id`,
+        [tokenHash, passwordHash, nowIso]
+      );
+      return rows[0] ? rows[0].id : null;
+    },
+
+    async consumeInvitationToken(tokenHash, passwordHash, nowIso) {
+      const { rows } = await database.query(
+        `UPDATE accounts
+         SET active = TRUE, password_hash = $2, invitation_token_hash = NULL,
+             invitation_expires_at = NULL, updated_at = $3
+         WHERE invitation_token_hash = $1 AND invitation_expires_at > $3 AND active = FALSE
+         RETURNING id`,
+        [tokenHash, passwordHash, nowIso]
+      );
+      return rows[0] ? rows[0].id : null;
+    },
+
     async list() {
       const { rows } = await database.query(`SELECT ${ACCOUNT_FIELDS} FROM accounts ORDER BY name`);
       return rows.map(toAccount);

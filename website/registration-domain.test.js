@@ -48,6 +48,11 @@ const adultV2 = registration.validateApplicant({
   ...validApplicant, email: 'ahmad@hamasah.test', birthDate: '2000-01-01', gender: 'putra', schoolOrigin: 'SMA Uji'
 });
 assert.equal(adultV2.valid, true);
+const impossibleDateV2 = registration.validateApplicant({
+  ...validApplicant, email: 'tanggal@hamasah.test', birthDate: '2020-02-31', gender: 'putra', schoolOrigin: 'SMA Uji'
+});
+assert.equal(impossibleDateV2.valid, false);
+assert.ok(impossibleDateV2.errors.birthDate);
 const underAgeV2 = registration.validateApplicant({
   ...validApplicant, email: 'ahmad@hamasah.test', birthDate: '2010-01-01', gender: 'putra', schoolOrigin: 'SMP Uji', guardianEmail: '', guardianConsent: false
 });

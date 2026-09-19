@@ -90,7 +90,10 @@
   }
 
   function isIsoDate(value) {
-    return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T00:00:00Z`).getTime());
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const [year, month, day] = value.split('-').map(Number);
+    const parsed = new Date(Date.UTC(year, month - 1, day));
+    return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day;
   }
 
   function isAdult(birthDate, today = new Date()) {
@@ -154,6 +157,9 @@
       if (!/^\S+@\S+\.\S+$/.test(applicant.email)) errors.email = 'Email calon santri tidak valid.';
       if (!isIsoDate(applicant.birthDate)) errors.birthDate = 'Tanggal lahir harus memakai format YYYY-MM-DD.';
       if (!GENDERS.includes(applicant.gender)) errors.gender = 'Jenis kelamin belum valid.';
+      if (isIsoDate(applicant.birthDate) && new Date(`${applicant.birthDate}T00:00:00Z`) > new Date()) {
+        errors.birthDate = 'Tanggal lahir tidak boleh berada di masa depan.';
+      }
       if (!applicant.schoolOrigin && applicant.program !== PROGRAMS.COURSES) errors.schoolOrigin = 'Sekolah asal perlu diisi.';
       if (isIsoDate(applicant.birthDate) && !isAdult(applicant.birthDate)) {
         if (applicant.guardianName.length < 3) errors.guardianName = 'Nama wali diperlukan untuk calon di bawah 18 tahun.';

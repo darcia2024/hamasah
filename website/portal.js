@@ -19,6 +19,12 @@ const portalStudentsHeader = document.querySelector('#portal-students-header');
 
 let currentAccount = null;
 
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[character]));
+}
+
 const roleLabels = {
   admin: 'Portal Hamasah · Super Admin',
   'registration-officer': 'Portal Pendaftaran',
@@ -143,12 +149,12 @@ function createAltezzaCard(options) {
           ${renderBadgeIcon(badgeIcon)}
         </div>
         <div style="min-width: 0; flex: 1;">
-          <h3 class="crm-activity-card__name">${title}</h3>
-          <div class="crm-activity-card__subtitle">${subtitle}</div>
+          <h3 class="crm-activity-card__name">${escapeHtml(title)}</h3>
+          <div class="crm-activity-card__subtitle">${escapeHtml(subtitle)}</div>
         </div>
       </div>
       <div class="crm-activity-card__header-actions">
-        <span class="crm-status-pill crm-status-pill--${statusType}">${statusText}</span>
+        <span class="crm-status-pill crm-status-pill--${escapeHtml(statusType)}">${escapeHtml(statusText)}</span>
         <button type="button" class="crm-icon-sub-btn crm-btn-more" title="More Actions" aria-label="More actions">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
         </button>
@@ -172,13 +178,13 @@ function createAltezzaCard(options) {
       <!-- Col 1: Program / Halaqah -->
       <div class="crm-col-block">
         <label>HALAQAH &amp; PROGRAM</label>
-        <span class="crm-check-list">${program}</span>
+        <span class="crm-check-list">${escapeHtml(program)}</span>
       </div>
 
       <!-- Col 2: Route / Lokasi -->
       <div class="crm-col-block">
         <label>LOKASI / MASJID</label>
-        <span title="${route}">${route}</span>
+        <span title="${escapeHtml(route)}">${escapeHtml(route)}</span>
       </div>
 
       <!-- Col 3: Start / Finish Time -->
@@ -190,13 +196,13 @@ function createAltezzaCard(options) {
       <!-- Col 4: Unit Asrama -->
       <div class="crm-col-block">
         <label>ASRAMA KAIRO</label>
-        <span>${dormUnit}</span>
+        <span>${escapeHtml(dormUnit)}</span>
       </div>
 
       <!-- Col 5: Itinerary status -->
       <div class="crm-col-block">
         <label>STATUS ITINERARY</label>
-        <span style="color: #059669; font-weight: 700;">${itineraryStatus}</span>
+        <span style="color: #059669; font-weight: 700;">${escapeHtml(itineraryStatus)}</span>
       </div>
     </div>
 
@@ -204,7 +210,7 @@ function createAltezzaCard(options) {
     ${note ? `
     <div class="crm-activity-card__note">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span>${note}</span>
+      <span>${escapeHtml(note)}</span>
     </div>
     ` : ''}
 
@@ -227,9 +233,9 @@ function createAltezzaCard(options) {
 
       <!-- Action buttons -->
       <div class="crm-activity-card__actions">
-        <button type="button" class="crm-action-link-btn crm-btn-view-note" title="${actionBtnText}">
+        <button type="button" class="crm-action-link-btn crm-btn-view-note" title="${escapeHtml(actionBtnText)}">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          <span>${actionBtnText}</span>
+          <span>${escapeHtml(actionBtnText)}</span>
         </button>
       </div>
     </div>
@@ -1379,20 +1385,14 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
         <div class="crm-feature-box-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg></div>
         <div style="flex: 1;">
           <strong>Matan Al-Jurumiyyah (Nahwu)</strong>
-          <p>12 modul · Progres santri rata-rata 85%</p>
-          <div style="margin-top: 8px; height: 6px; background: #E2E8F0; border-radius: 999px; overflow: hidden;">
-            <div style="width: 85%; height: 100%; background: #FFC42C; border-radius: 999px;"></div>
-          </div>
+          <p>Progress akan muncul setelah data pembelajaran santri tersedia.</p>
         </div>
       </div>
       <div class="crm-feature-box">
         <div class="crm-feature-box-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg></div>
         <div style="flex: 1;">
           <strong>Matan Ghoyah wa Taqrib (Fiqh)</strong>
-          <p>16 modul · Progres santri rata-rata 78%</p>
-          <div style="margin-top: 8px; height: 6px; background: #E2E8F0; border-radius: 999px; overflow: hidden;">
-            <div style="width: 78%; height: 100%; background: #FFC42C; border-radius: 999px;"></div>
-          </div>
+          <p>Progress akan muncul setelah data pembelajaran santri tersedia.</p>
         </div>
       </div>
     </div>
@@ -1445,21 +1445,8 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
       <div class="coursue-circle-avatar">${userInitial}</div>
     </div>
     <h4 class="coursue-user-greeting">Assalamu'alaikum, ${userName}</h4>
-    <p class="coursue-user-subtext">Mutaba'ah santri terpantau prima. 98% target silabus &amp; sholat berjamaah tuntas.</p>
-    <div class="coursue-barchart">
-      <div class="coursue-bar-col">
-        <div class="coursue-bar-track"><div class="coursue-bar-fill" style="height: 65%;"></div></div>
-        <span class="coursue-bar-label">1-10 Sep</span>
-      </div>
-      <div class="coursue-bar-col">
-        <div class="coursue-bar-track"><div class="coursue-bar-fill" style="height: 85%;"></div></div>
-        <span class="coursue-bar-label">11-20 Sep</span>
-      </div>
-      <div class="coursue-bar-col">
-        <div class="coursue-bar-track"><div class="coursue-bar-fill" style="height: 98%;"></div></div>
-        <span class="coursue-bar-label">21-30 Sep</span>
-      </div>
-    </div>
+    <p class="coursue-user-subtext">Ringkasan akan terisi setelah aktivitas santri tercatat dalam sistem.</p>
+    <p class="coursue-user-subtext">Belum ada rangkaian aktivitas untuk grafik periode ini.</p>
   `;
 
   const mentorCard = document.createElement('div');
@@ -1470,38 +1457,8 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
     </div>
     <div class="coursue-mentor-list">
-      <div class="coursue-mentor-item">
-        <div class="coursue-mentor-item-left">
-          <div class="coursue-mentor-pic" style="background: #FEF3C7; color: #B45309;">AF</div>
-          <div class="coursue-mentor-info">
-            <p class="coursue-mentor-title">Ust. Ahmad Fauzi, Lc.</p>
-            <p class="coursue-mentor-role">Musyrif Asrama Hay Asyir</p>
-          </div>
-        </div>
-        <button type="button" class="coursue-mentor-action">Bimbingan</button>
-      </div>
-      <div class="coursue-mentor-item">
-        <div class="coursue-mentor-item-left">
-          <div class="coursue-mentor-pic" style="background: #ECFEFF; color: #0891B2;">MR</div>
-          <div class="coursue-mentor-info">
-            <p class="coursue-mentor-title">Ust. Ridwan Kamil, Lc.</p>
-            <p class="coursue-mentor-role">Pembina Tahfidz 30 Juz</p>
-          </div>
-        </div>
-        <button type="button" class="coursue-mentor-action">Bimbingan</button>
-      </div>
-      <div class="coursue-mentor-item">
-        <div class="coursue-mentor-item-left">
-          <div class="coursue-mentor-pic" style="background: #FDF2F8; color: #DB2777;">SA</div>
-          <div class="coursue-mentor-info">
-            <p class="coursue-mentor-title">Syekh Riwaq Al-Azhar</p>
-            <p class="coursue-mentor-role">Masyayikh Kutub Turots</p>
-          </div>
-        </div>
-        <button type="button" class="coursue-mentor-action">Bimbingan</button>
-      </div>
+      <p class="coursue-user-subtext">Data musyrif dan asatidzah akan muncul setelah penugasan tercatat.</p>
     </div>
-    <button type="button" class="coursue-mentor-seeall" id="btn-see-all-mentors">Lihat Seluruh Musyrif</button>
   `;
 
   rightPanel.append(statCard, mentorCard);
@@ -1762,4 +1719,3 @@ if (getSession()) {
     setLoginError(error.message || 'Sesi sudah berakhir.');
   });
 }
-
