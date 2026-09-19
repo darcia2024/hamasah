@@ -378,4 +378,5 @@ Tahap 2 checkpoint berjalan sebagian:
 - [x] Test app menguji upload PDF nyata sampai dokumen tertaut; test service menguji referensi palsu.
 - [x] Login UI cek pendaftaran memakai registration ID + access code dan endpoint applicant session; logout applicant juga tersedia.
 - [x] Applicant session punya logout dan pembersihan kedaluwarsa; timer upload stale juga sekarang ditutup saat shutdown.
-- [ ] Recovery calon dan update registration dengan locking masih terbuka.
+- [x] Update registration mengunci row induk dan tidak lagi menghapus child rows; review dokumen/history dipertahankan melalui insert/upsert terarah.
+- [ ] Recovery calon, optimistic version parent snapshot, dan stress test dua update SQL masih terbuka.

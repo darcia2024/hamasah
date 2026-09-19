@@ -104,14 +104,27 @@ function createPostgresRegistrationStore({ database } = {}) {
     for (const entry of record.statusHistory) {
       await tx.query(
         `INSERT INTO registration_status_events (id, registration_id, previous_status, next_status, changed_by_role, changed_by_account_id, note, changed_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+         SELECT $1, $2, $3, $4, $5, $6, $7, $8
+         WHERE NOT EXISTS (
+           SELECT 1 FROM registration_status_events
+           WHERE registration_id = $2 AND previous_status = $3 AND next_status = $4
+             AND changed_by_role = $5 AND changed_at = $8
+         )`,
         [crypto.randomUUID(), id, entry.from, entry.to, entry.changedBy, entry.changedByAccountId || null, entry.note || null, entry.changedAt]
       );
     }
     for (const document of record.documents) {
       await tx.query(
         `INSERT INTO registration_documents (id, registration_id, document_type, storage_key, status, uploaded_by_role, uploaded_by_account_id, uploaded_at, file_object_id, review_status, review_note, reviewed_by_account_id, reviewed_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+         ON CONFLICT (id) DO UPDATE SET
+           document_type = EXCLUDED.document_type,
+           storage_key = EXCLUDED.storage_key,
+           status = EXCLUDED.status,
+           uploaded_by_role = EXCLUDED.uploaded_by_role,
+           uploaded_by_account_id = EXCLUDED.uploaded_by_account_id,
+           uploaded_at = EXCLUDED.uploaded_at,
+           file_object_id = EXCLUDED.file_object_id`,
         [document.id || crypto.randomUUID(), id, document.type, document.storageKey, document.status, document.uploadedBy, document.uploadedByAccountId || null, document.uploadedAt, document.fileObjectId || null, document.reviewStatus || 'pending', document.reviewNote || null, document.reviewedByAccountId || null, document.reviewedAt || null]
       );
     }
@@ -213,16 +226,15 @@ function createPostgresRegistrationStore({ database } = {}) {
     },
 
     async update(record) {
-      // Pencarian id dilakukan sebelum transaksi dimulai (di luar withTransaction).
-      const existing = record.id ? record : await get(record.registrationId);
-      if (!existing) {
-        throw new Error(`Pendaftaran ${record.registrationId} tidak ditemukan.`);
-      }
-      const id = existing.id;
-
-      // Semua penulisan di bawah berjalan dalam satu transaksi pada satu koneksi,
-      // dan wajib memakai tx.query. Jika satu query gagal, semuanya dibatalkan.
       return database.withTransaction(async (tx) => {
+        // Kunci baris induk sebelum membaca/menulis snapshot. Child rows tidak lagi
+        // dihapus dan dibangun ulang, sehingga review dokumen dari request lain
+        // tidak ikut hilang.
+        const locked = await tx.query('SELECT id FROM registrations WHERE registration_id = $1 FOR UPDATE', [record.registrationId]);
+        if (!locked.rows[0]) {
+          throw new Error(`Pendaftaran ${record.registrationId} tidak ditemukan.`);
+        }
+        const id = locked.rows[0].id;
         const updated = await tx.query(
           `UPDATE registrations SET
              applicant_name = $2,
@@ -275,8 +287,6 @@ function createPostgresRegistrationStore({ database } = {}) {
         if (updated.rowCount === 0) {
           throw new Error(`Pendaftaran ${record.registrationId} tidak ditemukan.`);
         }
-        await tx.query('DELETE FROM registration_documents WHERE registration_id = $1', [id]);
-        await tx.query('DELETE FROM registration_status_events WHERE registration_id = $1', [id]);
         await writeChildRows(tx, id, record);
         return { ...record, id };
       });
