@@ -272,6 +272,30 @@ async function run() {
     assert.equal(documentAdded.status, 201);
     assert.equal(documentAdded.body.registration.documentSummary.length, 1);
     assert.equal('storageKey' in documentAdded.body.registration.documentSummary[0], false);
+    const rejectedDocument = await request(baseUrl, `/api/registrations/${registrationId}/documents/${documentAdded.body.registration.documentSummary[0].id}/review`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reviewStatus: 'rejected', note: 'Foto paspor kurang jelas, mohon unggah ulang.' })
+    });
+    assert.equal(rejectedDocument.status, 200);
+    const candidateAfterReview = await request(baseUrl, `/api/registrations/${registrationId}`, { headers: candidateHeaders });
+    assert.equal(candidateAfterReview.body.registration.documentSummary[0].reviewStatus, 'rejected');
+    assert.equal(candidateAfterReview.body.registration.documentSummary[0].reviewNote, 'Foto paspor kurang jelas, mohon unggah ulang.');
+    const replacementUpload = await request(baseUrl, '/api/uploads', {
+      method: 'POST', headers: candidateHeaders,
+      body: JSON.stringify({ purpose: 'registration-document', entityId: registrationId, fileName: 'passport-replacement.pdf', contentType: 'application/pdf', size: 5 })
+    });
+    assert.equal(replacementUpload.status, 201);
+    const replacementContent = await fetch(`${baseUrl}/api/uploads/${replacementUpload.body.upload.id}/content`, {
+      method: 'PUT', headers: { Authorization: candidateHeaders.Authorization, 'Content-Type': 'application/pdf' }, body: Buffer.from('%PDF-test')
+    });
+    assert.equal(replacementContent.status, 200);
+    const replacementDocument = await request(baseUrl, `/api/registrations/${registrationId}/documents`, {
+      method: 'POST', headers: candidateHeaders,
+      body: JSON.stringify({ type: 'passport', fileObjectId: replacementUpload.body.upload.id })
+    });
+    assert.equal(replacementDocument.status, 201);
+    assert.equal(replacementDocument.body.registration.documentSummary.length, 2);
 
     const changed = await request(baseUrl, `/api/registrations/${registrationId}/status`, {
       method: 'PATCH',

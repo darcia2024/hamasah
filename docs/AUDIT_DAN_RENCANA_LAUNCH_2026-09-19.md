@@ -400,6 +400,7 @@ Regression Tahap 3: 36 dari 36 file test lulus. A01 sudah ditutup dengan route k
 - [x] Konsol petugas menampilkan aksi konversi pada status siap keberangkatan/selesai, meminta konfirmasi, dan menampilkan hasil retry idempotent.
 - [x] Halaman aktivasi menerima token hash, menolak token kosong, mengubah kata sandi sekali pakai, menampilkan akun aktif, lalu mengarahkan pengguna ke portal dengan pesan onboarding.
 - [x] Workspace petugas memiliki review dokumen (terima/tolak dengan alasan) dan catatan internal/untuk pendaftar yang tersambung ke endpoint audit.
+- [x] UI cek status menampilkan alasan penolakan dan memandu unggah ulang dokumen dengan jenis yang sama; integration test membuktikan reject → reupload → link berkas baru tanpa menghapus histori.
 
 Migrasi 017–019 baru tervalidasi di database test/PGlite dan integration test. Belum diterapkan ke database staging/produksi; lakukan backup, staging migration, dan restore rehearsal sesuai gate sebelum deployment.
 

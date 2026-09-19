@@ -73,14 +73,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const html = docs.map((d) => {
       const label = DOC_TYPE_LABELS[d.type] || d.type;
       const dateStr = d.uploadedAt ? new Date(d.uploadedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+      const reviewStatus = d.reviewStatus || 'pending';
+      const statusLabel = reviewStatus === 'rejected' ? 'Perlu diunggah ulang' : reviewStatus === 'accepted' ? 'Diterima' : 'Menunggu review';
+      const note = reviewStatus === 'rejected' && d.reviewNote ? `<small class="doc-review-note">Catatan petugas: ${escapeHtml(d.reviewNote)}</small>` : '';
       return `
         <div class="doc-item-row">
           <div class="doc-icon-badge" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
           <div class="doc-text">
             <strong>${label}</strong>
-            <small>Diunggah: ${dateStr}</small>
+            <small>Diunggah: ${escapeHtml(dateStr)}</small>${note}
           </div>
-          <span class="m3-chip-status is-approved">${d.status || 'Tersimpan'}</span>
+          <span class="m3-chip-status ${reviewStatus === 'rejected' ? 'is-rejected' : reviewStatus === 'accepted' ? 'is-approved' : ''}">${statusLabel}</span>
         </div>
       `;
     }).join('');
@@ -147,6 +150,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       updateStepper(reg.status, progress);
       renderDocuments(reg.documentSummary);
+      const rejected = (reg.documentSummary || []).find((documentItem) => documentItem.reviewStatus === 'rejected');
+      if (rejected) {
+        docTypeSelect.value = rejected.type;
+        docUploadStatus.textContent = 'Ada dokumen yang perlu diperbaiki. Pilih berkas baru dengan jenis yang sama lalu unggah ulang.';
+        docUploadStatus.className = 'form-status is-error';
+      }
       renderHistory(reg.history);
 
       resultArea.hidden = false;

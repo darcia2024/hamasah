@@ -2555,6 +2555,9 @@ h1, h2, h3, h4 {
   color: var(--md-sys-color-outline);
 }
 
+.doc-review-note { display: block; color: #A33A2B; margin-top: 4px; line-height: 1.4; }
+.m3-chip-status.is-rejected { color: #A33A2B; background: #FCE8E6; }
+
 .m3-chip-status {
   font-size: 11px;
   font-weight: 700;
