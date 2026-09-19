@@ -419,6 +419,7 @@ Payload undangan sudah disimpan sebagai AES-GCM dan dapat didekripsi oleh worker
 - [x] Pembuatan maddah, materi, progress, invoice, dan kuitansi berjalan.
 - [x] Pendaftaran publik, perubahan status, upload PDF, dan download kembali menghasilkan isi byte yang sama.
 - [x] Smoke script staging mencakup permintaan recovery kode akses dengan respons `202` anti-enumeration.
+- [x] `npm run preflight:staging` memvalidasi konfigurasi staging secara read-only; opsi `--verify-database` menjalankan verifikasi migrasi/RLS tanpa menulis data.
 
 Bukti eksekusi: `SMOKE_BASE_URL=http://127.0.0.1:4273 SMOKE_ADMIN_EMAIL=admin@hamasah.test SMOKE_ADMIN_PASSWORD=(dev secret) node scripts/smoke.js` menghasilkan **12/12 langkah lulus**. Kegagalan pertama disebabkan environment development membaca `STORAGE_DRIVER=supabase` dari `.env`; `scripts/dev.js` sekarang memaksa driver lokal agar UAT development tidak bergantung jaringan.
 

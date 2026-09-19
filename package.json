@@ -16,6 +16,7 @@
     "check:docker": "node scripts/check-docker-context.js",
     "smoke-test": "node scripts/smoke.js",
     "worker:notifications": "node scripts/notification-worker.js",
+    "preflight:staging": "node scripts/staging-preflight.js",
     "cleanup:smoke-data": "node scripts/cleanup-smoke-data.js",
     "test": "node database/validate-schema.js && node --test"
   },
