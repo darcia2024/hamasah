@@ -376,6 +376,11 @@
   font-size: 12px;
 }
 
+.staff-registration__documents { display: grid; gap: 8px; margin-top: 14px; }
+.staff-document-row { display: grid; grid-template-columns: 1fr auto minmax(120px, 1fr) auto; gap: 6px; align-items: center; font-size: 12px; }
+.staff-document-row input, .staff-note-box textarea, .staff-note-box select { min-width: 0; padding: 8px; border: 1px solid var(--md-sys-color-outline, #CBD5E1); border-radius: 8px; font: inherit; font-size: 12px; }
+.staff-note-box { display: grid; gap: 6px; margin-top: 4px; }
+
 .conversion-result {
   margin: 16px 0 20px;
   padding: 20px;
@@ -449,6 +454,8 @@
     flex-direction: row;
     flex-wrap: wrap;
   }
+
+  .staff-document-row { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 600px) {

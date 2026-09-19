@@ -129,6 +129,45 @@ function renderRegistrations(items) {
     });
     content.append(name, identity, meta);
 
+    if ((registration.documents || []).length) {
+      const documents = document.createElement('div');
+      documents.className = 'staff-registration__documents';
+      const heading = document.createElement('strong');
+      heading.textContent = 'Dokumen pendaftaran';
+      documents.append(heading);
+      registration.documents.forEach((documentItem) => {
+        const row = document.createElement('div');
+        row.className = 'staff-document-row';
+        const label = document.createElement('span');
+        label.textContent = `${documentItem.type} · ${documentItem.reviewStatus || 'pending'}`;
+        const review = document.createElement('select');
+        [['accepted', 'Terima'], ['rejected', 'Tolak']].forEach(([value, text]) => {
+          const option = document.createElement('option'); option.value = value; option.textContent = text;
+          option.selected = value === documentItem.reviewStatus; review.append(option);
+        });
+        const note = document.createElement('input');
+        note.type = 'text'; note.placeholder = 'Catatan review'; note.value = documentItem.reviewNote || '';
+        const save = document.createElement('button'); save.type = 'button'; save.className = 'button button--secondary'; save.textContent = 'Simpan';
+        save.addEventListener('click', async () => {
+          save.disabled = true;
+          try {
+            const response = await fetch(`/api/registrations/${encodeURIComponent(registration.registrationId)}/documents/${encodeURIComponent(documentItem.id)}/review`, {
+              method: 'PATCH', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+              body: JSON.stringify({ reviewStatus: review.value, note: note.value })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Review dokumen belum dapat disimpan.');
+            await loadRegistrations();
+          } catch (error) {
+            registrationListStatus.textContent = error.message;
+            registrationListStatus.classList.add('is-error');
+          } finally { save.disabled = false; }
+        });
+        row.append(label, review, note, save); documents.append(row);
+      });
+      content.append(documents);
+    }
+
     const controls = document.createElement('div');
     controls.className = 'staff-registration__controls';
     const select = document.createElement('select');
@@ -162,6 +201,23 @@ function renderRegistrations(items) {
       }
     });
     controls.append(select, update);
+    const noteBox = document.createElement('div'); noteBox.className = 'staff-note-box';
+    const noteInput = document.createElement('textarea'); noteInput.rows = 2; noteInput.placeholder = 'Catatan untuk pendaftar atau internal';
+    const visibility = document.createElement('select');
+    [['applicant', 'Terlihat pendaftar'], ['internal', 'Internal petugas']].forEach(([value, text]) => { const option = document.createElement('option'); option.value = value; option.textContent = text; visibility.append(option); });
+    const addNote = document.createElement('button'); addNote.type = 'button'; addNote.className = 'button button--secondary'; addNote.textContent = 'Tambah catatan';
+    addNote.addEventListener('click', async () => {
+      if (!noteInput.value.trim()) return;
+      addNote.disabled = true;
+      try {
+        const response = await fetch(`/api/registrations/${encodeURIComponent(registration.registrationId)}/notes`, { method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ visibility: visibility.value, body: noteInput.value }) });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Catatan belum dapat disimpan.');
+        noteInput.value = ''; await loadRegistrations();
+      } catch (error) { registrationListStatus.textContent = error.message; registrationListStatus.classList.add('is-error'); }
+      finally { addNote.disabled = false; }
+    });
+    noteBox.append(noteInput, visibility, addNote); controls.append(noteBox);
     if (['ready-for-departure', 'completed'].includes(registration.status)) {
       const convert = document.createElement('button');
       convert.className = 'button button--primary';
