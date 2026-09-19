@@ -380,3 +380,5 @@ Tahap 2 checkpoint berjalan sebagian:
 - [x] Applicant session punya logout dan pembersihan kedaluwarsa; timer upload stale juga sekarang ditutup saat shutdown.
 - [x] Update registration mengunci row induk dan tidak lagi menghapus child rows; review dokumen/history dipertahankan melalui insert/upsert terarah.
 - [ ] Recovery calon, optimistic version parent snapshot, dan stress test dua update SQL masih terbuka.
+
+Regression terakhir Tahap 2: 35 dari 36 file test lulus. Semua test modul yang disentuh lulus; satu kegagalan tetap A01 karena `registrations.convert` belum memiliki route dan skenario matriks akses.
