@@ -398,6 +398,7 @@ Regression Tahap 3: 36 dari 36 file test lulus. A01 sudah ditutup dengan route k
 - [x] Worker diekspos sebagai `app.notificationWorker` agar dapat dijalankan oleh scheduler/worker process terpisah.
 - [x] Entrypoint `npm run worker:notifications` tersedia untuk mode daemon atau `--once`, dengan graceful shutdown.
 - [x] Konsol petugas menampilkan aksi konversi pada status siap keberangkatan/selesai, meminta konfirmasi, dan menampilkan hasil retry idempotent.
+- [x] Halaman aktivasi menerima token hash, menolak token kosong, mengubah kata sandi sekali pakai, menampilkan akun aktif, lalu mengarahkan pengguna ke portal dengan pesan onboarding.
 
 Migrasi 017–019 baru tervalidasi di database test/PGlite dan integration test. Belum diterapkan ke database staging/produksi; lakukan backup, staging migration, dan restore rehearsal sesuai gate sebelum deployment.
 

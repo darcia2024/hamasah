@@ -1,6 +1,7 @@
 const portalLogin = document.querySelector('#portal-login');
 const portalLoginForm = document.querySelector('#portal-login-form');
 const portalLoginStatus = document.querySelector('#portal-login-status');
+const activationNotice = document.querySelector('#activation-notice');
 const portalConsole = document.querySelector('#portal-console');
 const portalLogout = document.querySelector('#portal-logout');
 const portalRoleLabel = document.querySelector('#portal-role-label');
@@ -47,6 +48,12 @@ function requestHeaders() {
 function setLoginError(message) {
   portalLoginStatus.textContent = message;
   portalLoginStatus.classList.add('is-error');
+}
+
+if (activationNotice && new URLSearchParams(window.location.search).get('activated') === '1') {
+  activationNotice.hidden = false;
+  activationNotice.textContent = 'Akun berhasil diaktifkan. Masuk menggunakan email dan kata sandi baru Anda.';
+  activationNotice.dataset.kind = 'success';
 }
 
 function metric(value, label) {

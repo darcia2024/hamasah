@@ -414,7 +414,8 @@ function createIdentityService(options) {
     const updatedAt = now().toISOString();
     const accountId = await accountStore.consumeInvitationToken(hashSecret(invitationToken || ''), await hashPassword(nextPassword), updatedAt);
     if (!accountId) return { ok: false, error: 'Undangan tidak berlaku.' };
-    return { ok: true };
+    const account = await accountStore.getById(accountId);
+    return { ok: true, value: { account: account ? publicAccount(account) : null } };
   }
 
   async function resetPassword(resetToken, nextPassword) {

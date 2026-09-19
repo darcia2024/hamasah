@@ -24,7 +24,7 @@ function setSubmitting(form, submitting) {
   button.textContent = submitting ? 'Memproses…' : button.dataset.label;
 }
 
-function attachPasswordForm({ endpoint, successMessage }) {
+function attachPasswordForm({ endpoint, successMessage, successRedirect }) {
   const form = document.querySelector('[data-password-form]');
   const status = document.querySelector('[data-status]');
   const token = readTokenFromFragment();
@@ -42,9 +42,12 @@ function attachPasswordForm({ endpoint, successMessage }) {
     setSubmitting(form, true);
     setStatus(status, '');
     try {
-      await requestJson(endpoint, { token, password: password.value });
+      const result = await requestJson(endpoint, { token, password: password.value });
       form.reset();
       setStatus(status, successMessage, 'success');
+      if (successRedirect) {
+        window.setTimeout(() => { window.location.assign(successRedirect); }, 1200);
+      }
     } catch (error) {
       setStatus(status, error.message, 'error');
     } finally {
@@ -78,7 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (page.dataset.passwordEndpoint) {
     attachPasswordForm({
       endpoint: page.dataset.passwordEndpoint,
-      successMessage: page.dataset.passwordSuccess || 'Kata sandi berhasil diperbarui.'
+      successMessage: page.dataset.passwordSuccess || 'Kata sandi berhasil diperbarui.',
+      successRedirect: page.dataset.passwordRedirect || ''
     });
   }
   if (page.hasAttribute('data-forgot-password')) attachForgotPasswordForm();

@@ -154,7 +154,7 @@ module.exports = [
           metadata: { email: String(body.email || '').trim().toLocaleLowerCase('en-US') }
         });
       }
-      json(response, accepted.ok ? 204 : 422, accepted.ok ? {} : publicError(accepted));
+      json(response, accepted.ok ? 200 : 422, accepted.ok ? { account: accepted.value.account } : publicError(accepted));
     }
   },
 

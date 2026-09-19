@@ -80,7 +80,9 @@ async function run() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token: invitationToken, password: 'kata-sandi-wali-uji' })
     });
-    assert.equal(accept.status, 204);
+    assert.equal(accept.status, 200);
+    assert.equal(accept.body.account.email, 'wali.undangan@hamasah.test');
+    assert.equal(accept.body.account.active, true);
     const waliLogin = await request(baseUrl, '/api/auth/login', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'wali.undangan@hamasah.test', password: 'kata-sandi-wali-uji' })
