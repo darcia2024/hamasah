@@ -1,4 +1,5 @@
 const crypto = require('node:crypto');
+const { encryptNotificationPayload } = require('./notification-payload.js');
 
 const NOTIFICATION_TYPES = Object.freeze({ INVITATION: 'account-invitation', PASSWORD_RESET: 'password-reset' });
 
@@ -6,7 +7,7 @@ function escapeHtml(value) {
   return String(value || '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 }
 
-function createNotificationService({ store, sender, now = () => new Date(), senderTimeoutMs = 10000 } = {}) {
+function createNotificationService({ store, sender, notificationPayloadKey = '', now = () => new Date(), senderTimeoutMs = 10000 } = {}) {
   if (!store) throw new Error('createNotificationService membutuhkan store.');
   if (!sender) throw new Error('createNotificationService membutuhkan sender.');
 
@@ -66,7 +67,17 @@ function createNotificationService({ store, sender, now = () => new Date(), send
     });
   }
 
-  return Object.freeze({ canSend, list: (query) => store.list(query), sendApplicantRecovery, sendInvitation, sendPasswordReset });
+  async function queueApplicantRecovery({ email, name, registrationId, accessCode }) {
+    if (!notificationPayloadKey) throw new Error('Kunci payload notifikasi belum tersedia.');
+    const payload = encryptNotificationPayload({ kind: 'applicant-recovery', name, registrationId, accessCode }, notificationPayloadKey);
+    return store.create({
+      id: crypto.randomUUID(), notificationType: NOTIFICATION_TYPES.PASSWORD_RESET,
+      recipientEmail: email, provider: sender.provider, createdAt: now().toISOString(),
+      payloadCiphertext: payload.ciphertext, payloadNonce: payload.nonce, payloadTag: payload.tag
+    });
+  }
+
+  return Object.freeze({ canSend, list: (query) => store.list(query), queueApplicantRecovery, sendApplicantRecovery, sendInvitation, sendPasswordReset });
 }
 
 module.exports = { NOTIFICATION_TYPES, createNotificationService, escapeHtml };

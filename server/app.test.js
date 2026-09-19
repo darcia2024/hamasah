@@ -248,6 +248,12 @@ async function run() {
     });
     assert.equal(recovery.status, 202);
     assert.match(recovery.body.message, /kode akses baru/);
+    const recoveryOutbox = await database.query("SELECT payload_ciphertext, payload_nonce, payload_tag FROM notification_outbox WHERE notification_type = 'password-reset' AND recipient_email = 'naufal@hamasah.test'");
+    assert.equal(recoveryOutbox.rows.length, 1);
+    assert.ok(recoveryOutbox.rows[0].payload_ciphertext && recoveryOutbox.rows[0].payload_nonce && recoveryOutbox.rows[0].payload_tag);
+    const recoveryPayload = decryptNotificationPayload({ ciphertext: recoveryOutbox.rows[0].payload_ciphertext, nonce: recoveryOutbox.rows[0].payload_nonce, tag: recoveryOutbox.rows[0].payload_tag }, 'development-only-key');
+    assert.equal(recoveryPayload.kind, 'applicant-recovery');
+    assert.match(recoveryPayload.accessCode, /^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{10}$/);
     const denied = await request(baseUrl, `/api/registrations/${registrationId}`);
     assert.equal(denied.status, 401);
 

@@ -37,10 +37,10 @@ function createPostgresNotificationStore({ database } = {}) {
     async create(record) {
       const { rows } = await database.query(
         `INSERT INTO notification_outbox
-          (id, notification_type, recipient_email, provider, status, attempts, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, 'pending', 0, $5, $5)
+          (id, notification_type, recipient_email, provider, status, attempts, created_at, updated_at, payload_ciphertext, payload_nonce, payload_tag)
+         VALUES ($1, $2, $3, $4, 'pending', 0, $5, $5, $6, $7, $8)
          RETURNING ${FIELDS}`,
-        [record.id, record.notificationType, record.recipientEmail, record.provider, record.createdAt]
+        [record.id, record.notificationType, record.recipientEmail, record.provider, record.createdAt, record.payloadCiphertext || null, record.payloadNonce || null, record.payloadTag || null]
       );
       return toNotification(rows[0]);
     },

@@ -65,7 +65,7 @@ module.exports = [
       // Selalu balas 202 agar nomor pendaftaran dan email tidak dapat ditebak.
       const recovered = await services.applicantService.recoverAccessCode(registrationId, body.email);
       if (recovered.ok && services.notificationService.canSend()) {
-        await services.notificationService.sendApplicantRecovery(recovered.value);
+        await services.notificationService.queueApplicantRecovery(recovered.value);
       }
       json(response, 202, { message: 'Jika data cocok, kode akses baru akan dikirim ke email terdaftar.' });
     }

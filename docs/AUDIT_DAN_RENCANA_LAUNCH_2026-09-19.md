@@ -428,14 +428,14 @@ Bukti eksekusi: `SMOKE_BASE_URL=http://127.0.0.1:4273 SMOKE_ADMIN_EMAIL=admin@ha
 
 Konversi pendaftar menjadi santri, retry idempotent, enkripsi payload undangan, matriks otorisasi, dan claim worker PostgreSQL sudah dibuktikan oleh integration test `npm test` (**39/39 file lulus**). UAT staging yang masih wajib: migrasi 017–020, storage provider nyata, email aktivasi, scheduler worker, backup/restore, domain HTTPS, dan persetujuan pemilik proses.
 
-Recovery kode akses sudah dibuktikan lewat unit test applicant/notification dan integration test `server/app.test.js`. Email recovery masih memakai tipe outbox `password-reset` agar kompatibel dengan constraint schema saat ini; perlu migrasi tipe notifikasi tersendiri bila ingin pelacakan dan worker recovery dipisahkan.
+Recovery kode akses sudah dibuktikan lewat unit test applicant/notification, integration test `server/app.test.js`, dan cabang worker yang mengirim payload terenkripsi tanpa menyimpan kode mentah. Email recovery memakai tipe outbox `password-reset` agar kompatibel dengan constraint schema saat ini; migrasi tipe notifikasi terpisah masih opsional untuk pelacakan yang lebih eksplisit.
 
 ## 15. Status aktual per tahap
 
 Snapshot ini menjadi acuan progres setelah UAT lokal terakhir; checklist tahap di atas mempertahankan rencana awal agar scope tidak hilang.
 
 - **Tahap 0 — fondasi:** selesai untuk baseline, CSP, lifecycle token, escaping, dan penghilangan metrik palsu utama. T00.5 masih parsial karena beberapa kartu aktivitas/dashboard non-inti masih berupa empty state atau data contoh.
-- **Tahap 1 — notifikasi:** worker durable untuk undangan sudah selesai dengan claim, lease, retry, timeout, recovery, dan payload terenkripsi. UI status/resend undangan serta izin khusus petugas pendaftaran sudah tersedia. Email provider nyata belum diuji; recovery calon masih dikirim sinkron dan masih memakai tipe outbox `password-reset`.
+- **Tahap 1 — notifikasi:** worker durable untuk undangan sudah selesai dengan claim, lease, retry, timeout, recovery, dan payload terenkripsi. UI status/resend undangan serta izin khusus petugas pendaftaran sudah tersedia. Recovery calon sekarang ikut antrean terenkripsi dan diproses worker; email provider nyata belum diuji, dan tipe schema masih memakai `password-reset` sampai enum notifikasi dipisahkan.
 - **Tahap 2 — pendaftaran:** alur inti selesai dan lulus UAT lokal: auth calon, edit data, upload/download terotorisasi, review, revisi, catatan, next steps, recovery, locking, dan optimistic concurrency. Penghapusan dokumen sesuai retensi serta verifikasi storage provider nyata belum selesai. Kontrak profil program masih mempertahankan kompatibilitas legacy dan perlu keputusan field wajib final.
 - **Tahap 3 — konversi:** service transaksional, row lock, idempotent retry, permission matrix, audit, outbox, dan UI petugas sudah tersedia. Aturan bisnis untuk existing parent, konflik email, dan parent beberapa saudara masih perlu disahkan serta diuji dengan data bisnis nyata.
 - **Tahap 4 — Rilis A publik:** belum siap launch. Konten perlu disahkan pemilik, CMS artikel draft/publish/media belum lengkap, SEO/404/sitemap dan consent/retensi belum ditutup, serta browser UAT responsive/keyboard penuh belum dilakukan.

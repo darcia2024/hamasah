@@ -29,6 +29,16 @@ async function run() {
   assert.equal(recovery.ok, true);
   assert.match(delivered[1].html, /ABCD234567/);
   assert.equal(store.items[1].notificationType, 'password-reset');
+  const queuedStore = memoryStore();
+  const queued = createNotificationService({
+    store: queuedStore,
+    sender: { provider: 'test', configured: true, async send() { throw new Error('harus dikirim worker'); } },
+    notificationPayloadKey: 'queue-test-key'
+  });
+  const queuedRecovery = await queued.queueApplicantRecovery({ email: 'calon@hamasah.test', name: 'Calon', registrationId: 'HI-REG-2026-00001', accessCode: 'ABCD234567' });
+  assert.equal(queuedRecovery.notificationType, 'password-reset');
+  assert.ok(queuedStore.items[0].payloadCiphertext && queuedStore.items[0].payloadNonce && queuedStore.items[0].payloadTag);
+  assert.equal(JSON.stringify(queuedStore.items).includes('ABCD234567'), false);
 
   const failedStore = memoryStore();
   const failed = createNotificationService({

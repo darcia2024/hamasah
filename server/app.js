@@ -106,7 +106,8 @@ function createHamasahApp(options) {
   });
   const notificationService = config.notificationService || createNotificationService({
     store: notificationStore,
-    sender: emailSender
+    sender: emailSender,
+    notificationPayloadKey: config.notificationPayloadKey || process.env.NOTIFICATION_PAYLOAD_KEY || process.env.IP_HASH_SECRET || 'development-only-key'
   });
   const notificationWorker = config.notificationWorker || createNotificationWorker({
     store: notificationStore,

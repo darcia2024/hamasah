@@ -18,15 +18,17 @@ function createNotificationWorker({ store, sender, notificationPayloadKey, appBa
 
   async function process(item) {
     try {
-      if (item.notification_type !== NOTIFICATION_TYPES.INVITATION) throw new Error('Tipe notifikasi belum didukung worker.');
       const payload = decryptNotificationPayload({ ciphertext: item.payload_ciphertext, nonce: item.payload_nonce, tag: item.payload_tag }, notificationPayloadKey);
-      const activationUrl = `${appBaseUrl}/website/aktivasi.html#token=${encodeURIComponent(payload.invitationToken)}`;
-      const sent = await sendWithTimeout({
-        type: NOTIFICATION_TYPES.INVITATION,
-        to: item.recipient_email,
-        subject: 'Aktivasi akun Hamasah International',
-        html: `<p>Assalamu'alaikum,</p><p>Akun Hamasah International Anda telah dibuat. Buat kata sandi melalui tautan berikut:</p><p><a href="${escapeHtml(activationUrl)}">Aktivasi akun</a></p><p>Tautan ini memiliki masa berlaku terbatas.</p>`
-      });
+      let message;
+      if (item.notification_type === NOTIFICATION_TYPES.INVITATION) {
+        const activationUrl = `${appBaseUrl}/website/aktivasi.html#token=${encodeURIComponent(payload.invitationToken)}`;
+        message = { type: NOTIFICATION_TYPES.INVITATION, to: item.recipient_email, subject: 'Aktivasi akun Hamasah International', html: `<p>Assalamu'alaikum,</p><p>Akun Hamasah International Anda telah dibuat. Buat kata sandi melalui tautan berikut:</p><p><a href="${escapeHtml(activationUrl)}">Aktivasi akun</a></p><p>Tautan ini memiliki masa berlaku terbatas.</p>` };
+      } else if (item.notification_type === NOTIFICATION_TYPES.PASSWORD_RESET && payload.kind === 'applicant-recovery') {
+        message = { type: NOTIFICATION_TYPES.PASSWORD_RESET, to: item.recipient_email, subject: 'Kode akses pendaftaran Hamasah International', html: `<p>Assalamu'alaikum ${escapeHtml(payload.name)},</p><p>Berikut kode akses baru untuk memeriksa pendaftaran ${escapeHtml(payload.registrationId)}:</p><p style="font-size:24px;font-weight:700;letter-spacing:3px">${escapeHtml(payload.accessCode)}</p><p>Jangan bagikan kode ini kepada orang lain.</p>` };
+      } else {
+        throw new Error('Tipe payload notifikasi belum didukung worker.');
+      }
+      const sent = await sendWithTimeout(message);
       return store.markDelivered(item.id, item.claim_token, { providerMessageId: sent.id, sentAt: now().toISOString() });
     } catch (error) {
       const attempts = Number(item.attempts || 0) + 1;
