@@ -292,7 +292,7 @@ function createHamasahApp(options) {
         json(response, error.status, { error: error.message });
         return;
       }
-      console.error(`[server] Permintaan gagal diproses: ${error.message}`);
+      console.error(`[server] Permintaan ${request.method} ${request.url} gagal diproses: ${error.stack || error.message}`);
       json(response, 500, { error: 'Terjadi kendala pada layanan.' });
     }
   }

@@ -41,5 +41,9 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 
 process.on('unhandledRejection', (reason) => {
-  console.error(`[server] Promise gagal tanpa penanganan: ${reason instanceof Error ? reason.message : String(reason)}`);
+  console.error(`[server] Promise gagal tanpa penanganan: ${reason instanceof Error ? reason.stack || reason.message : String(reason)}`);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error(`[server] Error tak tertangani: ${error.stack || error.message}`);
 });
