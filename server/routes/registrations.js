@@ -95,8 +95,9 @@ module.exports = [
     method: 'GET',
     pattern: /^\/api\/registrations$/,
     permission: 'registrations.read',
-    async handler({ response, services }) {
-      json(response, 200, { items: await services.registrationService.listForStaff() });
+    async handler({ request, response, services }) {
+      const query = new URL(request.url, 'http://localhost').searchParams;
+      json(response, 200, await services.registrationService.listForStaff({ search: query.get('search'), status: query.get('status'), page: query.get('page'), pageSize: query.get('pageSize') }));
     }
   },
 

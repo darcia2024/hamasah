@@ -201,13 +201,24 @@
       return { ok: true, value: toPublicRegistration(record) };
     }
 
-    async function listForStaff() {
+    async function listForStaff(options = {}) {
       if (typeof store.list !== 'function') {
-        return [];
+        return { items: [], total: 0, page: 1, pageSize: 20 };
       }
-      return (await store.list())
+      const search = String(options.search || '').trim().toLocaleLowerCase('id-ID');
+      const status = String(options.status || '').trim();
+      const page = Math.max(1, Number(options.page) || 1);
+      const pageSize = Math.min(100, Math.max(1, Number(options.pageSize) || 20));
+      const filtered = (await store.list())
         .sort(function latestFirst(left, right) { return right.updatedAt.localeCompare(left.updatedAt); })
-        .map(toStaffRegistration);
+        .filter((record) => {
+          const matchesStatus = !status || record.status === status;
+          const haystack = `${record.registrationId} ${record.applicant.applicantName} ${record.applicant.phone}`.toLocaleLowerCase('id-ID');
+          return matchesStatus && (!search || haystack.includes(search));
+        });
+      const total = filtered.length;
+      const items = filtered.slice((page - 1) * pageSize, page * pageSize).map(toStaffRegistration);
+      return Object.keys(options).length === 0 ? filtered.map(toStaffRegistration) : { items, total, page, pageSize };
     }
 
     async function changeStatus(registrationId, nextStatus, actor) {

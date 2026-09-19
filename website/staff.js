@@ -10,6 +10,13 @@ const conversionResult = document.querySelector('#conversion-result');
 const articleForm = document.querySelector('#article-form');
 const articleFormStatus = document.querySelector('#article-form-status');
 const staffNav = document.querySelector('#staff-nav');
+const registrationSearch = document.querySelector('#registration-search');
+const registrationStatusFilter = document.querySelector('#registration-status-filter');
+const registrationPagination = document.querySelector('#registration-pagination');
+const registrationPrev = document.querySelector('#registration-prev');
+const registrationNext = document.querySelector('#registration-next');
+const registrationPageLabel = document.querySelector('#registration-page-label');
+let registrationPage = 1;
 
 const STAFF_ROLES = Object.freeze(['admin', 'registration-officer']);
 
@@ -256,13 +263,21 @@ function renderRegistrations(items) {
 async function loadRegistrations() {
   registrationListStatus.classList.remove('is-error');
   registrationListStatus.textContent = 'Memuat data pendaftar...';
-  const response = await fetch('/api/registrations', { headers: authHeaders() });
+  const params = new URLSearchParams({ page: String(registrationPage), pageSize: '10' });
+  if (registrationSearch.value.trim()) params.set('search', registrationSearch.value.trim());
+  if (registrationStatusFilter.value) params.set('status', registrationStatusFilter.value);
+  const response = await fetch(`/api/registrations?${params}`, { headers: authHeaders() });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Data pendaftar belum dapat dimuat.');
   renderRegistrations(result.items);
   const badgeEl = document.querySelector('#badge-reg-count');
   if (badgeEl) badgeEl.textContent = result.items.length;
-  registrationListStatus.textContent = `${result.items.length} pendaftaran tersedia.`;
+  const pages = Math.max(1, Math.ceil(result.total / result.pageSize));
+  registrationPagination.hidden = pages <= 1;
+  registrationPageLabel.textContent = `Halaman ${result.page} dari ${pages}`;
+  registrationPrev.disabled = result.page <= 1;
+  registrationNext.disabled = result.page >= pages;
+  registrationListStatus.textContent = `${result.total} pendaftaran tersedia.`;
 }
 
 function showConsole(account) {
@@ -323,6 +338,10 @@ refreshButton.addEventListener('click', () => loadRegistrations().catch((error) 
   registrationListStatus.textContent = error.message || 'Data pendaftar belum dapat dimuat.';
   registrationListStatus.classList.add('is-error');
 }));
+registrationSearch.addEventListener('input', () => { registrationPage = 1; loadRegistrations().catch(() => {}); });
+registrationStatusFilter.addEventListener('change', () => { registrationPage = 1; loadRegistrations().catch(() => {}); });
+registrationPrev.addEventListener('click', () => { registrationPage -= 1; loadRegistrations().catch(() => {}); });
+registrationNext.addEventListener('click', () => { registrationPage += 1; loadRegistrations().catch(() => {}); });
 
 articleForm.addEventListener('submit', async (event) => {
   event.preventDefault();

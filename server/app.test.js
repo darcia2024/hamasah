@@ -356,6 +356,12 @@ async function run() {
     assert.equal(registrationList.status, 200);
     assert.equal(registrationList.body.items.length, 1);
     assert.equal(registrationList.body.items[0].applicant.applicantName, 'Naufal Rizki');
+    const searchedRegistrations = await request(baseUrl, '/api/registrations?search=Naufal&page=1&pageSize=10', {
+      headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}` }
+    });
+    assert.equal(searchedRegistrations.status, 200);
+    assert.equal(searchedRegistrations.body.total, 1);
+    assert.equal(searchedRegistrations.body.items[0].registrationId, registrationId);
 
     const articleDenied = await request(baseUrl, '/api/articles', {
       method: 'POST',
