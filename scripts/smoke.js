@@ -265,12 +265,15 @@ async function main() {
 
   let registrationId;
   let registrationToken;
+  const registrationEmail = `calon.smoke.${tag}@hamasah.test`;
 
   await langkah('Mengirim pendaftaran publik dan mengubah statusnya', async () => {
     const daftar = await permintaan('POST', '/api/registrations', {
       body: {
         applicantName: `Calon Smoke Test ${tag}`, phone: '081234567890', guardianName: 'Wali Calon',
-        guardianPhone: '081298765432', program: 'kuliah-al-azhar', educationLevel: 'SMA', city: 'Bandung', consent: true
+        guardianPhone: '081298765432', email: registrationEmail, guardianEmail: `wali.smoke.${tag}@hamasah.test`,
+        birthDate: '2006-04-12', gender: 'putra', schoolOrigin: 'SMA Smoke Test',
+        program: 'kuliah-al-azhar', educationLevel: 'SMA', city: 'Bandung', consent: true
       }
     });
     pastikan(daftar.status === 201, `Kirim pendaftaran gagal: ${JSON.stringify(daftar.body)}`);
@@ -281,6 +284,14 @@ async function main() {
       token: adminToken, body: { status: 'document-review', note: 'Berkas mulai diperiksa (smoke test).' }
     });
     pastikan(ubah.status === 200, `Ubah status gagal: ${JSON.stringify(ubah.body)}`);
+  });
+
+  await langkah('Meminta kode akses baru dengan respons anti-enumeration', async () => {
+    const recovery = await permintaan('POST', '/api/applicant/recovery', {
+      body: { registrationId, email: registrationEmail }
+    });
+    pastikan(recovery.status === 202, `Recovery gagal: ${JSON.stringify(recovery.body)}`);
+    pastikan(/kode akses baru/i.test(recovery.body.message), 'Pesan recovery tidak sesuai.');
   });
 
   await langkah('Mengunggah dan mengunduh dokumen pendaftaran (bukti storage sungguhan)', async () => {
