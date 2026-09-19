@@ -218,11 +218,11 @@ Gate: crash/retry tidak menggandakan undangan atau kehilangan pekerjaan; test ad
 Dependensi: Tahap 0; notifikasi memakai Tahap 1.
 
 - [x] T02.1 Kontrak profil per program, validasi tanggal nyata/umur dan consent; kompatibilitas legacy hanya untuk membaca/migrasi.
-- [ ] T02.2 Satu auth calon, login/logout/expiry/recovery; hapus kredensial pada URL dan tentukan masa transisi.
+- [x] T02.2 Satu auth calon, login/logout/expiry/recovery; hapus kredensial pada URL dan tentukan masa transisi.
 - [x] T02.3 UI file picker/progress/error, upload bytes, link file terotorisasi, download, revisi dan penghapusan sesuai retensi.
-- [ ] T02.4 Update registrasi terarah dan histori stabil, constraint/locking, test perubahan bersamaan.
-- [ ] T02.5 Workspace petugas: pencarian/pagination, review dokumen, catatan internal/publik, next steps dan alasan status.
-- [ ] T02.6 UI calon: edit yang diizinkan, revisi dokumen, status, catatan yang relevan dan tindak lanjut.
+- [x] T02.4 Update registrasi terarah dan histori stabil, constraint/locking, test perubahan bersamaan.
+- [x] T02.5 Workspace petugas: pencarian/pagination, review dokumen, catatan internal/publik, next steps dan alasan status.
+- [x] T02.6 UI calon: edit yang diizinkan, revisi dokumen, status, catatan yang relevan dan tindak lanjut.
 
 Gate: orang baru dapat mendaftar sampai lolos review tanpa edit database/manual API; berkas keluarga lain selalu ditolak; perubahan paralel tidak hilang.
 
