@@ -17,6 +17,9 @@ const ROLES = Object.freeze({
 
 const PERMISSIONS = Object.freeze({
   'accounts.manage': Object.freeze([ROLES.ADMIN]),
+  // Petugas pendaftaran boleh mengirim ulang undangan onboarding, tanpa hak
+  // membuat atau menonaktifkan akun secara umum.
+  'accounts.invitation-send': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
   // Daftar asrama dan penugasan musyrif. Hanya admin, karena ini menentukan
   // siapa boleh melihat santri yang mana.
   'dormitories.manage': Object.freeze([ROLES.ADMIN]),

@@ -308,11 +308,59 @@ function showConsole(account) {
   });
 }
 
+function notificationStatusLabel(status) {
+  return ({ pending: 'Menunggu worker', processing: 'Sedang dikirim', sent: 'Terkirim', failed: 'Gagal dikirim' })[status] || status;
+}
+
+async function loadNotifications() {
+  const response = await fetch('/api/notifications?limit=50', { headers: authHeaders() });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || 'Status notifikasi belum dapat dimuat.');
+  notificationList.replaceChildren();
+  const invitations = (result.items || []).filter((item) => item.notificationType === 'account-invitation');
+  if (!invitations.length) {
+    const empty = document.createElement('p'); empty.textContent = 'Belum ada pengiriman undangan akun.'; notificationList.append(empty);
+  }
+  invitations.forEach((item) => {
+    const row = document.createElement('article'); row.className = 'staff-registration notification-row';
+    const detail = document.createElement('div');
+    const title = document.createElement('h3'); title.textContent = item.recipientEmail;
+    const meta = document.createElement('p'); meta.textContent = `${notificationStatusLabel(item.status)} · Percobaan ${item.attempts} · ${formatWaktu(item.updatedAt || item.createdAt)}`;
+    detail.append(title, meta);
+    const actions = document.createElement('div');
+    if (item.accountId && item.status !== 'processing') {
+      const resend = document.createElement('button'); resend.type = 'button'; resend.className = 'button button--secondary'; resend.textContent = 'Kirim ulang';
+      resend.addEventListener('click', async () => {
+        resend.disabled = true;
+        try {
+          const resendResponse = await fetch(`/api/accounts/${encodeURIComponent(item.accountId)}/invitation`, { method: 'POST', headers: authHeaders() });
+          const resendResult = await resendResponse.json();
+          if (!resendResponse.ok) throw new Error(resendResult.error || 'Undangan belum dapat dikirim ulang.');
+          notificationListStatus.textContent = 'Undangan baru masuk antrean pengiriman.';
+          notificationListStatus.className = 'form-status is-success';
+          await loadNotifications();
+        } catch (error) {
+          notificationListStatus.textContent = error.message;
+          notificationListStatus.className = 'form-status is-error';
+        } finally { resend.disabled = false; }
+      });
+      actions.append(resend);
+    }
+    row.append(detail, actions); notificationList.append(row);
+  });
+  notificationListStatus.textContent = `${invitations.length} catatan undangan.`;
+}
+
 // Sub-Tab Switcher
 const tabBtnRegs = document.querySelector('#tab-btn-registrations');
 const tabBtnArticle = document.querySelector('#tab-btn-article');
+const tabBtnNotifications = document.querySelector('#tab-btn-notifications');
 const panelRegs = document.querySelector('#panel-registrations');
 const panelArticle = document.querySelector('#panel-article');
+const panelNotifications = document.querySelector('#panel-notifications');
+const notificationList = document.querySelector('#notification-list');
+const notificationListStatus = document.querySelector('#notification-list-status');
+const refreshNotifications = document.querySelector('#refresh-notifications');
 
 if (tabBtnRegs && tabBtnArticle && panelRegs && panelArticle) {
   tabBtnRegs.addEventListener('click', () => {
@@ -320,12 +368,20 @@ if (tabBtnRegs && tabBtnArticle && panelRegs && panelArticle) {
     tabBtnArticle.classList.remove('is-active');
     panelRegs.hidden = false;
     panelArticle.hidden = true;
+    if (panelNotifications) panelNotifications.hidden = true;
   });
   tabBtnArticle.addEventListener('click', () => {
     tabBtnArticle.classList.add('is-active');
     tabBtnRegs.classList.remove('is-active');
     panelArticle.hidden = false;
     panelRegs.hidden = true;
+    if (panelNotifications) panelNotifications.hidden = true;
+  });
+  if (tabBtnNotifications && panelNotifications) tabBtnNotifications.addEventListener('click', () => {
+    tabBtnNotifications.classList.add('is-active');
+    tabBtnRegs.classList.remove('is-active'); tabBtnArticle.classList.remove('is-active');
+    panelRegs.hidden = true; panelArticle.hidden = true; panelNotifications.hidden = false;
+    loadNotifications().catch((error) => { notificationListStatus.textContent = error.message; notificationListStatus.className = 'form-status is-error'; });
   });
 }
 
@@ -352,6 +408,10 @@ loginForm.addEventListener('submit', async (event) => {
 refreshButton.addEventListener('click', () => loadRegistrations().catch((error) => {
   registrationListStatus.textContent = error.message || 'Data pendaftar belum dapat dimuat.';
   registrationListStatus.classList.add('is-error');
+}));
+if (refreshNotifications) refreshNotifications.addEventListener('click', () => loadNotifications().catch((error) => {
+  notificationListStatus.textContent = error.message;
+  notificationListStatus.className = 'form-status is-error';
 }));
 registrationSearch.addEventListener('input', () => { registrationPage = 1; loadRegistrations().catch(() => {}); });
 registrationStatusFilter.addEventListener('change', () => { registrationPage = 1; loadRegistrations().catch(() => {}); });

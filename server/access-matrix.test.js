@@ -146,6 +146,8 @@ async function run() {
         permission: 'accounts.manage', method: 'PATCH', path: () => `/api/accounts/${akunId[R.TEACHER]}/active`,
         body: () => ({ active: true })
       },
+      { permission: 'accounts.invitation-send', method: 'GET', path: '/api/notifications?limit=5' },
+      { permission: 'accounts.invitation-send', method: 'POST', path: () => `/api/accounts/${akunId[R.TEACHER]}/invitation` },
 
       { permission: 'audit.read', method: 'GET', path: '/api/audit?limit=5' },
 

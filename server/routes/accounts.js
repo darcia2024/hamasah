@@ -36,7 +36,7 @@ module.exports = [
   {
     method: 'POST',
     pattern: /^\/api\/accounts\/([\w-]+)\/invitation$/,
-    permission: 'accounts.manage',
+    permission: 'accounts.invitation-send',
     async handler({ response, services, config, auth, params, ip }) {
       if (!services.notificationService.canSend()) {
         json(response, 503, { error: 'Layanan email belum dikonfigurasi.' });
@@ -79,7 +79,7 @@ module.exports = [
   {
     method: 'GET',
     pattern: /^\/api\/notifications$/,
-    permission: 'accounts.manage',
+    permission: 'accounts.invitation-send',
     async handler({ response, services, url }) {
       json(response, 200, await services.notificationService.list({
         limit: url.searchParams.get('limit'), offset: url.searchParams.get('offset'),

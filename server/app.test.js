@@ -201,6 +201,19 @@ async function run() {
       body: JSON.stringify({ email: 'petugas@hamasah.test', password: 'kata-sandi-petugas-aman' })
     });
     assert.equal(createdOfficerLogin.status, 200);
+    const invitationAccount = await request(baseUrl, '/api/accounts/invitations', {
+      method: 'POST', headers: adminHeaders,
+      body: JSON.stringify({ name: 'Akun Undangan Uji', email: 'undangan-uji@hamasah.test', role: 'student' })
+    });
+    assert.equal(invitationAccount.status, 201, JSON.stringify(invitationAccount.body));
+    const officerNotificationList = await request(baseUrl, '/api/notifications?limit=10', {
+      headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}` }
+    });
+    assert.equal(officerNotificationList.status, 200);
+    const resentInvitation = await request(baseUrl, `/api/accounts/${invitationAccount.body.account.id}/invitation`, {
+      method: 'POST', headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}` }
+    });
+    assert.equal(resentInvitation.status, 200);
 
     const created = await request(baseUrl, '/api/registrations', {
       method: 'POST',
@@ -344,7 +357,8 @@ async function run() {
     assert.equal(converted.body.conversion.accounts.length, 2);
     assert.deepEqual(converted.body.conversion.accounts.map((account) => account.role).sort(), ['parent', 'student']);
     assert.ok(converted.body.conversion.accounts.every((account) => account.onboardingStatus === 'invitation-pending'));
-    const queuedInvitations = await database.query("SELECT account_id, payload_ciphertext, payload_nonce, payload_tag FROM notification_outbox WHERE notification_type = 'account-invitation'");
+    const convertedAccountIds = converted.body.conversion.accounts.map((account) => account.id);
+    const queuedInvitations = await database.query("SELECT account_id, payload_ciphertext, payload_nonce, payload_tag FROM notification_outbox WHERE notification_type = 'account-invitation' AND account_id = ANY($1::uuid[])", [convertedAccountIds]);
     assert.equal(queuedInvitations.rows.length, 2);
     assert.ok(queuedInvitations.rows.every((row) => row.account_id && row.payload_ciphertext && row.payload_nonce && row.payload_tag));
     const invitationPayload = decryptNotificationPayload({
