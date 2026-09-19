@@ -248,6 +248,13 @@ async function run() {
     const retrieved = await request(baseUrl, `/api/registrations/${registrationId}`, { headers: candidateHeaders });
     assert.equal(retrieved.status, 200);
     assert.equal(retrieved.body.registration.status, 'submitted');
+    const applicantUpdate = await request(baseUrl, `/api/applicant/registrations/${registrationId}`, {
+      method: 'PATCH', headers: candidateHeaders,
+      body: JSON.stringify({ city: 'Alexandria', phone: '081234567891' })
+    });
+    assert.equal(applicantUpdate.status, 200, JSON.stringify(applicantUpdate.body));
+    const updatedPublic = await request(baseUrl, `/api/registrations/${registrationId}`, { headers: candidateHeaders });
+    assert.equal(updatedPublic.body.registration.status, 'submitted');
 
     const uploadRequest = await request(baseUrl, '/api/uploads', {
       method: 'POST',

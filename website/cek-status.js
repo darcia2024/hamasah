@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const docFileInput = document.querySelector('#doc-file-input');
   const docUploadStatus = document.querySelector('#doc-upload-status');
   const historyTimeline = document.querySelector('#history-timeline');
+  const applicantEditCard = document.querySelector('#applicant-edit-card');
+  const applicantEditForm = document.querySelector('#applicant-edit-form');
+  const applicantEditStatus = document.querySelector('#applicant-edit-status');
 
   function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (character) => ({
@@ -150,6 +153,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       updateStepper(reg.status, progress);
       renderDocuments(reg.documentSummary);
+      const canEdit = !['ready-for-departure', 'completed', 'cancelled'].includes(reg.status);
+      applicantEditCard.hidden = !canEdit;
+      if (canEdit && reg.applicant) {
+        for (const [name, value] of Object.entries(reg.applicant)) {
+          const field = applicantEditForm.elements.namedItem(name);
+          if (field && typeof value === 'string') field.value = value;
+        }
+      }
       const rejected = (reg.documentSummary || []).find((documentItem) => documentItem.reviewStatus === 'rejected');
       if (rejected) {
         docTypeSelect.value = rejected.type;
@@ -198,6 +209,27 @@ document.addEventListener('DOMContentLoaded', () => {
       statusMsg.className = 'form-status is-error';
       submitBtn.disabled = false;
     });
+  });
+
+  applicantEditForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!currentRegId || !currentToken) return;
+    applicantEditStatus.textContent = 'Menyimpan perubahan...';
+    applicantEditStatus.className = 'form-status';
+    try {
+      const response = await fetch(`/api/applicant/registrations/${encodeURIComponent(currentRegId)}`, {
+        method: 'PATCH', headers: { Authorization: `Bearer ${currentToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.fromEntries(new FormData(applicantEditForm).entries()))
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || Object.values(data.errors || {})[0] || 'Perubahan belum dapat disimpan.');
+      applicantEditStatus.textContent = 'Data pendaftaran berhasil diperbarui.';
+      applicantEditStatus.className = 'form-status is-success';
+      await fetchRegistration(currentRegId, currentToken);
+    } catch (error) {
+      applicantEditStatus.textContent = error.message;
+      applicantEditStatus.className = 'form-status is-error';
+    }
   });
 
   // Handle document upload

@@ -141,6 +141,21 @@
 
             <!-- 2-Column Detail Grid: Document Upload & Status History -->
             <div class="detail-columns-grid">
+              <div class="detail-card applicant-edit-card" id="applicant-edit-card" hidden>
+                <div class="card-heading-row"><span class="card-label">Perbarui Data</span><h3>Edit Data Pendaftaran</h3></div>
+                <p class="form-subnote">Perbarui data yang masih diperbolehkan selama pendaftaran belum dikunci.</p>
+                <form id="applicant-edit-form" class="applicant-edit-form">
+                  <div class="edit-grid">
+                    <label>Nama lengkap<input name="applicantName" required></label><label>Nomor WhatsApp<input name="phone" required></label>
+                    <label>Nama wali<input name="guardianName"></label><label>WhatsApp wali<input name="guardianPhone"></label>
+                    <label>Email calon<input name="email" type="email"></label><label>Email wali<input name="guardianEmail" type="email"></label>
+                    <label>Tanggal lahir<input name="birthDate" type="date"></label><label>Jenis kelamin<select name="gender"><option value="">Pilih</option><option value="putra">Putra</option><option value="putri">Putri</option></select></label>
+                    <label>Sekolah asal<input name="schoolOrigin"></label><label>Kota domisili<input name="city"></label>
+                  </div>
+                  <button class="button button--secondary" type="submit">Simpan perubahan</button>
+                  <p id="applicant-edit-status" class="form-status" role="status" aria-live="polite"></p>
+                </form>
+              </div>
               <!-- Left: Document List & Upload -->
               <div class="detail-card">
                 <div class="card-heading-row">

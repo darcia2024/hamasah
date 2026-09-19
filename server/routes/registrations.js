@@ -172,6 +172,19 @@ module.exports = [
 
   {
     method: 'PATCH',
+    pattern: new RegExp(`^/api/applicant/registrations/(${REGISTRATION_ID})$`),
+    async handler({ response, services, auth, params, readBody }) {
+      if (!(await auth.isCandidate(params[0]))) {
+        json(response, 401, { error: 'Akses akun pendaftaran diperlukan.' });
+        return;
+      }
+      const result = await services.registrationService.updateApplicant(params[0], await readBody(), { role: registrationDomain.ROLES.APPLICANT });
+      json(response, result.ok ? 200 : (result.status || 422), result.ok ? { registration: result.value } : publicError(result));
+    }
+  },
+
+  {
+    method: 'PATCH',
     pattern: new RegExp(`^/api/registrations/(${REGISTRATION_ID})/documents/([\\w-]+)/review$`),
     permission: 'registrations.update-status',
     async handler({ response, services, auth, params, readBody, ip }) {

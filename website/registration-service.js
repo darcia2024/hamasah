@@ -291,6 +291,26 @@
       return { ok: true, value: toPublicRegistration(saved) };
     }
 
+    async function updateApplicant(registrationId, input, actor) {
+      if (!actor || actor.role !== domain.ROLES.APPLICANT) return { ok: false, status: 403, error: 'Akses calon santri diperlukan.' };
+      const record = await store.get(registrationId);
+      if (!record) return { ok: false, error: 'Pendaftaran tidak ditemukan.' };
+      if (['ready-for-departure', 'completed', 'cancelled'].includes(record.status)) {
+        return { ok: false, error: 'Data pendaftaran sudah dikunci pada tahap ini.' };
+      }
+      const source = input || {};
+      const editable = ['applicantName', 'phone', 'guardianName', 'guardianPhone', 'guardianEmail', 'email', 'birthDate', 'gender', 'schoolOrigin', 'city'];
+      const nextApplicant = { ...record.applicant };
+      for (const field of editable) {
+        if (Object.prototype.hasOwnProperty.call(source, field)) nextApplicant[field] = source[field];
+      }
+      const validation = domain.validateApplicant({ ...nextApplicant, program: record.applicant.program, educationLevel: record.applicant.educationLevel, consent: true, guardianConsent: record.applicant.guardianConsent });
+      if (!validation.valid) return { ok: false, errors: validation.errors };
+      const updatedAt = getNow();
+      const saved = await store.update({ ...record, applicant: validation.value, updatedAt });
+      return { ok: true, value: toPublicRegistration(saved) };
+    }
+
     async function reviewDocument(registrationId, documentId, input, actor) {
       if (!actor || ![domain.ROLES.ADMIN, domain.ROLES.REGISTRATION_OFFICER].includes(actor.role)) return { ok: false, error: 'Akses petugas diperlukan.' };
       const status = String((input || {}).reviewStatus || '');
@@ -326,6 +346,7 @@
       getPublic,
       listForStaff,
       reviewDocument,
+      updateApplicant,
       store
     });
   }
