@@ -5,7 +5,7 @@ async function run() {
   const records = new Map([['HI-REG-2026-00001', { id: 'registration-1', registrationId: 'HI-REG-2026-00001', accessCodeHash: null }]]);
   const sessions = new Map();
   const store = { async get(id) { return records.get(id) || null; } };
-  const sessionStore = { async save(item) { sessions.set(item.tokenHash, item); }, async get(hash) { return sessions.get(hash) || null; } };
+  const sessionStore = { async save(item) { sessions.set(item.tokenHash, item); }, async get(hash) { return sessions.get(hash) || null; }, async remove(hash) { sessions.delete(hash); }, async removeExpired() { return 0; } };
   const service = createApplicantService({ registrationStore: store, sessionStore });
   const code = service.createAccessCode();
   assert.match(code, /^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{10}$/);
@@ -15,6 +15,8 @@ async function run() {
   assert.equal(login.ok, true);
   assert.equal((await service.authenticate(login.value.accessToken, 'HI-REG-2026-00001')).ok, true);
   assert.equal((await service.authenticate(login.value.accessToken, 'HI-REG-2026-00002')).ok, false);
+  await service.logout(login.value.accessToken);
+  assert.equal((await service.authenticate(login.value.accessToken, 'HI-REG-2026-00001')).ok, false);
   console.log('applicant service tests passed');
 }
 run().catch((error) => { console.error(error); process.exitCode = 1; });

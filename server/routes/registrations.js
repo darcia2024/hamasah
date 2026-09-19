@@ -50,6 +50,16 @@ module.exports = [
   },
 
   {
+    method: 'POST',
+    pattern: /^\/api\/applicant\/logout$/,
+    async handler({ request, response, services }) {
+      const token = String(request.headers.authorization || '').replace(/^Bearer\s+/i, '');
+      await services.applicantService.logout(token);
+      json(response, 204, {});
+    }
+  },
+
+  {
     method: 'GET',
     pattern: new RegExp(`^/api/applicant/registrations/(${REGISTRATION_ID})$`),
     async handler({ request, response, services, params }) {

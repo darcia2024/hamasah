@@ -167,13 +167,28 @@ document.addEventListener('DOMContentLoaded', () => {
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const id = regIdInput.value.trim().toUpperCase();
-    const token = tokenInput.value.trim();
-    if (!id || !token) {
-      statusMsg.textContent = 'Nomor registrasi dan token akses harus diisi.';
+    const accessCode = tokenInput.value.trim();
+    if (!id || !accessCode) {
+      statusMsg.textContent = 'Nomor registrasi dan kode akses harus diisi.';
       statusMsg.className = 'form-status is-error';
       return;
     }
-    fetchRegistration(id, token);
+    submitBtn.disabled = true;
+    statusMsg.textContent = 'Memverifikasi kode akses...';
+    statusMsg.className = 'form-status';
+    fetch('/api/applicant/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ registrationId: id, accessCode })
+    }).then(async (response) => {
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'Nomor pendaftaran atau kode akses tidak tepat.');
+      await fetchRegistration(id, data.accessToken);
+    }).catch((error) => {
+      statusMsg.textContent = error.message;
+      statusMsg.className = 'form-status is-error';
+      submitBtn.disabled = false;
+    });
   });
 
   // Handle document upload

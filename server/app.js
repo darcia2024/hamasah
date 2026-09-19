@@ -286,6 +286,7 @@ function createHamasahApp(options) {
   // belum ada penjadwal terpisah; timer di-unref supaya tidak menahan proses berhenti.
   let auditPurgeTimer = null;
   let sessionPurgeTimer = null;
+  let staleUploadPurgeTimer = null;
 
   // Timer di-unref supaya tidak menahan proses berhenti saat shutdown.
   function jadwalkan(pekerjaan, jeda) {
@@ -325,16 +326,19 @@ function createHamasahApp(options) {
         console.error(`[berkas] Pembersihan unggahan tertunda gagal: ${error.message}`);
       }
     }
-    jadwalkan(bersihkan, SESSION_PURGE_INTERVAL_MS);
+    staleUploadPurgeTimer = jadwalkan(bersihkan, SESSION_PURGE_INTERVAL_MS);
     return bersihkan();
   }
 
   function startSessionCleanup() {
     async function bersihkan() {
       try {
-        const dihapus = await identityService.purgeExpiredSessions();
-        if (dihapus > 0) {
-          console.log(`[sesi] ${dihapus} sesi kedaluwarsa dihapus.`);
+        const [dihapus, pendaftarDihapus] = await Promise.all([
+          identityService.purgeExpiredSessions(),
+          applicantService.purgeExpiredSessions()
+        ]);
+        if (dihapus + pendaftarDihapus > 0) {
+          console.log(`[sesi] ${dihapus + pendaftarDihapus} sesi kedaluwarsa dihapus.`);
         }
       } catch (error) {
         console.error(`[sesi] Pembersihan sesi kedaluwarsa gagal: ${error.message}`);
@@ -365,6 +369,10 @@ function createHamasahApp(options) {
       if (sessionPurgeTimer) {
         clearInterval(sessionPurgeTimer);
         sessionPurgeTimer = null;
+      }
+      if (staleUploadPurgeTimer) {
+        clearInterval(staleUploadPurgeTimer);
+        staleUploadPurgeTimer = null;
       }
       if (ownsDatabase) {
         await database.close();

@@ -376,5 +376,6 @@ Tahap 2 checkpoint berjalan sebagian:
 - [x] Form dokumen publik mengunggah bytes melalui `/api/uploads`, lalu menautkan `fileObjectId`.
 - [x] Registration service menolak storage key manual, file asing, file pending, purpose/entity yang salah.
 - [x] Test app menguji upload PDF nyata sampai dokumen tertaut; test service menguji referensi palsu.
-- [ ] Login UI calon berbasis registration ID + access code belum menggantikan form token lama sepenuhnya.
-- [ ] Logout/recovery/cleanup applicant session dan update registration dengan locking masih terbuka.
+- [x] Login UI cek pendaftaran memakai registration ID + access code dan endpoint applicant session; logout applicant juga tersedia.
+- [x] Applicant session punya logout dan pembersihan kedaluwarsa; timer upload stale juga sekarang ditutup saat shutdown.
+- [ ] Recovery calon dan update registration dengan locking masih terbuka.

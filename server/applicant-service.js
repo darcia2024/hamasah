@@ -28,7 +28,15 @@ function createApplicantService({ registrationStore, sessionStore, now = () => n
     if (!registration || registration.id !== session.registrationId) return { ok: false, error: 'Akses pendaftaran tidak diizinkan.' };
     return { ok: true, value: registration };
   }
-  return Object.freeze({ authenticate, createAccessCode, hashAccessCode: hashPassword, login });
+  async function logout(token) {
+    if (typeof sessionStore.remove === 'function') await sessionStore.remove(hashToken(token || ''));
+    return { ok: true };
+  }
+  async function purgeExpiredSessions() {
+    if (typeof sessionStore.removeExpired !== 'function') return 0;
+    return sessionStore.removeExpired(now().toISOString());
+  }
+  return Object.freeze({ authenticate, createAccessCode, hashAccessCode: hashPassword, login, logout, purgeExpiredSessions });
 }
 
 module.exports = { ACCESS_CODE_ALPHABET, SESSION_TTL_MS, createAccessCode, createApplicantService };

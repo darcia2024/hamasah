@@ -8,6 +8,13 @@ function createPostgresApplicantSessionStore({ database } = {}) {
       const { rows } = await database.query('SELECT token_hash, registration_id, expires_at, created_at FROM applicant_sessions WHERE token_hash = $1', [tokenHash]);
       if (!rows[0]) return null;
       return { tokenHash: rows[0].token_hash, registrationId: rows[0].registration_id, expiresAt: rows[0].expires_at.toISOString(), createdAt: rows[0].created_at.toISOString() };
+    },
+    async remove(tokenHash) {
+      await database.query('DELETE FROM applicant_sessions WHERE token_hash = $1', [tokenHash]);
+    },
+    async removeExpired(isoTime) {
+      const { rowCount } = await database.query('DELETE FROM applicant_sessions WHERE expires_at < $1', [isoTime]);
+      return rowCount;
     }
   };
 }
