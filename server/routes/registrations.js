@@ -194,6 +194,29 @@ module.exports = [
   },
 
   {
+    method: 'DELETE',
+    pattern: new RegExp(`^/api/registrations/(${REGISTRATION_ID})/documents/([\\w-]+)$`),
+    async handler({ response, services, auth, params, ip }) {
+      const registrationId = params[0];
+      const isCandidate = await auth.isCandidate(registrationId);
+      const staff = isCandidate ? null : await auth.staffActor();
+      if (!isCandidate && !staff) {
+        json(response, 401, { error: 'Akses akun pendaftaran atau petugas diperlukan.' });
+        return;
+      }
+      const result = await services.registrationService.deleteDocument(registrationId, params[1], staff
+        ? { role: registrationRoleOf(staff), accountId: staff.id }
+        : { role: registrationDomain.ROLES.APPLICANT });
+      if (result.ok) await services.auditService.record({
+        action: ACTIONS.REGISTRATION_DOCUMENT_DELETED, actor: staff, ip,
+        entityType: 'registration', entityId: registrationId,
+        metadata: { documentId: params[1], olehPendaftar: isCandidate }
+      });
+      json(response, result.ok ? 200 : (result.status || 422), result.ok ? { registration: result.value } : publicError(result));
+    }
+  },
+
+  {
     method: 'PATCH',
     pattern: new RegExp(`^/api/applicant/registrations/(${REGISTRATION_ID})$`),
     async handler({ response, services, auth, params, readBody }) {

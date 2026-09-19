@@ -2556,12 +2556,14 @@ h1, h2, h3, h4 {
 }
 
 .doc-review-note { display: block; color: #A33A2B; margin-top: 4px; line-height: 1.4; }
+.doc-delete-button { flex: 0 0 auto; white-space: nowrap; }
 .m3-chip-status.is-rejected { color: #A33A2B; background: #FCE8E6; }
 .applicant-edit-card { grid-column: 1 / -1; }
 .edit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
 .edit-grid label { display: grid; gap: 6px; font-size: 12px; font-weight: 700; }
 .edit-grid input, .edit-grid select { min-height: 40px; padding: 8px 10px; border: 1px solid var(--md-sys-color-outline, #CBD5E1); border-radius: 8px; font: inherit; font-size: 13px; }
 @media (max-width: 760px) { .edit-grid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .doc-item-row { align-items: flex-start; flex-wrap: wrap; } .doc-delete-button { margin-left: 36px; } }
 
 .m3-chip-status {
   font-size: 11px;

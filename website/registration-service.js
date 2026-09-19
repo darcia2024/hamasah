@@ -61,6 +61,15 @@
       },
       list() {
         return [...records.values()].map(clone);
+      },
+      async removeDocument(registrationId, documentId) {
+        const record = records.get(registrationId);
+        if (!record) return null;
+        const documents = (record.documents || []).filter((document) => document.id !== documentId);
+        if (documents.length === record.documents.length) return null;
+        const saved = { ...record, documents, updatedAt: new Date().toISOString(), version: (record.version || 1) + 1 };
+        records.set(registrationId, clone(saved));
+        return clone(saved);
       }
     };
   }
@@ -163,7 +172,7 @@
       const createOptions = options || {};
 
       // Data diperiksa lebih dulu supaya kiriman yang tidak valid tidak menghabiskan nomor registrasi.
-      const validation = domain.validateApplicant(payload);
+      const validation = domain.validateApplicant(payload, { requireProfile: true });
       if (!validation.valid) {
         return { ok: false, errors: validation.errors };
       }
@@ -279,7 +288,10 @@
         uploadedBy: actorRole,
         uploadedByAccountId: (actor && actor.accountId) || null
       };
-      const replacement = record.status === domain.STATUSES.NEEDS_REVISION && record.documents.some((entry) => entry.type === document.type && entry.reviewStatus === 'rejected');
+      const replacement = record.status === domain.STATUSES.NEEDS_REVISION && actorRole === domain.ROLES.APPLICANT && (
+        record.documents.some((entry) => entry.type === document.type && entry.reviewStatus === 'rejected') ||
+        record.documents.length === 0
+      );
       const nextRecord = {
         ...record,
         documents: record.documents.concat(document),
@@ -315,7 +327,7 @@
       for (const field of editable) {
         if (Object.prototype.hasOwnProperty.call(source, field)) nextApplicant[field] = source[field];
       }
-      const validation = domain.validateApplicant({ ...nextApplicant, program: record.applicant.program, educationLevel: record.applicant.educationLevel, consent: true, guardianConsent: record.applicant.guardianConsent });
+      const validation = domain.validateApplicant({ ...nextApplicant, program: record.applicant.program, educationLevel: record.applicant.educationLevel, consent: true, guardianConsent: record.applicant.guardianConsent }, { requireProfile: true });
       if (!validation.valid) return { ok: false, errors: validation.errors };
       const updatedAt = getNow();
       const saved = await store.update({ ...record, applicant: validation.value, updatedAt });
@@ -337,6 +349,31 @@
       const documents = record.documents.map((document) => document.id === documentId ? { ...document, reviewStatus: status, reviewNote: note, reviewedAt, reviewedByAccountId: actor.accountId } : document);
       if (!documents.some((document) => document.id === documentId)) return { ok: false, error: 'Berkas tidak ditemukan.' };
       const saved = await store.update({ ...record, documents, updatedAt: reviewedAt });
+      return { ok: true, value: toPublicRegistration(saved) };
+    }
+
+    async function deleteDocument(registrationId, documentId, actor) {
+      if (!actor || ![domain.ROLES.APPLICANT, domain.ROLES.REGISTRATION_OFFICER, domain.ROLES.ADMIN].includes(actor.role)) {
+        return { ok: false, status: 403, error: 'Akses pendaftar atau petugas diperlukan.' };
+      }
+      const record = await store.get(registrationId);
+      if (!record) return { ok: false, error: 'Pendaftaran tidak ditemukan.' };
+      if (['ready-for-departure', 'completed', 'cancelled'].includes(record.status)) {
+        return { ok: false, error: 'Berkas sudah dikunci pada tahap ini.' };
+      }
+      const document = (record.documents || []).find((entry) => entry.id === documentId);
+      if (!document) return { ok: false, error: 'Dokumen tidak ditemukan.' };
+      if (document.reviewStatus === 'accepted') return { ok: false, error: 'Dokumen yang sudah diterima tidak dapat dihapus.' };
+      if (actor.role === domain.ROLES.APPLICANT && document.uploadedBy !== domain.ROLES.APPLICANT) {
+        return { ok: false, status: 403, error: 'Pendaftar hanya dapat menghapus dokumen yang diunggah sendiri.' };
+      }
+      const saved = typeof store.removeDocument === 'function'
+        ? await store.removeDocument(registrationId, documentId)
+        : null;
+      if (!saved) return { ok: false, error: 'Dokumen tidak dapat dihapus.' };
+      if (document.fileObjectId && typeof config.markFileDeleted === 'function') {
+        await config.markFileDeleted(document.fileObjectId, getNow());
+      }
       return { ok: true, value: toPublicRegistration(saved) };
     }
 
@@ -369,6 +406,7 @@
       getPublic,
       listForStaff,
       reviewDocument,
+      deleteDocument,
       updateApplicant,
       store
     });

@@ -8,6 +8,12 @@ function applicant(name) {
     phone: '0812 3456 7890',
     guardianName: `Wali ${name}`,
     guardianPhone: '0813 2222 3333',
+    email: `${name.toLowerCase().replace(/\s+/g, '.')}@example.test`,
+    guardianEmail: `wali.${name.toLowerCase().replace(/\s+/g, '.')}@example.test`,
+    birthDate: '2004-01-01',
+    gender: 'putra',
+    schoolOrigin: 'MA Uji',
+    guardianConsent: true,
     program: domain.PROGRAMS.MAHAD,
     educationLevel: 'MA',
     city: 'Bandung',
@@ -69,8 +75,10 @@ function namesById(database) {
 
 async function testNormalFlow() {
   let clock = 0;
+  const deletedFiles = [];
   const service = serviceModule.createRegistrationService({
-    getFile: async (fileId) => fileId === '123e4567-e89b-12d3-a456-426614174000' ? {
+    markFileDeleted: async (fileId) => { deletedFiles.push(fileId); },
+    getFile: async (fileId) => ['123e4567-e89b-12d3-a456-426614174000', '123e4567-e89b-12d3-a456-426614174002'].includes(fileId) ? {
       id: fileId, status: 'ready', purpose: 'registration-document', entityType: 'registration', entityId: 'HI-REG-2026-00001', storageKey: 'registration-document/HI-REG-2026-00001/file.pdf'
     } : null,
     now() {
@@ -94,6 +102,12 @@ async function testNormalFlow() {
   const documentId = documentAdded.value.documentSummary[0].id;
   assert.equal((await service.reviewDocument(id, documentId, { reviewStatus: 'rejected', note: '' }, { role: domain.ROLES.REGISTRATION_OFFICER, accountId: 'staff-1' })).ok, false);
   assert.equal((await service.reviewDocument(id, documentId, { reviewStatus: 'accepted' }, { role: domain.ROLES.REGISTRATION_OFFICER, accountId: 'staff-1' })).ok, true);
+  const revision = await service.addDocument(id, { type: 'transcript', fileObjectId: '123e4567-e89b-12d3-a456-426614174002' }, { role: domain.ROLES.APPLICANT });
+  assert.equal(revision.ok, true);
+  const revisionId = revision.value.documentSummary.find((entry) => entry.type === 'transcript').id;
+  assert.equal((await service.deleteDocument(id, revisionId, { role: domain.ROLES.APPLICANT })).ok, true);
+  assert.deepEqual(deletedFiles, ['123e4567-e89b-12d3-a456-426614174002']);
+  assert.equal((await service.deleteDocument(id, documentId, { role: domain.ROLES.APPLICANT })).ok, false, 'Dokumen diterima harus terkunci.');
   assert.equal((await service.addNote(id, { visibility: 'applicant', body: 'Mohon menunggu pemeriksaan berikutnya.' }, { role: domain.ROLES.REGISTRATION_OFFICER, accountId: 'staff-1' })).ok, true);
   assert.equal((await service.changeStatus(id, domain.STATUSES.DOCUMENT_REVIEW, { role: domain.ROLES.APPLICANT })).ok, false);
   assert.equal((await service.changeStatus(id, domain.STATUSES.DOCUMENT_REVIEW, { role: domain.ROLES.REGISTRATION_OFFICER, note: 'Berkas diperiksa.' })).value.status, domain.STATUSES.DOCUMENT_REVIEW);

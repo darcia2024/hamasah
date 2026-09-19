@@ -170,6 +170,16 @@ function createPostgresRegistrationStore({ database } = {}) {
       return result.rowCount ? get(registrationId) : null;
     },
 
+    async removeDocument(registrationId, documentId) {
+      const registration = await get(registrationId);
+      if (!registration) return null;
+      const result = await database.query(
+        'DELETE FROM registration_documents WHERE id = $1 AND registration_id = $2',
+        [documentId, registration.id]
+      );
+      return result.rowCount ? get(registrationId) : null;
+    },
+
     async list() {
       const { rows } = await database.query('SELECT registration_id FROM registrations ORDER BY updated_at DESC');
       return Promise.all(rows.map((row) => get(row.registration_id)));

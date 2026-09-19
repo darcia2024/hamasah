@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const reviewStatus = d.reviewStatus || 'pending';
       const statusLabel = reviewStatus === 'rejected' ? 'Perlu diunggah ulang' : reviewStatus === 'accepted' ? 'Diterima' : 'Menunggu review';
       const note = reviewStatus === 'rejected' && d.reviewNote ? `<small class="doc-review-note">Catatan petugas: ${escapeHtml(d.reviewNote)}</small>` : '';
+      const deleteAction = reviewStatus === 'accepted' ? '' : `<button type="button" class="button button--text doc-delete-button" data-document-id="${escapeHtml(d.id)}">Hapus & unggah ulang</button>`;
       return `
         <div class="doc-item-row">
           <div class="doc-icon-badge" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
@@ -90,12 +91,32 @@ document.addEventListener('DOMContentLoaded', () => {
             <small>Diunggah: ${escapeHtml(dateStr)}</small>${note}
           </div>
           <span class="m3-chip-status ${reviewStatus === 'rejected' ? 'is-rejected' : reviewStatus === 'accepted' ? 'is-approved' : ''}">${statusLabel}</span>
+          ${deleteAction}
         </div>
       `;
     }).join('');
 
     docListContainer.innerHTML = html;
   }
+
+  docListContainer.addEventListener('click', async (event) => {
+    const button = event.target.closest('.doc-delete-button');
+    if (!button || !currentRegId || !currentToken) return;
+    if (!window.confirm('Hapus dokumen ini agar Anda dapat mengunggah versi baru?')) return;
+    button.disabled = true;
+    try {
+      const response = await fetch(`/api/registrations/${encodeURIComponent(currentRegId)}/documents/${encodeURIComponent(button.dataset.documentId)}`, {
+        method: 'DELETE', headers: { Authorization: `Bearer ${currentToken}` }
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'Dokumen belum dapat dihapus.');
+      await fetchRegistration(currentRegId, currentToken);
+    } catch (error) {
+      docUploadStatus.textContent = error.message;
+      docUploadStatus.className = 'form-status is-error';
+      button.disabled = false;
+    }
+  });
 
   function renderHistory(history) {
     if (!Array.isArray(history) || history.length === 0) {

@@ -142,12 +142,18 @@ const checkRegistrationStatus = document.querySelector('#check-registration-stat
 const fields = {
   fullName: form.querySelector('#full-name'),
   phone: form.querySelector('#phone'),
+  email: form.querySelector('#email'),
+  birthDate: form.querySelector('#birth-date'),
+  gender: form.querySelector('#gender'),
+  schoolOrigin: form.querySelector('#school-origin'),
   // id dibedakan dari section #program di halaman yang sama, supaya label tetap menunjuk ke select ini.
   program: form.querySelector('#program-tujuan'),
   educationLevel: form.querySelector('#education-level'),
   city: form.querySelector('#city'),
   guardianName: form.querySelector('#guardian-name'),
   guardianPhone: form.querySelector('#guardian-phone'),
+  guardianEmail: form.querySelector('#guardian-email'),
+  guardianConsent: form.querySelector('#guardian-consent'),
   consent: form.querySelector('#consent')
 };
 
@@ -168,24 +174,32 @@ const guardianFields = [fields.educationLevel, fields.guardianName, fields.guard
 
 function readRegistrationForm() {
   return {
-    applicantName: fields.fullName.value,
-    phone: fields.phone.value,
+  applicantName: fields.fullName.value,
+  phone: fields.phone.value,
+    email: fields.email.value,
+    birthDate: fields.birthDate.value,
+    gender: fields.gender.value,
+    schoolOrigin: fields.schoolOrigin.value,
     program: fields.program.value,
     educationLevel: fields.educationLevel.value,
     city: fields.city.value,
     guardianName: fields.guardianName.value,
     guardianPhone: fields.guardianPhone.value,
+    guardianEmail: fields.guardianEmail.value,
+    guardianConsent: fields.guardianConsent.checked,
     consent: fields.consent.checked
   };
 }
 
 function syncProgramFields() {
   const hanyaKursus = fields.program.value === registrationDomain.PROGRAMS.COURSES;
-  guardianFields.forEach((field) => {
-    const group = field.closest('.field-group');
+  const profileFields = [fields.birthDate, fields.gender, fields.schoolOrigin, fields.guardianEmail, fields.guardianConsent];
+  guardianFields.concat(profileFields).forEach((field) => {
+    const group = field.closest('.field-group') || field.closest('.field-consent-wrap');
     if (group) group.hidden = hanyaKursus;
-    if (hanyaKursus) {
-      field.value = '';
+    if (hanyaKursus && field !== fields.email) {
+      if (field.type === 'checkbox') field.checked = false;
+      else field.value = '';
       setFieldError(field, '');
     }
   });
@@ -196,10 +210,16 @@ function validateForm() {
   const errorByField = [
     [fields.fullName, result.errors.applicantName],
     [fields.phone, result.errors.phone],
+    [fields.email, result.errors.email],
+    [fields.birthDate, result.errors.birthDate],
+    [fields.gender, result.errors.gender],
+    [fields.schoolOrigin, result.errors.schoolOrigin],
     [fields.program, result.errors.program],
     [fields.educationLevel, result.errors.educationLevel],
     [fields.guardianName, result.errors.guardianName],
     [fields.guardianPhone, result.errors.guardianPhone],
+    [fields.guardianEmail, result.errors.guardianEmail],
+    [fields.guardianConsent, result.errors.guardianConsent],
     [fields.consent, result.errors.consent]
   ];
   errorByField.forEach(([field, message]) => setFieldError(field, message || ''));

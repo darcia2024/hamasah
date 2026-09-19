@@ -323,6 +323,11 @@ async function run() {
     const candidateAfterReview = await request(baseUrl, `/api/registrations/${registrationId}`, { headers: candidateHeaders });
     assert.equal(candidateAfterReview.body.registration.documentSummary[0].reviewStatus, 'rejected');
     assert.equal(candidateAfterReview.body.registration.documentSummary[0].reviewNote, 'Foto paspor kurang jelas, mohon unggah ulang.');
+    const deletedDocument = await request(baseUrl, `/api/registrations/${registrationId}/documents/${documentAdded.body.registration.documentSummary[0].id}`, {
+      method: 'DELETE', headers: candidateHeaders
+    });
+    assert.equal(deletedDocument.status, 200, JSON.stringify(deletedDocument.body));
+    assert.equal(deletedDocument.body.registration.documentSummary.length, 0);
     const needsRevision = await request(baseUrl, `/api/registrations/${registrationId}/status`, {
       method: 'PATCH', headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'needs-revision', note: 'Mohon perbaiki dokumen yang ditolak.' })
@@ -342,7 +347,7 @@ async function run() {
       body: JSON.stringify({ type: 'passport', fileObjectId: replacementUpload.body.upload.id })
     });
     assert.equal(replacementDocument.status, 201);
-    assert.equal(replacementDocument.body.registration.documentSummary.length, 2);
+    assert.equal(replacementDocument.body.registration.documentSummary.length, 1);
     assert.equal(replacementDocument.body.registration.status, 'document-review');
 
     for (const nextStatus of ['academic-preparation', 'ready-for-departure']) {

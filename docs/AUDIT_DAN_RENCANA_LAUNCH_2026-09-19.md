@@ -217,9 +217,9 @@ Gate: crash/retry tidak menggandakan undangan atau kehilangan pekerjaan; test ad
 
 Dependensi: Tahap 0; notifikasi memakai Tahap 1.
 
-- [ ] T02.1 Kontrak profil per program, validasi tanggal nyata/umur dan consent; kompatibilitas legacy hanya untuk membaca/migrasi.
+- [x] T02.1 Kontrak profil per program, validasi tanggal nyata/umur dan consent; kompatibilitas legacy hanya untuk membaca/migrasi.
 - [ ] T02.2 Satu auth calon, login/logout/expiry/recovery; hapus kredensial pada URL dan tentukan masa transisi.
-- [ ] T02.3 UI file picker/progress/error, upload bytes, link file terotorisasi, download, revisi dan penghapusan sesuai retensi.
+- [x] T02.3 UI file picker/progress/error, upload bytes, link file terotorisasi, download, revisi dan penghapusan sesuai retensi.
 - [ ] T02.4 Update registrasi terarah dan histori stabil, constraint/locking, test perubahan bersamaan.
 - [ ] T02.5 Workspace petugas: pencarian/pagination, review dokumen, catatan internal/publik, next steps dan alasan status.
 - [ ] T02.6 UI calon: edit yang diizinkan, revisi dokumen, status, catatan yang relevan dan tindak lanjut.
@@ -436,7 +436,7 @@ Snapshot ini menjadi acuan progres setelah UAT lokal terakhir; checklist tahap d
 
 - **Tahap 0 — fondasi:** selesai untuk baseline, CSP, lifecycle token, escaping, dan penghilangan metrik palsu utama. T00.5 masih parsial karena beberapa kartu aktivitas/dashboard non-inti masih berupa empty state atau data contoh.
 - **Tahap 1 — notifikasi:** worker durable untuk undangan sudah selesai dengan claim, lease, retry, timeout, recovery, dan payload terenkripsi. UI status/resend undangan serta izin khusus petugas pendaftaran sudah tersedia. Recovery calon sekarang ikut antrean terenkripsi dan diproses worker; email provider nyata belum diuji, dan tipe schema masih memakai `password-reset` sampai enum notifikasi dipisahkan.
-- **Tahap 2 — pendaftaran:** alur inti selesai dan lulus UAT lokal: auth calon, edit data, upload/download terotorisasi, review, revisi, catatan, next steps, recovery, locking, dan optimistic concurrency. Penghapusan dokumen sesuai retensi serta verifikasi storage provider nyata belum selesai. Kontrak profil program masih mempertahankan kompatibilitas legacy dan perlu keputusan field wajib final.
+- **Tahap 2 — pendaftaran:** alur inti selesai dan lulus UAT lokal: kontrak profil per program, validasi tanggal/umur/consent, auth calon, edit data, upload/download terotorisasi, review, revisi, penghapusan dokumen pending/rejected, catatan, next steps, recovery, locking, dan optimistic concurrency. Data legacy tetap dapat dibaca, sedangkan pendaftaran baru wajib memenuhi kontrak profil. Verifikasi storage provider nyata dan uji retensi terjadwal masih menjadi pekerjaan environment sebelum staging/production.
 - **Tahap 3 — konversi:** service transaksional, row lock, idempotent retry, permission matrix, audit, outbox, dan UI petugas sudah tersedia. Aturan bisnis untuk existing parent, konflik email, dan parent beberapa saudara masih perlu disahkan serta diuji dengan data bisnis nyata.
 - **Tahap 4 — Rilis A publik:** belum siap launch. Konten perlu disahkan pemilik, CMS artikel draft/publish/media belum lengkap, SEO/404/sitemap dan consent/retensi belum ditutup, serta browser UAT responsive/keyboard penuh belum dilakukan.
 - **Tahap 5 — operasional/keuangan:** modul dasar invoice, pembayaran, kuitansi, asrama, visa, dan operasi sudah ada, tetapi gate koreksi berjejak, dokumen visa, inventaris, import data, dan UAT peran belum lengkap.

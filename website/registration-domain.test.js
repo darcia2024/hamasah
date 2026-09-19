@@ -6,6 +6,12 @@ const validApplicant = {
   phone: '081234567890',
   guardianName: 'Bapak Ramadhan',
   guardianPhone: '081398765432',
+  email: 'ahmad@example.test',
+  guardianEmail: 'wali.ahmad@example.test',
+  birthDate: '2004-01-01',
+  gender: 'putra',
+  schoolOrigin: 'MA Uji',
+  guardianConsent: true,
   program: registration.PROGRAMS.MAHAD,
   educationLevel: 'SMP',
   city: 'Bandung',
@@ -43,6 +49,17 @@ assert.equal(created.ok, true);
 assert.equal(created.value.registrationId, 'HI-REG-2026-00018');
 assert.equal(created.value.status, registration.STATUSES.SUBMITTED);
 assert.equal(created.value.progress, 15);
+
+const missingProfile = registration.createApplication({ ...validApplicant, email: '', birthDate: '', gender: '', schoolOrigin: '' }, { sequence: 19, createdAt: '2026-09-15T08:00:00.000Z' });
+assert.equal(missingProfile.ok, false);
+assert.ok(missingProfile.errors.email);
+assert.ok(missingProfile.errors.birthDate);
+assert.ok(missingProfile.errors.gender);
+assert.ok(missingProfile.errors.schoolOrigin);
+
+const futureBirthDate = registration.createApplication({ ...validApplicant, birthDate: '2099-01-01' }, { sequence: 20, createdAt: '2026-09-15T08:00:00.000Z' });
+assert.equal(futureBirthDate.ok, false);
+assert.match(futureBirthDate.errors.birthDate, /masa depan/);
 
 const adultV2 = registration.validateApplicant({
   ...validApplicant, email: 'ahmad@hamasah.test', birthDate: '2000-01-01', gender: 'putra', schoolOrigin: 'SMA Uji'

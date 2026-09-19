@@ -84,7 +84,8 @@ function createHamasahApp(options) {
   const registrationStore = config.registrationStore || createPostgresRegistrationStore({ database });
   const registrationService = config.registrationService || registrationServiceModule.createRegistrationService({
     store: registrationStore,
-    getFile: (fileId) => fileStore.get(fileId)
+    getFile: (fileId) => fileStore.get(fileId),
+    markFileDeleted: (fileId, deletedAt) => fileStore.markDeleted(fileId, deletedAt)
   });
   const registrationConversionService = config.registrationConversionService || createRegistrationConversionService({
     database,

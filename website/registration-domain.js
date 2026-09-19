@@ -18,6 +18,14 @@
   });
   const GENDERS = Object.freeze(['putra', 'putri']);
 
+  // Kontrak profil yang dipakai saat pendaftaran baru dan saat calon menyimpan perubahan.
+  // Data lama tetap bisa dibaca, tetapi tidak boleh membuat record baru dengan profil setengah.
+  const PROFILE_REQUIREMENTS = Object.freeze({
+    [PROGRAMS.KULIAH]: Object.freeze({ email: true, birthDate: true, gender: true, schoolOrigin: true }),
+    [PROGRAMS.MAHAD]: Object.freeze({ email: true, birthDate: true, gender: true, schoolOrigin: true }),
+    [PROGRAMS.COURSES]: Object.freeze({ email: true, birthDate: false, gender: false, schoolOrigin: false })
+  });
+
   const ROLES = Object.freeze({
     APPLICANT: 'applicant',
     REGISTRATION_OFFICER: 'registration-officer',
@@ -125,8 +133,10 @@
     };
   }
 
-  function validateApplicant(input) {
+  function validateApplicant(input, options) {
     const applicant = normalizeApplicant(input);
+    const config = options || {};
+    const requireProfile = config.requireProfile === true;
     const errors = {};
 
     if (applicant.applicantName.length < 3) {
@@ -150,23 +160,40 @@
     if (!applicant.consent) {
       errors.consent = 'Persetujuan diperlukan sebelum data pendaftaran dikirim.';
     }
-    // Field v2 bersifat opt-in sementara formulir publik lama masih aktif. Jika
-    // salah satunya dikirim, seluruh identitas inti v2 wajib lengkap.
-    const memakaiProfilV2 = Boolean(applicant.email || applicant.birthDate || applicant.gender || applicant.guardianEmail);
-    if (memakaiProfilV2) {
-      if (!/^\S+@\S+\.\S+$/.test(applicant.email)) errors.email = 'Email calon santri tidak valid.';
-      if (!isIsoDate(applicant.birthDate)) errors.birthDate = 'Tanggal lahir harus memakai format YYYY-MM-DD.';
-      if (!GENDERS.includes(applicant.gender)) errors.gender = 'Jenis kelamin belum valid.';
+    const requirement = PROFILE_REQUIREMENTS[applicant.program];
+    const memakaiProfil = requireProfile || Boolean(applicant.email || applicant.birthDate || applicant.gender || applicant.guardianEmail);
+    if (memakaiProfil) {
+      if (requireProfile || applicant.email) {
+        if (!/^\S+@\S+\.\S+$/.test(applicant.email)) errors.email = 'Email calon santri tidak valid.';
+      }
+      if ((requireProfile && requirement && requirement.birthDate) || applicant.birthDate) {
+        if (!isIsoDate(applicant.birthDate)) errors.birthDate = 'Tanggal lahir harus memakai format YYYY-MM-DD.';
+      }
+      if ((requireProfile && requirement && requirement.gender) || applicant.gender) {
+        if (!GENDERS.includes(applicant.gender)) errors.gender = 'Jenis kelamin belum valid.';
+      }
+      if ((requireProfile && requirement && requirement.schoolOrigin) || applicant.schoolOrigin) {
+        if (!applicant.schoolOrigin) errors.schoolOrigin = 'Sekolah asal perlu diisi.';
+      }
       if (isIsoDate(applicant.birthDate) && new Date(`${applicant.birthDate}T00:00:00Z`) > new Date()) {
         errors.birthDate = 'Tanggal lahir tidak boleh berada di masa depan.';
       }
-      if (!applicant.schoolOrigin && applicant.program !== PROGRAMS.COURSES) errors.schoolOrigin = 'Sekolah asal perlu diisi.';
       if (isIsoDate(applicant.birthDate) && !isAdult(applicant.birthDate)) {
         if (applicant.guardianName.length < 3) errors.guardianName = 'Nama wali diperlukan untuk calon di bawah 18 tahun.';
         if (!isPhoneValid(applicant.guardianPhone)) errors.guardianPhone = 'Nomor WhatsApp wali diperlukan untuk calon di bawah 18 tahun.';
         if (!/^\S+@\S+\.\S+$/.test(applicant.guardianEmail)) errors.guardianEmail = 'Email wali diperlukan untuk calon di bawah 18 tahun.';
         if (!applicant.guardianConsent) errors.guardianConsent = 'Persetujuan wali diperlukan untuk calon di bawah 18 tahun.';
       }
+    }
+
+    if (requireProfile && requirement && requirement.birthDate && !isIsoDate(applicant.birthDate)) {
+      errors.birthDate = 'Tanggal lahir wajib diisi dengan format YYYY-MM-DD.';
+    }
+    if (requireProfile && requirement && requirement.gender && !GENDERS.includes(applicant.gender)) {
+      errors.gender = 'Jenis kelamin wajib dipilih.';
+    }
+    if (requireProfile && requirement && requirement.schoolOrigin && !applicant.schoolOrigin) {
+      errors.schoolOrigin = 'Sekolah asal wajib diisi.';
     }
 
     return {
@@ -214,7 +241,7 @@
 
   function createApplication(input, options) {
     const config = options || {};
-    const validation = validateApplicant(input);
+    const validation = validateApplicant(input, { requireProfile: true });
     if (!validation.valid) {
       return { ok: false, errors: validation.errors };
     }
@@ -282,6 +309,7 @@
     STATUSES,
     STATUS_LABELS,
     PROGRESS,
+    PROFILE_REQUIREMENTS,
     yearInTimeZone,
     normalizePhone,
     normalizeEmail,

@@ -628,6 +628,32 @@
                 </div>
               </div>
 
+              <div class="form-grid-2">
+                <div class="field-group">
+                  <label for="email">Email calon santri <span aria-hidden="true">*</span></label>
+                  <input id="email" name="email" type="email" autocomplete="email" placeholder="nama@email.com" aria-describedby="email-error" />
+                  <p class="field-error" id="email-error"></p>
+                </div>
+                <div class="field-group">
+                  <label for="birth-date">Tanggal lahir <span aria-hidden="true">*</span></label>
+                  <input id="birth-date" name="birthDate" type="date" autocomplete="bday" aria-describedby="birth-date-error" />
+                  <p class="field-error" id="birth-date-error"></p>
+                </div>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="field-group">
+                  <label for="gender">Jenis kelamin <span aria-hidden="true">*</span></label>
+                  <select id="gender" name="gender" aria-describedby="gender-error"><option value="">Pilih</option><option value="putra">Putra</option><option value="putri">Putri</option></select>
+                  <p class="field-error" id="gender-error"></p>
+                </div>
+                <div class="field-group">
+                  <label for="school-origin">Sekolah asal <span aria-hidden="true">*</span></label>
+                  <input id="school-origin" name="schoolOrigin" type="text" placeholder="SMA / MA / Pondok Pesantren" aria-describedby="school-origin-error" />
+                  <p class="field-error" id="school-origin-error"></p>
+                </div>
+              </div>
+
               <div class="field-group">
                 <label for="program-tujuan">Program tujuan yang diminati <span aria-hidden="true">*</span></label>
                 <div class="select-wrapper">
@@ -667,6 +693,20 @@
                   <input id="guardian-phone" name="guardianPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="08xxxxxxxxxx" aria-describedby="guardian-phone-error" />
                   <p class="field-error" id="guardian-phone-error"></p>
                 </div>
+              </div>
+
+              <div class="field-group">
+                <label for="guardian-email">Email wali santri <span aria-hidden="true">*</span> <small>(wajib untuk calon di bawah 18 tahun)</small></label>
+                <input id="guardian-email" name="guardianEmail" type="email" autocomplete="email" placeholder="email wali yang aktif" aria-describedby="guardian-email-error" />
+                <p class="field-error" id="guardian-email-error"></p>
+              </div>
+
+              <div class="field-consent-wrap">
+                <label class="consent" for="guardian-consent">
+                  <input id="guardian-consent" name="guardianConsent" type="checkbox" aria-describedby="guardian-consent-error" />
+                  <span>Saya mendapat persetujuan wali untuk mengikuti proses pendaftaran ini.</span>
+                </label>
+                <p class="field-error" id="guardian-consent-error"></p>
               </div>
 
               <div class="field-consent-wrap">
