@@ -14,6 +14,7 @@ const { createPostgresAccountStore } = require('./postgres-account-store.js');
 const { createPostgresNotificationStore } = require('./postgres-notification-store.js');
 const { createEmailSender } = require('./email-service.js');
 const { createNotificationService } = require('./notification-service.js');
+const { createNotificationWorker } = require('./notification-worker.js');
 const { createPostgresSessionStore } = require('./postgres-session-store.js');
 const { createStudentPortalService } = require('./student-portal-service.js');
 const { createPostgresStudentStore } = require('./postgres-student-store.js');
@@ -97,14 +98,22 @@ function createHamasahApp(options) {
   const identityService = config.identityService || identity.createIdentityService({ accountStore, sessionStore });
   const notificationStore = config.notificationStore || createPostgresNotificationStore({ database });
   const email = config.email || { driver: ['development', 'test'].includes(appEnvironment) ? 'console' : 'disabled' };
+  const emailSender = config.emailSender || createEmailSender({
+    driver: email.driver,
+    apiKey: email.resendApiKey,
+    from: email.emailFrom,
+    logger: config.logger || console
+  });
   const notificationService = config.notificationService || createNotificationService({
     store: notificationStore,
-    sender: config.emailSender || createEmailSender({
-      driver: email.driver,
-      apiKey: email.resendApiKey,
-      from: email.emailFrom,
-      logger: config.logger || console
-    })
+    sender: emailSender
+  });
+  const notificationWorker = config.notificationWorker || createNotificationWorker({
+    store: notificationStore,
+    sender: emailSender,
+    notificationPayloadKey: config.notificationPayloadKey || process.env.NOTIFICATION_PAYLOAD_KEY || process.env.IP_HASH_SECRET || 'development-only-key',
+    appBaseUrl: config.appBaseUrl || process.env.APP_BASE_URL || 'http://localhost:4273',
+    senderTimeoutMs: Number(config.notificationSenderTimeoutMs || process.env.NOTIFICATION_SENDER_TIMEOUT_MS || 10000)
   });
   const auditStore = config.auditStore || createPostgresAuditStore({ database });
   const auditService = config.auditService || createAuditService({
@@ -394,7 +403,8 @@ function createHamasahApp(options) {
     fileService,
     lmsService,
     operationsService,
-    notificationService
+    notificationService,
+    notificationWorker
   };
 }
 

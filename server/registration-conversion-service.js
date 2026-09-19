@@ -1,5 +1,6 @@
 const crypto = require('node:crypto');
 const { hashPassword, ROLES } = require('./identity-service.js');
+const { encryptNotificationPayload } = require('./notification-payload.js');
 
 const CONVERSION_STATUSES = Object.freeze(['ready-for-departure', 'completed']);
 const INVITATION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -89,15 +90,14 @@ function createRegistrationConversionService({ database, notificationPayloadKey 
           [studentId, parentAccountId]
         );
         for (const account of accountsToInvite) {
-          const iv = crypto.randomBytes(12);
-          const key = crypto.createHash('sha256').update(`hamasah:notification:${notificationPayloadKey}`).digest();
-          const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
-          const ciphertext = Buffer.concat([cipher.update(JSON.stringify({ accountId: account.id, email: account.email, invitationToken: account.invitationToken }), 'utf8'), cipher.final()]);
-          const tag = cipher.getAuthTag();
+          const encrypted = encryptNotificationPayload(
+            { accountId: account.id, email: account.email, invitationToken: account.invitationToken },
+            notificationPayloadKey
+          );
           await tx.query(
             `INSERT INTO notification_outbox (id, notification_type, recipient_email, provider, status, attempts, created_at, updated_at, account_id, payload_ciphertext, payload_nonce, payload_tag)
              VALUES ($1, 'account-invitation', $2, 'pending', 'pending', 0, $3, $3, $4, $5, $6, $7)`,
-            [crypto.randomUUID(), account.email, createdAtIso, account.id, ciphertext.toString('base64url'), iv.toString('base64url'), tag.toString('base64url')]
+            [crypto.randomUUID(), account.email, createdAtIso, account.id, encrypted.ciphertext, encrypted.nonce, encrypted.tag]
           );
         }
         return { ok: true, value: { studentId, studentAccountId, parentAccountId, invitationsQueued: accountsToInvite.length, alreadyConverted: false } };

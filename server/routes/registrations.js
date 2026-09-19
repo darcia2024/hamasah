@@ -75,6 +75,23 @@ module.exports = [
   },
 
   {
+    method: 'POST',
+    pattern: new RegExp(`^/api/registrations/(${REGISTRATION_ID})/convert$`),
+    permission: 'registrations.convert',
+    async handler({ response, services, auth, params, ip }) {
+      const actor = await auth.actor();
+      const result = await services.registrationConversionService.convert(params[0], actor);
+      if (result.ok) {
+        await services.auditService.record({
+          action: ACTIONS.REGISTRATION_CONVERTED, actor, ip,
+          entityType: 'registration', entityId: params[0], metadata: { alreadyConverted: result.value.alreadyConverted }
+        });
+      }
+      json(response, result.ok ? 200 : (result.status || 422), result.ok ? { conversion: result.value } : publicError(result));
+    }
+  },
+
+  {
     method: 'GET',
     pattern: /^\/api\/registrations$/,
     permission: 'registrations.read',

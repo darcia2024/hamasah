@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 const { createHamasahApp } = require('./app.js');
 const { createTestDatabase } = require('./test-support/database.js');
+const { decryptNotificationPayload } = require('./notification-payload.js');
 
 async function request(baseUrl, pathname, options) {
   const response = await fetch(`${baseUrl}${pathname}`, options);
@@ -296,6 +297,13 @@ async function run() {
     const queuedInvitations = await database.query("SELECT account_id, payload_ciphertext, payload_nonce, payload_tag FROM notification_outbox WHERE notification_type = 'account-invitation'");
     assert.equal(queuedInvitations.rows.length, 2);
     assert.ok(queuedInvitations.rows.every((row) => row.account_id && row.payload_ciphertext && row.payload_nonce && row.payload_tag));
+    const invitationPayload = decryptNotificationPayload({
+      ciphertext: queuedInvitations.rows[0].payload_ciphertext,
+      nonce: queuedInvitations.rows[0].payload_nonce,
+      tag: queuedInvitations.rows[0].payload_tag
+    }, 'development-only-key');
+    assert.equal(invitationPayload.accountId, queuedInvitations.rows[0].account_id);
+    assert.match(invitationPayload.invitationToken, /^[A-Za-z0-9_-]{40,}$/);
     const convertedAgain = await request(baseUrl, `/api/registrations/${registrationId}/convert`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}` }

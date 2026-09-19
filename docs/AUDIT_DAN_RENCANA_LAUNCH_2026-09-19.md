@@ -354,7 +354,7 @@ Developer bertanggung jawab menyiapkan implementasi, validasi env, panduan langk
 7. Update `IMPLEMENTATION_STATUS.md` berdasarkan audit dan hasil test setelah perbaikan, bukan menyalin klaim progres lama.
 8. Jangan menjalankan migrasi produksi sebagai pengganti pengujian staging. Keberhasilan SQL bukan bukti alur produk selesai.
 
-**Pekerjaan berikutnya:** Tahap 0, dimulai dari halaman akun/CSP dan transaksi token/sesi, sambil mempertahankan A01 sebagai blocker yang dituntaskan di Tahap 3. Setelah fondasi itu, jalankan Tahap 1–3 berurutan sebelum menyatakan alur pendaftaran sampai akun santri selesai.
+**Pekerjaan berikutnya:** Tahap 1 durable notification worker dan validasi staging. Setelah itu lanjutkan UAT alur pendaftaran sampai akun santri sebelum membuka gate rilis.
 
 ## 12. Log eksekusi checkpoint
 
@@ -381,7 +381,7 @@ Tahap 2 checkpoint berjalan sebagian:
 - [x] Update registration mengunci row induk dan tidak lagi menghapus child rows; review dokumen/history dipertahankan melalui insert/upsert terarah.
 - [ ] Recovery calon, optimistic version parent snapshot, dan stress test dua update SQL masih terbuka.
 
-Regression terakhir Tahap 2: 35 dari 36 file test lulus. Semua test modul yang disentuh lulus; satu kegagalan tetap A01 karena `registrations.convert` belum memiliki route dan skenario matriks akses.
+Regression Tahap 3: 36 dari 36 file test lulus. A01 sudah ditutup dengan route konversi, transaksi idempotent, dan skenario matriks akses.
 
 ## 13. Log eksekusi Tahap 3
 
@@ -392,6 +392,11 @@ Regression terakhir Tahap 2: 35 dari 36 file test lulus. Semua test modul yang d
 - [x] Endpoint `POST /api/registrations/:id/convert` tersedia untuk admin dan registration officer.
 - [x] Retry setelah konversi mengembalikan hasil idempotent tanpa membuat santri/akun ganda.
 - [x] Matriks akses mencakup izin `registrations.convert` dan seluruh route berizin.
-- [x] Full `npm test`: 36/36 file test lulus.
+- [x] Full `npm test`: 37/37 file test lulus.
+- [x] Migrasi 020 menambah lease claim, status `processing`, jadwal retry, dan recovery item yang ditinggal proses mati.
+- [x] `notification-worker` mendekripsi undangan, membangun link aktivasi, memakai timeout provider, dan melakukan exponential backoff melalui store durable.
+- [x] Worker diekspos sebagai `app.notificationWorker` agar dapat dijalankan oleh scheduler/worker process terpisah.
 
 Migrasi 017–019 baru tervalidasi di database test/PGlite dan integration test. Belum diterapkan ke database staging/produksi; lakukan backup, staging migration, dan restore rehearsal sesuai gate sebelum deployment.
+
+Payload undangan sudah disimpan sebagai AES-GCM dan dapat didekripsi oleh worker melalui `server/notification-payload.js`. Pemanggilan terjadwal worker dan observability provider tetap harus diaktifkan pada deployment staging/produksi; kode aplikasi belum menganggap scheduler eksternal sudah berjalan.
