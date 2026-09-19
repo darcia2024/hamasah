@@ -404,6 +404,7 @@ Regression Tahap 3: 36 dari 36 file test lulus. A01 sudah ditutup dengan route k
 - [x] UI cek status menampilkan alasan penolakan dan memandu unggah ulang dokumen dengan jenis yang sama; integration test membuktikan reject → reupload → link berkas baru tanpa menghapus histori.
 - [x] Pengiriman revisi oleh calon dari status `needs-revision` otomatis mengembalikan status ke `document-review` dan menambah histori yang dapat dilihat petugas.
 - [x] Calon dapat meminta kode akses baru dari halaman cek status; respons selalu generik, kode lama langsung tidak berlaku, dan pengiriman memakai notification service dengan timeout.
+- [x] Store PostgreSQL mengunci row parent dan memeriksa `row_version`; regression test dua update bersamaan membuktikan tepat satu snapshot berhasil dan snapshot stale ditolak.
 
 Migrasi 017–019 baru tervalidasi di database test/PGlite dan integration test. Belum diterapkan ke database staging/produksi; lakukan backup, staging migration, dan restore rehearsal sesuai gate sebelum deployment.
 

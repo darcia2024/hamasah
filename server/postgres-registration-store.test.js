@@ -167,6 +167,24 @@ async function run() {
     assert.equal(afterUpdate.documents.length, 1);
     assert.equal(await store.count(), 1);
 
+    // Dua request yang membaca snapshot parent yang sama: tepat satu boleh menang.
+    // Request kedua harus mendapat konflik optimistic version setelah lock dilepas.
+    const concurrentBase = await store.get('HI-REG-2026-00001');
+    const concurrentA = {
+      ...concurrentBase,
+      applicant: { ...concurrentBase.applicant, city: 'Kairo' },
+      updatedAt: '2026-09-15T03:00:00.000Z'
+    };
+    const concurrentB = {
+      ...concurrentBase,
+      applicant: { ...concurrentBase.applicant, city: 'Giza' },
+      updatedAt: '2026-09-15T03:01:00.000Z'
+    };
+    const concurrentResults = await Promise.allSettled([store.update(concurrentA), store.update(concurrentB)]);
+    assert.equal(concurrentResults.filter((result) => result.status === 'fulfilled').length, 1);
+    assert.equal(concurrentResults.filter((result) => result.status === 'rejected').length, 1);
+    assert.match(concurrentResults.find((result) => result.status === 'rejected').reason.message, /sudah berubah/);
+
     // Update untuk pendaftaran yang tidak ada ditolak.
     await assert.rejects(
       store.update({ ...validUpdate, id: undefined, registrationId: 'HI-REG-2026-09999' }),
