@@ -42,7 +42,7 @@ module.exports = [
   {
     method: 'POST',
     pattern: /^\/api\/auth\/login$/,
-    async handler({ response, services, readBody, rateLimit, ip }) {
+    async handler({ response, services, config, readBody, rateLimit, ip }) {
       const body = await readBody();
       const identitas = `${String(body.email || '').trim().toLocaleLowerCase('en-US')}|${ip}`;
       const jatah = rateLimit.check('login', identitas);
@@ -118,7 +118,7 @@ module.exports = [
   {
     method: 'POST',
     pattern: /^\/api\/auth\/password-reset-request$/,
-    async handler({ response, services, readBody, rateLimit, ip }) {
+    async handler({ response, services, config, readBody, rateLimit, ip }) {
       const body = await readBody();
       const email = String(body.email || '').trim().toLocaleLowerCase('en-US');
       // Dibatasi per email supaya tidak bisa dipakai membanjiri kotak masuk orang lain.
@@ -127,9 +127,34 @@ module.exports = [
         tooManyRequests(response, jatah.retryAfterSeconds, TOO_MANY_REQUESTS);
         return;
       }
-      await services.identityService.issuePasswordReset(body.email);
+      const issued = await services.identityService.issuePasswordReset(body.email);
+      if (issued.value && services.notificationService.canSend()) {
+        const resetUrl = `${config.appBaseUrl || 'http://localhost:4273'}/website/reset-password.html#token=${encodeURIComponent(issued.value.resetToken)}`;
+        const sent = await services.notificationService.sendPasswordReset({ email, name: issued.value.accountName, resetUrl });
+        await services.auditService.record({
+          action: sent.ok ? ACTIONS.NOTIFICATION_SENT : ACTIONS.NOTIFICATION_FAILED, ip,
+          entityType: 'account', entityId: issued.value.accountId,
+          metadata: { type: 'password-reset', email }
+        });
+      }
       await services.auditService.record({ action: ACTIONS.PASSWORD_RESET_REQUESTED, ip, metadata: { email } });
       json(response, 202, { message: 'Jika akun tersedia, instruksi reset akan dikirim melalui kanal resmi.' });
+    }
+  },
+
+  {
+    method: 'POST',
+    pattern: /^\/api\/auth\/invitations\/accept$/,
+    async handler({ response, services, readBody, ip }) {
+      const body = await readBody();
+      const accepted = await services.identityService.acceptInvitation(body.token, body.password);
+      if (accepted.ok) {
+        await services.auditService.record({
+          action: ACTIONS.ACCOUNT_INVITATION_ACCEPTED, ip,
+          metadata: { email: String(body.email || '').trim().toLocaleLowerCase('en-US') }
+        });
+      }
+      json(response, accepted.ok ? 204 : 422, accepted.ok ? {} : publicError(accepted));
     }
   },
 
@@ -138,7 +163,7 @@ module.exports = [
     pattern: /^\/api\/auth\/password-reset$/,
     async handler({ response, services, readBody, ip }) {
       const body = await readBody();
-      const reset = await services.identityService.resetPassword(body.email, body.token, body.password);
+      const reset = await services.identityService.resetPassword(body.token, body.password);
       if (reset.ok) {
         await services.auditService.record({
           action: ACTIONS.PASSWORD_RESET_COMPLETED, ip,

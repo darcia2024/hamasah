@@ -1,1 +1,302 @@
-<!doctype html><html lang="id"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Operasional | Hamasah International</title><link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin /><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" /><link rel="stylesheet" href="website.css?v=18" /><link rel="stylesheet" href="staff.css?v=1" /><link rel="stylesheet" href="portal.css?v=2" /></head><body class="staff-page"><main class="staff-shell"><header class="staff-header"><a href="portal.html" class="staff-brand">Hamasah <span>Operasional</span></a><nav class="staff-nav" id="staff-nav" hidden></nav><a href="portal.html" class="button button--secondary">Portal akun</a></header><section id="operations-guard" class="staff-login"><p class="eyebrow">Operasional</p><h1>Memeriksa akses.</h1><p id="operations-guard-copy">Silakan masuk melalui Portal Hamasah.</p></section><section id="operations-console" hidden><div class="staff-intro"><div><p class="eyebrow">Admin</p><h1>Keuangan, visa, dan inventaris.</h1></div><button id="reload-operations" class="button button--secondary" type="button">Perbarui data</button></div><div class="portal-admin-grid"><form id="invoice-form" class="staff-form"><h2>Buat invoice</h2><label for="invoice-student">Santri</label><select id="invoice-student"></select><label for="invoice-description">Keterangan</label><input id="invoice-description" type="text" placeholder="SPP September 2026" required /><label for="invoice-amount">Nominal Rupiah</label><input id="invoice-amount" type="number" min="1" required /><button class="button button--primary" type="submit">Buat invoice</button><p id="invoice-status" class="form-status"></p></form><form id="visa-form" class="staff-form"><h2>Update visa</h2><label for="visa-student">Santri</label><select id="visa-student"></select><label for="visa-state">Status visa</label><select id="visa-state"><option value="not-started">Belum dimulai</option><option value="collecting-documents">Kumpulkan berkas</option><option value="legalization">Legalisasi</option><option value="submitted">Diajukan</option><option value="approved">Disetujui</option><option value="expired">Kedaluwarsa</option></select><label for="visa-note">Catatan</label><textarea id="visa-note" rows="3"></textarea><button class="button button--primary" type="submit">Simpan status visa</button><p id="visa-status" class="form-status"></p></form></div><form id="inventory-form" class="staff-form record-form"><h2>Inventaris asrama</h2><label for="inventory-name">Nama barang</label><input id="inventory-name" type="text" required /><label for="inventory-location">Lokasi</label><input id="inventory-location" type="text" placeholder="Hay Asyir" required /><label for="inventory-quantity">Jumlah</label><input id="inventory-quantity" type="number" min="0" required /><button class="button button--secondary" type="submit">Simpan inventaris</button><p id="inventory-status" class="form-status"></p></form><section class="portal-admin"><div><p class="eyebrow">Ringkasan</p><h2>Data operasional terbaru.</h2></div><div id="operations-list" class="portal-account-list"></div></section></section></main><script src="nav.js?v=1"></script><script src="operations.js?v=1"></script></body></html>
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Operasional &amp; Keuangan | Hamasah International</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="website.css?v=18" />
+    <link rel="stylesheet" href="staff.css?v=2" />
+    <link rel="stylesheet" href="portal.css?v=4" />
+  </head>
+  <body class="staff-page">
+    <!-- Header saat Belum Login -->
+    <header class="staff-header" id="public-header" style="max-width: 1200px; margin: 20px auto 36px;">
+      <a href="portal.html" class="staff-brand">
+        <svg class="brand-logo-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+        Hamasah <span>Operasional</span>
+      </a>
+      <div class="staff-header-actions">
+        <a href="portal.html" class="button button--secondary">Portal Akun</a>
+      </div>
+    </header>
+
+    <!-- Guard Section (Saat Belum Login) -->
+    <section id="operations-guard" class="staff-login" aria-live="polite">
+      <div class="staff-login__card">
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px;">
+          <img src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" width="44" height="44" style="object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 2px 8px rgba(217, 119, 6, 0.25));" />
+          <div>
+            <span class="eyebrow" style="margin: 0;">Konsol Operasional</span>
+            <div style="font-size: 15px; font-weight: 800; color: #B45309;">Keuangan &amp; Logistik</div>
+          </div>
+        </div>
+        <h1>Memeriksa Hak Akses</h1>
+        <p id="operations-guard-copy" style="margin-top: 0; color: var(--md-sys-color-on-surface-variant, #4B4639); font-size: 13.5px; line-height: 1.55;">
+          Silakan masuk melalui Portal Hamasah. Halaman ini diperuntukkan khusus bagi divisi keuangan dan administrasi logistik.
+        </p>
+        <a href="portal.html" class="button button--primary" style="width: 100%; justify-content: center; height: 46px; margin-top: 20px;">
+          <span>Buka Portal Masuk</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      </div>
+    </section>
+
+    <!-- UNIFIED ALTEZZA CRM SHELL -->
+    <section id="operations-console" hidden class="crm-shell">
+      <!-- CRM Left Sidebar -->
+      <aside class="crm-sidebar" id="crm-sidebar">
+        <div class="crm-sidebar-header">
+          <a href="portal.html" class="crm-brand">
+            <img src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" class="crm-brand-logo" width="34" height="34" />
+            <div class="crm-brand-text">
+              <span class="crm-brand-title">Hamasah <strong>CRM</strong></span>
+              <span class="crm-brand-sub">Al-Azhar Kairo</span>
+            </div>
+          </a>
+          <button type="button" class="crm-collapse-btn" title="Ciutkan Sidebar" aria-label="Toggle Sidebar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+        </div>
+
+        <div class="crm-user-card" id="crm-user-card">
+          <div class="crm-user-avatar" id="crm-user-avatar">OP</div>
+          <div class="crm-user-info">
+            <div class="crm-user-name" id="crm-user-name">Divisi Keuangan</div>
+            <div class="crm-user-role-pill" id="crm-user-role-pill">Hak Akses</div>
+          </div>
+        </div>
+
+        <div class="crm-nav-group-title">
+          <span>CRM UTAMA</span>
+          <span class="crm-nav-group-caret">▲</span>
+        </div>
+        <nav class="crm-nav" id="staff-nav"></nav>
+
+        <div class="crm-sidebar-footer">
+          <div class="crm-system-status">
+            <span class="crm-status-dot"></span>
+            <span>Sesi Terverifikasi Aman</span>
+          </div>
+          <button class="crm-logout-btn" id="logout-button" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>Keluar Sesi</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- CRM Main Workspace Area -->
+      <div class="crm-workspace">
+        <header class="crm-topbar">
+          <div class="crm-breadcrumbs">
+            <span class="crumb-root">Hamasah CRM</span>
+            <span class="crumb-sep">&gt;</span>
+            <span class="crumb-active">Keuangan, visa, dan inventaris</span>
+          </div>
+          <div class="crm-topbar-actions">
+            <span class="crm-role-chip" id="crm-header-role">Divisi Keuangan</span>
+            <button class="crm-topbar-action-btn" id="reload-operations" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l6.07-1.19"/></svg>
+              <span>Perbarui Data</span>
+            </button>
+          </div>
+        </header>
+
+        <div class="crm-canvas">
+          <!-- Altezza Top Summary Card for Keuangan & Operasional -->
+          <div class="crm-summary-card">
+            <div class="crm-summary-col">
+              <div>
+                <div class="crm-summary-title-row">
+                  <h2 class="crm-summary-title">Keuangan, visa, dan inventaris</h2>
+                  <svg class="crm-link-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                </div>
+                <p class="crm-summary-subtitle">Manajemen Tagihan SPP, Legalitas Visa Pelajar Mesir &amp; Logistik Fasilitas Asrama</p>
+              </div>
+              <div>
+                <p class="crm-field-label">PENANGGUNG JAWAB BENDAHARA</p>
+                <div class="crm-person-row">
+                  <div class="crm-person-avatar">FN</div>
+                  <span class="crm-person-name">Bagian Keuangan &amp; Akuntansi Kairo</span>
+                </div>
+              </div>
+            </div>
+            <div class="crm-summary-col">
+              <div>
+                <p class="crm-field-label">REKENING TRANSAKSI RESMI</p>
+                <div class="crm-field-value">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/><path d="M5 15h4M13 15h2"/></svg>
+                  <span>Bank Syariah Mandiri / BSI Hamasah</span>
+                </div>
+              </div>
+              <div>
+                <p class="crm-field-label">VERIFIKASI IMIGRASI</p>
+                <div class="crm-person-row">
+                  <div class="crm-person-avatar" style="background: #DCFCE7; color: #16A34A;">✓</div>
+                  <span class="crm-person-name">Kedutaan Besar Republik Arab Mesir</span>
+                </div>
+              </div>
+            </div>
+            <div class="crm-summary-col">
+              <div>
+                <p class="crm-field-label">STATUS AUDIT KEUANGAN</p>
+                <div class="crm-balance-value">
+                  <span class="crm-bullet-blue" style="background: #16A34A;"></span>
+                  <span style="font-size: 15px; color: #16A34A;">Tertib Rekonsiliasi</span>
+                </div>
+              </div>
+              <div>
+                <p class="crm-field-label">MATA UANG OPERASIONAL</p>
+                <div class="crm-field-value">
+                  <span style="color: #2563EB;">●</span>
+                  <span>IDR (Rupiah) &amp; EGP (Pound Mesir)</span>
+                </div>
+              </div>
+            </div>
+            <div class="crm-summary-col">
+              <div>
+                <p class="crm-field-label">SOP INVOICE &amp; VISA</p>
+                <p class="crm-summary-note">"Tagihan SPP terbit setiap awal bulan. Proses visa diproses setelah kelengkapan SKCK &amp; legalisir Kemenlu selesai diverifikasi."</p>
+                <a class="crm-readmore-link" href="article.html?slug=pendampingan-santri-di-kairo">Buka Regulasi Operasional &rarr;</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Horizontal Subtabs for Operations -->
+          <div class="crm-subtabs-row" id="operations-subtabs">
+            <button type="button" class="crm-pill-btn is-active" id="tab-btn-invoices">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+              <span>Faktur &amp; Invoice SPP</span>
+            </button>
+            <button type="button" class="crm-pill-btn" id="tab-btn-visa">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+              <span>Tracker Visa Pelajar</span>
+            </button>
+            <button type="button" class="crm-pill-btn" id="tab-btn-inventory">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+              <span>Inventaris &amp; Sarana Asrama</span>
+            </button>
+            <button type="button" class="crm-pill-btn" id="tab-btn-history">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>Riwayat Data Operasional</span>
+            </button>
+          </div>
+
+          <!-- Tab Panel 1: Invoice SPP -->
+          <div id="panel-invoices" class="crm-white-card">
+            <div class="crm-white-card-header">
+              <div>
+                <h3>Terbitkan Faktur Tagihan (Invoice SPP)</h3>
+                <p>Terbitkan tagihan SPP bulanan atau biaya program persiapan studi kepada santri dan wali.</p>
+              </div>
+            </div>
+            <form id="invoice-form" class="staff-form">
+              <div>
+                <label for="invoice-student">Pilih Santri Sasaran</label>
+                <select id="invoice-student" class="monitoring-select"></select>
+              </div>
+              <div>
+                <label for="invoice-description">Keterangan Tagihan</label>
+                <input id="invoice-description" type="text" placeholder="Contoh: SPP September 2026 atau Biaya Visa" required />
+              </div>
+              <div>
+                <label for="invoice-amount">Nominal Pembayaran (Rp)</label>
+                <input id="invoice-amount" type="number" min="1" placeholder="Contoh: 1500000" required />
+              </div>
+              <button class="button button--primary" type="submit" style="margin-top: 14px; height: 44px; width: 100%; justify-content: center;">
+                <span>Terbitkan Invoice Sekarang</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              </button>
+              <p id="invoice-status" class="form-status" role="status" aria-live="polite"></p>
+            </form>
+          </div>
+
+          <!-- Tab Panel 2: Pembaruan Berkas Visa -->
+          <div id="panel-visa" class="crm-white-card" hidden>
+            <div class="crm-white-card-header">
+              <div>
+                <h3>Pembaruan Berkas &amp; Tracker Visa Pelajar</h3>
+                <p>Catat status dan progres pengurusan visa pelajar Republik Arab Mesir untuk santri binaan.</p>
+              </div>
+            </div>
+            <form id="visa-form" class="staff-form">
+              <div>
+                <label for="visa-student">Pilih Santri</label>
+                <select id="visa-student" class="monitoring-select"></select>
+              </div>
+              <div>
+                <label for="visa-state">Tahapan Status Visa</label>
+                <select id="visa-state" class="monitoring-select">
+                  <option value="not-started">Belum dimulai</option>
+                  <option value="collecting-documents">Kumpulkan berkas (Ijazah, Paspor, SKCK)</option>
+                  <option value="legalization">Legalisasi Kemenag / Kemenkumham / Kemenlu</option>
+                  <option value="submitted">Diajukan ke Kedubes Mesir</option>
+                  <option value="approved">Disetujui / Visa Terbit</option>
+                  <option value="expired">Kedaluwarsa</option>
+                </select>
+              </div>
+              <div>
+                <label for="visa-note">Catatan / Keterangan Dokumen</label>
+                <textarea id="visa-note" rows="3" placeholder="Contoh: Berkas legalisasi Kemenlu selesai, menunggu jadwal wawancara kedutaan."></textarea>
+              </div>
+              <button class="button button--primary" type="submit" style="margin-top: 14px; height: 44px; width: 100%; justify-content: center;">
+                <span>Simpan Status Visa</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              </button>
+              <p id="visa-status" class="form-status" role="status" aria-live="polite"></p>
+            </form>
+          </div>
+
+          <!-- Tab Panel 3: Inventaris Fasilitas & Asrama -->
+          <div id="panel-inventory" class="crm-white-card" hidden>
+            <div class="crm-white-card-header">
+              <div>
+                <h3>Inventaris Fasilitas &amp; Logistik Asrama</h3>
+                <p>Pencatatan aset sarana prasarana asrama santri di Kairo maupun fasilitas penunjang di Indonesia.</p>
+              </div>
+            </div>
+            <form id="inventory-form" class="staff-form">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; width: 100%;">
+                <div>
+                  <label for="inventory-name">Nama Barang / Fasilitas</label>
+                  <input id="inventory-name" type="text" placeholder="Contoh: AC Kamar Santri, Kasur Busa, Mesin Cuci" required />
+                </div>
+                <div>
+                  <label for="inventory-location">Lokasi Penempatan</label>
+                  <input id="inventory-location" type="text" placeholder="Contoh: Asrama Putra Hay Asyir Lt. 2" required />
+                </div>
+                <div>
+                  <label for="inventory-quantity">Jumlah Unit</label>
+                  <input id="inventory-quantity" type="number" min="0" placeholder="Contoh: 4" required />
+                </div>
+              </div>
+              <button class="button button--secondary" type="submit" style="margin-top: 14px; height: 44px; justify-content: center;">
+                <span>Simpan Aset Inventaris</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              </button>
+              <p id="inventory-status" class="form-status" role="status" aria-live="polite"></p>
+            </form>
+          </div>
+
+          <!-- Tab Panel 4: Riwayat Data Operasional -->
+          <div id="panel-history" class="crm-white-card" hidden>
+            <div class="crm-white-card-header">
+              <div>
+                <h3>Riwayat Data Operasional Terbaru</h3>
+                <p>Log mutasi tagihan invoice santri, perubahan berkas visa, dan aset inventaris terdata.</p>
+              </div>
+            </div>
+            <div id="operations-list" class="portal-account-list"></div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <script src="nav.js?v=3"></script>
+    <script src="operations.js?v=3"></script>
+  </body>
+</html>
+

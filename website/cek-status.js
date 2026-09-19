@@ -1,0 +1,229 @@
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.querySelector('#lookup-form');
+  const regIdInput = document.querySelector('#reg-id');
+  const tokenInput = document.querySelector('#access-token');
+  const submitBtn = document.querySelector('#btn-submit-lookup');
+  const statusMsg = document.querySelector('#lookup-status-msg');
+
+  const resultArea = document.querySelector('#status-result');
+  const resRegId = document.querySelector('#res-reg-id');
+  const resProgram = document.querySelector('#res-program');
+  const resStatusBadge = document.querySelector('#res-status-badge');
+  const resProgressPct = document.querySelector('#res-progress-pct');
+  const resProgressFill = document.querySelector('#res-progress-fill');
+
+  const docListContainer = document.querySelector('#doc-list-container');
+  const docUploadForm = document.querySelector('#doc-upload-form');
+  const docTypeSelect = document.querySelector('#doc-type-select');
+  const docStorageKey = document.querySelector('#doc-storage-key');
+  const docUploadStatus = document.querySelector('#doc-upload-status');
+  const historyTimeline = document.querySelector('#history-timeline');
+
+  let currentRegId = '';
+  let currentToken = '';
+
+  const PROGRAM_NAMES = {
+    'kuliah-al-azhar': 'Program Kuliah S1 Universitas Al-Azhar Kairo',
+    'mahad-al-azhar': "Program Ma'had Al-Azhar (Pendidikan Formal)",
+    'hamasah-courses': 'Hamasah Courses (Kelas Bahasa Arab Digital)'
+  };
+
+  const DOC_TYPE_LABELS = {
+    'passport': 'Paspor Asli',
+    'diploma': 'Ijazah Resmi',
+    'transcript': 'Transkrip Nilai',
+    'health-certificate': 'Surat Keterangan Sehat',
+    'photo': 'Pasfoto Resmi (4x6)',
+    'other': 'Dokumen Tambahan'
+  };
+
+  function updateStepper(status, progress) {
+    const steps = [
+      { id: '#step-submitted', threshold: 15 },
+      { id: '#step-review', threshold: 35 },
+      { id: '#step-academic', threshold: 60 },
+      { id: '#step-departure', threshold: 85 },
+      { id: '#step-completed', threshold: 100 }
+    ];
+
+    steps.forEach((step) => {
+      const el = document.querySelector(step.id);
+      if (!el) return;
+      el.classList.remove('is-done', 'is-current');
+      if (progress >= step.threshold) {
+        el.classList.add('is-done');
+      } else if (progress >= step.threshold - 25) {
+        el.classList.add('is-current');
+      }
+    });
+  }
+
+  function renderDocuments(docs) {
+    if (!Array.isArray(docs) || docs.length === 0) {
+      docListContainer.innerHTML = '<p class="empty-docs-note">Belum ada dokumen yang terlampir. Anda dapat mengunggah berkas menggunakan formulir di bawah.</p>';
+      return;
+    }
+
+    const html = docs.map((d) => {
+      const label = DOC_TYPE_LABELS[d.type] || d.type;
+      const dateStr = d.uploadedAt ? new Date(d.uploadedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+      return `
+        <div class="doc-item-row">
+          <div class="doc-icon-badge" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+          <div class="doc-text">
+            <strong>${label}</strong>
+            <small>Diunggah: ${dateStr}</small>
+          </div>
+          <span class="m3-chip-status is-approved">${d.status || 'Tersimpan'}</span>
+        </div>
+      `;
+    }).join('');
+
+    docListContainer.innerHTML = html;
+  }
+
+  function renderHistory(history) {
+    if (!Array.isArray(history) || history.length === 0) {
+      historyTimeline.innerHTML = '<p class="empty-docs-note">Belum ada catatan pembaruan status.</p>';
+      return;
+    }
+
+    const html = history.slice().reverse().map((h) => {
+      const dateStr = h.at ? new Date(h.at).toLocaleDateString('id-ID', {
+        day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      }) : '';
+      return `
+        <div class="history-item">
+          <div class="history-dot"></div>
+          <div class="history-body">
+            <div class="history-header">
+              <strong>${h.to || 'Pembaruan'}</strong>
+              <small>${dateStr}</small>
+            </div>
+            <p>${h.note || 'Pembaruan otomatis dari sistem pendaftaran.'}</p>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    historyTimeline.innerHTML = html;
+  }
+
+  async function fetchRegistration(regId, token) {
+    statusMsg.textContent = 'Memeriksa data pendaftaran...';
+    statusMsg.className = 'form-status';
+    submitBtn.disabled = true;
+
+    try {
+      const res = await fetch(`/api/registrations/${encodeURIComponent(regId)}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Nomor registrasi atau token akses tidak valid.');
+      }
+
+      const reg = data.registration;
+      currentRegId = reg.registrationId;
+      currentToken = token;
+
+      // Fill result data
+      resRegId.textContent = reg.registrationId;
+      resProgram.textContent = PROGRAM_NAMES[reg.program] || reg.program || 'Program Studi Al-Azhar';
+      resStatusBadge.textContent = reg.statusLabel || reg.status;
+      
+      const progress = typeof reg.progress === 'number' ? reg.progress : 15;
+      resProgressPct.textContent = `${progress}%`;
+      resProgressFill.style.width = `${progress}%`;
+
+      updateStepper(reg.status, progress);
+      renderDocuments(reg.documentSummary);
+      renderHistory(reg.history);
+
+      resultArea.hidden = false;
+      statusMsg.textContent = 'Data pendaftaran berhasil ditemukan.';
+      statusMsg.className = 'form-status is-success';
+
+      // Scroll smoothly to results
+      resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (err) {
+      resultArea.hidden = true;
+      statusMsg.textContent = err.message;
+      statusMsg.className = 'form-status is-error';
+    } finally {
+      submitBtn.disabled = false;
+    }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const id = regIdInput.value.trim().toUpperCase();
+    const token = tokenInput.value.trim();
+    if (!id || !token) {
+      statusMsg.textContent = 'Nomor registrasi dan token akses harus diisi.';
+      statusMsg.className = 'form-status is-error';
+      return;
+    }
+    fetchRegistration(id, token);
+  });
+
+  // Handle document upload
+  docUploadForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentRegId || !currentToken) return;
+
+    const docType = docTypeSelect.value;
+    const storageKey = docStorageKey.value.trim();
+
+    if (!storageKey) {
+      docUploadStatus.textContent = 'Nama berkas atau rujukan harus diisi.';
+      docUploadStatus.className = 'form-status is-error';
+      return;
+    }
+
+    docUploadStatus.textContent = 'Mengirim catatan berkas...';
+    docUploadStatus.className = 'form-status';
+
+    try {
+      const res = await fetch(`/api/registrations/${encodeURIComponent(currentRegId)}/documents`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentToken}`
+        },
+        body: JSON.stringify({
+          type: docType,
+          storageKey: storageKey
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal menambahkan berkas.');
+      }
+
+      docUploadStatus.textContent = 'Berkas berhasil dicatat ke sistem!';
+      docUploadStatus.className = 'form-status is-success';
+      docStorageKey.value = '';
+
+      // Re-fetch registration to update document list
+      fetchRegistration(currentRegId, currentToken);
+    } catch (err) {
+      docUploadStatus.textContent = err.message;
+      docUploadStatus.className = 'form-status is-error';
+    }
+  });
+
+  // Auto-fill from URL params ?id=...&token=...
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramId = urlParams.get('id');
+  const paramToken = urlParams.get('token');
+  if (paramId && paramToken) {
+    regIdInput.value = paramId;
+    tokenInput.value = paramToken;
+    fetchRegistration(paramId, paramToken);
+  }
+});

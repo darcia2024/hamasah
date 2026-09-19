@@ -44,6 +44,17 @@ assert.equal(created.value.registrationId, 'HI-REG-2026-00018');
 assert.equal(created.value.status, registration.STATUSES.SUBMITTED);
 assert.equal(created.value.progress, 15);
 
+const adultV2 = registration.validateApplicant({
+  ...validApplicant, email: 'ahmad@hamasah.test', birthDate: '2000-01-01', gender: 'putra', schoolOrigin: 'SMA Uji'
+});
+assert.equal(adultV2.valid, true);
+const underAgeV2 = registration.validateApplicant({
+  ...validApplicant, email: 'ahmad@hamasah.test', birthDate: '2010-01-01', gender: 'putra', schoolOrigin: 'SMP Uji', guardianEmail: '', guardianConsent: false
+});
+assert.equal(underAgeV2.valid, false);
+assert.ok(underAgeV2.errors.guardianEmail);
+assert.ok(underAgeV2.errors.guardianConsent);
+
 assert.equal(
   registration.canTransition(registration.STATUSES.SUBMITTED, registration.STATUSES.DOCUMENT_REVIEW, registration.ROLES.REGISTRATION_OFFICER),
   true

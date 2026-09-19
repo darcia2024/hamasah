@@ -27,7 +27,8 @@ const app = createHamasahApp({
   storageBucket: config.storageBucket,
   storagePublicBucket: config.storagePublicBucket,
   supabaseUrl: config.supabaseUrl,
-  supabaseServiceRoleKey: config.supabaseServiceRoleKey
+  supabaseServiceRoleKey: config.supabaseServiceRoleKey,
+  email: config.email
 });
 
 const server = app.createServer();

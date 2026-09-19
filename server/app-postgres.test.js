@@ -16,11 +16,17 @@ async function request(baseUrl, pathname, options) {
 async function run() {
   const rootDirectory = path.resolve(__dirname, '..');
   const database = await createTestDatabase();
+  const sentEmails = [];
   // Test ini mengirim sebelas pendaftaran sekaligus dari satu alamat untuk menguji
   // penomoran, jadi batas laju sengaja dilonggarkan di sini.
   const app = createHamasahApp({
     rootDirectory, database, bootstrapKey: 'bootstrap-test-key',
-    rateLimiter: createRelaxedRateLimiter()
+    rateLimiter: createRelaxedRateLimiter(),
+    email: { driver: 'test', appBaseUrl: 'https://app.hamasah.test' },
+    emailSender: {
+      provider: 'test', configured: true,
+      async send(message) { sentEmails.push(message); return { id: `mail-${sentEmails.length}` }; }
+    }
   });
   const server = app.createServer();
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -58,6 +64,47 @@ async function run() {
     const sessionRows = await database.query('SELECT count(*)::int AS jumlah FROM account_sessions');
     assert.equal(accountRows.rows[0].jumlah, 1);
     assert.equal(sessionRows.rows[0].jumlah, 1);
+
+    // Admin mengundang wali tanpa pernah mengetahui atau menerima kata sandinya.
+    const invitation = await request(baseUrl, '/api/accounts/invitations', {
+      method: 'POST', headers: adminHeaders,
+      body: JSON.stringify({ name: 'Wali Undangan', email: 'wali.undangan@hamasah.test', role: 'parent' })
+    });
+    assert.equal(invitation.status, 201);
+    assert.equal(invitation.body.account.active, false);
+    assert.equal(sentEmails.length, 1);
+    const invitationUrl = new URL(sentEmails[0].html.match(/href="([^"]+)"/)[1].replaceAll('&amp;', '&'));
+    const invitationToken = new URLSearchParams(invitationUrl.hash.slice(1)).get('token');
+    assert.equal(JSON.stringify(invitation.body).includes(invitationToken), false, 'Token tidak boleh muncul pada respons API.');
+    const accept = await request(baseUrl, '/api/auth/invitations/accept', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: invitationToken, password: 'kata-sandi-wali-uji' })
+    });
+    assert.equal(accept.status, 204);
+    const waliLogin = await request(baseUrl, '/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'wali.undangan@hamasah.test', password: 'kata-sandi-wali-uji' })
+    });
+    assert.equal(waliLogin.status, 200);
+
+    const resetRequest = await request(baseUrl, '/api/auth/password-reset-request', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'wali.undangan@hamasah.test' })
+    });
+    assert.equal(resetRequest.status, 202);
+    assert.equal(sentEmails.length, 2);
+    const resetUrl = new URL(sentEmails[1].html.match(/href="([^"]+)"/)[1].replaceAll('&amp;', '&'));
+    const resetComplete = await request(baseUrl, '/api/auth/password-reset', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: new URLSearchParams(resetUrl.hash.slice(1)).get('token'), password: 'kata-sandi-wali-baru' })
+    });
+    assert.equal(resetComplete.status, 204);
+    assert.equal((await request(baseUrl, '/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'wali.undangan@hamasah.test', password: 'kata-sandi-wali-baru' })
+    })).status, 200);
+    const notificationRows = await database.query('SELECT count(*)::int AS jumlah FROM notification_outbox WHERE status = \'sent\'');
+    assert.equal(notificationRows.rows[0].jumlah, 2);
 
     // Pendaftaran tersimpan lewat transaksi dan bisa dibaca pemilik token.
     const registration = await request(baseUrl, '/api/registrations', {

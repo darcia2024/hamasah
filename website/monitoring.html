@@ -6,114 +6,452 @@
     <title>Monitoring Santri | Hamasah International</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website.css?v=18" />
-    <link rel="stylesheet" href="staff.css?v=1" />
-    <link rel="stylesheet" href="portal.css?v=2" />
+    <link rel="stylesheet" href="staff.css?v=2" />
+    <link rel="stylesheet" href="portal.css?v=4" />
   </head>
   <body class="staff-page">
-    <main class="staff-shell">
-      <header class="staff-header">
-        <a href="portal.html" class="staff-brand">Hamasah <span>Monitoring</span></a>
-        <nav class="staff-nav" id="staff-nav" hidden></nav>
-        <a href="portal.html" class="button button--secondary">Portal akun</a>
-      </header>
-      <section id="monitoring-guard" class="staff-login" aria-live="polite">
-        <p class="eyebrow">Monitoring santri</p>
-        <h1>Memeriksa akses.</h1>
-        <p id="monitoring-guard-copy">Silakan masuk melalui Portal Hamasah untuk menggunakan halaman ini.</p>
-      </section>
-      <section id="monitoring-console" hidden>
-        <div class="staff-intro">
-          <div><p class="eyebrow">Pengawas dan admin</p><h1>Rekam jejak santri.</h1></div>
-          <button class="button button--secondary" id="reload-students" type="button">Perbarui data</button>
-        </div>
-        <div class="portal-admin-grid monitoring-grid">
-          <form id="student-form" class="staff-form">
-            <h2>Tambah santri</h2>
-            <label for="student-name">Nama lengkap</label><input id="student-name" type="text" required />
-            <label for="student-program">Program</label><input id="student-program" type="text" placeholder="Kuliah Al-Azhar" required />
-            <label for="student-city">Kota</label><input id="student-city" type="text" value="Kairo" required />
-            <label for="student-join-date">Tanggal bergabung</label><input id="student-join-date" type="date" required />
-            <label for="student-gender">Jenis santri</label>
-            <select id="student-gender"><option value="">Belum diisi</option><option value="putra">Putra</option><option value="putri">Putri</option></select>
-            <label for="student-dormitory">Asrama</label>
-            <select id="student-dormitory"><option value="">Belum ditempatkan</option></select>
-            <button class="button button--primary" type="submit">Simpan profil santri</button>
-            <p id="student-form-status" class="form-status" role="status" aria-live="polite"></p>
-          </form>
+    <!-- Header saat Belum Login -->
+    <header class="staff-header" id="public-header" style="max-width: 1200px; margin: 20px auto 36px;">
+      <a href="portal.html" class="staff-brand">
+        <svg class="brand-logo-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+        Hamasah <span>Monitoring</span>
+      </a>
+      <div class="staff-header-actions">
+        <a href="portal.html" class="button button--secondary">Portal Akun</a>
+      </div>
+    </header>
+
+    <!-- Kartu Login / Guard Terpusat M3 (Saat Belum Login) -->
+    <section id="monitoring-guard" class="staff-login" aria-live="polite">
+      <div class="staff-login__card">
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px;">
+          <img src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" width="44" height="44" style="object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 2px 8px rgba(217, 119, 6, 0.25));" />
           <div>
-            <h2 class="portal-list-title">Pilih santri</h2>
-            <select id="monitoring-student-select" class="monitoring-select"><option value="">Pilih santri</option></select>
-            <button id="download-report" class="button button--secondary monitoring-download" type="button" hidden>Unduh ringkasan CSV</button>
-            <section id="monitoring-dashboard" class="portal-dashboard" hidden></section>
+            <span class="eyebrow" style="margin: 0;">Konsol Pengawasan</span>
+            <div style="font-size: 15px; font-weight: 800; color: #B45309;">Monitoring santri &amp; asrama</div>
           </div>
         </div>
-        <section id="placement-section" class="portal-admin" hidden>
-          <div><p class="eyebrow">Penempatan</p><h2>Asrama santri terpilih.</h2></div>
-          <form id="placement-form" class="staff-form record-form">
-            <label for="placement-gender">Jenis santri</label>
-            <select id="placement-gender"><option value="">Belum diisi</option><option value="putra">Putra</option><option value="putri">Putri</option></select>
-            <label for="placement-dormitory">Asrama</label>
-            <select id="placement-dormitory"><option value="">Belum ditempatkan</option></select>
-            <button class="button button--primary" type="submit">Simpan penempatan</button>
-            <p id="placement-status" class="form-status" role="status" aria-live="polite"></p>
-          </form>
-        </section>
-        <section id="dormitory-section" class="portal-admin" hidden>
-          <div>
-            <p class="eyebrow">Asrama</p>
-            <h2>Daftar asrama dan penugasan musyrif.</h2>
-            <p class="monitoring-hint">Musyrif hanya melihat santri di asrama yang ditugaskan kepadanya. Musyrif yang belum ditugaskan tidak melihat santri mana pun.</p>
+        <h1>Memeriksa Hak Akses</h1>
+        <p id="monitoring-guard-copy" style="margin-top: 0; color: var(--md-sys-color-on-surface-variant, #4B4639); font-size: 13.5px; line-height: 1.55;">
+          Halaman ini diperuntukkan khusus bagi pengawas (musyrif asrama Kairo) dan administrator Hamasah International.
+        </p>
+        <a href="portal.html" class="button button--primary" style="width: 100%; justify-content: center; height: 46px; margin-top: 20px;">
+          <span>Masuk Melalui Portal</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      </div>
+    </section>
+
+    <!-- UNIFIED ALTEZZA CRM SHELL -->
+    <section id="monitoring-console" hidden class="crm-shell">
+      <!-- CRM Left Sidebar -->
+      <aside class="crm-sidebar" id="crm-sidebar">
+        <div class="crm-sidebar-header">
+          <a href="portal.html" class="crm-brand">
+            <img src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" class="crm-brand-logo" width="34" height="34" />
+            <div class="crm-brand-text">
+              <span class="crm-brand-title">Hamasah <strong>CRM</strong></span>
+              <span class="crm-brand-sub">Al-Azhar Kairo</span>
+            </div>
+          </a>
+          <button type="button" class="crm-collapse-btn" title="Ciutkan Sidebar" aria-label="Toggle Sidebar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+        </div>
+
+        <div class="crm-user-card" id="crm-user-card">
+          <div class="crm-user-avatar" id="crm-user-avatar">MS</div>
+          <div class="crm-user-info">
+            <div class="crm-user-name" id="crm-user-name">Pengawas Asrama</div>
+            <div class="crm-user-role-pill" id="crm-user-role-pill">Musyrif / Admin</div>
           </div>
-          <div class="portal-admin-grid">
-            <form id="dormitory-form" class="staff-form">
-              <h3>Tambah asrama</h3>
-              <label for="dormitory-name">Nama asrama</label><input id="dormitory-name" type="text" placeholder="Hay Asyir Putra" required />
-              <label for="dormitory-area">Wilayah</label><input id="dormitory-area" type="text" placeholder="Hay Asyir" required />
-              <label for="dormitory-gender">Jenis asrama</label>
-              <select id="dormitory-gender" required><option value="putra">Putra</option><option value="putri">Putri</option></select>
-              <button class="button button--secondary" type="submit">Simpan asrama</button>
-              <p id="dormitory-status" class="form-status" role="status" aria-live="polite"></p>
-            </form>
-            <form id="assignment-form" class="staff-form">
-              <h3>Tugaskan musyrif</h3>
-              <label for="assignment-account">Akun musyrif</label><select id="assignment-account"></select>
-              <label for="assignment-dormitory">Asrama</label><select id="assignment-dormitory"></select>
-              <button class="button button--secondary" type="submit">Tugaskan</button>
-              <p id="assignment-status" class="form-status" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="crm-nav-group-title">
+          <span>CRM UTAMA</span>
+          <span class="crm-nav-group-caret">▲</span>
+        </div>
+        <nav class="crm-nav" id="staff-nav"></nav>
+
+        <div class="crm-sidebar-footer">
+          <div class="crm-system-status">
+            <span class="crm-status-dot"></span>
+            <span>Sesi Terverifikasi Aman</span>
+          </div>
+          <button class="crm-logout-btn" id="logout-button" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>Keluar Sesi</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- CRM Main Workspace Area -->
+      <div class="crm-workspace">
+        <header class="crm-topbar">
+          <div class="crm-breadcrumbs">
+            <span class="crumb-root">Hamasah CRM</span>
+            <span class="crumb-sep">&gt;</span>
+            <span class="crumb-active">Monitoring santri &amp; Asrama Kairo</span>
+          </div>
+          <div class="crm-topbar-actions">
+            <span class="crm-role-chip" id="crm-header-role">Pengawas Asrama</span>
+            <button class="crm-topbar-action-btn" id="reload-students" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l6.07-1.19"/></svg>
+              <span>Perbarui Data</span>
+            </button>
+          </div>
+        </header>
+
+        <div class="crm-canvas">
+          <!-- Altezza Top Summary Card for Monitoring Asrama -->
+          <div class="crm-summary-card">
+            <div class="crm-summary-col">
+              <div>
+                <div class="crm-summary-title-row">
+                  <h2 class="crm-summary-title">Monitoring santri &amp; Markaz Asrama</h2>
+                  <svg class="crm-link-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                </div>
+                <p class="crm-summary-subtitle">Presensi Sholat Subuh, Talaqqi Syaikh Al-Azhar &amp; Pembinaan Karakter</p>
+              </div>
+              <div>
+                <p class="crm-field-label">WILAYAH SENTRAL KAIRO</p>
+                <div class="crm-person-row">
+                  <div class="crm-person-avatar">HY</div>
+                  <span class="crm-person-name">Markaz Hay Asyir &amp; Madinat Nasr</span>
+                </div>
+              </div>
+            </div>
+            <div class="crm-summary-col">
+              <div>
+                <p class="crm-field-label">KATEGORI PENGAWASAN</p>
+                <div class="crm-field-value">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  <span>Asrama Putra (Banin) &amp; Putri (Banat)</span>
+                </div>
+              </div>
+              <div>
+                <p class="crm-field-label">INTEGRASI WALI</p>
+                <div class="crm-person-row">
+                  <div class="crm-person-avatar" style="background: #DCFCE7; color: #16A34A;">✓</div>
+                  <span class="crm-person-name">Sinkronisasi Realtime ke Portal Wali</span>
+                </div>
+              </div>
+            </div>
+            <div class="crm-summary-col">
+              <div>
+                <p class="crm-field-label">STATUS MUTABA'AH</p>
+                <div class="crm-balance-value">
+                  <span class="crm-bullet-blue" style="background: #16A34A;"></span>
+                  <span style="font-size: 15px; color: #16A34A;">Pemantauan Aktif 24/7</span>
+                </div>
+              </div>
+              <div>
+                <p class="crm-field-label">STANDAR KELULUSAN TALAQQI</p>
+                <div class="crm-field-value">
+                  <span style="color: #2563EB;">●</span>
+                  <span>Sanad &amp; Muqorror Kuliah Al-Azhar</span>
+                </div>
+              </div>
+            </div>
+            <div class="crm-summary-col">
+              <div>
+                <p class="crm-field-label">STANDAR PEMBINAAN ASRAMA</p>
+                <p class="crm-summary-note">"Setiap santri wajib mengikuti sholat jamaah, setoran hafalan harian, serta bimbingan materi kuliah bersama asatidz di asrama."</p>
+                <a class="crm-readmore-link" href="article.html?slug=pendampingan-santri-di-kairo">Baca Pedoman Pengawasan &rarr;</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Subtabs for Monitoring -->
+          <div class="crm-subtabs-row" id="monitoring-subtabs">
+            <button type="button" class="crm-pill-btn is-active" id="tab-btn-tracking">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M22 12h-4M6 12H2M12 6V2M12 22v-4"/><circle cx="12" cy="12" r="3"/></svg>
+              <span>Monitoring Rekam Jejak</span>
+            </button>
+            <button type="button" class="crm-pill-btn" id="tab-btn-add-student">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+              <span>Form Profil Santri Baru</span>
+            </button>
+            <button type="button" class="crm-pill-btn" id="tab-btn-placement">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              <span>Penempatan Kamar &amp; Asrama</span>
+            </button>
+            <button type="button" class="crm-pill-btn admin-only-tab" id="tab-btn-dorm-mgmt" hidden>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              <span>Kelola Asrama &amp; Musyrif</span>
+            </button>
+            <button type="button" class="crm-pill-btn admin-only-tab" id="tab-btn-link-account" hidden>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              <span>Hubungkan Akun Wali</span>
+            </button>
+          </div>
+
+          <!-- Tab Panel 1: Monitoring Rekam Jejak -->
+          <div id="panel-tracking" class="crm-card-stack">
+            <div class="crm-toolbar">
+              <div class="crm-toolbar-filters">
+                <div class="crm-date-selector" style="min-width: 280px;">
+                  <div class="crm-date-display" style="gap: 10px; width: 100%;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M22 12h-4M6 12H2M12 6V2M12 22v-4"/><circle cx="12" cy="12" r="3"/></svg>
+                    <select id="monitoring-student-select" class="monitoring-select" style="border: none; background: transparent; font-weight: 600; font-size: 13.5px; color: inherit; width: 100%; cursor: pointer;">
+                      <option value="">-- Pilih Santri yang Dipantau --</option>
+                    </select>
+                  </div>
+                </div>
+                <button id="download-report" class="button button--secondary monitoring-download" type="button" hidden style="height: 40px;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                  <span>Unduh Rekam Jejak (CSV)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Dashboard Rekam Jejak Santri -->
+            <section id="monitoring-dashboard" class="portal-dashboard" hidden style="margin-bottom: 24px;"></section>
+
+            <!-- Catatan Pembinaan & Ibadah (Mutaba'ah) -->
+            <section id="record-section" class="crm-white-card" hidden>
+              <div class="crm-white-card-header">
+                <div>
+                  <h3 id="record-form-title">Catatan Pembinaan &amp; Rekam Mutaba'ah Harian</h3>
+                  <p>Masukkan rekap presensi sholat Subuh berjamaah, halaqah talaqqi masyayikh, evaluasi akhlak, atau prestasi santri.</p>
+                </div>
+              </div>
+              <form id="record-form" class="staff-form record-form">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                  <div>
+                    <label for="record-kind">Jenis Catatan Mutaba'ah</label>
+                    <select id="record-kind">
+                      <option value="activities">Kegiatan / Halaqah</option>
+                      <option value="attendance">Kehadiran Sholat</option>
+                      <option value="achievements">Prestasi / Mumtaz</option>
+                      <option value="evaluations">Evaluasi Akhlak</option>
+                      <option value="violations">Catatan Pelanggaran</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="record-date">Tanggal Catatan</label>
+                    <input id="record-date" type="date" required />
+                  </div>
+                </div>
+                <div>
+                  <label for="record-title" id="record-title-label">Judul Kegiatan / Keterangan</label>
+                  <input id="record-title" type="text" placeholder="Contoh: Sholat Subuh Berjamaah &amp; Mudzakarah" />
+                </div>
+                <div>
+                  <label for="record-attendance" id="record-attendance-label" hidden>Status Kehadiran</label>
+                  <select id="record-attendance" hidden>
+                    <option value="present">Hadir Tepat Waktu</option>
+                    <option value="late">Terlambat</option>
+                    <option value="excused">Izin / Sakit</option>
+                    <option value="absent">Tidak Hadir (Alpa)</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="record-note" id="record-note-label">Deskripsi / Catatan Musyrif</label>
+                  <textarea id="record-note" rows="4" placeholder="Tuliskan catatan pembinaan atau perkembangan santri..."></textarea>
+                </div>
+                <button class="button button--primary" type="submit" style="margin-top: 14px; height: 44px; width: 100%; justify-content: center;">
+                  <span>Simpan Catatan Pembinaan</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </button>
+                <p id="record-form-status" class="form-status" role="status" aria-live="polite"></p>
+              </form>
+            </section>
+          </div>
+
+          <!-- Tab Panel 2: Form Tambah Santri Baru -->
+          <div id="panel-add-student" class="crm-white-card" hidden>
+            <div class="crm-white-card-header">
+              <div>
+                <h3>Pendaftaran &amp; Profil Santri Baru</h3>
+                <p>Tambahkan profil santri binaan baru yang tiba di Kairo untuk mulai dipantau rekam jejak dan penempatan asramanya.</p>
+              </div>
+            </div>
+            <form id="student-form" class="staff-form">
+              <div>
+                <label for="student-name">Nama Lengkap Santri</label>
+                <input id="student-name" type="text" placeholder="Nama sesuai paspor/ijazah" required />
+              </div>
+              <div>
+                <label for="student-program">Program Studi Tujuan</label>
+                <input id="student-program" type="text" placeholder="Kuliah S1 Al-Azhar / Ma'had Al-Azhar" required />
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                  <label for="student-city">Kota Domisili</label>
+                  <input id="student-city" type="text" value="Kairo" required />
+                </div>
+                <div>
+                  <label for="student-join-date">Tanggal Bergabung</label>
+                  <input id="student-join-date" type="date" required />
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                  <label for="student-gender">Jenis Santri</label>
+                  <select id="student-gender">
+                    <option value="">Belum diisi</option>
+                    <option value="putra">Putra (Banin)</option>
+                    <option value="putri">Putri (Banat)</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="student-dormitory">Pilihan Asrama</label>
+                  <select id="student-dormitory">
+                    <option value="">Belum ditempatkan</option>
+                  </select>
+                </div>
+              </div>
+              <button class="button button--primary" type="submit" style="margin-top: 14px; height: 44px; width: 100%; justify-content: center;">
+                <span>Simpan Profil Santri</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </button>
+              <p id="student-form-status" class="form-status" role="status" aria-live="polite"></p>
             </form>
           </div>
-          <div id="assignment-list" class="portal-account-list"></div>
-        </section>
-        <section id="account-link-section" class="portal-admin" hidden>
-          <div><p class="eyebrow">Relasi akun</p><h2>Hubungkan akun wali dan santri.</h2></div>
-          <form id="account-link-form" class="staff-form record-form">
-            <label for="linked-student-account">Akun santri</label><select id="linked-student-account"><option value="">Belum dihubungkan</option></select>
-            <label for="linked-parent-accounts">Akun wali</label><select id="linked-parent-accounts" multiple size="4"></select>
-            <button class="button button--primary" type="submit">Simpan relasi akun</button>
-            <p id="account-link-status" class="form-status" role="status" aria-live="polite"></p>
-          </form>
-        </section>
-        <section id="record-section" class="portal-admin" hidden>
-          <div><p class="eyebrow">Catatan pembinaan</p><h2>Tambah rekam kegiatan.</h2></div>
-          <form id="record-form" class="staff-form record-form">
-            <label for="record-kind">Jenis catatan</label>
-            <select id="record-kind">
-              <option value="activities">Kegiatan</option><option value="attendance">Kehadiran</option><option value="achievements">Achievement</option><option value="evaluations">Evaluasi</option><option value="violations">Pelanggaran</option>
-            </select>
-            <label for="record-title" id="record-title-label">Judul kegiatan</label><input id="record-title" type="text" />
-            <label for="record-attendance" id="record-attendance-label" hidden>Status kehadiran</label>
-            <select id="record-attendance" hidden><option value="present">Hadir</option><option value="late">Terlambat</option><option value="excused">Izin</option><option value="absent">Tidak hadir</option></select>
-            <label for="record-note" id="record-note-label">Deskripsi</label><textarea id="record-note" rows="4"></textarea>
-            <label for="record-date">Tanggal catatan</label><input id="record-date" type="date" required />
-            <button class="button button--primary" type="submit">Simpan catatan</button>
-            <p id="record-form-status" class="form-status" role="status" aria-live="polite"></p>
-          </form>
-        </section>
-      </section>
-    </main>
-    <script src="nav.js?v=1"></script>
-    <script src="monitoring.js?v=1"></script>
+
+          <!-- Tab Panel 3: Penempatan Asrama -->
+          <div id="panel-placement" class="crm-white-card" hidden>
+            <div class="crm-white-card-header">
+              <div>
+                <h3>Penempatan Kamar &amp; Gedung Asrama</h3>
+                <p>Tentukan atau perbarui kamar asrama dan gender santri yang sedang dipilih pada sistem pengawasan.</p>
+              </div>
+            </div>
+            <section id="placement-section">
+              <form id="placement-form" class="staff-form record-form">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                  <div>
+                    <label for="placement-gender">Jenis Santri</label>
+                    <select id="placement-gender">
+                      <option value="">Belum diisi</option>
+                      <option value="putra">Putra (Banin)</option>
+                      <option value="putri">Putri (Banat)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="placement-dormitory">Gedung Asrama</label>
+                    <select id="placement-dormitory">
+                      <option value="">Belum ditempatkan</option>
+                    </select>
+                  </div>
+                </div>
+                <button class="button button--primary" type="submit" style="margin-top: 14px; height: 44px; width: 100%; justify-content: center;">
+                  <span>Simpan Penempatan Asrama</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </button>
+                <p id="placement-status" class="form-status" role="status" aria-live="polite"></p>
+              </form>
+            </section>
+          </div>
+
+          <!-- Tab Panel 4: Kelola Gedung Asrama & Musyrif (Admin Only) -->
+          <div id="panel-dorm-mgmt" class="crm-card-stack" hidden>
+            <section id="dormitory-section">
+              <div class="crm-split-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="crm-white-card">
+                  <div class="crm-white-card-header">
+                    <div>
+                      <h3>Tambah Gedung Asrama Baru</h3>
+                      <p>Daftarkan gedung asrama baru di kawasan Kairo (Hay Asyir/Madinat Nasr).</p>
+                    </div>
+                  </div>
+                  <form id="dormitory-form" class="staff-form">
+                    <div>
+                      <label for="dormitory-name">Nama Asrama</label>
+                      <input id="dormitory-name" type="text" placeholder="Contoh: Asrama Hay Asyir Putra 1" required />
+                    </div>
+                    <div>
+                      <label for="dormitory-area">Wilayah di Kairo</label>
+                      <input id="dormitory-area" type="text" placeholder="Hay Asyir / Madinat Nasr" required />
+                    </div>
+                    <div>
+                      <label for="dormitory-gender">Kategori Penghuni</label>
+                      <select id="dormitory-gender" required>
+                        <option value="putra">Putra (Banin)</option>
+                        <option value="putri">Putri (Banat)</option>
+                      </select>
+                    </div>
+                    <button class="button button--secondary" type="submit" style="margin-top: 14px; width: 100%; justify-content: center;">
+                      <span>Simpan Gedung Asrama</span>
+                    </button>
+                    <p id="dormitory-status" class="form-status" role="status" aria-live="polite"></p>
+                  </form>
+                </div>
+
+                <div class="crm-white-card">
+                  <div class="crm-white-card-header">
+                    <div>
+                      <h3>Tugaskan Musyrif Pembina</h3>
+                      <p>Tautkan akun musyrif ke gedung asrama yang menjadi tanggung jawabnya.</p>
+                    </div>
+                  </div>
+                  <form id="assignment-form" class="staff-form">
+                    <div>
+                      <label for="assignment-account">Pilih Akun Musyrif</label>
+                      <select id="assignment-account"></select>
+                    </div>
+                    <div>
+                      <label for="assignment-dormitory">Pilih Asrama yang Dibina</label>
+                      <select id="assignment-dormitory"></select>
+                    </div>
+                    <button class="button button--secondary" type="submit" style="margin-top: 14px; width: 100%; justify-content: center;">
+                      <span>Tugaskan Musyrif Ini</span>
+                    </button>
+                    <p id="assignment-status" class="form-status" role="status" aria-live="polite"></p>
+                  </form>
+                </div>
+              </div>
+
+              <div class="crm-white-card" style="margin-top: 20px;">
+                <div class="crm-white-card-header">
+                  <div>
+                    <h3>Penugasan Musyrif Saat Ini</h3>
+                    <p>Daftar musyrif aktif dan gedung asrama yang berada di bawah bimbingannya.</p>
+                  </div>
+                </div>
+                <div id="assignment-list" class="portal-account-list"></div>
+              </div>
+            </section>
+          </div>
+
+          <!-- Tab Panel 5: Hubungkan Akun Wali (Admin Only) -->
+          <div id="panel-link-account" class="crm-white-card" hidden>
+            <div class="crm-white-card-header">
+              <div>
+                <h3>Hubungkan Akun Wali dengan Santri</h3>
+                <p>Wali santri dapat memantau presensi dan nilai mutaba'ah ananda secara otomatis di portal wali.</p>
+              </div>
+            </div>
+            <section id="account-link-section">
+              <form id="account-link-form" class="staff-form record-form">
+                <div>
+                  <label for="linked-student-account">Pilih Akun Santri</label>
+                  <select id="linked-student-account">
+                    <option value="">-- Belum Dihubungkan --</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="linked-parent-accounts">Pilih Akun Wali (Tekan Ctrl untuk memilih lebih dari satu)</label>
+                  <select id="linked-parent-accounts" multiple size="4" style="height: auto; min-height: 100px; padding: 8px;"></select>
+                </div>
+                <button class="button button--primary" type="submit" style="margin-top: 14px; height: 44px; width: 100%; justify-content: center;">
+                  <span>Simpan Relasi Akun</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </button>
+                <p id="account-link-status" class="form-status" role="status" aria-live="polite"></p>
+              </form>
+            </section>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <script src="nav.js?v=3"></script>
+    <script src="monitoring.js?v=3"></script>
   </body>
 </html>
+

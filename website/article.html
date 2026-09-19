@@ -3,22 +3,153 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Artikel Hamasah International." />
-    <title>Artikel | Hamasah International</title>
+    <meta name="description" content="Artikel resmi Pena Hamasah: Panduan studi Al-Azhar Kairo, fiqih talaqqi, dan kehidupan santri di Mesir." />
+    <title>Pena Hamasah | Hamasah International</title>
+    <link rel="icon" href="../assets/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="website.css?v=18" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="website.css?v=21" />
   </head>
   <body class="article-page">
-    <main class="article-main shell">
-      <a class="article-back" href="index.html#artikel">← Kembali ke Pena Hamasah</a>
-      <article id="article-content" class="article-content" aria-live="polite">
-        <p class="eyebrow">Pena Hamasah</p>
-        <h1>Memuat artikel</h1>
-        <p>Mohon tunggu sebentar.</p>
+    <a class="skip-link" href="#main-article">Lewati ke isi artikel</a>
+
+    <!-- Top App Bar Navigation -->
+    <header class="site-header">
+      <div class="shell nav-wrap">
+        <a class="brand" href="index.html" aria-label="Hamasah International, kembali ke beranda">
+          <img src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" width="36" height="36" class="brand-logo" />
+          <div class="brand-text">
+            <span class="brand-name">Hamasah International</span>
+            <span class="brand-tag">Kairo · Indonesia</span>
+          </div>
+        </a>
+
+        <nav class="site-nav" aria-label="Navigasi utama">
+          <a href="index.html#program">Program</a>
+          <a href="biaya.html">Biaya & Fasilitas</a>
+          <a href="articles.html" class="is-active">Pena Hamasah</a>
+          <a href="cek-status.html">Cek Status</a>
+          <a href="kontak.html">Kontak</a>
+          <a href="portal.html" class="nav-portal">Portal Santri</a>
+          <a class="nav-cta" href="index.html#pendaftaran">Daftar Baru ↗</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="article-main-container shell" id="main-article">
+      <!-- Breadcrumb -->
+      <nav class="article-breadcrumb" aria-label="Breadcrumb">
+        <a href="index.html">Beranda</a>
+        <span aria-hidden="true">/</span>
+        <a href="articles.html">Pena Hamasah</a>
+        <span aria-hidden="true">/</span>
+        <span id="breadcrumb-current-title">Memuat...</span>
+      </nav>
+
+      <!-- Back to Catalog Link -->
+      <div class="article-top-action">
+        <a class="article-back-link" href="articles.html">
+          <span aria-hidden="true">←</span>
+          <span>Kembali ke Semua Artikel</span>
+        </a>
+      </div>
+
+      <!-- Main Article Card -->
+      <article id="article-content" class="article-reader-card" aria-live="polite">
+        <div class="article-loading-state">
+          <p class="eyebrow">Pena Hamasah</p>
+          <h1>Memuat artikel...</h1>
+          <p>Mohon tunggu sebentar, sedang mengambil wawasan dari server.</p>
+        </div>
       </article>
+
+      <!-- Article Action Bar: Share & Consultation -->
+      <div class="article-share-bar">
+        <div class="share-label">
+          <strong>Bagikan Wawasan Ini:</strong>
+        </div>
+        <div class="share-buttons">
+          <button id="btn-share-wa" class="button button--secondary" type="button">
+            <span>Bagikan via WhatsApp</span>
+            <span aria-hidden="true">↗</span>
+          </button>
+          <button id="btn-copy-url" class="button button--secondary" type="button">
+            <span>Salin Tautan</span>
+            <span aria-hidden="true"><svg class="m3-icon m3-icon--sm" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Consultation Callout -->
+      <div class="article-cta-box">
+        <div class="cta-box-text">
+          <span class="card-label">Bimbingan Studi Al-Azhar Kairo</span>
+          <h3>Siap Memulai Langkah Menuju Al-Azhar?</h3>
+          <p>Konsultasikan pilihan fakultas, persiapan Tahdid Mustawa, dan alur legalisasi berkas Anda bersama tim konsultan resmi Hamasah International.</p>
+        </div>
+        <div class="cta-box-action">
+          <a class="button button--primary" href="index.html#pendaftaran">
+            <span>Mulai Pendaftaran Awal</span>
+            <span class="btn-arrow" aria-hidden="true">→</span>
+          </a>
+        </div>
+      </div>
     </main>
-    <script src="article.js?v=1"></script>
+
+    <!-- Site Footer -->
+    <footer class="site-footer">
+      <div class="shell footer-wrap">
+        <div class="footer-brand-col">
+          <a class="brand brand--footer" href="index.html">
+            <img src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" width="38" height="38" />
+            <div class="brand-text">
+              <span class="brand-name">Hamasah International</span>
+              <span class="brand-tag">Kairo · Mesir & Indonesia</span>
+            </div>
+          </a>
+          <p class="footer-desc">
+            Lembaga bimbingan dan pendampingan studi resmi menuju Universitas Al-Azhar Kairo. Menempa santri beradab, berilmu, dan berakhlak mulia.
+          </p>
+        </div>
+
+        <div class="footer-links-grid">
+          <div class="footer-col">
+            <p class="footer-col-title">Program Studi</p>
+            <ul class="footer-links">
+              <li><a href="index.html#kuliah">Kuliah S1 Al-Azhar</a></li>
+              <li><a href="index.html#mahad">Ma'had Al-Azhar</a></li>
+              <li><a href="index.html#courses">Hamasah Courses</a></li>
+              <li><a href="biaya.html">Biaya & Fasilitas</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <p class="footer-col-title">Pusat Layanan</p>
+            <ul class="footer-links">
+              <li><a href="cek-status.html">Cek Status Pendaftaran</a></li>
+              <li><a href="articles.html">Pena Hamasah</a></li>
+              <li><a href="kontak.html">Kontak & Lokasi</a></li>
+              <li><a href="portal.html">Portal Santri & Wali</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <p class="footer-col-title">Akses Portal</p>
+            <ul class="footer-links">
+              <li><a href="portal.html">Portal Keluarga & Santri</a></li>
+              <li><a href="staff.html">Portal Petugas</a></li>
+              <li><a href="monitoring.html">Monitoring Musyrif</a></li>
+              <li><a href="operations.html">Manajemen Operasional</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="shell footer-bottom">
+        <p>&copy; 2026 Hamasah International. Seluruh hak cipta dilindungi.</p>
+        <p class="footer-credit">Rancangan arsitektur digital & ekosistem terpadu.</p>
+      </div>
+    </footer>
+
+    <script src="article.js?v=2"></script>
   </body>
 </html>

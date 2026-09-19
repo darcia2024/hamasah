@@ -6,9 +6,14 @@ const path = require('node:path');
 const registrationServiceModule = require('../website/registration-service.js');
 const { createDatabase } = require('./db.js');
 const { createPostgresRegistrationStore } = require('./postgres-registration-store.js');
+const { createPostgresApplicantSessionStore } = require('./postgres-applicant-session-store.js');
+const { createApplicantService } = require('./applicant-service.js');
 const { createPostgresArticleStore } = require('./postgres-article-store.js');
 const identity = require('./identity-service.js');
 const { createPostgresAccountStore } = require('./postgres-account-store.js');
+const { createPostgresNotificationStore } = require('./postgres-notification-store.js');
+const { createEmailSender } = require('./email-service.js');
+const { createNotificationService } = require('./notification-service.js');
 const { createPostgresSessionStore } = require('./postgres-session-store.js');
 const { createStudentPortalService } = require('./student-portal-service.js');
 const { createPostgresStudentStore } = require('./postgres-student-store.js');
@@ -78,10 +83,23 @@ function createHamasahApp(options) {
   const registrationService = config.registrationService || registrationServiceModule.createRegistrationService({
     store: registrationStore
   });
+  const applicantSessionStore = config.applicantSessionStore || createPostgresApplicantSessionStore({ database });
+  const applicantService = config.applicantService || createApplicantService({ registrationStore, sessionStore: applicantSessionStore });
   const articleStore = config.articleStore || createPostgresArticleStore({ database });
   const accountStore = config.accountStore || createPostgresAccountStore({ database });
   const sessionStore = config.sessionStore || createPostgresSessionStore({ database });
   const identityService = config.identityService || identity.createIdentityService({ accountStore, sessionStore });
+  const notificationStore = config.notificationStore || createPostgresNotificationStore({ database });
+  const email = config.email || { driver: ['development', 'test'].includes(appEnvironment) ? 'console' : 'disabled' };
+  const notificationService = config.notificationService || createNotificationService({
+    store: notificationStore,
+    sender: config.emailSender || createEmailSender({
+      driver: email.driver,
+      apiKey: email.resendApiKey,
+      from: email.emailFrom,
+      logger: config.logger || console
+    })
+  });
   const auditStore = config.auditStore || createPostgresAuditStore({ database });
   const auditService = config.auditService || createAuditService({
     store: auditStore,
@@ -157,6 +175,7 @@ function createHamasahApp(options) {
 
   const services = Object.freeze({
     accountStore,
+    applicantService,
     articleStore,
     auditService,
     fileService,
@@ -164,6 +183,7 @@ function createHamasahApp(options) {
     dormitoryService,
     identityService,
     lmsService,
+    notificationService,
     operationsService,
     registrationService,
     studentPortalService
@@ -224,7 +244,7 @@ function createHamasahApp(options) {
         url,
         params,
         services,
-        config: { bootstrapKey, rootDirectory },
+        config: { bootstrapKey, rootDirectory, appBaseUrl: email.appBaseUrl || '' },
         ip,
         rateLimit: rateLimiter,
         auth,
@@ -351,12 +371,14 @@ function createHamasahApp(options) {
     },
     identityService,
     registrationService,
+    applicantService,
     studentPortalService,
     dormitoryService,
     auditService,
     fileService,
     lmsService,
-    operationsService
+    operationsService,
+    notificationService
   };
 }
 

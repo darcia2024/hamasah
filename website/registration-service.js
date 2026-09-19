@@ -73,9 +73,12 @@
       updatedAt: record.updatedAt,
       documentSummary: record.documents.map(function documentSummary(document) {
         return {
+          id: document.id,
           type: document.type,
           status: document.status,
-          uploadedAt: document.uploadedAt
+          uploadedAt: document.uploadedAt,
+          reviewStatus: document.reviewStatus || 'pending',
+          reviewNote: document.reviewNote || ''
         };
       }),
       history: record.statusHistory.map(function historyEntry(entry) {
@@ -85,7 +88,9 @@
           at: entry.changedAt,
           note: entry.note
         };
-      })
+      }),
+      notes: (record.notes || []).filter((entry) => entry.visibility === 'applicant').map((entry) => ({ body: entry.body, createdAt: entry.createdAt })),
+      nextSteps: (record.nextSteps || []).map((entry) => ({ id: entry.id, title: entry.title, dueOn: entry.dueOn, doneAt: entry.doneAt }))
     };
   }
 
@@ -111,7 +116,10 @@
           byAccountId: entry.changedByAccountId || null,
           byName: entry.changedByName || null
         };
-      })
+      }),
+      documents: record.documents,
+      notes: record.notes || [],
+      nextSteps: record.nextSteps || []
     };
   }
 
@@ -164,7 +172,7 @@
 
       const record = {
         ...created.value,
-        documents: [],
+        documents: [], notes: [], nextSteps: [],
         ...createOptions.privateData
       };
       // insert, bukan upsert: nomor yang bentrok harus gagal keras, tidak menimpa data lama.
@@ -236,8 +244,10 @@
       }
 
       const document = {
+        id: globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function' ? globalThis.crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
         ...validated.value,
         status: 'received',
+        reviewStatus: 'pending', reviewNote: '', reviewedAt: null, reviewedByAccountId: null,
         uploadedAt: getNow(),
         uploadedBy: actorRole,
         uploadedByAccountId: (actor && actor.accountId) || null
@@ -251,12 +261,41 @@
       return { ok: true, value: toPublicRegistration(saved) };
     }
 
+    async function reviewDocument(registrationId, documentId, input, actor) {
+      if (!actor || ![domain.ROLES.ADMIN, domain.ROLES.REGISTRATION_OFFICER].includes(actor.role)) return { ok: false, error: 'Akses petugas diperlukan.' };
+      const status = String((input || {}).reviewStatus || '');
+      const note = String((input || {}).note || '').trim();
+      if (!['accepted', 'rejected'].includes(status) || (status === 'rejected' && !note)) return { ok: false, error: 'Status review belum valid, dan alasan penolakan wajib diisi.' };
+      const record = await store.get(registrationId);
+      if (!record) return { ok: false, error: 'Pendaftaran tidak ditemukan.' };
+      const reviewedAt = getNow();
+      if (typeof store.reviewDocument === 'function') {
+        const saved = await store.reviewDocument(registrationId, documentId, { reviewStatus: status, reviewNote: note, reviewedAt, reviewedByAccountId: actor.accountId });
+        return saved ? { ok: true, value: toPublicRegistration(saved) } : { ok: false, error: 'Berkas tidak ditemukan.' };
+      }
+      const documents = record.documents.map((document) => document.id === documentId ? { ...document, reviewStatus: status, reviewNote: note, reviewedAt, reviewedByAccountId: actor.accountId } : document);
+      if (!documents.some((document) => document.id === documentId)) return { ok: false, error: 'Berkas tidak ditemukan.' };
+      const saved = await store.update({ ...record, documents, updatedAt: reviewedAt });
+      return { ok: true, value: toPublicRegistration(saved) };
+    }
+
+    async function addNote(registrationId, input, actor) {
+      if (!actor || ![domain.ROLES.ADMIN, domain.ROLES.REGISTRATION_OFFICER].includes(actor.role)) return { ok: false, error: 'Akses petugas diperlukan.' };
+      const visibility = String((input || {}).visibility || ''); const body = String((input || {}).body || '').trim();
+      if (!['internal', 'applicant'].includes(visibility) || !body || body.length > 2000) return { ok: false, error: 'Catatan belum valid.' };
+      const note = { id: globalThis.crypto && globalThis.crypto.randomUUID ? globalThis.crypto.randomUUID() : `${Date.now()}-${Math.random()}`, visibility, body, authorAccountId: actor.accountId || null, createdAt: getNow() };
+      const record = typeof store.addNote === 'function' ? await store.addNote(registrationId, note) : await (async () => { const current = await store.get(registrationId); return current && store.update({ ...current, notes: (current.notes || []).concat(note), updatedAt: note.createdAt }); })();
+      return record ? { ok: true, value: toPublicRegistration(record) } : { ok: false, error: 'Pendaftaran tidak ditemukan.' };
+    }
+
     return Object.freeze({
       addDocument,
+      addNote,
       changeStatus,
       create,
       getPublic,
       listForStaff,
+      reviewDocument,
       store
     });
   }

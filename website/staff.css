@@ -1,31 +1,457 @@
-.staff-page { min-height: 100vh; color: var(--ink); background: var(--paper); }
-.staff-shell { width: min(calc(100% - 40px), 1120px); margin: 0 auto; padding: 28px 0 90px; }
-.staff-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 55px; flex-wrap: wrap; }
-.staff-brand { color: var(--ink); font-size: 16px; font-weight: 600; letter-spacing: -.04em; }
-.staff-brand span { color: var(--gold-dark); }
-.staff-nav { display: flex; flex-wrap: wrap; gap: 18px; margin-right: auto; margin-left: 32px; }
-.staff-nav a { color: var(--ink); opacity: .65; font-size: 13px; font-weight: 600; text-decoration: none; letter-spacing: -.01em; }
-.staff-nav a:hover { opacity: 1; }
-.staff-nav a[aria-current="page"] { opacity: 1; color: var(--gold-dark); }
-@media (max-width: 700px) { .staff-nav { order: 3; width: 100%; margin-left: 0; gap: 14px; } }
-.staff-login { width: min(100%, 490px); margin: 9vh auto 0; }
-.staff-login h1, .staff-intro h1 { margin: 12px 0 28px; font-size: clamp(32px, 5vw, 52px); line-height: 1.04; letter-spacing: -.065em; }
-.staff-form { display: grid; gap: 9px; padding: 26px; border-radius: 20px; background: var(--m3-surface-container-low); box-shadow: 0 2px 6px rgba(36,36,34,.12); }
-.staff-form label:not(:first-child) { margin-top: 10px; }
-.staff-form input, .staff-form textarea { width: 100%; padding: 13px 14px; border: 1px solid var(--m3-outline); border-radius: 4px; color: var(--ink); background: transparent; font: inherit; font-size: 13px; line-height: 1.5; }
-.staff-form textarea { resize: vertical; }
-.staff-form input:focus, .staff-form textarea:focus { outline: 0; border: 2px solid var(--gold-dark); box-shadow: 0 0 0 2px rgba(231,177,12,.18); }
-.staff-form .button { margin-top: 12px; }
-.staff-intro { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
-.staff-intro h1 { margin-bottom: 0; }
-.staff-registration-list { display: grid; gap: 12px; }
-.staff-registration { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; padding: 23px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
-.staff-registration h2 { margin: 0 0 6px; font-size: 18px; letter-spacing: -.04em; }
-.staff-registration p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
-.staff-registration__meta { display: grid; gap: 4px; margin-top: 12px; }
-.staff-registration__controls { display: grid; align-content: start; gap: 8px; min-width: 190px; }
-.staff-registration select { min-height: 42px; padding: 0 10px; border: 1px solid var(--m3-outline); border-radius: 4px; color: var(--ink); background: var(--paper); font: inherit; font-size: 12px; }
-.staff-registration__controls .button { min-height: 40px; padding: 0 14px; font-size: 11px; }
-.staff-article-section { display: grid; grid-template-columns: .74fr 1.26fr; gap: 48px; margin-top: 80px; padding-top: 52px; border-top: 1px solid var(--line); }
-.staff-article-section h2 { margin-top: 12px; font-size: 31px; line-height: 1.08; letter-spacing: -.055em; }
-@media (max-width: 700px) { .staff-shell { width: min(calc(100% - 32px), 1120px); } .staff-header { padding-bottom: 38px; } .staff-intro, .staff-registration, .staff-article-section { grid-template-columns: 1fr; } .staff-intro { display: grid; align-items: start; } .staff-registration__controls { min-width: 0; } .staff-article-section { gap: 25px; margin-top: 58px; } }
+/* ==========================================================================
+   Hamasah International - Internal Management Console (Material Design 3)
+   Core Layout & Components for Staff, Portal, Monitoring, LMS, Ops, & Audit
+   ========================================================================== */
+
+.staff-page {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: var(--md-sys-color-on-surface, #0F172A);
+  background: var(--md-sys-color-surface-container-low, #F4F5F7);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --------------------------------------------------------------------------
+   Layout Shell
+   -------------------------------------------------------------------------- */
+.staff-shell {
+  width: min(calc(100% - 48px), 1200px);
+  margin: 0 auto;
+  padding: 24px 0 96px;
+}
+
+[hidden],
+.staff-header[hidden] {
+  display: none !important;
+}
+
+.staff-header {
+  position: sticky;
+  top: 16px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 20px;
+  margin-bottom: 36px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--md-sys-color-outline-variant, #E2E8F0);
+  border-radius: var(--md-shape-corner-large, 16px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.staff-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--md-sys-color-on-surface, #0F172A);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.staff-brand span {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--md-shape-corner-small, 8px);
+  background: #FDC537;
+  color: #181F25;
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* --------------------------------------------------------------------------
+   M3 Nav Tabs
+   -------------------------------------------------------------------------- */
+.staff-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 auto 0 20px;
+}
+
+.staff-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--md-shape-corner-full, 9999px);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant, #475569);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.staff-nav a:hover {
+  background: var(--md-sys-color-surface-container-high, #F1F5F9);
+  color: var(--md-sys-color-on-surface, #0F172A);
+}
+
+.staff-nav a[aria-current="page"] {
+  background: #FDC537;
+  color: #181F25;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(253, 197, 55, 0.35);
+}
+
+.staff-nav a[aria-current="page"] svg,
+.staff-nav a[aria-current="page"] .m3-icon {
+  stroke: #181F25;
+}
+
+/* --------------------------------------------------------------------------
+   M3 Login Card / Guard View
+   -------------------------------------------------------------------------- */
+.staff-login {
+  width: min(100%, 460px);
+  margin: 40px auto 60px;
+  background: var(--md-sys-color-surface-container-lowest, #FFFFFF);
+  border: 1px solid var(--md-sys-color-outline-variant, #E2E8F0);
+  border-radius: var(--md-shape-corner-extra-large, 28px);
+  padding: 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.staff-login .eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--md-sys-color-primary, #D97706);
+  margin-bottom: 6px;
+}
+
+.staff-login h1 {
+  margin: 0 0 12px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--md-sys-color-on-surface, #0F172A);
+  line-height: 1.2;
+}
+
+.staff-login > p:not(.eyebrow):not(.form-status) {
+  margin: 0 0 24px;
+  font-size: 14px;
+  color: var(--md-sys-color-on-surface-variant, #475569);
+  line-height: 1.5;
+}
+
+/* --------------------------------------------------------------------------
+   M3 Form Architecture
+   -------------------------------------------------------------------------- */
+.staff-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 28px;
+  border-radius: var(--md-shape-corner-extra-large, 24px);
+  background: var(--md-sys-color-surface-container-lowest, #FFFFFF);
+  border: 1px solid var(--md-sys-color-outline-variant, #E2E8F0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.staff-login .staff-form {
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.staff-form h2, .staff-form h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--md-sys-color-on-surface, #0F172A);
+  letter-spacing: -0.02em;
+}
+
+.staff-form label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface-variant, #475569);
+  margin-bottom: 2px;
+  letter-spacing: 0.02em;
+}
+
+.staff-form input,
+.staff-form select,
+.staff-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--md-sys-color-on-surface, #0F172A);
+  background: #FFFFFF;
+  border: 1px solid var(--md-sys-color-outline, #CBD5E1);
+  border-radius: var(--md-shape-corner-small, 10px);
+  padding: 11px 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  outline: none;
+}
+
+.staff-form input,
+.staff-form select {
+  height: 46px;
+}
+
+.staff-form textarea {
+  min-height: 80px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.staff-form input:focus,
+.staff-form select:focus,
+.staff-form textarea:focus {
+  border-color: var(--md-sys-color-primary, #F59E0B);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+}
+
+.staff-form .button {
+  margin-top: 6px;
+  height: 46px;
+  font-size: 14px;
+  font-weight: 700;
+  justify-content: center;
+}
+
+/* --------------------------------------------------------------------------
+   Form Status & Alerts
+   -------------------------------------------------------------------------- */
+.form-status {
+  margin: 4px 0 0;
+  padding: 10px 14px;
+  border-radius: var(--md-shape-corner-small, 8px);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.45;
+  display: none;
+}
+
+.form-status:not(:empty) {
+  display: block;
+}
+
+.form-status.is-error {
+  background: var(--md-sys-color-error-container, #FFDAD6);
+  color: var(--md-sys-color-error, #BA1A1A);
+  border: 1px solid rgba(186, 26, 26, 0.2);
+}
+
+.form-status:not(.is-error):not(:empty) {
+  background: var(--md-sys-color-tertiary-container, #C7ECCF);
+  color: var(--md-sys-color-tertiary, #45664E);
+  border: 1px solid rgba(69, 102, 78, 0.2);
+}
+
+/* --------------------------------------------------------------------------
+   M3 Section Intro / Header
+   -------------------------------------------------------------------------- */
+.staff-intro {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.staff-intro .eyebrow {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--md-sys-color-primary, #D97706);
+  margin-bottom: 4px;
+}
+
+.staff-intro h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  color: var(--md-sys-color-on-surface, #0F172A);
+}
+
+.staff-intro .button {
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Staff Registration List & Card
+   -------------------------------------------------------------------------- */
+.staff-registration-list {
+  display: grid;
+  gap: 16px;
+}
+
+.staff-registration {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  padding: 24px 28px;
+  background: var(--md-sys-color-surface-container-lowest, #FFFFFF);
+  border: 1px solid var(--md-sys-color-outline-variant, #E2E8F0);
+  border-radius: var(--md-shape-corner-extra-large, 20px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.staff-registration:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.staff-registration h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--md-sys-color-on-surface, #0F172A);
+}
+
+.staff-registration p {
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant, #475569);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.staff-registration__meta {
+  display: grid;
+  gap: 4px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--md-sys-color-outline-variant, #E2E8F0);
+}
+
+.staff-registration__meta p {
+  font-size: 12.5px;
+  color: var(--md-sys-color-on-surface-variant, #475569);
+}
+
+.staff-registration__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 200px;
+  justify-content: center;
+}
+
+.staff-registration select {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--md-sys-color-outline, #CBD5E1);
+  border-radius: var(--md-shape-corner-small, 10px);
+  background: #FFFFFF;
+  color: var(--md-sys-color-on-surface, #0F172A);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.staff-registration__controls .button {
+  height: 40px;
+  padding: 0 16px;
+  font-size: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   Article CMS Section
+   -------------------------------------------------------------------------- */
+.staff-article-section {
+  display: grid;
+  grid-template-columns: 0.75fr 1.25fr;
+  gap: 48px;
+  margin-top: 72px;
+  padding-top: 48px;
+  border-top: 1px solid var(--md-sys-color-outline-variant, #E2E8F0);
+  align-items: start;
+}
+
+.staff-article-section h2 {
+  margin: 8px 0 12px;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: var(--md-sys-color-on-surface, #0F172A);
+}
+
+.staff-article-section p:not(.eyebrow) {
+  font-size: 14px;
+  color: var(--md-sys-color-on-surface-variant, #475569);
+  line-height: 1.6;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Rules
+   -------------------------------------------------------------------------- */
+@media (max-width: 860px) {
+  .staff-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .staff-nav {
+    margin: 0;
+    width: 100%;
+  }
+
+  .staff-article-section {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .staff-registration {
+    grid-template-columns: 1fr;
+  }
+
+  .staff-registration__controls {
+    min-width: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 600px) {
+  .staff-shell {
+    width: min(calc(100% - 32px), 1200px);
+    padding: 16px 0 64px;
+  }
+
+  .staff-login {
+    padding: 28px 20px;
+  }
+
+  .staff-form {
+    padding: 20px;
+  }
+
+  .staff-intro {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+}

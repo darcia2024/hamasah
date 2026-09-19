@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="same-origin">
+  <title>Aktivasi akun | Hamasah International</title>
+  <link rel="stylesheet" href="auth-pages.css">
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Hamasah International</p>
+    <h1>Aktivasi akun</h1>
+    <p>Buat kata sandi untuk mengaktifkan akun Anda. Gunakan minimal 12 karakter.</p>
+    <form data-password-form novalidate>
+      <label>Kata sandi baru <input name="password" type="password" autocomplete="new-password" required minlength="12"></label>
+      <label>Ulangi kata sandi <input name="confirmation" type="password" autocomplete="new-password" required minlength="12"></label>
+      <button type="submit" data-label="Aktifkan akun">Aktifkan akun</button>
+    </form>
+    <p class="status" data-status aria-live="polite"></p>
+    <p><a href="portal.html">Kembali ke halaman masuk</a></p>
+  </main>
+  <script src="auth-pages.js"></script>
+  <script>attachPasswordForm({ endpoint: '/api/auth/invitations/accept', successMessage: 'Akun aktif. Silakan masuk dengan kata sandi baru Anda.' });</script>
+</body>
+</html>

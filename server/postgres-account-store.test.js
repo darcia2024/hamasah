@@ -20,6 +20,9 @@ async function run() {
       passwordHash: 'scrypt$garam-uji$hash-uji',
       resetTokenHash: null,
       resetExpiresAt: null,
+      invitationTokenHash: null,
+      invitationExpiresAt: null,
+      invitedAt: null,
       createdAt: CREATED_AT,
       updatedAt: CREATED_AT
     };

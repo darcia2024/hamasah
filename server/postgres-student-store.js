@@ -61,6 +61,9 @@ function toStudent(row) {
     gender: row.gender || null,
     dormitoryId: row.dormitory_id || null,
     studentAccountId: row.student_account_id || null,
+    registrationId: row.registration_id || null,
+    birthDate: row.birth_date || null,
+    mediaConsent: Boolean(row.media_consent),
     parentAccountIds: (row.parent_account_ids || []).filter(Boolean),
     createdAt: toIso(row.created_at),
     updatedAt: toIso(row.updated_at)
@@ -69,7 +72,7 @@ function toStudent(row) {
 
 const SELECT_STUDENT = `
   SELECT s.id, s.name, s.program, s.city, s.join_date::text AS join_date, s.status,
-         s.gender, s.dormitory_id, s.student_account_id, s.created_at, s.updated_at,
+         s.gender, s.dormitory_id, s.student_account_id, s.registration_id, s.birth_date::text AS birth_date, s.media_consent, s.created_at, s.updated_at,
          COALESCE(array_agg(p.parent_account_id) FILTER (WHERE p.parent_account_id IS NOT NULL), '{}') AS parent_account_ids
     FROM students s
     LEFT JOIN student_parent_accounts p ON p.student_id = s.id`;
@@ -88,6 +91,14 @@ function createPostgresStudentStore({ database } = {}) {
       return rows[0] ? toStudent(rows[0]) : null;
     },
 
+    async getByRegistrationId(registrationId) {
+      const { rows } = await database.query(
+        `${SELECT_STUDENT} WHERE s.registration_id = $1 GROUP BY s.id`,
+        [registrationId]
+      );
+      return rows[0] ? toStudent(rows[0]) : null;
+    },
+
     async listStudents() {
       const { rows } = await database.query(`${SELECT_STUDENT} GROUP BY s.id ORDER BY s.name ASC`);
       return rows.map(toStudent);
@@ -97,8 +108,8 @@ function createPostgresStudentStore({ database } = {}) {
       // Satu transaksi: data santri dan daftar wali harus berubah bersama.
       return database.withTransaction(async (tx) => {
         await tx.query(
-          `INSERT INTO students (id, name, program, city, join_date, status, gender, dormitory_id, student_account_id, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          `INSERT INTO students (id, name, program, city, join_date, status, gender, dormitory_id, student_account_id, registration_id, birth_date, media_consent, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
            ON CONFLICT (id) DO UPDATE
              SET name = EXCLUDED.name,
                  program = EXCLUDED.program,
@@ -108,6 +119,9 @@ function createPostgresStudentStore({ database } = {}) {
                  gender = EXCLUDED.gender,
                  dormitory_id = EXCLUDED.dormitory_id,
                  student_account_id = EXCLUDED.student_account_id,
+                 registration_id = EXCLUDED.registration_id,
+                 birth_date = EXCLUDED.birth_date,
+                 media_consent = EXCLUDED.media_consent,
                  updated_at = EXCLUDED.updated_at`,
           [
             student.id,
@@ -119,6 +133,9 @@ function createPostgresStudentStore({ database } = {}) {
             student.gender || null,
             student.dormitoryId || null,
             student.studentAccountId || null,
+            student.registrationId || null,
+            student.birthDate || null,
+            Boolean(student.mediaConsent),
             student.createdAt,
             student.updatedAt
           ]

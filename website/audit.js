@@ -155,7 +155,17 @@ document.querySelector('#reload-audit').addEventListener('click', () => jalankan
 prevButton.addEventListener('click', () => { offset = Math.max(0, offset - PAGE_SIZE); jalankan(loadEvents); });
 nextButton.addEventListener('click', () => { if (offset + PAGE_SIZE < total) { offset += PAGE_SIZE; jalankan(loadEvents); } });
 
+const logoutButton = document.querySelector('#logout-button');
+if (logoutButton) {
+  logoutButton.addEventListener('click', async () => {
+    await fetch('/api/auth/logout', { method: 'POST', headers: headers() }).catch(() => {});
+    sessionStorage.removeItem('hamasahPortalSession');
+    window.location.reload();
+  });
+}
+
 (async function initialize() {
+  if (session()) document.body.classList.add('in-crm');
   try {
     const response = await fetch('/api/me', { headers: headers() });
     const result = await response.json();
@@ -164,7 +174,8 @@ nextButton.addEventListener('click', () => { if (offset + PAGE_SIZE < total) { o
     }
     guard.hidden = true;
     consoleSection.hidden = false;
-    renderStaffNav(staffNav, result.account.role, 'audit');
+    document.body.classList.add('in-crm');
+    renderStaffNav(staffNav, result.account.role, 'audit', result.account);
     await loadActors();
     await loadEvents();
   } catch (error) {

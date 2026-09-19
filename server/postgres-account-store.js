@@ -1,4 +1,5 @@
-const ACCOUNT_FIELDS = 'id, email, name, role, active, password_hash, reset_token_hash, reset_expires_at, created_at, updated_at';
+const ACCOUNT_FIELDS = `id, email, name, role, active, password_hash, reset_token_hash, reset_expires_at,
+  invitation_token_hash, invitation_expires_at, invited_at, created_at, updated_at`;
 
 function toAccount(row) {
   return {
@@ -10,6 +11,9 @@ function toAccount(row) {
     passwordHash: row.password_hash,
     resetTokenHash: row.reset_token_hash,
     resetExpiresAt: row.reset_expires_at && row.reset_expires_at.toISOString(),
+    invitationTokenHash: row.invitation_token_hash,
+    invitationExpiresAt: row.invitation_expires_at && row.invitation_expires_at.toISOString(),
+    invitedAt: row.invited_at && row.invited_at.toISOString(),
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString()
   };
@@ -36,6 +40,16 @@ function createPostgresAccountStore({ database } = {}) {
       return rows[0] ? toAccount(rows[0]) : null;
     },
 
+    async getByInvitationTokenHash(tokenHash) {
+      const { rows } = await database.query(`SELECT ${ACCOUNT_FIELDS} FROM accounts WHERE invitation_token_hash = $1`, [tokenHash]);
+      return rows[0] ? toAccount(rows[0]) : null;
+    },
+
+    async getByResetTokenHash(tokenHash) {
+      const { rows } = await database.query(`SELECT ${ACCOUNT_FIELDS} FROM accounts WHERE reset_token_hash = $1`, [tokenHash]);
+      return rows[0] ? toAccount(rows[0]) : null;
+    },
+
     async list() {
       const { rows } = await database.query(`SELECT ${ACCOUNT_FIELDS} FROM accounts ORDER BY name`);
       return rows.map(toAccount);
@@ -43,8 +57,9 @@ function createPostgresAccountStore({ database } = {}) {
 
     async save(account) {
       const { rows } = await database.query(
-        `INSERT INTO accounts (id, email, name, role, active, password_hash, reset_token_hash, reset_expires_at, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        `INSERT INTO accounts (id, email, name, role, active, password_hash, reset_token_hash, reset_expires_at,
+          invitation_token_hash, invitation_expires_at, invited_at, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
          ON CONFLICT (id) DO UPDATE SET
            email = EXCLUDED.email,
            name = EXCLUDED.name,
@@ -53,6 +68,9 @@ function createPostgresAccountStore({ database } = {}) {
            password_hash = EXCLUDED.password_hash,
            reset_token_hash = EXCLUDED.reset_token_hash,
            reset_expires_at = EXCLUDED.reset_expires_at,
+           invitation_token_hash = EXCLUDED.invitation_token_hash,
+           invitation_expires_at = EXCLUDED.invitation_expires_at,
+           invited_at = EXCLUDED.invited_at,
            updated_at = EXCLUDED.updated_at
          RETURNING ${ACCOUNT_FIELDS}`,
         [
@@ -64,6 +82,9 @@ function createPostgresAccountStore({ database } = {}) {
           account.passwordHash,
           account.resetTokenHash,
           account.resetExpiresAt,
+          account.invitationTokenHash,
+          account.invitationExpiresAt,
+          account.invitedAt,
           account.createdAt,
           account.updatedAt
         ]

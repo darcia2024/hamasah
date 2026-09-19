@@ -84,12 +84,19 @@ async function testNormalFlow() {
   assert.equal(submitted.value.program, domain.PROGRAMS.MAHAD);
 
   const id = submitted.value.registrationId;
-  assert.equal((await service.addDocument(id, { type: 'passport', storageKey: `registrations/${id}/passport.pdf` }, { role: domain.ROLES.APPLICANT })).ok, true);
+  const documentAdded = await service.addDocument(id, { type: 'passport', storageKey: `registrations/${id}/passport.pdf` }, { role: domain.ROLES.APPLICANT });
+  assert.equal(documentAdded.ok, true);
+  const documentId = documentAdded.value.documentSummary[0].id;
+  assert.equal((await service.reviewDocument(id, documentId, { reviewStatus: 'rejected', note: '' }, { role: domain.ROLES.REGISTRATION_OFFICER, accountId: 'staff-1' })).ok, false);
+  assert.equal((await service.reviewDocument(id, documentId, { reviewStatus: 'accepted' }, { role: domain.ROLES.REGISTRATION_OFFICER, accountId: 'staff-1' })).ok, true);
+  assert.equal((await service.addNote(id, { visibility: 'applicant', body: 'Mohon menunggu pemeriksaan berikutnya.' }, { role: domain.ROLES.REGISTRATION_OFFICER, accountId: 'staff-1' })).ok, true);
   assert.equal((await service.changeStatus(id, domain.STATUSES.DOCUMENT_REVIEW, { role: domain.ROLES.APPLICANT })).ok, false);
   assert.equal((await service.changeStatus(id, domain.STATUSES.DOCUMENT_REVIEW, { role: domain.ROLES.REGISTRATION_OFFICER, note: 'Berkas diperiksa.' })).value.status, domain.STATUSES.DOCUMENT_REVIEW);
   const publicView = await service.getPublic(id);
   assert.equal(publicView.value.history.length, 2);
   assert.equal(publicView.value.program, domain.PROGRAMS.MAHAD);
+  assert.equal(publicView.value.documentSummary[0].reviewStatus, 'accepted');
+  assert.equal(publicView.value.notes.length, 1);
   const staffList = await service.listForStaff();
   assert.equal(staffList.length, 1);
   assert.equal(staffList[0].program, domain.PROGRAMS.MAHAD, 'Tampilan staf juga harus membawa program, bukan undefined.');

@@ -12,9 +12,10 @@ module.exports = [
     pattern: /^\/api\/registrations$/,
     rateLimit: { rule: 'registration-create', identity: ({ ip }) => ip },
     async handler({ response, services, readBody, ip }) {
+      const accessCode = services.applicantService.createAccessCode();
       const accessToken = createAccessToken();
       const created = await services.registrationService.create(await readBody(), {
-        privateData: { accessTokenHash: hashToken(accessToken) }
+        privateData: { accessTokenHash: hashToken(accessToken), accessCodeHash: await services.applicantService.hashAccessCode(accessCode) }
       });
       if (created.ok) {
         // Nomor registrasi saja. Nama dan nomor telepon pendaftar tidak ikut dicatat.
@@ -25,8 +26,41 @@ module.exports = [
         });
       }
       json(response, created.ok ? 201 : 422, created.ok
-        ? { registration: created.value, accessToken }
+        ? { registration: created.value, accessToken, accessCode }
         : publicError(created));
+    }
+  },
+
+  {
+    method: 'POST',
+    pattern: /^\/api\/applicant\/login$/,
+    async handler({ response, services, readBody, rateLimit }) {
+      const body = await readBody();
+      const registrationId = String(body.registrationId || '').trim();
+      const limit = rateLimit.check('applicant-login', registrationId);
+      if (!limit.allowed) {
+        const { tooManyRequests } = require('../http/respond.js');
+        const { TOO_MANY_REQUESTS } = require('../rate-limit.js');
+        tooManyRequests(response, limit.retryAfterSeconds, TOO_MANY_REQUESTS);
+        return;
+      }
+      const loggedIn = await services.applicantService.login(registrationId, body.accessCode);
+      json(response, loggedIn.ok ? 200 : 401, loggedIn.ok ? loggedIn.value : publicError(loggedIn));
+    }
+  },
+
+  {
+    method: 'GET',
+    pattern: new RegExp(`^/api/applicant/registrations/(${REGISTRATION_ID})$`),
+    async handler({ request, response, services, params }) {
+      const token = String(request.headers.authorization || '').replace(/^Bearer\s+/i, '');
+      const authenticated = await services.applicantService.authenticate(token, params[0]);
+      if (!authenticated.ok) {
+        json(response, 401, publicError(authenticated));
+        return;
+      }
+      const registration = await services.registrationService.getPublic(params[0]);
+      json(response, registration.ok ? 200 : 404, registration.ok ? { registration: registration.value } : publicError(registration));
     }
   },
 
@@ -106,6 +140,30 @@ module.exports = [
         });
       }
       json(response, result.ok ? 200 : 422, result.ok ? { registration: result.value } : publicError(result));
+    }
+  },
+
+  {
+    method: 'PATCH',
+    pattern: new RegExp(`^/api/registrations/(${REGISTRATION_ID})/documents/([\\w-]+)/review$`),
+    permission: 'registrations.update-status',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const staff = await auth.actor();
+      const result = await services.registrationService.reviewDocument(params[0], params[1], await readBody(), { role: registrationRoleOf(staff), accountId: staff.id });
+      if (result.ok) await services.auditService.record({ action: ACTIONS.REGISTRATION_DOCUMENT_REVIEWED, actor: staff, ip, entityType: 'registration', entityId: params[0] });
+      json(response, result.ok ? 200 : 422, result.ok ? { registration: result.value } : publicError(result));
+    }
+  },
+
+  {
+    method: 'POST',
+    pattern: new RegExp(`^/api/registrations/(${REGISTRATION_ID})/notes$`),
+    permission: 'registrations.update-status',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const staff = await auth.actor();
+      const result = await services.registrationService.addNote(params[0], await readBody(), { role: registrationRoleOf(staff), accountId: staff.id });
+      if (result.ok) await services.auditService.record({ action: ACTIONS.REGISTRATION_NOTE_ADDED, actor: staff, ip, entityType: 'registration', entityId: params[0] });
+      json(response, result.ok ? 201 : 422, result.ok ? { registration: result.value } : publicError(result));
     }
   }
 ];

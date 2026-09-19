@@ -32,13 +32,15 @@ function copyInto(target, sources) {
   }
 }
 
-// shell hanya dipakai untuk npm, karena di Windows npm berupa file .cmd.
-// Node dijalankan tanpa shell supaya argumennya tidak diubah oleh shell.
+// Di Windows npm berupa file .cmd. Jalankan langsung tanpa shell agar argumen
+// tidak digabung menjadi satu string dan tidak memunculkan peringatan keamanan Node.
 function run(command, args, options = {}) {
-  const result = spawnSync(command, args, {
+  const npmCli = command === 'npm' ? process.env.npm_execpath : '';
+  const executable = npmCli ? process.execPath : command;
+  const commandArgs = npmCli ? [npmCli, ...args] : args;
+  const result = spawnSync(executable, commandArgs, {
     cwd: options.cwd,
-    encoding: 'utf8',
-    shell: Boolean(options.shell) && process.platform === 'win32'
+    encoding: 'utf8'
   });
   return { code: result.status, output: `${result.stdout || ''}${result.stderr || ''}`.trim() };
 }
@@ -58,7 +60,13 @@ function startServer(directory, port) {
       PORT: String(port),
       // Database sengaja tidak dapat dihubungi: /api/ready harus melaporkan tidak siap,
       // dan tidak ada koneksi ke database sungguhan selama pemeriksaan ini.
-      DATABASE_URL: 'postgresql://uji:uji@127.0.0.1:1/uji'
+      DATABASE_URL: 'postgresql://uji:uji@127.0.0.1:1/uji',
+      // Nilai dummy ini hanya melewati pemeriksaan konfigurasi saat start. Server
+      // tidak melakukan panggilan ke storage sebelum ada permintaan unggah/unduh.
+      STORAGE_BUCKET: 'docker-private',
+      SUPABASE_URL: 'https://storage.invalid',
+      SUPABASE_SERVICE_ROLE_KEY: 'docker-check-service-role-key',
+      IP_HASH_SECRET: 'docker-check-ip-hash-secret-minimum-32-chars'
     }
   });
   let output = '';
@@ -117,7 +125,7 @@ async function main() {
     }
     record(checks, 'Semua file pada baris COPY tersedia', true, `${instructions.length} baris COPY`);
 
-    const install = run('npm', ['ci', '--omit=dev', '--no-audit', '--no-fund'], { cwd: target, shell: true });
+    const install = run('npm', ['ci', '--omit=dev', '--no-audit', '--no-fund'], { cwd: target });
     if (!record(checks, 'npm ci --omit=dev berhasil', install.code === 0, install.code === 0 ? '' : install.output.split('\n').slice(-3).join(' '))) {
       throw new Error('Pemasangan dependency gagal.');
     }

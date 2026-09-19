@@ -32,11 +32,21 @@ async function run() {
 
   const reset = await service.issuePasswordReset('admin@hamasah.test');
   assert.equal(Boolean(reset.value.resetToken), true);
-  const resetDone = await service.resetPassword('admin@hamasah.test', reset.value.resetToken, 'kata-sandi-baru-aman');
+  const resetDone = await service.resetPassword(reset.value.resetToken, 'kata-sandi-baru-aman');
   assert.equal(resetDone.ok, true);
   assert.equal((await service.login('admin@hamasah.test', 'kata-sandi-admin-aman')).ok, false);
   assert.equal((await service.login('admin@hamasah.test', 'kata-sandi-baru-aman')).ok, true);
-  assert.equal((await service.listAccounts()).length, 1);
+
+  const invitation = await service.inviteAccount({
+    email: 'wali@hamasah.test', name: 'Wali Hamasah', role: identity.ROLES.PARENT
+  });
+  assert.equal(invitation.ok, true);
+  assert.equal((await service.login('wali@hamasah.test', 'kata-sandi-baru-aman')).ok, false, 'Akun belum aktif sebelum undangan diterima.');
+  assert.equal((await service.acceptInvitation('token-salah', 'kata-sandi-wali-aman')).ok, false);
+  assert.equal((await service.acceptInvitation(invitation.value.invitationToken, 'kata-sandi-wali-aman')).ok, true);
+  assert.equal((await service.acceptInvitation(invitation.value.invitationToken, 'kata-sandi-wali-aman')).ok, false, 'Token undangan hanya dapat digunakan sekali.');
+  assert.equal((await service.login('wali@hamasah.test', 'kata-sandi-wali-aman')).ok, true);
+  assert.equal((await service.listAccounts()).length, 2);
 
   await service.logout(login.value.accessToken);
   assert.equal((await service.authenticate(login.value.accessToken)).ok, false);

@@ -20,12 +20,14 @@ const config = readProductionConfig({
 });
 assert.equal(config.storageBucket, 'hamasah-private-documents');
 assert.equal(config.appEnvironment, 'development');
+assert.equal(config.email.driver, 'console');
 
 // Di luar production, bucket dan bootstrap key tidak wajib.
 const staging = readProductionConfig({ APP_ENV: 'staging', DATABASE_URL, IP_HASH_SECRET, ...STORAGE });
 assert.equal(staging.appEnvironment, 'staging');
 assert.equal(staging.storageBucket, '');
 assert.equal(staging.bootstrapKey, '');
+assert.equal(staging.email.driver, 'disabled');
 
 // Production mewajibkan STORAGE_BUCKET.
 assert.throws(() => readProductionConfig({ APP_ENV: 'production', DATABASE_URL, IP_HASH_SECRET, ...STORAGE }), /STORAGE_BUCKET/);
@@ -34,6 +36,15 @@ assert.throws(() => readProductionConfig({ APP_ENV: 'production', DATABASE_URL, 
 const production = readProductionConfig({ APP_ENV: 'production', DATABASE_URL, IP_HASH_SECRET, ...STORAGE, STORAGE_BUCKET: 'hamasah-private-documents' });
 assert.equal(production.appEnvironment, 'production');
 assert.equal(production.bootstrapKey, '');
+
+const resend = readProductionConfig({
+  APP_ENV: 'production', DATABASE_URL, IP_HASH_SECRET, ...STORAGE, STORAGE_BUCKET: 'bucket',
+  EMAIL_DRIVER: 'resend', RESEND_API_KEY: 're_test_key', EMAIL_FROM: 'Hamasah <noreply@example.test>', APP_BASE_URL: 'https://hamasahinternational.com/'
+});
+assert.equal(resend.email.driver, 'resend');
+assert.equal(resend.email.appBaseUrl, 'https://hamasahinternational.com');
+assert.throws(() => readProductionConfig({ APP_ENV: 'production', DATABASE_URL, IP_HASH_SECRET, ...STORAGE, STORAGE_BUCKET: 'bucket', EMAIL_DRIVER: 'console' }), /EMAIL_DRIVER 'console'/);
+assert.throws(() => readProductionConfig({ APP_ENV: 'production', DATABASE_URL, IP_HASH_SECRET, ...STORAGE, STORAGE_BUCKET: 'bucket', EMAIL_DRIVER: 'resend', RESEND_API_KEY: 'x', EMAIL_FROM: 'a@b.test' }), /APP_BASE_URL/);
 
 // Jika bootstrap key diisi, panjangnya tetap diperiksa.
 assert.throws(() => readProductionConfig({ APP_ENV: 'production', DATABASE_URL, IP_HASH_SECRET, ...STORAGE, STORAGE_BUCKET: 'bucket', HAMASAH_BOOTSTRAP_KEY: 'pendek' }), /32 karakter/);

@@ -1,33 +1,3555 @@
-.portal-students { padding-top: 15px; }
-.portal-students h2, .portal-admin h2 { margin: 0 0 8px; font-size: 24px; letter-spacing: -.045em; }
-.portal-student-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
-.portal-student-card { display: grid; gap: 9px; padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
-.portal-student-card h3 { margin: 0; font-size: 18px; letter-spacing: -.04em; }
-.portal-student-card p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
-.portal-student-card .button { width: fit-content; min-height: 40px; margin-top: 6px; padding: 0 15px; font-size: 11px; }
-.portal-dashboard { display: grid; gap: 20px; margin-top: 26px; padding: 26px; border-radius: 20px; color: #fff; background: var(--charcoal); }
-.portal-dashboard h2 { margin: 0; font-size: 25px; }
-.portal-dashboard p { margin: 0; color: #dbd4c8; font-size: 12px; line-height: 1.6; }
-.portal-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.portal-metric { padding: 16px; border-radius: 12px; background: rgba(255,255,255,.09); }
-.portal-metric strong { display: block; color: var(--gold); font-size: 24px; }
-.portal-metric span { display: block; margin-top: 4px; color: #d8d2c7; font-size: 11px; }
-.portal-admin { margin-top: 75px; padding-top: 52px; border-top: 1px solid var(--line); }
-.portal-admin-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 38px; margin-top: 25px; align-items: start; }
-.portal-admin select { width: 100%; min-height: 48px; padding: 0 12px; border: 1px solid var(--m3-outline); border-radius: 4px; color: var(--ink); background: var(--paper); font: inherit; font-size: 13px; }
-.portal-list-title { margin: 0 0 12px; font-size: 18px; }
-.portal-account-list { display: grid; gap: 9px; }
-.portal-account { padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
-.portal-account strong, .portal-account span { display: block; }
-.portal-account strong { font-size: 14px; }
-.portal-account span { margin-top: 3px; color: var(--muted); font-size: 11px; }
-.monitoring-grid { align-items: start; }
-.monitoring-select, .record-form select { width: 100%; min-height: 48px; padding: 0 12px; border: 1px solid var(--m3-outline); border-radius: 4px; color: var(--ink); background: var(--paper); font: inherit; font-size: 13px; }
-.monitoring-grid .portal-dashboard { margin-top: 16px; }
-.record-form { max-width: 660px; margin-top: 25px; }
-.lms-help-form { display: flex; gap: 8px; margin-top: 12px; }
-.lms-help-form input { min-width: 0; flex: 1; min-height: 38px; padding: 0 10px; border: 1px solid var(--m3-outline); border-radius: 4px; font: inherit; font-size: 12px; }
-.lms-help-form .button { min-height: 38px; padding: 0 13px; font-size: 11px; }
-.lms-answer { margin: 9px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
-@media (max-width: 540px) { .lms-help-form { display: grid; } }
-@media (max-width: 800px) { .portal-student-grid, .portal-admin-grid, .portal-metrics { grid-template-columns: 1fr; } }
+/* ==========================================================================
+   Hamasah International - Portal & Internal Modules Styling (Material Design 3)
+   Module Components for Portal, Monitoring, Operations, LMS, & Audit
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Section Dividers & Titles
+   -------------------------------------------------------------------------- */
+.portal-students {
+  padding-top: 10px;
+}
+
+.portal-students h2,
+.portal-admin h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--md-sys-color-on-surface, #1E1B16);
+}
+
+.portal-admin {
+  margin-top: 64px;
+  padding-top: 48px;
+  border-top: 1px solid var(--md-sys-color-outline-variant, #D0C5B4);
+}
+
+.portal-list-title {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--md-sys-color-on-surface, #1E1B16);
+}
+
+/* --------------------------------------------------------------------------
+   Student Cards (Full Width Stack in Altezza CRM)
+   -------------------------------------------------------------------------- */
+.portal-student-grid,
+#portal-student-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-top: 16px;
+}
+
+.portal-student-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  border-radius: var(--md-shape-corner-extra-large, 20px);
+  background: var(--md-sys-color-surface-container-lowest, #FFFFFF);
+  border: 1px solid var(--md-sys-color-outline-variant, #D0C5B4);
+  box-shadow: var(--md-sys-elevation-1, 0px 1px 3px 1px rgba(30, 27, 22, 0.08));
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.portal-student-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--md-sys-elevation-2, 0px 2px 6px 2px rgba(30, 27, 22, 0.10));
+  border-color: var(--md-sys-color-primary, #785A00);
+}
+
+.portal-student-card h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--md-sys-color-on-surface, #1E1B16);
+  letter-spacing: -0.02em;
+}
+
+.portal-student-card p {
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant, #4B4639);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.portal-student-card .button {
+  width: fit-content;
+  height: 38px;
+  margin-top: 8px;
+  padding: 0 16px;
+  font-size: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   Interactive Student Dashboard (M3 Dark Tech / Inverse Surface)
+   -------------------------------------------------------------------------- */
+.portal-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 28px;
+  padding: 32px;
+  border-radius: var(--md-shape-corner-extra-large, 24px);
+  color: #FFFFFF;
+  background: #1A1713;
+  border: 1px solid rgba(231, 177, 12, 0.25);
+  box-shadow: var(--md-sys-elevation-3, 0px 4px 8px 3px rgba(30, 27, 22, 0.15));
+  position: relative;
+  overflow: hidden;
+}
+
+.portal-dashboard::before {
+  display: none;
+}
+
+.portal-dashboard h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: #FFFFFF;
+}
+
+.portal-dashboard p {
+  margin: 0;
+  color: #D6CFBE;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.portal-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.portal-metric {
+  padding: 20px;
+  border-radius: var(--md-shape-corner-large, 16px);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  transition: background 0.2s ease;
+}
+
+.portal-metric:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.portal-metric strong {
+  display: block;
+  color: #FFE086;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.portal-metric span {
+  display: block;
+  margin-top: 6px;
+  color: #D6CFBE;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* --------------------------------------------------------------------------
+   Altezza Admin Grid & Account Management
+   -------------------------------------------------------------------------- */
+.portal-admin {
+  margin-top: 24px;
+  padding-top: 0;
+  border-top: none;
+}
+
+.portal-admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 24px;
+  margin-top: 16px;
+  align-items: start;
+}
+
+/* Crisp White Form Inputs for Altezza Theme */
+#account-form {
+  background: #FFFFFF !important;
+  border-radius: 16px !important;
+  border: 1px solid #E2E8F0 !important;
+  padding: 24px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+}
+
+#account-form label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #475569;
+  margin: 12px 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+#account-form label:first-of-type {
+  margin-top: 0;
+}
+
+#account-form input,
+#account-form select {
+  background: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 10px !important;
+  color: #0F172A !important;
+  font-family: inherit;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  height: 42px !important;
+  padding: 0 14px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#account-form input:focus,
+#account-form select:focus {
+  border-color: #FFC42C !important;
+  box-shadow: 0 0 0 3px rgba(255, 196, 44, 0.25) !important;
+  outline: none !important;
+}
+
+#account-form button[type="submit"] {
+  width: 100%;
+  margin-top: 18px;
+  height: 42px;
+  background: #FFC42C;
+  color: #111827;
+  border: none;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(255, 196, 44, 0.3);
+  transition: background 0.15s ease;
+}
+
+#account-form button[type="submit"]:hover {
+  background: #F5B81A;
+}
+
+.portal-account-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.portal-account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  background: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.portal-account:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+}
+
+.portal-account strong {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 2px;
+}
+
+.portal-account span {
+  display: block;
+  color: #64748B;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.portal-account .button {
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 11.5px;
+  border-radius: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   Monitoring, Placement & Dormitory Styles
+   -------------------------------------------------------------------------- */
+.monitoring-grid {
+  align-items: start;
+}
+
+.monitoring-select,
+.record-form select {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--md-sys-color-outline, #7F7667);
+  border-radius: var(--md-shape-corner-small, 8px);
+  background: var(--md-sys-color-surface, #FEF9EE);
+  color: var(--md-sys-color-on-surface, #1E1B16);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  outline: none;
+}
+
+.monitoring-select:focus,
+.record-form select:focus {
+  border-color: var(--md-sys-color-primary, #785A00);
+  box-shadow: 0 0 0 3px rgba(120, 90, 0, 0.15);
+}
+
+.monitoring-download {
+  margin-top: 14px;
+  height: 40px;
+  font-size: 12.5px;
+}
+
+.monitoring-hint {
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant, #4B4639);
+  line-height: 1.6;
+  margin: 6px 0 0;
+}
+
+.record-form {
+  max-width: 680px;
+  margin-top: 24px;
+}
+
+/* --------------------------------------------------------------------------
+   LMS Help Form & Questions
+   -------------------------------------------------------------------------- */
+.lms-help-form {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.lms-help-form input {
+  min-width: 0;
+  flex: 1;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--md-sys-color-outline, #7F7667);
+  border-radius: var(--md-shape-corner-small, 8px);
+  font: inherit;
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface, #1E1B16);
+  background: var(--md-sys-color-surface, #FEF9EE);
+  outline: none;
+}
+
+.lms-help-form input:focus {
+  border-color: var(--md-sys-color-primary, #785A00);
+  box-shadow: 0 0 0 3px rgba(120, 90, 0, 0.15);
+}
+
+.lms-help-form .button {
+  height: 42px;
+  padding: 0 16px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.lms-answer {
+  margin: 12px 0 0;
+  padding: 12px 16px;
+  border-radius: var(--md-shape-corner-small, 8px);
+  background: var(--md-sys-color-surface-container, #F2EDE2);
+  color: var(--md-sys-color-on-surface, #1E1B16);
+  font-size: 13px;
+  line-height: 1.6;
+  border-left: 3px solid var(--md-sys-color-primary, #785A00);
+}
+
+.portal-dashboard .portal-account {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  background: var(--md-sys-color-surface-container-lowest, #FFFFFF);
+  border: 1px solid rgba(231, 177, 12, 0.2);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.portal-dashboard .portal-account strong {
+  font-size: 16px;
+  color: var(--md-sys-color-on-surface, #1E1B16);
+}
+
+.portal-dashboard .portal-account span {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--md-sys-color-on-surface-variant, #4B4639);
+}
+
+/* ==========================================================================
+   Unified Role-Based CRM Suite Architecture (Altezza Luxury CRM Theme)
+   Charcoal Sidebar, Golden Yellow Active Pills, Top Summary Card,
+   Horizontal Pill Tabs with Badges, & Multi-Column Data Cards
+   ========================================================================== */
+
+body.in-crm {
+  background: #F4F6F8 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body.in-crm #public-header,
+body.in-crm .staff-header,
+body.in-crm #portal-login,
+body.in-crm .staff-intro,
+body.in-crm #portal-students-header,
+body.in-crm #portal-students-status,
+#public-header[hidden],
+.staff-header[hidden],
+[hidden] {
+  display: none !important;
+}
+
+.crm-shell .portal-dashboard,
+.crm-canvas .portal-dashboard {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin-top: 0 !important;
+  color: inherit !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+}
+
+.crm-shell .portal-dashboard::before,
+.crm-canvas .portal-dashboard::before {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Material 3 (M3) & Apple Typography Specification for Hamasah CRM
+   ========================================================================== */
+:root {
+  --main-font: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --apple-font-stack: var(--main-font);
+  
+  /* Hamasah Solid Clean Palette */
+  --crm-bg: #F8FAFC;
+  --crm-card-bg: #FFFFFF;
+  --crm-sidebar-bg: #FFFFFF;
+  --crm-border: #E2E8F0;
+  --crm-border-subtle: #F1F5F9;
+  --crm-text-primary: #0F172A;
+  --crm-text-secondary: #475569;
+  --crm-text-muted: #94A3B8;
+  
+  /* Solid Primary Hamasah Gold & Solid Dark Slate */
+  --crm-gold: #D97706;
+  --crm-gold-hover: #B45309;
+  --crm-gold-light: #FEF3C7;
+  --crm-gold-container: #FEF3C7;
+  --crm-on-gold-container: #78350F;
+  --crm-gold-gradient: #D97706;
+  --crm-hero-gradient: #0F172A;
+  --crm-emerald: #059669;
+  --crm-emerald-light: #D1FAE5;
+
+  /* Clean Solid Shadows */
+  --crm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --crm-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --crm-shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --crm-shadow-hero: 0 4px 16px rgba(15, 23, 42, 0.12);
+}
+
+.crm-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--crm-bg, #F8FAFC);
+  color: var(--crm-text-primary, #0F172A);
+  font-family: var(--main-font);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  position: relative;
+}
+
+/* --------------------------------------------------------------------------
+   Coursue Clean Light Navigation Sidebar
+   -------------------------------------------------------------------------- */
+.crm-sidebar {
+  width: 250px;
+  min-width: 250px;
+  background: #FFFFFF;
+  border-right: 1px solid #E2E8F0;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 150;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.02);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #E2E8F0 transparent;
+  transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), width 0.25s cubic-bezier(0.2, 0, 0, 1);
+  font-family: var(--main-font);
+  font-weight: 400;
+}
+
+.crm-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+.crm-sidebar::-webkit-scrollbar-thumb {
+  background: #E2E8F0;
+  border-radius: 9999px;
+}
+
+.crm-sidebar-header {
+  padding: 22px 18px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.crm-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #0F172A;
+  text-decoration: none;
+  font-family: var(--main-font);
+}
+
+.crm-brand-logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.crm-brand-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #D97706;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.crm-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.crm-brand-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0F172A;
+  line-height: 1.2;
+}
+
+.crm-brand-title strong {
+  color: #D97706;
+  font-weight: 700;
+}
+
+.crm-brand-sub {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #64748B;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.crm-collapse-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.crm-collapse-btn:hover {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+/* User Badge In Sidebar */
+.crm-user-card {
+  margin: 10px 14px;
+  padding: 10px 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.crm-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  background: #D97706;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--main-font);
+}
+
+.crm-user-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.crm-user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0F172A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--apple-font-stack);
+  letter-spacing: -0.01em;
+}
+
+.crm-user-role-pill {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #FEF3C7;
+  color: #B45309;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-user-role-pill--student { background: #DCFCE7; color: #15803D; }
+.crm-user-role-pill--parent { background: #FEF3C7; color: #B45309; }
+.crm-user-role-pill--supervisor { background: #E0F2FE; color: #0369A1; }
+.crm-user-role-pill--admin { background: #FEF3C7; color: #78350F; border: 1px solid #FDE68A; }
+.crm-user-role-pill--finance { background: #CCFBF1; color: #0F766E; }
+.crm-user-role-pill--registration-officer { background: #FFEDD5; color: #C2410C; }
+.crm-user-role-pill--teacher { background: #FEF3C7; color: #B45309; }
+
+/* Navigation Grouping */
+.crm-nav-group {
+  margin-top: 12px;
+  padding: 0 10px;
+}
+
+.crm-nav-group-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94A3B8;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 10px 14px;
+  flex: 1;
+}
+
+/* Coursue Clean Navigation Link */
+.crm-nav a,
+.crm-nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #64748B;
+  font-family: var(--apple-font-stack);
+  letter-spacing: -0.01em;
+  transition: all 0.15s ease;
+}
+
+.crm-nav a svg,
+.crm-nav-link svg {
+  stroke: #64748B;
+  flex-shrink: 0;
+  transition: stroke 0.15s ease;
+}
+
+.crm-nav-link-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.crm-nav-link-main span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crm-nav a:hover,
+.crm-nav-link:hover {
+  background: #F8FAFC;
+  color: #0F172A;
+}
+
+.crm-nav a:hover svg,
+.crm-nav-link:hover svg {
+  stroke: #0F172A;
+}
+
+/* Active Nav Item (Warm Gold Container - Landing Page Style) */
+.crm-nav a[aria-current="page"],
+.crm-nav-link.is-active {
+  background: #FEF3C7 !important;
+  color: #78350F !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+}
+
+.crm-nav a[aria-current="page"] svg,
+.crm-nav-link.is-active svg {
+  stroke: #D97706 !important;
+}
+
+/* Sidebar Badges */
+.crm-badge-counter {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  line-height: 1.3;
+  flex-shrink: 0;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-badge-counter--red {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+.crm-badge-counter--gray {
+  background: #F1F5F9;
+  color: #64748B;
+}
+
+.crm-sidebar-footer {
+  padding: 14px 16px;
+  border-top: 1px solid #EEF0F6;
+  background: #FFFFFF;
+  margin-top: auto;
+}
+
+.crm-system-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #10B981;
+  margin-bottom: 10px;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  display: inline-block;
+}
+
+.crm-logout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 38px;
+  background: #FEE2E2;
+  border: 1px solid #FECACA;
+  border-radius: 12px;
+  color: #DC2626;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--apple-font-stack);
+  transition: background 0.15s ease;
+}
+
+.crm-logout-btn:hover {
+  background: #FCA5A5;
+  color: #991B1B;
+}
+
+/* --------------------------------------------------------------------------
+   Coursue Top App Bar (Pill Search + Direct Notification & Profile Pill)
+   -------------------------------------------------------------------------- */
+.crm-workspace {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--crm-bg, #F5F6FB);
+}
+
+.crm-topbar {
+  height: 72px;
+  padding: 0 36px;
+  background: #FFFFFF;
+  border-bottom: 1px solid #EEF0F6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  gap: 20px;
+}
+
+/* Topbar Search Bar (Coursue Pill) */
+.crm-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #F8FAFC;
+  border: 1px solid #EEF0F6;
+  border-radius: 9999px;
+  padding: 9px 18px;
+  width: min(100%, 380px);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.crm-search-bar:focus-within {
+  border-color: #D97706;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
+}
+
+.crm-search-bar svg {
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+
+.crm-search-bar input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 13px;
+  color: #0F172A;
+  font-family: var(--apple-font-stack);
+  width: 100%;
+}
+
+.crm-search-bar input::placeholder {
+  color: #94A3B8;
+}
+
+.crm-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #64748B;
+  font-family: var(--apple-font-stack);
+  letter-spacing: -0.01em;
+}
+
+.crm-breadcrumbs .crumb-root {
+  color: #94A3B8;
+}
+
+.crm-breadcrumbs .crumb-sep {
+  color: #CBD5E1;
+}
+
+.crm-breadcrumbs .crumb-active {
+  color: #0F172A;
+  font-weight: 700;
+}
+
+.crm-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.crm-icon-circle-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px;
+  background: #F8FAFC;
+  border: 1px solid #EEF0F6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748B;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.crm-icon-circle-btn:hover {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.crm-profile-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 14px 4px 4px;
+  border-radius: 9999px;
+  background: #F8FAFC;
+  border: 1px solid #EEF0F6;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.crm-profile-pill:hover {
+  background: #F1F5F9;
+  border-color: #E2E8F0;
+}
+
+.crm-profile-pill-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  background: var(--crm-gold-gradient);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.crm-profile-pill-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-role-chip {
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+  background: #FEF3C7;
+  color: #B45309;
+  font-family: var(--apple-font-stack);
+  letter-spacing: 0.02em;
+}
+
+/* --------------------------------------------------------------------------
+   Coursue 3-Column Layout Canvas
+   -------------------------------------------------------------------------- */
+.crm-canvas {
+  padding: 26px 36px 64px;
+  width: 100%;
+  max-width: 1440px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-family: var(--apple-font-stack);
+}
+
+.coursue-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: start;
+  width: 100%;
+}
+
+@media (max-width: 1180px) {
+  .coursue-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.coursue-main-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.coursue-right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Coursue Hero Banner Card (Hamasah Slate & Warm Amber Style)
+   -------------------------------------------------------------------------- */
+.coursue-hero-banner {
+  background: #0F172A;
+  border-radius: 20px;
+  padding: 32px 36px;
+  color: #FFFFFF;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--crm-shadow-hero);
+  border: 1px solid #334155;
+}
+
+.coursue-hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  color: #78350F;
+  border-radius: 9999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 14px;
+}
+
+.coursue-hero-title {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0 0 8px;
+  line-height: 1.3;
+  max-width: 580px;
+  color: #FFFFFF;
+}
+
+.coursue-hero-subtitle {
+  font-size: 13.5px;
+  font-weight: 400;
+  line-height: 1.6;
+  margin: 0 0 20px;
+  max-width: 520px;
+  color: #94A3B8;
+}
+
+/* Solid CTA Button */
+.coursue-hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #D97706;
+  color: #FFFFFF;
+  padding: 10px 22px;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.3);
+  transition: background 0.15s ease;
+}
+
+.coursue-hero-cta:hover {
+  background: #B45309;
+}
+
+.coursue-hero-cta svg {
+  stroke: #FFFFFF;
+}
+
+/* --------------------------------------------------------------------------
+   Coursue Row of 3 Stat Pills
+   -------------------------------------------------------------------------- */
+.coursue-stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .coursue-stat-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.coursue-stat-pill {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #E2E8F0;
+  box-shadow: var(--crm-shadow-card);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  min-width: 0;
+  position: relative;
+}
+
+.coursue-stat-pill:hover {
+  box-shadow: var(--crm-shadow-card-hover);
+  border-color: #CBD5E1;
+}
+
+.coursue-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 20px;
+}
+
+.coursue-stat-icon--gold,
+.coursue-stat-icon--purple {
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
+.coursue-stat-icon--pink {
+  background: #FDF2F8;
+  color: #BE185D;
+  border: 1px solid #FBCFE8;
+}
+.coursue-stat-icon--cyan {
+  background: #ECFEFF;
+  color: #0E7490;
+  border: 1px solid #BAE6FD;
+}
+
+.coursue-stat-meta {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.coursue-stat-count {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.coursue-stat-label {
+  font-size: 11.5px;
+  font-weight: 400;
+  color: #64748B;
+  margin: 0;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --------------------------------------------------------------------------
+   Coursue Section Header with Navigation Arrows
+   -------------------------------------------------------------------------- */
+.coursue-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 10px 0 6px;
+}
+
+.coursue-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+}
+
+.coursue-nav-arrows {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.coursue-arrow-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748B;
+  transition: all 0.15s ease;
+}
+
+.coursue-arrow-btn:hover {
+  border-color: #D97706;
+  color: #B45309;
+}
+
+.coursue-arrow-btn--active {
+  background: #D97706;
+  border-color: #D97706;
+  color: #FFFFFF;
+}
+
+/* --------------------------------------------------------------------------
+   Coursue Grid of 3 Cards (Continue Watching / Aktivitas)
+   -------------------------------------------------------------------------- */
+.coursue-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 860px) {
+  .coursue-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.coursue-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  box-shadow: var(--crm-shadow-card);
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.coursue-card:hover {
+  box-shadow: var(--crm-shadow-card-hover);
+  border-color: #CBD5E1;
+}
+
+.coursue-card-cover {
+  height: 140px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  border-radius: 15px 15px 0 0;
+}
+
+.coursue-card-pill {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.coursue-card-pill--cyan { background: #E0F2FE; color: #0369A1; border: 1px solid #BAE6FD; }
+.coursue-card-pill--gold,
+.coursue-card-pill--purple { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+.coursue-card-pill--pink { background: #DCFCE7; color: #15803D; }
+
+.coursue-card-body {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.coursue-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F172A;
+  line-height: 1.4;
+  margin: 0 0 12px;
+  letter-spacing: -0.01em;
+}
+
+.coursue-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.coursue-mentor-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  background: #FEF3C7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #B45309;
+}
+
+.coursue-mentor-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+/* --------------------------------------------------------------------------
+   Coursue Table Section (Your Lesson / Maddah & Santri)
+   -------------------------------------------------------------------------- */
+.coursue-table-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid #EEF0F6;
+  padding: 22px 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.coursue-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.coursue-table-header h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.coursue-table-seeall {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #D97706;
+  text-decoration: none;
+}
+
+.coursue-table-seeall:hover {
+  text-decoration: underline;
+}
+
+.coursue-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.coursue-table th {
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94A3B8;
+  padding: 8px 12px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.coursue-table td {
+  padding: 14px 12px;
+  font-size: 13px;
+  color: #0F172A;
+  border-bottom: 1px solid #F8FAFC;
+  vertical-align: middle;
+}
+
+/* --------------------------------------------------------------------------
+   Coursue Right Rail (Statistic & Musyrif Cards)
+   -------------------------------------------------------------------------- */
+.coursue-statistic-card {
+  background: #FFFFFF;
+  border-radius: 24px;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  padding: 24px 22px;
+  box-shadow: var(--crm-shadow-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.coursue-statistic-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--crm-shadow-card-hover);
+}
+
+.coursue-stat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.coursue-stat-card-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+/* Circular Progress Avatar Ring */
+.coursue-circle-progress {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coursue-circle-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.coursue-circle-bg {
+  fill: none;
+  stroke: #FEF3C7;
+  stroke-width: 8;
+}
+
+.coursue-circle-bar {
+  fill: none;
+  stroke: #D97706;
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 283;
+  stroke-dashoffset: 28; /* ~90% filled */
+  filter: drop-shadow(0 2px 6px rgba(217, 119, 6, 0.3));
+}
+
+.coursue-circle-avatar {
+  position: absolute;
+  width: 82px;
+  height: 82px;
+  border-radius: 9999px;
+  background: #F8FAFC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.coursue-circle-badge {
+  display: none;
+}
+
+.coursue-user-greeting {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0 0 4px;
+  letter-spacing: -0.02em;
+}
+
+.coursue-user-subtext {
+  font-size: 12px;
+  color: #64748B;
+  margin: 0 0 20px;
+  line-height: 1.45;
+}
+
+/* Bar Chart Widget */
+.coursue-barchart {
+  width: 100%;
+  background: #F8FAFC;
+  border-radius: 18px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 120px;
+  box-sizing: border-box;
+  border: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+.coursue-bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.coursue-bar-track {
+  width: 32px;
+  height: 80px;
+  background: #FEF3C7;
+  border-radius: 10px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.coursue-bar-fill {
+  width: 100%;
+  border-radius: 10px;
+  background: #D97706;
+}
+
+.coursue-bar-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94A3B8;
+}
+
+/* Mentor / Asatidzah Card */
+.coursue-mentor-card {
+  background: #FFFFFF;
+  border-radius: 24px;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  padding: 22px;
+  box-shadow: var(--crm-shadow-card);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.coursue-mentor-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--crm-shadow-card-hover);
+}
+
+.coursue-mentor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.coursue-mentor-header h3 {
+  font-size: 15.5px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.coursue-mentor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.coursue-mentor-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.coursue-mentor-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.coursue-mentor-pic {
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px;
+  background: #FEF3C7;
+  color: #B45309;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.coursue-mentor-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.coursue-mentor-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.coursue-mentor-role {
+  font-size: 11px;
+  color: #64748B;
+  margin: 2px 0 0;
+}
+
+.coursue-mentor-action {
+  padding: 5px 14px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid rgba(217, 119, 6, 0.2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.coursue-mentor-action:hover {
+  background: #D97706;
+  color: #FFFFFF;
+  border-color: #D97706;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.25);
+}
+
+.coursue-mentor-seeall {
+  width: 100%;
+  margin-top: 14px;
+  height: 36px;
+  border-radius: 12px;
+  background: #F8FAFC;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  color: #64748B;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.coursue-mentor-seeall:hover {
+  background: #FEF3C7;
+  color: #B45309;
+  border-color: rgba(217, 119, 6, 0.3);
+}
+
+/* --------------------------------------------------------------------------
+   Material 3 Top Summary Card (28px M3 Extra Large Shape)
+   -------------------------------------------------------------------------- */
+.crm-summary-card {
+  background: #FFFFFF;
+  border-radius: 22px;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  padding: 24px 28px;
+  box-shadow: var(--crm-shadow-card);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 22px;
+  align-items: start;
+  transition: box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, transform 0.2s ease;
+}
+
+.crm-summary-card:hover {
+  box-shadow: var(--crm-shadow-card-hover);
+  border-color: rgba(217, 119, 6, 0.3);
+}
+
+.crm-summary-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.crm-summary-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.crm-summary-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #0F172A;
+  font-family: var(--apple-font-stack);
+  line-height: 1.3;
+}
+
+.crm-link-icon {
+  color: #94A3B8;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.crm-link-icon:hover {
+  color: #4F46E5;
+}
+
+.crm-summary-subtitle {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #64748B;
+  line-height: 1.5;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-field-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-field-value {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1E293B;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-balance-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-bullet-blue {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--crm-gold, #D97706);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.crm-person-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.crm-person-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  background: #FEF3C7;
+  color: #B45309;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--apple-font-stack);
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.crm-person-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0F172A;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-summary-note {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #475569;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-readmore-link {
+  display: inline-block;
+  margin-top: 5px;
+  color: #B45309;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-readmore-link:hover {
+  text-decoration: underline;
+}
+
+/* --------------------------------------------------------------------------
+   Horizontal Subtabs Filter Chips
+   -------------------------------------------------------------------------- */
+.crm-subtabs-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px;
+  scrollbar-width: none;
+}
+
+.crm-subtabs-row::-webkit-scrollbar {
+  display: none;
+}
+
+.crm-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  height: 38px;
+  border-radius: 9999px;
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  color: #64748B;
+  font-family: var(--apple-font-stack);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.crm-pill-btn:hover {
+  background: #F8FAFC;
+  color: #0F172A;
+  border-color: #CBD5E1;
+}
+
+.crm-pill-btn.is-active {
+  background: #0F172A !important;
+  color: #FFFFFF !important;
+  border-color: #0F172A !important;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+}
+
+.crm-pill-btn.is-active svg {
+  stroke: #FDC537 !important;
+}
+
+.crm-pill-count {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: #F1F5F9;
+  color: #64748B;
+  line-height: 1;
+}
+
+.crm-pill-btn.is-active .crm-pill-count {
+  background: rgba(255, 255, 255, 0.22) !important;
+  color: #FFFFFF !important;
+}
+
+/* --------------------------------------------------------------------------
+   Filter & Action Toolbar
+   -------------------------------------------------------------------------- */
+.crm-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.crm-toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.crm-date-selector {
+  display: inline-flex;
+  align-items: center;
+  background: #FFFFFF;
+  border: 1px solid #EEF0F6;
+  border-radius: 9999px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.crm-date-nav-btn {
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.crm-date-nav-btn:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+.crm-date-display {
+  padding: 8px 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #0F172A;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-left: 1px solid #F1F5F9;
+  border-right: 1px solid #F1F5F9;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-filter-dropdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1px solid #EEF0F6;
+  border-radius: 9999px;
+  padding: 8px 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #0F172A;
+  cursor: pointer;
+  font-family: var(--apple-font-stack);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.crm-filter-dropdown:hover {
+  border-color: #CBD5E1;
+  background: #F8FAFC;
+}
+
+.crm-btn-primary-yellow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FDC537;
+  color: #0F172A;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0 18px;
+  height: 38px;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--apple-font-stack);
+  letter-spacing: -0.01em;
+  box-shadow: 0 2px 6px rgba(253, 197, 55, 0.3);
+  transition: all 0.15s ease;
+}
+
+.crm-btn-primary-yellow:hover {
+  background: #EAB308;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(253, 197, 55, 0.4);
+}
+
+.crm-btn-primary-yellow svg {
+  stroke: #0F172A;
+}
+
+/* --------------------------------------------------------------------------
+   CRM Activity & Student Cards (Clean, Spacious, No Overlap)
+   -------------------------------------------------------------------------- */
+.crm-card-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.crm-activity-card {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  border-radius: 22px;
+  padding: 22px 26px;
+  box-shadow: var(--crm-shadow-card);
+  transition: box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, transform 0.2s ease;
+  position: relative;
+  font-family: var(--apple-font-stack);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.crm-activity-card:hover {
+  box-shadow: var(--crm-shadow-card-hover);
+  border-color: rgba(217, 119, 6, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Header row: title on left, status and more on right */
+.crm-activity-card__header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.crm-activity-card__title-col {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+}
+
+.crm-square-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 18px;
+  font-weight: 700;
+  box-shadow: var(--crm-shadow-sm);
+}
+
+.crm-square-badge--yellow {
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.crm-square-badge--orange {
+  background: #FFEDD5;
+  color: #EA580C;
+  border: 1px solid rgba(234, 88, 12, 0.25);
+}
+
+.crm-square-badge--green {
+  background: #DCFCE7;
+  color: #15803D;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+}
+
+.crm-square-badge--purple {
+  background: #FEF3C7;
+  color: #78350F;
+  border: 1px solid rgba(217, 119, 6, 0.25);
+}
+
+.crm-activity-card__name {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+  word-break: break-word;
+}
+
+.crm-activity-card__subtitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748B;
+  margin-top: 3px;
+  line-height: 1.4;
+}
+
+.crm-activity-card__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Upper details grid: 5 clean, non-cramped columns */
+.crm-activity-card__upper {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 14px 20px;
+  align-items: start;
+  width: 100%;
+  padding: 14px 0 4px;
+  border-top: 1px solid #F8FAFC;
+}
+
+.crm-col-block {
+  min-width: 0;
+}
+
+.crm-col-block label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94A3B8;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.crm-col-block span,
+.crm-col-block strong {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #1E293B;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.crm-check-list {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #059669;
+}
+
+/* Clean luxury note box */
+.crm-activity-card__note {
+  background: #FFFBEB;
+  border-left: 3px solid #D97706;
+  border-radius: 10px;
+  padding: 11px 15px;
+  font-size: 12px;
+  color: #78350F;
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-top: 1px solid rgba(253, 230, 138, 0.4);
+  border-right: 1px solid rgba(253, 230, 138, 0.4);
+  border-bottom: 1px solid rgba(253, 230, 138, 0.4);
+}
+
+/* Lower metadata and action row */
+.crm-activity-card__lower {
+  padding-top: 14px;
+  border-top: 1px solid #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.crm-activity-card__meta-group {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.crm-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.crm-meta-item label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94A3B8;
+}
+
+.crm-meta-item span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Status Pill */
+.crm-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: var(--apple-font-stack);
+  white-space: nowrap;
+}
+
+.crm-status-pill--complete {
+  background: #ECFDF5;
+  color: #047857;
+  border: 1px solid #A7F3D0;
+  box-shadow: 0 1px 2px rgba(4, 120, 87, 0.05);
+}
+
+.crm-status-pill--pending {
+  background: #FFFBEB;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+  box-shadow: 0 1px 2px rgba(180, 83, 9, 0.05);
+}
+
+.crm-status-pill--absent {
+  background: #FEF2F2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+  box-shadow: 0 1px 2px rgba(185, 28, 28, 0.05);
+}
+
+/* Action button in card */
+.crm-action-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: #FEF3C7;
+  color: #B45309;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 9999px;
+  border: 1px solid rgba(217, 119, 6, 0.2);
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  font-family: var(--apple-font-stack);
+  box-shadow: 0 1px 2px rgba(180, 83, 9, 0.06);
+}
+
+.crm-action-link-btn:hover {
+  background: #D97706;
+  color: #FFFFFF;
+  border-color: #D97706;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);
+  transform: translateY(-1px);
+}
+
+.crm-action-link-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.crm-action-link-btn svg {
+  stroke: currentColor;
+}
+
+.crm-icon-sub-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  background: #F8FAFC;
+  color: #64748B;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.crm-icon-sub-btn:hover {
+  background: #FEF3C7;
+  color: #B45309;
+  border-color: rgba(217, 119, 6, 0.3);
+}
+
+/* Action Dropdown Popover */
+.crm-action-popover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  width: 150px;
+  background: #FFFFFF;
+  border: 1px solid #EEF0F6;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  padding: 6px 0;
+  z-index: 80;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-popover-header {
+  padding: 6px 14px 2px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94A3B8;
+}
+
+.crm-popover-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: #0F172A;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s ease;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-popover-item:hover {
+  background: #F8FAFC;
+}
+
+.crm-popover-item--danger {
+  color: #DC2626;
+}
+
+.crm-popover-item--danger:hover {
+  background: #FEE2E2;
+}
+
+/* --------------------------------------------------------------------------
+   Compact Student Card (Presisi, Clean & Solid)
+   -------------------------------------------------------------------------- */
+.crm-student-compact-card {
+  box-sizing: border-box !important;
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  border-radius: 16px;
+  padding: 14px 20px;
+  box-shadow: var(--crm-shadow-card);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  font-family: var(--apple-font-stack);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+}
+
+.crm-student-compact-card:hover {
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  border-color: #D97706;
+  transform: translateY(-2px);
+  background: #FFFFFF;
+}
+
+.crm-student-compact-card:focus-visible {
+  outline: 2px solid #D97706;
+  outline-offset: 2px;
+}
+
+.crm-student-compact-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+}
+
+.crm-student-compact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.crm-student-compact-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.crm-student-compact-name {
+  font-size: 15.5px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+}
+
+.crm-student-compact-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: #64748B;
+  line-height: 1.4;
+}
+
+.crm-meta-dot {
+  color: #CBD5E1;
+  font-weight: 700;
+}
+
+.crm-student-compact-pill {
+  display: inline-flex;
+  align-items: center;
+  background: #F1F5F9;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 6px;
+  border: 1px solid #E2E8F0;
+}
+
+.crm-student-compact-dorm {
+  display: inline-flex;
+  align-items: center;
+  color: #475569;
+  font-weight: 500;
+}
+
+.crm-student-compact-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.crm-student-compact-cta-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #D97706;
+  transition: color 0.15s ease;
+}
+
+.crm-student-compact-card:hover .crm-student-compact-cta-label {
+  color: #B45309;
+}
+
+.crm-student-compact-arrow {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  background: #FEF3C7;
+  color: #B45309;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.crm-student-compact-card:hover .crm-student-compact-arrow {
+  background: #D97706;
+  color: #FFFFFF;
+  border-color: #D97706;
+  transform: translateX(3px);
+}
+
+.crm-student-compact-newtab {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  background: #F8FAFC;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  border: 1px solid #E2E8F0;
+  text-decoration: none;
+}
+
+.crm-student-compact-newtab:hover {
+  background: #FEF3C7;
+  color: #B45309;
+  border-color: rgba(217, 119, 6, 0.3);
+  transform: scale(1.05);
+}
+
+@media (max-width: 640px) {
+  .crm-student-compact-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px 16px;
+    gap: 12px;
+  }
+  .crm-student-compact-action {
+    width: 100%;
+    justify-content: flex-end;
+    padding-top: 8px;
+    border-top: 1px solid #F1F5F9;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   White Cards & Feature Boxes
+   -------------------------------------------------------------------------- */
+.crm-white-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid #EEF0F6;
+  padding: 24px 28px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  font-family: var(--apple-font-stack);
+}
+
+.crm-white-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.crm-white-card-header h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.015em;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-white-card-header p {
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  color: #64748B;
+  line-height: 1.5;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-grid-2col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.crm-feature-box {
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: #F8FAFC;
+  border: 1px solid #EEF0F6;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.crm-feature-box-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  color: #B45309;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.crm-feature-box strong {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0F172A;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-feature-box p {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: #64748B;
+  line-height: 1.5;
+  font-family: var(--apple-font-stack);
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Adaptations
+   -------------------------------------------------------------------------- */
+@media (max-width: 1100px) {
+  .crm-summary-card {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 800px) {
+  .crm-shell {
+    flex-direction: column;
+  }
+
+  .crm-sidebar {
+    width: 100%;
+    min-width: 100%;
+    height: auto;
+    position: relative;
+  }
+
+  .crm-canvas {
+    padding: 20px 18px 48px;
+  }
+
+  .crm-summary-card {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+
+  .crm-activity-card {
+    padding: 18px;
+  }
+
+  .crm-activity-card__header-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+/* ==========================================================================
+   Material 3 Form & Module Elements for All CRM Pages
+   ========================================================================== */
+
+/* M3 Outlined Forms */
+.crm-canvas .staff-form {
+  background: var(--md-sys-color-surface-container-lowest, #FFFFFF) !important;
+  border-radius: var(--md-shape-corner-extra-large, 24px) !important;
+  border: 1px solid var(--md-sys-color-outline-variant, #E5DECE) !important;
+  padding: 28px 32px !important;
+  box-shadow: var(--md-sys-elevation-1) !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  font-family: var(--apple-font-stack) !important;
+}
+
+.crm-canvas .staff-form label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant, #4D4639);
+  margin: 14px 0 6px;
+  text-transform: none; /* Apple clean sentence case */
+  letter-spacing: 0.01em;
+  font-family: var(--apple-font-stack);
+}
+
+.crm-canvas .staff-form label:first-of-type {
+  margin-top: 0;
+}
+
+/* M3 Outlined Text Fields */
+.crm-canvas .staff-form input,
+.crm-canvas .staff-form select,
+.crm-canvas .staff-form textarea {
+  background: var(--md-sys-color-surface-container-lowest, #FFFFFF) !important;
+  border: 1px solid var(--md-sys-color-outline, #7F7667) !important;
+  border-radius: var(--md-shape-corner-medium, 14px) !important;
+  color: var(--md-sys-color-on-surface, #1E1B16) !important;
+  font-family: var(--apple-font-stack) !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  padding: 11px 16px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.crm-canvas .staff-form input:focus,
+.crm-canvas .staff-form select:focus,
+.crm-canvas .staff-form textarea:focus {
+  border-color: var(--md-sys-color-primary, #785A00) !important;
+  border-width: 2px !important;
+  box-shadow: 0 0 0 3px rgba(120, 90, 0, 0.15) !important;
+  outline: none !important;
+  padding: 10px 15px !important;
+}
+
+/* M3 Filled Primary Button (Pill) */
+.crm-canvas .button--primary {
+  font-family: var(--apple-font-stack) !important;
+  background: var(--md-sys-color-primary, #785A00) !important;
+  color: var(--md-sys-color-on-primary, #FFFFFF) !important;
+  border: none !important;
+  border-radius: var(--md-shape-corner-full, 9999px) !important;
+  height: 44px !important;
+  padding: 0 24px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  box-shadow: var(--md-sys-elevation-1) !important;
+  transition: background 0.2s cubic-bezier(0.2, 0, 0, 1), transform 0.15s ease, box-shadow 0.2s ease !important;
+}
+
+.crm-canvas .button--primary:hover {
+  background: #604700 !important;
+  box-shadow: var(--md-sys-elevation-2) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* M3 Tonal Secondary Button (Pill) */
+.crm-canvas .button--secondary {
+  font-family: var(--apple-font-stack) !important;
+  background: var(--md-sys-color-secondary-container, #EFE2BC) !important;
+  color: var(--md-sys-color-on-secondary-container, #221B04) !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--md-shape-corner-full, 9999px) !important;
+  height: 42px !important;
+  padding: 0 20px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  transition: background 0.2s ease, transform 0.15s ease !important;
+}
+
+.crm-canvas .button--secondary:hover {
+  background: #E4D5A9 !important;
+  color: #1A1300 !important;
+}
+
+/* Registration Cards (staff.html) */
+.staff-registration-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  width: 100% !important;
+}
+
+.crm-canvas .staff-registration {
+  background: var(--md-sys-color-surface-container-lowest, #FFFFFF) !important;
+  border: 1px solid var(--md-sys-color-outline-variant, #E5DECE) !important;
+  border-radius: var(--md-shape-corner-extra-large, 24px) !important;
+  padding: 24px 28px !important;
+  box-shadow: var(--md-sys-elevation-1) !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 24px !important;
+  flex-wrap: wrap !important;
+  font-family: var(--apple-font-stack) !important;
+  transition: box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1), border-color 0.2s ease !important;
+}
+
+.crm-canvas .staff-registration:hover {
+  box-shadow: var(--md-sys-elevation-2) !important;
+  border-color: var(--md-sys-color-outline, #7F7667) !important;
+}
+
+.crm-canvas .staff-registration h2 {
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  color: var(--md-sys-color-on-surface, #1E1B16) !important;
+  letter-spacing: -0.015em !important;
+  margin: 0 0 4px !important;
+  font-family: var(--apple-font-stack) !important;
+}
+
+.crm-canvas .staff-registration__meta {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+  gap: 10px !important;
+  margin-top: 14px !important;
+}
+
+.crm-canvas .staff-registration__meta p {
+  margin: 0 !important;
+  font-size: 13px !important;
+  color: var(--md-sys-color-on-surface-variant, #4D4639) !important;
+  background: var(--md-sys-color-surface-container-low, #F8F3E8) !important;
+  padding: 8px 12px !important;
+  border-radius: var(--md-shape-corner-small, 10px) !important;
+  border: 1px solid var(--md-sys-color-outline-variant, #E5DECE) !important;
+  font-family: var(--apple-font-stack) !important;
+}
+
+.crm-canvas .staff-registration__controls {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+/* 2-Column Responsive Grid inside CRM Canvas */
+.crm-canvas .portal-admin-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1.2fr !important;
+  gap: 24px !important;
+  align-items: start !important;
+}
+
+@media (max-width: 960px) {
+  .crm-canvas .portal-admin-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Audit & Account Lists inside CRM Canvas */
+.crm-canvas .portal-account-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  width: 100% !important;
+}
+
+.crm-canvas .audit-item {
+  background: var(--md-sys-color-surface-container-lowest, #FFFFFF) !important;
+  border: 1px solid var(--md-sys-color-outline-variant, #E5DECE) !important;
+  border-radius: var(--md-shape-corner-medium, 14px) !important;
+  padding: 16px 22px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  font-family: var(--apple-font-stack) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.crm-canvas .audit-item:hover {
+  border-color: var(--md-sys-color-outline, #7F7667) !important;
+  box-shadow: var(--md-sys-elevation-1) !important;
+}
+
+/* ==========================================================================
+   Page Transition Animations (Smooth Navigation & Tab Switching)
+   ========================================================================== */
+
+/* Modern CSS View Transitions API */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: 160ms cubic-bezier(0.4, 0, 1, 1) both crmViewFadeOut;
+}
+
+::view-transition-new(root) {
+  animation: 240ms cubic-bezier(0, 0, 0.2, 1) both crmViewFadeIn;
+}
+
+@keyframes crmViewFadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-4px); }
+}
+
+@keyframes crmViewFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Cross-Browser Page Enter Animation */
+.crm-canvas,
+.staff-page,
+.monitoring-page,
+.operations-page,
+.audit-page,
+.lms-page {
+  animation: crmPageEnter 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes crmPageEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Page Exit Animation Triggered on Link Click */
+body.crm-page-exiting .crm-canvas,
+body.crm-page-exiting .staff-page,
+body.crm-page-exiting .monitoring-page,
+body.crm-page-exiting .operations-page,
+body.crm-page-exiting .audit-page,
+body.crm-page-exiting .lms-page {
+  opacity: 0 !important;
+  transform: translateY(-8px) !important;
+  transition: opacity 0.18s cubic-bezier(0.4, 0, 1, 1), transform 0.18s cubic-bezier(0.4, 0, 1, 1) !important;
+  pointer-events: none !important;
+}
+
+/* In-Page Tab & View Enter Animations */
+.crm-tab-enter {
+  animation: crmTabEnter 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes crmTabEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.997);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.crm-view-enter {
+  animation: crmViewEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes crmViewEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Respect Accessibility Reduced Motion Settings */
+@media (prefers-reduced-motion: reduce) {
+  .crm-canvas,
+  .staff-page,
+  .monitoring-page,
+  .operations-page,
+  .audit-page,
+  .lms-page,
+  .crm-tab-enter,
+  .crm-view-enter,
+  body.crm-page-exiting .crm-canvas {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Modern Course Player LMS (Codelingo Style for Hamasah International)
+   -------------------------------------------------------------------------- */
+.lms-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.lms-course-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 4px;
+}
+
+.lms-course-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.lms-back-arrow-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  color: #0F172A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.lms-back-arrow-btn:hover {
+  background: #FEF3C7;
+  color: #B45309;
+  border-color: #D97706;
+}
+
+.lms-course-title-block {
+  min-width: 0;
+}
+
+.lms-course-title-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.lms-course-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #0F172A;
+  letter-spacing: -0.02em;
+}
+
+.lms-course-category-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #B45309;
+  background: #FEF3C7;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.lms-course-stats-line {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12px;
+  color: #64748B;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.lms-stat-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.lms-course-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.lms-btn-share {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  color: #0F172A;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lms-btn-share:hover {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+}
+
+.lms-btn-enroll {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 10px;
+  background: #D97706;
+  color: #FFFFFF;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.25);
+}
+
+.lms-btn-enroll:hover {
+  background: #B45309;
+  transform: translateY(-1px);
+}
+
+/* Two-column Course Grid */
+.lms-course-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Left Column: Player & Subtabs */
+.lms-main-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.lms-player-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #0F172A;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lms-player-poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.85;
+}
+
+.lms-player-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.2) 0%, rgba(15, 23, 42, 0.7) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.lms-player-badge {
+  align-self: flex-start;
+  background: rgba(15, 23, 42, 0.7);
+  color: #FFFFFF;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.lms-play-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 9999px;
+  background: #FFFFFF;
+  color: #D97706;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lms-play-btn:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  background: #FEF3C7;
+}
+
+.lms-player-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Sub-tabs Row */
+.lms-tabs-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 4px;
+}
+
+.lms-tab-link {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lms-tab-link:hover {
+  color: #0F172A;
+  background: #F1F5F9;
+}
+
+.lms-tab-link.is-active {
+  color: #D97706;
+  background: #FEF3C7;
+}
+
+/* Course Tab Content Card */
+.lms-content-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  border-radius: 18px;
+  padding: 24px 28px;
+  box-shadow: var(--crm-shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.lms-content-card h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.lms-about-text {
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.lms-learn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
+}
+
+.lms-learn-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.45;
+}
+
+.lms-learn-icon {
+  color: #059669;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Right Column: Curriculum & Author */
+.lms-side-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.lms-curriculum-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: var(--crm-shadow-card);
+}
+
+.lms-curriculum-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.lms-curriculum-header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.lms-curriculum-header span {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.lms-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lms-module-item {
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.lms-module-item.is-open {
+  border-color: #CBD5E1;
+}
+
+.lms-module-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #F8FAFC;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.12s ease;
+}
+
+.lms-module-header:hover {
+  background: #F1F5F9;
+}
+
+.lms-module-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.lms-module-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #64748B;
+}
+
+.lms-lessons-list {
+  padding: 6px 0;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+}
+
+.lms-lesson-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  gap: 10px;
+  font-size: 12.5px;
+  color: #334155;
+  cursor: pointer;
+  transition: background 0.12s ease;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+
+.lms-lesson-item:hover {
+  background: #F8FAFC;
+  color: #D97706;
+}
+
+.lms-lesson-item.is-active {
+  background: #FEF3C7;
+  color: #B45309;
+  font-weight: 600;
+}
+
+.lms-lesson-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.lms-lesson-icon {
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+
+.lms-lesson-item.is-active .lms-lesson-icon {
+  color: #D97706;
+}
+
+.lms-lesson-item.is-completed .lms-lesson-icon {
+  color: #059669;
+}
+
+.lms-lesson-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lms-lesson-duration {
+  font-size: 11px;
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+
+/* Author Card */
+.lms-author-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: var(--crm-shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lms-author-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lms-author-header h4 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94A3B8;
+}
+
+.lms-author-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lms-author-pic {
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  background: #FEF3C7;
+  color: #B45309;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  border: 1px solid rgba(217, 119, 6, 0.25);
+  flex-shrink: 0;
+}
+
+.lms-author-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.lms-author-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lms-author-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0F172A;
+  margin: 0;
+}
+
+.lms-author-badge {
+  color: #2563EB;
+}
+
+.lms-author-role {
+  font-size: 11.5px;
+  color: #64748B;
+  margin: 2px 0 0;
+}
+
+.lms-author-rating {
+  font-size: 12px;
+  font-weight: 600;
+  color: #B45309;
+}
+
+.lms-author-bio {
+  font-size: 12px;
+  color: #64748B;
+  line-height: 1.5;
+  margin: 0;
+}
+
+@media (max-width: 1024px) {
+  .lms-course-grid {
+    grid-template-columns: 1fr;
+  }
+}

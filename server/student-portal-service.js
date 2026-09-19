@@ -133,6 +133,9 @@ function createStudentPortalService(options) {
       gender: gender || null,
       dormitoryId: source.dormitoryId || null,
       studentAccountId: source.studentAccountId || null,
+      registrationId: source.registrationId || null,
+      birthDate: source.birthDate || null,
+      mediaConsent: source.mediaConsent === true,
       parentAccountIds: Array.isArray(source.parentAccountIds) ? source.parentAccountIds.filter(Boolean) : [],
       createdAt: now(),
       updatedAt: now()

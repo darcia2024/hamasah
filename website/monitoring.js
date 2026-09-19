@@ -292,14 +292,49 @@ document.querySelector('#student-join-date').value = today();
 document.querySelector('#record-date').value = today();
 setRecordFields();
 
+// Subtab switching
+const tabBtns = [
+  { btn: document.querySelector('#tab-btn-tracking'), panel: document.querySelector('#panel-tracking') },
+  { btn: document.querySelector('#tab-btn-add-student'), panel: document.querySelector('#panel-add-student') },
+  { btn: document.querySelector('#tab-btn-placement'), panel: document.querySelector('#panel-placement') },
+  { btn: document.querySelector('#tab-btn-dorm-mgmt'), panel: document.querySelector('#panel-dorm-mgmt') },
+  { btn: document.querySelector('#tab-btn-link-account'), panel: document.querySelector('#panel-link-account') }
+];
+
+function switchTab(clickedBtn) {
+  tabBtns.forEach(({ btn, panel }) => {
+    if (btn && panel) {
+      const active = btn === clickedBtn;
+      btn.classList.toggle('is-active', active);
+      panel.hidden = !active;
+    }
+  });
+}
+
+tabBtns.forEach(({ btn }) => {
+  if (btn) btn.addEventListener('click', () => switchTab(btn));
+});
+
+const logoutButton = document.querySelector('#logout-button');
+if (logoutButton) {
+  logoutButton.addEventListener('click', async () => {
+    await fetch('/api/auth/logout', { method: 'POST', headers: headers() }).catch(() => {});
+    sessionStorage.removeItem('hamasahPortalSession');
+    window.location.reload();
+  });
+}
+
 (async function initialize() {
+  if (session()) document.body.classList.add('in-crm');
   try {
     const response = await fetch('/api/me', { headers: headers() });
     const result = await response.json();
     if (!response.ok || !['admin', 'supervisor'].includes(result.account.role)) throw new Error('Halaman ini hanya dapat dibuka oleh admin atau pengawas.');
     currentRole = result.account.role; guard.hidden = true; consoleSection.hidden = false;
-    renderStaffNav(staffNav, currentRole, 'monitoring');
+    document.body.classList.add('in-crm');
+    renderStaffNav(staffNav, currentRole, 'monitoring', result.account);
     if (currentRole === 'admin') {
+      document.querySelectorAll('.admin-only-tab').forEach((tab) => { tab.hidden = false; });
       accountLinkSection.hidden = false;
       dormitorySection.hidden = false;
       await loadAssignableAccounts();

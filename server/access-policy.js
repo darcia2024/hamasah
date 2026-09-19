@@ -25,6 +25,7 @@ const PERMISSIONS = Object.freeze({
 
   'registrations.read': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
   'registrations.update-status': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
+  'registrations.convert': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
 
   'articles.write': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
 

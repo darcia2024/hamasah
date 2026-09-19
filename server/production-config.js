@@ -39,6 +39,30 @@ function optionalEnvironment(environment, key) {
   return String(environment[key] || '').trim();
 }
 
+function readEmailConfig(values, appEnvironment) {
+  const driver = optionalEnvironment(values, 'EMAIL_DRIVER') || (['development', 'test'].includes(appEnvironment) ? 'console' : 'disabled');
+  if (!['disabled', 'console', 'resend'].includes(driver)) {
+    throw new Error("EMAIL_DRIVER harus 'disabled', 'console', atau 'resend'.");
+  }
+  if (driver === 'console' && ['staging', 'production'].includes(appEnvironment)) {
+    throw new Error(`EMAIL_DRIVER 'console' tidak boleh dipakai di lingkungan ${appEnvironment}.`);
+  }
+  const appBaseUrl = optionalEnvironment(values, 'APP_BASE_URL');
+  if (driver === 'resend') {
+    const resendApiKey = requiredEnvironment(values, 'RESEND_API_KEY', appEnvironment);
+    const emailFrom = requiredEnvironment(values, 'EMAIL_FROM', appEnvironment);
+    if (!appBaseUrl) throw new Error(`APP_BASE_URL harus diisi untuk menjalankan ${appEnvironment} dengan email.`);
+    try {
+      const parsed = new URL(appBaseUrl);
+      if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('protokol');
+    } catch (error) {
+      throw new Error('APP_BASE_URL harus memakai URL http atau https.');
+    }
+    return Object.freeze({ driver, resendApiKey, emailFrom, appBaseUrl: appBaseUrl.replace(/\/$/, '') });
+  }
+  return Object.freeze({ driver, resendApiKey: '', emailFrom: '', appBaseUrl: appBaseUrl.replace(/\/$/, '') });
+}
+
 // Hanya menyelesaikan DATABASE_URL, tanpa mewajibkan konfigurasi penyimpanan berkas
 // atau IP_HASH_SECRET. Dipakai oleh skrip database (migrate, verify) yang memang
 // hanya butuh koneksi database dan tidak pernah menyentuh storage atau audit.
@@ -65,6 +89,7 @@ function readProductionConfig(environment) {
     ? requiredEnvironment(values, 'STORAGE_BUCKET', appEnvironment)
     : optionalEnvironment(values, 'STORAGE_BUCKET');
   const storagePublicBucket = optionalEnvironment(values, 'STORAGE_PUBLIC_BUCKET');
+  const email = readEmailConfig(values, appEnvironment);
 
   // Driver penyimpanan berkas. 'local' menyimpan ke disk dan hanya untuk
   // pengembangan: berkasnya ikut hilang setiap kali container diganti.
@@ -105,8 +130,9 @@ function readProductionConfig(environment) {
     storagePublicBucket,
     storageDriver,
     supabaseUrl,
-    supabaseServiceRoleKey
+    supabaseServiceRoleKey,
+    email
   });
 }
 
-module.exports = { PGLITE_ENVIRONMENTS, assertDatabaseUrl, readProductionConfig, resolveDatabaseUrl };
+module.exports = { PGLITE_ENVIRONMENTS, assertDatabaseUrl, readEmailConfig, readProductionConfig, resolveDatabaseUrl };

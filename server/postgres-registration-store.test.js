@@ -16,6 +16,15 @@ function sampleRecord() {
       phone: '+628000000001',
       guardianName: 'Wali Uji',
       guardianPhone: '+628000000002',
+      guardianEmail: 'wali@hamasah.test',
+      email: 'calon@hamasah.test',
+      birthDate: '2008-04-12',
+      gender: 'putra',
+      schoolOrigin: 'SMA Uji',
+      programDetails: { targetLevel: 'tsanawi' },
+      referralSource: 'teman',
+      privacyPolicyVersion: 'v2',
+      guardianConsent: true,
       program: 'mahad-al-azhar',
       educationLevel: 'MA',
       city: 'Bandung'
@@ -67,13 +76,18 @@ async function run() {
     assert.equal(loaded.progress, 15);
     assert.equal(loaded.applicant.applicantName, 'Calon Santri Uji');
     assert.equal(loaded.applicant.guardianPhone, '+628000000002');
+    assert.equal(loaded.applicant.email, 'calon@hamasah.test');
+    assert.equal(loaded.applicant.birthDate, '2008-04-12');
+    assert.equal(loaded.applicant.gender, 'putra');
+    assert.deepEqual(loaded.applicant.programDetails, { targetLevel: 'tsanawi' });
+    assert.equal(loaded.applicant.guardianConsent, true);
     assert.equal(loaded.accessTokenHash, 'hash-akses-uji');
     assert.equal(loaded.createdAt, CREATED_AT);
-    assert.deepEqual(loaded.documents, sampleRecord().documents.map((document) => ({
-      ...document,
-      uploadedByAccountId: null,
-      uploadedByName: null
-    })));
+    assert.equal(loaded.documents.length, 1);
+    assert.equal(loaded.documents[0].type, 'passport');
+    assert.equal(loaded.documents[0].reviewStatus, 'pending');
+    assert.equal(loaded.documents[0].reviewNote, '');
+    assert.match(loaded.documents[0].id, /^[\w-]+$/);
     assert.deepEqual(loaded.statusHistory, sampleRecord().statusHistory.map((entry) => ({
       ...entry,
       changedByAccountId: null,

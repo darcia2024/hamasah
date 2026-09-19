@@ -219,6 +219,10 @@ async function refreshRegistrationStatus() {
   const saved = readRegistrationSession();
   if (!saved || !saved.registrationId || !saved.accessToken) return;
   registrationTracker.hidden = false;
+  const openFullTracker = document.querySelector('#open-full-tracker');
+  if (openFullTracker) {
+    openFullTracker.href = `cek-status.html?id=${encodeURIComponent(saved.registrationId)}&token=${encodeURIComponent(saved.accessToken)}`;
+  }
   registrationTrackerCopy.textContent = `Memeriksa status ${saved.registrationId}...`;
   try {
     const response = await fetch(`/api/registrations/${encodeURIComponent(saved.registrationId)}`, {

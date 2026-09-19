@@ -137,17 +137,42 @@ async function loadRegistrations() {
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Data pendaftar belum dapat dimuat.');
   renderRegistrations(result.items);
+  const badgeEl = document.querySelector('#badge-reg-count');
+  if (badgeEl) badgeEl.textContent = result.items.length;
   registrationListStatus.textContent = `${result.items.length} pendaftaran tersedia.`;
 }
 
-function showConsole(role) {
+function showConsole(account) {
+  const role = typeof account === 'string' ? account : account.role;
+  document.body.classList.add('in-crm');
   loginSection.hidden = true;
   consoleSection.hidden = false;
   logoutButton.hidden = false;
-  renderStaffNav(staffNav, role, 'staff');
+  renderStaffNav(staffNav, role, 'staff', typeof account === 'object' ? account : null);
   loadRegistrations().catch((error) => {
     registrationListStatus.textContent = error.message || 'Data pendaftar belum dapat dimuat.';
     registrationListStatus.classList.add('is-error');
+  });
+}
+
+// Sub-Tab Switcher
+const tabBtnRegs = document.querySelector('#tab-btn-registrations');
+const tabBtnArticle = document.querySelector('#tab-btn-article');
+const panelRegs = document.querySelector('#panel-registrations');
+const panelArticle = document.querySelector('#panel-article');
+
+if (tabBtnRegs && tabBtnArticle && panelRegs && panelArticle) {
+  tabBtnRegs.addEventListener('click', () => {
+    tabBtnRegs.classList.add('is-active');
+    tabBtnArticle.classList.remove('is-active');
+    panelRegs.hidden = false;
+    panelArticle.hidden = true;
+  });
+  tabBtnArticle.addEventListener('click', () => {
+    tabBtnArticle.classList.add('is-active');
+    tabBtnRegs.classList.remove('is-active');
+    panelArticle.hidden = false;
+    panelRegs.hidden = true;
   });
 }
 
@@ -164,7 +189,7 @@ loginForm.addEventListener('submit', async (event) => {
       throw new Error(result.error || 'Akun ini tidak memiliki akses petugas.');
     }
     sessionStorage.setItem('hamasahPortalSession', JSON.stringify({ accessToken: result.accessToken }));
-    showConsole(result.account.role);
+    showConsole(result.account);
   } catch (error) {
     loginStatus.textContent = error.message || 'Login belum berhasil.';
     loginStatus.classList.add('is-error');
@@ -212,13 +237,14 @@ logoutButton.addEventListener('click', async () => {
 // bukan sekadar percaya token ada, supaya konsisten dengan halaman staf lainnya.
 (async function initialize() {
   if (!getSession()) return;
+  document.body.classList.add('in-crm');
   try {
     const response = await fetch('/api/me', { headers: authHeaders() });
     const result = await response.json();
     if (!response.ok || !STAFF_ROLES.includes(result.account.role)) {
       throw new Error('Halaman ini hanya dapat dibuka oleh admin atau petugas pendaftaran.');
     }
-    showConsole(result.account.role);
+    showConsole(result.account);
   } catch (error) {
     clearSession();
   }

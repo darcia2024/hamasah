@@ -91,6 +91,16 @@ async function run() {
     assert.equal(tidakAda.status, 404);
     assert.equal(tidakAda.isi(), 'Halaman tidak ditemukan.');
 
+    // Berkas statis di folder website/ dapat diakses tanpa awalan /website/ (mis. /gaya.css saat membuka /)
+    const gayaRoot = await serve('/gaya.css');
+    assert.equal(gayaRoot.status, 200);
+    assert.equal(gayaRoot.headers['Content-Type'], 'text/css; charset=utf-8');
+
+    // /website dialihkan ke /website/
+    const redirectWebsite = await serve('/website');
+    assert.equal(redirectWebsite.status, 301);
+    assert.equal(redirectWebsite.headers.Location, '/website/');
+
     // Halaman sungguhan di repo tetap tersaji.
     const portal = await serve('/website/portal.html', path.resolve(__dirname, '..', '..'));
     assert.equal(portal.status, 200);

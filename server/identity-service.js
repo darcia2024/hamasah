@@ -43,6 +43,7 @@ function sessionTtlFor(role) {
   return SESSION_TTL_MS[role] || 12 * JAM;
 }
 const RESET_TTL_MS = 1000 * 60 * 30;
+const INVITATION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -110,6 +111,14 @@ function createMemoryAccountStore() {
     },
     getById(id) {
       const account = accounts.get(id);
+      return account ? clone(account) : null;
+    },
+    getByInvitationTokenHash(tokenHash) {
+      const account = [...accounts.values()].find((entry) => entry.invitationTokenHash === tokenHash);
+      return account ? clone(account) : null;
+    },
+    getByResetTokenHash(tokenHash) {
+      const account = [...accounts.values()].find((entry) => entry.resetTokenHash === tokenHash);
       return account ? clone(account) : null;
     },
     list() {
@@ -206,7 +215,10 @@ function createIdentityService(options) {
       createdAt,
       updatedAt: createdAt,
       resetTokenHash: null,
-      resetExpiresAt: null
+      resetExpiresAt: null,
+      invitationTokenHash: null,
+      invitationExpiresAt: null,
+      invitedAt: null
     });
     return { ok: true, value: publicAccount(account) };
   }
@@ -325,12 +337,73 @@ function createIdentityService(options) {
       resetExpiresAt,
       updatedAt: now().toISOString()
     });
-    return { ok: true, value: { resetToken, resetExpiresAt } };
+    return { ok: true, value: { resetToken, resetExpiresAt, accountId: account.id, accountName: account.name } };
   }
 
-  async function resetPassword(emailInput, resetToken, nextPassword) {
+  // Akun undangan tidak dapat dipakai sebelum pemilik membuat kata sandinya.
+  // Token mentah hanya dikembalikan sekali ke route untuk dikirim lewat email.
+  async function inviteAccount(input) {
+    const source = input || {};
+    const email = normalizeEmail(source.email);
+    const name = String(source.name || '').trim();
+    const role = source.role;
+    if (!/^\S+@\S+\.\S+$/.test(email) || name.length < 2 || !ROLE_VALUES.includes(role)) {
+      return { ok: false, error: 'Data akun belum valid.' };
+    }
+    if (await accountStore.getByEmail(email)) {
+      return { ok: false, error: 'Email sudah digunakan.' };
+    }
+    const createdAt = now().toISOString();
+    const invitationToken = crypto.randomBytes(32).toString('base64url');
+    const invitationExpiresAt = new Date(now().getTime() + INVITATION_TTL_MS).toISOString();
+    const account = await accountStore.save({
+      id: crypto.randomUUID(), email, name, role, active: false,
+      passwordHash: await hashPassword(crypto.randomBytes(48).toString('base64url')),
+      resetTokenHash: null, resetExpiresAt: null,
+      invitationTokenHash: hashSecret(invitationToken), invitationExpiresAt, invitedAt: createdAt,
+      createdAt, updatedAt: createdAt
+    });
+    return { ok: true, value: { account: publicAccount(account), invitationToken, invitationExpiresAt } };
+  }
+
+  async function renewInvitation(accountId) {
+    const account = await accountStore.getById(accountId);
+    if (!account || account.active) {
+      return { ok: false, error: 'Undangan akun tidak dapat diperbarui.' };
+    }
+    const invitationToken = crypto.randomBytes(32).toString('base64url');
+    const invitationExpiresAt = new Date(now().getTime() + INVITATION_TTL_MS).toISOString();
+    const updated = await accountStore.save({
+      ...account,
+      invitationTokenHash: hashSecret(invitationToken), invitationExpiresAt,
+      invitedAt: now().toISOString(), updatedAt: now().toISOString()
+    });
+    return { ok: true, value: { account: publicAccount(updated), invitationToken, invitationExpiresAt } };
+  }
+
+  async function acceptInvitation(invitationToken, nextPassword) {
     const passwordError = validatePassword(nextPassword);
-    const account = await accountStore.getByEmail(normalizeEmail(emailInput));
+    const account = typeof accountStore.getByInvitationTokenHash === 'function'
+      ? await accountStore.getByInvitationTokenHash(hashSecret(invitationToken || ''))
+      : null;
+    if (!account || account.active || passwordError || !account.invitationTokenHash ||
+      new Date(account.invitationExpiresAt).getTime() <= now().getTime() ||
+      !safeEqual(hashSecret(invitationToken || ''), account.invitationTokenHash)) {
+      return { ok: false, error: passwordError || 'Undangan tidak berlaku.' };
+    }
+    const updatedAt = now().toISOString();
+    await accountStore.save({
+      ...account, active: true, passwordHash: await hashPassword(nextPassword),
+      invitationTokenHash: null, invitationExpiresAt: null, updatedAt
+    });
+    return { ok: true };
+  }
+
+  async function resetPassword(resetToken, nextPassword) {
+    const passwordError = validatePassword(nextPassword);
+    const account = typeof accountStore.getByResetTokenHash === 'function'
+      ? await accountStore.getByResetTokenHash(hashSecret(resetToken || ''))
+      : null;
     if (!account || passwordError || !account.resetTokenHash || new Date(account.resetExpiresAt).getTime() <= now().getTime() || !safeEqual(hashSecret(resetToken || ''), account.resetTokenHash)) {
       return { ok: false, error: passwordError || 'Token reset tidak berlaku.' };
     }
@@ -347,8 +420,10 @@ function createIdentityService(options) {
 
   return Object.freeze({
     authenticate,
+    acceptInvitation,
     createAccount,
     createMemoryAccountStore,
+    inviteAccount,
     issuePasswordReset,
     listAccounts,
     login,
@@ -357,6 +432,7 @@ function createIdentityService(options) {
     publicAccount,
     purgeExpiredSessions,
     resetPassword,
+    renewInvitation,
     setAccountActive
   });
 }
@@ -364,6 +440,7 @@ function createIdentityService(options) {
 module.exports = {
   ROLES,
   SESSION_TTL_MS,
+  INVITATION_TTL_MS,
   SLIDING_ROLES,
   TOUCH_INTERVAL_MS,
   sessionTtlFor,

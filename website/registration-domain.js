@@ -16,6 +16,7 @@
     MAHAD: 'mahad-al-azhar',
     COURSES: 'hamasah-courses'
   });
+  const GENDERS = Object.freeze(['putra', 'putri']);
 
   const ROLES = Object.freeze({
     APPLICANT: 'applicant',
@@ -84,6 +85,20 @@
     return /^\+?[1-9]\d{7,14}$/.test(value);
   }
 
+  function normalizeEmail(value) {
+    return cleanString(value).toLocaleLowerCase('en-US');
+  }
+
+  function isIsoDate(value) {
+    return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T00:00:00Z`).getTime());
+  }
+
+  function isAdult(birthDate, today = new Date()) {
+    const date = new Date(`${birthDate}T00:00:00Z`);
+    const threshold = new Date(Date.UTC(today.getUTCFullYear() - 18, today.getUTCMonth(), today.getUTCDate()));
+    return date <= threshold;
+  }
+
   function normalizeApplicant(input) {
     const raw = input || {};
     return {
@@ -91,6 +106,15 @@
       phone: normalizePhone(raw.phone),
       guardianName: cleanString(raw.guardianName),
       guardianPhone: normalizePhone(raw.guardianPhone),
+      guardianEmail: normalizeEmail(raw.guardianEmail),
+      guardianConsent: raw.guardianConsent === true,
+      email: normalizeEmail(raw.email),
+      birthDate: cleanString(raw.birthDate),
+      gender: cleanString(raw.gender),
+      schoolOrigin: cleanString(raw.schoolOrigin),
+      programDetails: raw.programDetails && typeof raw.programDetails === 'object' && !Array.isArray(raw.programDetails) ? raw.programDetails : {},
+      referralSource: cleanString(raw.referralSource),
+      privacyPolicyVersion: cleanString(raw.privacyPolicyVersion) || 'v1',
       program: cleanString(raw.program),
       educationLevel: cleanString(raw.educationLevel),
       city: cleanString(raw.city),
@@ -122,6 +146,21 @@
     }
     if (!applicant.consent) {
       errors.consent = 'Persetujuan diperlukan sebelum data pendaftaran dikirim.';
+    }
+    // Field v2 bersifat opt-in sementara formulir publik lama masih aktif. Jika
+    // salah satunya dikirim, seluruh identitas inti v2 wajib lengkap.
+    const memakaiProfilV2 = Boolean(applicant.email || applicant.birthDate || applicant.gender || applicant.guardianEmail);
+    if (memakaiProfilV2) {
+      if (!/^\S+@\S+\.\S+$/.test(applicant.email)) errors.email = 'Email calon santri tidak valid.';
+      if (!isIsoDate(applicant.birthDate)) errors.birthDate = 'Tanggal lahir harus memakai format YYYY-MM-DD.';
+      if (!GENDERS.includes(applicant.gender)) errors.gender = 'Jenis kelamin belum valid.';
+      if (!applicant.schoolOrigin && applicant.program !== PROGRAMS.COURSES) errors.schoolOrigin = 'Sekolah asal perlu diisi.';
+      if (isIsoDate(applicant.birthDate) && !isAdult(applicant.birthDate)) {
+        if (applicant.guardianName.length < 3) errors.guardianName = 'Nama wali diperlukan untuk calon di bawah 18 tahun.';
+        if (!isPhoneValid(applicant.guardianPhone)) errors.guardianPhone = 'Nomor WhatsApp wali diperlukan untuk calon di bawah 18 tahun.';
+        if (!/^\S+@\S+\.\S+$/.test(applicant.guardianEmail)) errors.guardianEmail = 'Email wali diperlukan untuk calon di bawah 18 tahun.';
+        if (!applicant.guardianConsent) errors.guardianConsent = 'Persetujuan wali diperlukan untuk calon di bawah 18 tahun.';
+      }
     }
 
     return {
@@ -231,6 +270,7 @@
 
   return Object.freeze({
     PROGRAMS,
+    GENDERS,
     REGISTRATION_TIME_ZONE,
     ROLES,
     STATUSES,
@@ -238,6 +278,8 @@
     PROGRESS,
     yearInTimeZone,
     normalizePhone,
+    normalizeEmail,
+    isAdult,
     normalizeApplicant,
     validateApplicant,
     formatRegistrationId,
