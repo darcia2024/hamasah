@@ -48,6 +48,10 @@ const ACTIONS = Object.freeze({
   FILE_DOWNLOADED: 'file.downloaded',
   INVOICE_CREATED: 'invoice.created',
   INVOICE_PAID: 'invoice.paid'
+  ,INVOICE_CORRECTED: 'invoice.corrected'
+  ,INVOICE_VOIDED: 'invoice.voided'
+  ,INVENTORY_MOVED: 'inventory.moved'
+  ,VISA_DOCUMENT_ADDED: 'visa.document-added'
 });
 
 const ACTION_VALUES = Object.freeze(Object.values(ACTIONS));

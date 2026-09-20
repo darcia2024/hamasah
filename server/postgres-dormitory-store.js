@@ -14,12 +14,13 @@ function toDormitory(row) {
     name: row.name,
     area: row.area,
     gender: row.gender,
+    capacity: Number(row.capacity || 0),
     createdAt: toIso(row.created_at),
     updatedAt: toIso(row.updated_at)
   };
 }
 
-const SELECT_DORMITORY = 'SELECT id, name, area, gender, created_at, updated_at FROM dormitories';
+const SELECT_DORMITORY = 'SELECT id, name, area, gender, capacity, created_at, updated_at FROM dormitories';
 
 function createPostgresDormitoryStore({ database } = {}) {
   if (!database) {
@@ -39,10 +40,10 @@ function createPostgresDormitoryStore({ database } = {}) {
 
     async createDormitory(dormitory) {
       const { rows } = await database.query(
-        `INSERT INTO dormitories (id, name, area, gender, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $5)
-         RETURNING id, name, area, gender, created_at, updated_at`,
-        [dormitory.id || crypto.randomUUID(), dormitory.name, dormitory.area, dormitory.gender, dormitory.createdAt]
+        `INSERT INTO dormitories (id, name, area, gender, capacity, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $6)
+         RETURNING id, name, area, gender, capacity, created_at, updated_at`,
+        [dormitory.id || crypto.randomUUID(), dormitory.name, dormitory.area, dormitory.gender, dormitory.capacity || 0, dormitory.createdAt]
       );
       return toDormitory(rows[0]);
     },

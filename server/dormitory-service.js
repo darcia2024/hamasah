@@ -21,7 +21,7 @@ function createMemoryDormitoryStore() {
       return dormitories.has(id) ? { ...dormitories.get(id) } : null;
     },
     async createDormitory(dormitory) {
-      const tersimpan = { ...dormitory, id: dormitory.id || crypto.randomUUID(), updatedAt: dormitory.createdAt };
+      const tersimpan = { ...dormitory, capacity: dormitory.capacity || 0, id: dormitory.id || crypto.randomUUID(), updatedAt: dormitory.createdAt };
       dormitories.set(tersimpan.id, tersimpan);
       return { ...tersimpan };
     },
@@ -76,7 +76,8 @@ function createDormitoryService(options) {
     const name = clean(source.name);
     const area = clean(source.area);
     const gender = clean(source.gender);
-    if (name.length < 2 || area.length < 2 || !GENDERS.includes(gender)) {
+    const capacity = Number(source.capacity || 0);
+    if (name.length < 2 || area.length < 2 || !GENDERS.includes(gender) || !Number.isInteger(capacity) || capacity < 0) {
       return { ok: false, error: 'Nama, wilayah, dan jenis asrama belum lengkap atau belum valid.' };
     }
     const sudahAda = (await store.listDormitories())
@@ -84,7 +85,7 @@ function createDormitoryService(options) {
     if (sudahAda) {
       return { ok: false, error: 'Nama asrama sudah dipakai.' };
     }
-    return { ok: true, value: await store.createDormitory({ id: crypto.randomUUID(), name, area, gender, createdAt: now() }) };
+    return { ok: true, value: await store.createDormitory({ id: crypto.randomUUID(), name, area, gender, capacity, createdAt: now() }) };
   }
 
   async function assign(dormitoryId, accountId, actor) {

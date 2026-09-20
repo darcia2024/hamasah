@@ -114,7 +114,7 @@ async function testChangedChecksum() {
 async function testMissingTable() {
   await withDatabase(async (database) => {
     await runMigrate(database);
-    await database.exec('DROP TABLE inventory_items;');
+    await database.exec('DROP TABLE inventory_items CASCADE;');
     await assert.rejects(verify(database), /belum lengkap: inventory_items/);
   });
 }

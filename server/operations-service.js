@@ -19,7 +19,7 @@ function documentNumber(prefix, sequence, year) {
 
 // Antarmuka store operasional sama persis dengan postgres-operations-store.js.
 function createMemoryOperationsStore() {
-  const database = { invoices: {}, inventory: {}, visas: {}, counters: {} };
+  const database = { invoices: {}, inventory: {}, visas: {}, visaDocuments: {}, visaHistory: {}, inventoryMovements: {}, corrections: {}, counters: {} };
   async function nextSequence(scope, year) {
     const key = `${scope}:${year}`;
     const next = (database.counters[key] || 0) + 1;
@@ -30,7 +30,21 @@ function createMemoryOperationsStore() {
     nextSequence,
     async getInvoice(id) { return database.invoices[id] ? clone(database.invoices[id]) : null; },
     async listInvoices() { return Object.values(database.invoices).map(clone); },
-    async saveInvoice(value) { database.invoices[value.id] = clone(value); return clone(value); },
+    async saveInvoice(value) { database.invoices[value.id] = { version: 1, ...clone(value) }; return clone(database.invoices[value.id]); },
+    async correctInvoice(id, correction) {
+      const invoice = database.invoices[id];
+      if (!invoice || invoice.status !== 'unpaid') return null;
+      const previous = clone(invoice);
+      database.invoices[id] = { ...invoice, description: correction.description, amount: correction.amount, version: (invoice.version || 1) + 1 };
+      database.corrections[correction.id] = { ...correction, invoiceId: id, previousDescription: previous.description, previousAmount: previous.amount };
+      return clone(database.invoices[id]);
+    },
+    async voidInvoice(id, value) {
+      const invoice = database.invoices[id];
+      if (!invoice || invoice.status !== 'unpaid') return null;
+      database.invoices[id] = { ...invoice, status: 'voided', voidedAt: value.voidedAt, voidReason: value.reason, version: (invoice.version || 1) + 1 };
+      return clone(database.invoices[id]);
+    },
     async markInvoicePaid(id, payment) {
       const invoice = database.invoices[id];
       if (!invoice || invoice.status !== 'unpaid') return null;
@@ -44,9 +58,20 @@ function createMemoryOperationsStore() {
     },
     async getVisa(studentId) { return database.visas[studentId] ? clone(database.visas[studentId]) : null; },
     async listVisas() { return Object.values(database.visas).map(clone); },
-    async saveVisa(value) { database.visas[value.studentId] = clone(value); return clone(value); },
+    async saveVisa(value) { database.visas[value.studentId] = clone(value); (database.visaHistory[value.studentId] ||= []).push(clone(value)); return clone(value); },
+    async saveVisaDocument(value) { database.visaDocuments[value.id] = clone(value); return clone(value); },
+    async listVisaDocuments(studentId) { return Object.values(database.visaDocuments).filter((item) => !studentId || item.studentId === studentId).map(clone); },
+    async listVisaHistory(studentId) { return (database.visaHistory[studentId] || []).map(clone).reverse(); },
     async listInventory() { return Object.values(database.inventory).map(clone); },
-    async saveInventory(value) { database.inventory[value.id] = clone(value); return clone(value); }
+    async saveInventory(value) { database.inventory[value.id] = { version: 1, ...clone(value) }; return clone(database.inventory[value.id]); },
+    async applyInventoryMovement(id, movement) {
+      const item = database.inventory[id]; if (!item) return null;
+      const delta = movement.direction === 'in' ? movement.quantity : movement.direction === 'out' ? -movement.quantity : movement.delta;
+      const quantity = item.quantity + delta; if (quantity < 0) return { error: 'Stok tidak boleh negatif.' };
+      database.inventory[id] = { ...item, quantity, version: (item.version || 1) + 1, updatedAt: movement.createdAt };
+      database.inventoryMovements[movement.id] = { ...movement, inventoryItemId: id, delta };
+      return { item: clone(database.inventory[id]), movement: clone(database.inventoryMovements[movement.id]) };
+    }
   };
 }
 
@@ -113,6 +138,27 @@ function createOperationsService(options) {
     return { ok: true, value: paid };
   }
 
+  async function correctInvoice(invoiceId, input, actor) {
+    if (!adminOnly(actor)) return { ok: false, error: 'Akses admin diperlukan.' };
+    const source = input || {};
+    const description = clean(source.description);
+    const amount = Number(source.amount);
+    const reason = clean(source.reason);
+    if (description.length < 3 || !Number.isInteger(amount) || amount <= 0 || amount > MAX_INVOICE_AMOUNT || reason.length < 5) {
+      return { ok: false, error: 'Koreksi invoice belum valid.' };
+    }
+    const updated = await store.correctInvoice(invoiceId, { id: crypto.randomUUID(), description, amount, reason, actorAccountId: actor.id || null, createdAt: now() });
+    return updated ? { ok: true, value: updated } : { ok: false, error: 'Invoice tidak ditemukan atau sudah tidak dapat dikoreksi.' };
+  }
+
+  async function voidInvoice(invoiceId, input, actor) {
+    if (!adminOnly(actor)) return { ok: false, error: 'Akses admin diperlukan.' };
+    const reason = clean(input && input.reason);
+    if (reason.length < 5) return { ok: false, error: 'Alasan pembatalan wajib diisi.' };
+    const updated = await store.voidInvoice(invoiceId, { reason, voidedAt: now(), actorAccountId: actor.id || null });
+    return updated ? { ok: true, value: updated } : { ok: false, error: 'Invoice tidak ditemukan atau sudah tidak dapat dibatalkan.' };
+  }
+
   async function saveVisa(input, actor) {
     if (!adminOnly(actor)) return { ok: false, error: 'Akses admin diperlukan.' };
     const source = input || {};
@@ -127,9 +173,22 @@ function createOperationsService(options) {
       passportExpiresAt: clean(source.passportExpiresAt) || null,
       visaExpiresAt: clean(source.visaExpiresAt) || null,
       note: clean(source.note),
+      actorAccountId: actor.id || null,
       updatedAt: now()
     });
     return { ok: true, value: saved };
+  }
+
+  async function saveVisaDocument(input, actor) {
+    if (!adminOnly(actor)) return { ok: false, error: 'Akses admin diperlukan.' };
+    const source = input || {};
+    const studentId = clean(source.studentId);
+    const documentType = clean(source.documentType);
+    if (!(await studentExists(studentId)) || !['passport', 'visa', 'residence', 'other'].includes(documentType) || !clean(source.fileObjectId)) {
+      return { ok: false, error: 'Dokumen visa belum valid.' };
+    }
+    const value = { id: crypto.randomUUID(), studentId, fileObjectId: clean(source.fileObjectId), documentType, expiresAt: clean(source.expiresAt) || null, note: clean(source.note), uploadedAt: now() };
+    return { ok: true, value: await store.saveVisaDocument(value) };
   }
 
   async function saveInventory(input, actor) {
@@ -151,6 +210,23 @@ function createOperationsService(options) {
     return { ok: true, value: saved };
   }
 
+  async function moveInventory(itemId, input, actor) {
+    if (!adminOnly(actor)) return { ok: false, error: 'Akses admin diperlukan.' };
+    const source = input || {};
+    const direction = clean(source.direction);
+    const quantity = Number(source.quantity);
+    const reason = clean(source.reason);
+    if (!['in', 'out', 'correction'].includes(direction) || !Number.isInteger(quantity) || quantity <= 0 || reason.length < 3) {
+      return { ok: false, error: 'Mutasi inventaris belum valid.' };
+    }
+    const delta = direction === 'in' ? quantity : direction === 'out' ? -quantity : Number(source.delta);
+    if (direction === 'correction' && (!Number.isInteger(delta) || delta === 0)) return { ok: false, error: 'Koreksi stok harus memiliki delta.' };
+    const result = await store.applyInventoryMovement(itemId, { id: crypto.randomUUID(), direction, quantity, delta, reason, actorAccountId: actor.id || null, createdAt: now() });
+    if (!result) return { ok: false, error: 'Barang inventaris tidak ditemukan.' };
+    if (result.error) return { ok: false, error: result.error };
+    return { ok: true, value: result };
+  }
+
   async function list() {
     const [invoices, visas, inventory] = await Promise.all([store.listInvoices(), store.listVisas(), store.listInventory()]);
     return {
@@ -160,7 +236,7 @@ function createOperationsService(options) {
     };
   }
 
-  return Object.freeze({ createInvoice, createMemoryOperationsStore, list, markInvoicePaid, saveInventory, saveVisa });
+  return Object.freeze({ createInvoice, createMemoryOperationsStore, correctInvoice, list, markInvoicePaid, moveInventory, saveInventory, saveVisa, saveVisaDocument, voidInvoice });
 }
 
 module.exports = { MAX_INVOICE_AMOUNT, VISA_STATUSES, createMemoryOperationsStore, createOperationsService, documentNumber, yearInJakarta };

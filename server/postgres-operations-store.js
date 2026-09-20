@@ -22,6 +22,7 @@ function toInvoice(row) {
     issuedAt: toIso(row.issued_at),
     paidAt: toIso(row.paid_at),
     receiptNumber: row.receipt_number || null
+    ,version: Number(row.version || 1), voidedAt: toIso(row.voided_at), voidReason: row.void_reason || null
   };
 }
 
@@ -47,7 +48,7 @@ function toInventory(row) {
   };
 }
 
-const SELECT_INVOICE = `SELECT id, invoice_number, receipt_number, student_id, description, amount_rupiah, status, issued_at, paid_at
+const SELECT_INVOICE = `SELECT id, invoice_number, receipt_number, student_id, description, amount_rupiah, status, issued_at, paid_at, version, voided_at, void_reason
                           FROM invoices`;
 const SELECT_VISA = `SELECT student_id, status, passport_expires_at::text AS passport_expires_at,
                             visa_expires_at::text AS visa_expires_at, note, updated_at
@@ -76,9 +77,9 @@ function createPostgresOperationsStore({ database } = {}) {
 
     async saveInvoice(invoice) {
       const { rows } = await database.query(
-        `INSERT INTO invoices (id, invoice_number, receipt_number, student_id, description, amount_rupiah, status, issued_at, paid_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-         RETURNING id, invoice_number, receipt_number, student_id, description, amount_rupiah, status, issued_at, paid_at`,
+        `INSERT INTO invoices (id, invoice_number, receipt_number, student_id, description, amount_rupiah, status, issued_at, paid_at, version)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 1)
+         RETURNING id, invoice_number, receipt_number, student_id, description, amount_rupiah, status, issued_at, paid_at, version, voided_at, void_reason`,
         [
           invoice.id,
           invoice.number,
@@ -92,6 +93,33 @@ function createPostgresOperationsStore({ database } = {}) {
         ]
       );
       return toInvoice(rows[0]);
+    },
+
+    async correctInvoice(invoiceId, correction) {
+      return database.withTransaction(async (tx) => {
+        const { rows } = await tx.query('SELECT description, amount_rupiah, status, version FROM invoices WHERE id = $1 FOR UPDATE', [invoiceId]);
+        const invoice = rows[0];
+        if (!invoice || invoice.status !== 'unpaid') return null;
+        await tx.query(
+          `INSERT INTO invoice_corrections (id, invoice_id, actor_account_id, reason, previous_description, previous_amount_rupiah, corrected_description, corrected_amount_rupiah, created_at)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+          [correction.id, invoiceId, correction.actorAccountId || null, correction.reason, invoice.description, invoice.amount_rupiah, correction.description, correction.amount, correction.createdAt]
+        );
+        const updated = await tx.query(`${SELECT_INVOICE} WHERE id = $1`, [invoiceId]);
+        await tx.query('UPDATE invoices SET description = $2, amount_rupiah = $3, version = version + 1 WHERE id = $1', [invoiceId, correction.description, correction.amount]);
+        const { rows: after } = await tx.query(`${SELECT_INVOICE} WHERE id = $1`, [invoiceId]);
+        return toInvoice(after[0]);
+      });
+    },
+
+    async voidInvoice(invoiceId, value) {
+      const { rows } = await database.query(
+        `UPDATE invoices SET status = 'voided', voided_at = $2, void_reason = $3, version = version + 1
+           WHERE id = $1 AND status = 'unpaid'
+         RETURNING id, invoice_number, receipt_number, student_id, description, amount_rupiah, status, issued_at, paid_at, version, voided_at, void_reason`,
+        [invoiceId, value.voidedAt, value.reason]
+      );
+      return rows[0] ? toInvoice(rows[0]) : null;
     },
 
     // Nomor kuitansi diambil di dalam transaksi yang sama dengan perubahan status.
@@ -110,8 +138,8 @@ function createPostgresOperationsStore({ database } = {}) {
         }
         const sequence = await nextSequence(tx, 'receipt', payment.year);
         const { rows } = await tx.query(
-          `UPDATE invoices SET receipt_number = $2 WHERE id = $1
-           RETURNING id, invoice_number, receipt_number, student_id, description, amount_rupiah, status, issued_at, paid_at`,
+        `UPDATE invoices SET receipt_number = $2 WHERE id = $1
+           RETURNING id, invoice_number, receipt_number, student_id, description, amount_rupiah, status, issued_at, paid_at, version, voided_at, void_reason`,
           [invoiceId, payment.receiptNumberFor(sequence)]
         );
         return toInvoice(rows[0]);
@@ -129,7 +157,8 @@ function createPostgresOperationsStore({ database } = {}) {
     },
 
     async saveVisa(visa) {
-      const { rows } = await database.query(
+      return database.withTransaction(async (tx) => {
+      const { rows } = await tx.query(
         `INSERT INTO visa_tracking (student_id, status, passport_expires_at, visa_expires_at, note, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6)
          ON CONFLICT (student_id) DO UPDATE
@@ -142,7 +171,24 @@ function createPostgresOperationsStore({ database } = {}) {
                    visa_expires_at::text AS visa_expires_at, note, updated_at`,
         [visa.studentId, visa.status, visa.passportExpiresAt || null, visa.visaExpiresAt || null, visa.note || null, visa.updatedAt]
       );
+      await tx.query(
+        `INSERT INTO visa_status_history (id, student_id, status, note, actor_account_id, changed_at)
+         VALUES ($1,$2,$3,$4,$5,$6)`,
+        [require('node:crypto').randomUUID(), visa.studentId, visa.status, visa.note || null, visa.actorAccountId || null, visa.updatedAt]
+      );
       return toVisa(rows[0]);
+      });
+    },
+
+    async saveVisaDocument(document) {
+      const { rows } = await database.query(
+        `INSERT INTO visa_documents (id, student_id, file_object_id, document_type, expires_at, note, uploaded_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7)
+         RETURNING id, student_id, file_object_id, document_type, expires_at::text AS expires_at, note, uploaded_at`,
+        [document.id, document.studentId, document.fileObjectId, document.documentType, document.expiresAt || null, document.note || null, document.uploadedAt]
+      );
+      const row = rows[0];
+      return { id: row.id, studentId: row.student_id, fileObjectId: row.file_object_id, documentType: row.document_type, expiresAt: row.expires_at || null, note: row.note || '', uploadedAt: toIso(row.uploaded_at) };
     },
 
     async listInventory() {
@@ -159,10 +205,22 @@ function createPostgresOperationsStore({ database } = {}) {
                location = EXCLUDED.location,
                quantity = EXCLUDED.quantity,
                updated_at = EXCLUDED.updated_at
-         RETURNING id, name, location, quantity, updated_at`,
+         RETURNING id, name, location, quantity, updated_at, version`,
         [item.id, item.name, item.location, item.quantity, item.updatedAt]
       );
       return toInventory(rows[0]);
+    },
+
+    async applyInventoryMovement(itemId, movement) {
+      return database.withTransaction(async (tx) => {
+        const { rows } = await tx.query('SELECT id, name, location, quantity, updated_at, version FROM inventory_items WHERE id = $1 FOR UPDATE', [itemId]);
+        const item = rows[0]; if (!item) return null;
+        const delta = movement.direction === 'in' ? movement.quantity : movement.direction === 'out' ? -movement.quantity : movement.delta;
+        const next = Number(item.quantity) + delta; if (next < 0) return { error: 'Stok tidak boleh negatif.' };
+        await tx.query('UPDATE inventory_items SET quantity = $2, version = version + 1, updated_at = $3 WHERE id = $1', [itemId, next, movement.createdAt]);
+        await tx.query('INSERT INTO inventory_movements (id, inventory_item_id, direction, quantity, reason, actor_account_id, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)', [movement.id, itemId, movement.direction, movement.quantity, movement.reason, movement.actorAccountId || null, movement.createdAt]);
+        return { item: toInventory({ ...item, quantity: next, updated_at: movement.createdAt, version: Number(item.version || 1) + 1 }), movement: { ...movement, inventoryItemId: itemId, delta } };
+      });
     }
   };
 }

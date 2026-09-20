@@ -44,6 +44,9 @@ function createMemoryStudentStore() {
     async saveStudent(student) {
       database.students[student.id] = clone(student);
       return clone(student);
+    },
+    async countInDormitory(dormitoryId) {
+      return Object.values(database.students).filter((student) => student.dormitoryId === dormitoryId).length;
     }
   };
 }
@@ -57,6 +60,7 @@ function createStudentPortalService(options) {
   const supervisorDormitories = config.supervisorDormitories || async function belumDitugaskan() { return []; };
   // Dipakai untuk memeriksa asrama tujuan saat menempatkan santri.
   const getDormitory = config.getDormitory || async function tanpaAsrama() { return null; };
+  const countInDormitory = config.countInDormitory || (async function tanpaHitungan() { return 0; });
 
   function assertStaff(actor) {
     return actor && STAFF_ROLES.includes(actor.role);
@@ -251,6 +255,9 @@ function createStudentPortalService(options) {
       // Santri putri tidak boleh ditempatkan di asrama putra, dan sebaliknya.
       if (gender && asrama.gender !== gender) {
         return { ok: false, error: 'Jenis santri tidak sesuai dengan jenis asrama.' };
+      }
+      if (asrama.capacity > 0 && dormitoryId !== student.dormitoryId && (await countInDormitory(dormitoryId)) >= asrama.capacity) {
+        return { ok: false, error: 'Kapasitas asrama sudah penuh.' };
       }
     }
 

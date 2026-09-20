@@ -25,6 +25,7 @@ async function run() {
 
   const paid = await service.markInvoicePaid(invoice.value.id, admin);
   assert.equal(paid.value.receiptNumber, 'KWT/HI/2026/00001');
+  assert.equal((await service.correctInvoice(invoice.value.id, { description: 'Koreksi', amount: 1_500_000, reason: 'Sudah dibayar' }, admin)).ok, false, 'Invoice lunas tidak boleh diubah tanpa nota pembatalan.');
 
   // Dua permintaan pelunasan bersamaan hanya menghasilkan satu nomor kuitansi.
   const bersamaan = await Promise.all([
@@ -36,10 +37,20 @@ async function run() {
 
   assert.equal((await service.saveVisa({ studentId: 'student-1', status: 'collecting-documents', note: 'Paspor diperiksa' }, admin)).ok, true);
   assert.equal((await service.saveVisa({ studentId: 'santri-fiktif', status: 'collecting-documents' }, admin)).ok, false);
-  assert.equal((await service.saveInventory({ name: 'Kasur asrama', location: 'Hay Asyir', quantity: 20 }, admin)).ok, true);
+  const inventarisAwal = await service.saveInventory({ name: 'Kasur asrama', location: 'Hay Asyir', quantity: 20 }, admin);
+  assert.equal(inventarisAwal.ok, true);
+  assert.equal((await service.moveInventory(inventarisAwal.value.id, { direction: 'out', quantity: 21, reason: 'Distribusi kamar' }, admin)).ok, false, 'Stok tidak boleh negatif.');
+  const mutasi = await service.moveInventory(inventarisAwal.value.id, { direction: 'out', quantity: 2, reason: 'Distribusi kamar' }, admin);
+  assert.equal(mutasi.ok, true);
+  assert.equal(mutasi.value.item.quantity, 18);
+  assert.equal((await service.saveVisaDocument({ studentId: 'student-1', documentType: 'passport', fileObjectId: 'file-1', expiresAt: '2028-01-01' }, admin)).ok, true);
+  const ketiga = await service.createInvoice({ studentId: 'student-1', description: 'SPP November', amount: 1500000 }, admin);
+  const koreksi = await service.correctInvoice(ketiga.value.id, { description: 'SPP November dikoreksi', amount: 1600000, reason: 'Nominal sesuai surat keputusan' }, admin);
+  assert.equal(koreksi.ok, true);
+  assert.equal(koreksi.value.amount, 1600000);
 
   const daftar = await service.list();
-  assert.equal(daftar.invoices.length, 2);
+  assert.equal(daftar.invoices.length, 3);
   assert.equal(daftar.visas.length, 1);
   assert.equal(daftar.inventory.length, 1);
 

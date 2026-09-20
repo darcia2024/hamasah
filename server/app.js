@@ -139,7 +139,8 @@ function createHamasahApp(options) {
     store: studentStore,
     // Musyrif hanya melihat santri di asrama yang ditugaskan kepadanya.
     supervisorDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId),
-    getDormitory: (dormitoryId) => dormitoryStore.getDormitory(dormitoryId)
+    getDormitory: (dormitoryId) => dormitoryStore.getDormitory(dormitoryId),
+    countInDormitory: (dormitoryId) => studentStore.countInDormitory(dormitoryId)
   });
   const lmsStore = config.lmsStore || createPostgresLmsStore({ database });
   const lmsService = config.lmsService || createLmsService({

@@ -104,6 +104,11 @@ function createPostgresStudentStore({ database } = {}) {
       return rows.map(toStudent);
     },
 
+    async countInDormitory(dormitoryId) {
+      const { rows } = await database.query('SELECT count(*)::int AS total FROM students WHERE dormitory_id = $1', [dormitoryId]);
+      return rows[0] ? rows[0].total : 0;
+    },
+
     async saveStudent(student) {
       // Satu transaksi: data santri dan daftar wali harus berubah bersama.
       return database.withTransaction(async (tx) => {

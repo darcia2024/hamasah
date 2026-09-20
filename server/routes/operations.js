@@ -46,6 +46,28 @@ module.exports = [
   },
 
   {
+    method: 'PATCH',
+    pattern: /^\/api\/operations\/invoices\/([\w-]+)\/correction$/,
+    permission: 'finance.manage',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const result = await services.operationsService.correctInvoice(params[0], await readBody(), await auth.actor());
+      if (result.ok) await services.auditService.record({ action: ACTIONS.INVOICE_CORRECTED, actor: await auth.actor(), ip, entityType: 'invoice', entityId: result.value.id, metadata: { number: result.value.number, amount: result.value.amount } });
+      json(response, result.ok ? 200 : 422, result.ok ? { invoice: result.value } : publicError(result));
+    }
+  },
+
+  {
+    method: 'PATCH',
+    pattern: /^\/api\/operations\/invoices\/([\w-]+)\/void$/,
+    permission: 'finance.manage',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const result = await services.operationsService.voidInvoice(params[0], await readBody(), await auth.actor());
+      if (result.ok) await services.auditService.record({ action: ACTIONS.INVOICE_VOIDED, actor: await auth.actor(), ip, entityType: 'invoice', entityId: result.value.id, metadata: { number: result.value.number } });
+      json(response, result.ok ? 200 : 422, result.ok ? { invoice: result.value } : publicError(result));
+    }
+  },
+
+  {
     method: 'POST',
     pattern: /^\/api\/operations\/visas$/,
     permission: 'operations.manage',
@@ -57,11 +79,32 @@ module.exports = [
 
   {
     method: 'POST',
+    pattern: /^\/api\/operations\/visa-documents$/,
+    permission: 'operations.manage',
+    async handler({ response, services, auth, readBody, ip }) {
+      const result = await services.operationsService.saveVisaDocument(await readBody(), await auth.actor());
+      if (result.ok) await services.auditService.record({ action: ACTIONS.VISA_DOCUMENT_ADDED, actor: await auth.actor(), ip, entityType: 'visa-document', entityId: result.value.id, metadata: { studentId: result.value.studentId, documentType: result.value.documentType } });
+      json(response, result.ok ? 201 : 422, result.ok ? { document: result.value } : publicError(result));
+    }
+  },
+
+  {
+    method: 'POST',
     pattern: /^\/api\/operations\/inventory$/,
     permission: 'operations.manage',
     async handler({ response, services, auth, readBody }) {
       const saved = await services.operationsService.saveInventory(await readBody(), await auth.actor());
       json(response, saved.ok ? 201 : 422, saved.ok ? { item: saved.value } : publicError(saved));
+    }
+  }
+  ,{
+    method: 'POST',
+    pattern: /^\/api\/operations\/inventory\/([\w-]+)\/movements$/,
+    permission: 'operations.manage',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const result = await services.operationsService.moveInventory(params[0], await readBody(), await auth.actor());
+      if (result.ok) await services.auditService.record({ action: ACTIONS.INVENTORY_MOVED, actor: await auth.actor(), ip, entityType: 'inventory-item', entityId: params[0], metadata: { direction: result.value.movement.direction, quantity: result.value.movement.quantity } });
+      json(response, result.ok ? 201 : 422, result.ok ? result.value : publicError(result));
     }
   }
 ];
