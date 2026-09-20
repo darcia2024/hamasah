@@ -56,6 +56,8 @@ const ACTIONS = Object.freeze({
   ,OPERATION_IMPORT_COMMITTED: 'operation-import.committed'
   ,OPERATION_IMPORT_ROLLED_BACK: 'operation-import.rolled-back'
   ,STUDENT_RECORD_CORRECTED: 'student.record-corrected'
+  ,INQUIRY_RECEIVED: 'inquiry.received'
+  ,INQUIRY_STATUS_CHANGED: 'inquiry.status-changed'
 });
 
 const ACTION_VALUES = Object.freeze(Object.values(ACTIONS));

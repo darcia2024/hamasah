@@ -9,6 +9,7 @@ const { createPostgresRegistrationStore } = require('./postgres-registration-sto
 const { createPostgresApplicantSessionStore } = require('./postgres-applicant-session-store.js');
 const { createApplicantService } = require('./applicant-service.js');
 const { createPostgresArticleStore } = require('./postgres-article-store.js');
+const { createPostgresInquiryStore } = require('./postgres-inquiry-store.js');
 const identity = require('./identity-service.js');
 const { createPostgresAccountStore } = require('./postgres-account-store.js');
 const { createPostgresNotificationStore } = require('./postgres-notification-store.js');
@@ -55,6 +56,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/students.js'),
   ...require('./routes/lms.js'),
   ...require('./routes/articles.js'),
+  ...require('./routes/inquiries.js'),
   ...require('./routes/faq.js'),
   ...require('./routes/registrations.js')
 ]);
@@ -96,6 +98,7 @@ function createHamasahApp(options) {
   const applicantSessionStore = config.applicantSessionStore || createPostgresApplicantSessionStore({ database });
   const applicantService = config.applicantService || createApplicantService({ registrationStore, sessionStore: applicantSessionStore });
   const articleStore = config.articleStore || createPostgresArticleStore({ database });
+  const inquiryStore = config.inquiryStore || createPostgresInquiryStore({ database });
   const accountStore = config.accountStore || createPostgresAccountStore({ database });
   const sessionStore = config.sessionStore || createPostgresSessionStore({ database });
   const identityService = config.identityService || identity.createIdentityService({ accountStore, sessionStore });
@@ -210,6 +213,7 @@ function createHamasahApp(options) {
     accountStore,
     applicantService,
     articleStore,
+    inquiryStore,
     auditService,
     aiService,
     fileService,

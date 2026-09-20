@@ -14,7 +14,7 @@
   </head>
   <body class="staff-page">
     <!-- Header saat Belum Login -->
-    <header class="staff-header" id="public-header" style="max-width: 1200px; margin: 20px auto 36px;">
+    <header class="staff-header staff-header--shell" id="public-header">
       <a href="index.html" class="staff-brand">
         <svg class="brand-logo-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
         Hamasah <span>Pendaftaran</span>
@@ -27,19 +27,19 @@
     <!-- Kartu Login Terpusat M3 (Saat Belum Login) -->
     <section class="staff-login" id="staff-login" aria-labelledby="staff-login-title">
       <div class="staff-login__card">
-        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px;">
-          <img src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" width="44" height="44" style="object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 2px 8px rgba(217, 119, 6, 0.25));" />
+        <div class="staff-login__brand">
+          <img class="staff-login__brand-logo" src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" width="44" height="44" />
           <div>
-            <span class="eyebrow" style="margin: 0;">Konsol Pendaftaran</span>
-            <div style="font-size: 15px; font-weight: 800; color: #B45309;">Hamasah International</div>
+            <span class="eyebrow u-m-0">Konsol Pendaftaran</span>
+            <div class="staff-login__brand-name">Hamasah International</div>
           </div>
 
         </div>
-        <h1 id="staff-login-title" style="margin-bottom: 8px;">Masuk ke Konsol Pendaftaran</h1>
-        <p style="margin-top: 0; color: var(--md-sys-color-on-surface-variant, #4B4639); font-size: 13.5px; line-height: 1.55;">
+        <h1 class="u-mb-8" id="staff-login-title">Masuk ke Konsol Pendaftaran</h1>
+        <p class="staff-login__copy">
           Akses khusus verifikasi kelayakan calon santri, evaluasi berkas paspor/ijazah, dan penerbitan kabar resmi Pena Hamasah.
         </p>
-        <form id="staff-login-form" class="staff-form" style="margin-top: 20px;">
+        <form id="staff-login-form" class="staff-form u-mt-20">
           <div>
             <label for="staff-email">Alamat Email Petugas</label>
             <input id="staff-email" type="email" autocomplete="email" placeholder="petugas@hamasah.test" required />
@@ -48,7 +48,7 @@
             <label for="staff-password">Kata Sandi</label>
             <input id="staff-password" type="password" autocomplete="current-password" placeholder="••••••••••••" required />
           </div>
-          <button class="button button--primary" type="submit" style="width: 100%; justify-content: center; height: 46px;">
+          <button class="button button--primary staff-login__cta staff-login__cta--flush" type="submit">
             <span>Masuk ke Konsol</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </button>
@@ -84,7 +84,7 @@
 
         <div class="crm-nav-group-title">
           <span>CRM UTAMA</span>
-          <span class="crm-nav-group-caret">▲</span>
+          <span class="crm-nav-group-caret" aria-hidden="true"></span>
         </div>
         <nav class="crm-nav" id="staff-nav"></nav>
 
@@ -110,9 +110,9 @@
           </div>
           <div class="crm-topbar-actions">
             <span class="crm-role-chip" id="crm-header-role">Petugas Pendaftaran</span>
-            <button class="crm-topbar-action-btn" id="refresh-registrations" type="button">
+            <button class="crm-topbar-action-btn" id="refresh-registrations" type="button" aria-label="Segarkan daftar pendaftar">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l6.07-1.19"/></svg>
-              <span>Perbarui Data</span>
+              <span>Segarkan daftar</span>
             </button>
           </div>
         </header>
@@ -147,7 +147,7 @@
               <div>
                 <p class="crm-field-label">STATUS SELEKSI &amp; KUOTA</p>
                 <div class="crm-person-row">
-                  <div class="crm-person-avatar" style="background: #DCFCE7; color: #16A34A;">✓</div>
+                  <div class="crm-person-avatar crm-person-avatar--outline" aria-label="Terverifikasi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg></div>
                   <span class="crm-person-name">Pendaftaran Dibuka (Gelombang 2)</span>
                 </div>
               </div>
@@ -156,14 +156,14 @@
               <div>
                 <p class="crm-field-label">STATUS KELENGKAPAN BERKAS</p>
                 <div class="crm-balance-value">
-                  <span class="crm-bullet-blue" style="background: #16A34A;"></span>
-                  <span style="font-size: 15px; color: #16A34A;">Proses Verifikasi Aktif</span>
+                  <span class="crm-bullet-blue crm-status-dot--online"></span>
+                  <span class="crm-status-text--online">Proses Verifikasi Aktif</span>
                 </div>
               </div>
               <div>
                 <p class="crm-field-label">STANDAR DOKUMEN AL-AZHAR</p>
                 <div class="crm-field-value">
-                  <span style="color: #2563EB;">●</span>
+                  <span class="crm-outline-dot" aria-hidden="true"></span>
                   <span>Legalisasi Kemenlu &amp; Kedubes</span>
                 </div>
               </div>
@@ -190,6 +190,7 @@
             </button>
             <button type="button" class="crm-pill-btn" id="tab-btn-notifications"><span>Notifikasi Akun</span></button>
             <button type="button" class="crm-pill-btn" id="tab-btn-import"><span>Import Operasional</span></button>
+            <button type="button" class="crm-pill-btn" id="tab-btn-inquiries"><span>Pesan Konsultasi</span><span class="crm-pill-count" id="badge-inquiry-count">0</span></button>
           </div>
 
           <!-- Tab Panel 1: Registrations List -->
@@ -221,7 +222,7 @@
               </div>
             </div>
             <form id="article-form" class="staff-form staff-form--article">
-              <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+              <div class="form-grid-2-1 form-grid-2--gap16">
                 <div>
                   <label for="article-title">Judul Artikel</label>
                   <input id="article-title" type="text" placeholder="Contoh: Menyelami Tradisi Talaqqi di Masjid Al-Azhar" required />
@@ -238,28 +239,43 @@
               <div>
                 <label for="article-body">Isi Artikel Lengkap</label>
                 <textarea id="article-body" rows="8" placeholder="Tuliskan ulasan informatif dan terstruktur..." required></textarea>
-                <label for="article-cover-url">Cover media (URL HTTPS opsional)</label>
-                <input id="article-cover-url" type="url" inputmode="url" placeholder="https://..." pattern="https://.*" />
+                <div class="article-cover-fields">
+                  <div>
+                    <label for="article-cover-url">Cover media (URL HTTPS opsional)</label>
+                    <input id="article-cover-url" type="url" inputmode="url" placeholder="https://..." pattern="https://.*" maxlength="500" aria-describedby="article-cover-help article-cover-error" />
+                    <small id="article-cover-help" class="field-help">Upload lokal belum tersedia di backend. Gunakan URL HTTPS yang dapat diakses pembaca.</small>
+                  </div>
+                  <div>
+                    <label for="article-cover-alt">Alt text cover</label>
+                    <input id="article-cover-alt" type="text" maxlength="160" placeholder="Contoh: Santri Hamasah mengikuti talaqqi" aria-describedby="article-cover-error" />
+                  </div>
+                </div>
+                <p id="article-cover-error" class="field-error" role="alert"></p>
+                <div id="article-cover-preview" class="article-cover-preview" hidden aria-live="polite"></div>
               </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="form-grid-2 form-grid-2--gap16">
                 <div>
                   <label for="article-status">Status editorial</label>
-                  <select id="article-status"><option value="draft">Simpan sebagai draf</option><option value="published" selected>Terbitkan</option></select>
+                  <select id="article-status"><option value="draft" selected>Simpan sebagai draf</option><option value="published">Terbitkan</option></select>
                 </div>
                 <div>
                   <label for="article-slug">Slug artikel (opsional saat baru)</label>
                   <input id="article-slug" type="text" placeholder="dibuat otomatis dari judul" />
                 </div>
               </div>
-              <button class="button button--primary" type="submit" style="margin-top: 14px; height: 44px; width: 100%; justify-content: center;">
-                <span>Terbitkan Artikel Sekarang</span>
+              <div class="article-form-actions">
+                <button class="button button--secondary" id="article-preview" type="button">Pratinjau</button>
+                <button class="button button--primary" id="article-submit" type="submit">
+                <span>Simpan sebagai draf</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
-              </button>
+                </button>
+              </div>
               <p id="article-form-status" class="form-status" role="status" aria-live="polite"></p>
             </form>
-            <div class="crm-white-card-header" style="margin-top: 28px;"><div><h3>Daftar editorial</h3><p>Kelola draf, artikel terbit, dan arsip tanpa menghapus riwayat.</p></div><button type="button" class="button button--secondary" id="refresh-articles">Perbarui</button></div>
+            <div class="crm-white-card-header u-mt-28"><div><h3>Daftar editorial</h3><p>Kelola draf, artikel terbit, dan arsip tanpa menghapus riwayat.</p></div><button type="button" class="button button--secondary" id="refresh-articles">Perbarui</button></div>
             <p id="article-list-status" class="form-status" role="status" aria-live="polite"></p>
             <div id="article-manage-list" class="staff-registration-list"></div>
+            <div id="article-preview-panel" class="article-preview-panel" hidden aria-live="polite"></div>
           </div>
           <div id="panel-notifications" class="crm-white-card" hidden>
             <div class="crm-white-card-header">
@@ -268,6 +284,39 @@
             </div>
             <p id="notification-list-status" class="form-status" role="status" aria-live="polite"></p>
             <div id="notification-list" class="staff-registration-list"></div>
+          </div>
+
+          <div id="panel-inquiries" class="crm-white-card" hidden>
+            <div class="form-title-group">
+              <div>
+                <h2>Pesan Konsultasi Masuk</h2>
+                <p class="field-help">Pesan dari formulir konsultasi di halaman kontak publik. Tandai sudah dihubungi setelah menindaklanjuti.</p>
+              </div>
+            </div>
+
+            <div class="crm-toolbar">
+              <div class="crm-toolbar-filters">
+                <label class="field-help" for="inquiry-status-filter">Status</label>
+                <select id="inquiry-status-filter" aria-label="Filter status pesan konsultasi">
+                  <option value="new">Belum ditindaklanjuti</option>
+                  <option value="contacted">Sudah dihubungi</option>
+                  <option value="closed">Selesai</option>
+                  <option value="">Semua status</option>
+                </select>
+              </div>
+              <button type="button" class="button button--secondary control--h40" id="refresh-inquiries" aria-label="Segarkan daftar pesan konsultasi">
+                <span>Segarkan daftar</span>
+              </button>
+            </div>
+
+            <p id="inquiry-list-status" class="form-status" role="status" aria-live="polite"></p>
+            <div id="inquiry-list" class="crm-card-stack"></div>
+
+            <div class="registration-pagination" id="inquiry-pagination" hidden>
+              <button type="button" class="button button--text" id="inquiry-prev">Sebelumnya</button>
+              <span id="inquiry-page-label">Halaman 1</span>
+              <button type="button" class="button button--text" id="inquiry-next">Berikutnya</button>
+            </div>
           </div>
 
           <div id="panel-import" class="crm-white-card" hidden>
@@ -290,7 +339,7 @@
               <p id="operation-import-status" class="form-status" role="status" aria-live="polite"></p>
             </form>
             <section id="operation-import-result" class="operation-import-result" hidden aria-labelledby="operation-import-result-title"></section>
-            <div class="crm-white-card-header" style="margin-top: 28px;">
+            <div class="crm-white-card-header u-mt-28">
               <div><h3>Riwayat batch import</h3><p>Filter batch untuk melihat siapa yang membuat dan status akhirnya.</p></div>
               <button type="button" class="button button--secondary" id="refresh-operation-imports">Perbarui</button>
             </div>
@@ -303,6 +352,7 @@
       </div>
     </section>
 
+    <script src="internal-shell.js?v=1"></script>
     <script src="nav.js?v=3"></script>
     <script src="staff.js?v=8"></script>
   </body>

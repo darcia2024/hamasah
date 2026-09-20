@@ -11,6 +11,13 @@ const articleForm = document.querySelector('#article-form');
 const articleFormStatus = document.querySelector('#article-form-status');
 const articleStatus = document.querySelector('#article-status');
 const articleSlug = document.querySelector('#article-slug');
+const articleSubmit = document.querySelector('#article-submit');
+const articlePreviewButton = document.querySelector('#article-preview');
+const articlePreviewPanel = document.querySelector('#article-preview-panel');
+const articleCoverUrl = document.querySelector('#article-cover-url');
+const articleCoverAlt = document.querySelector('#article-cover-alt');
+const articleCoverError = document.querySelector('#article-cover-error');
+const articleCoverPreview = document.querySelector('#article-cover-preview');
 const articleManageList = document.querySelector('#article-manage-list');
 const articleListStatus = document.querySelector('#article-list-status');
 const refreshArticles = document.querySelector('#refresh-articles');
@@ -23,6 +30,12 @@ const registrationNext = document.querySelector('#registration-next');
 const registrationPageLabel = document.querySelector('#registration-page-label');
 let registrationPage = 1;
 
+const ARTICLE_STATUS_LABELS = Object.freeze({
+  draft: 'Draf',
+  published: 'Terbit',
+  archived: 'Diarsipkan'
+});
+
 async function loadArticles() {
   if (!articleManageList) return;
   articleListStatus.textContent = 'Memuat artikel...';
@@ -33,16 +46,35 @@ async function loadArticles() {
     if (!response.ok) throw new Error(result.error || 'Artikel belum dapat dimuat.');
     articleManageList.replaceChildren();
     if (!result.items.length) {
-      articleManageList.textContent = 'Belum ada artikel editorial.';
+      const empty = document.createElement('div');
+      empty.className = 'crm-empty-state';
+      empty.innerHTML = '<strong>Belum ada artikel editorial</strong><span>Simpan artikel pertama sebagai draf untuk mulai meninjau konten sebelum diterbitkan.</span>';
+      articleManageList.append(empty);
     }
     result.items.forEach((article) => {
       const row = document.createElement('article');
-      row.className = 'staff-registration notification-row';
+      row.className = 'staff-registration notification-row article-editorial-row article-status-' + article.status;
       const detail = document.createElement('div');
       detail.className = 'staff-registration__content';
       const title = document.createElement('strong'); title.textContent = article.title;
-      const meta = document.createElement('small'); meta.textContent = `${article.slug} · ${article.status} · ${article.category}`;
-      detail.append(title, meta);
+      const meta = document.createElement('small'); meta.textContent = (ARTICLE_STATUS_LABELS[article.status] || 'Status belum dikenali') + ' · ' + article.category;
+      const badge = document.createElement('span'); badge.className = 'article-status-badge article-status-badge--' + article.status; badge.textContent = ARTICLE_STATUS_LABELS[article.status] || 'Status belum dikenali';
+     detail.append(title, meta);
+     detail.prepend(badge);
+      if (article.coverUrl) {
+        const cover = document.createElement('img');
+        cover.className = 'article-editorial-cover';
+        cover.src = article.coverUrl;
+        cover.alt = article.coverAltText || '';
+        cover.loading = 'lazy';
+        cover.addEventListener('error', () => {
+          const failed = document.createElement('span');
+          failed.className = 'article-cover-failed';
+          failed.textContent = 'Cover tidak tersedia';
+          cover.replaceWith(failed);
+        }, { once: true });
+        detail.append(cover);
+      }
       const actions = document.createElement('div'); actions.className = 'staff-registration__controls';
       const edit = document.createElement('button'); edit.type = 'button'; edit.className = 'button button--secondary'; edit.textContent = 'Edit';
       edit.addEventListener('click', () => {
@@ -51,8 +83,11 @@ async function loadArticles() {
         document.querySelector('#article-category').value = article.category;
         document.querySelector('#article-excerpt').value = article.excerpt;
         document.querySelector('#article-body').value = article.body;
-        document.querySelector('#article-cover-url').value = article.coverUrl || '';
-        articleStatus.value = article.status === 'archived' ? 'draft' : article.status;
+        articleCoverUrl.value = article.coverUrl || '';
+        articleCoverAlt.value = article.coverAltText || '';
+       articleStatus.value = article.status === 'archived' ? 'draft' : article.status;
+        updateArticleSubmitLabel();
+        renderCoverPreview();
         document.querySelector('#article-form-title').textContent = `Edit artikel: ${article.title}`;
         articleForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
@@ -159,7 +194,8 @@ function renderRegistrations(items) {
   registrationList.replaceChildren();
   if (!items.length) {
     const empty = document.createElement('p');
-    empty.textContent = 'Belum ada pendaftaran masuk.';
+    empty.className = 'crm-empty-state';
+    empty.innerHTML = '<strong>Belum ada pendaftaran masuk</strong><span>Pendaftaran baru akan muncul di sini setelah calon santri mengirim formulir.</span>';
     registrationList.append(empty);
     return;
   }
@@ -173,7 +209,7 @@ function renderRegistrations(items) {
     const identity = document.createElement('p');
     identity.textContent = `${registration.registrationId} · ${registration.program}`;
     const meta = document.createElement('div');
-    meta.className = 'staff-registration__meta';
+    meta.className = 'staff-registration__meta staff-registration__meta--compact';
     const terakhir = (registration.history || []).at(-1);
     const pelaku = terakhir ? (terakhir.byName || labelPeran(terakhir.byRole)) : '';
     [
@@ -229,7 +265,7 @@ function renderRegistrations(items) {
     }
 
     const controls = document.createElement('div');
-    controls.className = 'staff-registration__controls';
+    controls.className = 'staff-registration__controls staff-registration__controls--primary';
     const select = document.createElement('select');
     statusOptions.forEach(([value, label]) => {
       const option = document.createElement('option');
@@ -239,7 +275,7 @@ function renderRegistrations(items) {
       select.append(option);
     });
     const update = document.createElement('button');
-    update.className = 'button button--secondary';
+    update.className = 'button button--primary';
     update.type = 'button';
     update.textContent = 'Simpan status';
     update.addEventListener('click', async () => {
@@ -261,7 +297,7 @@ function renderRegistrations(items) {
       }
     });
     controls.append(select, update);
-    const noteBox = document.createElement('div'); noteBox.className = 'staff-note-box';
+    const noteBox = document.createElement('div'); noteBox.className = 'staff-note-box staff-note-box--secondary';
     const noteInput = document.createElement('textarea'); noteInput.rows = 2; noteInput.placeholder = 'Catatan untuk pendaftar atau internal';
     const visibility = document.createElement('select');
     [['applicant', 'Terlihat pendaftar'], ['internal', 'Internal petugas']].forEach(([value, text]) => { const option = document.createElement('option'); option.value = value; option.textContent = text; visibility.append(option); });
@@ -278,7 +314,7 @@ function renderRegistrations(items) {
       finally { addNote.disabled = false; }
     });
     noteBox.append(noteInput, visibility, addNote); controls.append(noteBox);
-    const nextStepBox = document.createElement('div'); nextStepBox.className = 'staff-note-box';
+    const nextStepBox = document.createElement('div'); nextStepBox.className = 'staff-note-box staff-note-box--secondary';
     const nextStepTitle = document.createElement('input'); nextStepTitle.placeholder = 'Tindak lanjut berikutnya';
     const nextStepDue = document.createElement('input'); nextStepDue.type = 'date';
     const addNextStep = document.createElement('button'); addNextStep.type = 'button'; addNextStep.className = 'button button--secondary'; addNextStep.textContent = 'Tambah tindak lanjut';
@@ -488,38 +524,160 @@ async function finishImport(action, button) {
   } catch (error) { operationImportStatus.textContent = error.message; operationImportStatus.classList.add('is-error'); button.disabled = false; }
 }
 
-if (tabBtnRegs && tabBtnArticle && panelRegs && panelArticle) {
-  tabBtnRegs.addEventListener('click', () => {
-    tabBtnRegs.classList.add('is-active');
-    tabBtnArticle.classList.remove('is-active');
-    panelRegs.hidden = false;
-    panelArticle.hidden = true;
-    if (panelNotifications) panelNotifications.hidden = true;
-    if (panelImport) panelImport.hidden = true;
-  });
-  tabBtnArticle.addEventListener('click', () => {
-    tabBtnArticle.classList.add('is-active');
-    tabBtnRegs.classList.remove('is-active');
-    panelArticle.hidden = false;
-    panelRegs.hidden = true;
-    if (panelNotifications) panelNotifications.hidden = true;
-    if (panelImport) panelImport.hidden = true;
-    loadArticles().catch(() => {});
-  });
-  if (tabBtnNotifications && panelNotifications) tabBtnNotifications.addEventListener('click', () => {
-    tabBtnNotifications.classList.add('is-active');
-    tabBtnRegs.classList.remove('is-active'); tabBtnArticle.classList.remove('is-active');
-    panelRegs.hidden = true; panelArticle.hidden = true; panelNotifications.hidden = false;
-    if (panelImport) panelImport.hidden = true;
-    loadNotifications().catch((error) => { notificationListStatus.textContent = error.message; notificationListStatus.className = 'form-status is-error'; });
-  });
-  if (tabBtnImport && panelImport) tabBtnImport.addEventListener('click', () => {
-    tabBtnImport.classList.add('is-active');
-    tabBtnRegs.classList.remove('is-active'); tabBtnArticle.classList.remove('is-active'); if (tabBtnNotifications) tabBtnNotifications.classList.remove('is-active');
-    panelRegs.hidden = true; panelArticle.hidden = true; if (panelNotifications) panelNotifications.hidden = true; panelImport.hidden = false;
-    loadOperationImportHistory().catch(() => {});
+// ---------------------------------------------------------------------------
+// Pesan konsultasi dari formulir publik (Task R1.6)
+// ---------------------------------------------------------------------------
+const tabBtnInquiries = document.querySelector('#tab-btn-inquiries');
+const panelInquiries = document.querySelector('#panel-inquiries');
+const inquiryList = document.querySelector('#inquiry-list');
+const inquiryListStatus = document.querySelector('#inquiry-list-status');
+const inquiryStatusFilter = document.querySelector('#inquiry-status-filter');
+const inquiryPagination = document.querySelector('#inquiry-pagination');
+const inquiryPageLabel = document.querySelector('#inquiry-page-label');
+let inquiryPage = 1;
+
+const INQUIRY_STATUS_LABELS = Object.freeze({
+  new: 'Belum ditindaklanjuti',
+  contacted: 'Sudah dihubungi',
+  closed: 'Selesai'
+});
+
+function renderInquiries(items) {
+  inquiryList.replaceChildren();
+  if (!items.length) {
+    const empty = document.createElement('p');
+    empty.className = 'field-help';
+    empty.textContent = 'Belum ada pesan konsultasi pada filter ini. Pesan baru muncul setelah pengunjung mengirim formulir di halaman kontak.';
+    inquiryList.append(empty);
+    return;
+  }
+
+  items.forEach((item) => {
+    const row = document.createElement('article');
+    row.className = 'crm-white-card staff-registration';
+
+    const head = document.createElement('div');
+    head.className = 'inquiry-card__head';
+    const title = document.createElement('strong');
+    title.textContent = item.name;
+    const badge = document.createElement('span');
+    badge.className = `article-status-badge article-status-badge--${item.status === 'new' ? 'draft' : item.status === 'contacted' ? 'published' : 'archived'}`;
+    badge.textContent = INQUIRY_STATUS_LABELS[item.status] || item.status;
+    head.append(title, badge);
+
+    const meta = document.createElement('p');
+    meta.className = 'field-help';
+    const waktu = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(item.createdAt));
+    meta.textContent = `${item.topicLabel} · ${item.phone} · ${waktu}`;
+
+    const message = document.createElement('p');
+    message.className = 'staff-note-box';
+    message.textContent = item.message;
+
+    const actions = document.createElement('div');
+    actions.className = 'article-form-actions';
+    Object.entries(INQUIRY_STATUS_LABELS).forEach(([nilai, label]) => {
+      if (nilai === item.status) return;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = nilai === 'contacted' ? 'button button--primary' : 'button button--text';
+      button.textContent = `Tandai ${label.toLocaleLowerCase('id-ID')}`;
+      button.addEventListener('click', async () => {
+        button.disabled = true;
+        try {
+          const response = await fetch(`/api/inquiries/${encodeURIComponent(item.id)}/status`, {
+            method: 'PATCH',
+            headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: nilai })
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || 'Status pesan belum dapat diubah.');
+          await loadInquiries();
+        } catch (error) {
+          inquiryListStatus.textContent = error.message;
+          inquiryListStatus.classList.add('is-error');
+          button.disabled = false;
+        }
+      });
+      actions.append(button);
+    });
+
+    row.append(head, meta, message, actions);
+    inquiryList.append(row);
   });
 }
+
+async function loadInquiries() {
+  if (!inquiryList || !inquiryListStatus) return;
+  inquiryListStatus.classList.remove('is-error');
+  inquiryListStatus.textContent = 'Memuat pesan konsultasi...';
+  const params = new URLSearchParams({ page: String(inquiryPage), pageSize: '10' });
+  if (inquiryStatusFilter && inquiryStatusFilter.value) params.set('status', inquiryStatusFilter.value);
+  try {
+    const response = await fetch(`/api/inquiries?${params}`, { headers: authHeaders() });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Pesan konsultasi belum dapat dimuat.');
+    renderInquiries(result.items || []);
+    inquiryListStatus.textContent = `${result.total} pesan pada filter ini.`;
+
+    const badge = document.querySelector('#badge-inquiry-count');
+    if (badge && (!inquiryStatusFilter || inquiryStatusFilter.value === 'new')) badge.textContent = result.total;
+
+    const halaman = Math.max(1, Math.ceil(result.total / result.pageSize));
+    if (inquiryPagination) inquiryPagination.hidden = halaman <= 1;
+    if (inquiryPageLabel) inquiryPageLabel.textContent = `Halaman ${result.page} dari ${halaman}`;
+    const prev = document.querySelector('#inquiry-prev');
+    const next = document.querySelector('#inquiry-next');
+    if (prev) prev.disabled = result.page <= 1;
+    if (next) next.disabled = result.page >= halaman;
+  } catch (error) {
+    inquiryListStatus.textContent = error.message;
+    inquiryListStatus.classList.add('is-error');
+    throw error;
+  }
+}
+
+if (inquiryStatusFilter) inquiryStatusFilter.addEventListener('change', () => { inquiryPage = 1; loadInquiries().catch(() => {}); });
+const refreshInquiries = document.querySelector('#refresh-inquiries');
+if (refreshInquiries) refreshInquiries.addEventListener('click', () => loadInquiries().catch(() => {}));
+const inquiryPrev = document.querySelector('#inquiry-prev');
+if (inquiryPrev) inquiryPrev.addEventListener('click', () => { if (inquiryPage > 1) { inquiryPage -= 1; loadInquiries().catch(() => {}); } });
+const inquiryNext = document.querySelector('#inquiry-next');
+if (inquiryNext) inquiryNext.addEventListener('click', () => { inquiryPage += 1; loadInquiries().catch(() => {}); });
+
+// Saklar subtab konsol petugas.
+//
+// Sebelumnya tiap tab menyembunyikan panel lain satu per satu, sehingga menambah
+// tab berarti menyentuh seluruh handler yang sudah ada dan mudah terlewat.
+// Sekarang daftarnya satu tempat: tambah baris untuk menambah tab.
+const STAFF_TABS = [
+  { button: tabBtnRegs, panel: panelRegs, onOpen: null },
+  { button: tabBtnArticle, panel: panelArticle, onOpen: () => loadArticles().catch(() => {}) },
+  {
+    button: tabBtnNotifications,
+    panel: panelNotifications,
+    onOpen: () => loadNotifications().catch((error) => {
+      notificationListStatus.textContent = error.message;
+      notificationListStatus.className = 'form-status is-error';
+    })
+  },
+  { button: tabBtnImport, panel: panelImport, onOpen: () => loadOperationImportHistory().catch(() => {}) },
+  { button: tabBtnInquiries, panel: panelInquiries, onOpen: () => loadInquiries().catch(() => {}) }
+].filter((tab) => tab.button && tab.panel);
+
+function openStaffTab(target) {
+  STAFF_TABS.forEach((tab) => {
+    const aktif = tab === target;
+    tab.button.classList.toggle('is-active', aktif);
+    tab.button.setAttribute('aria-selected', aktif ? 'true' : 'false');
+    tab.panel.hidden = !aktif;
+  });
+  if (target.onOpen) target.onOpen();
+}
+
+STAFF_TABS.forEach((tab) => {
+  tab.button.addEventListener('click', () => openStaffTab(tab));
+});
 
 loginForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -554,11 +712,68 @@ registrationStatusFilter.addEventListener('change', () => { registrationPage = 1
 registrationPrev.addEventListener('click', () => { registrationPage -= 1; loadRegistrations().catch(() => {}); });
 registrationNext.addEventListener('click', () => { registrationPage += 1; loadRegistrations().catch(() => {}); });
 
+function updateArticleSubmitLabel() {
+  if (!articleSubmit || !articleStatus) return;
+  const label = articleSubmit.querySelector('span');
+  if (label) label.textContent = articleStatus.value === 'published' ? 'Terbitkan setelah ditinjau' : 'Simpan sebagai draf';
+}
+
+function renderCoverPreview() {
+  if (!articleCoverPreview || !articleCoverUrl) return;
+  const url = articleCoverUrl.value.trim();
+  articleCoverPreview.replaceChildren();
+  articleCoverPreview.hidden = !url;
+  if (!url) return;
+  const image = document.createElement('img');
+  image.src = url;
+  image.alt = articleCoverAlt?.value.trim() || 'Pratinjau cover artikel';
+  image.loading = 'lazy';
+  image.addEventListener('error', () => {
+    articleCoverPreview.replaceChildren();
+    const failed = document.createElement('span');
+    failed.className = 'article-cover-failed';
+    failed.textContent = 'Cover gagal dimuat. Periksa URL HTTPS atau lanjut tanpa cover.';
+    articleCoverPreview.append(failed);
+  }, { once: true });
+  articleCoverPreview.append(image);
+}
+
+function renderArticlePreview() {
+  if (!articlePreviewPanel) return;
+  articlePreviewPanel.replaceChildren();
+  const heading = document.createElement('p'); heading.className = 'eyebrow'; heading.textContent = 'PRATINJAU ARTIKEL';
+  const title = document.createElement('h3'); title.textContent = document.querySelector('#article-title')?.value.trim() || 'Judul belum diisi';
+  const meta = document.createElement('small'); meta.textContent = (document.querySelector('#article-category')?.value.trim() || 'Kegiatan') + ' · ' + (articleStatus?.value === 'published' ? 'Terbit' : 'Draf');
+  const excerpt = document.createElement('p'); excerpt.className = 'article-preview-excerpt'; excerpt.textContent = document.querySelector('#article-excerpt')?.value.trim() || 'Ringkasan belum diisi.';
+  const body = document.createElement('p'); body.className = 'article-preview-body'; body.textContent = document.querySelector('#article-body')?.value.trim() || 'Isi artikel belum diisi.';
+  articlePreviewPanel.append(heading, title, meta, excerpt, body);
+  articlePreviewPanel.hidden = false;
+  articlePreviewPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+articleStatus?.addEventListener('change', updateArticleSubmitLabel);
+articleCoverUrl?.addEventListener('input', () => {
+  if (articleCoverError) articleCoverError.textContent = '';
+  renderCoverPreview();
+});
+articleCoverAlt?.addEventListener('input', renderCoverPreview);
+articlePreviewButton?.addEventListener('click', renderArticlePreview);
+updateArticleSubmitLabel();
+
 articleForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   articleFormStatus.classList.remove('is-error');
+  if (articleCoverError) articleCoverError.textContent = '';
   try {
     const editing = articleSlug.value.trim();
+    const coverUrl = articleCoverUrl.value.trim();
+    const coverAltText = articleCoverAlt.value.trim();
+    if (coverUrl && !/^https:\/\//i.test(coverUrl)) throw new Error('Cover media harus memakai URL HTTPS.');
+    if (coverUrl && !coverAltText) {
+      if (articleCoverError) articleCoverError.textContent = 'Alt text wajib diisi saat memakai cover media.';
+      articleCoverAlt.focus();
+      return;
+    }
     const response = await fetch(editing ? `/api/articles/${encodeURIComponent(editing)}` : '/api/articles', {
       method: editing ? 'PATCH' : 'POST',
       headers: { ...authHeaders(), 'Content-Type': 'application/json' },
@@ -567,7 +782,8 @@ articleForm.addEventListener('submit', async (event) => {
         category: document.querySelector('#article-category').value,
         excerpt: document.querySelector('#article-excerpt').value,
         body: document.querySelector('#article-body').value,
-        coverUrl: document.querySelector('#article-cover-url').value.trim(),
+        coverUrl,
+        coverAltText,
         status: articleStatus.value,
         ...(editing ? {} : { slug: articleSlug.value.trim() || undefined })
       })
@@ -576,6 +792,7 @@ articleForm.addEventListener('submit', async (event) => {
     if (!response.ok) throw new Error(result.error || 'Artikel belum dapat diterbitkan.');
     articleForm.reset(); articleSlug.disabled = false; articleSlug.value = '';
     document.querySelector('#article-category').value = 'Kegiatan';
+    articleStatus.value = 'draft'; updateArticleSubmitLabel(); renderCoverPreview();
     document.querySelector('#article-form-title').textContent = 'Terbitkan Kabar & Wawasan Edukasi (Pena Hamasah)';
     articleFormStatus.textContent = result.item.status === 'draft' ? `Draf “${result.item.title}” tersimpan.` : `Artikel “${result.item.title}” sudah diterbitkan.`;
     loadArticles().catch(() => {});

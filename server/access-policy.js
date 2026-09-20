@@ -32,6 +32,11 @@ const PERMISSIONS = Object.freeze({
 
   'articles.write': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
 
+  // Pesan konsultasi dari formulir publik. Ditangani petugas pendaftaran karena
+  // isinya calon pendaftar, sama seperti daftar pendaftaran.
+  'inquiries.read': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
+  'inquiries.manage': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
+
   // Mencatat dan mengubah data santri. Wali dan santri tidak pernah menulis.
   'students.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   // Membaca data santri. Siapa yang boleh melihat santri yang mana tetap ditentukan
