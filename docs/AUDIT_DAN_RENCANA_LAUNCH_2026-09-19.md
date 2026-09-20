@@ -262,8 +262,8 @@ Gate: finance tidak bisa mengambil data di luar wewenang; bukti/kuitansi keluarg
 
 ### Tahap 6 — Rilis B: keluarga dan rekam jejak (Phase 11)
 
-- [ ] T06.1 Definisikan visibility per catatan; DTO wali/santri/staf, izin media dan retensi.
-- [ ] T06.2 Kehadiran unik menurut sesi/hari, kegiatan, prestasi, pelanggaran dan evaluasi dengan koreksi berjejak.
+- [~] T06.1 Definisikan visibility per catatan; DTO wali/santri/staf, izin media dan retensi.
+- [~] T06.2 Kehadiran unik menurut sesi/hari, kegiatan, prestasi, pelanggaran dan evaluasi dengan koreksi berjejak.
 - [ ] T06.3 Dashboard riil lintas periode; sibling selector; laporan sejak bergabung sampai lulus.
 - [ ] T06.4 Galeri, laporan unduh dan komunikasi keluarga jika masuk kontrak; scope dan otorisasi eksplisit.
 - [ ] T06.5 UAT pengawas dan wali dengan data simulasi realistis, termasuk anak pindah asrama dan wali beberapa anak.
@@ -443,7 +443,7 @@ Snapshot ini menjadi acuan progres setelah UAT lokal terakhir; checklist tahap d
 - **Tahap 3 — konversi:** selesai di local. Konversi hanya menerima status siap keberangkatan/selesai, mengunci pendaftaran, memakai akun student satu kali, memakai ulang akun parent yang emailnya sama untuk saudara, menolak konflik role/email, dan hanya mengantrekan undangan untuk akun baru atau akun inactive tanpa undangan aktif. Retry idempotent, audit, outbox transaksional, permission matrix, dan hasil konversi di workspace petugas sudah diuji.
 - **Tahap 4 — Rilis A publik:** fondasi lokal selesai untuk editorial CMS draft/publish/archive, filter artikel publik, canonical metadata, sitemap, robots, dan halaman 404. Rilis belum boleh dibuka sebelum audit konten pada `docs/CONTENT_AUDIT_HAMASAH_2026-09-20.md` disahkan pemilik, media artikel/consent selesai, serta browser UAT responsive/keyboard dan form publik dilakukan.
 - **Tahap 5 — operasional/keuangan:** fondasi kontrol lokal sudah bertambah lewat migrasi 022 dan 023: koreksi/pembatalan invoice berjejak, dokumen serta histori status visa, mutasi inventaris dengan penolakan stok negatif, kapasitas asrama, histori perpindahan placement, serta batch import inventory/visa dengan preview, validasi, deteksi duplikat, commit idempotent, rollback sebelum commit, audit event, dan histori batch berfilter/pagination di workspace staf. Endpoint reminder visa berbasis tenggat juga tersedia. Tahap ini masih parsial karena bukti pembayaran/PDF dan nomor verifikasi final belum disepakati, reminder belum dijalankan sebagai job terjadwal, dan UAT peran finance/operations belum dijalankan.
-- **Tahap 6 — keluarga/rekam jejak:** dashboard dasar wali dan pembatasan akses sudah ada. Visibility catatan/media, sibling selector, laporan lintas periode, retensi, dan UAT pengawas/wali belum lengkap.
+- **Tahap 6 — keluarga/rekam jejak:** fondasi akses wali/pengawas, DTO dashboard, presensi unik per sesi/tanggal, dan endpoint koreksi catatan beralasan sudah ada melalui migrasi 024. Visibility media/retensi, sibling selector yang eksplisit di UI, laporan lintas periode, galeri/komunikasi, dan UAT pengawas/wali belum lengkap.
 - **Tahap 7 — LMS:** course, materi, enrollment, progress, dan study-help dasar tersedia. Media nyata, tugas/submission, quiz/attempt/scoring, aturan kelulusan server-side, dan pengujian isolasi course belum selesai.
 - **Tahap 8 — AI:** FAQ lokal dan study-help berbasis materi tersedia sebagai fondasi. Provider/model, biaya, quota, evaluasi prompt injection, fallback, dan AI produksi belum dipilih atau dibangun.
 - **Tahap 9 — penutupan:** belum dimulai penuh. Runbook deploy, backup/restore rehearsal, monitoring/alert, security/dependency review, dokumentasi per role, UAT sign-off, dan keputusan launch masih tersisa.

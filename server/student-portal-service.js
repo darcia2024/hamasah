@@ -17,6 +17,10 @@ function isDate(value) {
   return !Number.isNaN(Date.parse(value));
 }
 
+function jakartaDate(value) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(value));
+}
+
 function createMemoryStudentStore() {
   const database = {
     activities: [],
@@ -30,6 +34,9 @@ function createMemoryStudentStore() {
 
   return {
     async append(collection, entry) {
+      if (collection === 'attendance' && database.attendance.some((item) => item.studentId === entry.studentId && item.sessionDate === entry.sessionDate && item.category === entry.category)) {
+        throw new Error('Presensi untuk sesi dan tanggal tersebut sudah tercatat.');
+      }
       database[collection].push(clone(entry));
       return clone(entry);
     },
@@ -48,6 +55,13 @@ function createMemoryStudentStore() {
     },
     async countInDormitory(dormitoryId) {
       return Object.values(database.students).filter((student) => student.dormitoryId === dormitoryId).length;
+    },
+    async correctRecord(collection, recordId, correction) {
+      const record = database[collection].find((item) => item.id === recordId);
+      if (!record) return null;
+      const previous = clone(record);
+      database[collection] = database[collection].map((item) => item.id === recordId ? { ...item, ...clone(correction.value) } : item);
+      return { record: clone(database[collection].find((item) => item.id === recordId)), previous };
     },
     async recordPlacement(entry) {
       database.placementHistory.push(clone(entry));
@@ -201,7 +215,7 @@ function createStudentPortalService(options) {
       if (!ATTENDANCE_STATUSES.includes(status)) {
         return { ok: false, error: 'Status kehadiran tidak valid.' };
       }
-      record = { id: crypto.randomUUID(), studentId, status, category: clean(source.category) || 'Kegiatan harian', occurredAt, note: clean(source.note), createdAt: now() };
+      record = { id: crypto.randomUUID(), studentId, status, category: clean(source.category) || 'Kegiatan harian', sessionDate: jakartaDate(occurredAt), occurredAt, note: clean(source.note), createdAt: now() };
     } else if (collection === 'achievements') {
       const title = clean(source.title);
       if (title.length < 3) {
@@ -228,7 +242,12 @@ function createStudentPortalService(options) {
       record = { id: crypto.randomUUID(), studentId, note, level: clean(source.level) || 'ringan', occurredAt, createdAt: now() };
     }
 
-    return { ok: true, value: await store.append(collection, record) };
+    try {
+      return { ok: true, value: await store.append(collection, record) };
+    } catch (error) {
+      if (collection === 'attendance' && /sesi|session|unique/i.test(error.message)) return { ok: false, error: error.message };
+      throw error;
+    }
   }
 
   // Menempatkan santri ke asrama. Dipisahkan dari linkAccounts karena ini soal
@@ -271,6 +290,23 @@ function createStudentPortalService(options) {
       await store.recordPlacement({ id: crypto.randomUUID(), studentId, dormitoryId, actorAccountId: actor.id || null, changedAt: now() });
     }
     return { ok: true, value: saved };
+  }
+
+  async function correctRecord(studentId, collection, recordId, input, actor) {
+    if (!assertStaff(actor)) return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
+    if (!['activities', 'achievements', 'attendance', 'evaluations', 'violations'].includes(collection)) return { ok: false, error: 'Jenis catatan tidak valid.' };
+    const student = await store.getStudent(studentId);
+    if (!student) return { ok: false, error: 'Santri tidak ditemukan.' };
+    if (!(await canWrite(student, actor))) return { ok: false, status: 403, error: 'Santri ini berada di luar asrama yang Anda tangani.' };
+    const reason = clean(input && input.reason);
+    if (reason.length < 5) return { ok: false, error: 'Alasan koreksi wajib diisi.' };
+    const sourceValue = input && input.value && typeof input.value === 'object' ? input.value : {};
+    const value = {};
+    const fields = collection === 'attendance' ? ['status', 'category', 'note'] : collection === 'evaluations' ? ['area', 'note'] : collection === 'violations' ? ['level', 'note'] : ['title', 'description'];
+    fields.forEach((field) => { if (sourceValue[field] !== undefined) value[field] = clean(sourceValue[field]); });
+    if (sourceValue.occurredAt !== undefined) value.occurredAt = clean(sourceValue.occurredAt);
+    const corrected = await store.correctRecord(collection, recordId, { value, reason, actorAccountId: actor.id || null, createdAt: now() });
+    return corrected ? { ok: true, value: corrected.record } : { ok: false, error: 'Catatan tidak ditemukan.' };
   }
 
   async function dashboard(studentId, actor) {
@@ -347,6 +383,7 @@ function createStudentPortalService(options) {
     createMemoryStudentStore,
     createStudent,
     dashboard,
+    correctRecord,
     listForActor,
     linkAccounts
   });

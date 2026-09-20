@@ -22,7 +22,12 @@ async function run() {
 
   assert.equal((await service.addActivity(studentId, { title: 'Talaqqi pagi', description: 'Membaca kitab bersama pembina.' }, admin)).ok, true);
   assert.equal((await service.addAchievement(studentId, { title: 'Menyelesaikan hafalan Juz 1' }, admin)).ok, true);
-  assert.equal((await service.addAttendance(studentId, { status: 'present', category: 'Subuh berjamaah' }, admin)).ok, true);
+  const attendance = await service.addAttendance(studentId, { status: 'present', category: 'Subuh berjamaah', occurredAt: '2026-09-03T08:00:00.000Z' }, admin);
+  assert.equal(attendance.ok, true);
+  const corrected = await service.correctRecord(studentId, 'attendance', attendance.value.id, { reason: 'Koreksi rekap harian', value: { status: 'late' } }, admin);
+  assert.equal(corrected.ok, true);
+  assert.equal(corrected.value.status, 'late');
+  assert.equal((await service.addAttendance(studentId, { status: 'present', category: 'Subuh berjamaah', occurredAt: '2026-09-03T08:00:00.000Z' }, admin)).ok, false, 'Presensi sesi yang sama tidak boleh ganda.');
   assert.equal((await service.addAttendance(studentId, { status: 'late', category: 'Mudzakarah malam' }, admin)).ok, true);
   assert.equal((await service.addEvaluation(studentId, { note: 'Perkembangan bahasa Arab terlihat konsisten.', area: 'Akademik' }, admin)).ok, true);
   assert.equal((await service.addViolation(studentId, { note: 'Terlambat kembali ke asrama setelah kegiatan.', level: 'ringan' }, admin)).ok, true);

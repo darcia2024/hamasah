@@ -149,4 +149,15 @@ module.exports = [
       json(response, result.ok ? 201 : (result.status || 422), result.ok ? { item: result.value } : publicError(result));
     }
   }
+  ,{
+    method: 'PATCH',
+    pattern: /^\/api\/students\/([\w-]+)\/(activities|achievements|attendance|evaluations|violations)\/([\w-]+)$/,
+    permission: 'students.manage',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const actor = await auth.actor();
+      const result = await services.studentPortalService.correctRecord(params[0], params[1], params[2], await readBody(), actor);
+      if (result.ok) await services.auditService.record({ action: ACTIONS.STUDENT_RECORD_CORRECTED, actor, ip, entityType: params[1], entityId: params[2], metadata: { studentId: params[0] } });
+      json(response, result.ok ? 200 : (result.status || 422), result.ok ? { item: result.value } : publicError(result));
+    }
+  }
 ];

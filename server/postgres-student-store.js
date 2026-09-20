@@ -49,6 +49,10 @@ function toIso(value) {
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
 }
 
+function jakartaDate(value) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(value));
+}
+
 function toStudent(row) {
   return {
     id: row.id,
@@ -118,6 +122,28 @@ function createPostgresStudentStore({ database } = {}) {
       return entry;
     },
 
+    async correctRecord(collection, recordId, correction) {
+      const definition = definitionOf(collection);
+      return database.withTransaction(async (tx) => {
+        const columns = ['id', 'student_id', 'occurred_at', ...definition.columns, 'created_at'];
+        const currentQuery = await tx.query(`SELECT ${columns.join(', ')} FROM ${definition.table} WHERE id = $1`, [recordId]);
+        if (!currentQuery.rows[0]) return null;
+        const previous = toRecord(definition, currentQuery.rows[0]);
+        const allowed = definition.columns.filter((column) => Object.prototype.hasOwnProperty.call(correction.value || {}, column));
+        const values = [recordId];
+        const sets = [];
+        allowed.forEach((column) => { values.push(correction.value[column]); sets.push(`${column} = $${values.length}`); });
+        if (correction.value.occurredAt) { values.push(correction.value.occurredAt); sets.push(`occurred_at = $${values.length}`); }
+        let updated = previous;
+        if (sets.length) {
+          const result = await tx.query(`UPDATE ${definition.table} SET ${sets.join(', ')} WHERE id = $1 RETURNING ${columns.join(', ')}`, values);
+          updated = toRecord(definition, result.rows[0]);
+        }
+        await tx.query(`INSERT INTO student_record_corrections (id, record_type, record_id, student_id, actor_account_id, reason, previous_value, corrected_value, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8::jsonb,$9)`, [require('node:crypto').randomUUID(), collection, recordId, previous.studentId, correction.actorAccountId || null, correction.reason, JSON.stringify(previous), JSON.stringify(updated), correction.createdAt]);
+        return { record: updated, previous };
+      });
+    },
+
     async saveStudent(student) {
       // Satu transaksi: data santri dan daftar wali harus berubah bersama.
       return database.withTransaction(async (tx) => {
@@ -177,6 +203,15 @@ function createPostgresStudentStore({ database } = {}) {
     async append(collection, entry) {
       const definition = definitionOf(collection);
       const values = definition.toRow(entry);
+      if (collection === 'attendance') {
+        const { rows } = await database.query(
+          `INSERT INTO student_attendance (id, student_id, occurred_at, status, category, note, created_at, session_date)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+           RETURNING id, student_id, occurred_at, status, category, note, created_at`,
+          [entry.id, entry.studentId, entry.occurredAt, ...values, entry.createdAt, entry.sessionDate || jakartaDate(entry.occurredAt)]
+        );
+        return toRecord(definition, rows[0]);
+      }
       const placeholders = definition.columns.map((name, index) => `$${index + 4}`).join(', ');
       const { rows } = await database.query(
         `INSERT INTO ${definition.table} (id, student_id, occurred_at, ${definition.columns.join(', ')}, created_at)
