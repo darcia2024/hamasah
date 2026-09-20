@@ -1,7 +1,32 @@
-const { json, publicError } = require('../http/respond.js');
+const { csv, json, publicError } = require('../http/respond.js');
 const { ACTIONS } = require('../audit-service.js');
+const { createTextPdf } = require('../pdf.js');
 
 module.exports = [
+  {
+    method: 'GET',
+    pattern: /^\/api\/operations\/report\.csv$/,
+    permission: 'operations.read',
+    async handler({ response, services }) {
+      const data = await services.operationsService.list();
+      const rows = [['jenis', 'id', 'status', 'nomor', 'studentId', 'jumlah', 'tanggal']];
+      data.invoices.forEach((item) => rows.push(['invoice', item.id, item.status, item.number, item.studentId, item.amount, item.issuedAt]));
+      data.visas.forEach((item) => rows.push(['visa', item.studentId, item.status, '', item.studentId, '', item.updatedAt]));
+      data.inventory.forEach((item) => rows.push(['inventory', item.id, String(item.quantity), item.name, '', item.quantity, item.updatedAt]));
+      csv(response, { filename: 'laporan-operasional-hamasah.csv', rows });
+    }
+  },
+  {
+    method: 'GET',
+    pattern: /^\/api\/operations\/invoices\/([\w-]+)\/receipt\.pdf$/,
+    permission: 'finance.manage',
+    async handler({ response, services, params, auth }) {
+      const invoice = await services.operationsService.getInvoice(params[0], await auth.actor());
+      if (!invoice || invoice.status !== 'paid') { json(response, 404, { error: 'Kuitansi belum tersedia.' }); return; }
+      const pdf = createTextPdf({ title: 'Kuitansi Pembayaran Hamasah International', lines: [`Nomor kuitansi: ${invoice.receiptNumber}`, `Nomor invoice: ${invoice.number}`, `Santri: ${invoice.studentId}`, `Keterangan: ${invoice.description}`, `Jumlah: Rp${invoice.amount.toLocaleString('id-ID')}`, `Dibayar: ${invoice.paidAt || '-'}`] });
+      response.writeHead(200, { 'Content-Type': 'application/pdf', 'Content-Disposition': `attachment; filename="${invoice.receiptNumber}.pdf"`, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }); response.end(pdf);
+    }
+  },
   {
     method: 'GET',
     pattern: /^\/api\/operations$/,

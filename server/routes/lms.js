@@ -2,6 +2,15 @@ const { json, noContent, publicError } = require('../http/respond.js');
 
 module.exports = [
   {
+    method: 'PATCH',
+    pattern: /^\/api\/courses\/([\w-]+)\/materials\/([\w-]+)\/archive$/,
+    permission: 'courses.manage',
+    async handler({ response, services, auth, params }) {
+      const result = await services.lmsService.archiveMaterial(params[0], params[1], await auth.actor());
+      json(response, result.ok ? 200 : 422, result.ok ? { material: result.value } : publicError(result));
+    }
+  },
+  {
     method: 'POST',
     pattern: /^\/api\/courses$/,
     permission: 'courses.manage',

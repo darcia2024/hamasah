@@ -242,6 +242,8 @@ async function run() {
         body: () => ({ title: `Artikel Matriks ${Math.random().toString(36).slice(2, 8)}`, excerpt: 'Ringkasan.', body: 'Isi artikel.' })
       },
       { permission: 'articles.write', method: 'GET', path: '/api/staff/articles' },
+      { permission: 'finance.manage', method: 'GET', path: '/api/operations/invoices/00000000-0000-0000-0000-000000000001/receipt.pdf' },
+      { permission: 'operations.read', method: 'GET', path: '/api/operations/report.csv' },
       {
         permission: 'articles.write', method: 'PATCH', path: '/api/articles/artikel-matriks-tidak-ada',
         body: () => ({ status: 'published' })

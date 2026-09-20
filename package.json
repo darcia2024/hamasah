@@ -17,6 +17,9 @@
     "release:check": "node scripts/release-gate.js",
     "smoke-test": "node scripts/smoke.js",
     "worker:notifications": "node scripts/notification-worker.js",
+    "worker:visa-reminders": "node scripts/visa-reminder-worker.js --once",
+    "test:browser-contract": "node scripts/browser-contract.test.js",
+    "test:performance": "node scripts/performance-smoke.test.js",
     "preflight:staging": "node scripts/staging-preflight.js",
     "cleanup:smoke-data": "node scripts/cleanup-smoke-data.js",
     "test": "node database/validate-schema.js && node --test"

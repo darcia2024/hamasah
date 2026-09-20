@@ -23,6 +23,7 @@ async function run() {
       publishedAt: PUBLISHED_AT,
       status: 'published',
       archivedAt: null,
+      coverUrl: null,
       updatedAt: PUBLISHED_AT
     });
 

@@ -1,0 +1,1 @@
+ALTER TABLE course_materials ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;

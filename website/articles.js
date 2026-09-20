@@ -13,43 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }[character]));
   }
 
-  const FALLBACK_ARTICLES = [
-    {
-      slug: 'pendampingan-santri-di-kairo',
-      title: 'Pendampingan Santri Indonesia di Kairo',
-      excerpt: 'Catatan kegiatan dan pendampingan awal santri dalam menyesuaikan ritme belajar, halaqah talaqqi, dan kehidupan asrama di Mesir.',
-      category: 'Kegiatan',
-      publishedAt: '2026-09-01T08:00:00.000Z'
-    },
-    {
-      slug: 'sekilas-tentang-universitas-al-azhar',
-      title: 'Sekilas Tentang Universitas Al-Azhar Kairo & Tradisi Keilmuannya',
-      excerpt: 'Mengenal kampus tertua di dunia yang menjaga sanad keilmuan Islam wasathiyyah serta menjadi rujukan para ulama mancanegara.',
-      category: 'Keilmuan Islam',
-      publishedAt: '2026-08-25T08:00:00.000Z'
-    },
-    {
-      slug: 'persiapan-bahasa-arab-tahdid-mustawa',
-      title: 'Kunci Sukses Ujian Bahasa Arab (Tahdid Mustawa) di Markaz Syaikh Zaid',
-      excerpt: 'Panduan menyeluruh menghadapi tes penempatan bahasa, jenjang mustawa, serta tips latihan mendengar dan percakapan fusha.',
-      category: 'Panduan Hidup',
-      publishedAt: '2026-08-18T08:00:00.000Z'
-    },
-    {
-      slug: 'kehidupan-asrama-hay-asyir-kairo',
-      title: 'Mengenal Asrama Hamasah di Hay Asyir, Kairo: Aman, Kondusif & Berkah',
-      excerpt: 'Menengok fasilitas kamar ber-AC, katering menu nusantara, jadwal sholat berjamaah, dan pendampingan musyrif 24 jam.',
-      category: 'Kegiatan',
-      publishedAt: '2026-08-10T08:00:00.000Z'
-    },
-    {
-      slug: 'alur-lengkap-legalisasi-berkas-ke-mesir',
-      title: 'Alur Lengkap Legalisasi Berkas & Visa Pelajar Mesir 2026',
-      excerpt: 'Langkah pengurusan ijazah di Kemenag, Kemenkumham, Kemlu, serta Kedutaan Besar Republik Arab Mesir di Jakarta.',
-      category: 'Keberangkatan',
-      publishedAt: '2026-08-02T08:00:00.000Z'
-    }
-  ];
 
   function renderCards(articles) {
     if (!articles || articles.length === 0) {
@@ -92,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <h2 class="article-card-title">
             <a href="article.html?slug=${encodeURIComponent(a.slug)}">${escapeHtml(a.title)}</a>
           </h2>
+          ${a.coverUrl ? `<img class="article-card-cover" src="${escapeHtml(a.coverUrl)}" alt="" loading="lazy" />` : ''}
           <p class="article-card-excerpt">${escapeHtml(a.excerpt || '')}</p>
           <div class="card-bottom-row">
             <div class="author-micro-badge">
@@ -133,18 +97,11 @@ document.addEventListener('DOMContentLoaded', () => {
   fetch('/api/articles')
     .then((res) => res.ok ? res.json() : Promise.reject(new Error('Gagal memuat artikel.')))
     .then((data) => {
-      if (Array.isArray(data.items) && data.items.length > 0) {
-        // Merge API articles with fallback to ensure rich catalog
-        const slugs = new Set(data.items.map((i) => i.slug));
-        const extra = FALLBACK_ARTICLES.filter((f) => !slugs.has(f.slug));
-        allArticles = [...data.items, ...extra];
-      } else {
-        allArticles = FALLBACK_ARTICLES;
-      }
+      allArticles = Array.isArray(data.items) ? data.items : [];
       filterAndRender();
     })
     .catch(() => {
-      allArticles = FALLBACK_ARTICLES;
+      allArticles = [];
       filterAndRender();
     });
 

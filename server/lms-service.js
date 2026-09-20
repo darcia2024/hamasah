@@ -32,7 +32,7 @@ function createMemoryLmsStore() {
     },
     async addMaterial(courseId, material) {
       const course = database.courses[courseId];
-      const saved = { ...material, version: 1 };
+      const saved = { ...material, version: 1, position: course.materials.length, archivedAt: null };
       course.materials.push(clone(saved));
       course.updatedAt = material.createdAt;
       return clone(saved);
@@ -63,6 +63,7 @@ function createMemoryLmsStore() {
     ,async addSubmission(record) { database.submissions.push(clone(record)); return clone(record); }
     ,async reviewSubmission(id, review) { const item = database.submissions.find((entry) => entry.id === id); if (!item) return null; Object.assign(item, review); return clone(item); }
     ,async updateMaterial(courseId, materialId, value) { const course = database.courses[courseId]; const item = course && course.materials.find((entry) => entry.id === materialId); if (!item) return null; Object.assign(item, value, { version: (item.version || 1) + 1 }); return clone(item); }
+    ,async archiveMaterial(courseId, materialId, archivedAt) { const course = database.courses[courseId]; const item = course && course.materials.find((entry) => entry.id === materialId); if (!item) return null; item.archivedAt = archivedAt; item.version = (item.version || 1) + 1; return clone(item); }
   };
 }
 
@@ -147,6 +148,15 @@ function createLmsService(options) {
     return value ? { ok: true, value } : { ok: false, error: 'Materi tidak ditemukan.' };
   }
 
+  async function archiveMaterial(courseId, materialId, actor) {
+    if (!isStaff(actor)) return { ok: false, error: 'Akses guru atau admin diperlukan.' };
+    const course = await store.getCourse(courseId);
+    if (!course || !canManageCourse(course, actor)) return { ok: false, error: 'Maddah tidak ditemukan.' };
+    if (!course.materials.some((item) => item.id === materialId) || typeof store.archiveMaterial !== 'function') return { ok: false, error: 'Materi tidak ditemukan.' };
+    const saved = await store.archiveMaterial(courseId, materialId, now());
+    return saved ? { ok: true, value: saved } : { ok: false, error: 'Materi tidak ditemukan.' };
+  }
+
   async function enroll(studentId, courseId, actor) {
     if (!isStaff(actor)) {
       return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
@@ -175,7 +185,8 @@ function createLmsService(options) {
     const completedMaterialIds = completions
       .filter(function currentCourse(entry) { return entry.courseId === courseId; })
       .map(function materialId(entry) { return entry.materialId; });
-    const materials = course.materials.map(function learnerMaterial(material) {
+    const activeMaterials = course.materials.filter((material) => !material.archivedAt);
+    const materials = activeMaterials.map(function learnerMaterial(material) {
       return {
         id: material.id, type: material.type, title: material.title, content: material.content,
         summary: material.summary, keyPoints: material.keyPoints, completed: completedMaterialIds.includes(material.id)
@@ -188,8 +199,8 @@ function createLmsService(options) {
         title: course.title,
         description: course.description,
         materials,
-        progress: course.materials.length ? Math.round((completedMaterialIds.length / course.materials.length) * 100) : 0,
-        completionStatus: course.materials.length && completedMaterialIds.length === course.materials.length ? 'completed' : 'in-progress'
+        progress: activeMaterials.length ? Math.round((completedMaterialIds.filter((id) => activeMaterials.some((material) => material.id === id)).length / activeMaterials.length) * 100) : 0,
+        completionStatus: activeMaterials.length && completedMaterialIds.filter((id) => activeMaterials.some((material) => material.id === id)).length === activeMaterials.length ? 'completed' : 'in-progress'
       }
     };
   }
@@ -314,6 +325,7 @@ function createLmsService(options) {
 
   return Object.freeze({
     addMaterial,
+    archiveMaterial,
     completeMaterial,
     createCourse,
     createMemoryLmsStore,

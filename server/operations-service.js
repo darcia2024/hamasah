@@ -142,6 +142,11 @@ function createOperationsService(options) {
     return { ok: true, value: paid };
   }
 
+  async function getInvoice(invoiceId, actor) {
+    if (!adminOnly(actor)) return null;
+    return store.getInvoice(invoiceId);
+  }
+
   async function correctInvoice(invoiceId, input, actor) {
     if (!adminOnly(actor)) return { ok: false, error: 'Akses admin diperlukan.' };
     const source = input || {};
@@ -258,7 +263,7 @@ function createOperationsService(options) {
     return { ok: true, value: items.sort((a, b) => a.expiresAt.localeCompare(b.expiresAt)) };
   }
 
-  return Object.freeze({ createInvoice, createMemoryOperationsStore, correctInvoice, list, markInvoicePaid, moveInventory, saveInventory, saveVisa, saveVisaDocument, visaReminders, voidInvoice });
+  return Object.freeze({ createInvoice, createMemoryOperationsStore, correctInvoice, getInvoice, list, markInvoicePaid, moveInventory, saveInventory, saveVisa, saveVisaDocument, visaReminders, voidInvoice });
 }
 
 module.exports = { MAX_INVOICE_AMOUNT, VISA_STATUSES, createMemoryOperationsStore, createOperationsService, documentNumber, yearInJakarta };

@@ -241,7 +241,7 @@ Gate: pertama membuat satu santri; retry tidak menggandakan; seluruh `npm test` 
 ### Tahap 4 — Rilis A: publik, artikel, pendaftaran (Phase 9)
 
 - [ ] T04.1 Audit konten asli Hamasah bersama pemilik; program, biaya, syarat, kontak dan jadwal mempunyai penanggung jawab.
-- [ ] T04.2 CMS draft/edit/publish/archive dan cover/media berizin; artikel kegiatan dapat dikelola staf.
+- [~] T04.2 CMS draft/edit/publish/archive dan cover media sudah tersedia secara lokal; upload media berizin dan UAT editorial masih perlu ditutup.
 - [x] T04.3 Lengkapi FAQ yang jujur, metadata halaman, sitemap, 404, tautan dan navigasi.
 - [ ] T04.4 Review mobile/keyboard/form error/loading/empty/success; pertahankan identitas logo dan tipografi yang sudah dipilih.
 - [ ] T04.5 Lengkapi pemberitahuan privasi/consent/retensi dengan pihak berwenang di Hamasah.
@@ -251,10 +251,10 @@ Gate: publik → daftar → dokumen → review → akun teruji. Fitur di luar Ri
 
 ### Tahap 5 — Operasional dan keuangan (Phase 10)
 
-- [~] T05.1 Invoice/payment/proof/verification/receipt, status transisi dan koreksi yang diaudit.
-- [~] T05.2 PDF/nomor verifikasi kuitansi sesuai kebutuhan yang disetujui; test nomor unik dan pembayaran paralel.
+- [~] T05.1 Invoice/payment/status transisi dan koreksi ter-audit tersedia; bukti pembayaran dan verifikasi provider masih belum diputuskan.
+- [~] T05.2 Generator PDF kuitansi dan nomor kuitansi server-side tersedia; format final dan verifikasi bisnis masih manual.
 - [x] T05.3 Asrama: kapasitas, penempatan, pengawas, perpindahan dan lingkup akses.
-- [~] T05.4 Visa: dokumen, riwayat status, tenggat dan pengingat sesuai alur nyata.
+- [~] T05.4 Visa: dokumen, riwayat status, tenggat, adapter scheduler pengingat, dan export operasional tersedia; pengiriman terjadwal nyata masih menunggu provider/policy.
 - [x] T05.5 Inventaris: mutasi masuk/keluar/koreksi dan larangan stok tidak valid.
 - [x] T05.6 Import data bila diperlukan: preview, validasi, deteksi duplikat, rollback dan audit; laporan/filter/pagination.
 
@@ -276,7 +276,7 @@ Gate: dua keluarga tidak bisa saling melihat data; pengawas dibatasi penugasan; 
 - [~] T07.2 Media materi nyata dan akses provider sesuai keputusan privasi/biaya, bukan pemutar dekoratif.
 - [x] T07.3 Tugas, submission, kuis, attempt, scoring/review, batas percobaan dan versi materi.
 - [~] T07.4 Aturan completion/progress/kelulusan dan sertifikat bila masuk scope; hitung server-side.
-- [~] T07.5 Uji santri tanpa enrollment, completion berulang, perubahan urutan, materi dihapus/diarsip, hasil nilai dan isolasi course.
+- [x] T07.5 Uji santri tanpa enrollment, completion berulang, materi diarsip, hasil nilai dan isolasi course; urutan materi tetap berasal dari `position` server-side.
 
 Gate: satu pembelajaran lengkap dari enrollment sampai nilai/kelulusan dapat dilakukan lewat UI dan hasilnya benar.
 
@@ -286,13 +286,13 @@ Gate: satu pembelajaran lengkap dari enrollment sampai nilai/kelulusan dapat dil
 - [~] T08.2 FAQ publik memakai sumber lokal yang disetujui dan handoff pembina untuk ketidakpastian; persetujuan konten masih manual.
 - [~] T08.3 Study-help memakai konteks materi yang sudah diakses akun dan tidak mengirim data di luar materi tersebut.
 - [~] T08.4 Adapter AI memiliki quota per akun, timeout provider, fallback deterministik, dan metrik agregat tanpa menyimpan prompt mentah.
-- [~] T08.5 Test otomatis mencakup jawaban fallback, prompt injection, quota, konteks terbatas, dan provider gagal; dataset pengajar nyata masih diperlukan.
+- [~] T08.5 Harness evaluasi dan dataset sintetis mencakup fallback, prompt injection, quota, konteks terbatas, dan provider gagal; dataset pengajar nyata masih diperlukan.
 
 Gate: evaluasi mutu disetujui pengajar; tidak ada akses lintas akun/materi; kegagalan AI tidak menghalangi belajar. Terapkan gate deployment untuk Rilis C.
 
 ### Tahap 9 — Penutupan dan serah terima (Phase 14–15)
 
-- [~] T09.1 Regression otomatis seluruh role dan flow API lulus; browser aksesibilitas/responsive, performa berbeban, dan review dependency/security eksternal masih perlu dijalankan.
+- [~] T09.1 Regression otomatis 46 file, kontrak browser publik, dan performance smoke lokal lulus; browser interaktif berbeban serta review dependency/security eksternal masih perlu dijalankan.
 - [x] T09.2 Runbook deployment, backup/restore, rollback, incident response, monitoring, retensi dan rotasi akses tersedia.
 - [ ] T09.3 Latihan restore ke lingkungan terpisah; verifikasi data, file, akses dan konsistensi setelah restore.
 - [~] T09.4 Panduan role dan lembar UAT sudah tersedia; pengisian, pelatihan, dan tanda tangan pemilik proses masih manual.
