@@ -264,6 +264,30 @@ function createPostgresOperationsStore({ database } = {}) {
       return toInventory(rows[0]);
     },
 
+    // Mutasi dicatat sejak migrasi 022 dan tidak pernah dibaca. Tanpa jalur baca,
+    // jumlah di layar adalah angka yang harus dipercaya begitu saja; dengan ledger,
+    // angka itu bisa ditelusuri.
+    async listInventoryMovements(itemId) {
+      const { rows } = await database.query(
+        `SELECT mutasi.id, mutasi.direction, mutasi.quantity, mutasi.reason, mutasi.created_at,
+                mutasi.actor_account_id, pelaku.name AS actor_name
+           FROM inventory_movements AS mutasi
+           LEFT JOIN accounts AS pelaku ON pelaku.id = mutasi.actor_account_id
+          WHERE mutasi.inventory_item_id = $1
+          ORDER BY mutasi.created_at DESC`,
+        [itemId]
+      );
+      return rows.map((row) => ({
+        id: row.id,
+        direction: row.direction,
+        quantity: Number(row.quantity),
+        reason: row.reason,
+        createdAt: toIso(row.created_at),
+        actorAccountId: row.actor_account_id || null,
+        actorName: row.actor_name || null
+      }));
+    },
+
     async applyInventoryMovement(itemId, movement) {
       return database.withTransaction(async (tx) => {
         const { rows } = await tx.query('SELECT id, name, location, quantity, updated_at, version FROM inventory_items WHERE id = $1 FOR UPDATE', [itemId]);

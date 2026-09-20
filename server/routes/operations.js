@@ -196,6 +196,15 @@ module.exports = [
     }
   }
   ,{
+    method: 'GET',
+    pattern: /^\/api\/operations\/inventory\/([\w-]+)\/movements$/,
+    permission: 'operations.read',
+    async handler({ response, services, auth, params }) {
+      const result = await services.operationsService.listInventoryMovements(params[0], await auth.actor());
+      json(response, result.ok ? 200 : 403, result.ok ? { items: result.value } : publicError(result));
+    }
+  }
+  ,{
     method: 'POST',
     pattern: /^\/api\/operations\/inventory\/([\w-]+)\/movements$/,
     permission: 'operations.manage',

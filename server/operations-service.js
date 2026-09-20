@@ -80,6 +80,20 @@ function createMemoryOperationsStore() {
     async listVisaHistory(studentId) { return (database.visaHistory[studentId] || []).map(clone).reverse(); },
     async listInventory() { return Object.values(database.inventory).map(clone); },
     async saveInventory(value) { database.inventory[value.id] = { version: 1, ...clone(value) }; return clone(database.inventory[value.id]); },
+    async listInventoryMovements(itemId) {
+      return Object.values(database.inventoryMovements)
+        .filter((item) => item.inventoryItemId === itemId)
+        .map((item) => clone({
+          id: item.id,
+          direction: item.direction,
+          quantity: item.quantity,
+          reason: item.reason,
+          createdAt: item.createdAt,
+          actorAccountId: item.actorAccountId || null,
+          actorName: null
+        }))
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    },
     async applyInventoryMovement(id, movement) {
       const item = database.inventory[id]; if (!item) return null;
       const delta = movement.direction === 'in' ? movement.quantity : movement.direction === 'out' ? -movement.quantity : movement.delta;
@@ -249,6 +263,12 @@ function createOperationsService(options) {
     return { ok: true, value: saved };
   }
 
+  async function listInventoryMovements(itemId, actor) {
+    if (!adminOnly(actor)) return { ok: false, error: 'Akses admin diperlukan.' };
+    if (typeof store.listInventoryMovements !== 'function') return { ok: true, value: [] };
+    return { ok: true, value: await store.listInventoryMovements(itemId) };
+  }
+
   async function moveInventory(itemId, input, actor) {
     if (!adminOnly(actor)) return { ok: false, error: 'Akses admin diperlukan.' };
     const source = input || {};
@@ -293,7 +313,7 @@ function createOperationsService(options) {
     return { ok: true, value: items.sort((a, b) => a.expiresAt.localeCompare(b.expiresAt)) };
   }
 
-  return Object.freeze({ createInvoice, createMemoryOperationsStore, correctInvoice, getInvoice, list, listInvoiceCorrections, listVisaDocuments, markInvoicePaid, moveInventory, saveInventory, saveVisa, saveVisaDocument, visaReminders, voidInvoice });
+  return Object.freeze({ createInvoice, createMemoryOperationsStore, correctInvoice, getInvoice, list, listInventoryMovements, listInvoiceCorrections, listVisaDocuments, markInvoicePaid, moveInventory, saveInventory, saveVisa, saveVisaDocument, visaReminders, voidInvoice });
 }
 
 module.exports = { MAX_INVOICE_AMOUNT, VISA_STATUSES, createMemoryOperationsStore, createOperationsService, documentNumber, yearInJakarta };

@@ -184,6 +184,39 @@ async function run() {
     assert.deepEqual(await store.listVisaDocuments(santriLain), [], 'Berkas santri lain tidak ikut terbawa.');
     assert.equal((await store.listVisaDocuments(null)).length, 2, 'Tanpa filter, seluruh berkas terbaca.');
 
+    // Task R3.4. Mutasi inventaris dicatat sejak migrasi 022 dan tidak pernah dibaca.
+    const lemari = await store.saveInventory({
+      id: crypto.randomUUID(), name: 'Lemari santri', location: 'Hay Asyir', quantity: 5, updatedAt: ISSUED_AT
+    });
+    assert.deepEqual(await store.listInventoryMovements(lemari.id), []);
+
+    const masuk = await store.applyInventoryMovement(lemari.id, {
+      id: crypto.randomUUID(), direction: 'in', quantity: 3, reason: 'Pembelian tambahan',
+      actorAccountId: null, createdAt: '2026-09-20T00:00:00.000Z'
+    });
+    assert.equal(masuk.item.quantity, 8);
+    const keluar = await store.applyInventoryMovement(lemari.id, {
+      id: crypto.randomUUID(), direction: 'out', quantity: 2, reason: 'Dipindah ke asrama putri',
+      actorAccountId: null, createdAt: '2026-09-21T00:00:00.000Z'
+    });
+    assert.equal(keluar.item.quantity, 6, 'Jumlah mengikuti ledger, bukan angka yang ditulis terpisah.');
+
+    const mutasi = await store.listInventoryMovements(lemari.id);
+    assert.equal(mutasi.length, 2);
+    assert.equal(mutasi[0].direction, 'out', 'Mutasi terbaru di urutan pertama.');
+    assert.equal(mutasi[0].quantity, 2);
+    assert.equal(typeof mutasi[0].quantity, 'number');
+    assert.equal(mutasi[1].reason, 'Pembelian tambahan');
+
+    // Keluar melebihi stok ditolak, dan tidak meninggalkan jejak mutasi.
+    const gagal = await store.applyInventoryMovement(lemari.id, {
+      id: crypto.randomUUID(), direction: 'out', quantity: 99, reason: 'Tidak boleh berhasil',
+      actorAccountId: null, createdAt: '2026-09-22T00:00:00.000Z'
+    });
+    assert.equal(gagal.error, 'Stok tidak boleh negatif.');
+    assert.equal((await store.listInventoryMovements(lemari.id)).length, 2, 'Mutasi yang ditolak tidak boleh tercatat.');
+    assert.equal((await store.listInventory()).find((x) => x.id === lemari.id).quantity, 6);
+
     console.log('postgres operations store tests passed');
   } finally {
     await database.close();

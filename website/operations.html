@@ -373,6 +373,44 @@
               </button>
               <p id="inventory-status" class="form-status" role="status" aria-live="polite"></p>
             </form>
+
+            <div class="crm-white-card-header op-subheader">
+              <div>
+                <h3>Daftar Aset dan Ledger</h3>
+                <p>Jumlah yang tampil adalah hasil pencatatan mutasi. Perubahan stok dilakukan lewat mutasi, bukan dengan menimpa angkanya.</p>
+              </div>
+            </div>
+            <div id="inventory-list" class="op-row-list"></div>
+            <p id="inventory-list-status" class="form-status" role="status" aria-live="polite"></p>
+
+            <dialog id="movement-dialog" class="op-dialog" aria-labelledby="movement-title">
+              <form id="movement-form" class="staff-form op-dialog__form">
+                <h3 id="movement-title">Catat Pergerakan Stok</h3>
+                <p id="movement-summary" class="op-dialog__summary"></p>
+                <div class="form-grid-2">
+                  <div>
+                    <label for="movement-direction">Arah Mutasi</label>
+                    <select id="movement-direction" class="monitoring-select">
+                      <option value="in">Masuk</option>
+                      <option value="out">Keluar</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="movement-quantity">Jumlah Unit</label>
+                    <input id="movement-quantity" type="number" min="1" step="1" />
+                  </div>
+                </div>
+                <div>
+                  <label for="movement-reason">Catatan, minimal 3 karakter</label>
+                  <input id="movement-reason" type="text" aria-describedby="movement-error" placeholder="Contoh: Pembelian kasur tambahan" />
+                </div>
+                <p id="movement-error" class="field-error" role="alert"></p>
+                <div class="op-dialog__actions">
+                  <button type="button" class="button button--secondary" id="movement-cancel">Tutup</button>
+                  <button type="submit" class="button button--primary" id="movement-submit">Simpan Mutasi</button>
+                </div>
+              </form>
+            </dialog>
           </div>
 
           <!-- Tab Panel 4: Riwayat Data Operasional -->
@@ -392,6 +430,6 @@
 
     <script src="internal-shell.js?v=1"></script>
     <script src="nav.js?v=3"></script>
-    <script src="operations.js?v=6"></script>
+    <script src="operations.js?v=7"></script>
   </body>
 </html>

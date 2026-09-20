@@ -94,6 +94,188 @@ async function unduhBerkas(url, namaBerkas, tombol) {
 }
 
 
+// ---- Task R3.4: ledger inventaris ----
+
+const inventoryList = document.querySelector('#inventory-list');
+const movementDialog = document.querySelector('#movement-dialog');
+const movementForm = document.querySelector('#movement-form');
+const movementSummary = document.querySelector('#movement-summary');
+const movementDirection = document.querySelector('#movement-direction');
+const movementQuantity = document.querySelector('#movement-quantity');
+const movementReason = document.querySelector('#movement-reason');
+const movementError = document.querySelector('#movement-error');
+const movementSubmit = document.querySelector('#movement-submit');
+
+const MOVEMENT_LABELS = Object.freeze({ in: 'Masuk', out: 'Keluar', correction: 'Koreksi' });
+
+// Barang yang riwayat mutasinya sedang dibuka, supaya pemuatan ulang daftar tidak
+// menutup kembali riwayat yang baru saja ditampilkan.
+const mutasiTerbuka = new Set();
+
+let mutasiItem = null;
+
+function tutupDialogMutasi() {
+  mutasiItem = null;
+  movementError.textContent = '';
+  if (movementDialog.open) movementDialog.close();
+}
+
+function bukaDialogMutasi(item) {
+  mutasiItem = item;
+  movementSummary.textContent = `${item.name} di ${item.location}. Stok saat ini ${item.quantity} unit.`;
+  movementDirection.value = 'in';
+  movementQuantity.value = '';
+  movementReason.value = '';
+  movementError.textContent = '';
+  movementSubmit.disabled = false;
+  movementDialog.showModal();
+  movementQuantity.focus();
+}
+
+async function kirimMutasi(event) {
+  event.preventDefault();
+  if (!mutasiItem) return;
+
+  const direction = movementDirection.value;
+  const quantity = Number(movementQuantity.value);
+  const reason = movementReason.value.trim();
+
+  if (!Number.isInteger(quantity) || quantity <= 0) {
+    movementError.textContent = 'Jumlah harus bilangan bulat lebih dari nol.';
+    movementQuantity.focus();
+    return;
+  }
+  if (reason.length < 3) {
+    movementError.textContent = 'Catatan wajib diisi, minimal 3 karakter.';
+    movementReason.focus();
+    return;
+  }
+  // Stok negatif ditolak lebih dulu di sini supaya pesannya menyebut angka yang
+  // sebenarnya. Store tetap menjadi penentu akhir: ia memeriksa ulang di dalam
+  // transaksi, sehingga dua mutasi bersamaan tidak bisa menembus batas.
+  if (direction === 'out' && quantity > mutasiItem.quantity) {
+    movementError.textContent = `Stok ${mutasiItem.name} hanya ${mutasiItem.quantity} unit, tidak cukup untuk mengeluarkan ${quantity} unit.`;
+    movementQuantity.focus();
+    return;
+  }
+
+  movementSubmit.disabled = true;
+  try {
+    await jsonRequest(`/api/operations/inventory/${encodeURIComponent(mutasiItem.id)}/movements`, {
+      method: 'POST',
+      headers: { ...headers(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ direction, quantity, reason })
+    });
+    mutasiTerbuka.add(mutasiItem.id);
+    const nama = mutasiItem.name;
+    tutupDialogMutasi();
+    feedback('#inventory-list-status', `Mutasi ${nama} tercatat.`);
+    await loadOperations();
+  } catch (error) {
+    movementSubmit.disabled = false;
+    movementError.textContent = error.message;
+  }
+}
+
+function mutasiItemRow(mutasi) {
+  const item = document.createElement('div');
+  item.className = 'op-history__item';
+
+  const kepala = document.createElement('div');
+  kepala.className = 'op-history__head';
+  const waktu = document.createElement('span');
+  waktu.textContent = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(mutasi.createdAt));
+  const pelaku = document.createElement('span');
+  pelaku.textContent = mutasi.actorName ? `oleh ${mutasi.actorName}` : 'pelaku tidak tersimpan';
+  if (!mutasi.actorName) pelaku.classList.add('op-history__actor--kosong');
+  kepala.append(waktu, pelaku);
+
+  const perubahan = document.createElement('p');
+  perubahan.className = 'op-history__change';
+  const tanda = mutasi.direction === 'out' ? '\u2212' : '+';
+  perubahan.textContent = `${MOVEMENT_LABELS[mutasi.direction] || mutasi.direction} ${tanda}${mutasi.quantity} unit`;
+
+  const alasan = document.createElement('p');
+  alasan.className = 'op-history__reason';
+  alasan.textContent = `Catatan: ${mutasi.reason}`;
+
+  item.append(kepala, perubahan, alasan);
+  return item;
+}
+
+async function muatRiwayatMutasi(itemId, wadah) {
+  wadah.replaceChildren();
+  const memuat = kosong('Memuat riwayat mutasi...');
+  wadah.append(memuat);
+  try {
+    const hasil = await jsonRequest(`/api/operations/inventory/${encodeURIComponent(itemId)}/movements`, { headers: headers() });
+    if (!hasil.items.length) {
+      memuat.textContent = 'Belum ada mutasi. Jumlah saat ini berasal dari jumlah awal saat aset dibuat.';
+      return;
+    }
+    wadah.replaceChildren(...hasil.items.map(mutasiItemRow));
+  } catch (error) {
+    memuat.textContent = error.message;
+    memuat.classList.add('is-error');
+  }
+}
+
+function inventoryRow(item) {
+  const baris = document.createElement('div');
+  baris.className = 'op-row';
+
+  const utama = document.createElement('div');
+  utama.className = 'op-row__main';
+  const judul = document.createElement('strong');
+  judul.textContent = `${item.name} \u00b7 ${item.quantity} unit`;
+  const rinci = document.createElement('span');
+  rinci.textContent = item.location;
+  utama.append(judul, rinci);
+
+  const aksi = document.createElement('div');
+  aksi.className = 'op-row__actions';
+
+  const catat = document.createElement('button');
+  catat.type = 'button';
+  catat.className = 'button button--secondary op-action';
+  catat.textContent = 'Catat Pergerakan';
+  catat.addEventListener('click', () => bukaDialogMutasi(item));
+
+  const riwayatTombol = document.createElement('button');
+  riwayatTombol.type = 'button';
+  riwayatTombol.className = 'button button--secondary op-action';
+  const riwayatWadah = document.createElement('div');
+  riwayatWadah.className = 'op-history';
+
+  function setRiwayat(terbuka) {
+    riwayatWadah.hidden = !terbuka;
+    riwayatTombol.setAttribute('aria-expanded', String(terbuka));
+    riwayatTombol.textContent = terbuka ? 'Sembunyikan Riwayat' : 'Riwayat Mutasi';
+    if (terbuka) muatRiwayatMutasi(item.id, riwayatWadah);
+  }
+
+  riwayatTombol.addEventListener('click', () => {
+    const terbuka = riwayatWadah.hidden;
+    if (terbuka) mutasiTerbuka.add(item.id);
+    else mutasiTerbuka.delete(item.id);
+    setRiwayat(terbuka);
+  });
+
+  aksi.append(catat, riwayatTombol);
+  setRiwayat(mutasiTerbuka.has(item.id));
+
+  baris.append(utama, aksi, riwayatWadah);
+  return baris;
+}
+
+function renderInventory(items) {
+  if (!items.length) {
+    inventoryList.replaceChildren(kosong('Belum ada aset inventaris. Tambahkan lewat formulir di atas.'));
+    return;
+  }
+  inventoryList.replaceChildren(...items.map(inventoryRow));
+}
+
 // ---- Task R3.3: panel visa dan berkas visa ----
 
 const visaReminderList = document.querySelector('#visa-reminder-list');
@@ -549,6 +731,7 @@ async function loadOperations() {
   const result = await jsonRequest('/api/operations', { headers: headers() });
   renderOperations(result);
   renderInvoices(result.invoices);
+  renderInventory(result.inventory);
 }
 
 // Subtab switcher
@@ -644,6 +827,10 @@ document.querySelector('#reload-operations').addEventListener('click', () => loa
 if (downloadReportButton) downloadReportButton.addEventListener('click', () => unduhLaporan());
 
 if (visaStudentSelect) visaStudentSelect.addEventListener('change', () => loadVisaDocuments());
+
+movementForm.addEventListener('submit', kirimMutasi);
+document.querySelector('#movement-cancel').addEventListener('click', tutupDialogMutasi);
+movementDialog.addEventListener('close', () => { mutasiItem = null; });
 
 if (visaDocumentForm) {
   visaDocumentForm.addEventListener('submit', async (event) => {
