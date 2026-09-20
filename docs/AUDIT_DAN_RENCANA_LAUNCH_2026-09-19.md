@@ -274,7 +274,7 @@ Gate: dua keluarga tidak bisa saling melihat data; pengawas dibatasi penugasan; 
 
 - [ ] T07.1 Kelola course/materi/publikasi/enrollment dan hak guru atas course.
 - [~] T07.2 Media materi nyata dan akses provider sesuai keputusan privasi/biaya, bukan pemutar dekoratif.
-- [~] T07.3 Tugas, submission, kuis, attempt, scoring/review, batas percobaan dan versi materi.
+- [x] T07.3 Tugas, submission, kuis, attempt, scoring/review, batas percobaan dan versi materi.
 - [~] T07.4 Aturan completion/progress/kelulusan dan sertifikat bila masuk scope; hitung server-side.
 - [~] T07.5 Uji santri tanpa enrollment, completion berulang, perubahan urutan, materi dihapus/diarsip, hasil nilai dan isolasi course.
 
@@ -427,6 +427,7 @@ Payload undangan sudah disimpan sebagai AES-GCM dan dapat didekripsi oleh worker
 - [x] Browser UAT lokal memverifikasi landing page, validasi form pendaftaran kosong, halaman cek status, recovery kode akses, dan tidak menemukan error/warning JavaScript.
 - [x] Automated UAT finance/operations mencakup invoice paid/correction/void, import preview/commit, histori batch, reminder visa, dan penolakan akses wali.
 - [x] Automated UAT keluarga mencakup dashboard wali dengan filter periode, ekspor CSV periode, dan verifikasi DTO tidak membocorkan relasi akun internal.
+- [x] Automated UAT LMS mencakup ownership course guru, edit versi materi, quiz attempt limit, submission tugas, review nilai, completion, dan isolasi enrollment.
 
 Bukti eksekusi: `SMOKE_BASE_URL=http://127.0.0.1:4273 SMOKE_ADMIN_EMAIL=admin@hamasah.test SMOKE_ADMIN_PASSWORD=(dev secret) node scripts/smoke.js` menghasilkan **13/13 langkah lulus**. Kegagalan pertama disebabkan environment development membaca `STORAGE_DRIVER=supabase` dari `.env`; `scripts/dev.js` sekarang memaksa driver lokal agar UAT development tidak bergantung jaringan.
 

@@ -195,6 +195,10 @@ async function run() {
           keyPoints: ['Poin.'], studyGuide: []
         })
       },
+      {
+        permission: 'courses.manage', method: 'PATCH', path: () => `/api/courses/${courseId}/materials/${materialId}`,
+        body: () => ({ title: 'Materi Matriks Revisi', content: 'Isi materi revisi.', summary: 'Rangkuman materi matriks revisi.', keyPoints: ['Poin revisi.'] })
+      },
       { permission: 'courses.manage', method: 'POST', path: () => `/api/students/${studentId}/courses/${courseId}` },
       { permission: 'courses.read', method: 'GET', path: () => `/api/students/${studentId}/courses` },
       { permission: 'courses.read', method: 'GET', path: () => `/api/students/${studentId}/courses/${courseId}` },
