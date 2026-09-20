@@ -343,6 +343,8 @@ Pekerjaan manual user/pemilik layanan, dikerjakan ketika tahapnya membutuhkan:
 
 Developer bertanggung jawab menyiapkan implementasi, validasi env, panduan langkah konkret sesuai provider yang dipilih, dan bukti uji. User hanya perlu mengerjakan tindakan yang memerlukan akun/otoritasnya. Pekerjaan kode yang tidak bergantung env harus tetap dapat dilanjutkan dengan adapter test.
 
+Daftar gabungan yang harus dikerjakan manual dan diputuskan pemilik ada di `docs/LAUNCH_MANUAL_DAN_KEPUTUSAN_2026-09-20.md`.
+
 ## 11. Perbaikan proses pengerjaan
 
 1. Gunakan satu task dengan acceptance criteria yang jelas. Perubahan selesai berarti DB/service/API/UI yang dibutuhkan sudah tersambung dan diuji.
