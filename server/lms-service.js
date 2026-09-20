@@ -16,7 +16,7 @@ function clean(value) {
 // Antarmuka store LMS sama persis dengan postgres-lms-store.js, supaya service
 // tidak perlu tahu data disimpan di mana.
 function createMemoryLmsStore() {
-  const database = { courses: {}, enrollments: {}, completions: [], attempts: [] };
+  const database = { courses: {}, enrollments: {}, completions: [], attempts: [], submissions: [] };
   return {
     async createCourse(course) {
       database.courses[course.id] = clone({ ...course, materials: [] });
@@ -58,6 +58,9 @@ function createMemoryLmsStore() {
     },
     async listAttempts(studentId, materialId) { return clone(database.attempts.filter((entry) => entry.studentId === studentId && (!materialId || entry.materialId === materialId))); },
     async addAttempt(record) { database.attempts.push(clone(record)); return clone(record); }
+    ,async getSubmission(studentId, materialId) { return clone(database.submissions.find((item) => item.studentId === studentId && item.materialId === materialId && item.status !== 'returned') || null); }
+    ,async addSubmission(record) { database.submissions.push(clone(record)); return clone(record); }
+    ,async reviewSubmission(id, review) { const item = database.submissions.find((entry) => entry.id === id); if (!item) return null; Object.assign(item, review); return clone(item); }
   };
 }
 
@@ -229,6 +232,24 @@ function createLmsService(options) {
     return { ok: true, value: { attempt, course: await getStudentCourse(studentId, courseId, actor) } };
   }
 
+  async function submitAssignment(studentId, courseId, materialId, input, actor) {
+    if (!(await canStudy(studentId, actor))) return { ok: false, error: 'Akses pembelajaran tidak diizinkan.' };
+    if (!(await store.getEnrollments(studentId)).includes(courseId)) return { ok: false, error: 'Santri belum terdaftar pada maddah ini.' };
+    const course = await store.getCourse(courseId); const material = course && course.materials.find((entry) => entry.id === materialId);
+    if (!material || material.type !== 'assignment') return { ok: false, error: 'Tugas tidak ditemukan.' };
+    if (await store.getSubmission(studentId, materialId)) return { ok: false, error: 'Tugas ini sudah dikirim dan menunggu review.' };
+    const body = clean(input && input.body); if (body.length < 3) return { ok: false, error: 'Jawaban tugas terlalu singkat.' };
+    return { ok: true, value: await store.addSubmission({ id: crypto.randomUUID(), studentId, courseId, materialId, body, fileObjectId: clean(input && input.fileObjectId) || null, status: 'submitted', score: null, reviewerNote: '', submittedAt: now(), reviewedAt: null, reviewerAccountId: null }) };
+  }
+
+  async function reviewSubmission(submissionId, input, actor) {
+    if (!isStaff(actor)) return { ok: false, error: 'Akses guru atau admin diperlukan.' };
+    const score = Number(input && input.score); const note = clean(input && input.note);
+    if (!Number.isInteger(score) || score < 0 || score > 100 || note.length < 3) return { ok: false, error: 'Nilai dan catatan review belum valid.' };
+    const saved = await store.reviewSubmission(submissionId, { status: 'reviewed', score, reviewerNote: note, reviewedAt: now(), reviewerAccountId: actor.id || null });
+    return saved ? { ok: true, value: saved } : { ok: false, error: 'Submission tidak ditemukan.' };
+  }
+
   async function studyHelp(studentId, courseId, materialId, question, actor) {
     const courseResult = await getStudentCourse(studentId, courseId, actor);
     if (!courseResult.ok) {
@@ -266,7 +287,9 @@ function createLmsService(options) {
     getStudentCourse,
     listCourses,
     listStudentCourses,
-    studyHelp
+    studyHelp,
+    submitAssignment,
+    reviewSubmission
     ,submitQuiz
   });
 }

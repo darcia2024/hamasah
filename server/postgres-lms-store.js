@@ -174,8 +174,27 @@ function createPostgresLmsStore({ database } = {}) {
       );
       const row = rows[0];
       return { id: row.id, studentId: row.student_id, courseId: row.course_id, materialId: row.material_id, attemptNumber: row.attempt_number, answers: toJson(row.answers), score: row.score, passed: row.passed, submittedAt: toIso(row.submitted_at) };
+    },
+
+    async getSubmission(studentId, materialId) {
+      const { rows } = await database.query(`SELECT id, student_id, course_id, material_id, body, file_object_id, status, score, reviewer_note, submitted_at, reviewed_at, reviewer_account_id FROM lms_submissions WHERE student_id = $1 AND material_id = $2 AND status <> 'returned'`, [studentId, materialId]);
+      return rows[0] ? toSubmission(rows[0]) : null;
+    },
+
+    async addSubmission(record) {
+      const { rows } = await database.query(`INSERT INTO lms_submissions (id, student_id, course_id, material_id, body, file_object_id, status, score, reviewer_note, submitted_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id, student_id, course_id, material_id, body, file_object_id, status, score, reviewer_note, submitted_at, reviewed_at, reviewer_account_id`, [record.id, record.studentId, record.courseId, record.materialId, record.body, record.fileObjectId || null, record.status, record.score, record.reviewerNote || null, record.submittedAt]);
+      return toSubmission(rows[0]);
+    },
+
+    async reviewSubmission(id, review) {
+      const { rows } = await database.query(`UPDATE lms_submissions SET status = $2, score = $3, reviewer_note = $4, reviewed_at = $5, reviewer_account_id = $6 WHERE id = $1 RETURNING id, student_id, course_id, material_id, body, file_object_id, status, score, reviewer_note, submitted_at, reviewed_at, reviewer_account_id`, [id, review.status, review.score, review.reviewerNote, review.reviewedAt, review.reviewerAccountId || null]);
+      return rows[0] ? toSubmission(rows[0]) : null;
     }
   };
 }
 
-module.exports = { createPostgresLmsStore, toCourse, toMaterial };
+function toSubmission(row) {
+  return { id: row.id, studentId: row.student_id, courseId: row.course_id, materialId: row.material_id, body: row.body, fileObjectId: row.file_object_id || null, status: row.status, score: row.score === null ? null : Number(row.score), reviewerNote: row.reviewer_note || '', submittedAt: toIso(row.submitted_at), reviewedAt: toIso(row.reviewed_at), reviewerAccountId: row.reviewer_account_id || null };
+}
+
+module.exports = { createPostgresLmsStore, toCourse, toMaterial, toSubmission };

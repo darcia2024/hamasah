@@ -95,4 +95,22 @@ module.exports = [
       json(response, result.ok ? 200 : 422, result.ok ? { attempt: result.value.attempt, course: result.value.course.value } : publicError(result));
     }
   }
+  ,{
+    method: 'POST',
+    pattern: /^\/api\/students\/([\w-]+)\/courses\/([\w-]+)\/materials\/([\w-]+)\/submission$/,
+    permission: 'courses.read',
+    async handler({ response, services, auth, params, readBody }) {
+      const result = await services.lmsService.submitAssignment(params[0], params[1], params[2], await readBody(), await auth.actor());
+      json(response, result.ok ? 201 : 422, result.ok ? { submission: result.value } : publicError(result));
+    }
+  },
+  {
+    method: 'PATCH',
+    pattern: /^\/api\/lms\/submissions\/([\w-]+)\/review$/,
+    permission: 'courses.manage',
+    async handler({ response, services, auth, params, readBody }) {
+      const result = await services.lmsService.reviewSubmission(params[0], await readBody(), await auth.actor());
+      json(response, result.ok ? 200 : 422, result.ok ? { submission: result.value } : publicError(result));
+    }
+  }
 ];

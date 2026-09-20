@@ -45,6 +45,13 @@ async function run() {
   assert.equal((await service.submitQuiz('student-1', courseId, quiz.value.id, { 0: 'mubtada', 1: 'khabar' }, student)).ok, true);
   assert.equal((await service.submitQuiz('student-1', courseId, quiz.value.id, { 0: 'mubtada', 1: 'khabar' }, student)).ok, false, 'Percobaan keempat harus ditolak.');
 
+  const assignment = await service.addMaterial(courseId, { type: 'assignment', title: 'Tugas Ringkas', content: 'Jelaskan mubtada dan khabar.', summary: 'Tugas penjelasan singkat.', keyPoints: ['Struktur kalimat'] }, admin);
+  const submission = await service.submitAssignment('student-1', courseId, assignment.value.id, { body: 'Mubtada adalah pokok kalimat.' }, student);
+  assert.equal(submission.ok, true);
+  assert.equal((await service.submitAssignment('student-1', courseId, assignment.value.id, { body: 'Duplikat' }, student)).ok, false);
+  const reviewed = await service.reviewSubmission(submission.value.id, { score: 90, note: 'Penjelasan tepat.' }, admin);
+  assert.equal(reviewed.value.status, 'reviewed');
+
   // Santri tidak boleh membuka maddah milik santri lain.
   assert.equal((await service.getStudentCourse('student-2', courseId, student)).ok, false);
   assert.equal((await service.listStudentCourses('student-2', student)).ok, false);
