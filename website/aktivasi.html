@@ -12,9 +12,14 @@
     <p class="eyebrow">Hamasah International</p>
     <h1>Aktivasi akun</h1>
     <p>Buat kata sandi untuk mengaktifkan akun Anda. Gunakan minimal 12 karakter.</p>
-    <form data-password-form novalidate>
-      <label>Kata sandi baru <input name="password" type="password" autocomplete="new-password" required minlength="12"></label>
-      <label>Ulangi kata sandi <input name="confirmation" type="password" autocomplete="new-password" required minlength="12"></label>
+    <div class="token-state" data-token-state="loading" role="status" aria-live="polite">
+      <strong data-token-state-title>Memeriksa tautan aktivasi…</strong>
+      <span data-token-state-message>Jangan tutup halaman ini.</span>
+      <a class="token-recovery-link" href="lupa-password.html">Minta tautan baru</a>
+    </div>
+    <form data-password-form novalidate hidden>
+      <div class="password-control"><label for="activation-password">Kata sandi baru</label><span class="password-field"><input id="activation-password" name="password" type="password" autocomplete="new-password" required minlength="12"><button type="button" class="password-toggle" data-password-toggle="activation-password" aria-label="Tampilkan kata sandi">Tampilkan</button></span></div>
+      <div class="password-control"><label for="activation-confirmation">Ulangi kata sandi</label><span class="password-field"><input id="activation-confirmation" name="confirmation" type="password" autocomplete="new-password" required minlength="12"><button type="button" class="password-toggle" data-password-toggle="activation-confirmation" aria-label="Tampilkan kata sandi">Tampilkan</button></span></div>
       <button type="submit" data-label="Aktifkan akun">Aktifkan akun</button>
     </form>
     <p class="status" data-status aria-live="polite"></p>

@@ -24,6 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const recoveryForm = document.querySelector('#recovery-form');
   const recoveryEmail = document.querySelector('#recovery-email');
   const recoveryStatus = document.querySelector('#recovery-status');
+  const accessTokenError = document.querySelector('#access-token-error');
+  const recoveryEmailError = document.querySelector('#recovery-email-error');
+  const recoveryCta = document.querySelector('#lookup-recovery-cta');
 
   function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, (character) => ({
@@ -33,6 +36,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentRegId = '';
   let currentToken = '';
+
+  function setLookupState(state, message) {
+    form.dataset.lookupState = state;
+    const labels = {
+      loading: 'Memeriksa Kode Akses…',
+      valid: 'Kode Akses valid.',
+      invalid: 'Kode Akses tidak valid.',
+      expired: 'Kode Akses sudah kedaluwarsa.',
+      used: 'Kode Akses sudah digunakan.'
+    };
+    statusMsg.textContent = message || labels[state] || '';
+    statusMsg.className = `form-status ${['invalid', 'expired', 'used'].includes(state) ? 'is-error' : state === 'valid' ? 'is-success' : ''}`;
+    recoveryCta.hidden = !['invalid', 'expired', 'used'].includes(state);
+    if (accessTokenError) {
+      accessTokenError.textContent = ['invalid', 'expired', 'used'].includes(state) ? statusMsg.textContent : '';
+      tokenInput.setAttribute('aria-invalid', String(['invalid', 'expired', 'used'].includes(state)));
+    }
+  }
+
+  function classifyLookupError(error) {
+    const message = String(error?.message || '').toLowerCase();
+    if (message.includes('kedaluwarsa') || message.includes('expired')) return 'expired';
+    if (message.includes('sudah digunakan') || message.includes('already used')) return 'used';
+    return 'invalid';
+  }
 
   const PROGRAM_NAMES = {
     'kuliah-al-azhar': 'Program Kuliah S1 Universitas Al-Azhar Kairo',
@@ -146,8 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function fetchRegistration(regId, token) {
-    statusMsg.textContent = 'Memeriksa data pendaftaran...';
-    statusMsg.className = 'form-status';
+    setLookupState('loading', 'Memeriksa Kode Akses dan data pendaftaran…');
     submitBtn.disabled = true;
 
     try {
@@ -194,15 +221,13 @@ document.addEventListener('DOMContentLoaded', () => {
       renderHistory(reg.history);
 
       resultArea.hidden = false;
-      statusMsg.textContent = 'Data pendaftaran berhasil ditemukan.';
-      statusMsg.className = 'form-status is-success';
+      setLookupState('valid', 'Kode Akses valid. Data pendaftaran berhasil ditemukan.');
 
       // Scroll smoothly to results
       resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {
       resultArea.hidden = true;
-      statusMsg.textContent = err.message;
-      statusMsg.className = 'form-status is-error';
+      setLookupState(classifyLookupError(err), err.message);
     } finally {
       submitBtn.disabled = false;
     }
@@ -213,13 +238,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const id = regIdInput.value.trim().toUpperCase();
     const accessCode = tokenInput.value.trim();
     if (!id || !accessCode) {
-      statusMsg.textContent = 'Nomor registrasi dan kode akses harus diisi.';
-      statusMsg.className = 'form-status is-error';
+      setLookupState('invalid', 'Nomor registrasi dan Kode Akses harus diisi.');
       return;
     }
     submitBtn.disabled = true;
-    statusMsg.textContent = 'Memverifikasi kode akses...';
-    statusMsg.className = 'form-status';
+    setLookupState('loading', 'Memverifikasi Kode Akses…');
     fetch('/api/applicant/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -229,8 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!response.ok) throw new Error(data.error || 'Nomor pendaftaran atau kode akses tidak tepat.');
       await fetchRegistration(id, data.accessToken);
     }).catch((error) => {
-      statusMsg.textContent = error.message;
-      statusMsg.className = 'form-status is-error';
+      setLookupState(classifyLookupError(error), error.message);
       submitBtn.disabled = false;
     });
   });
@@ -260,6 +282,17 @@ document.addEventListener('DOMContentLoaded', () => {
     event.preventDefault();
     const registrationId = regIdInput.value.trim().toUpperCase();
     const email = recoveryEmail.value.trim();
+    if (!regIdInput.value.trim()) {
+      recoveryEmailError.textContent = 'Isi Nomor Registrasi terlebih dahulu di bagian atas.';
+      regIdInput.focus();
+      return;
+    }
+    if (!recoveryEmail.checkValidity()) {
+      recoveryEmailError.textContent = 'Masukkan email pendaftaran yang valid.';
+      recoveryEmail.focus();
+      return;
+    }
+    recoveryEmailError.textContent = '';
     recoveryStatus.textContent = 'Memproses permintaan...';
     recoveryStatus.className = 'form-status';
     try {

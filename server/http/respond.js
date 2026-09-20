@@ -45,6 +45,7 @@ function tooManyRequests(response, retryAfterSeconds, message) {
 function publicError(result) {
   return {
     error: result.error || 'Permintaan tidak dapat diproses.',
+    code: result.code || undefined,
     errors: result.errors || undefined
   };
 }

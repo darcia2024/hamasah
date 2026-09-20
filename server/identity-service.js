@@ -214,6 +214,8 @@ function createIdentityService(options) {
   const accountStore = config.accountStore || createMemoryAccountStore();
   const sessionStore = config.sessionStore || createMemorySessionStore();
   const now = config.now || function currentTime() { return new Date(); };
+  const consumedInvitationTokenHashes = new Set();
+  const consumedResetTokenHashes = new Set();
 
   async function createAccount(input) {
     const source = input || {};
@@ -411,9 +413,20 @@ function createIdentityService(options) {
     if (passwordError || typeof accountStore.consumeInvitationToken !== 'function') {
       return { ok: false, error: passwordError || 'Undangan tidak berlaku.' };
     }
+    const tokenHash = hashSecret(invitationToken || '');
+    const candidate = typeof accountStore.getByInvitationTokenHash === 'function' ? await accountStore.getByInvitationTokenHash(tokenHash) : null;
+    if (!candidate) {
+      return consumedInvitationTokenHashes.has(tokenHash)
+        ? { ok: false, code: 'TOKEN_USED', error: 'Tautan aktivasi sudah digunakan.' }
+        : { ok: false, code: 'TOKEN_INVALID', error: 'Tautan aktivasi tidak valid.' };
+    }
+    if (!candidate.invitationExpiresAt || candidate.invitationExpiresAt <= now().toISOString()) {
+      return { ok: false, code: 'TOKEN_EXPIRED', error: 'Tautan aktivasi sudah kedaluwarsa.' };
+    }
     const updatedAt = now().toISOString();
-    const accountId = await accountStore.consumeInvitationToken(hashSecret(invitationToken || ''), await hashPassword(nextPassword), updatedAt);
-    if (!accountId) return { ok: false, error: 'Undangan tidak berlaku.' };
+    const accountId = await accountStore.consumeInvitationToken(tokenHash, await hashPassword(nextPassword), updatedAt);
+    if (!accountId) return { ok: false, code: 'TOKEN_USED', error: 'Tautan aktivasi sudah digunakan.' };
+    consumedInvitationTokenHashes.add(tokenHash);
     const account = await accountStore.getById(accountId);
     return { ok: true, value: { account: account ? publicAccount(account) : null } };
   }
@@ -423,9 +436,20 @@ function createIdentityService(options) {
     if (passwordError || typeof accountStore.consumeResetToken !== 'function') {
       return { ok: false, error: passwordError || 'Token reset tidak berlaku.' };
     }
+    const tokenHash = hashSecret(resetToken || '');
+    const candidate = typeof accountStore.getByResetTokenHash === 'function' ? await accountStore.getByResetTokenHash(tokenHash) : null;
+    if (!candidate) {
+      return consumedResetTokenHashes.has(tokenHash)
+        ? { ok: false, code: 'TOKEN_USED', error: 'Tautan reset sudah digunakan.' }
+        : { ok: false, code: 'TOKEN_INVALID', error: 'Tautan reset tidak valid.' };
+    }
+    if (!candidate.resetExpiresAt || candidate.resetExpiresAt <= now().toISOString()) {
+      return { ok: false, code: 'TOKEN_EXPIRED', error: 'Tautan reset sudah kedaluwarsa.' };
+    }
     const updatedAt = now().toISOString();
-    const accountId = await accountStore.consumeResetToken(hashSecret(resetToken || ''), await hashPassword(nextPassword), updatedAt);
-    if (!accountId) return { ok: false, error: 'Token reset tidak berlaku.' };
+    const accountId = await accountStore.consumeResetToken(tokenHash, await hashPassword(nextPassword), updatedAt);
+    if (!accountId) return { ok: false, code: 'TOKEN_USED', error: 'Tautan reset sudah digunakan.' };
+    consumedResetTokenHashes.add(tokenHash);
     await logoutAll(accountId);
     return { ok: true };
   }

@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const html = `
       <div class="article-header">
-        ${article.coverUrl ? `<img class="article-cover" src="${escapeHtml(article.coverUrl)}" alt="" />` : ''}
+        ${article.coverUrl ? `<img class="article-cover" src="${escapeHtml(article.coverUrl)}" alt="${escapeHtml(article.coverAltText || rawTitle)}" />` : `<div class="article-cover article-cover--empty" role="img" aria-label="Cover artikel tidak tersedia">Cover tidak tersedia</div>`}
         <div class="article-meta-tags">
           <span class="m3-category-chip">${category}</span>
           <span class="article-reading-time"><svg class="m3-icon m3-icon--sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${readingMinutes} Menit Baca</span>
@@ -58,11 +58,20 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
 
       <div class="article-signature">
-        <p><strong>Pena Hamasah Kairo</strong> — Media literasi, panduan studi, dan kabar berkah dari bumi para nabi.</p>
+        <p><strong>Pena Hamasah Kairo</strong>, media literasi, panduan studi, dan kabar berkah dari bumi para nabi.</p>
       </div>
     `;
 
     articleContent.innerHTML = html;
+    const cover = articleContent.querySelector('.article-cover[src]');
+    if (cover) cover.addEventListener('error', () => {
+      const failed = document.createElement('div');
+      failed.className = 'article-cover article-cover--empty';
+      failed.setAttribute('role', 'img');
+      failed.setAttribute('aria-label', 'Cover artikel tidak tersedia');
+      failed.textContent = 'Cover tidak tersedia';
+      cover.replaceWith(failed);
+    }, { once: true });
   }
 
   // Setup Share Buttons
@@ -94,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <p class="eyebrow">Pena Hamasah</p>
         <h1>Artikel Tidak Ditemukan</h1>
         <p>Silakan kembali ke daftar artikel untuk memilih bacaan lainnya.</p>
-        <a class="button button--primary" href="articles.html">Lihat Semua Artikel ↗</a>
+        <a class="button button--primary" href="articles.html">Lihat Semua Artikel</a>
       </div>
     `;
     if (breadcrumbTitle) breadcrumbTitle.textContent = 'Tidak Ditemukan';
@@ -117,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <p class="eyebrow">Pena Hamasah</p>
             <h1>Artikel Belum Tersedia</h1>
             <p>${err.message}</p>
-            <a class="button button--secondary" href="articles.html">← Kembali ke Katalog Artikel</a>
+            <a class="button button--secondary" href="articles.html">Kembali ke Katalog Artikel</a>
           </div>
         `;
         if (breadcrumbTitle) breadcrumbTitle.textContent = 'Belum Tersedia';

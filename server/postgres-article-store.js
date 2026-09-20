@@ -13,6 +13,7 @@ function toArticle(row) {
     archivedAt: row.archived_at ? new Date(row.archived_at).toISOString() : null,
     updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : null
     ,coverUrl: row.cover_url || null
+    ,coverAltText: row.cover_alt_text || null
   };
 }
 
@@ -25,7 +26,7 @@ function createPostgresArticleStore({ database } = {}) {
     async list({ publicOnly = true } = {}) {
       const filter = publicOnly ? "WHERE status = 'published'" : '';
       const { rows } = await database.query(
-        `SELECT slug, title, excerpt, body, category, published_at, status, archived_at, updated_at, cover_url
+        `SELECT slug, title, excerpt, body, category, published_at, status, archived_at, updated_at, cover_url, cover_alt_text
          FROM articles ${filter} ORDER BY published_at DESC NULLS LAST, updated_at DESC`
       );
       return rows.map(toArticle);
@@ -33,7 +34,7 @@ function createPostgresArticleStore({ database } = {}) {
     async get(slug, { publicOnly = true } = {}) {
       const filter = publicOnly ? "AND status = 'published'" : '';
       const { rows } = await database.query(
-        `SELECT slug, title, excerpt, body, category, published_at, status, archived_at, updated_at, cover_url
+        `SELECT slug, title, excerpt, body, category, published_at, status, archived_at, updated_at, cover_url, cover_alt_text
          FROM articles WHERE slug = $1 ${filter}`,
         [slug]
       );
@@ -47,16 +48,18 @@ function createPostgresArticleStore({ database } = {}) {
       const status = String(input.status || 'published').trim().toLocaleLowerCase('en-US');
       const slug = normalizeSlug(input.slug || title);
       const coverUrl = String(input.coverUrl || '').trim().slice(0, 500) || null;
+      const coverAltText = String(input.coverAltText || '').trim().slice(0, 160) || null;
       if (coverUrl && !/^https:\/\//i.test(coverUrl)) return { ok: false, error: 'Cover media harus memakai URL HTTPS.' };
+      if (coverUrl && !coverAltText) return { ok: false, error: 'Alt text wajib diisi saat artikel memakai cover media.' };
       if (title.length < 8 || title.length > 140 || !excerpt || !body || !slug || !['draft', 'published'].includes(status)) {
         return { ok: false, error: 'Judul, ringkasan, dan isi artikel belum valid.' };
       }
       try {
         const { rows } = await database.query(
-          `INSERT INTO articles (id, slug, title, excerpt, body, category, published_at, status, updated_at, cover_url)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-           RETURNING slug, title, excerpt, body, category, published_at, status, archived_at, updated_at, cover_url`,
-          [crypto.randomUUID(), slug, title, excerpt, body, category, status === 'published' ? createdAt : null, status, createdAt, coverUrl]
+          `INSERT INTO articles (id, slug, title, excerpt, body, category, published_at, status, updated_at, cover_url, cover_alt_text)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+           RETURNING slug, title, excerpt, body, category, published_at, status, archived_at, updated_at, cover_url, cover_alt_text`,
+          [crypto.randomUUID(), slug, title, excerpt, body, category, status === 'published' ? createdAt : null, status, createdAt, coverUrl, coverAltText]
         );
         return { ok: true, value: toArticle(rows[0]) };
       } catch (error) {
@@ -77,7 +80,9 @@ function createPostgresArticleStore({ database } = {}) {
       const category = String(source.category === undefined ? current.category : source.category).trim();
       const status = String(source.status === undefined ? current.status : source.status).trim().toLocaleLowerCase('en-US');
       const coverUrl = String(source.coverUrl === undefined ? (current.coverUrl || '') : source.coverUrl).trim().slice(0, 500) || null;
+      const coverAltText = String(source.coverAltText === undefined ? (current.coverAltText || '') : source.coverAltText).trim().slice(0, 160) || null;
       if (coverUrl && !/^https:\/\//i.test(coverUrl)) return { ok: false, error: 'Cover media harus memakai URL HTTPS.' };
+      if (coverUrl && !coverAltText) return { ok: false, error: 'Alt text wajib diisi saat artikel memakai cover media.' };
       if (title.length < 8 || title.length > 140 || !excerpt || !body || !category || !['draft', 'published', 'archived'].includes(status)) {
         return { ok: false, error: 'Judul, ringkasan, isi, kategori, atau status artikel belum valid.' };
       }
@@ -86,10 +91,10 @@ function createPostgresArticleStore({ database } = {}) {
       const archivedAt = status === 'archived' ? (current.archivedAt || changedAt) : null;
       const { rows } = await database.query(
         `UPDATE articles SET title = $2, excerpt = $3, body = $4, category = $5,
-           status = $6, published_at = $7, archived_at = $8, updated_at = $9, cover_url = $10
+           status = $6, published_at = $7, archived_at = $8, updated_at = $9, cover_url = $10, cover_alt_text = $11
          WHERE slug = $1
-         RETURNING slug, title, excerpt, body, category, published_at, status, archived_at, updated_at`,
-        [slug, title, excerpt, body, category, status, publishedAt, archivedAt, changedAt, coverUrl]
+         RETURNING slug, title, excerpt, body, category, published_at, status, archived_at, updated_at, cover_url, cover_alt_text`,
+        [slug, title, excerpt, body, category, status, publishedAt, archivedAt, changedAt, coverUrl, coverAltText]
       );
       return { ok: true, value: toArticle(rows[0]) };
     }

@@ -26,14 +26,19 @@
           </div>
         </a>
 
-        <nav class="site-nav" aria-label="Navigasi utama">
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Buka menu navigasi">
+          <span class="menu-toggle__label">Menu</span>
+          <span class="menu-toggle__lines" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+
+        <nav class="site-nav" id="site-nav" aria-label="Navigasi utama">
           <a href="index.html#program">Program</a>
           <a href="biaya.html" class="is-active">Biaya & Fasilitas</a>
           <a href="articles.html">Pena Hamasah</a>
           <a href="cek-status.html">Cek Status</a>
           <a href="kontak.html">Kontak</a>
           <a href="portal.html" class="nav-portal">Portal Santri</a>
-          <a class="nav-cta" href="index.html#pendaftaran">Daftar Baru ↗</a>
+          <a class="nav-cta" href="index.html#pendaftaran">Daftar Baru</a>
         </nav>
       </div>
     </header>
@@ -55,22 +60,22 @@
             <div class="trust-pill-item">
               <span class="trust-icon" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
               <div>
-                <strong>Tanpa Biaya Siluman</strong>
-                <small>Akad pembiayaan tertulis resmi</small>
+                <strong>Rincian Biaya Terbuka</strong>
+                <small>Komponen biaya dijelaskan sesuai jalur studi</small>
               </div>
             </div>
             <div class="trust-pill-item">
               <span class="trust-icon" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/><path d="M5 15h4M13 15h2"/></svg></span>
               <div>
-                <strong>Skema Pembayaran Bertahap</strong>
-                <small>Dapat diangsur dalam 3 termin</small>
+                <strong>Pembayaran Bertahap</strong>
+                <small>Jadwal mengikuti tahap prosedur dan kesepakatan</small>
               </div>
             </div>
             <div class="trust-pill-item">
               <span class="trust-icon" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M4 2v20l3-2 3 2 3-2 3 2 4-2V2l-4 2-3-2-3 2-3-2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="13" y2="15"/></svg></span>
               <div>
-                <strong>Kuitansi Sah & Terverifikasi</strong>
-                <small>Invoice & kuitansi sistem terenkripsi</small>
+                <strong>Dokumen Pembayaran</strong>
+                <small>Invoice dan kuitansi diberikan sesuai transaksi</small>
               </div>
             </div>
           </div>
@@ -89,7 +94,7 @@
           <div class="pricing-cards-grid">
             <!-- Card 1: Kuliah S1 Al-Azhar -->
             <div class="pricing-card pricing-card--featured">
-              <div class="pricing-card-badge">Paling Diminati</div>
+              <div class="pricing-card-badge">Program utama</div>
               <div class="pricing-header">
                 <span class="card-label">Strata-1 (S1)</span>
                 <h3>Program Kuliah Al-Azhar</h3>
@@ -97,8 +102,8 @@
               </div>
               <div class="pricing-cost">
                 <span class="cost-currency">SPP Asrama & Hidup</span>
-                <strong class="cost-figure">Rp 2.500.000</strong>
-                <span class="cost-period">/ bulan (All-in Kairo)</span>
+                <strong class="cost-figure">Estimasi</strong>
+                <span class="cost-period">Mengikuti program dan periode keberangkatan</span>
               </div>
               <ul class="pricing-features">
                 <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Konsultasi pemilihan fakultas & pemetaan jurusan</li>
@@ -110,7 +115,7 @@
                 <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Rekam jejak presensi sholat & mutaba'ah di Portal Wali</li>
               </ul>
               <div class="pricing-action">
-                <a class="button button--primary" href="index.html#pendaftaran">Daftar Jalur Kuliah ↗</a>
+                <a class="button button--primary" href="index.html#pendaftaran">Daftar Jalur Kuliah</a>
               </div>
             </div>
 
@@ -123,11 +128,11 @@
               </div>
               <div class="pricing-cost">
                 <span class="cost-currency">SPP Asrama & Hidup</span>
-                <strong class="cost-figure">Rp 2.500.000</strong>
-                <span class="cost-period">/ bulan (All-in Kairo)</span>
+                <strong class="cost-figure">Estimasi</strong>
+                <span class="cost-period">Mengikuti program dan periode keberangkatan</span>
               </div>
               <ul class="pricing-features">
-                <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Ijazah formal resmi Al-Azhar diakui dunia internasional</li>
+                <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Jalur ijazah mengikuti ketentuan lembaga pendidikan terkait</li>
                 <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Kurikulum terpadu: Tahfidz Qur'an & adab harian</li>
                 <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Bahasa Arab aktif percakapan sejak usia dini</li>
                 <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Asrama aman ber-AC di Hay Asyir dengan musyrif 24 jam</li>
@@ -135,7 +140,7 @@
                 <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Laporan mutaba'ah perkembangan adab mingguan ke orang tua</li>
               </ul>
               <div class="pricing-action">
-                <a class="button button--secondary" href="index.html#pendaftaran">Konsultasi Ma'had ↗</a>
+                <a class="button button--secondary" href="index.html#pendaftaran">Konsultasi Ma'had</a>
               </div>
             </div>
 
@@ -148,8 +153,8 @@
               </div>
               <div class="pricing-cost">
                 <span class="cost-currency">Biaya Program</span>
-                <strong class="cost-figure">Rp 450.000</strong>
-                <span class="cost-period">/ materi (Paket Lengkap)</span>
+                <strong class="cost-figure">Estimasi</strong>
+                <span class="cost-period">Mengikuti materi dan paket yang dipilih</span>
               </div>
               <ul class="pricing-features">
                 <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Nahwu Jurumiyah & Morfologi Sharaf aplikatif</li>
@@ -160,7 +165,7 @@
                 <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Akses materi belajar fleksibel seumur hidup</li>
               </ul>
               <div class="pricing-action">
-                <a class="button button--secondary" href="index.html#pendaftaran">Daftar Kursus Online ↗</a>
+                <a class="button button--secondary" href="index.html#pendaftaran">Daftar Kursus Online</a>
               </div>
             </div>
           </div>
@@ -172,8 +177,8 @@
         <div class="shell">
           <div class="section-heading">
             <p class="eyebrow">Fasilitas All-In</p>
-            <h2>Apa Saja yang Tercakup dalam SPP Rp 2.500.000/Bulan?</h2>
-            <p>Standar hidup layak, sehat, dan kondusif untuk menuntut ilmu di jantung Kairo, Mesir.</p>
+            <h2>Apa saja yang tercakup dalam program?</h2>
+            <p>Komponen fasilitas dan biaya dikonfirmasi berdasarkan jalur, periode, dan kebutuhan santri.</p>
           </div>
 
           <div class="breakdown-grid">
@@ -204,7 +209,7 @@
             <div class="breakdown-item">
               <div class="breakdown-icon" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
               <div>
-                <strong>Pengawalan Musyrif 24 Jam Penuh</strong>
+                <strong>Pendampingan musyrif sesuai jadwal penugasan</strong>
                 <p>Pendampingan ibadah sholat Subuh berjamaah, pembinaan akhlak, dan pertolongan pertama kesehatan jika santri sakit.</p>
               </div>
             </div>
@@ -221,7 +226,7 @@
               <div class="breakdown-icon" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18" stroke-width="2.5"/></svg></div>
               <div>
                 <strong>Akses Portal Monitoring Santri & Wali</strong>
-                <p>Laporan digital presensi, kesehatan, nilai ujian talaqqi, serta catatan musyrif yang dapat diakses orang tua real-time.</p>
+                <p>Laporan digital presensi, kesehatan, nilai ujian talaqqi, serta catatan musyrif yang dapat ditinjau orang tua melalui portal sesuai data yang tersedia.</p>
               </div>
             </div>
           </div>
@@ -270,8 +275,8 @@
               <p>Diskusikan kemampuan, jadwal keberangkatan, dan simulasi pembiayaan putra/putri Anda bersama konsultan resmi Hamasah.</p>
             </div>
             <div class="cta-banner-actions">
-              <a class="button button--primary" href="index.html#pendaftaran">Mulai Pendaftaran ↗</a>
-              <a class="button button--secondary" href="https://wa.me/6281200000000?text=Halo%20Admin%20Hamasah,%20saya%20ingin%20konsultasi%20rincian%20biaya" target="_blank" rel="noopener">WhatsApp Konsultan</a>
+              <a class="button button--primary" href="index.html#pendaftaran">Mulai Pendaftaran</a>
+              <a class="button button--secondary" href="kontak.html#contact-inquiry-form">Gunakan formulir konsultasi</a>
             </div>
           </div>
         </div>
@@ -330,5 +335,6 @@
         <p class="footer-credit">Rancangan arsitektur digital & ekosistem terpadu.</p>
       </div>
     </footer>
+    <script src="public-header.js?v=1"></script>
   </body>
 </html>

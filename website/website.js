@@ -1,28 +1,3 @@
-const menuButton = document.querySelector('.menu-toggle');
-const navigation = document.querySelector('.site-nav');
-const navLinks = navigation.querySelectorAll('a');
-
-function closeMenu() {
-  menuButton.setAttribute('aria-expanded', 'false');
-  navigation.classList.remove('is-open');
-  document.body.classList.remove('menu-open');
-}
-
-menuButton.addEventListener('click', () => {
-  const isOpen = menuButton.getAttribute('aria-expanded') === 'true';
-  menuButton.setAttribute('aria-expanded', String(!isOpen));
-  navigation.classList.toggle('is-open', !isOpen);
-  document.body.classList.toggle('menu-open', !isOpen);
-});
-
-navLinks.forEach((link) => link.addEventListener('click', closeMenu));
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && menuButton.getAttribute('aria-expanded') === 'true') {
-    closeMenu();
-    menuButton.focus();
-  }
-});
-
 const answers = {
   program: {
     topic: 'Tentang Hamasah',
@@ -119,7 +94,8 @@ function renderArticles(items) {
     copy.append(category, title, excerpt);
     const arrow = document.createElement('b');
     arrow.setAttribute('aria-hidden', 'true');
-    arrow.textContent = '→';
+    arrow.textContent = '';
+    arrow.classList.add('btn-arrow');
     item.append(number, copy, arrow);
     fragment.append(item);
   });

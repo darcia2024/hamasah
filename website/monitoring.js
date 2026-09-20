@@ -5,6 +5,7 @@ const studentForm = document.querySelector('#student-form');
 const studentFormStatus = document.querySelector('#student-form-status');
 const studentSelect = document.querySelector('#monitoring-student-select');
 const dashboard = document.querySelector('#monitoring-dashboard');
+const monitoringEmptyState = document.querySelector('#monitoring-empty-state');
 const recordSection = document.querySelector('#record-section');
 const recordForm = document.querySelector('#record-form');
 const recordFormStatus = document.querySelector('#record-form-status');
@@ -72,14 +73,22 @@ function renderDashboard(data) {
   const title = document.createElement('h2'); title.textContent = data.student.name;
   const copy = document.createElement('p'); copy.textContent = `${data.student.program} · Bergabung ${new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' }).format(new Date(data.student.joinDate))}`;
   const metrics = document.createElement('div'); metrics.className = 'portal-metrics';
-  metrics.append(metric(data.attendance.rate === null ? '—' : `${data.attendance.rate}%`, 'Kehadiran'), metric(String(data.achievements.length), 'Achievement'), metric(String(data.discipline.length), 'Catatan disiplin'));
+  metrics.append(metric(data.attendance.rate === null ? 'Belum ada data' : `${data.attendance.rate}%`, 'Kehadiran'), metric(String(data.achievements.length), 'Achievement'), metric(String(data.discipline.length), 'Catatan disiplin'));
   const activity = document.createElement('p'); activity.textContent = data.activities[0] ? `Kegiatan terakhir: ${data.activities[0].title}` : 'Belum ada kegiatan tercatat.';
   dashboard.replaceChildren(title, copy, metrics, activity); dashboard.hidden = false;
 }
 
 async function loadDashboard() {
   const studentId = studentSelect.value;
-  if (!studentId) { dashboard.hidden = true; recordSection.hidden = true; downloadReport.hidden = true; placementSection.hidden = true; return; }
+  if (!studentId) {
+    dashboard.hidden = true;
+    recordSection.hidden = true;
+    downloadReport.hidden = true;
+    placementSection.hidden = true;
+    if (monitoringEmptyState) monitoringEmptyState.hidden = false;
+    return;
+  }
+  if (monitoringEmptyState) monitoringEmptyState.hidden = true;
   const response = await fetch(`/api/students/${encodeURIComponent(studentId)}/dashboard`, { headers: headers() });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Dashboard belum dapat dimuat.');

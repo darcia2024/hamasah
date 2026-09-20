@@ -3,7 +3,7 @@
 // Daftar role di sini SENGAJA disamakan persis dengan pemeriksaan akses di masing-masing
 // halaman tujuan (lihat guard di portal.js/staff.js/monitoring.js/lms.js/operations.js/
 // audit.js). Kalau tidak disamakan, menu ini bisa menampilkan tautan yang begitu diklik
-// langsung ditolak halaman tujuannya — lebih baik tautannya memang tidak muncul sama sekali.
+// langsung ditolak halaman tujuannya, lebih baik tautannya memang tidak muncul sama sekali.
 
 const ROLE_NAV_LABELS = Object.freeze({
   student: {
@@ -56,8 +56,8 @@ const STAFF_NAV_LINKS = Object.freeze([
     label: 'Portal',
     page: 'portal',
     roles: null,
-    badge: '4',
-    badgeType: 'red',
+    badge: null,
+    badgeType: null,
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'
   },
   {
@@ -65,8 +65,8 @@ const STAFF_NAV_LINKS = Object.freeze([
     label: 'Pendaftaran',
     page: 'staff',
     roles: ['admin', 'registration-officer'],
-    badge: '4',
-    badgeType: 'red',
+    badge: null,
+    badgeType: null,
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6M9 16h6"/></svg>'
   },
   {
@@ -74,8 +74,8 @@ const STAFF_NAV_LINKS = Object.freeze([
     label: 'Monitoring',
     page: 'monitoring',
     roles: ['admin', 'supervisor'],
-    badge: '18',
-    badgeType: 'gray',
+    badge: null,
+    badgeType: null,
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M22 12h-4M6 12H2M12 6V2M12 22v-4"/><circle cx="12" cy="12" r="3"/></svg>'
   },
   {
@@ -83,8 +83,8 @@ const STAFF_NAV_LINKS = Object.freeze([
     label: 'LMS',
     page: 'lms',
     roles: ['admin', 'teacher', 'supervisor', 'student'],
-    badge: '6',
-    badgeType: 'gray',
+    badge: null,
+    badgeType: null,
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>'
   },
   {
@@ -92,8 +92,8 @@ const STAFF_NAV_LINKS = Object.freeze([
     label: 'Keuangan',
     page: 'operations',
     roles: ['admin', 'finance'],
-    badge: '12',
-    badgeType: 'red',
+    badge: null,
+    badgeType: null,
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/><path d="M5 15h4M13 15h2"/></svg>'
   },
   {
@@ -147,9 +147,13 @@ function updateCrmUserBadges(account) {
   const nameEl = document.querySelector('#crm-user-name');
   const rolePillEl = document.querySelector('#crm-user-role-pill');
   const headerRoleEl = document.querySelector('#crm-header-role');
+  const topAvatarEl = document.querySelector('#crm-topbar-avatar');
+  const topNameEl = document.querySelector('#crm-topbar-name');
 
   if (avatarEl) avatarEl.textContent = getInitials(account.name);
   if (nameEl) nameEl.textContent = account.name;
+  if (topAvatarEl) topAvatarEl.textContent = getInitials(account.name);
+  if (topNameEl) topNameEl.textContent = account.name;
   const displayRole = ROLE_DISPLAY_NAMES[account.role] || account.role;
   if (rolePillEl) {
     rolePillEl.textContent = displayRole;

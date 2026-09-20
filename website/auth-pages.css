@@ -9,9 +9,28 @@ form { display: grid; gap: 16px; margin-top: 24px; }
 label { display: grid; gap: 7px; font-size: .9rem; font-weight: 650; }
 input { min-height: 46px; width: 100%; border: 1px solid #bdb6aa; border-radius: 10px; padding: 0 12px; color: inherit; font: inherit; }
 input:focus { border-color: #9a6700; outline: 3px solid rgb(154 103 0 / 18%); }
-button { min-height: 46px; cursor: pointer; border: 0; border-radius: 10px; background: #9a6700; color: #fff; font: inherit; font-weight: 700; }
+button { min-height: 44px; cursor: pointer; border: 0; border-radius: 10px; background: #9a6700; color: #fff; font: inherit; font-weight: 700; }
 button:disabled { cursor: wait; opacity: .7; }
 .status { min-height: 1.5em; margin: 18px 0 0; font-size: .92rem; }
 .status[data-kind="error"] { color: #a61b1b; }
 .status[data-kind="success"] { color: #216e39; }
 a { color: #795300; font-weight: 650; }
+
+.token-state { display: grid; gap: 6px; margin-top: 20px; padding: 14px 16px; border: 1px solid #ded9ce; border-radius: 12px; background: #fbfaf7; font-size: .9rem; }
+.token-state[data-token-state="invalid"], .token-state[data-token-state="expired"], .token-state[data-token-state="used"] { border-color: #e5b6b6; background: #fff7f7; }
+.token-state[data-token-state="success"] { border-color: #abd8bb; background: #f2fbf5; }
+.token-state span { color: #5f5b53; line-height: 1.5; }
+.token-recovery-link { margin-top: 4px; }
+.password-control { display: grid; gap: 10px; }
+.password-field { position: relative; display: flex; align-items: stretch; }
+.password-field input { padding-right: 92px; }
+.password-toggle { position: absolute; right: 5px; top: 5px; min-height: 38px; padding: 0 10px; border-radius: 8px; background: transparent; color: #795300; font-size: .78rem; }
+.password-toggle:hover, .password-toggle:focus-visible { background: #f1eadc; }
+.field-error { min-height: 1.25em; margin: 2px 0 0; color: #a61b1b; font-size: .8rem; }
+input[aria-invalid="true"] { border-color: #a61b1b; background: #fff7f7; }
+
+/* Tahap 1: shared type, spacing, and visible keyboard focus. */
+h1, h2, h3, h4 { font-family: inherit; font-weight: 600; }
+label { gap: 10px; line-height: 1.4; }
+input { min-height: 48px; }
+:where(a, button, input):focus-visible { outline: 3px solid #9a6700; outline-offset: 2px; }

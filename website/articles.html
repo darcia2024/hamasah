@@ -26,14 +26,19 @@
           </div>
         </a>
 
-        <nav class="site-nav" aria-label="Navigasi utama">
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Buka menu navigasi">
+          <span class="menu-toggle__label">Menu</span>
+          <span class="menu-toggle__lines" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+
+        <nav class="site-nav" id="site-nav" aria-label="Navigasi utama">
           <a href="index.html#program">Program</a>
           <a href="biaya.html">Biaya & Fasilitas</a>
           <a href="articles.html" class="is-active">Pena Hamasah</a>
           <a href="cek-status.html">Cek Status</a>
           <a href="kontak.html">Kontak</a>
           <a href="portal.html" class="nav-portal">Portal Santri</a>
-          <a class="nav-cta" href="index.html#pendaftaran">Daftar Baru ↗</a>
+          <a class="nav-cta" href="index.html#pendaftaran">Daftar Baru</a>
         </nav>
       </div>
     </header>
@@ -81,9 +86,9 @@
             <p>Dapatkan pembaruan regulasi visa, pembukaan pendaftaran Ma'had dan Universitas Al-Azhar langsung ke ponsel Anda.</p>
           </div>
           <div class="subscribe-actions">
-            <a class="button button--primary" href="https://wa.me/6281200000000?text=Halo%20Admin,%20saya%20ingin%20info%20terkini%20Al-Azhar" target="_blank" rel="noopener">
-              <span>Konsultasi Via WhatsApp</span>
-              <span class="btn-arrow" aria-hidden="true">↗</span>
+            <a class="button button--primary" href="kontak.html#contact-inquiry-form">
+              <span>Gunakan formulir konsultasi</span>
+              <span class="btn-arrow" aria-hidden="true"></span>
             </a>
           </div>
         </div>
@@ -143,6 +148,7 @@
       </div>
     </footer>
 
+    <script src="public-header.js?v=1"></script>
     <script src="articles.js?v=2"></script>
   </body>
 </html>

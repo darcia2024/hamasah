@@ -24,6 +24,7 @@ async function run() {
       status: 'published',
       archivedAt: null,
       coverUrl: null,
+      coverAltText: null,
       updatedAt: PUBLISHED_AT
     });
 
@@ -47,6 +48,8 @@ async function run() {
 
     const invalid = await store.create({ title: 'Pendek', excerpt: '', body: '' }, PUBLISHED_AT);
     assert.equal(invalid.ok, false);
+    assert.equal((await store.create({ title: 'Artikel Dengan Cover', excerpt: 'Ringkasan.', body: 'Isi.', coverUrl: 'http://example.test/image.jpg', coverAltText: 'Cover' }, PUBLISHED_AT)).ok, false);
+    assert.equal((await store.create({ title: 'Artikel Tanpa Alt', excerpt: 'Ringkasan.', body: 'Isi.', coverUrl: 'https://example.test/image.jpg' }, PUBLISHED_AT)).ok, false);
     assert.equal((await store.list()).length, 1);
 
     console.log('postgres article store tests passed');
