@@ -221,8 +221,42 @@ function createPostgresOperationsStore({ database } = {}) {
         await tx.query('INSERT INTO inventory_movements (id, inventory_item_id, direction, quantity, reason, actor_account_id, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)', [movement.id, itemId, movement.direction, movement.quantity, movement.reason, movement.actorAccountId || null, movement.createdAt]);
         return { item: toInventory({ ...item, quantity: next, updated_at: movement.createdAt, version: Number(item.version || 1) + 1 }), movement: { ...movement, inventoryItemId: itemId, delta } };
       });
+    },
+
+    async saveImportBatch(batch) {
+      const { rows } = await database.query(
+        `INSERT INTO operation_import_batches (id, entity, status, row_count, valid_count, errors, rows, actor_account_id, created_at)
+         VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb,$8,$9)
+         RETURNING id, entity, status, row_count, valid_count, errors, rows, actor_account_id, created_at, committed_at, rolled_back_at`,
+        [batch.id, batch.entity, batch.status, batch.rowCount, batch.validCount, JSON.stringify(batch.errors), JSON.stringify(batch.rows), batch.actorAccountId || null, batch.createdAt]
+      );
+      return toImportBatch(rows[0]);
+    },
+
+    async getImportBatch(id) {
+      const { rows } = await database.query('SELECT id, entity, status, row_count, valid_count, errors, rows, actor_account_id, created_at, committed_at, rolled_back_at FROM operation_import_batches WHERE id = $1', [id]);
+      return rows[0] ? toImportBatch(rows[0]) : null;
+    },
+
+    async updateImportBatch(id, patch) {
+      const fields = [];
+      const values = [id];
+      if (patch.status) { values.push(patch.status); fields.push(`status = $${values.length}`); }
+      if (patch.committedAt) { values.push(patch.committedAt); fields.push(`committed_at = $${values.length}`); }
+      if (patch.rolledBackAt) { values.push(patch.rolledBackAt); fields.push(`rolled_back_at = $${values.length}`); }
+      if (!fields.length) return this.getImportBatch(id);
+      const { rows } = await database.query(`UPDATE operation_import_batches SET ${fields.join(', ')} WHERE id = $1 RETURNING id, entity, status, row_count, valid_count, errors, rows, actor_account_id, created_at, committed_at, rolled_back_at`, values);
+      return rows[0] ? toImportBatch(rows[0]) : null;
     }
   };
 }
 
-module.exports = { createPostgresOperationsStore, toInventory, toInvoice, toVisa };
+function toImportBatch(row) {
+  return {
+    id: row.id, entity: row.entity, status: row.status, rowCount: Number(row.row_count), validCount: Number(row.valid_count),
+    errors: row.errors || [], rows: row.rows || [], actorAccountId: row.actor_account_id || null,
+    createdAt: toIso(row.created_at), committedAt: toIso(row.committed_at), rolledBackAt: toIso(row.rolled_back_at)
+  };
+}
+
+module.exports = { createPostgresOperationsStore, toImportBatch, toInventory, toInvoice, toVisa };

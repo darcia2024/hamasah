@@ -52,6 +52,9 @@ const ACTIONS = Object.freeze({
   ,INVOICE_VOIDED: 'invoice.voided'
   ,INVENTORY_MOVED: 'inventory.moved'
   ,VISA_DOCUMENT_ADDED: 'visa.document-added'
+  ,OPERATION_IMPORT_PREVIEWED: 'operation-import.previewed'
+  ,OPERATION_IMPORT_COMMITTED: 'operation-import.committed'
+  ,OPERATION_IMPORT_ROLLED_BACK: 'operation-import.rolled-back'
 });
 
 const ACTION_VALUES = Object.freeze(Object.values(ACTIONS));

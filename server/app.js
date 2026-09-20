@@ -21,6 +21,7 @@ const { createPostgresStudentStore } = require('./postgres-student-store.js');
 const { createLmsService } = require('./lms-service.js');
 const { createPostgresLmsStore } = require('./postgres-lms-store.js');
 const { createOperationsService } = require('./operations-service.js');
+const { createOperationsImportService } = require('./operations-import-service.js');
 const { createPostgresOperationsStore } = require('./postgres-operations-store.js');
 const { createDormitoryService } = require('./dormitory-service.js');
 const { createPostgresDormitoryStore } = require('./postgres-dormitory-store.js');
@@ -158,6 +159,12 @@ function createHamasahApp(options) {
     store: operationsStore,
     async studentExists(studentId) { return Boolean(await studentStore.getStudent(studentId)); }
   });
+  const operationsImportService = config.operationsImportService || createOperationsImportService({
+    store: operationsStore,
+    inventoryWriter: (row, actor) => operationsService.saveInventory(row, actor),
+    visaWriter: (row, actor) => operationsService.saveVisa(row, actor),
+    importStore: operationsStore
+  });
 
   async function checkDatabaseReady() {
     let timer;
@@ -203,6 +210,7 @@ function createHamasahApp(options) {
     lmsService,
     notificationService,
     operationsService,
+    operationsImportService,
     registrationService,
     registrationConversionService,
     studentPortalService

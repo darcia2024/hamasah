@@ -12,6 +12,39 @@ module.exports = [
   },
 
   {
+    method: 'POST',
+    pattern: /^\/api\/operations\/imports\/preview$/,
+    permission: 'operations.manage',
+    async handler({ response, services, auth, readBody, ip }) {
+      const result = await services.operationsImportService.preview(await readBody(), await auth.actor());
+      if (result.ok) await services.auditService.record({ action: ACTIONS.OPERATION_IMPORT_PREVIEWED, actor: await auth.actor(), ip, entityType: 'operation-import', entityId: result.value.id, metadata: { entity: result.value.entity, rowCount: result.value.rowCount, validCount: result.value.validCount } });
+      json(response, result.ok ? 201 : 422, result.ok ? { batch: result.value } : publicError(result));
+    }
+  },
+
+  {
+    method: 'POST',
+    pattern: /^\/api\/operations\/imports\/([\w-]+)\/commit$/,
+    permission: 'operations.manage',
+    async handler({ response, services, auth, params, ip }) {
+      const result = await services.operationsImportService.commit(params[0], await auth.actor());
+      if (result.ok) await services.auditService.record({ action: ACTIONS.OPERATION_IMPORT_COMMITTED, actor: await auth.actor(), ip, entityType: 'operation-import', entityId: params[0], metadata: { status: result.value.status } });
+      json(response, result.ok ? 200 : 422, result.ok ? { batch: result.value } : publicError(result));
+    }
+  },
+
+  {
+    method: 'POST',
+    pattern: /^\/api\/operations\/imports\/([\w-]+)\/rollback$/,
+    permission: 'operations.manage',
+    async handler({ response, services, auth, params, ip }) {
+      const result = await services.operationsImportService.rollback(params[0], await auth.actor());
+      if (result.ok) await services.auditService.record({ action: ACTIONS.OPERATION_IMPORT_ROLLED_BACK, actor: await auth.actor(), ip, entityType: 'operation-import', entityId: params[0], metadata: { status: result.value.status } });
+      json(response, result.ok ? 200 : 422, result.ok ? { batch: result.value } : publicError(result));
+    }
+  },
+
+  {
     method: 'GET',
     pattern: /^\/api\/operations\/visa-reminders$/,
     permission: 'operations.read',

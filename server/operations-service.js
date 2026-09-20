@@ -19,7 +19,7 @@ function documentNumber(prefix, sequence, year) {
 
 // Antarmuka store operasional sama persis dengan postgres-operations-store.js.
 function createMemoryOperationsStore() {
-  const database = { invoices: {}, inventory: {}, visas: {}, visaDocuments: {}, visaHistory: {}, inventoryMovements: {}, corrections: {}, counters: {} };
+  const database = { invoices: {}, inventory: {}, visas: {}, visaDocuments: {}, visaHistory: {}, inventoryMovements: {}, corrections: {}, importBatches: {}, counters: {} };
   async function nextSequence(scope, year) {
     const key = `${scope}:${year}`;
     const next = (database.counters[key] || 0) + 1;
@@ -71,7 +71,10 @@ function createMemoryOperationsStore() {
       database.inventory[id] = { ...item, quantity, version: (item.version || 1) + 1, updatedAt: movement.createdAt };
       database.inventoryMovements[movement.id] = { ...movement, inventoryItemId: id, delta };
       return { item: clone(database.inventory[id]), movement: clone(database.inventoryMovements[movement.id]) };
-    }
+    },
+    async saveImportBatch(batch) { database.importBatches[batch.id] = clone(batch); return clone(batch); },
+    async getImportBatch(id) { return database.importBatches[id] ? clone(database.importBatches[id]) : null; },
+    async updateImportBatch(id, patch) { if (!database.importBatches[id]) return null; database.importBatches[id] = { ...database.importBatches[id], ...clone(patch) }; return clone(database.importBatches[id]); }
   };
 }
 
