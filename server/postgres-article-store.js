@@ -47,6 +47,7 @@ function createPostgresArticleStore({ database } = {}) {
       const status = String(input.status || 'published').trim().toLocaleLowerCase('en-US');
       const slug = normalizeSlug(input.slug || title);
       const coverUrl = String(input.coverUrl || '').trim().slice(0, 500) || null;
+      if (coverUrl && !/^https:\/\//i.test(coverUrl)) return { ok: false, error: 'Cover media harus memakai URL HTTPS.' };
       if (title.length < 8 || title.length > 140 || !excerpt || !body || !slug || !['draft', 'published'].includes(status)) {
         return { ok: false, error: 'Judul, ringkasan, dan isi artikel belum valid.' };
       }
@@ -76,6 +77,7 @@ function createPostgresArticleStore({ database } = {}) {
       const category = String(source.category === undefined ? current.category : source.category).trim();
       const status = String(source.status === undefined ? current.status : source.status).trim().toLocaleLowerCase('en-US');
       const coverUrl = String(source.coverUrl === undefined ? (current.coverUrl || '') : source.coverUrl).trim().slice(0, 500) || null;
+      if (coverUrl && !/^https:\/\//i.test(coverUrl)) return { ok: false, error: 'Cover media harus memakai URL HTTPS.' };
       if (title.length < 8 || title.length > 140 || !excerpt || !body || !category || !['draft', 'published', 'archived'].includes(status)) {
         return { ok: false, error: 'Judul, ringkasan, isi, kategori, atau status artikel belum valid.' };
       }

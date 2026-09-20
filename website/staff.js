@@ -51,6 +51,7 @@ async function loadArticles() {
         document.querySelector('#article-category').value = article.category;
         document.querySelector('#article-excerpt').value = article.excerpt;
         document.querySelector('#article-body').value = article.body;
+        document.querySelector('#article-cover-url').value = article.coverUrl || '';
         articleStatus.value = article.status === 'archived' ? 'draft' : article.status;
         document.querySelector('#article-form-title').textContent = `Edit artikel: ${article.title}`;
         articleForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -566,6 +567,7 @@ articleForm.addEventListener('submit', async (event) => {
         category: document.querySelector('#article-category').value,
         excerpt: document.querySelector('#article-excerpt').value,
         body: document.querySelector('#article-body').value,
+        coverUrl: document.querySelector('#article-cover-url').value.trim(),
         status: articleStatus.value,
         ...(editing ? {} : { slug: articleSlug.value.trim() || undefined })
       })

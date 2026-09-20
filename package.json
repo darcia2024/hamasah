@@ -20,6 +20,9 @@
     "worker:visa-reminders": "node scripts/visa-reminder-worker.js --once",
     "test:browser-contract": "node scripts/browser-contract.test.js",
     "test:performance": "node scripts/performance-smoke.test.js",
+    "test:uat-roles": "node scripts/uat-roles.test.js",
+    "test:http-performance": "node scripts/http-performance.test.js",
+    "security:check": "node scripts/security-local-check.js",
     "preflight:staging": "node scripts/staging-preflight.js",
     "cleanup:smoke-data": "node scripts/cleanup-smoke-data.js",
     "test": "node database/validate-schema.js && node --test"

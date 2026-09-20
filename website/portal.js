@@ -956,74 +956,24 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
     <div class="coursue-stat-pill">
       <div class="coursue-stat-icon coursue-stat-icon--pink">${renderBadgeIcon('book')}</div>
       <div class="coursue-stat-meta">
-        <p class="coursue-stat-count">30 Juz Mutqin</p>
-        <p class="coursue-stat-label">Tahfidz Al-Qur'an</p>
+        <p class="coursue-stat-count">—</p>
+        <p class="coursue-stat-label">Tahfidz menunggu data</p>
       </div>
     </div>
     <div class="coursue-stat-pill">
       <div class="coursue-stat-icon coursue-stat-icon--cyan">${renderBadgeIcon('cap')}</div>
       <div class="coursue-stat-meta">
-        <p class="coursue-stat-count">98.6% Istiqomah</p>
-        <p class="coursue-stat-label">Presensi Sholat</p>
+        <p class="coursue-stat-count">—</p>
+        <p class="coursue-stat-label">Presensi menunggu data</p>
       </div>
     </div>
   `;
 
-  // 3. Featured Courses / Halaqah Section (Coursue Grid of 3 Cards)
+  // 3. Halaqah section hanya menampilkan data course dari API, tanpa fixture demo.
   const featuredSection = document.createElement('div');
-  featuredSection.innerHTML = `
-    <div class="coursue-section-header">
-      <h3 class="coursue-section-title">Halaqah &amp; Program Unggulan Kairo</h3>
-      <div class="coursue-nav-arrows">
-        <button type="button" class="coursue-arrow-btn" aria-label="Previous">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
-        <button type="button" class="coursue-arrow-btn coursue-arrow-btn--active" aria-label="Next">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
-        </button>
-      </div>
-    </div>
-    <div class="coursue-cards-grid">
-      <div class="coursue-card">
-        <div class="coursue-card-cover" style="background: #0F172A;">
-          <span class="coursue-card-pill coursue-card-pill--gold">TUROTS SYAFI'I</span>
-        </div>
-        <div class="coursue-card-body">
-          <h4 class="coursue-card-title">Daurah Matan Al-Ghayah wa At-Taqrib (Fiqh Ibadah)</h4>
-          <div class="coursue-card-footer">
-            <div class="coursue-mentor-avatar">AF</div>
-            <span class="coursue-mentor-name">Ust. Ahmad Fauzi, Lc.</span>
-          </div>
-        </div>
-      </div>
-      <div class="coursue-card">
-        <div class="coursue-card-cover" style="background: #065F46;">
-          <span class="coursue-card-pill coursue-card-pill--cyan">TAHFIDZ AL-QUR'AN</span>
-        </div>
-        <div class="coursue-card-body">
-          <h4 class="coursue-card-title">Tahsin Makharij &amp; Setoran Sanad Al-Jazariyyah</h4>
-          <div class="coursue-card-footer">
-            <div class="coursue-mentor-avatar">MR</div>
-            <span class="coursue-mentor-name">Ust. Muhammad Ridwan, Lc.</span>
-          </div>
-        </div>
-      </div>
-      <div class="coursue-card">
-        <div class="coursue-card-cover" style="background: #701A75;">
-          <span class="coursue-card-pill coursue-card-pill--pink">MUTABA'AH ASRAMA</span>
-        </div>
-        <div class="coursue-card-body">
-          <h4 class="coursue-card-title">Sholat Fardhu Berjamaah &amp; Kedisiplinan Hay Asyir</h4>
-          <div class="coursue-card-footer">
-            <div class="coursue-mentor-avatar">SA</div>
-            <span class="coursue-mentor-name">Syekh Riwaq Al-Azhar</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+  featuredSection.className = 'coursue-empty-state';
+  featuredSection.innerHTML = '<h3 class="coursue-section-title">Halaqah &amp; Program</h3><p class="coursue-user-subtext">Program akan muncul setelah maddah dan materi dipublikasikan oleh pembina.</p>';
 
-  // 4. Horizontal Subtabs Row
   const subtabsRow = document.createElement('div');
   subtabsRow.className = 'crm-subtabs-row';
 
