@@ -83,12 +83,38 @@ function createRegistrationConversionService({ database, notificationPayloadKey 
         const invitationExpiresAt = new Date(createdAt.getTime() + INVITATION_TTL_MS).toISOString();
         const accountsToInvite = [];
 
+        async function prepareInvitation(account, name, forceRenewal = false) {
+          if (account.active && !forceRenewal) return;
+          const existingNotice = await tx.query(
+            `SELECT 1 FROM notification_outbox
+             WHERE account_id = $1 AND notification_type = 'account-invitation'
+               AND status IN ('pending', 'processing', 'sent') LIMIT 1`,
+            [account.id]
+          );
+          if (existingNotice.rows[0]) return;
+          const invitationToken = crypto.randomBytes(32).toString('base64url');
+          const invitationTokenHash = crypto.createHash('sha256').update(invitationToken).digest('hex');
+          await tx.query(
+            `UPDATE accounts SET invitation_token_hash = $2, invitation_expires_at = $3,
+              invited_at = $4, updated_at = $4 WHERE id = $1`,
+            [account.id, invitationTokenHash, invitationExpiresAt, createdAtIso]
+          );
+          accountsToInvite.push({ id: account.id, email: account.email, role: account.role, invitationToken });
+        }
+
         async function findOrCreateAccount(email, name, role) {
-          const found = await tx.query('SELECT id, role, active FROM accounts WHERE email = $1 FOR UPDATE', [email]);
+          const found = await tx.query('SELECT id, email, role, active FROM accounts WHERE email = $1 FOR UPDATE', [email]);
           if (found.rows[0]) {
             if (found.rows[0].role !== role) {
               throw new Error(`Email ${email} sudah dipakai akun dengan peran lain.`);
             }
+            if (role === ROLES.STUDENT) {
+              const linked = await tx.query('SELECT id FROM students WHERE student_account_id = $1 FOR UPDATE', [found.rows[0].id]);
+              if (linked.rows[0]) {
+                throw new Error(`Akun santri ${email} sudah terhubung ke santri lain.`);
+              }
+            }
+            await prepareInvitation(found.rows[0], name);
             return found.rows[0].id;
           }
           const accountId = crypto.randomUUID();
@@ -135,7 +161,7 @@ function createRegistrationConversionService({ database, notificationPayloadKey 
       });
     } catch (error) {
       if (error && error.code === '23505') return { ok: false, error: 'Data konversi bentrok dengan akun atau santri yang sudah ada.' };
-      if (error && error.message && error.message.startsWith('Email ')) return { ok: false, error: error.message };
+      if (error && error.message && (error.message.startsWith('Email ') || error.message.startsWith('Akun santri '))) return { ok: false, error: error.message };
       throw error;
     }
   }

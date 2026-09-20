@@ -405,6 +405,58 @@ async function run() {
     assert.equal(nextStep.status, 201);
     assert.equal(nextStep.body.registration.nextSteps[0].title, 'Verifikasi terjemah ijazah');
 
+    // Parent yang sama boleh dipakai untuk beberapa santri; akun student tidak boleh dipakai ulang.
+    const saudara = await request(baseUrl, '/api/registrations', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        applicantName: 'Naufal Saudara', phone: '081234567891', guardianName: 'Wali Naufal', guardianPhone: '081398765432',
+        email: 'naufal.saudara@hamasah.test', guardianEmail: 'wali-naufal@hamasah.test', birthDate: '2005-04-12',
+        gender: 'putra', schoolOrigin: 'SMA Uji', guardianConsent: true, program: 'mahad-al-azhar', educationLevel: 'MA', city: 'Bandung', consent: true
+      })
+    });
+    assert.equal(saudara.status, 201, JSON.stringify(saudara.body));
+    const saudaraId = saudara.body.registration.registrationId;
+    for (const nextStatus of ['document-review', 'academic-preparation', 'ready-for-departure']) {
+      const transitioned = await request(baseUrl, `/api/registrations/${saudaraId}/status`, {
+        method: 'PATCH', headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextStatus, note: `Transisi saudara ${nextStatus}.` })
+      });
+      assert.equal(transitioned.status, 200, JSON.stringify(transitioned.body));
+    }
+    const saudaraConversions = await Promise.all([1, 2].map(() => request(baseUrl, `/api/registrations/${saudaraId}/convert`, {
+      method: 'POST', headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}` }
+    })));
+    assert.ok(saudaraConversions.every((response) => response.status === 200));
+    const saudaraResults = saudaraConversions.map((response) => response.body.conversion);
+    assert.equal(saudaraResults.filter((result) => result.alreadyConverted === false).length, 1, 'Konversi bersamaan hanya boleh membuat satu santri.');
+    assert.equal(saudaraResults.filter((result) => result.alreadyConverted === true).length, 1);
+    const saudaraConverted = saudaraResults.find((result) => result.alreadyConverted === false);
+    assert.equal(saudaraConverted.invitationsQueued, 1, 'Akun wali existing tidak mengirim undangan kedua.');
+    assert.equal(saudaraConverted.parentAccountId, converted.body.conversion.parentAccountId);
+
+    const conflict = await request(baseUrl, '/api/registrations', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        applicantName: 'Pemakai Email Lama', phone: '081234567892', guardianName: 'Wali Baru', guardianPhone: '081398765433',
+        email: 'naufal@hamasah.test', guardianEmail: 'wali.baru@hamasah.test', birthDate: '2005-04-12',
+        gender: 'putra', schoolOrigin: 'SMA Uji', guardianConsent: true, program: 'mahad-al-azhar', educationLevel: 'MA', city: 'Bandung', consent: true
+      })
+    });
+    assert.equal(conflict.status, 201);
+    const conflictId = conflict.body.registration.registrationId;
+    for (const nextStatus of ['document-review', 'academic-preparation', 'ready-for-departure']) {
+      const transitioned = await request(baseUrl, `/api/registrations/${conflictId}/status`, {
+        method: 'PATCH', headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextStatus, note: `Transisi konflik ${nextStatus}.` })
+      });
+      assert.equal(transitioned.status, 200);
+    }
+    const conflictConversion = await request(baseUrl, `/api/registrations/${conflictId}/convert`, {
+      method: 'POST', headers: { Authorization: `Bearer ${createdOfficerLogin.body.accessToken}` }
+    });
+    assert.equal(conflictConversion.status, 422);
+    assert.match(conflictConversion.body.error, /sudah terhubung/);
+
     const articleDenied = await request(baseUrl, '/api/articles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

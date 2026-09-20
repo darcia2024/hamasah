@@ -230,11 +230,11 @@ Gate: orang baru dapat mendaftar sampai lolos review tanpa edit database/manual 
 
 Dependensi: Tahap 1–2.
 
-- [ ] T03.1 Putuskan aturan kelayakan dan mapping profil/akun/wali/asrama, termasuk existing parent dan konflik email.
-- [ ] T03.2 Implementasi service + transaksi SQL dengan unique constraint dan row lock.
-- [ ] T03.3 Endpoint `registrations.convert`, permission matrix, audit dan outbox dalam transaksi yang sama.
-- [ ] T03.4 Tombol/konfirmasi hasil konversi di petugas; tampilkan existing result untuk retry.
-- [ ] T03.5 Test double-click, dua petugas bersamaan, rollback di setiap kegagalan, parent untuk saudara, konflik role dan akses ilegal.
+- [x] T03.1 Putuskan aturan kelayakan dan mapping profil/akun/wali/asrama, termasuk existing parent dan konflik email.
+- [x] T03.2 Implementasi service + transaksi SQL dengan unique constraint dan row lock.
+- [x] T03.3 Endpoint `registrations.convert`, permission matrix, audit dan outbox dalam transaksi yang sama.
+- [x] T03.4 Tombol/konfirmasi hasil konversi di petugas; tampilkan existing result untuk retry.
+- [x] T03.5 Test double-click, dua petugas bersamaan, rollback di setiap kegagalan, parent untuk saudara, konflik role dan akses ilegal.
 
 Gate: pertama membuat satu santri; retry tidak menggandakan; seluruh `npm test` hijau termasuk matriks akses. Undangan bisa diproses sesudah commit.
 
@@ -437,7 +437,7 @@ Snapshot ini menjadi acuan progres setelah UAT lokal terakhir; checklist tahap d
 - **Tahap 0 — fondasi:** selesai untuk baseline, CSP, lifecycle token, escaping, dan penghilangan metrik palsu utama. T00.5 masih parsial karena beberapa kartu aktivitas/dashboard non-inti masih berupa empty state atau data contoh.
 - **Tahap 1 — notifikasi:** worker durable untuk undangan sudah selesai dengan claim, lease, retry, timeout, recovery, dan payload terenkripsi. UI status/resend undangan serta izin khusus petugas pendaftaran sudah tersedia. Recovery calon sekarang ikut antrean terenkripsi dan diproses worker; email provider nyata belum diuji, dan tipe schema masih memakai `password-reset` sampai enum notifikasi dipisahkan.
 - **Tahap 2 — pendaftaran:** alur inti selesai dan lulus UAT lokal: kontrak profil per program, validasi tanggal/umur/consent, auth calon, edit data, upload/download terotorisasi, review, revisi, penghapusan dokumen pending/rejected, catatan, next steps, recovery, locking, dan optimistic concurrency. Data legacy tetap dapat dibaca, sedangkan pendaftaran baru wajib memenuhi kontrak profil. Verifikasi storage provider nyata dan uji retensi terjadwal masih menjadi pekerjaan environment sebelum staging/production.
-- **Tahap 3 — konversi:** service transaksional, row lock, idempotent retry, permission matrix, audit, outbox, dan UI petugas sudah tersedia. Aturan bisnis untuk existing parent, konflik email, dan parent beberapa saudara masih perlu disahkan serta diuji dengan data bisnis nyata.
+- **Tahap 3 — konversi:** selesai di local. Konversi hanya menerima status siap keberangkatan/selesai, mengunci pendaftaran, memakai akun student satu kali, memakai ulang akun parent yang emailnya sama untuk saudara, menolak konflik role/email, dan hanya mengantrekan undangan untuk akun baru atau akun inactive tanpa undangan aktif. Retry idempotent, audit, outbox transaksional, permission matrix, dan hasil konversi di workspace petugas sudah diuji.
 - **Tahap 4 — Rilis A publik:** belum siap launch. Konten perlu disahkan pemilik, CMS artikel draft/publish/media belum lengkap, SEO/404/sitemap dan consent/retensi belum ditutup, serta browser UAT responsive/keyboard penuh belum dilakukan.
 - **Tahap 5 — operasional/keuangan:** modul dasar invoice, pembayaran, kuitansi, asrama, visa, dan operasi sudah ada, tetapi gate koreksi berjejak, dokumen visa, inventaris, import data, dan UAT peran belum lengkap.
 - **Tahap 6 — keluarga/rekam jejak:** dashboard dasar wali dan pembatasan akses sudah ada. Visibility catatan/media, sibling selector, laporan lintas periode, retensi, dan UAT pengawas/wali belum lengkap.
