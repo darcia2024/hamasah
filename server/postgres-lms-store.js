@@ -22,6 +22,7 @@ function toMaterial(row) {
     summary: row.summary,
     keyPoints: toJson(row.key_points),
     studyGuide: toJson(row.study_guide),
+    version: Number(row.version || 1),
     createdAt: toIso(row.created_at)
   };
 }
@@ -37,7 +38,7 @@ function toCourse(row, materials) {
   };
 }
 
-const SELECT_MATERIAL = `SELECT id, course_id, material_type, title, content, summary, key_points, study_guide, created_at
+const SELECT_MATERIAL = `SELECT id, course_id, material_type, title, content, summary, key_points, study_guide, created_at, version
                            FROM course_materials`;
 
 function createPostgresLmsStore({ database } = {}) {
@@ -96,10 +97,10 @@ function createPostgresLmsStore({ database } = {}) {
       // supaya tidak ada jeda baca-lalu-tulis yang bisa disela permintaan lain.
       const { rows } = await database.query(
         `INSERT INTO course_materials
-           (id, course_id, material_type, title, content, summary, key_points, study_guide, position, created_at)
+           (id, course_id, material_type, title, content, summary, key_points, study_guide, position, created_at, version)
          SELECT $1, $2, $3, $4, $5, $6, $7::jsonb, $8::jsonb,
-                COALESCE((SELECT MAX(position) + 1 FROM course_materials WHERE course_id = $2), 0), $9
-         RETURNING id, course_id, material_type, title, content, summary, key_points, study_guide, created_at`,
+                COALESCE((SELECT MAX(position) + 1 FROM course_materials WHERE course_id = $2), 0), $9, 1
+         RETURNING id, course_id, material_type, title, content, summary, key_points, study_guide, created_at, version`,
         [
           material.id,
           courseId,
@@ -114,6 +115,16 @@ function createPostgresLmsStore({ database } = {}) {
       );
       await database.query('UPDATE courses SET updated_at = $2 WHERE id = $1', [courseId, material.createdAt]);
       return toMaterial(rows[0]);
+    },
+
+    async updateMaterial(courseId, materialId, value) {
+      const { rows } = await database.query(
+        `UPDATE course_materials SET title = $3, content = $4, summary = $5, key_points = COALESCE($6::jsonb, key_points), study_guide = COALESCE($7::jsonb, study_guide), version = version + 1
+          WHERE course_id = $1 AND id = $2
+        RETURNING id, course_id, material_type, title, content, summary, key_points, study_guide, created_at, version`,
+        [courseId, materialId, value.title, value.content, value.summary, value.keyPoints ? JSON.stringify(value.keyPoints) : null, value.studyGuide ? JSON.stringify(value.studyGuide) : null]
+      );
+      return rows[0] ? toMaterial(rows[0]) : null;
     },
 
     async getEnrollments(studentId) {

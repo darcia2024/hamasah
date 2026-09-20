@@ -86,6 +86,15 @@ module.exports = [
     }
   }
   ,{
+    method: 'PATCH',
+    pattern: /^\/api\/courses\/([\w-]+)\/materials\/([\w-]+)$/,
+    permission: 'courses.manage',
+    async handler({ response, services, auth, params, readBody }) {
+      const result = await services.lmsService.updateMaterial(params[0], params[1], await readBody(), await auth.actor());
+      json(response, result.ok ? 200 : 422, result.ok ? { material: result.value } : publicError(result));
+    }
+  }
+  ,{
     method: 'POST',
     pattern: /^\/api\/students\/([\w-]+)\/courses\/([\w-]+)\/materials\/([\w-]+)\/attempts$/,
     permission: 'courses.read',

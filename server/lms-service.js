@@ -32,9 +32,10 @@ function createMemoryLmsStore() {
     },
     async addMaterial(courseId, material) {
       const course = database.courses[courseId];
-      course.materials.push(clone(material));
+      const saved = { ...material, version: 1 };
+      course.materials.push(clone(saved));
       course.updatedAt = material.createdAt;
-      return clone(material);
+      return clone(saved);
     },
     async getEnrollments(studentId) {
       return clone(database.enrollments[studentId] || []);
@@ -61,6 +62,7 @@ function createMemoryLmsStore() {
     ,async getSubmission(studentId, materialId) { return clone(database.submissions.find((item) => item.studentId === studentId && item.materialId === materialId && item.status !== 'returned') || null); }
     ,async addSubmission(record) { database.submissions.push(clone(record)); return clone(record); }
     ,async reviewSubmission(id, review) { const item = database.submissions.find((entry) => entry.id === id); if (!item) return null; Object.assign(item, review); return clone(item); }
+    ,async updateMaterial(courseId, materialId, value) { const course = database.courses[courseId]; const item = course && course.materials.find((entry) => entry.id === materialId); if (!item) return null; Object.assign(item, value, { version: (item.version || 1) + 1 }); return clone(item); }
   };
 }
 
@@ -128,6 +130,15 @@ function createLmsService(options) {
       id: crypto.randomUUID(), type, title, content, summary, keyPoints, studyGuide, createdAt: now()
     });
     return { ok: true, value: saved };
+  }
+
+  async function updateMaterial(courseId, materialId, input, actor) {
+    if (!isStaff(actor)) return { ok: false, error: 'Akses guru atau admin diperlukan.' };
+    const course = await store.getCourse(courseId); if (!course || !course.materials.some((item) => item.id === materialId)) return { ok: false, error: 'Materi tidak ditemukan.' };
+    const source = input || {}; const title = clean(source.title); const content = clean(source.content); const summary = clean(source.summary);
+    if (title.length < 3 || content.length < 3 || summary.length < 8) return { ok: false, error: 'Materi belum lengkap.' };
+    const value = await store.updateMaterial(courseId, materialId, { title, content, summary, keyPoints: Array.isArray(source.keyPoints) ? source.keyPoints.map(clean).filter(Boolean).slice(0, 8) : undefined, studyGuide: Array.isArray(source.studyGuide) ? source.studyGuide : undefined, updatedAt: now() });
+    return value ? { ok: true, value } : { ok: false, error: 'Materi tidak ditemukan.' };
   }
 
   async function enroll(studentId, courseId, actor) {
@@ -247,6 +258,7 @@ function createLmsService(options) {
     const score = Number(input && input.score); const note = clean(input && input.note);
     if (!Number.isInteger(score) || score < 0 || score > 100 || note.length < 3) return { ok: false, error: 'Nilai dan catatan review belum valid.' };
     const saved = await store.reviewSubmission(submissionId, { status: 'reviewed', score, reviewerNote: note, reviewedAt: now(), reviewerAccountId: actor.id || null });
+    if (saved && score >= 70) await store.addCompletion({ id: crypto.randomUUID(), studentId: saved.studentId, courseId: saved.courseId, materialId: saved.materialId, completedAt: now() });
     return saved ? { ok: true, value: saved } : { ok: false, error: 'Submission tidak ditemukan.' };
   }
 
@@ -288,6 +300,7 @@ function createLmsService(options) {
     listCourses,
     listStudentCourses,
     studyHelp,
+    updateMaterial,
     submitAssignment,
     reviewSubmission
     ,submitQuiz
