@@ -71,6 +71,7 @@ function createLmsService(options) {
   const store = config.store || createMemoryLmsStore();
   const now = config.now || function currentTime() { return new Date().toISOString(); };
   const canAccessStudent = config.canAccessStudent || async function noStudentAccess() { return false; };
+  const aiService = config.aiService || null;
 
   function isStaff(actor) {
     return Boolean(actor && MANAGE_ROLES.includes(actor.role));
@@ -287,13 +288,25 @@ function createLmsService(options) {
         return word.length > 3 && normalizedQuestion.includes(word);
       });
     });
+    const fallbackAnswer = guide ? guide.answer : 'Pelajari rangkuman dan poin penting di atas. Jika pertanyaan belum terjawab, catat bagian yang membingungkan untuk didiskusikan bersama pembina.';
+    if (aiService && typeof aiService.answer === 'function') {
+      const aiResult = await aiService.answer({
+        actor,
+        question: clean(question),
+        fallbackAnswer,
+        fallbackSource: guide ? 'panduan materi' : 'rangkuman materi',
+        context: { title: material.title, summary: material.summary, keyPoints: material.keyPoints, studyGuide: material.studyGuide }
+      });
+      if (!aiResult.ok) return aiResult;
+      return { ok: true, value: { materialId: material.id, summary: material.summary, keyPoints: material.keyPoints, ...aiResult.value } };
+    }
     return {
       ok: true,
       value: {
         materialId: material.id,
         summary: material.summary,
         keyPoints: material.keyPoints,
-        answer: guide ? guide.answer : 'Pelajari rangkuman dan poin penting di atas. Jika pertanyaan belum terjawab, catat bagian yang membingungkan untuk didiskusikan bersama pembina.',
+        answer: fallbackAnswer,
         source: guide ? 'panduan materi' : 'rangkuman materi'
       }
     };

@@ -283,10 +283,10 @@ Gate: satu pembelajaran lengkap dari enrollment sampai nilai/kelulusan dapat dil
 ### Tahap 8 — Rilis C: AI (Phase 13)
 
 - [ ] T08.1 Pilih provider/model yang benar-benar tersedia saat implementasi, biaya dan aturan data; jangan memakai nama/model/harga lama tanpa verifikasi.
-- [ ] T08.2 FAQ publik memakai sumber yang disetujui dan rujukan/handoff petugas untuk ketidakpastian.
-- [ ] T08.3 Ringkasan/tanya jawab/partner belajar berdasarkan materi yang boleh diakses akun.
-- [ ] T08.4 Rate limit, quota/anggaran, timeout, cache sesuai privasi, pemantauan dan fallback.
-- [ ] T08.5 Dataset evaluasi pertanyaan nyata: jawaban benar, sumber, penolakan akses, prompt injection, materi tidak ada, provider gagal.
+- [~] T08.2 FAQ publik memakai sumber lokal yang disetujui dan handoff pembina untuk ketidakpastian; persetujuan konten masih manual.
+- [~] T08.3 Study-help memakai konteks materi yang sudah diakses akun dan tidak mengirim data di luar materi tersebut.
+- [~] T08.4 Adapter AI memiliki quota per akun, timeout provider, fallback deterministik, dan metrik agregat tanpa menyimpan prompt mentah.
+- [~] T08.5 Test otomatis mencakup jawaban fallback, prompt injection, quota, konteks terbatas, dan provider gagal; dataset pengajar nyata masih diperlukan.
 
 Gate: evaluasi mutu disetujui pengajar; tidak ada akses lintas akun/materi; kegagalan AI tidak menghalangi belajar. Terapkan gate deployment untuk Rilis C.
 
@@ -447,7 +447,7 @@ Snapshot ini menjadi acuan progres setelah UAT lokal terakhir; checklist tahap d
 - **Tahap 5 — operasional/keuangan:** fondasi kontrol lokal sudah bertambah lewat migrasi 022 dan 023: koreksi/pembatalan invoice berjejak, dokumen serta histori status visa, mutasi inventaris dengan penolakan stok negatif, kapasitas asrama, histori perpindahan placement, serta batch import inventory/visa dengan preview, validasi, deteksi duplikat, commit idempotent, rollback sebelum commit, audit event, dan histori batch berfilter/pagination di workspace staf. Endpoint reminder visa berbasis tenggat juga tersedia. Tahap ini masih parsial karena bukti pembayaran/PDF dan nomor verifikasi final belum disepakati, reminder belum dijalankan sebagai job terjadwal, dan UAT peran finance/operations belum dijalankan.
 - **Tahap 6 — keluarga/rekam jejak:** akses wali/pengawas, DTO dashboard, presensi unik per sesi/tanggal, koreksi beralasan, filter periode dashboard/CSV, sibling selector melalui daftar anak wali, dan kontrol periode di portal sudah tersedia melalui migrasi 024. Visibility media/retensi, galeri/komunikasi bila masuk kontrak, serta UAT pengawas/wali realistis masih perlu ditutup.
 - **Tahap 7 — LMS:** course, materi, enrollment, progress, dan study-help dasar tersedia. Migrasi 025 menambah attempt kuis, scoring server-side, batas tiga percobaan, dan completion hanya saat nilai lulus. Migrasi 026 menambah submission tugas dan review guru melalui endpoint submission/review, dengan satu submission aktif per materi. Migrasi 027 menambah versi materi; edit guru menaikkan nomor versi dan review tugas lulus otomatis mencatat completion. Migrasi 028 menambah owner course; guru hanya dapat mengelola course miliknya, admin tetap dapat mengelola semuanya. Status course `completed` dihitung server-side saat seluruh materi selesai. Policy course-file membatasi akses lampiran PDF ke course yang diikuti. Provider media nyata, aturan kelulusan lanjutan/sertifikat, dan UAT LMS masih perlu ditutup.
-- **Tahap 8 — AI:** FAQ lokal dan study-help berbasis materi tersedia sebagai fondasi. Provider/model, biaya, quota, evaluasi prompt injection, fallback, dan AI produksi belum dipilih atau dibangun.
+- **Tahap 8 — AI:** Fondasi adapter AI lokal sudah tersedia. Study-help meneruskan hanya judul/rangkuman/key points/panduan materi yang boleh diakses santri, membatasi quota per akun, menolak pola prompt injection, memberi timeout provider, dan selalu jatuh kembali ke panduan/rangkuman deterministik. Test adapter mencakup provider berhasil/gagal, quota, dan konteks terbatas. Provider/model, biaya, persetujuan sumber FAQ, dataset evaluasi pengajar, dan konfigurasi produksi masih menjadi keputusan/manual gate.
 - **Tahap 9 — penutupan:** belum dimulai penuh. Runbook deploy, backup/restore rehearsal, monitoring/alert, security/dependency review, dokumentasi per role, UAT sign-off, dan keputusan launch masih tersisa.
 
 Untuk staging, jalankan `npm run worker:notifications -- --once` setelah env email, `NOTIFICATION_PAYLOAD_KEY`, dan migrasi 020 siap. Untuk daemon gunakan `npm run worker:notifications` di service manager dengan restart policy; jangan menjalankannya dari browser atau proses web request.

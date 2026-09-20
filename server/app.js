@@ -19,6 +19,7 @@ const { createPostgresSessionStore } = require('./postgres-session-store.js');
 const { createStudentPortalService } = require('./student-portal-service.js');
 const { createPostgresStudentStore } = require('./postgres-student-store.js');
 const { createLmsService } = require('./lms-service.js');
+const { createAiService } = require('./ai-service.js');
 const { createPostgresLmsStore } = require('./postgres-lms-store.js');
 const { createOperationsService } = require('./operations-service.js');
 const { createOperationsImportService } = require('./operations-import-service.js');
@@ -143,9 +144,16 @@ function createHamasahApp(options) {
     getDormitory: (dormitoryId) => dormitoryStore.getDormitory(dormitoryId),
     countInDormitory: (dormitoryId) => studentStore.countInDormitory(dormitoryId)
   });
+  const aiService = config.aiService || createAiService({
+    provider: config.aiProvider || null,
+    maxRequests: Number(config.aiMaxRequests || process.env.AI_MAX_REQUESTS_PER_HOUR || 20),
+    timeoutMs: Number(config.aiTimeoutMs || process.env.AI_TIMEOUT_MS || 8000),
+    logger: config.logger || console
+  });
   const lmsStore = config.lmsStore || createPostgresLmsStore({ database });
   const lmsService = config.lmsService || createLmsService({
     store: lmsStore,
+    aiService,
     async canAccessStudent(studentId, actor) {
       if (!actor || actor.role !== identity.ROLES.STUDENT) {
         return false;
@@ -203,6 +211,7 @@ function createHamasahApp(options) {
     applicantService,
     articleStore,
     auditService,
+    aiService,
     fileService,
     checkDatabaseReady,
     dormitoryService,

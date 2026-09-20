@@ -39,6 +39,7 @@ Selesai sebagai API pembelajaran inti.
 - Maddah, materi video/PDF/teks/tugas/kuis, dan enrollment santri.
 - Progress tercatat per materi yang diselesaikan.
 - Study Partner memberikan rangkuman, poin penting, serta jawaban berdasarkan panduan materi yang diinput pengajar.
+- Fondasi adapter AI tersedia dengan quota per akun, timeout provider, prompt-injection guard, konteks materi terbatas, metrik agregat, dan fallback deterministik. Provider/model produksi sengaja belum dikonfigurasi sampai keputusan biaya dan kebijakan data disetujui.
 - `website/lms.html` menyediakan pengelolaan maddah bagi admin/pengawas dan ruang belajar bagi santri.
 
 ## Modul operasional
@@ -94,4 +95,4 @@ Halaman internal tersedia di `/website/staff.html`, `/website/portal.html`, `/we
 - Pindahkan penyimpanan dokumen (paspor, ijazah, surat kesehatan) ke object storage privat dengan tautan bertanda tangan.
 - Hubungkan reset password ke email atau WhatsApp resmi.
 - Simpan rahasia pada environment deployment, bukan file `.env` di repositori.
-- Jika ingin jawaban generatif, hubungkan Study Partner ke provider AI melalui backend dengan konteks maddah yang dibatasi.
+- Jika ingin jawaban generatif, pilih provider/model, biaya, retensi data, dan sumber FAQ; lalu pasang adapter provider melalui `config.aiProvider`/secret deployment dan jalankan evaluasi pengajar. Adapter backend sudah siap dan tetap fallback lokal saat provider tidak tersedia.
