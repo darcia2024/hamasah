@@ -88,6 +88,8 @@ Halaman internal tersedia di `/website/staff.html`, `/website/portal.html`, `/we
 
 ## Sebelum go-live penuh
 
+- Runbook rilis, backup/restore, rollback, insiden, monitoring, retensi, dan rotasi akses tersedia di `docs/RUNBOOK_RELEASE_DAN_RESTORE_2026-09-20.md`. `npm run release:check` memeriksa env staging/production dan artefak rilis tanpa menulis database.
+
 - Container Node tersedia melalui `Dockerfile` dan sudah diperiksa dengan `npm run check:docker`: dependency production terpasang, seluruh modul lengkap, server start, dan proses berhenti rapi saat menerima SIGTERM.
 - Pemeriksaan kesehatan dipisah: `GET /api/health` untuk liveness (tanpa database) dan `GET /api/ready` untuk readiness (memeriksa database, batas waktu 2 detik). Platform hosting sebaiknya memakai `/api/health` sebagai health check container.
 - Validasi environment tersedia: `DATABASE_URL` selalu wajib, bucket privat wajib saat `APP_ENV=production`, dan bootstrap key diperiksa panjangnya jika diisi.

@@ -292,11 +292,11 @@ Gate: evaluasi mutu disetujui pengajar; tidak ada akses lintas akun/materi; kega
 
 ### Tahap 9 — Penutupan dan serah terima (Phase 14–15)
 
-- [ ] T09.1 Regression seluruh role dan flow utama, aksesibilitas, responsive, performa, dependency/security review.
-- [ ] T09.2 Runbook deployment, backup/restore, rollback, incident response, monitoring, retensi dan rotasi akses.
+- [~] T09.1 Regression otomatis seluruh role dan flow API lulus; browser aksesibilitas/responsive, performa berbeban, dan review dependency/security eksternal masih perlu dijalankan.
+- [x] T09.2 Runbook deployment, backup/restore, rollback, incident response, monitoring, retensi dan rotasi akses tersedia.
 - [ ] T09.3 Latihan restore ke lingkungan terpisah; verifikasi data, file, akses dan konsistensi setelah restore.
 - [ ] T09.4 UAT ditandatangani pemilik proses; panduan admin/petugas/guru/pengawas/wali/santri dan pelatihan.
-- [ ] T09.5 Catat versi rilis, known limitations yang diterima, pemilik operasional dan periode dukungan.
+- [~] T09.5 Gate rilis dan limitation terdokumentasi; pemilik operasional, periode dukungan, dan persetujuan launch masih manual.
 
 Phase 16 (WhatsApp/payment gateway) tetap opsional sesuai kontrak. Jangan menjadikannya blocker untuk produk yang tidak menawarkan integrasi tersebut.
 
@@ -448,6 +448,6 @@ Snapshot ini menjadi acuan progres setelah UAT lokal terakhir; checklist tahap d
 - **Tahap 6 — keluarga/rekam jejak:** akses wali/pengawas, DTO dashboard, presensi unik per sesi/tanggal, koreksi beralasan, filter periode dashboard/CSV, sibling selector melalui daftar anak wali, dan kontrol periode di portal sudah tersedia melalui migrasi 024. Visibility media/retensi, galeri/komunikasi bila masuk kontrak, serta UAT pengawas/wali realistis masih perlu ditutup.
 - **Tahap 7 — LMS:** course, materi, enrollment, progress, dan study-help dasar tersedia. Migrasi 025 menambah attempt kuis, scoring server-side, batas tiga percobaan, dan completion hanya saat nilai lulus. Migrasi 026 menambah submission tugas dan review guru melalui endpoint submission/review, dengan satu submission aktif per materi. Migrasi 027 menambah versi materi; edit guru menaikkan nomor versi dan review tugas lulus otomatis mencatat completion. Migrasi 028 menambah owner course; guru hanya dapat mengelola course miliknya, admin tetap dapat mengelola semuanya. Status course `completed` dihitung server-side saat seluruh materi selesai. Policy course-file membatasi akses lampiran PDF ke course yang diikuti. Provider media nyata, aturan kelulusan lanjutan/sertifikat, dan UAT LMS masih perlu ditutup.
 - **Tahap 8 — AI:** Fondasi adapter AI lokal sudah tersedia. Study-help meneruskan hanya judul/rangkuman/key points/panduan materi yang boleh diakses santri, membatasi quota per akun, menolak pola prompt injection, memberi timeout provider, dan selalu jatuh kembali ke panduan/rangkuman deterministik. Test adapter mencakup provider berhasil/gagal, quota, dan konteks terbatas. Provider/model, biaya, persetujuan sumber FAQ, dataset evaluasi pengajar, dan konfigurasi produksi masih menjadi keputusan/manual gate.
-- **Tahap 9 — penutupan:** belum dimulai penuh. Runbook deploy, backup/restore rehearsal, monitoring/alert, security/dependency review, dokumentasi per role, UAT sign-off, dan keputusan launch masih tersisa.
+- **Tahap 9 — penutupan:** fondasi runbook rilis/rollback/insiden/monitoring/retensi tersedia melalui `docs/RUNBOOK_RELEASE_DAN_RESTORE_2026-09-20.md`, dan `npm run release:check` memvalidasi artefak serta env staging/production secara read-only. Regression otomatis 41 file lulus. Restore rehearsal nyata, browser/performance/security review, panduan per role, UAT sign-off, pemilik operasional, dan keputusan launch masih manual.
 
 Untuk staging, jalankan `npm run worker:notifications -- --once` setelah env email, `NOTIFICATION_PAYLOAD_KEY`, dan migrasi 020 siap. Untuk daemon gunakan `npm run worker:notifications` di service manager dengan restart policy; jangan menjalankannya dari browser atau proses web request.
