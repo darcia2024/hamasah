@@ -139,9 +139,40 @@ async function run() {
       body: JSON.stringify({ studentId, status: 'collecting-documents', note: 'Paspor diperiksa.' })
     });
     assert.equal(visa.status, 201);
+    const financeAccount = await request(baseUrl, '/api/accounts', {
+      method: 'POST', headers: adminHeaders,
+      body: JSON.stringify({ name: 'Petugas Finance', email: 'finance@hamasah.test', role: 'finance', password: 'kata-sandi-finance-aman' })
+    });
+    assert.equal(financeAccount.status, 201);
+    const financeLogin = await request(baseUrl, '/api/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'finance@hamasah.test', password: 'kata-sandi-finance-aman' })
+    });
+    assert.equal(financeLogin.status, 200);
+    const financeHeaders = { Authorization: `Bearer ${financeLogin.body.accessToken}`, 'Content-Type': 'application/json' };
+    const invoiceKoreksi = await request(baseUrl, '/api/operations/invoices', { method: 'POST', headers: financeHeaders, body: JSON.stringify({ studentId, description: 'SPP Oktober', amount: 1600000 }) });
+    assert.equal(invoiceKoreksi.status, 201);
+    const koreksi = await request(baseUrl, `/api/operations/invoices/${invoiceKoreksi.body.invoice.id}/correction`, { method: 'PATCH', headers: financeHeaders, body: JSON.stringify({ description: 'SPP Oktober revisi', amount: 1700000, reason: 'Surat keputusan terbaru' }) });
+    assert.equal(koreksi.status, 200);
+    const invoiceVoid = await request(baseUrl, '/api/operations/invoices', { method: 'POST', headers: financeHeaders, body: JSON.stringify({ studentId, description: 'Tagihan dibatalkan', amount: 100000 }) });
+    assert.equal(invoiceVoid.status, 201);
+    const dibatalkan = await request(baseUrl, `/api/operations/invoices/${invoiceVoid.body.invoice.id}/void`, { method: 'PATCH', headers: financeHeaders, body: JSON.stringify({ reason: 'Tidak lagi diperlukan' }) });
+    assert.equal(dibatalkan.status, 200);
+    const importPreview = await request(baseUrl, '/api/operations/imports/preview', { method: 'POST', headers: financeHeaders, body: JSON.stringify({ entity: 'inventory', rows: [{ name: 'Rak dokumen', location: 'Kantor Kairo', quantity: 12 }] }) });
+    assert.equal(importPreview.status, 201);
+    assert.equal(importPreview.body.batch.validCount, 1);
+    const importCommit = await request(baseUrl, `/api/operations/imports/${importPreview.body.batch.id}/commit`, { method: 'POST', headers: financeHeaders });
+    assert.equal(importCommit.status, 200);
+    const importHistory = await request(baseUrl, '/api/operations/imports?status=committed&page=1&pageSize=10', { headers: financeHeaders });
+    assert.equal(importHistory.status, 200);
+    assert.equal(importHistory.body.items.length, 1);
+    const visaReminders = await request(baseUrl, '/api/operations/visa-reminders?days=30', { headers: financeHeaders });
+    assert.equal(visaReminders.status, 200);
+    const supervisorOperations = await request(baseUrl, '/api/operations/imports', { headers: { Authorization: `Bearer ${parentLogin.body.accessToken}` } });
+    assert.equal(supervisorOperations.status, 403);
     const operations = await request(baseUrl, '/api/operations', { headers: adminHeaders });
     assert.equal(operations.status, 200);
-    assert.equal(operations.body.invoices.length, 1);
+    assert.equal(operations.body.invoices.length, 3);
     const report = await request(baseUrl, `/api/students/${studentId}/report`, {
       headers: { Authorization: `Bearer ${parentLogin.body.accessToken}` }
     });
@@ -149,7 +180,7 @@ async function run() {
     assert.match(report.body, /Fikri Santri/);
     const accounts = await request(baseUrl, '/api/accounts', { headers: adminHeaders });
     assert.equal(accounts.status, 200);
-    assert.equal(accounts.body.items.length, 5);
+    assert.equal(accounts.body.items.length, 6);
 
     const courseCreated = await request(baseUrl, '/api/courses', {
       method: 'POST', headers: adminHeaders,
