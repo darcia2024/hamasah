@@ -180,7 +180,8 @@ function createLmsService(options) {
         title: course.title,
         description: course.description,
         materials,
-        progress: course.materials.length ? Math.round((completedMaterialIds.length / course.materials.length) * 100) : 0
+        progress: course.materials.length ? Math.round((completedMaterialIds.length / course.materials.length) * 100) : 0,
+        completionStatus: course.materials.length && completedMaterialIds.length === course.materials.length ? 'completed' : 'in-progress'
       }
     };
   }

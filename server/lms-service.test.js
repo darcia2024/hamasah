@@ -55,6 +55,7 @@ async function run() {
   const reviewed = await service.reviewSubmission(submission.value.id, { score: 90, note: 'Penjelasan tepat.' }, admin);
   assert.equal(reviewed.value.status, 'reviewed');
   assert.equal((await service.getStudentCourse('student-1', courseId, student)).value.progress, 100);
+  assert.equal((await service.getStudentCourse('student-1', courseId, student)).value.completionStatus, 'completed');
 
   // Santri tidak boleh membuka maddah milik santri lain.
   assert.equal((await service.getStudentCourse('student-2', courseId, student)).ok, false);
