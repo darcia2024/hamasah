@@ -236,7 +236,25 @@ function createOperationsService(options) {
     };
   }
 
-  return Object.freeze({ createInvoice, createMemoryOperationsStore, correctInvoice, list, markInvoicePaid, moveInventory, saveInventory, saveVisa, saveVisaDocument, voidInvoice });
+  async function visaReminders(input, actor) {
+    if (!adminOnly(actor)) return { ok: false, error: 'Akses admin diperlukan.' };
+    const days = Number(input && input.days);
+    const windowDays = Number.isInteger(days) && days >= 0 && days <= 365 ? days : 30;
+    const batas = new Date(new Date(now()).getTime() + windowDays * 24 * 60 * 60 * 1000);
+    const visas = await store.listVisas();
+    const items = [];
+    for (const visa of visas) {
+      for (const jenis of ['passportExpiresAt', 'visaExpiresAt']) {
+        if (!visa[jenis]) continue;
+        const tanggal = new Date(`${visa[jenis]}T00:00:00Z`);
+        if (Number.isNaN(tanggal.getTime()) || tanggal > batas) continue;
+        items.push({ studentId: visa.studentId, status: visa.status, document: jenis === 'passportExpiresAt' ? 'passport' : 'visa', expiresAt: visa[jenis], overdue: tanggal < new Date(now()) });
+      }
+    }
+    return { ok: true, value: items.sort((a, b) => a.expiresAt.localeCompare(b.expiresAt)) };
+  }
+
+  return Object.freeze({ createInvoice, createMemoryOperationsStore, correctInvoice, list, markInvoicePaid, moveInventory, saveInventory, saveVisa, saveVisaDocument, visaReminders, voidInvoice });
 }
 
 module.exports = { MAX_INVOICE_AMOUNT, VISA_STATUSES, createMemoryOperationsStore, createOperationsService, documentNumber, yearInJakarta };

@@ -36,6 +36,11 @@ async function run() {
   assert.equal(new Set(nomorKuitansi).size, 1, `Kuitansi ganda: ${nomorKuitansi.join(', ')}`);
 
   assert.equal((await service.saveVisa({ studentId: 'student-1', status: 'collecting-documents', note: 'Paspor diperiksa' }, admin)).ok, true);
+  const visaReminder = await service.saveVisa({ studentId: 'student-1', status: 'submitted', passportExpiresAt: '2026-09-20' }, admin);
+  assert.equal(visaReminder.ok, true);
+  const reminders = await service.visaReminders({ days: 30 }, admin);
+  assert.equal(reminders.ok, true);
+  assert.equal(reminders.value[0].document, 'passport');
   assert.equal((await service.saveVisa({ studentId: 'santri-fiktif', status: 'collecting-documents' }, admin)).ok, false);
   const inventarisAwal = await service.saveInventory({ name: 'Kasur asrama', location: 'Hay Asyir', quantity: 20 }, admin);
   assert.equal(inventarisAwal.ok, true);

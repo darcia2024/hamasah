@@ -12,6 +12,16 @@ module.exports = [
   },
 
   {
+    method: 'GET',
+    pattern: /^\/api\/operations\/visa-reminders$/,
+    permission: 'operations.read',
+    async handler({ response, services, auth, url }) {
+      const result = await services.operationsService.visaReminders({ days: url.searchParams.get('days') }, await auth.actor());
+      json(response, result.ok ? 200 : 422, result.ok ? { items: result.value } : publicError(result));
+    }
+  },
+
+  {
     method: 'POST',
     pattern: /^\/api\/operations\/invoices$/,
     permission: 'finance.manage',

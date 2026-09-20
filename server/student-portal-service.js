@@ -25,6 +25,7 @@ function createMemoryStudentStore() {
     evaluations: [],
     students: {},
     violations: []
+    ,placementHistory: []
   };
 
   return {
@@ -47,6 +48,10 @@ function createMemoryStudentStore() {
     },
     async countInDormitory(dormitoryId) {
       return Object.values(database.students).filter((student) => student.dormitoryId === dormitoryId).length;
+    },
+    async recordPlacement(entry) {
+      database.placementHistory.push(clone(entry));
+      return clone(entry);
     }
   };
 }
@@ -262,6 +267,9 @@ function createStudentPortalService(options) {
     }
 
     const saved = await store.saveStudent({ ...student, gender, dormitoryId, updatedAt: now() });
+    if (typeof store.recordPlacement === 'function' && dormitoryId !== student.dormitoryId) {
+      await store.recordPlacement({ id: crypto.randomUUID(), studentId, dormitoryId, actorAccountId: actor.id || null, changedAt: now() });
+    }
     return { ok: true, value: saved };
   }
 

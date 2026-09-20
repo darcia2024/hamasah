@@ -109,6 +109,15 @@ function createPostgresStudentStore({ database } = {}) {
       return rows[0] ? rows[0].total : 0;
     },
 
+    async recordPlacement(entry) {
+      await database.query(
+        `INSERT INTO student_dormitory_history (id, student_id, dormitory_id, actor_account_id, changed_at)
+         VALUES ($1,$2,$3,$4,$5)`,
+        [entry.id, entry.studentId, entry.dormitoryId || null, entry.actorAccountId || null, entry.changedAt]
+      );
+      return entry;
+    },
+
     async saveStudent(student) {
       // Satu transaksi: data santri dan daftar wali harus berubah bersama.
       return database.withTransaction(async (tx) => {
