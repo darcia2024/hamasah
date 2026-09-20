@@ -86,6 +86,18 @@ Halaman internal tersedia di `/website/staff.html`, `/website/portal.html`, `/we
 - Seluruh endpoint (pendaftaran, akun, monitoring santri, LMS, dan operasional) membaca dan menulis ke PostgreSQL lewat satu koneksi bersama. Tidak ada lagi penyimpanan berkas JSON di runtime.
 - Test store PostgreSQL berjalan offline di atas PGlite (`server/test-support/database.js`), termasuk test integrasi API di `server/app-postgres.test.js`.
 
+## Remediasi Phase R1 (20 September 2026)
+
+Rencana: `docs/RENCANA_REMEDIASI_PHASE_R1_R8_2026-09-20.md`. Hasil dan bukti: `docs/REMEDIASI_R1_HASIL_2026-09-20.md`.
+
+- Seluruh style dan script inline di `website/` dihapus. Content Security Policy memakai `style-src 'self'` tanpa `'unsafe-inline'`, sehingga 183 atribut `style="..."` (126 di HTML, 57 di template string JavaScript) dan 1 blok `<script>` inline sebelumnya diblokir browser dan tidak pernah berlaku. Konsol CRM setelah login yang sebelumnya menghasilkan 85 pelanggaran CSP kini bersih.
+- Formulir konsultasi di halaman kontak sekarang benar-benar mengirim. `POST /api/inquiries` menyimpan ke tabel `inquiries` (migrasi `032_inquiries.sql`), dengan rate limit per IP dan pencatatan audit tanpa nomor maupun isi pesan. Petugas pendaftaran menindaklanjutinya lewat tab `Pesan Konsultasi` di konsol. Sebelumnya handler formulir ditulis inline, diblokir CSP, dan bahkan bila berjalan hanya menampilkan pesan sukses tanpa menyimpan apa pun.
+- Tombol kredensial pengujian beserta alamat email dan kata sandi literal dicabut dari `website/portal.html` dan `website/portal.js`, yang disajikan publik.
+- Elemen DOM yang dipertahankan hanya demi assertion test dihapus dari `portal.html`. Tidak ada test yang benar-benar menyebutnya.
+- Gerbang `npm run test:csp-contract` menolak style dan script inline baru pada 16 halaman dan 19 skrip, dan ikut berjalan pada `npm test`.
+
+Menunggu tindakan manusia: memutar kata sandi `tester@hamasah.test` bila akun itu ada di staging atau production, mengisi nomor WhatsApp resmi pada `WHATSAPP_NUMBER` di `website/kontak.js`, dan menerapkan migrasi `032` ke staging lalu production.
+
 ## Sebelum go-live penuh
 
 - Runbook rilis, backup/restore, rollback, insiden, monitoring, retensi, dan rotasi akses tersedia di `docs/RUNBOOK_RELEASE_DAN_RESTORE_2026-09-20.md`. `npm run release:check` memeriksa env staging/production dan artefak rilis tanpa menulis database.
