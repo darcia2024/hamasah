@@ -14,7 +14,7 @@
   </head>
   <body class="staff-page">
     <!-- Header saat Belum Login -->
-    <header class="staff-header" id="public-header" style="max-width: 1200px; margin: 20px auto 36px;">
+    <header class="staff-header staff-header--shell" id="public-header">
       <a href="index.html" class="staff-brand">
         <svg class="brand-logo-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
         Hamasah <span>Portal CRM</span>
@@ -30,21 +30,21 @@
     <!-- Kartu Login Terpusat M3 (Saat Belum Login) -->
     <section class="staff-login" id="portal-login" aria-labelledby="portal-login-title">
       <div class="staff-login__card">
-        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px;">
-          <img src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" width="44" height="44" style="object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 2px 8px rgba(217, 119, 6, 0.25));" />
+        <div class="staff-login__brand">
+          <img class="staff-login__brand-logo" src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" width="44" height="44" />
           <div>
-            <span class="eyebrow" style="margin: 0;">Portal CRM Terpadu</span>
-            <div style="font-size: 15px; font-weight: 800; color: #B45309;">Hamasah International</div>
+            <span class="eyebrow u-m-0">Portal CRM Terpadu</span>
+            <div class="staff-login__brand-name">Hamasah International</div>
           </div>
         </div>
 
-        <h1 id="portal-login-title" style="margin-bottom: 8px;">Masuk ke Konsol CRM</h1>
-        <p style="margin-top: 0; color: var(--md-sys-color-on-surface-variant, #4B4639); font-size: 13.5px; line-height: 1.55;">
+        <h1 class="u-mb-8" id="portal-login-title">Masuk ke Konsol CRM</h1>
+        <p class="staff-login__copy">
           Akses modul terisolasi khusus santri, pantau ananda untuk wali santri, konsol pembinaan musyrif asrama, dan manajemen operasional.
         </p>
         <p id="activation-notice" class="form-status" role="status" aria-live="polite" hidden></p>
 
-        <form id="portal-login-form" class="staff-form" style="margin-top: 20px;">
+        <form id="portal-login-form" class="staff-form u-mt-20">
           <div>
             <label for="portal-email">Alamat Email Terdaftar</label>
             <input id="portal-email" type="email" autocomplete="email" placeholder="nama@hamasah.test" required />
@@ -53,33 +53,13 @@
             <label for="portal-password">Kata Sandi Akun</label>
             <input id="portal-password" type="password" autocomplete="current-password" placeholder="••••••••••••" required />
           </div>
-          <button class="button button--primary" type="submit" style="width: 100%; justify-content: center; height: 46px;">
+          <button class="button button--primary staff-login__cta staff-login__cta--flush" type="submit">
             <span>Masuk ke CRM</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </button>
           <p id="portal-login-status" class="form-status" role="status" aria-live="polite"></p>
         </form>
 
-        <!-- Quick Demo Switcher Buttons -->
-        <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--md-sys-color-outline-variant, #D0C5B4);">
-          <div style="font-size: 12px; font-weight: 700; color: var(--md-sys-color-on-surface-variant, #7F7667); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.04em;">
-            Coba Cepat Akun Pengujian:
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-            <button type="button" class="button button--secondary" id="btn-fill-student" style="height: 36px; font-size: 12px; padding: 0 10px; justify-content: center;">
-              Santri
-            </button>
-            <button type="button" class="button button--secondary" id="btn-fill-parent" style="height: 36px; font-size: 12px; padding: 0 10px; justify-content: center;">
-              Wali Santri
-            </button>
-            <button type="button" class="button button--secondary" id="btn-fill-musyrif" style="height: 36px; font-size: 12px; padding: 0 10px; justify-content: center;">
-              Musyrif
-            </button>
-            <button type="button" class="button button--secondary" id="btn-fill-admin" style="height: 36px; font-size: 12px; padding: 0 10px; justify-content: center;">
-              Super Admin
-            </button>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -102,7 +82,7 @@
 
         <!-- User Profile Card in Sidebar -->
         <div class="crm-user-card" id="crm-user-card">
-          <div class="crm-user-avatar" id="crm-user-avatar">HM</div>
+          <div class="crm-user-avatar" id="crm-user-avatar">PG</div>
           <div class="crm-user-info">
             <div class="crm-user-name" id="crm-user-name">Pengguna</div>
             <div class="crm-user-role-pill" id="crm-user-role-pill">Hak Akses</div>
@@ -111,7 +91,7 @@
 
         <div class="crm-nav-group-title">
           <span>CRM UTAMA</span>
-          <span class="crm-nav-group-caret">▲</span>
+          <span class="crm-nav-group-caret" aria-hidden="true"></span>
         </div>
         <nav class="crm-nav" id="staff-nav"></nav>
 
@@ -142,46 +122,33 @@
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
             </button>
             <div class="crm-profile-pill" id="crm-topbar-profile">
-              <div class="crm-profile-pill-avatar" id="crm-topbar-avatar">TH</div>
-              <span class="crm-profile-pill-name" id="crm-topbar-name">Tester Hamasah</span>
-              <span class="crm-role-chip" id="crm-header-role">Super Admin</span>
+              <div class="crm-profile-pill-avatar" id="crm-topbar-avatar">PG</div>
+              <span class="crm-profile-pill-name" id="crm-topbar-name">Pengguna</span>
+              <span class="crm-role-chip" id="crm-header-role">Hak Akses</span>
             </div>
           </div>
         </header>
 
         <div class="crm-canvas">
-          <!-- Welcome Intro / Role Header (Preserved in DOM for test assertions, hidden visually in CRM) -->
-          <div class="staff-intro" style="display: none;">
-            <div>
-              <p class="eyebrow" id="portal-role-label">Portal Hamasah</p>
-              <h1 id="portal-title">Selamat datang.</h1>
-            </div>
-          </div>
+          <!-- Sapaan dan heading daftar santri versi lama sudah dihapus: shell CRM
+               menampilkan nama, peran, dan judul kanvasnya sendiri, sehingga keduanya
+               hanya menghasilkan heading ganda. -->
+          <section class="portal-students portal-students--flush" id="portal-students" aria-label="Santri yang dapat dipantau">
+            <p id="portal-students-status" class="form-status" role="status" aria-live="polite" hidden></p>
 
-          <!-- Students Container (For Students, Parents, Musyrif, Admin) -->
-          <section class="portal-students" id="portal-students" aria-labelledby="portal-students-title" style="padding-top: 0;">
-            <div id="portal-students-header" style="display: none;">
-              <div>
-                <h2 id="portal-students-title">Santri yang Dapat Anda Pantau</h2>
-                <p style="margin: 0; font-size: 13.5px; color: var(--md-sys-color-on-surface-variant, #4B4639);">Pilih kartu santri di bawah untuk melihat rekam jejak sholat Subuh, presensi talaqqi, dan mutaba'ah asrama.</p>
-              </div>
-            </div>
-
-            <p id="portal-students-status" class="form-status" role="status" aria-live="polite" style="display: none;"></p>
-
-            <!-- Card list for legacy fallback -->
-            <div class="portal-student-grid" id="portal-student-list" style="display: none;"></div>
+            <!-- Wadah pesan ketika akun belum terhubung dengan santri mana pun. -->
+            <div class="portal-student-grid" id="portal-student-list" hidden></div>
 
             <!-- Detailed Student CRM View (Santri / Wali / Executive Dashboard) -->
-            <section id="student-dashboard" class="portal-dashboard" aria-live="polite" style="margin-top: 0;"></section>
+            <section id="student-dashboard" class="portal-dashboard portal-dashboard--flush" aria-live="polite"></section>
           </section>
 
           <!-- Administrator Management Console -->
-          <section class="portal-admin" id="portal-admin" hidden aria-labelledby="portal-admin-title" style="margin-top: 36px;">
-            <div style="margin-bottom: 20px;">
+          <section class="portal-admin u-mt-36" id="portal-admin" hidden aria-labelledby="portal-admin-title">
+            <div class="u-mb-20">
               <p class="eyebrow">Manajemen Akses &amp; Pengguna</p>
               <h2 id="portal-admin-title">Kelola Akun Internal CRM</h2>
-              <p style="margin: 0; font-size: 13.5px; color: var(--md-sys-color-on-surface-variant, #4B4639);">Buat akun baru untuk staf kantor, musyrif asrama Kairo, guru pengajar, serta akses portal wali santri.</p>
+              <p class="u-text-secondary">Buat akun baru untuk staf kantor, musyrif asrama Kairo, guru pengajar, serta akses portal wali santri.</p>
             </div>
 
             <div class="portal-admin-grid">
@@ -224,12 +191,12 @@
               </form>
 
               <div>
-                <div class="form-title-group" style="margin-bottom: 14px;">
+                <div class="form-title-group u-mb-14">
                   <div class="form-title-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                   </div>
                   <div>
-                    <h2 class="portal-list-title" style="margin: 0;">Daftar Akun Terdaftar</h2>
+                    <h2 class="portal-list-title u-m-0">Daftar Akun Terdaftar</h2>
                     <p class="monitoring-hint">Akun aktif internal Hamasah International.</p>
                   </div>
                 </div>
@@ -241,6 +208,7 @@
       </div>
     </section>
 
+    <script src="internal-shell.js?v=1"></script>
     <script src="nav.js?v=3"></script>
     <script src="portal.js?v=3"></script>
   </body>

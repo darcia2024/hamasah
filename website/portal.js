@@ -4,8 +4,6 @@ const portalLoginStatus = document.querySelector('#portal-login-status');
 const activationNotice = document.querySelector('#activation-notice');
 const portalConsole = document.querySelector('#portal-console');
 const portalLogout = document.querySelector('#portal-logout');
-const portalRoleLabel = document.querySelector('#portal-role-label');
-const portalTitle = document.querySelector('#portal-title');
 const studentsStatus = document.querySelector('#portal-students-status');
 const studentList = document.querySelector('#portal-student-list');
 const studentDashboard = document.querySelector('#student-dashboard');
@@ -15,8 +13,6 @@ const accountFormStatus = document.querySelector('#account-form-status');
 const accountList = document.querySelector('#account-list');
 const publicHeader = document.querySelector('#public-header');
 const staffNav = document.querySelector('#staff-nav');
-const crmPageTitle = document.querySelector('#crm-page-title');
-const portalStudentsHeader = document.querySelector('#portal-students-header');
 
 let currentAccount = null;
 
@@ -90,33 +86,25 @@ function renderBadgeIcon(icon) {
   if (typeof icon === 'string' && icon.trim().startsWith('<svg')) return icon;
   switch (icon) {
     case 'mosque':
-    case '🕌':
       return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M4 10h16M6 10v10M18 10v10M10 10v10M14 10v10M12 6a4 4 0 0 0-4 4h8a4 4 0 0 0-4-4z"/></svg>`;
     case 'book':
-    case '📖':
       return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg>`;
     case 'cap':
     case 'graduation':
-    case '🎓':
       return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>`;
     case 'palm':
     case 'tree':
-    case '🌴':
       return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-7"/><path d="M12 15c-3-2-5-6-5-10 4 0 7 2 8 6"/><path d="M12 15c3-2 5-6 5-10-4 0-7 2-8 6"/></svg>`;
     case 'note':
     case 'eval':
-    case '📝':
       return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>`;
     case 'warning':
-    case '⚠️':
       return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
     case 'camel':
     case 'desert':
-    case '🐪':
       return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18h16M7 18v-4c0-2 1-3 3-3s3 1 3 3v4M13 11c0-2 1-3 3-3s3 1 3 3v7M4 14l2-4 3-1"/></svg>`;
     case 'building':
     case 'landmark':
-    case '🏛️':
       return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="21" x2="21" y2="21"/><line x1="4" y1="10" x2="20" y2="10"/><path d="m12 3 10 7H2l10-7z"/><line x1="6" y1="10" x2="6" y2="21"/><line x1="10" y1="10" x2="10" y2="21"/><line x1="14" y1="10" x2="14" y2="21"/><line x1="18" y1="10" x2="18" y2="21"/></svg>`;
     default:
       return icon;
@@ -155,7 +143,7 @@ function createAltezzaCard(options) {
         <div class="crm-square-badge crm-square-badge--${badgeColor}">
           ${renderBadgeIcon(badgeIcon)}
         </div>
-        <div style="min-width: 0; flex: 1;">
+        <div class="js-flex-1-min">
           <h3 class="crm-activity-card__name">${escapeHtml(title)}</h3>
           <div class="crm-activity-card__subtitle">${escapeHtml(subtitle)}</div>
         </div>
@@ -197,7 +185,7 @@ function createAltezzaCard(options) {
       <!-- Col 3: Start / Finish Time -->
       <div class="crm-col-block">
         <label>WAKTU KEGIATAN</label>
-        <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:4px;"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${startTime} - ${finishTime}</span>
+        <span><svg class="js-icon-inline" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${startTime} - ${finishTime}</span>
       </div>
 
       <!-- Col 4: Unit Asrama -->
@@ -209,14 +197,14 @@ function createAltezzaCard(options) {
       <!-- Col 5: Itinerary status -->
       <div class="crm-col-block">
         <label>STATUS ITINERARY</label>
-        <span style="color: #059669; font-weight: 700;">${escapeHtml(itineraryStatus)}</span>
+        <span class="js-text-ok">${escapeHtml(itineraryStatus)}</span>
       </div>
     </div>
 
     <!-- Note snippet directly on card -->
     ${note ? `
     <div class="crm-activity-card__note">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <svg class="js-no-shrink" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       <span>${escapeHtml(note)}</span>
     </div>
     ` : ''}
@@ -226,15 +214,15 @@ function createAltezzaCard(options) {
       <div class="crm-activity-card__meta-group">
         <div class="crm-meta-item">
           <label>PRESENSI SANTRI</label>
-          <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:4px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>${members}</span>
+          <span><svg class="js-icon-inline" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>${members}</span>
         </div>
         <div class="crm-meta-item">
           <label>KATEGORI</label>
-          <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:4px;"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>${requestType}</span>
+          <span><svg class="js-icon-inline" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>${requestType}</span>
         </div>
         <div class="crm-meta-item">
           <label>TIPE PEMBINAAN</label>
-          <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:4px;"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${tourType}</span>
+          <span><svg class="js-icon-inline" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${tourType}</span>
         </div>
       </div>
 
@@ -305,7 +293,7 @@ function createStudentCompactCard(student, idx, account, onOpen) {
           <span class="crm-student-compact-pill">${programText}</span>
           <span class="crm-meta-dot">·</span>
           <span class="crm-student-compact-dorm">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="vertical-align: -2px; margin-right: 3px;"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            <svg class="js-icon-inline--tight" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
             ${dormText}
           </span>
         </div>
@@ -346,17 +334,10 @@ function createStudentCompactCard(student, idx, account, onOpen) {
 function renderCrmDashboard(dashboard, account, onBack) {
   studentDashboard.replaceChildren();
   if (studentList) studentList.hidden = true;
-  if (portalStudentsHeader) portalStudentsHeader.hidden = true;
   const isStudent = account && account.role === 'student';
   const isParent = account && account.role === 'parent';
   const attendanceRate = dashboard.attendance.rate === null ? 100 : dashboard.attendance.rate;
   const student = dashboard.student;
-
-  // Update Breadcrumb
-  const pageTitleEl = document.querySelector('#crm-page-title');
-  if (pageTitleEl) {
-    pageTitleEl.textContent = `${student.name} (${isStudent ? 'Santri' : isParent ? 'Ananda' : 'Profil Santri'})`;
-  }
 
   // If opened from executive dashboard, provide seamless back button
   if (onBack) {
@@ -366,11 +347,11 @@ function renderCrmDashboard(dashboard, account, onBack) {
     backBar.style.justifyContent = 'space-between';
     backBar.style.marginBottom = '12px';
     backBar.innerHTML = `
-      <button type="button" class="crm-topbar-action-btn" id="crm-back-btn" style="background: #FFFFFF; font-weight: 700; color: #0F172A; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+      <button type="button" class="crm-topbar-action-btn js-chip-active" id="crm-back-btn">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
         <span>Kembali ke Konsol Eksekutif</span>
       </button>
-      <span style="font-size: 12.5px; font-weight: 600; color: #64748B;">Rekam Jejak CRM: <strong>${student.name}</strong></span>
+      <span class="js-text-meta">Rekam Jejak CRM: <strong>${student.name}</strong></span>
     `;
     backBar.querySelector('#crm-back-btn').addEventListener('click', onBack);
     studentDashboard.append(backBar);
@@ -421,7 +402,7 @@ function renderCrmDashboard(dashboard, account, onBack) {
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
         </p>
         <div class="crm-person-row">
-          <div class="crm-person-avatar" style="background: #FEF3C7; color: #B45309;">HA</div>
+          <div class="crm-person-avatar js-chip-accent">HA</div>
           <span class="crm-person-name">Asrama Hay Asyir Kairo</span>
         </div>
       </div>
@@ -439,7 +420,7 @@ function renderCrmDashboard(dashboard, account, onBack) {
       <div>
         <p class="crm-field-label">PRESENSI IBADAH</p>
         <div class="crm-field-value">
-          <span style="color: #16A34A;">●</span>
+          <span class="crm-outline-dot" aria-hidden="true"></span>
           <span>${attendanceRate}% Hadir (${dashboard.attendance.present || 0}/${dashboard.attendance.total || 0})</span>
         </div>
       </div>
@@ -747,7 +728,7 @@ function renderCrmDashboard(dashboard, account, onBack) {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
         <div>
-          <strong>Pengawalan Musyrif Siaga 24 Jam</strong>
+          <strong>Pengawalan musyrif sesuai jadwal penugasan</strong>
           <p>Dibimbing langsung oleh asatidzah Al-Azhar berdedikasi menjaga keselamatan dan kedisiplinan santri.</p>
         </div>
       </div>
@@ -782,13 +763,13 @@ function renderCrmDashboard(dashboard, account, onBack) {
         <h3>Maddah Silabus Kurikulum Al-Azhar</h3>
         <p>Mata pelajaran diniyah, lughah Arabiyyah, nahwu, balaghah, dan fiqh yang sedang dipelajari santri.</p>
       </div>
-      <a href="lms.html" class="crm-btn-primary-yellow" style="height: 36px; padding: 0 14px; font-size: 12.5px;">
+      <a href="lms.html" class="crm-btn-primary-yellow js-btn-sm">
         <span>Buka Ruang Belajar (LMS)</span>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </a>
     </div>
     <div id="crm-student-courses">
-      <p style="color: #64748B; font-size: 13px;">Memuat silabus maddah belajar...</p>
+      <p class="js-text-muted">Memuat silabus maddah belajar...</p>
     </div>
   `;
 
@@ -799,7 +780,7 @@ function renderCrmDashboard(dashboard, account, onBack) {
       const container = panelLms.querySelector('#crm-student-courses');
       if (!container) return;
       if (!data.items || !data.items.length) {
-        container.innerHTML = '<p style="color: #64748B; font-size: 13px;">Belum ada maddah terdaftar untuk semester berjalan.</p>';
+        container.innerHTML = '<p class="js-text-muted">Belum ada maddah terdaftar untuk semester berjalan.</p>';
         return;
       }
       container.replaceChildren();
@@ -812,14 +793,19 @@ function renderCrmDashboard(dashboard, account, onBack) {
           <div class="crm-feature-box-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg>
           </div>
-          <div style="flex: 1;">
+          <div class="js-flex-1">
             <strong>${course.title}</strong>
             <p>${course.materials ? course.materials.length : 0} modul · Progres ${course.progress || 0}%</p>
-            <div style="margin-top: 8px; height: 6px; background: #E2E8F0; border-radius: 999px; overflow: hidden;">
-              <div style="width: ${course.progress || 0}%; height: 100%; background: #FFC42C; border-radius: 999px;"></div>
+            <div class="js-progress-track">
+              <div class="js-progress-bar"></div>
             </div>
           </div>
         `;
+        // Lebar diisi lewat element.style, bukan sebagai atribut style di markup.
+        // Penulisan properti satu per satu pada CSSStyleDeclaration tidak terkena
+        // Content Security Policy, sedangkan atribut style di markup terkena.
+        const bar = item.querySelector('.js-progress-bar');
+        if (bar) bar.style.width = `${Math.min(100, Math.max(0, Number(course.progress) || 0))}%`;
         grid.append(item);
       });
       container.append(grid);
@@ -834,7 +820,7 @@ function renderCrmDashboard(dashboard, account, onBack) {
     <div class="crm-white-card-header">
       <div>
         <h3>Rincian Administrasi &amp; Transparansi SPP</h3>
-        <p>Prinsip transparansi penuh: biaya resmi terbit bertahap, kuitansi sah tervalidasi, tanpa pungutan liar.</p>
+        <p>Prinsip transparansi penuh: rincian biaya diterbitkan bertahap, dengan dokumen transaksi sesuai pembayaran.</p>
       </div>
       <a href="/api/students/${encodeURIComponent(student.id)}/report" download class="crm-topbar-action-btn">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -848,7 +834,7 @@ function renderCrmDashboard(dashboard, account, onBack) {
         </div>
         <div>
           <strong>Status SPP &amp; Akomodasi: Lunas</strong>
-          <p>Mencakup asrama AC di Kairo, katering 3x sehari, talaqqi masyayikh Al-Azhar, dan visa resmi.</p>
+        <p>Komponen program dapat mencakup asrama, konsumsi, talaqqi, dan pendampingan visa sesuai jalur yang dipilih.</p>
         </div>
       </div>
       <div class="crm-feature-box">
@@ -857,7 +843,7 @@ function renderCrmDashboard(dashboard, account, onBack) {
         </div>
         <div>
           <strong>Garansi Tanpa Biaya Siluman</strong>
-          <p>Setiap pembayaran tervalidasi oleh kuitansi resmi bertanda tangan digital divisi keuangan.</p>
+        <p>Setiap pembayaran dicatat bersama dokumen transaksi yang dapat ditinjau pada portal.</p>
         </div>
       </div>
     </div>
@@ -890,20 +876,10 @@ function renderCrmDashboard(dashboard, account, onBack) {
 function renderExecutiveDashboard(students, account, accountsList = []) {
   studentDashboard.replaceChildren();
   if (studentList) studentList.hidden = true;
-  if (portalStudentsHeader) portalStudentsHeader.hidden = true;
 
   const isAdmin = account && account.role === 'admin';
   const isSupervisor = account && account.role === 'supervisor';
   const isParent = account && account.role === 'parent';
-
-  // Update Breadcrumb
-  if (crmPageTitle) {
-    crmPageTitle.textContent = isAdmin
-      ? 'Konsol Super Admin'
-      : isSupervisor
-      ? 'Konsol Musyrif Asrama'
-      : 'Pantau Ananda Kairo';
-  }
 
   // Coursue 3-Column Layout Shell
   const coursueLayout = document.createElement('div');
@@ -956,14 +932,14 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
     <div class="coursue-stat-pill">
       <div class="coursue-stat-icon coursue-stat-icon--pink">${renderBadgeIcon('book')}</div>
       <div class="coursue-stat-meta">
-        <p class="coursue-stat-count">—</p>
+        <p class="coursue-stat-count">Belum ada data</p>
         <p class="coursue-stat-label">Tahfidz menunggu data</p>
       </div>
     </div>
     <div class="coursue-stat-pill">
       <div class="coursue-stat-icon coursue-stat-icon--cyan">${renderBadgeIcon('cap')}</div>
       <div class="coursue-stat-meta">
-        <p class="coursue-stat-count">—</p>
+        <p class="coursue-stat-count">Belum ada data</p>
         <p class="coursue-stat-label">Presensi menunggu data</p>
       </div>
     </div>
@@ -1152,7 +1128,7 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
       members: `${students.length} Santri Hadir Penuh`,
       requestType: 'Presensi Subuh',
       tourType: 'Wajib Berjamaah',
-      statusText: '100% Hadir Tepat Waktu',
+          statusText: 'Presensi tercatat pada kegiatan ini',
       statusType: 'complete',
       note: 'Alhamdulillah seluruh santri bangun sebelum adzan dan menempati shaf terdepan didampingi musyrif.'
     },
@@ -1310,7 +1286,7 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
       <div class="crm-feature-box">
         <div class="crm-feature-box-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
         <div>
-          <strong>Pengawalan Musyrif Siaga 24 Jam</strong>
+          <strong>Pengawalan musyrif sesuai jadwal penugasan</strong>
           <p>Dibimbing langsung oleh asatidzah Al-Azhar berdedikasi menjaga keselamatan dan kedisiplinan santri.</p>
         </div>
       </div>
@@ -1341,7 +1317,7 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
         <h3>Maddah Silabus Kurikulum Al-Azhar</h3>
         <p>Mata pelajaran diniyah, lughah Arabiyyah, nahwu, balaghah, dan fiqh yang sedang dipelajari santri.</p>
       </div>
-      <a href="lms.html" class="crm-btn-primary-yellow" style="height: 36px; padding: 0 14px; font-size: 12.5px;">
+      <a href="lms.html" class="crm-btn-primary-yellow js-btn-sm">
         <span>Buka Ruang Belajar (LMS)</span>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </a>
@@ -1349,14 +1325,14 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
     <div class="crm-grid-2col">
       <div class="crm-feature-box">
         <div class="crm-feature-box-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg></div>
-        <div style="flex: 1;">
+        <div class="js-flex-1">
           <strong>Matan Al-Jurumiyyah (Nahwu)</strong>
           <p>Progress akan muncul setelah data pembelajaran santri tersedia.</p>
         </div>
       </div>
       <div class="crm-feature-box">
         <div class="crm-feature-box-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg></div>
-        <div style="flex: 1;">
+        <div class="js-flex-1">
           <strong>Matan Ghoyah wa Taqrib (Fiqh)</strong>
           <p>Progress akan muncul setelah data pembelajaran santri tersedia.</p>
         </div>
@@ -1483,10 +1459,10 @@ function renderStudents(students, account) {
 
   if (!students.length) {
     const empty = document.createElement('div');
-    empty.className = 'crm-white-card';
-    empty.style.padding = '24px';
+    empty.className = 'crm-white-card portal-student-empty';
     empty.textContent = 'Belum ada santri yang terhubung dengan akun ini.';
     studentList.append(empty);
+    studentList.hidden = false;
     return;
   }
 
@@ -1505,11 +1481,29 @@ async function loadAccounts() {
 }
 
 async function loadStudents(account) {
+  // Status ini sebelumnya selalu tersembunyi, sehingga pesan memuat tidak pernah
+  // terlihat. Sekarang ditampilkan selama permintaan berjalan lalu disembunyikan lagi.
   studentsStatus.classList.remove('is-error');
   studentsStatus.textContent = 'Memuat data santri...';
-  const response = await fetch('/api/my-students', { headers: requestHeaders() });
-  const result = await response.json();
-  if (!response.ok) throw new Error(result.error || 'Data santri belum dapat dimuat.');
+  studentsStatus.hidden = false;
+
+  let response;
+  let result;
+  try {
+    response = await fetch('/api/my-students', { headers: requestHeaders() });
+    result = await response.json();
+  } catch (error) {
+    studentsStatus.textContent = 'Data santri belum dapat dimuat. Periksa koneksi lalu muat ulang.';
+    studentsStatus.classList.add('is-error');
+    throw error;
+  }
+  if (!response.ok) {
+    studentsStatus.textContent = result.error || 'Data santri belum dapat dimuat.';
+    studentsStatus.classList.add('is-error');
+    throw new Error(result.error || 'Data santri belum dapat dimuat.');
+  }
+  studentsStatus.hidden = true;
+  studentsStatus.textContent = '';
 
   const students = result.items || [];
 
@@ -1564,32 +1558,15 @@ async function showPortal() {
 
   currentAccount = result.account;
   document.body.classList.add('in-crm');
-  if (publicHeader) {
-    publicHeader.hidden = true;
-    publicHeader.style.display = 'none';
-  }
-  if (portalLogin) {
-    portalLogin.hidden = true;
-    portalLogin.style.display = 'none';
-  }
+  // Atribut hidden sudah cukup: staff.css memberi `[hidden] { display: none !important }`.
+  // Menulis style.display lagi hanya menambah atribut style di DOM tanpa efek tambahan.
+  if (publicHeader) publicHeader.hidden = true;
+  if (portalLogin) portalLogin.hidden = true;
   portalConsole.hidden = false;
   portalLogout.hidden = false;
 
-  portalRoleLabel.textContent = roleLabels[result.account.role] || 'Portal Hamasah';
-  if (result.account.role === 'student') {
-    portalTitle.textContent = `Assalamu'alaikum, ${result.account.name}.`;
-    if (crmPageTitle) crmPageTitle.textContent = 'Dashboard Santri';
-  } else if (result.account.role === 'parent') {
-    portalTitle.textContent = `Assalamu'alaikum, Bapak/Ibu ${result.account.name}.`;
-    if (crmPageTitle) crmPageTitle.textContent = 'Pantau Ananda';
-  } else if (result.account.role === 'supervisor') {
-    portalTitle.textContent = `Ahlan wa Sahlan, Ustadz ${result.account.name}.`;
-    if (crmPageTitle) crmPageTitle.textContent = 'Pengawasan Asrama';
-  } else {
-    portalTitle.textContent = `Assalamu'alaikum, ${result.account.name}.`;
-    if (crmPageTitle) crmPageTitle.textContent = 'Super Admin CRM';
-  }
-
+  // Nama dan peran ditampilkan oleh shell CRM lewat renderStaffNav/updateCrmUserBadges,
+  // jadi tidak ada heading sapaan terpisah di kanvas.
   renderStaffNav(staffNav, result.account.role, 'portal', result.account);
   await loadStudents(result.account);
 }
@@ -1645,38 +1622,9 @@ portalLogout.addEventListener('click', async () => {
   window.location.reload();
 });
 
-// Quick fill testing credentials buttons
-const btnStudent = document.querySelector('#btn-fill-student');
-const btnParent = document.querySelector('#btn-fill-parent');
-const btnMusyrif = document.querySelector('#btn-fill-musyrif');
-const btnAdmin = document.querySelector('#btn-fill-admin');
-const emailInput = document.querySelector('#portal-email');
-const passInput = document.querySelector('#portal-password');
-
-if (btnStudent) {
-  btnStudent.addEventListener('click', () => {
-    emailInput.value = 'santri@hamasah.test';
-    passInput.value = 'kata-sandi-dev-hamasah';
-  });
-}
-if (btnParent) {
-  btnParent.addEventListener('click', () => {
-    emailInput.value = 'wali@hamasah.test';
-    passInput.value = 'kata-sandi-dev-hamasah';
-  });
-}
-if (btnMusyrif) {
-  btnMusyrif.addEventListener('click', () => {
-    emailInput.value = 'musyrif@hamasah.test';
-    passInput.value = 'kata-sandi-dev-hamasah';
-  });
-}
-if (btnAdmin) {
-  btnAdmin.addEventListener('click', () => {
-    emailInput.value = 'tester@hamasah.test';
-    passInput.value = 'TestingHamasah2026!';
-  });
-}
+// Pengisian cepat kredensial contoh sengaja tidak ada di sini. Berkas ini disajikan
+// publik, jadi alamat akun dan kata sandi apa pun di dalamnya ikut terbaca siapa saja.
+// Kredensial akun contoh dicetak ke terminal oleh `npm run dev`.
 
 if (getSession()) {
   document.body.classList.add('in-crm');

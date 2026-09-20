@@ -209,7 +209,8 @@
   font-family: inherit;
   font-size: 13.5px !important;
   font-weight: 500 !important;
-  height: 42px !important;
+  min-height: 46px !important;
+  height: auto !important;
   padding: 0 14px !important;
   width: 100% !important;
   box-sizing: border-box !important;
@@ -226,7 +227,8 @@
 #account-form button[type="submit"] {
   width: 100%;
   margin-top: 18px;
-  height: 42px;
+  min-height: 44px;
+  height: auto;
   background: #FFC42C;
   color: #111827;
   border: none;
@@ -287,7 +289,8 @@
 
 .portal-account .button {
   flex-shrink: 0;
-  height: 32px;
+  min-height: 44px;
+  height: auto;
   padding: 0 12px;
   font-size: 11.5px;
   border-radius: 8px;
@@ -323,7 +326,8 @@
 
 .monitoring-download {
   margin-top: 14px;
-  height: 40px;
+  min-height: 44px;
+  height: auto;
   font-size: 12.5px;
 }
 
@@ -351,7 +355,8 @@
 .lms-help-form input {
   min-width: 0;
   flex: 1;
-  height: 42px;
+  min-height: 44px;
+  height: auto;
   padding: 0 14px;
   border: 1px solid var(--md-sys-color-outline, #7F7667);
   border-radius: var(--md-shape-corner-small, 8px);
@@ -368,10 +373,54 @@
 }
 
 .lms-help-form .button {
-  height: 42px;
+  min-height: 44px;
+  height: auto;
   padding: 0 16px;
   font-size: 12px;
   flex-shrink: 0;
+}
+
+/* Tahap 1: touch targets and lighter, single-purpose elevation. */
+.crm-collapse-btn {
+  width: 44px;
+  height: 44px;
+}
+
+.crm-logout-btn,
+.crm-icon-circle-btn,
+.crm-pill-btn,
+.crm-topbar-action-btn {
+  min-height: 44px;
+}
+
+.crm-icon-circle-btn {
+  width: 44px;
+  height: 44px;
+}
+
+.crm-pill-btn {
+  height: auto;
+  padding-block: 10px;
+}
+
+/* Forms already sit inside a white workspace card; avoid a second frame. */
+.crm-white-card .staff-form {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.crm-logout-btn:focus-visible,
+.crm-icon-circle-btn:focus-visible,
+.crm-pill-btn:focus-visible,
+.crm-collapse-btn:focus-visible,
+.monitoring-select:focus-visible,
+.record-form select:focus-visible,
+#account-form input:focus-visible,
+#account-form select:focus-visible {
+  outline: 3px solid var(--md-sys-color-primary, #D97706) !important;
+  outline-offset: 2px;
 }
 
 .lms-answer {
@@ -463,6 +512,11 @@ body.in-crm #portal-students-status,
   --crm-text-primary: #0F172A;
   --crm-text-secondary: #475569;
   --crm-text-muted: #94A3B8;
+
+  /* Satu-satunya sumber hijau status pada konsol internal. Sebelumnya #16A34A
+     ditulis langsung di atribut style di enam halaman. Task R4.1 akan
+     menyatukan token ini dengan token sukses global. */
+  --crm-status-online: #16A34A;
   
   /* Solid Primary Hamasah Gold & Solid Dark Slate */
   --crm-gold: #D97706;
@@ -493,6 +547,7 @@ body.in-crm #portal-students-status,
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   position: relative;
+  overflow-x: clip;
 }
 
 /* --------------------------------------------------------------------------
@@ -840,7 +895,12 @@ body.in-crm #portal-students-status,
   display: flex;
   flex-direction: column;
   background: var(--crm-bg, #F5F6FB);
+  min-width: 0;
+  overflow-x: clip;
 }
+
+.crm-drawer-toggle,
+.crm-drawer-backdrop { display: none; }
 
 .crm-topbar {
   height: 72px;
@@ -2651,14 +2711,92 @@ body.in-crm #portal-students-status,
 
 @media (max-width: 800px) {
   .crm-shell {
-    flex-direction: column;
+    display: block;
+    min-height: 100dvh;
+    overflow-x: hidden;
   }
 
   .crm-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(86vw, 312px);
+    min-width: 0;
+    height: 100dvh;
+    transform: translateX(-105%);
+    z-index: 420;
+    box-shadow: 12px 0 32px rgba(15, 23, 42, 0.16);
+    transition: transform 0.24s cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .crm-shell.is-drawer-open .crm-sidebar {
+    transform: translateX(0);
+  }
+
+  .crm-drawer-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
     width: 100%;
-    min-width: 100%;
-    height: auto;
-    position: relative;
+    height: 100%;
+    border: 0;
+    padding: 0;
+    background: rgba(15, 23, 42, 0.36);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 410;
+    transition: opacity 0.2s ease;
+  }
+
+  .crm-shell.is-drawer-open .crm-drawer-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .crm-drawer-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex: 0 0 auto;
+    min-width: 44px;
+    min-height: 44px;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    background: #F8FAFC;
+    color: #0F172A;
+    font: inherit;
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  .crm-drawer-toggle-label {
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .crm-topbar {
+    height: 60px;
+    padding: 0 12px;
+    gap: 8px;
+    position: sticky;
+    z-index: 300;
+  }
+
+  .crm-topbar .crm-breadcrumbs { display: none; }
+  .crm-search-bar { display: none; }
+  .crm-topbar-actions { margin-left: auto; gap: 6px; min-width: 0; }
+  .crm-topbar-action-btn { min-width: 44px; padding: 0 10px; }
+  .crm-topbar-action-btn span { display: none; }
+  .crm-icon-circle-btn { width: 40px; height: 40px; }
+  .crm-profile-pill { max-width: 148px; padding-right: 8px; gap: 6px; }
+  .crm-profile-pill-name { max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+  .crm-role-chip { display: none; }
+  .crm-canvas { padding: 16px 12px 40px; min-width: 0; overflow-x: clip; }
+  .coursue-table-card { overflow-x: auto; }
+  .lms-tabs-bar { overflow-x: auto; max-width: 100%; }
+  .lms-tabs-bar > * { flex: 0 0 auto; }
+  .crm-sidebar-header { padding-top: max(18px, env(safe-area-inset-top)); }
+  body.crm-drawer-open { overflow: hidden; }
   }
 
   .crm-canvas {
@@ -3551,5 +3689,200 @@ body.crm-page-exiting .lms-page {
 @media (max-width: 1024px) {
   .lms-course-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Outline-only badges and status indicators */
+.crm-user-role-pill,
+.crm-role-chip,
+.crm-badge-counter,
+.crm-status-pill,
+.crm-pill-count,
+.crm-square-badge,
+.crm-student-compact-pill,
+.coursue-card-pill,
+.coursue-stat-pill,
+.coursue-circle-badge,
+.lms-course-category-pill,
+.lms-player-badge {
+  background: transparent !important;
+  border: 1px solid currentColor !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+.crm-status-pill,
+.crm-badge-counter,
+.crm-pill-count {
+  padding: 3px 8px !important;
+}
+
+.crm-nav-group-caret {
+  display: inline-flex;
+  width: 12px;
+  height: 12px;
+  overflow: hidden;
+  font-size: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.crm-nav-group-caret::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+}
+
+.crm-person-avatar--outline {
+  background: transparent !important;
+  border: 1px solid currentColor !important;
+}
+
+.crm-outline-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+/* --------------------------------------------------------------------------
+   Stage 6: task-first internal workspaces
+   -------------------------------------------------------------------------- */
+.crm-empty-state {
+  display: grid;
+  gap: 6px;
+  min-height: 96px;
+  align-content: center;
+  padding: 22px 24px;
+  border: 1px dashed var(--md-sys-color-outline, #B7AA92);
+  border-radius: 16px;
+  background: var(--md-sys-color-surface-container-low, #FAF7F0);
+  color: var(--md-sys-color-on-surface-variant, #4D4639);
+}
+
+.crm-empty-state strong {
+  color: var(--md-sys-color-on-surface, #1E1B16);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.crm-empty-state span,
+.crm-empty-state p {
+  margin: 0;
+  color: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+#operations-console .crm-summary-card {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.audit-filter-form {
+  gap: 18px !important;
+}
+
+.audit-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.audit-filter-grid > div {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.audit-filter-grid label {
+  margin: 0;
+}
+
+.audit-filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 0;
+}
+
+.audit-results-header {
+  align-items: flex-start !important;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.audit-summary {
+  margin: 0 !important;
+  padding: 7px 12px !important;
+  border-radius: 999px;
+  background: rgba(120, 90, 0, 0.08);
+  color: var(--crm-gold-dark, #785A00) !important;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.crm-canvas .staff-registration__meta--compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.crm-canvas .staff-registration__meta--compact p {
+  padding: 7px 10px !important;
+  font-size: 12px !important;
+}
+
+.crm-canvas .staff-registration__controls--primary {
+  align-items: stretch !important;
+  min-width: 220px;
+}
+
+.crm-canvas .staff-note-box--secondary {
+  padding-top: 10px;
+  border-top: 1px solid var(--md-sys-color-outline-variant, #E5DECE);
+}
+
+@media (max-width: 900px) {
+  .audit-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 800px) {
+  #operations-console .crm-summary-card {
+    grid-template-columns: 1fr !important;
+  }
+
+  .audit-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .audit-filter-actions {
+    align-items: stretch;
+  }
+
+  .audit-filter-actions .button {
+    flex: 1 1 180px;
+  }
+
+  .audit-summary {
+    white-space: normal;
+  }
+
+  .crm-canvas .staff-registration__meta--compact {
+    grid-template-columns: 1fr !important;
+  }
+
+  .crm-canvas .staff-registration__controls--primary {
+    min-width: 0;
+    width: 100%;
   }
 }
