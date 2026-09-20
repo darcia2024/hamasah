@@ -295,7 +295,7 @@ Gate: evaluasi mutu disetujui pengajar; tidak ada akses lintas akun/materi; kega
 - [~] T09.1 Regression otomatis seluruh role dan flow API lulus; browser aksesibilitas/responsive, performa berbeban, dan review dependency/security eksternal masih perlu dijalankan.
 - [x] T09.2 Runbook deployment, backup/restore, rollback, incident response, monitoring, retensi dan rotasi akses tersedia.
 - [ ] T09.3 Latihan restore ke lingkungan terpisah; verifikasi data, file, akses dan konsistensi setelah restore.
-- [ ] T09.4 UAT ditandatangani pemilik proses; panduan admin/petugas/guru/pengawas/wali/santri dan pelatihan.
+- [~] T09.4 Panduan role dan lembar UAT sudah tersedia; pengisian, pelatihan, dan tanda tangan pemilik proses masih manual.
 - [~] T09.5 Gate rilis dan limitation terdokumentasi; pemilik operasional, periode dukungan, dan persetujuan launch masih manual.
 
 Phase 16 (WhatsApp/payment gateway) tetap opsional sesuai kontrak. Jangan menjadikannya blocker untuk produk yang tidak menawarkan integrasi tersebut.
