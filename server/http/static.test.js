@@ -19,6 +19,19 @@ fs.writeFileSync(path.join(SANDBOX, 'assets', 'logo.png'), 'bukan-png-sungguhan'
 fs.writeFileSync(path.join(SANDBOX, '.env'), ISI_RAHASIA_PALSU, 'utf8');
 fs.writeFileSync(path.join(SANDBOX, 'package.json'), '{ "name": "rahasia-palsu" }', 'utf8');
 
+// Berkas yang memang ADA di dalam website/ tetapi tidak boleh tersaji. Isinya
+// ditandai supaya kebocoran apa pun langsung terlihat pada assertion di bawah.
+const ISI_TIDAK_BOLEH_TERSAJI = 'isi-yang-tidak-boleh-tersaji';
+fs.writeFileSync(path.join(SANDBOX, 'website', 'robots.txt'), 'User-agent: *', 'utf8');
+fs.writeFileSync(path.join(SANDBOX, 'website', 'sitemap.xml'), '<urlset></urlset>', 'utf8');
+fs.writeFileSync(path.join(SANDBOX, 'website', 'modul.test.js'), ISI_TIDAK_BOLEH_TERSAJI, 'utf8');
+fs.writeFileSync(path.join(SANDBOX, 'website', 'CATATAN.md'), ISI_TIDAK_BOLEH_TERSAJI, 'utf8');
+fs.writeFileSync(path.join(SANDBOX, 'website', 'halaman.html.metadata.json'), ISI_TIDAK_BOLEH_TERSAJI, 'utf8');
+fs.writeFileSync(path.join(SANDBOX, 'website', '.env'), ISI_TIDAK_BOLEH_TERSAJI, 'utf8');
+fs.writeFileSync(path.join(SANDBOX, 'website', 'cadangan.sql'), ISI_TIDAK_BOLEH_TERSAJI, 'utf8');
+fs.writeFileSync(path.join(SANDBOX, 'website', 'kunci.pem'), ISI_TIDAK_BOLEH_TERSAJI, 'utf8');
+fs.writeFileSync(path.join(SANDBOX, 'assets', 'catatan.md'), ISI_TIDAK_BOLEH_TERSAJI, 'utf8');
+
 // Response palsu: writable stream biasa, ditambah writeHead seperti http.ServerResponse.
 function fakeResponse() {
   const stream = new PassThrough();
@@ -104,6 +117,67 @@ async function run() {
     // Halaman sungguhan di repo tetap tersaji.
     const portal = await serve('/website/portal.html', path.resolve(__dirname, '..', '..'));
     assert.equal(portal.status, 200);
+
+
+    // Task R2.2. Berkas-berkas ini ADA di sandbox, jadi yang diuji bukan
+    // "berkasnya tidak ada" melainkan gerbangnya benar-benar menolak.
+    const tidakBolehTersaji = [
+      '/website/modul.test.js',
+      '/website/CATATAN.md',
+      '/website/halaman.html.metadata.json',
+      '/website/.env',
+      '/website/cadangan.sql',
+      '/website/kunci.pem',
+      '/assets/catatan.md',
+      // Jalur tanpa awalan /website/ dipetakan ulang ke folder itu, jadi gerbang
+      // harus berlaku sesudah pemetaan, bukan sebelumnya.
+      '/modul.test.js',
+      '/CATATAN.md',
+      '/.env'
+    ];
+    for (const jalan of tidakBolehTersaji) {
+      const ditolak = await serve(jalan);
+      assert.equal(
+        ditolak.isi().includes(ISI_TIDAK_BOLEH_TERSAJI),
+        false,
+        `Isi berkas bocor lewat ${JSON.stringify(jalan)}`
+      );
+      assert.equal(ditolak.status, 404, `Seharusnya 404: ${JSON.stringify(jalan)}`);
+    }
+
+    // 404 harus sama persis dengan 404 berkas yang tidak ada, supaya jawaban server
+    // tidak membedakan "ada tapi dilarang" dari "tidak ada".
+    const dilarang = await serve('/website/modul.test.js');
+    const takAda = await serve('/website/tidak-pernah-ada.test.js');
+    assert.equal(dilarang.status, takAda.status);
+    assert.equal(dilarang.isi(), takAda.isi());
+
+    // Yang sah tetap tersaji: txt dan xml dipakai robots.txt dan sitemap.xml.
+    const robots = await serve('/website/robots.txt');
+    assert.equal(robots.status, 200);
+    assert.equal(robots.headers['Content-Type'], 'text/plain; charset=utf-8');
+
+    const sitemap = await serve('/website/sitemap.xml');
+    assert.equal(sitemap.status, 200);
+    assert.equal(sitemap.headers['Content-Type'], 'application/xml; charset=utf-8');
+
+    // Berkas yang dipindah Task R2.1 memang sudah tidak ada di repo.
+    const repoRoot = path.resolve(__dirname, '..', '..');
+    for (const jalan of [
+      '/website/registration-service.js',
+      '/website/registration-service.test.js',
+      '/website/registration-domain.test.js',
+      '/website/DESIGN_DECISIONS.md',
+      '/website/article.html.metadata.json'
+    ]) {
+      const hilang = await serve(jalan, repoRoot);
+      assert.equal(hilang.status, 404, `Seharusnya sudah tidak ada: ${JSON.stringify(jalan)}`);
+    }
+
+    // registration-domain.js sengaja tetap di website/: dimuat browser lewat
+    // <script> di index.html dan di-require server dari berkas yang sama.
+    const domain = await serve('/website/registration-domain.js', repoRoot);
+    assert.equal(domain.status, 200);
 
     console.log('static file server tests passed');
   } finally {
