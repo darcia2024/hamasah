@@ -187,7 +187,8 @@
   font-size: 12px;
   font-weight: 700;
   color: var(--md-sys-color-on-surface-variant, #475569);
-  margin-bottom: 2px;
+  margin-bottom: 8px;
+  line-height: 1.4;
   letter-spacing: 0.02em;
 }
 
@@ -228,10 +229,26 @@
 
 .staff-form .button {
   margin-top: 6px;
-  height: 46px;
+  min-height: 44px;
+  height: auto;
   font-size: 14px;
   font-weight: 700;
   justify-content: center;
+}
+
+/* Tahap 1: keep internal controls aligned with the public form system. */
+.staff-form input,
+.staff-form select {
+  min-height: 46px;
+}
+
+.staff-form input:focus-visible,
+.staff-form select:focus-visible,
+.staff-form textarea:focus-visible,
+.staff-header a:focus-visible,
+.staff-header button:focus-visible {
+  outline: 3px solid var(--md-sys-color-primary, #D97706);
+  outline-offset: 2px;
 }
 
 /* --------------------------------------------------------------------------
@@ -489,4 +506,382 @@
   }
 
   .conversion-result__accounts { grid-template-columns: 1fr; }
+}
+
+/* Stage 7: editorial workflow */
+.article-cover-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.field-help {
+  display: block;
+  margin-top: 6px;
+  color: var(--md-sys-color-on-surface-variant, #475569);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.article-form-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.article-form-actions .button { min-height: 44px; }
+.article-form-actions .button--primary { flex: 1; justify-content: center; }
+
+.article-cover-preview {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  min-height: 84px;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--md-sys-color-outline-variant, #E2E8F0);
+  border-radius: 12px;
+  background: var(--md-sys-color-surface-container-low, #F8FAFC);
+}
+
+.article-cover-preview img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 8px; }
+.article-cover-preview-label { font-size: 11px; color: var(--md-sys-color-on-surface-variant, #475569); }
+.article-cover-failed { display: grid; place-items: center; min-height: 64px; color: #8A2C20; font-size: 12px; text-align: center; }
+
+.article-preview-panel {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 24px;
+  border: 1px solid var(--md-sys-color-outline-variant, #E2E8F0);
+  border-radius: 18px;
+  background: var(--md-sys-color-surface-container-low, #FAF7F0);
+}
+
+.article-preview-panel h3 { margin: 0; font-size: 24px; color: var(--md-sys-color-on-surface, #0F172A); }
+.article-preview-panel small { color: var(--md-sys-color-on-surface-variant, #475569); }
+.article-preview-excerpt { margin: 8px 0 0; font-weight: 600; line-height: 1.55; }
+.article-preview-body { margin: 0; white-space: pre-wrap; line-height: 1.7; color: var(--md-sys-color-on-surface-variant, #475569); }
+
+.article-editorial-row { align-items: center; }
+.article-editorial-row .staff-registration__content { display: grid; gap: 7px; min-width: 0; }
+.article-editorial-row .staff-registration__content > strong { font-size: 16px; }
+.article-editorial-row .staff-registration__content > small { color: var(--md-sys-color-on-surface-variant, #475569); }
+.article-status-badge { width: fit-content; padding: 4px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+.article-status-badge--draft { color: #74500A; background: #FFF1C2; }
+.article-status-badge--published { color: #17633A; background: #DDF6E7; }
+.article-status-badge--archived { color: #5E6470; background: #E9EDF2; }
+.article-editorial-cover { width: 160px; height: 72px; object-fit: cover; border-radius: 10px; border: 1px solid var(--md-sys-color-outline-variant, #E2E8F0); }
+
+.article-status-badge,
+.operation-import-chip {
+  background: transparent !important;
+  border: 1px solid currentColor !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 700px) {
+  .article-cover-fields { grid-template-columns: 1fr; }
+  .article-form-actions { align-items: stretch; flex-direction: column-reverse; }
+  .article-form-actions .button { width: 100%; }
+  .article-editorial-cover { width: 100%; height: 120px; }
+}
+
+/* ==========================================================================
+   Kelas pengganti atribut style inline (Task R1.3 / R1.4)
+
+   Content Security Policy memakai `style-src 'self'` tanpa `'unsafe-inline'`,
+   sehingga atribut style="..." di HTML diblokir browser dan tidak pernah
+   berlaku. Seluruh nilai yang dulu ditulis inline dipindahkan ke sini.
+
+   Catatan: `.button` sudah menyediakan min-height 44px dan justify-content
+   center, jadi kelas di bawah hanya menambahkan lebar dan jarak.
+   ========================================================================== */
+
+/* Header internal --------------------------------------------------------- */
+.staff-header--shell {
+  max-width: 1200px;
+  margin: 20px auto 36px;
+}
+
+/* Kartu guard / login internal -------------------------------------------- */
+.staff-login__brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.staff-login__brand-logo {
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 8px rgba(217, 119, 6, 0.25));
+}
+
+.staff-login__brand-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--md-sys-color-primary, #B45309);
+}
+
+.staff-login__copy {
+  margin-top: 0;
+  color: var(--md-sys-color-on-surface-variant, #4B4639);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.staff-login__cta {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 20px;
+}
+
+.staff-login__cta--flush {
+  margin-top: 0;
+}
+
+/* Status sesi pada topbar internal ---------------------------------------- */
+.crm-status-dot--online {
+  background: var(--crm-status-online, #16A34A);
+}
+
+.crm-status-text--online {
+  font-size: 15px;
+  color: var(--crm-status-online, #16A34A);
+}
+
+.crm-status-text--muted {
+  font-size: 15px;
+  color: var(--crm-text-secondary, #475569);
+}
+
+/* Grid form internal ------------------------------------------------------
+   Satu kolom pada layar sempit, dua kolom mulai 800px. Sebelumnya ditulis
+   `grid-template-columns: 1fr 1fr` tanpa breakpoint, sehingga dua kolom
+   dipaksakan juga di mobile. */
+.form-grid-2,
+.form-grid-2-1,
+.form-grid-auto {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.form-grid-2--tight { gap: 12px; }
+.form-grid-2--gap16 { gap: 16px; }
+.form-grid-2--wide { gap: 20px; }
+
+.form-grid-auto {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+@media (min-width: 800px) {
+  .form-grid-2 { grid-template-columns: 1fr 1fr; }
+  .form-grid-2-1 { grid-template-columns: 2fr 1fr; }
+}
+
+/* Aksi form --------------------------------------------------------------- */
+.staff-form__submit {
+  margin-top: 14px;
+  width: 100%;
+}
+
+.staff-form__submit--auto {
+  width: auto;
+}
+
+.staff-form__actions-end {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--crm-border, #E2E8F0);
+}
+
+/* Toolbar dan kontrol ----------------------------------------------------- */
+.crm-toolbar-row {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.crm-toolbar-field {
+  flex: 1;
+  min-width: 260px;
+}
+
+.crm-search-field {
+  min-width: 280px;
+}
+
+.crm-search-field__row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.crm-search-field__input {
+  border: none;
+  background: transparent;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: inherit;
+  width: 100%;
+  cursor: pointer;
+}
+
+.control--h40 { min-height: 40px; }
+.control--h42 { min-height: 42px; }
+.control--h44 { min-height: 44px; }
+
+.control--multiline {
+  height: auto;
+  min-height: 100px;
+  padding: 8px;
+}
+
+/* Kanvas portal ----------------------------------------------------------- */
+.portal-students--flush { padding-top: 0; }
+.portal-dashboard--flush { margin-top: 0; }
+.portal-student-empty { padding: 24px; }
+
+/* Utilitas jarak ----------------------------------------------------------
+   Sengaja dibatasi pada nilai yang benar-benar dipakai. Jangan menambah
+   varian baru tanpa alasan; pakai kelas komponen bila polanya berulang. */
+.u-m-0 { margin: 0; }
+.u-mt-0 { margin-top: 0; }
+.u-mt-8 { margin-top: 8px; }
+.u-mt-14 { margin-top: 14px; }
+.u-mt-20 { margin-top: 20px; }
+.u-mt-28 { margin-top: 28px; }
+.u-mt-36 { margin-top: 36px; }
+.u-mb-8 { margin-bottom: 8px; }
+.u-mb-14 { margin-bottom: 14px; }
+.u-mb-20 { margin-bottom: 20px; }
+.u-mb-24 { margin-bottom: 24px; }
+.u-text-sm { margin: 0; font-size: 13px; }
+.u-text-secondary {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--md-sys-color-on-surface-variant, #4B4639);
+}
+
+/* ==========================================================================
+   Kelas pengganti style inline di dalam template string JavaScript (Task R1.3)
+
+   lms.js dan portal.js menyusun HTML lewat template string lalu memasangnya
+   dengan innerHTML. Atribut style di dalam string itu tetap menjadi atribut
+   style sungguhan di DOM, jadi tetap diblokir Content Security Policy sama
+   seperti style inline yang ditulis langsung di berkas HTML.
+   ========================================================================== */
+
+/* Ikon kecil sejajar teks */
+.js-icon-inline { vertical-align: -2px; margin-right: 4px; }
+.js-icon-inline--tight { vertical-align: -2px; margin-right: 3px; }
+
+/* Blok teks */
+.js-text-sm { margin: 0; font-size: 13px; color: var(--crm-text-secondary, #475569); }
+.js-text-xs { margin: 0; font-size: 12.5px; color: var(--crm-text-secondary, #475569); }
+.js-text-title { margin: 4px 0; font-size: 14px; font-weight: 600; color: var(--crm-text-primary, #0F172A); }
+.js-text-label { margin: 0 0 4px; font-weight: 600; font-size: 13px; color: var(--crm-text-primary, #0F172A); }
+.js-text-body { font-size: 13px; color: var(--crm-text-primary, #0F172A); }
+.js-text-muted { color: var(--crm-text-secondary, #64748B); font-size: 13px; }
+.js-text-accent { color: var(--md-sys-color-primary, #B45309); }
+.js-text-accent-sm { font-size: 12px; color: var(--md-sys-color-primary, #B45309); }
+.js-text-accent-strong { font-size: 13px; font-weight: 600; color: var(--md-sys-color-primary, #B45309); }
+.js-text-meta { font-size: 12.5px; font-weight: 600; color: var(--crm-text-secondary, #64748B); }
+.js-text-soft { font-size: 12px; opacity: 0.8; }
+.js-text-lg { font-size: 16px; }
+.js-text-ok { color: var(--crm-status-online, #059669); font-weight: 700; }
+.js-text-ok-sm { color: var(--crm-status-online, #059669); font-weight: 600; }
+
+/* Penanda status kecil */
+.js-tag-ok {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--crm-status-online, #059669);
+  text-transform: uppercase;
+}
+.js-tag-pending {
+  font-size: 11px;
+  font-weight: 700;
+  color: #D97706;
+  text-transform: uppercase;
+}
+.js-chip-accent {
+  background: var(--md-sys-color-primary-container, #FEF3C7);
+  color: var(--md-sys-color-primary, #B45309);
+}
+.js-chip-active {
+  background: #FFFFFF;
+  font-weight: 700;
+  color: var(--crm-text-primary, #0F172A);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+/* Tata letak */
+.js-row { display: flex; align-items: center; gap: 8px; }
+.js-row-between { display: flex; align-items: center; justify-content: space-between; }
+.js-row-between-tight { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.js-row-start { display: flex; gap: 16px; align-items: flex-start; }
+.js-col { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+.js-flex-1 { flex: 1; }
+.js-flex-1-min { min-width: 0; flex: 1; }
+.js-no-shrink { flex-shrink: 0; margin-top: 2px; }
+.js-divider { border-top: 1px solid var(--crm-border-subtle, #F1F5F9); margin: 4px 0; }
+.js-mt-2 { margin-top: 4px; }
+.js-mt-3 { margin-top: 10px; font-size: 13px; }
+.js-ml-1 { margin-left: 2px; }
+.js-meta-row {
+  margin-top: 12px;
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--crm-text-secondary, #64748B);
+}
+.js-panel {
+  padding: 14px 16px;
+  background: var(--crm-bg, #F8FAFC);
+  border: 1px solid var(--crm-border, #E2E8F0);
+  border-radius: 10px;
+}
+.js-avatar-lg { width: 56px; height: 56px; font-size: 20px; }
+.js-btn-sm { min-height: 36px; padding: 0 14px; font-size: 12.5px; }
+
+/* Bilah progres maddah. Lebar diisi lewat element.style.width dari JavaScript,
+   yang tidak terkena CSP karena bukan atribut style di markup. */
+.js-progress-track {
+  margin-top: 8px;
+  height: 6px;
+  background: var(--crm-border, #E2E8F0);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.js-progress-bar {
+  width: 0;
+  height: 100%;
+  background: #FFC42C;
+  border-radius: 999px;
+}
+
+/* Kartu pesan konsultasi (Task R1.6). Kelas sendiri, bukan menumpang
+   .article-editorial-row, supaya jarak nama dan badge tidak bergantung pada
+   aturan yang dipakai daftar artikel. */
+.inquiry-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.inquiry-card__head > strong {
+  font-size: 15px;
 }

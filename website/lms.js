@@ -3,6 +3,7 @@ const guardCopy = document.querySelector('#lms-guard-copy');
 const consoleSection = document.querySelector('#lms-console');
 const studentSelect = document.querySelector('#lms-student-select');
 const status = document.querySelector('#lms-status');
+const syncStatus = document.querySelector('#lms-sync-status');
 const courseList = document.querySelector('#lms-course-list');
 const courseView = document.querySelector('#lms-course-view');
 const staffSection = document.querySelector('#lms-staff-section');
@@ -37,7 +38,7 @@ const ICONS = {
   back: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
   share: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
   play: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>',
-  playFilled: '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="margin-left: 2px;"><polygon points="6 4 20 12 6 20 6 4"/></svg>',
+  playFilled: '<svg class="js-ml-1" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 4 20 12 6 20 6 4"/></svg>',
   check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
   checkCircle: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
   star: '<svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
@@ -62,6 +63,7 @@ function getCourseCategory(title) {
 function renderCourse(course, activeMaterialId) {
   const materials = course.materials || [];
   const activeMaterial = (activeMaterialId ? materials.find((m) => m.id === activeMaterialId) : null) || materials[0] || null;
+  if (syncStatus) syncStatus.textContent = activeMaterial ? `Maddah aktif: ${course.title}` : 'Belum ada materi yang dipilih';
 
   // Update breadcrumb
   const breadcrumbActive = document.querySelector('.crm-breadcrumbs .crumb-active');
@@ -109,11 +111,11 @@ function renderCourse(course, activeMaterialId) {
   const statsLine = document.createElement('div');
   statsLine.className = 'lms-course-stats-line';
   statsLine.innerHTML = `
-    <span class="lms-stat-item">${ICONS.star} <strong style="color:#B45309;">4.9</strong> (128 Santri)</span>
+    <span class="lms-stat-item">${ICONS.star} <strong class="js-text-accent">4.9</strong> (128 Santri)</span>
     <span class="lms-stat-item">${ICONS.book} ${materials.length} Modul</span>
     <span class="lms-stat-item">${ICONS.clock} Diperbarui September 2026</span>
     <span class="lms-stat-item">${ICONS.globe} Bahasa Arab &amp; Indonesia</span>
-    <span class="lms-stat-item" style="color:#059669; font-weight:600;">Progres: ${course.progress}%</span>
+    <span class="lms-stat-item js-text-ok-sm">Progres: ${course.progress}%</span>
   `;
 
   titleBlock.append(titleLine, statsLine);
@@ -182,10 +184,10 @@ function renderCourse(course, activeMaterialId) {
   const bottomBar = document.createElement('div');
   bottomBar.className = 'lms-player-bottom-bar';
   bottomBar.innerHTML = `
-    <span style="display:flex; align-items:center; gap:8px;">
+    <span class="js-row">
       ${ICONS.play} ${activeMaterial ? `${activeMaterial.title} · ${activeMaterial.type.toUpperCase()}` : 'Video Pembelajaran Al-Azhar'}
     </span>
-    <span style="font-size:12px; opacity:0.8;">Hamasah Learning Portal</span>
+    <span class="js-text-soft">Hamasah Learning Portal</span>
   `;
 
   overlay.append(badge, bottomBar);
@@ -292,7 +294,7 @@ function renderCourse(course, activeMaterialId) {
   overviewPanel.innerHTML = `
     <h3>Tentang Maddah Ini</h3>
     <p class="lms-about-text">${escapeHtml(course.description || "Silabus resmi persiapan santri Al-Azhar Kairo yang disusun secara terstruktur sesuai kurikulum Ma'had & Kulliyyah Al-Azhar Asy-Syarif Mesir.")}</p>
-    <div style="border-top: 1px solid #F1F5F9; margin: 4px 0;"></div>
+    <div class="js-divider"></div>
     <h3>Yang Akan Dipelajari</h3>
     <div class="lms-learn-grid">
       <div class="lms-learn-item"><span class="lms-learn-icon">${ICONS.checkCircle}</span><span>Penguasaan kaidah &amp; i'rab aplikatif langsung dari kitab matan mu'tamad</span></div>
@@ -309,16 +311,16 @@ function renderCourse(course, activeMaterialId) {
   authorPanel.className = 'lms-content-card';
   authorPanel.hidden = true;
   authorPanel.innerHTML = `
-    <div style="display: flex; gap: 16px; align-items: flex-start;">
-      <div class="lms-author-pic" style="width: 56px; height: 56px; font-size: 20px;">AZ</div>
-      <div style="flex: 1;">
+    <div class="js-row-start">
+      <div class="lms-author-pic js-avatar-lg">AZ</div>
+      <div class="js-flex-1">
         <div class="lms-author-name-row">
-          <h3 class="lms-author-name" style="font-size: 16px;">Ustadz Ahmad Al-Azhari, Lc., M.A.</h3>
+          <h3 class="lms-author-name js-text-lg">Ustadz Ahmad Al-Azhari, Lc., M.A.</h3>
           <span class="lms-author-badge">${ICONS.verified}</span>
         </div>
-        <p class="lms-author-role" style="margin-top: 4px;">Musyrif Akademik &amp; Dosen Tamu Al-Azhar Asy-Syarif</p>
-        <p class="lms-author-bio" style="margin-top: 10px; font-size: 13px;">Alumnus Fakultas Syariah Wal Qanun Universitas Al-Azhar Kairo. Memiliki sanad keilmuan muttashil pada matan-matan induk serta pengalaman lebih dari 8 tahun membimbing santri Indonesia menempuh studi sarjana dan pascasarjana di Kairo.</p>
-        <div style="margin-top: 12px; display: flex; gap: 16px; font-size: 12px; color: #64748B;">
+        <p class="lms-author-role js-mt-2">Musyrif Akademik &amp; Dosen Tamu Al-Azhar Asy-Syarif</p>
+        <p class="lms-author-bio js-mt-3">Alumnus Fakultas Syariah Wal Qanun Universitas Al-Azhar Kairo. Memiliki sanad keilmuan muttashil pada matan-matan induk serta pengalaman lebih dari 8 tahun membimbing santri Indonesia menempuh studi sarjana dan pascasarjana di Kairo.</p>
+        <div class="js-meta-row">
           <span><strong>12+</strong> Tahun Mengajar</span>
           <span><strong>850+</strong> Santri Dibimbing</span>
           <span><strong>4.9/5</strong> Rating Kepuasan</span>
@@ -389,8 +391,8 @@ function renderCourse(course, activeMaterialId) {
         guideItem.style.border = '1px solid #E2E8F0';
         guideItem.style.marginBottom = '8px';
         guideItem.innerHTML = `
-          <p style="margin:0 0 4px; font-weight:600; font-size:13px; color:#0F172A;">Q: ${sg.question}</p>
-          <p style="margin:0; font-size:12.5px; color:#475569;">A: ${sg.answer}</p>
+          <p class="js-text-label">Q: ${sg.question}</p>
+          <p class="js-text-xs">A: ${sg.answer}</p>
         `;
         faqPanel.append(guideItem);
       });
@@ -410,16 +412,16 @@ function renderCourse(course, activeMaterialId) {
   announcePanel.hidden = true;
   announcePanel.innerHTML = `
     <h3>Pengumuman Akademik</h3>
-    <div style="display:flex; flex-direction:column; gap:12px; margin-top:8px;">
-      <div style="padding:14px 16px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px;">
-        <span style="font-size:11px; font-weight:700; color:#D97706; text-transform:uppercase;">15 September 2026</span>
-        <h4 style="margin:4px 0; font-size:14px; font-weight:600; color:#0F172A;">Jadwal Talaqqi Pekanan &amp; Setoran Matan</h4>
-        <p style="margin:0; font-size:13px; color:#475569;">Halaqah talaqqi bersama asatidzah Al-Azhar diselenggarakan setiap hari Rabu pukul 16.00 CLT (Waktu Kairo) melalui tautan ruang virtual terpadu.</p>
+    <div class="js-col">
+      <div class="js-panel">
+        <span class="js-tag-pending">15 September 2026</span>
+        <h4 class="js-text-title">Jadwal Talaqqi Pekanan &amp; Setoran Matan</h4>
+        <p class="js-text-sm">Halaqah talaqqi bersama asatidzah Al-Azhar diselenggarakan setiap hari Rabu pukul 16.00 CLT (Waktu Kairo) melalui tautan ruang virtual terpadu.</p>
       </div>
-      <div style="padding:14px 16px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px;">
-        <span style="font-size:11px; font-weight:700; color:#059669; text-transform:uppercase;">1 September 2026</span>
-        <h4 style="margin:4px 0; font-size:14px; font-weight:600; color:#0F172A;">Penyelarasan Silabus Imtihan Qabul</h4>
-        <p style="margin:0; font-size:13px; color:#475569;">Seluruh materi telah diselaraskan dengan silabus muqorror terbaru untuk seleksi masuk Al-Azhar tahun akademik 2026/2027.</p>
+      <div class="js-panel">
+        <span class="js-tag-ok">1 September 2026</span>
+        <h4 class="js-text-title">Penyelarasan Silabus Imtihan Qabul</h4>
+        <p class="js-text-sm">Seluruh materi telah diselaraskan dengan silabus muqorror terbaru untuk seleksi masuk Al-Azhar tahun akademik 2026/2027.</p>
       </div>
     </div>
   `;
@@ -431,24 +433,24 @@ function renderCourse(course, activeMaterialId) {
   reviewsPanel.className = 'lms-content-card';
   reviewsPanel.hidden = true;
   reviewsPanel.innerHTML = `
-    <div style="display:flex; align-items:center; justify-content:space-between;">
+    <div class="js-row-between">
       <h3>Ulasan Santri</h3>
-      <span style="font-size:13px; font-weight:600; color:#B45309;">${ICONS.star} 4.9 dari 5 (128 ulasan)</span>
+      <span class="js-text-accent-strong">${ICONS.star} 4.9 dari 5 (128 ulasan)</span>
     </div>
-    <div style="display:flex; flex-direction:column; gap:12px; margin-top:8px;">
-      <div style="padding:14px 16px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-          <strong style="font-size:13px; color:#0F172A;">Muhammad Farhan (Santri Kairo)</strong>
-          <span style="font-size:12px; color:#B45309;">${ICONS.star} 5.0</span>
+    <div class="js-col">
+      <div class="js-panel">
+        <div class="js-row-between-tight">
+          <strong class="js-text-body">Muhammad Farhan (Santri Kairo)</strong>
+          <span class="js-text-accent-sm">${ICONS.star} 5.0</span>
         </div>
-        <p style="margin:0; font-size:12.5px; color:#475569;">Penjelasan matan sangat sistematis dan mudah dipahami. Membantu sekali sebelum masuk halaqah syarah di Masjid Al-Azhar.</p>
+        <p class="js-text-xs">Penjelasan matan sangat sistematis dan mudah dipahami. Membantu sekali sebelum masuk halaqah syarah di Masjid Al-Azhar.</p>
       </div>
-      <div style="padding:14px 16px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-          <strong style="font-size:13px; color:#0F172A;">Ahmad Zaki (Persiapan Mu'adalah)</strong>
-          <span style="font-size:12px; color:#B45309;">${ICONS.star} 5.0</span>
+      <div class="js-panel">
+        <div class="js-row-between-tight">
+          <strong class="js-text-body">Ahmad Zaki (Persiapan Mu'adalah)</strong>
+          <span class="js-text-accent-sm">${ICONS.star} 5.0</span>
         </div>
-        <p style="margin:0; font-size:12.5px; color:#475569;">Fitur tanya jawab interaktifnya sangat cepat dan akurat dalam menjelaskan kaidah nahwu yang rumit.</p>
+        <p class="js-text-xs">Fitur tanya jawab interaktifnya sangat cepat dan akurat dalam menjelaskan kaidah nahwu yang rumit.</p>
       </div>
     </div>
   `;
@@ -690,10 +692,17 @@ function renderCourses(courses) {
 }
 
 async function loadCourses() {
-  if (!studentSelect.value) { courseList.replaceChildren(); courseView.hidden = true; return; }
+  if (!studentSelect.value) {
+    courseList.replaceChildren();
+    courseView.hidden = true;
+    if (syncStatus) syncStatus.textContent = 'Belum memilih santri atau materi';
+    return;
+  }
+  if (syncStatus) syncStatus.textContent = 'Memuat materi santri…';
   const response = await fetch(`/api/students/${encodeURIComponent(studentSelect.value)}/courses`, { headers: headers() });
   const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Maddah belum dapat dimuat.');
   renderCourses(result.items); setStatus(status, `${result.items.length} maddah tersedia.`);
+  if (syncStatus) syncStatus.textContent = result.items.length ? 'Materi tersedia untuk santri terpilih' : 'Belum ada materi untuk santri terpilih';
 }
 
 function renderStaffCourses(courses) {
