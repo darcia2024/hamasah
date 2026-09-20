@@ -8,7 +8,7 @@
      1. M3 Dynamic Color Tokens (Gold-Seeded Palette: #E7B10C)
      ------------------------------------------------------------------------ */
   /* Primary Role: Vibrant Hamasah Gold / Warm Amber */
-  --md-sys-color-primary: #D97706;
+  --md-sys-color-primary: #B45309;
   --md-sys-color-on-primary: #FFFFFF;
   --md-sys-color-primary-container: #FEF3C7;
   --md-sys-color-on-primary-container: #78350F;
@@ -45,7 +45,7 @@
   --md-sys-color-surface-container-highest: #CBD5E1;
 
   /* Outline Roles */
-  --md-sys-color-outline: #94A3B8;
+  --md-sys-color-outline: #64748B;
   --md-sys-color-outline-variant: #E2E8F0;
 
   /* Inverse Roles */
@@ -60,11 +60,11 @@
      2. M3 Elevation Tokens (Level 0 - 5)
      ------------------------------------------------------------------------ */
   --md-sys-elevation-0: none;
-  --md-sys-elevation-1: 0px 1px 3px 1px rgba(30, 27, 22, 0.10), 0px 1px 2px 0px rgba(30, 27, 22, 0.15);
-  --md-sys-elevation-2: 0px 2px 6px 2px rgba(30, 27, 22, 0.10), 0px 1px 2px 0px rgba(30, 27, 22, 0.15);
-  --md-sys-elevation-3: 0px 4px 8px 3px rgba(30, 27, 22, 0.10), 0px 1px 3px 0px rgba(30, 27, 22, 0.15);
-  --md-sys-elevation-4: 0px 6px 10px 4px rgba(30, 27, 22, 0.10), 0px 2px 3px 0px rgba(30, 27, 22, 0.15);
-  --md-sys-elevation-5: 0px 8px 12px 6px rgba(30, 27, 22, 0.10), 0px 4px 4px 0px rgba(30, 27, 22, 0.15);
+  --md-sys-elevation-1: 0 1px 3px rgba(30, 27, 22, 0.08);
+  --md-sys-elevation-2: 0 3px 8px rgba(30, 27, 22, 0.10);
+  --md-sys-elevation-3: 0 6px 14px rgba(30, 27, 22, 0.12);
+  --md-sys-elevation-4: 0 10px 20px rgba(30, 27, 22, 0.14);
+  --md-sys-elevation-5: 0 16px 28px rgba(30, 27, 22, 0.16);
 
   /* ------------------------------------------------------------------------
      3. M3 Shape Tokens
@@ -230,7 +230,8 @@ h1, h2, h3, h4 {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 42px;
+  min-height: 44px;
+  height: auto;
   padding: 0 24px;
   border-radius: var(--md-shape-corner-full);
   font-size: 14px;
@@ -256,7 +257,7 @@ h1, h2, h3, h4 {
 }
 
 .button--primary:hover {
-  background-color: #6A4E00;
+  background-color: #92400E;
   box-shadow: var(--md-sys-elevation-1);
   transform: translateY(-1px);
 }
@@ -311,6 +312,9 @@ h1, h2, h3, h4 {
   box-shadow: var(--md-sys-elevation-1);
   transition: background var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing-standard);
 }
+
+/* Anchors stop below the sticky header instead of behind it. */
+section[id], main[id], [tabindex="-1"] { scroll-margin-top: 88px; }
 
 .nav-wrap {
   display: flex;
@@ -392,7 +396,7 @@ h1, h2, h3, h4 {
 }
 
 .nav-cta:hover {
-  background-color: #6A4E00 !important;
+  background-color: #92400E !important;
   box-shadow: var(--md-sys-elevation-2) !important;
   transform: translateY(-1px);
 }
@@ -400,6 +404,8 @@ h1, h2, h3, h4 {
 .menu-toggle {
   display: none;
 }
+
+.menu-toggle:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 3px; }
 
 /* ==========================================================================
    Hero Section
@@ -607,6 +613,16 @@ h1, h2, h3, h4 {
   box-shadow: var(--md-sys-elevation-3);
   border: 1px solid rgba(231, 177, 12, 0.35);
   z-index: 2;
+  max-width: min(260px, calc(100% - 16px));
+}
+
+.hero-floating-badge > div {
+  min-width: 0;
+}
+
+.hero-floating-badge small {
+  display: block;
+  line-height: 1.35;
 }
 
 .hero-floating-badge strong {
@@ -1693,6 +1709,10 @@ h1, h2, h3, h4 {
   box-shadow: var(--md-sys-elevation-2);
 }
 
+.form-section-heading { display: grid; gap: 4px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--md-sys-color-outline-variant); }
+.form-section-heading h4 { margin: 0; font-size: 1rem; color: var(--md-sys-color-on-surface); }
+.form-section-heading p { margin: 0; color: var(--md-sys-color-on-surface-variant); font-size: .84rem; line-height: 1.5; }
+
 .form-heading {
   margin-bottom: 24px;
   padding-bottom: 16px;
@@ -1733,7 +1753,7 @@ h1, h2, h3, h4 {
 }
 
 /* M3 Outlined Text Field */
-.field-group input, .field-group select {
+.field-group input, .field-group select, .field-group textarea {
   width: 100%;
   height: 48px;
   padding: 0 16px;
@@ -1749,14 +1769,29 @@ h1, h2, h3, h4 {
   outline: none;
 }
 
-.field-group input:hover, .field-group select:hover {
+/* Textarea memakai sistem field yang sama, hanya tingginya mengikuti isi.
+   Sebelumnya gaya ini ditulis sebagai atribut style inline dan diblokir CSP,
+   sehingga textarea tampil sebagai kontrol native. */
+.field-group textarea {
+  height: auto;
+  min-height: 112px;
+  padding: 12px 16px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.field-group input:hover, .field-group select:hover, .field-group textarea:hover {
   border-color: var(--md-sys-color-on-surface);
 }
 
-.field-group input:focus, .field-group select:focus {
+.field-group input:focus, .field-group select:focus, .field-group textarea:focus {
   border: 2px solid var(--md-sys-color-primary);
   background: var(--md-sys-color-surface-container-lowest);
   padding: 0 15px; /* keep total width steady on 2px border */
+}
+
+.field-group textarea:focus {
+  padding: 11px 15px;
 }
 
 .select-wrapper {
@@ -2235,6 +2270,8 @@ h1, h2, h3, h4 {
     display: flex;
   }
 
+  body.menu-open { overflow: hidden; }
+
   .entry-grid, .course-grid {
     grid-template-columns: 1fr;
   }
@@ -2301,6 +2338,92 @@ h1, h2, h3, h4 {
     scroll-behavior: auto !important;
   }
 }
+
+/* ==========================================================================
+   Tahap 1 UI consistency pass
+   ========================================================================== */
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-weight: 400;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 600 !important;
+}
+
+.button,
+.menu-toggle,
+.site-nav a,
+.faq-question {
+  min-height: 44px;
+}
+
+.field-group {
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.field-group label,
+.faq-form label {
+  line-height: 1.4;
+}
+
+.field-group input,
+.field-group select,
+.faq-input-row input {
+  min-height: 48px;
+}
+
+.hero-arch {
+  box-shadow: var(--md-sys-elevation-3);
+}
+
+.hero-floating-badge {
+  right: -12px;
+}
+
+.biaya-programs-section .section-heading {
+  max-width: 840px;
+}
+
+.biaya-programs-section .section-heading h2 {
+  text-wrap: balance;
+}
+
+.lookup-actions .button {
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid var(--md-sys-color-primary) !important;
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .hero-floating-badge {
+    right: 8px;
+    max-width: calc(100% - 16px);
+  }
+
+  .lookup-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: stretch;
+  }
+
+  .lookup-actions .button {
+    padding-inline: 14px;
+  }
+}
 /* ==========================================================================
    ADDITIONAL PAGES: CEK STATUS, ARTICLES, ARTICLE READER, BIAYA & KONTAK
    Material Design 3 (M3) Component Architecture
@@ -2343,6 +2466,18 @@ h1, h2, h3, h4 {
   align-items: center;
   margin-top: 16px;
 }
+
+.lookup-recovery-cta {
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--md-sys-color-primary);
+  font-weight: 700;
+}
+
+.recovery-fields label { gap: 10px; font-size: .9rem; font-weight: 600; color: var(--md-sys-color-on-surface); }
+.recovery-fields input { min-height: 48px; border: 1px solid var(--md-sys-color-outline); border-radius: var(--md-shape-corner-small); padding: 0 14px; font: inherit; color: var(--md-sys-color-on-surface); background: var(--md-sys-color-surface-container-lowest); }
+.recovery-fields input:focus-visible { outline: 3px solid color-mix(in srgb, var(--md-sys-color-primary) 24%, transparent); outline-offset: 1px; }
+.lookup-card input, .lookup-card select { scroll-margin-block: 120px; }
 
 .status-result-area {
   max-width: 960px;
@@ -2425,6 +2560,9 @@ h1, h2, h3, h4 {
 
 .m3-progress-fill {
   height: 100%;
+  /* Lebar awal 0; nilai sebenarnya diisi cek-status.js lewat element.style,
+     yang tidak terkena CSP karena bukan atribut style di HTML. */
+  width: 0;
   background: linear-gradient(90deg, var(--md-sys-color-primary) 0%, var(--gold) 100%);
   border-radius: var(--md-shape-corner-full);
   transition: width 0.6s var(--md-sys-motion-easing-standard);
@@ -2792,6 +2930,115 @@ h1, h2, h3, h4 {
 
 .article-card-title a:hover {
   color: var(--md-sys-color-primary);
+}
+
+.article-card-cover,
+.article-cover {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: var(--md-shape-corner-medium);
+  margin: 8px 0 16px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.article-card-cover--empty,
+.article-cover--empty {
+  display: grid;
+  place-items: center;
+  min-height: 96px;
+  padding: 18px;
+  color: var(--md-sys-color-on-surface-variant);
+  background: var(--md-sys-color-surface-container-low);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Outline icon and status treatment */
+.hero-badge,
+.hero-floating-badge,
+.hero-floating-chip,
+.image-badge,
+.pricing-card-badge,
+.trust-pill-item,
+.office-badge,
+.level-pill,
+.m3-category-chip,
+.m3-status-chip {
+  background: transparent !important;
+  border: 1px solid currentColor !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+.badge-dot,
+.hero-badge-sparkle,
+.chip-pin,
+.badge-icon {
+  background: transparent !important;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+}
+
+.nav-cta,
+.button {
+  text-decoration-thickness: 1px;
+}
+
+.btn-arrow,
+.entry-arrow,
+.journal-arrow,
+.div-arrow {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  overflow: hidden;
+  font-size: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-arrow::before,
+.entry-arrow::before,
+.journal-arrow::before,
+.div-arrow::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-top: 1.5px solid currentColor;
+  border-right: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.btn-arrow--back::before {
+  transform: rotate(-135deg);
+}
+
+.level-arrow {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  font-size: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.level-arrow::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-top: 1.5px solid currentColor;
+  border-right: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.crm-outline-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  vertical-align: middle;
 }
 
 .article-card-excerpt {
@@ -3814,3 +4061,41 @@ h1, h2, h3, h4 {
 .recovery-fields label { flex: 1; display: grid; gap: .35rem; font-size: .85rem; font-weight: 600; }
 .recovery-fields input { width: 100%; }
 @media (max-width: 640px) { .recovery-fields { flex-direction: column; align-items: stretch; } }
+
+/* ==========================================================================
+   Kelas pengganti atribut style inline halaman publik (Task R1.4)
+   ========================================================================== */
+
+/* Baris aksi pada kartu pelacak pendaftaran di beranda. */
+.tracker-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+/* Halaman pemberitahuan sederhana, dipakai 404. */
+.page-notice {
+  min-height: 70vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 48px 20px;
+}
+
+/* Jalur kontak alternatif pada kartu formulir konsultasi (Task R1.6). */
+.inquiry-alt-channel {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.inquiry-alt-channel__label {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.inquiry-alt-channel__cta {
+  width: 100%;
+}

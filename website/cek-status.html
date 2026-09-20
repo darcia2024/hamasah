@@ -25,13 +25,19 @@
           </div>
         </a>
 
-        <nav class="site-nav" aria-label="Navigasi utama">
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Buka menu navigasi">
+          <span class="menu-toggle__label">Menu</span>
+          <span class="menu-toggle__lines" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+
+        <nav class="site-nav" id="site-nav" aria-label="Navigasi utama">
           <a href="index.html#program">Program</a>
           <a href="biaya.html">Biaya & Fasilitas</a>
           <a href="articles.html">Pena Hamasah</a>
+          <a href="cek-status.html" class="is-active">Cek Status</a>
           <a href="kontak.html">Kontak</a>
           <a href="portal.html" class="nav-portal">Portal Santri</a>
-          <a class="nav-cta" href="index.html#pendaftaran">Daftar Baru ↗</a>
+          <a class="nav-cta" href="index.html#pendaftaran">Daftar Baru</a>
         </nav>
       </div>
     </header>
@@ -42,7 +48,7 @@
           <div class="section-intro section-heading--center">
             <p class="eyebrow">Layanan Pelacakan Mandiri</p>
             <h1>Cek Status & Perkembangan Pendaftaran</h1>
-            <p>Masukkan Nomor Registrasi resmi dan Token Akses pendaftaran Anda untuk memeriksa tahapan verifikasi berkas, persiapan bahasa Arab, status visa, dan mengunggah berkas susulan.</p>
+            <p>Masukkan nomor registrasi dan Kode Akses pendaftaran untuk memeriksa tahapan verifikasi berkas, persiapan bahasa Arab, status visa, dan mengunggah berkas susulan.</p>
           </div>
 
           <!-- Lookup Card -->
@@ -54,18 +60,19 @@
                   <input id="reg-id" name="regId" type="text" placeholder="Contoh: HI-REG-2026-00001" required autocomplete="off" spellcheck="false" />
                 </div>
                 <div class="field-group">
-                  <label for="access-token">Kode Akses Pendaftaran <span aria-hidden="true">*</span></label>
-                  <input id="access-token" name="token" type="password" placeholder="Kode akses yang diberikan saat mendaftar" required autocomplete="one-time-code" />
+                  <label for="access-token">Kode Akses <span aria-hidden="true">*</span></label>
+                  <input id="access-token" name="token" type="password" placeholder="Kode Akses dari email pendaftaran" required autocomplete="one-time-code" aria-describedby="access-token-error" />
+                  <p class="field-error" id="access-token-error"></p>
                 </div>
               </div>
               <div class="lookup-actions">
                 <button id="btn-submit-lookup" class="button button--primary" type="submit">
-                  <span>Masuk &amp; Lacak Pendaftaran</span>
-                  <span class="btn-arrow" aria-hidden="true">→</span>
+                  <span>Lacak Pendaftaran</span>
+                  <span class="btn-arrow" aria-hidden="true"></span>
                 </button>
-                <button id="btn-demo-fill" class="button button--secondary" type="button" style="display:none;">Contoh Data</button>
               </div>
               <p id="lookup-status-msg" class="form-status" role="status" aria-live="polite"></p>
+              <a id="lookup-recovery-cta" class="lookup-recovery-cta" href="#recovery-form" hidden>Minta Kode Akses baru</a>
             </form>
             <form id="recovery-form" class="recovery-card">
               <div>
@@ -74,7 +81,7 @@
                 <p>Masukkan nomor pendaftaran dan email yang dipakai saat mendaftar. Jika cocok, kode baru dikirim ke email tersebut.</p>
               </div>
               <div class="recovery-fields">
-                <label for="recovery-email">Email pendaftaran<input id="recovery-email" name="email" type="email" autocomplete="email" required /></label>
+                <label for="recovery-email">Email pendaftaran<input id="recovery-email" name="email" type="email" autocomplete="email" required aria-describedby="recovery-email-error" /><span class="field-error" id="recovery-email-error"></span></label>
                 <button class="button button--secondary" type="submit">Kirim kode baru</button>
               </div>
               <p id="recovery-status" class="form-status" role="status" aria-live="polite"></p>
@@ -103,7 +110,7 @@
                   <strong id="res-progress-pct">0%</strong>
                 </div>
                 <div class="m3-progress-bar">
-                  <div id="res-progress-fill" class="m3-progress-fill" style="width: 0%;"></div>
+                  <div id="res-progress-fill" class="m3-progress-fill"></div>
                 </div>
               </div>
 
@@ -225,9 +232,9 @@
                   <div class="callout-icon" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg></div>
                   <div>
                     <strong>Perlu Bantuan atau Konfirmasi Cepat?</strong>
-                    <p>Tim administrasi pemberkasan Hamasah siap membantu Anda via WhatsApp setiap hari kerja 08.00 - 17.00 WIB.</p>
-                    <a class="button button--primary" href="https://wa.me/6281200000000?text=Halo%20Admin%20Hamasah,%20saya%20ingin%20konsultasi%20pendaftaran" target="_blank" rel="noopener">
-                      Hubungi Konsultan Berkas ↗
+                    <p>Tim administrasi pemberkasan akan membantu melalui kanal resmi yang tersedia setelah pesan Anda ditinjau.</p>
+                    <a class="button button--primary" href="kontak.html#contact-inquiry-form">
+                      Gunakan formulir konsultasi ↓
                     </a>
                   </div>
                 </div>
@@ -291,6 +298,7 @@
       </div>
     </footer>
 
+    <script src="public-header.js?v=1"></script>
     <script src="cek-status.js?v=2"></script>
   </body>
 </html>
