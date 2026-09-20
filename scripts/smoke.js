@@ -273,7 +273,7 @@ async function main() {
         applicantName: `Calon Smoke Test ${tag}`, phone: '081234567890', guardianName: 'Wali Calon',
         guardianPhone: '081298765432', email: registrationEmail, guardianEmail: `wali.smoke.${tag}@hamasah.test`,
         birthDate: '2006-04-12', gender: 'putra', schoolOrigin: 'SMA Smoke Test',
-        program: 'kuliah-al-azhar', educationLevel: 'SMA', city: 'Bandung', consent: true
+        program: 'kuliah-al-azhar', educationLevel: 'SMA', city: 'Bandung', consent: true, dataProcessingConsent: true
       }
     });
     pastikan(daftar.status === 201, `Kirim pendaftaran gagal: ${JSON.stringify(daftar.body)}`);

@@ -130,6 +130,9 @@ const fields = {
   guardianPhone: form.querySelector('#guardian-phone'),
   guardianEmail: form.querySelector('#guardian-email'),
   guardianConsent: form.querySelector('#guardian-consent'),
+  // Persetujuan pemrosesan data pribadi. Terpisah dari `consent`, yang hanya
+  // persetujuan untuk dihubungi kembali, dan wajib untuk semua jalur program.
+  dataProcessingConsent: form.querySelector('#data-processing-consent'),
   consent: form.querySelector('#consent')
 };
 
@@ -163,6 +166,7 @@ function readRegistrationForm() {
     guardianPhone: fields.guardianPhone.value,
     guardianEmail: fields.guardianEmail.value,
     guardianConsent: fields.guardianConsent.checked,
+    dataProcessingConsent: fields.dataProcessingConsent.checked,
     consent: fields.consent.checked
   };
 }
@@ -196,6 +200,7 @@ function validateForm() {
     [fields.guardianPhone, result.errors.guardianPhone],
     [fields.guardianEmail, result.errors.guardianEmail],
     [fields.guardianConsent, result.errors.guardianConsent],
+    [fields.dataProcessingConsent, result.errors.dataProcessingConsent],
     [fields.consent, result.errors.consent]
   ];
   errorByField.forEach(([field, message]) => setFieldError(field, message || ''));

@@ -271,7 +271,7 @@ async function run() {
         program: 'mahad-al-azhar',
         educationLevel: 'MA',
         city: 'Bandung',
-        consent: true
+        consent: true, dataProcessingConsent: true
       })
     });
     assert.equal(created.status, 201);
@@ -453,7 +453,7 @@ async function run() {
       body: JSON.stringify({
         applicantName: 'Naufal Saudara', phone: '081234567891', guardianName: 'Wali Naufal', guardianPhone: '081398765432',
         email: 'naufal.saudara@hamasah.test', guardianEmail: 'wali-naufal@hamasah.test', birthDate: '2005-04-12',
-        gender: 'putra', schoolOrigin: 'SMA Uji', guardianConsent: true, program: 'mahad-al-azhar', educationLevel: 'MA', city: 'Bandung', consent: true
+        gender: 'putra', schoolOrigin: 'SMA Uji', guardianConsent: true, program: 'mahad-al-azhar', educationLevel: 'MA', city: 'Bandung', consent: true, dataProcessingConsent: true
       })
     });
     assert.equal(saudara.status, 201, JSON.stringify(saudara.body));
@@ -481,7 +481,7 @@ async function run() {
       body: JSON.stringify({
         applicantName: 'Pemakai Email Lama', phone: '081234567892', guardianName: 'Wali Baru', guardianPhone: '081398765433',
         email: 'naufal@hamasah.test', guardianEmail: 'wali.baru@hamasah.test', birthDate: '2005-04-12',
-        gender: 'putra', schoolOrigin: 'SMA Uji', guardianConsent: true, program: 'mahad-al-azhar', educationLevel: 'MA', city: 'Bandung', consent: true
+        gender: 'putra', schoolOrigin: 'SMA Uji', guardianConsent: true, program: 'mahad-al-azhar', educationLevel: 'MA', city: 'Bandung', consent: true, dataProcessingConsent: true
       })
     });
     assert.equal(conflict.status, 201);

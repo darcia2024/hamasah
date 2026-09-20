@@ -17,7 +17,7 @@ function applicant(name) {
     program: domain.PROGRAMS.MAHAD,
     educationLevel: 'MA',
     city: 'Bandung',
-    consent: true
+    consent: true, dataProcessingConsent: true
   };
 }
 
@@ -73,6 +73,30 @@ function namesById(database) {
     .sort();
 }
 
+// Task R2.3. Versi kebijakan privasi distempel server, dan tidak berubah karena
+// penyuntingan profil. toPublicRegistration sengaja tidak memuat applicant, jadi yang
+// diperiksa adalah baris yang benar-benar tersimpan di store.
+async function testVersiKebijakanPrivasi() {
+  const store = createLatentStore();
+  const service = serviceModule.createRegistrationService({ store, now: () => '2026-09-15T00:00:00.000Z' });
+
+  // Nilai yang dititipkan browser diabaikan. Yang mengikat adalah dokumen yang
+  // berlaku di server saat persetujuan diberikan.
+  const dibuat = await service.create({ ...applicant('Versi Titipan'), privacyPolicyVersion: 'v99-palsu' });
+  assert.equal(dibuat.ok, true);
+  const registrationId = dibuat.value.registrationId;
+  assert.equal(store.database.records.get(registrationId).applicant.privacyPolicyVersion, domain.PRIVACY_POLICY_VERSION);
+
+  // Menyunting profil tidak boleh diam-diam mencatat persetujuan terhadap kebijakan
+  // yang belum pernah dibaca pendaftar, termasuk ketika versi server sudah berganti.
+  store.database.records.get(registrationId).applicant.privacyPolicyVersion = 'versi-lama-saat-mendaftar';
+  const disunting = await service.updateApplicant(registrationId, { city: 'Surabaya' }, { role: domain.ROLES.APPLICANT });
+  assert.equal(disunting.ok, true, JSON.stringify(disunting.errors || disunting.error));
+  const setelahSunting = store.database.records.get(registrationId).applicant;
+  assert.equal(setelahSunting.city, 'Surabaya');
+  assert.equal(setelahSunting.privacyPolicyVersion, 'versi-lama-saat-mendaftar');
+}
+
 async function testNormalFlow() {
   let clock = 0;
   const deletedFiles = [];
@@ -87,6 +111,7 @@ async function testNormalFlow() {
     }
   });
   const submitted = await service.create(applicant('Naufal Rizki'));
+
   assert.equal(submitted.ok, true);
   assert.equal(submitted.value.registrationId, 'HI-REG-2026-00001');
   // Regresi: program disimpan bersarang di applicant.program, dan toPublicRegistration
@@ -196,6 +221,7 @@ async function testInvalidSubmissionDoesNotConsumeNumber() {
 
 async function run() {
   await testNormalFlow();
+  await testVersiKebijakanPrivasi();
   await testConcurrentSubmissions();
   await testRestartAfterFailedInsert();
   await testDuplicateNumberIsRejected();

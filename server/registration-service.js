@@ -170,8 +170,13 @@
     async function create(payload, options) {
       const createOptions = options || {};
 
+      // Versi kebijakan privasi distempel di sini, bukan diambil dari kiriman browser.
+      // Yang mengikat adalah dokumen yang berlaku di server pada saat persetujuan
+      // diberikan; nilai apa pun yang dititipkan di body diabaikan.
+      const payloadTerstempel = { ...(payload || {}), privacyPolicyVersion: domain.PRIVACY_POLICY_VERSION };
+
       // Data diperiksa lebih dulu supaya kiriman yang tidak valid tidak menghabiskan nomor registrasi.
-      const validation = domain.validateApplicant(payload, { requireProfile: true });
+      const validation = domain.validateApplicant(payloadTerstempel, { requireProfile: true });
       if (!validation.valid) {
         return { ok: false, errors: validation.errors };
       }
@@ -180,7 +185,7 @@
       const createdAt = getNow();
       const year = domain.yearInTimeZone(createdAt, timeZone);
       const sequence = await store.nextSequence('registration', year);
-      const created = domain.createApplication(payload, { sequence, createdAt, year });
+      const created = domain.createApplication(payloadTerstempel, { sequence, createdAt, year });
       if (!created.ok) {
         return created;
       }
@@ -326,7 +331,22 @@
       for (const field of editable) {
         if (Object.prototype.hasOwnProperty.call(source, field)) nextApplicant[field] = source[field];
       }
-      const validation = domain.validateApplicant({ ...nextApplicant, program: record.applicant.program, educationLevel: record.applicant.educationLevel, consent: true, guardianConsent: record.applicant.guardianConsent }, { requireProfile: true });
+      // privacyPolicyVersion diteruskan apa adanya dari baris yang tersimpan. Kalau
+      // dibiarkan kosong, normalizeApplicant akan mengisinya dengan versi yang berlaku
+      // hari ini, sehingga menyunting nomor telepon diam-diam mencatat persetujuan
+      // terhadap kebijakan yang belum pernah dibaca pendaftar.
+      //
+      // consent dan dataProcessingConsent disetel true karena keduanya sudah diberikan
+      // saat pendaftaran dibuat; ini penyuntingan profil, bukan persetujuan baru.
+      const validation = domain.validateApplicant({
+        ...nextApplicant,
+        program: record.applicant.program,
+        educationLevel: record.applicant.educationLevel,
+        privacyPolicyVersion: record.applicant.privacyPolicyVersion,
+        consent: true,
+        dataProcessingConsent: true,
+        guardianConsent: record.applicant.guardianConsent
+      }, { requireProfile: true });
       if (!validation.valid) return { ok: false, errors: validation.errors };
       const updatedAt = getNow();
       const saved = await store.update({ ...record, applicant: validation.value, updatedAt });

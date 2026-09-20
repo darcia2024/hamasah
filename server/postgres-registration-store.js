@@ -63,7 +63,7 @@ function createPostgresRegistrationStore({ database } = {}) {
         program: registration.program,
         educationLevel: registration.education_level,
         city: registration.city,
-        consent: true
+        consent: true, dataProcessingConsent: true
       },
       accessTokenHash: registration.access_token_hash,
       accessCodeHash: registration.access_code_hash,

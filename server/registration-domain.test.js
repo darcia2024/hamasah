@@ -15,7 +15,7 @@ const validApplicant = {
   program: registration.PROGRAMS.MAHAD,
   educationLevel: 'SMP',
   city: 'Bandung',
-  consent: true
+  consent: true, dataProcessingConsent: true
 };
 
 assert.equal(registration.normalizePhone('0812 3456 7890'), '+6281234567890');
@@ -40,6 +40,26 @@ const invalid = registration.validateApplicant({ ...validApplicant, guardianPhon
 assert.equal(invalid.valid, false);
 assert.ok(invalid.errors.guardianPhone);
 assert.ok(invalid.errors.consent);
+
+// Task R2.3. Persetujuan pemrosesan data pribadi terpisah dari persetujuan dihubungi,
+// dan wajib. Mencentang salah satu saja tidak cukup.
+const tanpaPersetujuanData = registration.validateApplicant({ ...validApplicant, dataProcessingConsent: false });
+assert.equal(tanpaPersetujuanData.valid, false);
+assert.ok(tanpaPersetujuanData.errors.dataProcessingConsent);
+assert.equal(tanpaPersetujuanData.errors.consent, undefined, 'Persetujuan dihubungi tidak ikut digugurkan.');
+
+const tanpaPersetujuanDihubungi = registration.validateApplicant({ ...validApplicant, consent: false });
+assert.equal(tanpaPersetujuanDihubungi.valid, false);
+assert.ok(tanpaPersetujuanDihubungi.errors.consent);
+assert.equal(tanpaPersetujuanDihubungi.errors.dataProcessingConsent, undefined);
+
+// Migrasi 013 memberi kolomnya DEFAULT 'v1', dokumen yang tidak pernah ada.
+// Nilai bawaan sekarang menunjuk dokumen yang benar-benar dapat ditampilkan.
+assert.notEqual(registration.PRIVACY_POLICY_VERSION, 'v1');
+assert.equal(
+  registration.validateApplicant(validApplicant).value.privacyPolicyVersion,
+  registration.PRIVACY_POLICY_VERSION
+);
 
 const created = registration.createApplication(validApplicant, {
   sequence: 18,

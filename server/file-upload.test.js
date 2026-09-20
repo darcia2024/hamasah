@@ -212,7 +212,7 @@ async function run() {
     const daftar = await request(baseUrl, 'POST', '/api/registrations', {
       body: {
         applicantName: 'Calon Berkas', phone: '081234567890', guardianName: 'Wali Berkas',
-        guardianPhone: '081298765432', email: 'berkas@example.test', guardianEmail: 'wali.berkas@example.test', birthDate: '2004-01-01', gender: 'putra', schoolOrigin: 'SMA Uji', guardianConsent: true, program: 'kuliah-al-azhar', educationLevel: 'SMA', city: 'Bandung', consent: true
+        guardianPhone: '081298765432', email: 'berkas@example.test', guardianEmail: 'wali.berkas@example.test', birthDate: '2004-01-01', gender: 'putra', schoolOrigin: 'SMA Uji', guardianConsent: true, program: 'kuliah-al-azhar', educationLevel: 'SMA', city: 'Bandung', consent: true, dataProcessingConsent: true
       }
     });
     const registrationId = daftar.body.registration.registrationId;

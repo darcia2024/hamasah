@@ -128,7 +128,7 @@ async function run() {
     const pendaftaran = await request(baseUrl, 'POST', '/api/registrations', {
       body: {
         applicantName: 'Calon Matriks', phone: '081234567890', guardianName: 'Wali Matriks',
-        guardianPhone: '081298765432', email: 'matriks@example.test', guardianEmail: 'wali.matriks@example.test', birthDate: '2004-01-01', gender: 'putra', schoolOrigin: 'SMA Uji', guardianConsent: true, program: 'kuliah-al-azhar', educationLevel: 'SMA', city: 'Bandung', consent: true
+        guardianPhone: '081298765432', email: 'matriks@example.test', guardianEmail: 'wali.matriks@example.test', birthDate: '2004-01-01', gender: 'putra', schoolOrigin: 'SMA Uji', guardianConsent: true, program: 'kuliah-al-azhar', educationLevel: 'SMA', city: 'Bandung', consent: true, dataProcessingConsent: true
       }
     });
     assert.equal(pendaftaran.status, 201);

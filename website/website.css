@@ -4099,3 +4099,69 @@ h4 {
 .inquiry-alt-channel__cta {
   width: 100%;
 }
+
+/* Halaman kebijakan privasi (Task R2.3). Selama isi pasalnya masih menunggu materi
+   dari pihak Hamasah, status draf itu harus terlihat tanpa perlu dibaca sampai habis. */
+.policy-draft-notice {
+  margin-bottom: 32px;
+  padding: 20px 24px;
+  border: 1px solid var(--md-sys-color-error);
+  border-radius: var(--md-shape-corner-large);
+  background: var(--md-sys-color-error-container);
+}
+
+.policy-draft-notice strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 15px;
+  color: var(--md-sys-color-error);
+}
+
+.policy-draft-notice p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.7;
+}
+
+.policy-version {
+  margin-bottom: 40px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  font-size: 14px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.policy-section {
+  margin-bottom: 36px;
+}
+
+.policy-section h2 {
+  margin: 0 0 12px;
+  font-size: 19px;
+  color: var(--md-sys-color-on-surface);
+}
+
+/* Teks tempat isi sebenarnya akan diletakkan. Dibedakan dari paragraf biasa supaya
+   tidak ada yang mengira ini sudah pasal yang berlaku. */
+.policy-placeholder {
+  margin: 0;
+  padding: 14px 18px;
+  border-left: 3px dashed var(--md-sys-color-outline);
+  background: var(--md-sys-color-surface-container-low);
+  font-size: 14.5px;
+  font-style: italic;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Tautan legal di dasar footer. */
+.footer-legal-links {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.footer-legal-links a {
+  font-size: inherit;
+  color: inherit;
+  text-decoration: underline;
+}

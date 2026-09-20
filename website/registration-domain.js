@@ -29,6 +29,19 @@
   });
   const GENDERS = Object.freeze(['putra', 'putri']);
 
+  // Versi kebijakan privasi yang berlaku. Disimpan bersama setiap pendaftaran supaya
+  // dapat ditunjukkan dokumen mana yang disetujui pendaftar pada saat itu.
+  //
+  // Migrasi 013 memberi kolom ini DEFAULT 'v1', tetapi dokumen "v1" tidak pernah ada.
+  // Artinya seluruh pendaftaran yang sudah masuk menyimpan persetujuan terhadap
+  // dokumen yang tidak dapat ditunjukkan.
+  //
+  // BELUM DISAHKAN. Isi website/kebijakan-privasi.html masih draf dan menunggu materi
+  // dari pihak Hamasah. Ganti nilai di bawah menjadi versi dokumen yang benar-benar
+  // berlaku (mis. '2026-10-01') pada commit yang sama dengan pengesahan teksnya, dan
+  // jangan pernah mengubahnya tanpa mengubah dokumennya.
+  const PRIVACY_POLICY_VERSION = 'draft-2026-09-21';
+
   // Kontrak profil yang dipakai saat pendaftaran baru dan saat calon menyimpan perubahan.
   // Data lama tetap bisa dibaca, tetapi tidak boleh membuat record baru dengan profil setengah.
   const PROFILE_REQUIREMENTS = Object.freeze({
@@ -136,11 +149,17 @@
       schoolOrigin: cleanString(raw.schoolOrigin),
       programDetails: raw.programDetails && typeof raw.programDetails === 'object' && !Array.isArray(raw.programDetails) ? raw.programDetails : {},
       referralSource: cleanString(raw.referralSource),
-      privacyPolicyVersion: cleanString(raw.privacyPolicyVersion) || 'v1',
+      // Tidak pernah dibiarkan jatuh ke 'v1'. Yang memanggil dari sisi server
+      // menstempel versi yang berlaku saat persetujuan diberikan; nilai bawaan ini
+      // hanya menjaga agar tidak ada baris yang menunjuk dokumen fiktif.
+      privacyPolicyVersion: cleanString(raw.privacyPolicyVersion) || PRIVACY_POLICY_VERSION,
       program: cleanString(raw.program),
       educationLevel: cleanString(raw.educationLevel),
       city: cleanString(raw.city),
-      consent: raw.consent === true
+      consent: raw.consent === true,
+      // Persetujuan pemrosesan data pribadi. Berbeda dari `consent`, yang hanya
+      // persetujuan untuk dihubungi kembali.
+      dataProcessingConsent: raw.dataProcessingConsent === true
     };
   }
 
@@ -170,6 +189,13 @@
     }
     if (!applicant.consent) {
       errors.consent = 'Persetujuan diperlukan sebelum data pendaftaran dikirim.';
+    }
+    // Yang dikumpulkan formulir ini jauh lebih luas daripada kontak: tanggal lahir,
+    // jenis kelamin, asal sekolah, serta unggahan paspor, ijazah, dan surat kesehatan,
+    // sebagian dari calon di bawah umur. Bersedia dihubungi bukan dasar yang sah untuk
+    // itu, jadi persetujuannya dipisah dan wajib.
+    if (!applicant.dataProcessingConsent) {
+      errors.dataProcessingConsent = 'Persetujuan pemrosesan data pribadi diperlukan sebelum data dikirim.';
     }
     const requirement = PROFILE_REQUIREMENTS[applicant.program];
     const memakaiProfil = requireProfile || Boolean(applicant.email || applicant.birthDate || applicant.gender || applicant.guardianEmail);
@@ -319,6 +345,7 @@
     ROLES,
     STATUSES,
     STATUS_LABELS,
+    PRIVACY_POLICY_VERSION,
     PROGRESS,
     PROFILE_REQUIREMENTS,
     yearInTimeZone,

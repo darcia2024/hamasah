@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="website.css?v=23" />
+    <link rel="stylesheet" href="website.css?v=24" />
   </head>
   <body>
     <a class="skip-link" href="#konten">Lewati ke konten utama</a>
@@ -710,9 +710,17 @@
               <div class="field-consent-wrap">
                 <label class="consent" for="guardian-consent">
                   <input id="guardian-consent" name="guardianConsent" type="checkbox" aria-describedby="guardian-consent-error" />
-                  <span>Saya mendapat persetujuan wali untuk mengikuti proses pendaftaran ini.</span>
+                  <span>Saya wali calon santri, dan saya menyetujui pengumpulan serta pemrosesan data pribadi calon santri untuk keperluan pendaftaran dan pendampingan studi ini.</span>
                 </label>
                 <p class="field-error" id="guardian-consent-error"></p>
+              </div>
+
+              <div class="field-consent-wrap">
+                <label class="consent" for="data-processing-consent">
+                  <input id="data-processing-consent" name="dataProcessingConsent" type="checkbox" aria-describedby="data-processing-consent-error" />
+                  <span>Saya telah membaca <a href="kebijakan-privasi.html" target="_blank" rel="noopener">Kebijakan Privasi</a> dan menyetujui pengumpulan serta pemrosesan data pribadi saya, termasuk tanggal lahir, asal sekolah, dan unggahan paspor, ijazah, serta surat kesehatan, untuk keperluan pendaftaran dan pendampingan studi. <b aria-hidden="true">*</b></span>
+                </label>
+                <p class="field-error" id="data-processing-consent-error"></p>
               </div>
 
               <div class="field-consent-wrap">
@@ -834,12 +842,15 @@
 
       <div class="shell footer-bottom">
         <p>&copy; 2026 Hamasah International. Seluruh hak cipta dilindungi. Ketentuan penerimaan dan regulasi akhir selalu mengacu pada otoritas resmi Al-Azhar Kairo.</p>
+        <div class="footer-legal-links">
+          <a href="kebijakan-privasi.html">Kebijakan Privasi</a>
+        </div>
         <p class="footer-credit">Rancangan arsitektur digital & ekosistem terpadu.</p>
       </div>
     </footer>
 
     <script src="public-header.js?v=1"></script>
-    <script src="registration-domain.js?v=2"></script>
-    <script src="website.js?v=6"></script>
+    <script src="registration-domain.js?v=3"></script>
+    <script src="website.js?v=7"></script>
   </body>
 </html>

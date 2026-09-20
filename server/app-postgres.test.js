@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 const { createHamasahApp } = require('./app.js');
 const { createTestDatabase } = require('./test-support/database.js');
+const registrationDomain = require('../website/registration-domain.js');
 const { createRelaxedRateLimiter } = require('./test-support/rate-limit.js');
 
 async function request(baseUrl, pathname, options) {
@@ -122,12 +123,43 @@ async function run() {
         program: 'kuliah-al-azhar',
         educationLevel: 'SMA',
         city: 'Bandung',
-        consent: true
+        consent: true, dataProcessingConsent: true,
+        // Task R2.3. Dititipkan sengaja: server harus mengabaikannya.
+        privacyPolicyVersion: 'v99-palsu'
       })
     });
     assert.equal(registration.status, 201);
     const registrationId = registration.body.registration.registrationId;
     assert.match(registrationId, /^HI-REG-\d{4}-00001$/);
+
+    // Task R2.3. Versi kebijakan yang tersimpan adalah versi server saat persetujuan
+    // diberikan, bukan yang dikirim browser, dan bukan default 'v1' dari migrasi 013
+    // yang menunjuk dokumen tidak pernah ada.
+    const versiRows = await database.query(
+      'SELECT privacy_policy_version FROM registrations WHERE registration_id = $1',
+      [registrationId]
+    );
+    assert.equal(versiRows.rows[0].privacy_policy_version, registrationDomain.PRIVACY_POLICY_VERSION);
+    assert.notEqual(versiRows.rows[0].privacy_policy_version, 'v99-palsu');
+    assert.notEqual(versiRows.rows[0].privacy_policy_version, 'v1');
+
+    // Task R2.3. Tanpa persetujuan pemrosesan data pribadi, pendaftaran ditolak.
+    const tanpaPersetujuanData = await request(baseUrl, '/api/registrations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        applicantName: 'Calon Tanpa Persetujuan',
+        phone: '081234567891',
+        guardianName: 'Wali Uji',
+        guardianPhone: '081298765433',
+        email: 'tanpa.persetujuan@example.test', guardianEmail: 'wali.tanpa@example.test',
+        birthDate: '2004-01-01', gender: 'putra', schoolOrigin: 'SMA Uji', guardianConsent: true,
+        program: 'kuliah-al-azhar', educationLevel: 'SMA', city: 'Bandung',
+        consent: true, dataProcessingConsent: false
+      })
+    });
+    assert.equal(tanpaPersetujuanData.status, 422);
+    assert.ok(tanpaPersetujuanData.body.errors.dataProcessingConsent);
 
     const status = await request(baseUrl, `/api/registrations/${registrationId}`, {
       headers: { Authorization: `Bearer ${registration.body.accessToken}` }
@@ -149,7 +181,7 @@ async function run() {
         program: 'kuliah-al-azhar',
         educationLevel: 'SMA',
         city: 'Bandung',
-        consent: true
+        consent: true, dataProcessingConsent: true
       })
     })));
     assert.deepEqual([...new Set(bersamaan.map((entry) => entry.status))], [201]);
