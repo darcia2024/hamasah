@@ -247,6 +247,19 @@ function createPostgresOperationsStore({ database } = {}) {
       if (!fields.length) return this.getImportBatch(id);
       const { rows } = await database.query(`UPDATE operation_import_batches SET ${fields.join(', ')} WHERE id = $1 RETURNING id, entity, status, row_count, valid_count, errors, rows, actor_account_id, created_at, committed_at, rolled_back_at`, values);
       return rows[0] ? toImportBatch(rows[0]) : null;
+    },
+
+    async listImportBatches({ entity, status, limit, offset } = {}) {
+      const values = [];
+      const where = [];
+      if (entity) { values.push(entity); where.push(`entity = $${values.length}`); }
+      if (status) { values.push(status); where.push(`status = $${values.length}`); }
+      values.push(Math.min(Math.max(Number(limit) || 20, 1), 100)); const limitIndex = values.length;
+      values.push(Math.max(Number(offset) || 0, 0)); const offsetIndex = values.length;
+      const condition = where.length ? `WHERE ${where.join(' AND ')}` : '';
+      const { rows } = await database.query(`SELECT id, entity, status, row_count, valid_count, errors, rows, actor_account_id, created_at, committed_at, rolled_back_at FROM operation_import_batches ${condition} ORDER BY created_at DESC LIMIT $${limitIndex} OFFSET $${offsetIndex}`, values);
+      const count = await database.query(`SELECT count(*)::int AS total FROM operation_import_batches ${condition}`, values.slice(0, values.length - 2));
+      return { items: rows.map(toImportBatch), total: count.rows[0] ? count.rows[0].total : 0 };
     }
   };
 }

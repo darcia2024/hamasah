@@ -405,6 +405,7 @@
 .operation-import-chip { padding: 6px 10px; border-radius: 999px; background: #f3ead1; font-size: 12px; font-weight: 700; }
 .operation-import-errors { display: grid; gap: 6px; margin: 0 0 16px; padding-left: 18px; color: #b42318; font-size: 13px; }
 .operation-import-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.operation-import-filters { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
 
 /* --------------------------------------------------------------------------
    Article CMS Section

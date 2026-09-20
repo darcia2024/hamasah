@@ -75,6 +75,7 @@ function createMemoryOperationsStore() {
     async saveImportBatch(batch) { database.importBatches[batch.id] = clone(batch); return clone(batch); },
     async getImportBatch(id) { return database.importBatches[id] ? clone(database.importBatches[id]) : null; },
     async updateImportBatch(id, patch) { if (!database.importBatches[id]) return null; database.importBatches[id] = { ...database.importBatches[id], ...clone(patch) }; return clone(database.importBatches[id]); }
+    ,async listImportBatches() { return Object.values(database.importBatches).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(clone); }
   };
 }
 

@@ -10,7 +10,8 @@ function createMemoryOperationsImportStore() {
   return {
     async saveImportBatch(batch) { batches.set(batch.id, JSON.parse(JSON.stringify(batch))); return JSON.parse(JSON.stringify(batch)); },
     async getImportBatch(id) { const batch = batches.get(id); return batch ? JSON.parse(JSON.stringify(batch)) : null; },
-    async updateImportBatch(id, patch) { const batch = batches.get(id); if (!batch) return null; batches.set(id, { ...batch, ...patch }); return JSON.parse(JSON.stringify(batches.get(id))); }
+    async updateImportBatch(id, patch) { const batch = batches.get(id); if (!batch) return null; batches.set(id, { ...batch, ...patch }); return JSON.parse(JSON.stringify(batches.get(id))); },
+    async listImportBatches({ entity, status, limit = 20, offset = 0 } = {}) { const items = [...batches.values()].filter((batch) => (!entity || batch.entity === entity) && (!status || batch.status === status)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); return { items: JSON.parse(JSON.stringify(items.slice(offset, offset + limit))), total: items.length }; }
   };
 }
 
@@ -77,7 +78,16 @@ function createOperationsImportService(options = {}) {
     return { ok: true, value: await importStore.updateImportBatch(batchId, { status: 'rolled-back', rolledBackAt: now() }) };
   }
 
-  return Object.freeze({ commit, createMemoryOperationsImportStore, preview, rollback });
+  async function listBatches(input, actor) {
+    if (!allowed(actor)) return { ok: false, error: 'Akses finance diperlukan.' };
+    const source = input || {};
+    const page = Number.isInteger(Number(source.page)) && Number(source.page) > 0 ? Number(source.page) : 1;
+    const pageSize = Math.min(Math.max(Number(source.pageSize) || 10, 1), 50);
+    const result = await importStore.listImportBatches({ entity: ENTITIES.has(clean(source.entity)) ? clean(source.entity) : null, status: ['previewed', 'committed', 'rolled-back'].includes(clean(source.status)) ? clean(source.status) : null, limit: pageSize, offset: (page - 1) * pageSize });
+    return { ok: true, value: { ...result, page, pageSize } };
+  }
+
+  return Object.freeze({ commit, createMemoryOperationsImportStore, listBatches, preview, rollback });
 }
 
 module.exports = { createMemoryOperationsImportStore, createOperationsImportService };

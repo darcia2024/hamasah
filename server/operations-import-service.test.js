@@ -29,6 +29,10 @@ async function run() {
   assert.equal(applied.length, 1);
   assert.equal((await service.commit(committed.value.id, finance)).value.status, 'committed', 'Commit ulang harus idempotent.');
   assert.equal(applied.length, 1);
+  const history = await service.listBatches({ page: 1, pageSize: 1 }, finance);
+  assert.equal(history.ok, true);
+  assert.equal(history.value.total, 3);
+  assert.equal(history.value.items.length, 1);
   console.log('operations import service tests passed');
 }
 

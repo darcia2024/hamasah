@@ -419,6 +419,34 @@ const operationImportForm = document.querySelector('#operation-import-form');
 const operationImportStatus = document.querySelector('#operation-import-status');
 const operationImportResult = document.querySelector('#operation-import-result');
 let activeImportBatch = null;
+let operationImportPage = 1;
+
+async function loadOperationImportHistory() {
+  const list = document.querySelector('#operation-import-history');
+  const status = document.querySelector('#operation-import-history-status');
+  if (!list || !status) return;
+  const params = new URLSearchParams({ page: String(operationImportPage), pageSize: '8' });
+  const statusFilter = document.querySelector('#operation-import-status-filter').value;
+  const entityFilter = document.querySelector('#operation-import-entity-filter').value;
+  if (statusFilter) params.set('status', statusFilter); if (entityFilter) params.set('entity', entityFilter);
+  status.textContent = 'Memuat riwayat...'; status.classList.remove('is-error');
+  try {
+    const response = await fetch(`/api/operations/imports?${params}`, { headers: authHeaders() });
+    const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Riwayat import belum dapat dimuat.');
+    list.replaceChildren();
+    result.items.forEach((batch) => {
+      const row = document.createElement('article'); row.className = 'staff-registration notification-row';
+      const detail = document.createElement('div'); const title = document.createElement('strong'); title.textContent = `${batch.entity === 'inventory' ? 'Inventaris' : 'Visa'} · ${batch.status}`;
+      const meta = document.createElement('small'); meta.textContent = `${batch.validCount}/${batch.rowCount} baris valid · ${formatWaktu(batch.createdAt)}`; detail.append(title, meta);
+      const action = document.createElement('div'); const id = document.createElement('code'); id.textContent = batch.id.slice(0, 8); action.append(id); row.append(detail, action); list.append(row);
+    });
+    if (!result.items.length) list.textContent = 'Belum ada batch import.';
+    const pages = Math.max(1, Math.ceil(result.total / result.pageSize)); const pagination = document.querySelector('#operation-import-pagination');
+    pagination.hidden = pages <= 1; document.querySelector('#operation-import-page-label').textContent = `Halaman ${result.page} dari ${pages}`;
+    document.querySelector('#operation-import-prev').disabled = result.page <= 1; document.querySelector('#operation-import-next').disabled = result.page >= pages;
+    status.textContent = `${result.total} batch ditemukan.`;
+  } catch (error) { status.textContent = error.message; status.classList.add('is-error'); }
+}
 
 function renderImportBatch(batch) {
   if (!operationImportResult) return;
@@ -488,6 +516,7 @@ if (tabBtnRegs && tabBtnArticle && panelRegs && panelArticle) {
     tabBtnImport.classList.add('is-active');
     tabBtnRegs.classList.remove('is-active'); tabBtnArticle.classList.remove('is-active'); if (tabBtnNotifications) tabBtnNotifications.classList.remove('is-active');
     panelRegs.hidden = true; panelArticle.hidden = true; if (panelNotifications) panelNotifications.hidden = true; panelImport.hidden = false;
+    loadOperationImportHistory().catch(() => {});
   });
 }
 
@@ -562,9 +591,15 @@ if (operationImportForm) operationImportForm.addEventListener('submit', async (e
     try { rows = JSON.parse(document.querySelector('#operation-import-rows').value); } catch { throw new Error('JSON baris belum valid.'); }
     const response = await fetch('/api/operations/imports/preview', { method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ entity: document.querySelector('#operation-import-entity').value, rows }) });
     const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Preview import belum dapat dibuat.');
-    renderImportBatch(result.batch); operationImportStatus.textContent = 'Preview selesai. Periksa hasil sebelum commit.';
+    renderImportBatch(result.batch); operationImportStatus.textContent = 'Preview selesai. Periksa hasil sebelum commit.'; loadOperationImportHistory().catch(() => {});
   } catch (error) { operationImportStatus.textContent = error.message; operationImportStatus.classList.add('is-error'); }
 });
+
+document.querySelector('#refresh-operation-imports')?.addEventListener('click', () => loadOperationImportHistory());
+document.querySelector('#operation-import-status-filter')?.addEventListener('change', () => { operationImportPage = 1; loadOperationImportHistory(); });
+document.querySelector('#operation-import-entity-filter')?.addEventListener('change', () => { operationImportPage = 1; loadOperationImportHistory(); });
+document.querySelector('#operation-import-prev')?.addEventListener('click', () => { operationImportPage -= 1; loadOperationImportHistory(); });
+document.querySelector('#operation-import-next')?.addEventListener('click', () => { operationImportPage += 1; loadOperationImportHistory(); });
 
 if (refreshArticles) refreshArticles.addEventListener('click', () => loadArticles().catch(() => {}));
 

@@ -23,6 +23,16 @@ module.exports = [
   },
 
   {
+    method: 'GET',
+    pattern: /^\/api\/operations\/imports$/,
+    permission: 'operations.read',
+    async handler({ response, services, auth, url }) {
+      const result = await services.operationsImportService.listBatches({ page: url.searchParams.get('page'), pageSize: url.searchParams.get('pageSize'), entity: url.searchParams.get('entity'), status: url.searchParams.get('status') }, await auth.actor());
+      json(response, result.ok ? 200 : 422, result.ok ? result.value : publicError(result));
+    }
+  },
+
+  {
     method: 'POST',
     pattern: /^\/api\/operations\/imports\/([\w-]+)\/commit$/,
     permission: 'operations.manage',
