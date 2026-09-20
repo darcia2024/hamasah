@@ -7,6 +7,8 @@ const studentSelect = document.querySelector('#monitoring-student-select');
 const dashboard = document.querySelector('#monitoring-dashboard');
 const monitoringEmptyState = document.querySelector('#monitoring-empty-state');
 const recordSection = document.querySelector('#record-section');
+const recordTrailSection = document.querySelector('#record-trail-section');
+const recordTrail = document.querySelector('#record-trail');
 const recordForm = document.querySelector('#record-form');
 const recordFormStatus = document.querySelector('#record-form-status');
 const recordKind = document.querySelector('#record-kind');
@@ -69,6 +71,74 @@ function metric(value, label) {
   item.append(number, copy); return item;
 }
 
+const ATTENDANCE_LABELS = Object.freeze({
+  present: 'Hadir tepat waktu',
+  late: 'Terlambat',
+  excused: 'Izin / sakit',
+  absent: 'Tidak hadir'
+});
+
+// Kelima koleksi digabung jadi satu daftar berurut waktu, karena yang ingin dilihat
+// musyrif adalah "apa yang terjadi terakhir pada santri ini", bukan lima daftar terpisah.
+const RECORD_TRAIL_KINDS = Object.freeze([
+  { label: 'Kegiatan', pick: (data) => data.activities, summary: (entry) => entry.title },
+  { label: 'Prestasi', pick: (data) => data.achievements, summary: (entry) => entry.title },
+  { label: 'Kehadiran', pick: (data) => data.attendance.entries, summary: (entry) => `${ATTENDANCE_LABELS[entry.status] || entry.status} · ${entry.category}` },
+  { label: 'Evaluasi', pick: (data) => data.evaluations, summary: (entry) => `${entry.area} · ${entry.note}` },
+  { label: 'Pelanggaran', pick: (data) => data.discipline, summary: (entry) => `${entry.level} · ${entry.note}` }
+]);
+
+function recordTrailItem(entry) {
+  const baris = document.createElement('article');
+  baris.className = 'record-trail__item';
+
+  const kepala = document.createElement('div');
+  kepala.className = 'record-trail__head';
+  const jenis = document.createElement('span');
+  jenis.className = 'record-trail__kind';
+  jenis.textContent = entry.kindLabel;
+  const tanggal = document.createElement('span');
+  tanggal.className = 'record-trail__date';
+  tanggal.textContent = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(new Date(entry.occurredAt));
+  kepala.append(jenis, tanggal);
+
+  const isi = document.createElement('p');
+  isi.className = 'record-trail__summary';
+  isi.textContent = entry.summary;
+
+  const pencatat = document.createElement('p');
+  pencatat.className = 'record-trail__actor';
+  // Catatan sebelum migrasi 033, dan catatan dari akun staf yang sudah dihapus,
+  // tidak punya nama pencatat. Dinyatakan apa adanya, bukan disembunyikan, supaya
+  // selisih antara catatan yang dapat ditelusuri dan yang tidak terlihat jelas.
+  if (entry.recordedByName) {
+    pencatat.textContent = `Dicatat oleh ${entry.recordedByName}`;
+  } else {
+    pencatat.textContent = 'Pencatat tidak tersimpan';
+    pencatat.classList.add('record-trail__actor--kosong');
+  }
+
+  baris.append(kepala, isi, pencatat);
+  return baris;
+}
+
+function renderRecordTrail(data) {
+  const entries = RECORD_TRAIL_KINDS
+    .flatMap((kind) => (kind.pick(data) || []).map((entry) => ({ ...entry, kindLabel: kind.label, summary: kind.summary(entry) })))
+    .sort((left, right) => right.occurredAt.localeCompare(left.occurredAt))
+    .slice(0, 20);
+
+  if (!entries.length) {
+    const kosong = document.createElement('p');
+    kosong.className = 'form-status';
+    kosong.textContent = 'Belum ada catatan untuk santri ini.';
+    recordTrail.replaceChildren(kosong);
+    return;
+  }
+
+  recordTrail.replaceChildren(...entries.map(recordTrailItem));
+}
+
 function renderDashboard(data) {
   const title = document.createElement('h2'); title.textContent = data.student.name;
   const copy = document.createElement('p'); copy.textContent = `${data.student.program} · Bergabung ${new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' }).format(new Date(data.student.joinDate))}`;
@@ -76,6 +146,7 @@ function renderDashboard(data) {
   metrics.append(metric(data.attendance.rate === null ? 'Belum ada data' : `${data.attendance.rate}%`, 'Kehadiran'), metric(String(data.achievements.length), 'Achievement'), metric(String(data.discipline.length), 'Catatan disiplin'));
   const activity = document.createElement('p'); activity.textContent = data.activities[0] ? `Kegiatan terakhir: ${data.activities[0].title}` : 'Belum ada kegiatan tercatat.';
   dashboard.replaceChildren(title, copy, metrics, activity); dashboard.hidden = false;
+  renderRecordTrail(data);
 }
 
 async function loadDashboard() {
@@ -83,6 +154,7 @@ async function loadDashboard() {
   if (!studentId) {
     dashboard.hidden = true;
     recordSection.hidden = true;
+    recordTrailSection.hidden = true;
     downloadReport.hidden = true;
     placementSection.hidden = true;
     if (monitoringEmptyState) monitoringEmptyState.hidden = false;
@@ -92,7 +164,7 @@ async function loadDashboard() {
   const response = await fetch(`/api/students/${encodeURIComponent(studentId)}/dashboard`, { headers: headers() });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Dashboard belum dapat dimuat.');
-  renderDashboard(result.dashboard); recordSection.hidden = false; downloadReport.hidden = false;
+  renderDashboard(result.dashboard); recordSection.hidden = false; recordTrailSection.hidden = false; downloadReport.hidden = false;
   placementSection.hidden = false;
   placementGender.value = result.dashboard.student.gender || '';
   fillDormitorySelect(placementDormitory, result.dashboard.student.dormitoryId, 'Belum ditempatkan');

@@ -7,9 +7,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="website.css?v=18" />
-    <link rel="stylesheet" href="staff.css?v=2" />
-    <link rel="stylesheet" href="portal.css?v=4" />
+    <link rel="stylesheet" href="website.css?v=23" />
+    <link rel="stylesheet" href="staff.css?v=3" />
+    <link rel="stylesheet" href="portal.css?v=5" />
   </head>
   <body class="staff-page">
     <!-- Header saat Belum Login -->
@@ -264,6 +264,16 @@
                 <p id="record-form-status" class="form-status" role="status" aria-live="polite"></p>
               </form>
             </section>
+
+            <section id="record-trail-section" class="crm-white-card" hidden>
+              <div class="crm-white-card-header">
+                <div>
+                  <h3>Rekam Jejak Terakhir</h3>
+                  <p>Dua puluh catatan terbaru dari seluruh jenis, beserta petugas yang mencatatnya.</p>
+                </div>
+              </div>
+              <div id="record-trail" class="record-trail"></div>
+            </section>
           </div>
 
           <!-- Tab Panel 2: Form Tambah Santri Baru -->
@@ -457,6 +467,6 @@
 
     <script src="internal-shell.js?v=1"></script>
     <script src="nav.js?v=3"></script>
-    <script src="monitoring.js?v=3"></script>
+    <script src="monitoring.js?v=4"></script>
   </body>
 </html>

@@ -242,6 +242,12 @@ function createStudentPortalService(options) {
       record = { id: crypto.randomUUID(), studentId, note, level: clean(source.level) || 'ringan', occurredAt, createdAt: now() };
     }
 
+    // Pencatat diambil dari sesi yang sedang login, tidak pernah dari isi request.
+    // Ditulis setelah record selesai dibentuk, sehingga field recordedByAccountId
+    // yang dititipkan di body tidak punya kesempatan menggantikannya. Ini pola yang
+    // sama dengan registration_status_events.changed_by_account_id.
+    record.recordedByAccountId = actor.id || null;
+
     try {
       return { ok: true, value: await store.append(collection, record) };
     } catch (error) {

@@ -91,6 +91,32 @@ async function run() {
     const presensi = await store.byStudent('attendance', studentId);
     assert.deepEqual(presensi.map((entry) => entry.status), ['late', 'present']);
 
+    // Task R2.4. Jejak pencatat tersimpan dan namanya ikut terbaca lewat JOIN,
+    // supaya konsol monitoring tidak perlu menerjemahkan UUID sendiri.
+    const musyrifId = await insertAccount(database, 'supervisor', 'musyrif.uji@hamasah.test');
+    const pelanggaran = await store.append('violations', {
+      id: crypto.randomUUID(), studentId, level: 'sedang', note: 'Meninggalkan kegiatan tanpa izin.',
+      occurredAt: '2026-09-17T09:00:00.000Z', createdAt: '2026-09-17T09:00:00.000Z',
+      recordedByAccountId: musyrifId
+    });
+    assert.equal(pelanggaran.recordedByAccountId, musyrifId);
+
+    const daftarPelanggaran = await store.byStudent('violations', studentId);
+    assert.equal(daftarPelanggaran.length, 2);
+    assert.equal(daftarPelanggaran[0].recordedByAccountId, musyrifId);
+    assert.equal(daftarPelanggaran[0].recordedByName, 'Akun supervisor');
+    // Baris yang dibuat sebelum migrasi 033 tidak punya pencatat. LEFT JOIN, jadi
+    // barisnya tetap terbaca dan bukan menghilang dari daftar.
+    assert.equal(daftarPelanggaran[1].recordedByAccountId, null);
+    assert.equal(daftarPelanggaran[1].recordedByName, null);
+
+    // ON DELETE SET NULL: akun staf dihapus, catatannya bertahan.
+    await database.query('DELETE FROM accounts WHERE id = $1', [musyrifId]);
+    const setelahAkunDihapus = await store.byStudent('violations', studentId);
+    assert.equal(setelahAkunDihapus.length, 2, 'Catatan tidak boleh ikut terhapus bersama akun staf.');
+    assert.equal(setelahAkunDihapus[0].recordedByAccountId, null);
+    assert.equal(setelahAkunDihapus[0].note, 'Meninggalkan kegiatan tanpa izin.');
+
     // Catatan santri lain tidak ikut terbawa.
     const lainId = crypto.randomUUID();
     await store.saveStudent({

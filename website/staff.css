@@ -885,3 +885,60 @@
 .inquiry-card__head > strong {
   font-size: 15px;
 }
+
+/* Daftar rekam jejak santri di konsol monitoring (Task R2.4). Setiap catatan
+   menampilkan siapa yang mencatatnya, karena sebelum migrasi 033 informasi itu
+   tidak pernah disimpan. */
+.record-trail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.record-trail__item {
+  padding: 14px 18px;
+  border: 1px solid var(--crm-border);
+  border-radius: 12px;
+  background: var(--crm-card-bg);
+}
+
+.record-trail__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.record-trail__kind {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--crm-on-gold-container);
+  background: var(--crm-gold-container);
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.record-trail__date {
+  font-size: 12.5px;
+  color: var(--crm-text-muted);
+}
+
+.record-trail__summary {
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  color: var(--crm-text-primary);
+}
+
+.record-trail__actor {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--crm-text-secondary);
+}
+
+.record-trail__actor--kosong {
+  color: var(--crm-text-muted);
+  font-style: italic;
+}

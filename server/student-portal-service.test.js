@@ -35,6 +35,22 @@ async function run() {
   assert.equal((await service.addViolation(studentId, { note: 'Terlambat kembali ke asrama setelah kegiatan.', level: 'ringan' }, admin)).ok, true);
   assert.equal((await service.addActivity(studentId, { title: 'Tidak berhak' }, parent)).ok, false);
 
+  // Task R2.4. Pencatat diambil dari sesi yang sedang login. Route meneruskan
+  // body request apa adanya ke service, jadi di sinilah titipan dari body harus
+  // kalah dari actor.
+  const titipan = await service.addViolation(studentId, {
+    note: 'Catatan dengan pencatat titipan di dalam body.', level: 'ringan',
+    recordedByAccountId: 'akun-orang-lain', recorded_by_account_id: 'akun-orang-lain'
+  }, admin);
+  assert.equal(titipan.ok, true);
+  assert.equal(titipan.value.recordedByAccountId, admin.id, 'Pencatat harus berasal dari sesi, bukan dari isi request.');
+
+  const kegiatanTitipan = await service.addActivity(studentId, {
+    title: 'Kegiatan dengan pencatat titipan', description: 'Isi apa saja.',
+    recordedByAccountId: 'akun-orang-lain'
+  }, admin);
+  assert.equal(kegiatanTitipan.value.recordedByAccountId, admin.id);
+
   const parentDashboard = await service.dashboard(studentId, parent);
   assert.equal(parentDashboard.ok, true);
   assert.equal(parentDashboard.value.attendance.rate, 100);

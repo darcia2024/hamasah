@@ -125,7 +125,10 @@ function createPostgresStudentStore({ database } = {}) {
     async correctRecord(collection, recordId, correction) {
       const definition = definitionOf(collection);
       return database.withTransaction(async (tx) => {
-        const columns = ['id', 'student_id', 'occurred_at', ...definition.columns, 'created_at'];
+        // recorded_by_account_id ikut dibaca supaya hasil koreksi memuat pencatat
+        // aslinya. Kolom itu tidak pernah masuk `allowed`, yang hanya dibentuk dari
+        // definition.columns, jadi koreksi tidak bisa memindahkan jejak pelaku.
+        const columns = ['id', 'student_id', 'occurred_at', ...definition.columns, 'created_at', 'recorded_by_account_id'];
         const currentQuery = await tx.query(`SELECT ${columns.join(', ')} FROM ${definition.table} WHERE id = $1`, [recordId]);
         if (!currentQuery.rows[0]) return null;
         const previous = toRecord(definition, currentQuery.rows[0]);
@@ -139,6 +142,14 @@ function createPostgresStudentStore({ database } = {}) {
           const result = await tx.query(`UPDATE ${definition.table} SET ${sets.join(', ')} WHERE id = $1 RETURNING ${columns.join(', ')}`, values);
           updated = toRecord(definition, result.rows[0]);
         }
+        const pencatatId = updated.recordedByAccountId;
+        if (pencatatId) {
+          const pencatat = await tx.query('SELECT name FROM accounts WHERE id = $1', [pencatatId]);
+          const nama = pencatat.rows[0] ? pencatat.rows[0].name : null;
+          updated.recordedByName = nama;
+          previous.recordedByName = nama;
+        }
+
         await tx.query(`INSERT INTO student_record_corrections (id, record_type, record_id, student_id, actor_account_id, reason, previous_value, corrected_value, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8::jsonb,$9)`, [require('node:crypto').randomUUID(), collection, recordId, previous.studentId, correction.actorAccountId || null, correction.reason, JSON.stringify(previous), JSON.stringify(updated), correction.createdAt]);
         return { record: updated, previous };
       });
@@ -205,30 +216,38 @@ function createPostgresStudentStore({ database } = {}) {
       const values = definition.toRow(entry);
       if (collection === 'attendance') {
         const { rows } = await database.query(
-          `INSERT INTO student_attendance (id, student_id, occurred_at, status, category, note, created_at, session_date)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-           RETURNING id, student_id, occurred_at, status, category, note, created_at`,
-          [entry.id, entry.studentId, entry.occurredAt, ...values, entry.createdAt, entry.sessionDate || jakartaDate(entry.occurredAt)]
+          `INSERT INTO student_attendance (id, student_id, occurred_at, status, category, note, created_at, session_date, recorded_by_account_id)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+           RETURNING id, student_id, occurred_at, status, category, note, created_at, recorded_by_account_id`,
+          [entry.id, entry.studentId, entry.occurredAt, ...values, entry.createdAt, entry.sessionDate || jakartaDate(entry.occurredAt), entry.recordedByAccountId || null]
         );
         return toRecord(definition, rows[0]);
       }
       const placeholders = definition.columns.map((name, index) => `$${index + 4}`).join(', ');
       const { rows } = await database.query(
-        `INSERT INTO ${definition.table} (id, student_id, occurred_at, ${definition.columns.join(', ')}, created_at)
-         VALUES ($1, $2, $3, ${placeholders}, $${values.length + 4})
-         RETURNING id, student_id, occurred_at, ${definition.columns.join(', ')}, created_at`,
-        [entry.id, entry.studentId, entry.occurredAt, ...values, entry.createdAt]
+        `INSERT INTO ${definition.table} (id, student_id, occurred_at, ${definition.columns.join(', ')}, created_at, recorded_by_account_id)
+         VALUES ($1, $2, $3, ${placeholders}, $${values.length + 4}, $${values.length + 5})
+         RETURNING id, student_id, occurred_at, ${definition.columns.join(', ')}, created_at, recorded_by_account_id`,
+        [entry.id, entry.studentId, entry.occurredAt, ...values, entry.createdAt, entry.recordedByAccountId || null]
       );
       return toRecord(definition, rows[0]);
     },
 
     async byStudent(collection, studentId) {
       const definition = definitionOf(collection);
+      // Nama pencatat ikut diambil di sini supaya konsol monitoring tidak perlu
+      // memanggil daftar akun terpisah hanya untuk menerjemahkan UUID.
+      // LEFT JOIN, karena baris sebelum migrasi 033 tidak punya pencatat dan
+      // akun yang dihapus menyisakan NULL.
       const { rows } = await database.query(
-        `SELECT id, student_id, occurred_at, ${definition.columns.join(', ')}, created_at
-           FROM ${definition.table}
-          WHERE student_id = $1
-          ORDER BY occurred_at DESC, created_at DESC`,
+        `SELECT catatan.id, catatan.student_id, catatan.occurred_at,
+                ${definition.columns.map((column) => `catatan.${column}`).join(', ')},
+                catatan.created_at, catatan.recorded_by_account_id,
+                pencatat.name AS recorded_by_name
+           FROM ${definition.table} AS catatan
+           LEFT JOIN accounts AS pencatat ON pencatat.id = catatan.recorded_by_account_id
+          WHERE catatan.student_id = $1
+          ORDER BY catatan.occurred_at DESC, catatan.created_at DESC`,
         [studentId]
       );
       return rows.map((row) => toRecord(definition, row));
@@ -242,7 +261,10 @@ function toRecord(definition, row) {
     studentId: row.student_id,
     ...definition.toEntry(row),
     occurredAt: toIso(row.occurred_at),
-    createdAt: toIso(row.created_at)
+    createdAt: toIso(row.created_at),
+    // null untuk baris sebelum migrasi 033 dan untuk akun staf yang sudah dihapus.
+    recordedByAccountId: row.recorded_by_account_id || null,
+    recordedByName: row.recorded_by_name || null
   };
 }
 
