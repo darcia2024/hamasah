@@ -189,6 +189,7 @@
               <span>Pena Hamasah CMS (Terbitkan Artikel)</span>
             </button>
             <button type="button" class="crm-pill-btn" id="tab-btn-notifications"><span>Notifikasi Akun</span></button>
+            <button type="button" class="crm-pill-btn" id="tab-btn-import"><span>Import Operasional</span></button>
           </div>
 
           <!-- Tab Panel 1: Registrations List -->
@@ -265,6 +266,28 @@
             </div>
             <p id="notification-list-status" class="form-status" role="status" aria-live="polite"></p>
             <div id="notification-list" class="staff-registration-list"></div>
+          </div>
+
+          <div id="panel-import" class="crm-white-card" hidden>
+            <div class="crm-white-card-header">
+              <div><h3>Import Data Operasional</h3><p>Validasi dulu, tinjau error per baris, lalu commit setelah datanya benar.</p></div>
+            </div>
+            <form id="operation-import-form" class="staff-form">
+              <div>
+                <label for="operation-import-entity">Jenis data</label>
+                <select id="operation-import-entity"><option value="inventory">Inventaris</option><option value="visa">Visa santri</option></select>
+              </div>
+              <div>
+                <label for="operation-import-rows">Baris JSON</label>
+                <textarea id="operation-import-rows" rows="10" spellcheck="false">[
+  { "name": "Kasur", "location": "Hay Asyir", "quantity": 20 }
+]</textarea>
+                <small>Inventaris: name, location, quantity. Visa: studentId, status, passportExpiresAt, visaExpiresAt, note.</small>
+              </div>
+              <button class="button button--primary" type="submit" id="operation-import-preview">Preview &amp; Validasi</button>
+              <p id="operation-import-status" class="form-status" role="status" aria-live="polite"></p>
+            </form>
+            <section id="operation-import-result" class="operation-import-result" hidden aria-labelledby="operation-import-result-title"></section>
           </div>
         </div>
       </div>

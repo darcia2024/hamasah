@@ -399,6 +399,13 @@
 .conversion-result__status { color: var(--md-sys-color-primary, #8a5a00) !important; font-weight: 700; }
 .conversion-result__next { padding-top: 12px; border-top: 1px solid rgba(154,103,0,.18); }
 
+.operation-import-result { margin-top: 22px; padding: 18px; border: 1px solid var(--md-sys-color-outline-variant, #e2e8f0); border-radius: 16px; background: #fffdf8; }
+.operation-import-result h4 { margin: 0 0 8px; }
+.operation-import-summary { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+.operation-import-chip { padding: 6px 10px; border-radius: 999px; background: #f3ead1; font-size: 12px; font-weight: 700; }
+.operation-import-errors { display: grid; gap: 6px; margin: 0 0 16px; padding-left: 18px; color: #b42318; font-size: 13px; }
+.operation-import-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
 /* --------------------------------------------------------------------------
    Article CMS Section
    -------------------------------------------------------------------------- */
