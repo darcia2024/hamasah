@@ -105,6 +105,63 @@ async function run() {
     assert.equal(daftar.visas.length, 1);
     assert.equal(daftar.inventory.length, 2);
 
+    // Task R3.2. Koreksi invoice dicatat sejak migrasi 022 tetapi tidak pernah dibaca.
+    const petugasId = crypto.randomUUID();
+    await database.query(
+      `INSERT INTO accounts (id, email, name, role, password_hash) VALUES ($1, 'keuangan.uji@hamasah.test', 'Keuangan Uji', 'finance', 'hash-uji')`,
+      [petugasId]
+    );
+    const dikoreksi = await store.saveInvoice({
+      id: crypto.randomUUID(), number: 'INV/HI/2026/09003', studentId, description: 'SPP Nopember',
+      amount: 1500000, status: 'unpaid', issuedAt: '2026-09-17T00:00:00.000Z', paidAt: null, receiptNumber: null
+    });
+    assert.deepEqual(await store.listInvoiceCorrections(dikoreksi.id), []);
+
+    const hasilKoreksi = await store.correctInvoice(dikoreksi.id, {
+      id: crypto.randomUUID(), description: 'SPP November', amount: 1650000,
+      reason: 'Salah ketik bulan dan nominal.', actorAccountId: petugasId,
+      createdAt: '2026-09-17T01:00:00.000Z'
+    });
+    assert.equal(hasilKoreksi.description, 'SPP November');
+    assert.equal(hasilKoreksi.amount, 1650000);
+
+    const riwayat = await store.listInvoiceCorrections(dikoreksi.id);
+    assert.equal(riwayat.length, 1);
+    assert.equal(riwayat[0].reason, 'Salah ketik bulan dan nominal.');
+    assert.equal(riwayat[0].previousDescription, 'SPP Nopember');
+    assert.equal(riwayat[0].previousAmount, 1500000);
+    assert.equal(typeof riwayat[0].previousAmount, 'number', 'BIGINT tidak boleh lolos sebagai string.');
+    assert.equal(riwayat[0].correctedDescription, 'SPP November');
+    assert.equal(riwayat[0].correctedAmount, 1650000);
+    assert.equal(riwayat[0].actorName, 'Keuangan Uji');
+
+    // Invoice yang sudah lunas tidak dapat dikoreksi maupun dibatalkan.
+    assert.equal(await store.correctInvoice(invoice.id, {
+      id: crypto.randomUUID(), description: 'Coba koreksi', amount: 1000,
+      reason: 'Tidak boleh berhasil.', actorAccountId: petugasId, createdAt: ISSUED_AT
+    }), null);
+    assert.equal(await store.voidInvoice(invoice.id, { reason: 'Tidak boleh berhasil.', voidedAt: ISSUED_AT }), null);
+
+    const dibatalkan = await store.voidInvoice(dikoreksi.id, {
+      reason: 'Tagihan ganda untuk bulan yang sama.', voidedAt: '2026-09-17T02:00:00.000Z', actorAccountId: petugasId
+    });
+    assert.equal(dibatalkan.status, 'voided');
+    assert.equal(dibatalkan.voidReason, 'Tagihan ganda untuk bulan yang sama.');
+    // Sudah dibatalkan, jadi tidak bisa dikoreksi lagi, tetapi jejaknya tetap terbaca.
+    assert.equal(await store.correctInvoice(dikoreksi.id, {
+      id: crypto.randomUUID(), description: 'Setelah batal', amount: 1000,
+      reason: 'Tidak boleh berhasil.', actorAccountId: petugasId, createdAt: ISSUED_AT
+    }), null);
+    assert.equal((await store.listInvoiceCorrections(dikoreksi.id)).length, 1);
+
+    // ON DELETE SET NULL: pelaku dihapus, jejak koreksinya bertahan tanpa nama.
+    await database.query('DELETE FROM accounts WHERE id = $1', [petugasId]);
+    const setelahAkunDihapus = await store.listInvoiceCorrections(dikoreksi.id);
+    assert.equal(setelahAkunDihapus.length, 1);
+    assert.equal(setelahAkunDihapus[0].actorAccountId, null);
+    assert.equal(setelahAkunDihapus[0].actorName, null);
+    assert.equal(setelahAkunDihapus[0].reason, 'Salah ketik bulan dan nominal.');
+
     console.log('postgres operations store tests passed');
   } finally {
     await database.close();

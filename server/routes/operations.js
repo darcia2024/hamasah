@@ -135,6 +135,16 @@ module.exports = [
   },
 
   {
+    method: 'GET',
+    pattern: /^\/api\/operations\/invoices\/([\w-]+)\/corrections$/,
+    permission: 'finance.manage',
+    async handler({ response, services, auth, params }) {
+      const result = await services.operationsService.listInvoiceCorrections(params[0], await auth.actor());
+      json(response, result.ok ? 200 : 403, result.ok ? { items: result.value } : publicError(result));
+    }
+  },
+
+  {
     method: 'PATCH',
     pattern: /^\/api\/operations\/invoices\/([\w-]+)\/void$/,
     permission: 'finance.manage',

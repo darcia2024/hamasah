@@ -39,6 +39,22 @@ function createMemoryOperationsStore() {
       database.corrections[correction.id] = { ...correction, invoiceId: id, previousDescription: previous.description, previousAmount: previous.amount };
       return clone(database.invoices[id]);
     },
+    async listInvoiceCorrections(invoiceId) {
+      return Object.values(database.corrections)
+        .filter((item) => item.invoiceId === invoiceId)
+        .map((item) => clone({
+          id: item.id,
+          reason: item.reason,
+          previousDescription: item.previousDescription,
+          previousAmount: item.previousAmount,
+          correctedDescription: item.description,
+          correctedAmount: item.amount,
+          createdAt: item.createdAt,
+          actorAccountId: item.actorAccountId || null,
+          actorName: null
+        }))
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    },
     async voidInvoice(id, value) {
       const invoice = database.invoices[id];
       if (!invoice || invoice.status !== 'unpaid') return null;
@@ -160,6 +176,14 @@ function createOperationsService(options) {
     return updated ? { ok: true, value: updated } : { ok: false, error: 'Invoice tidak ditemukan atau sudah tidak dapat dikoreksi.' };
   }
 
+  // Jejak koreksi tidak ada gunanya kalau hanya tersimpan dan tidak pernah bisa
+  // dilihat. Ini jalur bacanya.
+  async function listInvoiceCorrections(invoiceId, actor) {
+    if (!adminOnly(actor)) return { ok: false, error: 'Akses admin diperlukan.' };
+    if (typeof store.listInvoiceCorrections !== 'function') return { ok: true, value: [] };
+    return { ok: true, value: await store.listInvoiceCorrections(invoiceId) };
+  }
+
   async function voidInvoice(invoiceId, input, actor) {
     if (!adminOnly(actor)) return { ok: false, error: 'Akses admin diperlukan.' };
     const reason = clean(input && input.reason);
@@ -263,7 +287,7 @@ function createOperationsService(options) {
     return { ok: true, value: items.sort((a, b) => a.expiresAt.localeCompare(b.expiresAt)) };
   }
 
-  return Object.freeze({ createInvoice, createMemoryOperationsStore, correctInvoice, getInvoice, list, markInvoicePaid, moveInventory, saveInventory, saveVisa, saveVisaDocument, visaReminders, voidInvoice });
+  return Object.freeze({ createInvoice, createMemoryOperationsStore, correctInvoice, getInvoice, list, listInvoiceCorrections, markInvoicePaid, moveInventory, saveInventory, saveVisa, saveVisaDocument, visaReminders, voidInvoice });
 }
 
 module.exports = { MAX_INVOICE_AMOUNT, VISA_STATUSES, createMemoryOperationsStore, createOperationsService, documentNumber, yearInJakarta };

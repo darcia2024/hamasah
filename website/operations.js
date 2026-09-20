@@ -93,6 +93,159 @@ async function unduhBerkas(url, namaBerkas, tombol) {
   }
 }
 
+
+// ---- Task R3.2: koreksi dan pembatalan invoice ----
+
+const invoiceActionDialog = document.querySelector('#invoice-action-dialog');
+const invoiceActionForm = document.querySelector('#invoice-action-form');
+const invoiceActionTitle = document.querySelector('#invoice-action-title');
+const invoiceActionSummary = document.querySelector('#invoice-action-summary');
+const invoiceActionFields = document.querySelector('#invoice-action-fields');
+const invoiceActionDescription = document.querySelector('#invoice-action-description');
+const invoiceActionAmount = document.querySelector('#invoice-action-amount');
+const invoiceActionReason = document.querySelector('#invoice-action-reason');
+const invoiceActionError = document.querySelector('#invoice-action-error');
+const invoiceActionSubmit = document.querySelector('#invoice-action-submit');
+
+// Invoice yang riwayat koreksinya sedang dibuka. Disimpan supaya pemuatan ulang
+// daftar tidak menutup kembali riwayat yang baru saja ditampilkan.
+const riwayatTerbuka = new Set();
+
+let aksiInvoice = null;
+
+// Database menuntut minimal 5 karakter lewat CHECK (char_length(reason) >= 5).
+// Angka yang sama dipakai di sini supaya penolakan terjadi sebelum permintaan
+// dikirim, bukan datang kembali sebagai error database.
+const ALASAN_MINIMAL = 5;
+
+function tutupDialogInvoice() {
+  aksiInvoice = null;
+  invoiceActionError.textContent = '';
+  if (invoiceActionDialog.open) invoiceActionDialog.close();
+}
+
+function bukaDialogInvoice(invoice, mode) {
+  aksiInvoice = { invoice, mode };
+  const nominal = `Rp${invoice.amount.toLocaleString('id-ID')}`;
+  const koreksi = mode === 'koreksi';
+
+  invoiceActionTitle.textContent = koreksi ? 'Koreksi Invoice' : 'Batalkan Invoice';
+  // Konfirmasi menyebut invoice yang terdampak beserta nominalnya, dan menyatakan
+  // bahwa aksinya tercatat, supaya tidak ada yang menekan tombol ini tanpa tahu
+  // invoice mana yang berubah.
+  invoiceActionSummary.textContent = koreksi
+    ? `${invoice.number} untuk ${studentLabel(invoice.studentId)}, saat ini ${nominal}. Perubahan tersimpan sebagai koreksi berjejak dan tercatat di jejak audit.`
+    : `${invoice.number} untuk ${studentLabel(invoice.studentId)} senilai ${nominal} akan dibatalkan. Pembatalan tidak dapat ditarik kembali dan tercatat di jejak audit.`;
+
+  invoiceActionFields.hidden = !koreksi;
+  invoiceActionDescription.value = koreksi ? invoice.description : '';
+  invoiceActionAmount.value = koreksi ? String(invoice.amount) : '';
+  invoiceActionReason.value = '';
+  invoiceActionError.textContent = '';
+  invoiceActionSubmit.textContent = koreksi ? 'Simpan Koreksi' : 'Batalkan Invoice';
+  invoiceActionSubmit.disabled = false;
+
+  invoiceActionDialog.showModal();
+  invoiceActionReason.focus();
+}
+
+function periksaIsianAksi(mode) {
+  const alasan = invoiceActionReason.value.trim();
+  if (alasan.length < ALASAN_MINIMAL) {
+    return { valid: false, pesan: `Alasan wajib diisi, minimal ${ALASAN_MINIMAL} karakter.` };
+  }
+  if (mode !== 'koreksi') return { valid: true, payload: { reason: alasan } };
+
+  const description = invoiceActionDescription.value.trim();
+  if (description.length < 3) return { valid: false, pesan: 'Keterangan tagihan minimal 3 karakter.' };
+
+  const amount = Number(invoiceActionAmount.value);
+  if (!Number.isInteger(amount) || amount <= 0) {
+    return { valid: false, pesan: 'Nominal harus bilangan bulat lebih dari nol.' };
+  }
+  return { valid: true, payload: { description, amount, reason: alasan } };
+}
+
+async function kirimAksiInvoice(event) {
+  event.preventDefault();
+  if (!aksiInvoice) return;
+  const { invoice, mode } = aksiInvoice;
+
+  const periksa = periksaIsianAksi(mode);
+  if (!periksa.valid) {
+    invoiceActionError.textContent = periksa.pesan;
+    invoiceActionReason.focus();
+    return;
+  }
+
+  invoiceActionSubmit.disabled = true;
+  try {
+    const jalur = mode === 'koreksi' ? 'correction' : 'void';
+    await jsonRequest(`/api/operations/invoices/${encodeURIComponent(invoice.id)}/${jalur}`, {
+      method: 'PATCH',
+      headers: { ...headers(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(periksa.payload)
+    });
+    // Jejaknya harus terlihat, bukan hanya tersimpan: riwayat invoice ini dibuka
+    // begitu koreksi berhasil.
+    if (mode === 'koreksi') riwayatTerbuka.add(invoice.id);
+    tutupDialogInvoice();
+    feedback('#invoice-list-status', mode === 'koreksi'
+      ? `Invoice ${invoice.number} dikoreksi.`
+      : `Invoice ${invoice.number} dibatalkan.`);
+    await loadOperations();
+  } catch (error) {
+    invoiceActionSubmit.disabled = false;
+    invoiceActionError.textContent = error.message;
+  }
+}
+
+function koreksiItem(koreksi) {
+  const item = document.createElement('div');
+  item.className = 'op-history__item';
+
+  const kepala = document.createElement('div');
+  kepala.className = 'op-history__head';
+  const waktu = document.createElement('span');
+  waktu.textContent = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(koreksi.createdAt));
+  const pelaku = document.createElement('span');
+  // Akun staf yang sudah dihapus menyisakan NULL; dinyatakan apa adanya.
+  pelaku.textContent = koreksi.actorName ? `oleh ${koreksi.actorName}` : 'pelaku tidak tersimpan';
+  if (!koreksi.actorName) pelaku.classList.add('op-history__actor--kosong');
+  kepala.append(waktu, pelaku);
+
+  const perubahan = document.createElement('p');
+  perubahan.className = 'op-history__change';
+  perubahan.textContent = `${koreksi.previousDescription} Rp${koreksi.previousAmount.toLocaleString('id-ID')}`
+    + ` \u2192 ${koreksi.correctedDescription} Rp${koreksi.correctedAmount.toLocaleString('id-ID')}`;
+
+  const alasan = document.createElement('p');
+  alasan.className = 'op-history__reason';
+  alasan.textContent = `Alasan: ${koreksi.reason}`;
+
+  item.append(kepala, perubahan, alasan);
+  return item;
+}
+
+async function muatRiwayatKoreksi(invoiceId, wadah) {
+  wadah.replaceChildren();
+  const memuat = document.createElement('p');
+  memuat.className = 'form-status';
+  memuat.textContent = 'Memuat riwayat koreksi...';
+  wadah.append(memuat);
+  try {
+    const hasil = await jsonRequest(`/api/operations/invoices/${encodeURIComponent(invoiceId)}/corrections`, { headers: headers() });
+    if (!hasil.items.length) {
+      memuat.textContent = 'Belum ada koreksi pada invoice ini.';
+      return;
+    }
+    wadah.replaceChildren(...hasil.items.map(koreksiItem));
+  } catch (error) {
+    memuat.textContent = error.message;
+    memuat.classList.add('is-error');
+  }
+}
+
 const INVOICE_STATUS_LABELS = Object.freeze({
   unpaid: 'Belum dibayar',
   paid: 'Lunas',
@@ -179,7 +332,46 @@ function invoiceRow(invoice) {
     aksi.append(kuitansi);
   }
 
-  baris.append(utama, status, aksi);
+
+  if (invoice.status === 'unpaid') {
+    const koreksi = document.createElement('button');
+    koreksi.type = 'button';
+    koreksi.className = 'button button--secondary op-action';
+    koreksi.textContent = 'Koreksi';
+    koreksi.addEventListener('click', () => bukaDialogInvoice(invoice, 'koreksi'));
+
+    const batal = document.createElement('button');
+    batal.type = 'button';
+    batal.className = 'button button--secondary op-action';
+    batal.textContent = 'Batalkan';
+    batal.addEventListener('click', () => bukaDialogInvoice(invoice, 'batal'));
+
+    aksi.append(koreksi, batal);
+  }
+
+  const riwayatTombol = document.createElement('button');
+  riwayatTombol.type = 'button';
+  riwayatTombol.className = 'button button--secondary op-action';
+  const riwayatWadah = document.createElement('div');
+  riwayatWadah.className = 'op-history';
+
+  function setRiwayat(terbuka) {
+    riwayatWadah.hidden = !terbuka;
+    riwayatTombol.setAttribute('aria-expanded', String(terbuka));
+    riwayatTombol.textContent = terbuka ? 'Sembunyikan Riwayat' : 'Riwayat Koreksi';
+    if (terbuka) muatRiwayatKoreksi(invoice.id, riwayatWadah);
+  }
+
+  riwayatTombol.addEventListener('click', () => {
+    const terbuka = riwayatWadah.hidden;
+    if (terbuka) riwayatTerbuka.add(invoice.id);
+    else riwayatTerbuka.delete(invoice.id);
+    setRiwayat(terbuka);
+  });
+  aksi.append(riwayatTombol);
+  setRiwayat(riwayatTerbuka.has(invoice.id));
+
+  baris.append(utama, status, aksi, riwayatWadah);
   return baris;
 }
 
@@ -314,6 +506,12 @@ document.querySelector('#reload-operations').addEventListener('click', () => loa
 }));
 
 if (downloadReportButton) downloadReportButton.addEventListener('click', () => unduhLaporan());
+
+invoiceActionForm.addEventListener('submit', kirimAksiInvoice);
+document.querySelector('#invoice-action-cancel').addEventListener('click', tutupDialogInvoice);
+// Escape menutup <dialog> sendiri; state internal ikut dibersihkan agar pembukaan
+// berikutnya tidak mewarisi invoice sebelumnya.
+invoiceActionDialog.addEventListener('close', () => { aksiInvoice = null; });
 
 if (logoutButton) {
   logoutButton.addEventListener('click', async () => {

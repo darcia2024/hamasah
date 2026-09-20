@@ -26,6 +26,22 @@ function toInvoice(row) {
   };
 }
 
+function toInvoiceCorrection(row) {
+  return {
+    id: row.id,
+    reason: row.reason,
+    previousDescription: row.previous_description,
+    // BIGINT dibaca sebagai string oleh pg, jadi selalu dibungkus Number().
+    previousAmount: Number(row.previous_amount_rupiah),
+    correctedDescription: row.corrected_description,
+    correctedAmount: Number(row.corrected_amount_rupiah),
+    createdAt: toIso(row.created_at),
+    // null untuk akun staf yang sudah dihapus; ON DELETE SET NULL di migrasi 022.
+    actorAccountId: row.actor_account_id || null,
+    actorName: row.actor_name || null
+  };
+}
+
 function toVisa(row) {
   return {
     studentId: row.student_id,
@@ -105,11 +121,26 @@ function createPostgresOperationsStore({ database } = {}) {
            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
           [correction.id, invoiceId, correction.actorAccountId || null, correction.reason, invoice.description, invoice.amount_rupiah, correction.description, correction.amount, correction.createdAt]
         );
-        const updated = await tx.query(`${SELECT_INVOICE} WHERE id = $1`, [invoiceId]);
         await tx.query('UPDATE invoices SET description = $2, amount_rupiah = $3, version = version + 1 WHERE id = $1', [invoiceId, correction.description, correction.amount]);
         const { rows: after } = await tx.query(`${SELECT_INVOICE} WHERE id = $1`, [invoiceId]);
         return toInvoice(after[0]);
       });
+    },
+
+    // Koreksi dicatat sejak migrasi 022 tetapi tidak pernah dibaca dari mana pun.
+    // Nama pelaku ikut diambil supaya konsol tidak perlu menerjemahkan UUID sendiri.
+    async listInvoiceCorrections(invoiceId) {
+      const { rows } = await database.query(
+        `SELECT koreksi.id, koreksi.reason, koreksi.previous_description, koreksi.previous_amount_rupiah,
+                koreksi.corrected_description, koreksi.corrected_amount_rupiah, koreksi.created_at,
+                koreksi.actor_account_id, pelaku.name AS actor_name
+           FROM invoice_corrections AS koreksi
+           LEFT JOIN accounts AS pelaku ON pelaku.id = koreksi.actor_account_id
+          WHERE koreksi.invoice_id = $1
+          ORDER BY koreksi.created_at DESC`,
+        [invoiceId]
+      );
+      return rows.map(toInvoiceCorrection);
     },
 
     async voidInvoice(invoiceId, value) {

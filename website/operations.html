@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website.css?v=24" />
-    <link rel="stylesheet" href="staff.css?v=4" />
+    <link rel="stylesheet" href="staff.css?v=5" />
     <link rel="stylesheet" href="portal.css?v=5" />
   </head>
   <body class="staff-page">
@@ -224,6 +224,32 @@
             </div>
             <div id="invoice-list" class="op-row-list"></div>
             <p id="invoice-list-status" class="form-status" role="status" aria-live="polite"></p>
+
+            <dialog id="invoice-action-dialog" class="op-dialog" aria-labelledby="invoice-action-title">
+              <form id="invoice-action-form" class="staff-form op-dialog__form">
+                <h3 id="invoice-action-title">Koreksi Invoice</h3>
+                <p id="invoice-action-summary" class="op-dialog__summary"></p>
+                <div id="invoice-action-fields">
+                  <div>
+                    <label for="invoice-action-description">Keterangan Tagihan</label>
+                    <input id="invoice-action-description" type="text" />
+                  </div>
+                  <div>
+                    <label for="invoice-action-amount">Nominal Pembayaran (Rp)</label>
+                    <input id="invoice-action-amount" type="number" min="1" />
+                  </div>
+                </div>
+                <div>
+                  <label for="invoice-action-reason">Alasan, minimal 5 karakter</label>
+                  <textarea id="invoice-action-reason" rows="3" aria-describedby="invoice-action-error"></textarea>
+                </div>
+                <p id="invoice-action-error" class="field-error" role="alert"></p>
+                <div class="op-dialog__actions">
+                  <button type="button" class="button button--secondary" id="invoice-action-cancel">Tutup</button>
+                  <button type="submit" class="button button--primary" id="invoice-action-submit">Simpan</button>
+                </div>
+              </form>
+            </dialog>
           </div>
 
           <!-- Tab Panel 2: Pembaruan Berkas Visa -->
@@ -310,6 +336,6 @@
 
     <script src="internal-shell.js?v=1"></script>
     <script src="nav.js?v=3"></script>
-    <script src="operations.js?v=4"></script>
+    <script src="operations.js?v=5"></script>
   </body>
 </html>
