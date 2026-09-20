@@ -21,10 +21,19 @@ const KNOWLEDGE_BASE = Object.freeze([
   }
 ]);
 
+const UNSAFE_PATTERNS = Object.freeze([
+  /ignore\s+(all\s+)?previous\s+instructions?/i,
+  /reveal\s+(the\s+)?system\s+prompt/i,
+  /bypass\s+(your\s+)?(safety|rules|policy)/i
+]);
+
 function answerQuestion(question) {
   const normalized = String(question || '').toLocaleLowerCase('id-ID').trim();
   if (normalized.length < 3) {
     return { matched: false, answer: 'Tulis pertanyaan yang lebih lengkap agar kami dapat membantu.' };
+  }
+  if (UNSAFE_PATTERNS.some((pattern) => pattern.test(normalized))) {
+    return { matched: false, handoff: true, source: 'faq-safety', answer: 'Saya hanya dapat membantu pertanyaan tentang program dan layanan Hamasah. Untuk hal di luar itu, silakan hubungi tim Hamasah.' };
   }
 
   const ranked = KNOWLEDGE_BASE
@@ -39,12 +48,15 @@ function answerQuestion(question) {
   if (!ranked[0] || ranked[0].score === 0) {
     return {
       matched: false,
+      handoff: true,
+      source: 'faq-handoff',
       answer: 'Pertanyaan ini perlu dikonfirmasi oleh tim Hamasah. Silakan gunakan konsultasi pendaftaran agar informasi yang diberikan sesuai kondisi terbaru.'
     };
   }
 
   return {
     matched: true,
+    source: 'faq-approved',
     topic: ranked[0].entry.id,
     answer: ranked[0].entry.answer
   };
