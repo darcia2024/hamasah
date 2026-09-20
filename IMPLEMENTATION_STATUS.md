@@ -98,6 +98,18 @@ Rencana: `docs/RENCANA_REMEDIASI_PHASE_R1_R8_2026-09-20.md`. Hasil dan bukti: `d
 
 Menunggu tindakan manusia: memutar kata sandi `tester@hamasah.test` bila akun itu ada di staging atau production, mengisi nomor WhatsApp resmi pada `WHATSAPP_NUMBER` di `website/kontak.js`, dan menerapkan migrasi `032` ke staging lalu production.
 
+## Remediasi Phase R2 (21 September 2026)
+
+Rencana: `docs/RENCANA_REMEDIASI_PHASE_R1_R8_2026-09-20.md` Bagian 4. Hasil dan bukti: `docs/REMEDIASI_R2_HASIL_2026-09-21.md`.
+
+- Berkas sisi server tidak lagi dapat diunduh publik. `registration-service.js`, dua berkas test, `DESIGN_DECISIONS.md`, dan enam berkas `*.metadata.json` dipindah atau dihapus dari `website/`. `registration-domain.js` sengaja tetap di sana karena dipakai browser dan server sekaligus, dan alasannya ditulis di kepala berkas.
+- Penyajian berkas statis memakai daftar-izin ekstensi. Sebelumnya `MIME_TYPES` hanya menentukan `Content-Type`, dan berkas apa pun yang ekstensinya tidak terdaftar tetap disajikan sebagai `application/octet-stream`, sehingga satu berkas `.env` atau `.sql` yang salah tempat langsung dapat diunduh. Di atasnya ada daftar-tolak nama untuk `*.test.js`, `*.metadata.json`, dan berkas berawalan titik. Jawabannya 404, bukan 403.
+- Rekam jejak santri menyimpan pencatatnya. Migrasi `033_student_record_actor.sql` menambahkan `recorded_by_account_id` ke lima tabel catatan; nilainya diambil dari sesi yang sedang login dan tidak dapat disetel lewat body request. Konsol monitoring kini menampilkan daftar rekam jejak beserta pencatatnya, yang sebelumnya tidak ada sama sekali.
+- Formulir pendaftaran meminta persetujuan pemrosesan data pribadi secara terpisah dan wajib, dengan tautan ke `website/kebijakan-privasi.html`. Versi kebijakan distempel server saat persetujuan diberikan, tidak lagi memakai default `'v1'` yang menunjuk dokumen tidak pernah ada, dan tidak berubah karena penyuntingan profil.
+- Versi cache-busting `?v=` dinaikkan untuk seluruh berkas yang berubah sejak Phase R1. Sebelumnya R1 memindahkan 183 atribut style ke stylesheet tanpa menaikkan satu pun versinya, yang pada rilis membuat pengunjung dengan cache lama menerima halaman tanpa tata letak.
+
+**Menunggu pihak Hamasah:** isi tujuh bagian kebijakan privasi. Sampai materi itu turun, `website/kebijakan-privasi.html` berstatus draf, diberi `noindex`, tidak masuk sitemap, dan situs belum boleh dirilis ke publik.
+
 ## Sebelum go-live penuh
 
 - Runbook rilis, backup/restore, rollback, insiden, monitoring, retensi, dan rotasi akses tersedia di `docs/RUNBOOK_RELEASE_DAN_RESTORE_2026-09-20.md`. `npm run release:check` memeriksa env staging/production dan artefak rilis tanpa menulis database.
