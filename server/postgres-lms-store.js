@@ -32,6 +32,7 @@ function toCourse(row, materials) {
     id: row.id,
     title: row.title,
     description: row.description,
+    ownerAccountId: row.owner_account_id || null,
     materials,
     createdAt: toIso(row.created_at),
     updatedAt: toIso(row.updated_at)
@@ -64,17 +65,17 @@ function createPostgresLmsStore({ database } = {}) {
   return {
     async createCourse(course) {
       const { rows } = await database.query(
-        `INSERT INTO courses (id, title, description, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5)
-         RETURNING id, title, description, created_at, updated_at`,
-        [course.id, course.title, course.description, course.createdAt, course.updatedAt]
+        `INSERT INTO courses (id, title, description, owner_account_id, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING id, title, description, owner_account_id, created_at, updated_at`,
+        [course.id, course.title, course.description, course.ownerAccountId || null, course.createdAt, course.updatedAt]
       );
       return toCourse(rows[0], []);
     },
 
     async getCourse(courseId) {
       const { rows } = await database.query(
-        'SELECT id, title, description, created_at, updated_at FROM courses WHERE id = $1',
+        'SELECT id, title, description, owner_account_id, created_at, updated_at FROM courses WHERE id = $1',
         [courseId]
       );
       if (!rows[0]) {
@@ -86,7 +87,7 @@ function createPostgresLmsStore({ database } = {}) {
 
     async listCourses() {
       const { rows } = await database.query(
-        'SELECT id, title, description, created_at, updated_at FROM courses ORDER BY title ASC'
+        'SELECT id, title, description, owner_account_id, created_at, updated_at FROM courses ORDER BY title ASC'
       );
       const materials = await materialsOf(rows.map((row) => row.id));
       return rows.map((row) => toCourse(row, materials.get(row.id) || []));

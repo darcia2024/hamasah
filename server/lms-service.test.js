@@ -3,6 +3,8 @@ const { createLmsService } = require('./lms-service.js');
 
 const student = { id: 'student-account-1', role: 'student' };
 const admin = { id: 'admin-1', role: 'admin' };
+const teacher = { id: 'teacher-1', role: 'teacher' };
+const otherTeacher = { id: 'teacher-2', role: 'teacher' };
 const service = createLmsService({
   now: function now() { return '2026-09-15T08:00:00.000Z'; },
   // Sengaja async, meniru pemeriksaan akses sungguhan yang membaca database.
@@ -26,6 +28,10 @@ async function run() {
   assert.equal(accessible.value.progress, 0);
   assert.equal((await service.listStudentCourses('student-1', student)).value.length, 1);
   assert.equal((await service.listCourses(admin)).value.length, 1);
+  const teacherCourse = await service.createCourse({ title: 'Fiqh Dasar', description: 'Pengantar fiqh ibadah harian.' }, teacher);
+  assert.equal((await service.listCourses(teacher)).value.length, 1);
+  assert.equal((await service.updateMaterial(teacherCourse.value.id, 'materi-tidak-ada', { title: 'X', content: 'Y', summary: 'Ringkasan cukup.' }, otherTeacher)).ok, false);
+  assert.equal((await service.addMaterial(teacherCourse.value.id, { type: 'text', title: 'Materi', content: 'Isi materi.', summary: 'Ringkasan materi cukup.', keyPoints: ['Poin'] }, otherTeacher)).ok, false);
   assert.equal((await service.completeMaterial('student-1', courseId, material.value.id, student)).value.progress, 100);
 
   const help = await service.studyHelp('student-1', courseId, material.value.id, 'Apa fungsi khabar?', student);

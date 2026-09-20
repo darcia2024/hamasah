@@ -76,6 +76,10 @@ function createLmsService(options) {
     return Boolean(actor && MANAGE_ROLES.includes(actor.role));
   }
 
+  function canManageCourse(course, actor) {
+    return Boolean(actor && (actor.role === 'admin' || (actor.role === 'teacher' && course && course.ownerAccountId === actor.id)));
+  }
+
   // Wajib di-await. Tanpa await, Promise selalu bernilai benar dan akses santri lain terbuka.
   async function canStudy(studentId, actor) {
     // Musyrif boleh melihat pembelajaran santri walau tidak boleh mengelola maddah.
@@ -98,7 +102,7 @@ function createLmsService(options) {
       return { ok: false, error: 'Judul dan deskripsi maddah belum valid.' };
     }
     const course = await store.createCourse({
-      id: crypto.randomUUID(), title, description, createdAt: now(), updatedAt: now()
+      id: crypto.randomUUID(), title, description, ownerAccountId: actor.role === 'teacher' ? actor.id : null, createdAt: now(), updatedAt: now()
     });
     return { ok: true, value: course };
   }
@@ -108,7 +112,7 @@ function createLmsService(options) {
       return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
     }
     const course = await store.getCourse(courseId);
-    if (!course) {
+    if (!course || !canManageCourse(course, actor)) {
       return { ok: false, error: 'Maddah tidak ditemukan.' };
     }
     const source = input || {};
@@ -135,6 +139,7 @@ function createLmsService(options) {
   async function updateMaterial(courseId, materialId, input, actor) {
     if (!isStaff(actor)) return { ok: false, error: 'Akses guru atau admin diperlukan.' };
     const course = await store.getCourse(courseId); if (!course || !course.materials.some((item) => item.id === materialId)) return { ok: false, error: 'Materi tidak ditemukan.' };
+    if (!canManageCourse(course, actor)) return { ok: false, error: 'Guru hanya dapat mengubah course miliknya.' };
     const source = input || {}; const title = clean(source.title); const content = clean(source.content); const summary = clean(source.summary);
     if (title.length < 3 || content.length < 3 || summary.length < 8) return { ok: false, error: 'Materi belum lengkap.' };
     const value = await store.updateMaterial(courseId, materialId, { title, content, summary, keyPoints: Array.isArray(source.keyPoints) ? source.keyPoints.map(clean).filter(Boolean).slice(0, 8) : undefined, studyGuide: Array.isArray(source.studyGuide) ? source.studyGuide : undefined, updatedAt: now() });
@@ -145,9 +150,11 @@ function createLmsService(options) {
     if (!isStaff(actor)) {
       return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
     }
-    if (!(await store.getCourse(courseId))) {
+    const course = await store.getCourse(courseId);
+    if (!course) {
       return { ok: false, error: 'Maddah tidak ditemukan.' };
     }
+    if (!canManageCourse(course, actor)) return { ok: false, error: 'Guru hanya dapat mengelola enrollment course miliknya.' };
     await store.addEnrollment(studentId, courseId, now());
     return { ok: true };
   }
@@ -205,7 +212,8 @@ function createLmsService(options) {
     if (!isStaff(actor) || typeof store.listCourses !== 'function') {
       return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
     }
-    return { ok: true, value: await store.listCourses() };
+    const courses = await store.listCourses();
+    return { ok: true, value: actor.role === 'admin' ? courses : courses.filter((course) => course.ownerAccountId === actor.id) };
   }
 
   async function completeMaterial(studentId, courseId, materialId, actor) {
