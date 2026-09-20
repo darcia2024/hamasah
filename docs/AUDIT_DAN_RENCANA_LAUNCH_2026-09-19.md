@@ -193,10 +193,10 @@ Setiap task mencakup schema bila diperlukan, service, API, UI, test, dan dokumen
 
 ### Tahap 0 — Stabilkan fondasi (koreksi Phase 6–8)
 
-- [ ] T00.1 Buat baseline test yang dapat direproduksi dan simpan temuan gagal A01. Jangan menghapus izin/test tanpa menuntaskan kebutuhan konversi.
-- [ ] T00.2 Perbaiki CSP/initializer halaman akun; pastikan aktivasi, lupa, reset dapat disubmit dari browser.
-- [ ] T00.3 Konsumsi token atomik, revoke sesi reset, lindungi lifecycle disabled/pending dan test konkurensi SQL.
-- [ ] T00.4 Audit semua sink HTML dinamis dan validasi server; tambahkan regresi input berbahaya.
+- [x] T00.1 Buat baseline test yang dapat direproduksi dan simpan temuan gagal A01. Jangan menghapus izin/test tanpa menuntaskan kebutuhan konversi.
+- [x] T00.2 Perbaiki CSP/initializer halaman akun; pastikan aktivasi, lupa, reset dapat disubmit dari browser.
+- [x] T00.3 Konsumsi token atomik, revoke sesi reset, lindungi lifecycle disabled/pending dan test konkurensi SQL.
+- [x] T00.4 Audit semua sink HTML dinamis dan validasi server; tambahkan regresi input berbahaya.
 - [ ] T00.5 Hilangkan metrik/identitas contoh dari dashboard produksi.
 
 Gate: regresi keamanan lulus, alur akun berfungsi di browser; kegagalan matriks konversi tetap dilacak sampai Tahap 3 selesai. Tidak boleh rilis dengan suite masih merah.
@@ -205,10 +205,10 @@ Gate: regresi keamanan lulus, alur akun berfungsi di browser; kegagalan matriks 
 
 Dependensi: T00.3.
 
-- [ ] T01.1 Outbox transaksional berisi pekerjaan yang benar-benar dapat dikirim, claim/lock, retry/backoff dan idempotency.
-- [ ] T01.2 Timeout provider, status accepted/failed yang tepat, recovery sesudah proses mati; jangan samakan diterima provider dengan diterima pengguna.
-- [ ] T01.3 Lindungi material token dalam pekerjaan menggunakan rancangan penyimpanan aman dengan TTL dan akses terbatas; jangan menulis token ke log.
-- [ ] T01.4 UI invitation/resend/error yang memakai lifecycle baru; dev test menggunakan adapter aman.
+- [x] T01.1 Outbox transaksional berisi pekerjaan yang benar-benar dapat dikirim, claim/lock, retry/backoff dan idempotency.
+- [x] T01.2 Timeout provider, status accepted/failed yang tepat, recovery sesudah proses mati; jangan samakan diterima provider dengan diterima pengguna.
+- [x] T01.3 Lindungi material token dalam pekerjaan menggunakan rancangan penyimpanan aman dengan TTL dan akses terbatas; jangan menulis token ke log.
+- [x] T01.4 UI invitation/resend/error yang memakai lifecycle baru; dev test menggunakan adapter aman.
 - [ ] T01.5 Dokumentasikan env email yang ditunda user; verifikasi provider nyata hanya saat env tersedia.
 
 Gate: crash/retry tidak menggandakan undangan atau kehilangan pekerjaan; test adapter lulus. Integrasi email nyata tetap menjadi gate sebelum fitur akun diluncurkan.
