@@ -511,6 +511,15 @@ function renderCrmDashboard(dashboard, account, onBack) {
       </button>
     </div>
   `;
+  const periodControls = document.createElement('div');
+  periodControls.className = 'crm-toolbar-filters';
+  periodControls.innerHTML = '<label class="sr-only" for="record-period-from">Dari tanggal</label><input id="record-period-from" type="date" value="' + (dashboard.period?.from || '') + '"><label class="sr-only" for="record-period-to">Sampai tanggal</label><input id="record-period-to" type="date" value="' + (dashboard.period?.to || '') + '"><button type="button" class="crm-filter-dropdown" id="apply-record-period">Terapkan periode</button>';
+  periodControls.querySelector('#apply-record-period').addEventListener('click', async () => {
+    const from = periodControls.querySelector('#record-period-from').value;
+    const to = periodControls.querySelector('#record-period-to').value;
+    try { await loadDashboard(student.id, account, onBack, { from, to }); } catch (error) { window.alert(error.message); }
+  });
+  toolbar.prepend(periodControls);
 
   // 4. Tab Panels Container
   const panelsContainer = document.createElement('div');
@@ -1493,8 +1502,9 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
   studentDashboard.hidden = false;
 }
 
-async function loadDashboard(studentId, account, onBack) {
-  const response = await fetch(`/api/students/${encodeURIComponent(studentId)}/dashboard`, { headers: requestHeaders() });
+async function loadDashboard(studentId, account, onBack, range = {}) {
+  const params = new URLSearchParams(); if (range.from) params.set('from', range.from); if (range.to) params.set('to', range.to);
+  const response = await fetch(`/api/students/${encodeURIComponent(studentId)}/dashboard${params.toString() ? `?${params}` : ''}`, { headers: requestHeaders() });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Dashboard belum dapat dimuat.');
 

@@ -309,7 +309,7 @@ function createStudentPortalService(options) {
     return corrected ? { ok: true, value: corrected.record } : { ok: false, error: 'Catatan tidak ditemukan.' };
   }
 
-  async function dashboard(studentId, actor) {
+  async function dashboard(studentId, actor, options) {
     const student = await store.getStudent(studentId);
     if (!student) {
       return { ok: false, error: 'Santri tidak ditemukan.' };
@@ -319,14 +319,19 @@ function createStudentPortalService(options) {
     }
 
     const latestFirst = function byLatest(left, right) { return right.occurredAt.localeCompare(left.occurredAt); };
-    const attendance = (await store.byStudent('attendance', studentId)).sort(latestFirst);
+    const range = options || {};
+    const from = range.from ? new Date(range.from) : null;
+    const to = range.to ? new Date(`${range.to}T23:59:59.999Z`) : null;
+    if ((from && Number.isNaN(from.getTime())) || (to && Number.isNaN(to.getTime())) || (from && to && from > to)) return { ok: false, error: 'Rentang tanggal tidak valid.' };
+    const withinRange = (entry) => (!from || new Date(entry.occurredAt) >= from) && (!to || new Date(entry.occurredAt) <= to);
+    const attendance = (await store.byStudent('attendance', studentId)).filter(withinRange).sort(latestFirst);
     const presentCount = attendance.filter(function present(entry) { return entry.status === 'present' || entry.status === 'late'; }).length;
     const attendanceRate = attendance.length ? Math.round((presentCount / attendance.length) * 100) : null;
     const [activities, achievements, evaluations, discipline] = await Promise.all([
-      store.byStudent('activities', studentId),
-      store.byStudent('achievements', studentId),
-      store.byStudent('evaluations', studentId),
-      store.byStudent('violations', studentId)
+      store.byStudent('activities', studentId).then((items) => items.filter(withinRange)),
+      store.byStudent('achievements', studentId).then((items) => items.filter(withinRange)),
+      store.byStudent('evaluations', studentId).then((items) => items.filter(withinRange)),
+      store.byStudent('violations', studentId).then((items) => items.filter(withinRange))
     ]);
 
     return {
@@ -342,6 +347,7 @@ function createStudentPortalService(options) {
           gender: student.gender || null,
           dormitoryId: student.dormitoryId || null
         },
+        period: { from: range.from || null, to: range.to || null },
         attendance: { total: attendance.length, present: presentCount, rate: attendanceRate, entries: attendance.slice(0, 30) },
         activities: activities.sort(latestFirst).slice(0, 20),
         achievements: achievements.sort(latestFirst),

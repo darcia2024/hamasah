@@ -19,6 +19,8 @@ async function run() {
   }, admin);
   assert.equal(created.ok, true);
   const studentId = created.value.id;
+  const sibling = await service.createStudent({ name: 'Saudara Fikri', program: 'Program Mahad', city: 'Kairo', joinDate: '2026-08-21', parentAccountIds: [parent.id] }, admin);
+  assert.equal(sibling.ok, true);
 
   assert.equal((await service.addActivity(studentId, { title: 'Talaqqi pagi', description: 'Membaca kitab bersama pembina.' }, admin)).ok, true);
   assert.equal((await service.addAchievement(studentId, { title: 'Menyelesaikan hafalan Juz 1' }, admin)).ok, true);
@@ -37,12 +39,17 @@ async function run() {
   assert.equal(parentDashboard.ok, true);
   assert.equal(parentDashboard.value.attendance.rate, 100);
   assert.equal(parentDashboard.value.achievements.length, 1);
+  const periodDashboard = await service.dashboard(studentId, parent, { from: '2026-09-01', to: '2026-09-02' });
+  assert.equal(periodDashboard.ok, true);
+  assert.equal(periodDashboard.value.attendance.total, 0);
+  assert.equal((await service.dashboard(studentId, parent, { from: 'tanggal-salah', to: '2026-09-02' })).ok, false);
   assert.equal((await service.dashboard(studentId, studentActor)).ok, true);
+  assert.equal((await service.dashboard(sibling.value.id, parent)).ok, true);
 
   // Wali lain tidak boleh melihat rekam jejak santri ini.
   assert.equal((await service.dashboard(studentId, { id: 'parent-lain', role: 'parent' })).ok, false);
   assert.equal((await service.listForActor({ id: 'parent-lain', role: 'parent' })).length, 0);
-  assert.equal((await service.listForActor(parent)).length, 1);
+  assert.equal((await service.listForActor(parent)).length, 2);
   assert.equal((await service.listForActor(studentActor)).length, 1);
 
   // Santri yang tidak ada tetap ditolak, bukan menghasilkan objek kosong.

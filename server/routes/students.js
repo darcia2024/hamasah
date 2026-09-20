@@ -113,8 +113,8 @@ module.exports = [
     method: 'GET',
     pattern: /^\/api\/students\/([\w-]+)\/dashboard$/,
     permission: 'students.read',
-    async handler({ response, services, auth, params }) {
-      const dashboard = await services.studentPortalService.dashboard(params[0], await auth.actor());
+    async handler({ response, services, auth, params, url }) {
+      const dashboard = await services.studentPortalService.dashboard(params[0], await auth.actor(), { from: url.searchParams.get('from') || null, to: url.searchParams.get('to') || null });
       json(response, dashboard.ok ? 200 : 403, dashboard.ok ? { dashboard: dashboard.value } : publicError(dashboard));
     }
   },
@@ -123,8 +123,8 @@ module.exports = [
     method: 'GET',
     pattern: /^\/api\/students\/([\w-]+)\/report$/,
     permission: 'students.read',
-    async handler({ response, services, auth, params, ip }) {
-      const report = await services.studentPortalService.dashboard(params[0], await auth.actor());
+    async handler({ response, services, auth, params, ip, url }) {
+      const report = await services.studentPortalService.dashboard(params[0], await auth.actor(), { from: url.searchParams.get('from') || null, to: url.searchParams.get('to') || null });
       if (!report.ok) {
         json(response, 403, publicError(report));
         return;
