@@ -94,6 +94,137 @@ async function unduhBerkas(url, namaBerkas, tombol) {
 }
 
 
+// ---- Task R3.3: panel visa dan berkas visa ----
+
+const visaReminderList = document.querySelector('#visa-reminder-list');
+const visaDocumentList = document.querySelector('#visa-document-list');
+const visaDocumentForm = document.querySelector('#visa-document-form');
+const visaStudentSelect = document.querySelector('#visa-student');
+
+const VISA_DOCUMENT_LABELS = Object.freeze({
+  passport: 'Paspor',
+  visa: 'Visa',
+  residence: 'Izin Tinggal',
+  other: 'Lainnya'
+});
+
+const SEHARI_MS = 24 * 60 * 60 * 1000;
+
+function tanggalIndonesia(iso) {
+  return new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(new Date(`${iso}T00:00:00Z`));
+}
+
+// Selisih hari dihitung dari tengah malam UTC ke tengah malam UTC, supaya jam
+// pemuatan halaman tidak mengubah hasilnya.
+function selisihHari(iso) {
+  const hariIni = new Date();
+  const nolkan = Date.UTC(hariIni.getUTCFullYear(), hariIni.getUTCMonth(), hariIni.getUTCDate());
+  return Math.round((new Date(`${iso}T00:00:00Z`).getTime() - nolkan) / SEHARI_MS);
+}
+
+function kosong(pesan) {
+  const p = document.createElement('p');
+  p.className = 'form-status';
+  p.textContent = pesan;
+  return p;
+}
+
+function visaReminderRow(item) {
+  const baris = document.createElement('div');
+  baris.className = 'op-row';
+
+  const utama = document.createElement('div');
+  utama.className = 'op-row__main';
+  const judul = document.createElement('strong');
+  judul.textContent = `${VISA_DOCUMENT_LABELS[item.document] || item.document} \u00b7 ${studentLabel(item.studentId)}`;
+  const rinci = document.createElement('span');
+  rinci.textContent = `Berlaku sampai ${tanggalIndonesia(item.expiresAt)} \u00b7 status ${item.status}`;
+  utama.append(judul, rinci);
+
+  // Perbedaan sudah lewat dan akan lewat dinyatakan lewat kata, bukan hanya warna.
+  const hari = selisihHari(item.expiresAt);
+  const tanda = document.createElement('span');
+  tanda.className = item.overdue ? 'op-status op-status--overdue' : 'op-status op-status--unpaid';
+  if (item.overdue) {
+    const lewat = Math.abs(hari);
+    tanda.textContent = lewat === 0 ? 'Kedaluwarsa hari ini' : `Sudah lewat ${lewat} hari`;
+  } else {
+    tanda.textContent = hari === 0 ? 'Kedaluwarsa hari ini' : `${hari} hari lagi`;
+  }
+
+  baris.append(utama, tanda);
+  return baris;
+}
+
+async function loadVisaReminders() {
+  try {
+    const hasil = await jsonRequest('/api/operations/visa-reminders?days=30', { headers: headers() });
+    if (!hasil.items.length) {
+      visaReminderList.replaceChildren(kosong('Tidak ada paspor atau visa yang kedaluwarsa dalam 30 hari ke depan. Daftar ini terisi setelah tanggal berlaku dicatat pada formulir di bawah.'));
+      return;
+    }
+    visaReminderList.replaceChildren(...hasil.items.map(visaReminderRow));
+  } catch (error) {
+    visaReminderList.replaceChildren(kosong(error.message));
+  }
+}
+
+function visaDocumentRow(document_) {
+  const baris = document.createElement('div');
+  baris.className = 'op-row';
+
+  const utama = document.createElement('div');
+  utama.className = 'op-row__main';
+  const judul = document.createElement('strong');
+  judul.textContent = `${VISA_DOCUMENT_LABELS[document_.documentType] || document_.documentType} \u00b7 ${studentLabel(document_.studentId)}`;
+  const rinci = document.createElement('span');
+  const berlaku = document_.expiresAt ? `berlaku sampai ${tanggalIndonesia(document_.expiresAt)}` : 'tanpa tanggal berlaku';
+  const diunggah = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(new Date(document_.uploadedAt));
+  rinci.textContent = document_.note ? `${berlaku} \u00b7 diunggah ${diunggah} \u00b7 ${document_.note}` : `${berlaku} \u00b7 diunggah ${diunggah}`;
+  utama.append(judul, rinci);
+
+  baris.append(utama);
+  return baris;
+}
+
+async function loadVisaDocuments() {
+  const studentId = visaStudentSelect ? visaStudentSelect.value : '';
+  try {
+    const jalur = studentId ? `/api/operations/visa-documents?studentId=${encodeURIComponent(studentId)}` : '/api/operations/visa-documents';
+    const hasil = await jsonRequest(jalur, { headers: headers() });
+    if (!hasil.items.length) {
+      visaDocumentList.replaceChildren(kosong('Belum ada berkas visa untuk santri ini. Unggah pindaian lewat formulir di atas.'));
+      return;
+    }
+    visaDocumentList.replaceChildren(...hasil.items.map(visaDocumentRow));
+  } catch (error) {
+    visaDocumentList.replaceChildren(kosong(error.message));
+  }
+}
+
+// Alur unggah dua langkah yang sudah dipakai halaman cek status: minta tempat
+// unggah lebih dulu supaya izin dan ukuran diperiksa sebelum satu byte pun
+// dikirim, baru isinya menyusul.
+async function unggahBerkasVisa(file, studentId) {
+  const minta = await jsonRequest('/api/uploads', {
+    method: 'POST',
+    headers: { ...headers(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      purpose: 'visa-document',
+      entityId: studentId,
+      fileName: file.name,
+      contentType: file.type || 'application/octet-stream',
+      size: file.size
+    })
+  });
+  await jsonRequest(`/api/uploads/${encodeURIComponent(minta.upload.id)}/content`, {
+    method: 'PUT',
+    headers: { ...headers(), 'Content-Type': file.type || 'application/octet-stream' },
+    body: file
+  });
+  return minta.upload.id;
+}
+
 // ---- Task R3.2: koreksi dan pembatalan invoice ----
 
 const invoiceActionDialog = document.querySelector('#invoice-action-dialog');
@@ -471,11 +602,16 @@ document.querySelector('#visa-form').addEventListener('submit', async (event) =>
       body: JSON.stringify({
         studentId: document.querySelector('#visa-student').value,
         status: document.querySelector('#visa-state').value,
+        // Tanpa kedua tanggal ini panel peringatan tidak akan pernah terisi:
+        // visaReminders membacanya dari baris visa, dan sebelum Task R3.3 formulir
+        // ini tidak punya isiannya sama sekali.
+        passportExpiresAt: document.querySelector('#visa-passport-expires').value || null,
+        visaExpiresAt: document.querySelector('#visa-visa-expires').value || null,
         note: document.querySelector('#visa-note').value
       })
     });
     feedback('#visa-status', 'Status visa berhasil disimpan.');
-    await loadOperations();
+    await Promise.all([loadOperations(), loadVisaReminders()]);
   } catch (error) {
     feedback('#visa-status', error.message, true);
   }
@@ -507,6 +643,49 @@ document.querySelector('#reload-operations').addEventListener('click', () => loa
 
 if (downloadReportButton) downloadReportButton.addEventListener('click', () => unduhLaporan());
 
+if (visaStudentSelect) visaStudentSelect.addEventListener('change', () => loadVisaDocuments());
+
+if (visaDocumentForm) {
+  visaDocumentForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const studentId = visaStudentSelect ? visaStudentSelect.value : '';
+    const file = document.querySelector('#visa-document-file').files[0];
+    if (!studentId) {
+      feedback('#visa-document-status', 'Pilih santri terlebih dahulu pada formulir status visa di atas.', true);
+      return;
+    }
+    if (!file) {
+      feedback('#visa-document-status', 'Pilih berkas yang akan diunggah.', true);
+      return;
+    }
+    const tombol = visaDocumentForm.querySelector('button[type="submit"] span');
+    const labelAsli = tombol ? tombol.textContent : '';
+    if (tombol) tombol.textContent = 'Mengunggah...';
+    try {
+      feedback('#visa-document-status', 'Mengunggah berkas...');
+      const fileObjectId = await unggahBerkasVisa(file, studentId);
+      await jsonRequest('/api/operations/visa-documents', {
+        method: 'POST',
+        headers: { ...headers(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId,
+          fileObjectId,
+          documentType: document.querySelector('#visa-document-type').value,
+          expiresAt: document.querySelector('#visa-document-expires').value || null,
+          note: document.querySelector('#visa-document-note').value
+        })
+      });
+      visaDocumentForm.reset();
+      feedback('#visa-document-status', 'Berkas visa tersimpan.');
+      await loadVisaDocuments();
+    } catch (error) {
+      feedback('#visa-document-status', error.message, true);
+    } finally {
+      if (tombol) tombol.textContent = labelAsli;
+    }
+  });
+}
+
 invoiceActionForm.addEventListener('submit', kirimAksiInvoice);
 document.querySelector('#invoice-action-cancel').addEventListener('click', tutupDialogInvoice);
 // Escape menutup <dialog> sendiri; state internal ikut dibersihkan agar pembukaan
@@ -530,9 +709,9 @@ if (logoutButton) {
     consoleSection.hidden = false;
     document.body.classList.add('in-crm');
     renderStaffNav(staffNav, result.account.role, 'operations', result.account);
-    const tugas = [loadOperations()];
-    if (result.account.role === 'admin') tugas.push(loadStudents());
-    await Promise.all(tugas);
+    // Daftar santri dimuat lebih dulu supaya panel visa menampilkan nama, bukan UUID.
+    if (result.account.role === 'admin') await loadStudents();
+    await Promise.all([loadOperations(), loadVisaReminders(), loadVisaDocuments()]);
   } catch (error) {
     guardCopy.textContent = error.message || 'Silakan masuk melalui Portal Hamasah.';
   }

@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website.css?v=24" />
-    <link rel="stylesheet" href="staff.css?v=5" />
+    <link rel="stylesheet" href="staff.css?v=6" />
     <link rel="stylesheet" href="portal.css?v=5" />
   </head>
   <body class="staff-page">
@@ -256,6 +256,14 @@
           <div id="panel-visa" class="crm-white-card" hidden>
             <div class="crm-white-card-header">
               <div>
+                <h3>Visa Mendekati Kedaluwarsa</h3>
+                <p>Paspor dan visa yang habis masa berlakunya dalam 30 hari ke depan, termasuk yang sudah lewat. Diurutkan dari yang paling mendesak.</p>
+              </div>
+            </div>
+            <div id="visa-reminder-list" class="op-row-list"></div>
+
+            <div class="crm-white-card-header op-subheader">
+              <div>
                 <h3>Pembaruan Berkas &amp; Tracker Visa Pelajar</h3>
                 <p>Catat status dan progres pengurusan visa pelajar Republik Arab Mesir untuk santri binaan.</p>
               </div>
@@ -276,6 +284,16 @@
                   <option value="expired">Kedaluwarsa</option>
                 </select>
               </div>
+              <div class="form-grid-2">
+                <div>
+                  <label for="visa-passport-expires">Paspor Berlaku Sampai</label>
+                  <input id="visa-passport-expires" type="date" />
+                </div>
+                <div>
+                  <label for="visa-visa-expires">Visa Berlaku Sampai</label>
+                  <input id="visa-visa-expires" type="date" />
+                </div>
+              </div>
               <div>
                 <label for="visa-note">Catatan / Keterangan Dokumen</label>
                 <textarea id="visa-note" rows="3" placeholder="Contoh: Berkas legalisasi Kemenlu selesai, menunggu jadwal wawancara kedutaan."></textarea>
@@ -286,6 +304,44 @@
               </button>
               <p id="visa-status" class="form-status" role="status" aria-live="polite"></p>
             </form>
+
+            <div class="crm-white-card-header op-subheader">
+              <div>
+                <h3>Berkas Visa Santri</h3>
+                <p>Unggah pindaian paspor, visa, atau izin tinggal. Berkas hanya dapat dibuka oleh peran operasional.</p>
+              </div>
+            </div>
+            <form id="visa-document-form" class="staff-form">
+              <div class="form-grid-2">
+                <div>
+                  <label for="visa-document-type">Jenis Berkas</label>
+                  <select id="visa-document-type" class="monitoring-select">
+                    <option value="passport">Paspor</option>
+                    <option value="visa">Visa</option>
+                    <option value="residence">Izin Tinggal</option>
+                    <option value="other">Lainnya</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="visa-document-expires">Berlaku Sampai</label>
+                  <input id="visa-document-expires" type="date" />
+                </div>
+              </div>
+              <div>
+                <label for="visa-document-file">Berkas Pindaian (PDF, JPG, atau PNG, maksimal 5 MB)</label>
+                <input id="visa-document-file" type="file" accept="application/pdf,image/jpeg,image/png" required />
+              </div>
+              <div>
+                <label for="visa-document-note">Catatan Berkas</label>
+                <input id="visa-document-note" type="text" placeholder="Contoh: Paspor pengganti setelah perpanjangan" />
+              </div>
+              <button class="button button--primary staff-form__submit" type="submit">
+                <span>Unggah Berkas Visa</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              </button>
+              <p id="visa-document-status" class="form-status" role="status" aria-live="polite"></p>
+            </form>
+            <div id="visa-document-list" class="op-row-list"></div>
           </div>
 
           <!-- Tab Panel 3: Inventaris Fasilitas & Asrama -->
@@ -336,6 +392,6 @@
 
     <script src="internal-shell.js?v=1"></script>
     <script src="nav.js?v=3"></script>
-    <script src="operations.js?v=5"></script>
+    <script src="operations.js?v=6"></script>
   </body>
 </html>

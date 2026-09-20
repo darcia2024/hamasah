@@ -148,6 +148,26 @@ const POLICIES = Object.freeze({
     }
   }),
 
+  // Paspor, visa, dan izin tinggal santri yang sudah berangkat. Dipisahkan dari
+  // registration-document karena pemiliknya sudah menjadi santri, bukan pendaftar,
+  // dan yang mengurusnya bagian operasional, bukan petugas pendaftaran.
+  //
+  // Hanya peran operasional yang boleh membuka. Wali dan santri sengaja belum
+  // diberi akses: memperlihatkan berkas keimigrasian kepada mereka adalah keputusan
+  // yang perlu diambil pihak Hamasah, bukan efek samping dari task ini.
+  'visa-document': Object.freeze({
+    entityType: 'student',
+    visibility: 'private',
+    contentTypes: DOKUMEN,
+    maxBytes: 5 * MB,
+    async canUpload({ actor }) {
+      return Boolean(actor) && roleHasPermission(actor.role, 'operations.manage');
+    },
+    async canDownload({ actor }) {
+      return Boolean(actor) && roleHasPermission(actor.role, 'operations.read');
+    }
+  }),
+
   // Tanda tangan dan stempel untuk dokumen resmi.
   'signature-asset': Object.freeze({
     entityType: 'organization',

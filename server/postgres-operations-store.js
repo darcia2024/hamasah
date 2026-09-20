@@ -211,6 +211,28 @@ function createPostgresOperationsStore({ database } = {}) {
       });
     },
 
+    // Berkas visa disimpan sejak migrasi 022, lengkap dengan index
+    // visa_documents_student_idx, tetapi tidak pernah dibaca dari mana pun.
+    async listVisaDocuments(studentId) {
+      const { rows } = await database.query(
+        `SELECT id, student_id, file_object_id, document_type, expires_at::text AS expires_at, note, uploaded_at
+           FROM visa_documents
+          WHERE $1::uuid IS NULL OR student_id = $1
+          ORDER BY uploaded_at DESC`,
+        [studentId || null]
+      );
+      return rows.map((row) => ({
+        id: row.id,
+        studentId: row.student_id,
+        fileObjectId: row.file_object_id || null,
+        documentType: row.document_type,
+        // ::text supaya tanggal tidak bergeser sehari karena zona waktu.
+        expiresAt: row.expires_at || null,
+        note: row.note || '',
+        uploadedAt: toIso(row.uploaded_at)
+      }));
+    },
+
     async saveVisaDocument(document) {
       const { rows } = await database.query(
         `INSERT INTO visa_documents (id, student_id, file_object_id, document_type, expires_at, note, uploaded_at)

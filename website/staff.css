@@ -1112,3 +1112,11 @@
   font-size: 12.5px;
   color: var(--crm-text-secondary);
 }
+
+/* Paspor atau visa yang sudah lewat tanggal (Task R3.3). Merah dipakai di sini
+   karena ini memang keadaan yang perlu ditindak, bukan sekadar menunggu. Warna
+   bukan satu-satunya pembeda: teksnya sendiri menyebut "Sudah lewat N hari". */
+.op-status--overdue {
+  color: #FFFFFF;
+  background: #DC2626;
+}

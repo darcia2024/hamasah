@@ -166,6 +166,16 @@ module.exports = [
   },
 
   {
+    method: 'GET',
+    pattern: /^\/api\/operations\/visa-documents$/,
+    permission: 'operations.read',
+    async handler({ response, services, auth, url }) {
+      const result = await services.operationsService.listVisaDocuments(url.searchParams.get('studentId'), await auth.actor());
+      json(response, result.ok ? 200 : 403, result.ok ? { items: result.value } : publicError(result));
+    }
+  },
+
+  {
     method: 'POST',
     pattern: /^\/api\/operations\/visa-documents$/,
     permission: 'operations.manage',

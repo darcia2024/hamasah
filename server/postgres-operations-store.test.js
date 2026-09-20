@@ -162,6 +162,28 @@ async function run() {
     assert.equal(setelahAkunDihapus[0].actorName, null);
     assert.equal(setelahAkunDihapus[0].reason, 'Salah ketik bulan dan nominal.');
 
+    // Task R3.3. Berkas visa disimpan sejak migrasi 022 dan tidak pernah dibaca.
+    assert.deepEqual(await store.listVisaDocuments(studentId), []);
+    await store.saveVisaDocument({
+      id: crypto.randomUUID(), studentId, fileObjectId: null, documentType: 'passport',
+      expiresAt: '2028-01-31', note: 'Paspor lama', uploadedAt: '2026-09-18T00:00:00.000Z'
+    });
+    await store.saveVisaDocument({
+      id: crypto.randomUUID(), studentId, fileObjectId: null, documentType: 'visa',
+      expiresAt: null, note: '', uploadedAt: '2026-09-19T00:00:00.000Z'
+    });
+    const berkasVisa = await store.listVisaDocuments(studentId);
+    assert.equal(berkasVisa.length, 2);
+    assert.equal(berkasVisa[0].documentType, 'visa', 'Unggahan terbaru di urutan pertama.');
+    assert.equal(berkasVisa[0].expiresAt, null);
+    // Tanggal tidak boleh bergeser sehari karena zona waktu.
+    assert.equal(berkasVisa[1].expiresAt, '2028-01-31');
+    assert.equal(berkasVisa[1].note, 'Paspor lama');
+
+    const santriLain = await insertStudent(database, 'Santri Lain');
+    assert.deepEqual(await store.listVisaDocuments(santriLain), [], 'Berkas santri lain tidak ikut terbawa.');
+    assert.equal((await store.listVisaDocuments(null)).length, 2, 'Tanpa filter, seluruh berkas terbaca.');
+
     console.log('postgres operations store tests passed');
   } finally {
     await database.close();

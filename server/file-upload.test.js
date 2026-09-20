@@ -194,6 +194,29 @@ async function run() {
     });
     assert.equal(waliUnggah.status, 403);
 
+    // --- Task R3.3: berkas visa hanya untuk peran operasional ---
+    const visaUnggah = await request(baseUrl, 'POST', '/api/uploads', {
+      token: adminToken,
+      body: { purpose: 'visa-document', entityId: studentId, fileName: 'paspor.pdf', contentType: 'application/pdf', size: PDF.length }
+    });
+    assert.equal(visaUnggah.status, 201, 'Admin boleh mengunggah berkas visa.');
+    const visaFileId = visaUnggah.body.upload.id;
+    assert.equal((await request(baseUrl, 'PUT', `/api/uploads/${visaFileId}/content`, {
+      token: adminToken, raw: PDF, contentType: 'application/pdf'
+    })).status, 200);
+    assert.equal((await request(baseUrl, 'GET', `/api/files/${visaFileId}`, { token: adminToken })).status, 200);
+
+    // Wali dan santri sengaja tidak diberi akses ke berkas keimigrasian.
+    assert.equal((await request(baseUrl, 'GET', `/api/files/${visaFileId}`, { token: wali.token })).status, 403,
+      'Wali tidak boleh membuka berkas visa.');
+    assert.equal((await request(baseUrl, 'GET', `/api/files/${visaFileId}`, { token: santriAkun.token })).status, 403,
+      'Santri tidak boleh membuka berkas visa.');
+    assert.equal((await request(baseUrl, 'POST', '/api/uploads', {
+      token: wali.token,
+      body: { purpose: 'visa-document', entityId: studentId, fileName: 'paspor.pdf', contentType: 'application/pdf', size: PDF.length }
+    })).status, 403, 'Wali tidak boleh mengunggah berkas visa.');
+    assert.equal((await request(baseUrl, 'GET', `/api/files/${visaFileId}`)).status, 403, 'Tanpa sesi ditolak.');
+
     // --- Berkas yang belum lengkap isinya tidak bisa diunduh ---
     const belumLengkap = await request(baseUrl, 'POST', '/api/uploads', {
       token: adminToken,
