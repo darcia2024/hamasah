@@ -1,15 +1,14 @@
-(function registrationServiceModule(root, factory) {
-  if (typeof module === 'object' && module.exports) {
-    module.exports = factory(require('./registration-domain.js'));
-    return;
-  }
-
-  root.HamasahRegistrationService = factory(root.HamasahRegistrationDomain);
-})(typeof globalThis !== 'undefined' ? globalThis : null, function registrationServiceFactory(domain) {
+// Modul sisi server: aturan transisi status pendaftaran, penanganan token akses,
+// dan listForStaff. Sebelum Task R2.1 berkas ini berada di website/ sehingga dapat
+// diunduh siapa pun di /website/registration-service.js. Tidak ada satu pun halaman
+// yang memuatnya lewat <script>, jadi cabang UMD untuk browser ikut dicabut.
+(function registrationServiceModule(factory) {
+  module.exports = factory(require('../website/registration-domain.js'));
+})(function registrationServiceFactory(domain) {
   'use strict';
 
   if (!domain) {
-    throw new Error('HamasahRegistrationDomain harus dimuat sebelum registration-service.js.');
+    throw new Error('registration-domain.js gagal dimuat.');
   }
 
   const DOCUMENT_TYPES = Object.freeze([

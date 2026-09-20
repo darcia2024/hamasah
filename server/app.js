@@ -3,7 +3,7 @@
 
 const http = require('node:http');
 const path = require('node:path');
-const registrationServiceModule = require('../website/registration-service.js');
+const registrationServiceModule = require('./registration-service.js');
 const { createDatabase } = require('./db.js');
 const { createPostgresRegistrationStore } = require('./postgres-registration-store.js');
 const { createPostgresApplicantSessionStore } = require('./postgres-applicant-session-store.js');

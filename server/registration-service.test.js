@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const domain = require('./registration-domain.js');
+const domain = require('../website/registration-domain.js');
 const serviceModule = require('./registration-service.js');
 
 function applicant(name) {

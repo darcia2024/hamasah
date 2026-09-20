@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const registration = require('./registration-domain.js');
+const registration = require('../website/registration-domain.js');
 
 const validApplicant = {
   applicantName: 'Ahmad Fikri Ramadhan',

@@ -1,3 +1,14 @@
+// Aturan validasi pendaftaran yang dipakai browser DAN server, sengaja satu berkas.
+//
+// Berkas ini tetap di website/ meski Task R2.1 memindahkan modul server lain ke
+// server/. Alasannya: index.html memuatnya lewat <script src="registration-domain.js">
+// dan proyek ini tidak punya langkah build, jadi satu-satunya cara browser
+// mendapatkannya adalah dari folder yang disajikan statis. Menaruh kanonisnya di
+// server/ berarti menambah rute penyajian khusus, dan menyalinnya ke dua tempat
+// berarti dua sumber kebenaran untuk aturan yang sama. Keduanya lebih buruk.
+//
+// Karena itu isinya harus tetap aman dibaca publik: hanya aturan validasi dan
+// bentuk data. Jangan menambahkan rahasia, kunci, atau logika otorisasi di sini.
 (function registrationDomainModule(root, factory) {
   const api = factory();
 
