@@ -16,7 +16,7 @@ function clean(value) {
 // Antarmuka store LMS sama persis dengan postgres-lms-store.js, supaya service
 // tidak perlu tahu data disimpan di mana.
 function createMemoryLmsStore() {
-  const database = { courses: {}, enrollments: {}, completions: [] };
+  const database = { courses: {}, enrollments: {}, completions: [], attempts: [] };
   return {
     async createCourse(course) {
       database.courses[course.id] = clone({ ...course, materials: [] });
@@ -55,7 +55,9 @@ function createMemoryLmsStore() {
       if (!sudahAda) {
         database.completions.push(clone(record));
       }
-    }
+    },
+    async listAttempts(studentId, materialId) { return clone(database.attempts.filter((entry) => entry.studentId === studentId && (!materialId || entry.materialId === materialId))); },
+    async addAttempt(record) { database.attempts.push(clone(record)); return clone(record); }
   };
 }
 
@@ -208,6 +210,25 @@ function createLmsService(options) {
     return getStudentCourse(studentId, courseId, actor);
   }
 
+  async function submitQuiz(studentId, courseId, materialId, answers, actor) {
+    if (!(await canStudy(studentId, actor))) return { ok: false, error: 'Akses pembelajaran tidak diizinkan.' };
+    if (!(await store.getEnrollments(studentId)).includes(courseId)) return { ok: false, error: 'Santri belum terdaftar pada maddah ini.' };
+    const course = await store.getCourse(courseId);
+    const material = course && course.materials.find((entry) => entry.id === materialId);
+    if (!material || material.type !== 'quiz') return { ok: false, error: 'Kuis tidak ditemukan.' };
+    let questions;
+    try { questions = JSON.parse(material.content).questions; } catch { questions = null; }
+    if (!Array.isArray(questions) || !questions.length) return { ok: false, error: 'Konfigurasi kuis belum valid.' };
+    const previous = await store.listAttempts(studentId, materialId);
+    if (previous.length >= 3) return { ok: false, error: 'Batas percobaan kuis sudah tercapai.' };
+    const submitted = answers && typeof answers === 'object' ? answers : {};
+    const benar = questions.reduce((total, question, index) => total + (String(submitted[index] ?? '') === String(question.answer) ? 1 : 0), 0);
+    const score = Math.round((benar / questions.length) * 100);
+    const attempt = await store.addAttempt({ id: crypto.randomUUID(), studentId, courseId, materialId, attemptNumber: previous.length + 1, answers: submitted, score, passed: score >= 70, submittedAt: now() });
+    if (attempt.passed) await store.addCompletion({ id: crypto.randomUUID(), studentId, courseId, materialId, completedAt: now() });
+    return { ok: true, value: { attempt, course: await getStudentCourse(studentId, courseId, actor) } };
+  }
+
   async function studyHelp(studentId, courseId, materialId, question, actor) {
     const courseResult = await getStudentCourse(studentId, courseId, actor);
     if (!courseResult.ok) {
@@ -246,6 +267,7 @@ function createLmsService(options) {
     listCourses,
     listStudentCourses,
     studyHelp
+    ,submitQuiz
   });
 }
 

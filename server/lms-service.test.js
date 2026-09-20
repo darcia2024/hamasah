@@ -32,6 +32,19 @@ async function run() {
   assert.equal(help.ok, true);
   assert.equal(help.value.answer, 'Khabar menyempurnakan makna mubtada.');
 
+  const quiz = await service.addMaterial(courseId, {
+    type: 'quiz', title: 'Kuis Nahwu', content: JSON.stringify({ questions: [{ prompt: 'Pokok kalimat?', answer: 'mubtada' }, { prompt: 'Penyempurna makna?', answer: 'khabar' }] }),
+    summary: 'Uji pemahaman dasar nahwu.', keyPoints: ['Mubtada', 'Khabar']
+  }, admin);
+  assert.equal(quiz.ok, true);
+  const gagal = await service.submitQuiz('student-1', courseId, quiz.value.id, { 0: 'salah', 1: 'khabar' }, student);
+  assert.equal(gagal.ok, true);
+  assert.equal(gagal.value.attempt.score, 50);
+  const lulus = await service.submitQuiz('student-1', courseId, quiz.value.id, { 0: 'mubtada', 1: 'khabar' }, student);
+  assert.equal(lulus.value.attempt.passed, true);
+  assert.equal((await service.submitQuiz('student-1', courseId, quiz.value.id, { 0: 'mubtada', 1: 'khabar' }, student)).ok, true);
+  assert.equal((await service.submitQuiz('student-1', courseId, quiz.value.id, { 0: 'mubtada', 1: 'khabar' }, student)).ok, false, 'Percobaan keempat harus ditolak.');
+
   // Santri tidak boleh membuka maddah milik santri lain.
   assert.equal((await service.getStudentCourse('student-2', courseId, student)).ok, false);
   assert.equal((await service.listStudentCourses('student-2', student)).ok, false);

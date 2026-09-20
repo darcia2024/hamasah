@@ -85,4 +85,14 @@ module.exports = [
       json(response, help.ok ? 200 : 422, help.ok ? { help: help.value } : publicError(help));
     }
   }
+  ,{
+    method: 'POST',
+    pattern: /^\/api\/students\/([\w-]+)\/courses\/([\w-]+)\/materials\/([\w-]+)\/attempts$/,
+    permission: 'courses.read',
+    async handler({ response, services, auth, params, readBody }) {
+      const body = await readBody();
+      const result = await services.lmsService.submitQuiz(params[0], params[1], params[2], body.answers, await auth.actor());
+      json(response, result.ok ? 200 : 422, result.ok ? { attempt: result.value.attempt, course: result.value.course.value } : publicError(result));
+    }
+  }
 ];

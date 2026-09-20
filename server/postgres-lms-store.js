@@ -154,6 +154,26 @@ function createPostgresLmsStore({ database } = {}) {
          VALUES ($1, $2, $3, $4, $5) ON CONFLICT (student_id, material_id) DO NOTHING`,
         [record.id, record.studentId, record.courseId, record.materialId, record.completedAt]
       );
+    },
+
+    async listAttempts(studentId, materialId) {
+      const { rows } = await database.query(
+        `SELECT id, student_id, course_id, material_id, attempt_number, answers, score, passed, submitted_at
+           FROM lms_attempts WHERE student_id = $1 AND material_id = $2 ORDER BY attempt_number ASC`,
+        [studentId, materialId]
+      );
+      return rows.map((row) => ({ id: row.id, studentId: row.student_id, courseId: row.course_id, materialId: row.material_id, attemptNumber: row.attempt_number, answers: toJson(row.answers), score: row.score, passed: row.passed, submittedAt: toIso(row.submitted_at) }));
+    },
+
+    async addAttempt(record) {
+      const { rows } = await database.query(
+        `INSERT INTO lms_attempts (id, student_id, course_id, material_id, attempt_number, answers, score, passed, submitted_at)
+         VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9)
+         RETURNING id, student_id, course_id, material_id, attempt_number, answers, score, passed, submitted_at`,
+        [record.id, record.studentId, record.courseId, record.materialId, record.attemptNumber, JSON.stringify(record.answers || {}), record.score, record.passed, record.submittedAt]
+      );
+      const row = rows[0];
+      return { id: row.id, studentId: row.student_id, courseId: row.course_id, materialId: row.material_id, attemptNumber: row.attempt_number, answers: toJson(row.answers), score: row.score, passed: row.passed, submittedAt: toIso(row.submitted_at) };
     }
   };
 }
