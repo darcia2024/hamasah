@@ -92,6 +92,17 @@ async function run() {
     });
     assert.equal(parentDashboard.status, 200);
     assert.equal(parentDashboard.body.dashboard.attendance.rate, 100);
+    assert.equal(parentDashboard.body.dashboard.student.parentAccountIds, undefined, 'DTO wali tidak boleh membocorkan relasi akun internal.');
+    const parentPeriodDashboard = await request(baseUrl, `/api/students/${studentId}/dashboard?from=2026-01-01&to=2026-12-31`, {
+      headers: { Authorization: `Bearer ${parentLogin.body.accessToken}` }
+    });
+    assert.equal(parentPeriodDashboard.status, 200);
+    assert.deepEqual(parentPeriodDashboard.body.dashboard.period, { from: '2026-01-01', to: '2026-12-31' });
+    const parentPeriodReport = await request(baseUrl, `/api/students/${studentId}/report?from=2026-01-01&to=2026-12-31`, {
+      headers: { Authorization: `Bearer ${parentLogin.body.accessToken}` }
+    });
+    assert.equal(parentPeriodReport.status, 200);
+    assert.match(parentPeriodReport.body, /Fikri Santri/);
     const parentStudents = await request(baseUrl, '/api/my-students', {
       headers: { Authorization: `Bearer ${parentLogin.body.accessToken}` }
     });

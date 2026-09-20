@@ -426,6 +426,7 @@ Payload undangan sudah disimpan sebagai AES-GCM dan dapat didekripsi oleh worker
 - [x] Query claim notification PostgreSQL diperbaiki agar worker tidak gagal karena kolom `id` ambigu; integration test store dan worker lokal lulus.
 - [x] Browser UAT lokal memverifikasi landing page, validasi form pendaftaran kosong, halaman cek status, recovery kode akses, dan tidak menemukan error/warning JavaScript.
 - [x] Automated UAT finance/operations mencakup invoice paid/correction/void, import preview/commit, histori batch, reminder visa, dan penolakan akses wali.
+- [x] Automated UAT keluarga mencakup dashboard wali dengan filter periode, ekspor CSV periode, dan verifikasi DTO tidak membocorkan relasi akun internal.
 
 Bukti eksekusi: `SMOKE_BASE_URL=http://127.0.0.1:4273 SMOKE_ADMIN_EMAIL=admin@hamasah.test SMOKE_ADMIN_PASSWORD=(dev secret) node scripts/smoke.js` menghasilkan **13/13 langkah lulus**. Kegagalan pertama disebabkan environment development membaca `STORAGE_DRIVER=supabase` dari `.env`; `scripts/dev.js` sekarang memaksa driver lokal agar UAT development tidak bergantung jaringan.
 
