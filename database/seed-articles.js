@@ -40,14 +40,15 @@ async function seedArticles({ environment = { ...process.env }, Client, articles
     await client.query('BEGIN');
     for (const article of seedArticles) {
       await client.query(
-        `INSERT INTO articles (id, slug, title, excerpt, body, category, published_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `INSERT INTO articles (id, slug, title, excerpt, body, category, published_at, status, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'published', $7)
          ON CONFLICT (slug) DO UPDATE SET
            title = EXCLUDED.title,
            excerpt = EXCLUDED.excerpt,
            body = EXCLUDED.body,
            category = EXCLUDED.category,
-           published_at = EXCLUDED.published_at`,
+           published_at = EXCLUDED.published_at,
+           status = 'published', updated_at = EXCLUDED.updated_at`,
         [crypto.randomUUID(), article.slug, article.title, article.excerpt, article.body, article.category, article.publishedAt]
       );
     }

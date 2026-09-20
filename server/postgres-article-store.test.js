@@ -20,11 +20,26 @@ async function run() {
       excerpt: 'Ringkasan kegiatan.',
       body: 'Isi kegiatan lengkap.',
       category: 'Kegiatan',
-      publishedAt: PUBLISHED_AT
+      publishedAt: PUBLISHED_AT,
+      status: 'published',
+      archivedAt: null,
+      updatedAt: PUBLISHED_AT
     });
 
     assert.equal((await store.list()).length, 1);
     assert.equal((await store.get('kegiatan-santri-hamasah')).title, 'Kegiatan Santri Hamasah');
+
+    const draft = await store.create({ title: 'Rencana Kegiatan Santri', excerpt: 'Draft internal.', body: 'Isi yang belum diterbitkan.', status: 'draft' }, PUBLISHED_AT);
+    assert.equal(draft.ok, true);
+    assert.equal((await store.list()).length, 1, 'Draft tidak boleh tampil di katalog publik.');
+    assert.equal((await store.list({ publicOnly: false })).length, 2);
+    assert.equal((await store.get(draft.value.slug)), null);
+    const published = await store.update(draft.value.slug, { status: 'published' }, '2026-09-16T00:00:00.000Z');
+    assert.equal(published.ok, true);
+    assert.equal((await store.get(draft.value.slug)).status, 'published');
+    const archived = await store.update(draft.value.slug, { status: 'archived' }, '2026-09-17T00:00:00.000Z');
+    assert.equal(archived.value.status, 'archived');
+    assert.equal((await store.get(draft.value.slug)), null);
 
     // Slug ganda dikembalikan sebagai pesan yang ramah, bukan error mentah database.
     assert.deepEqual(await store.create(input, PUBLISHED_AT), { ok: false, error: 'Slug artikel sudah digunakan.' });

@@ -14,12 +14,20 @@ const MIME_TYPES = Object.freeze({
   '.json': 'application/json; charset=utf-8',
   '.png': 'image/png',
   '.svg': 'image/svg+xml',
-  '.webp': 'image/webp'
+  '.webp': 'image/webp',
+  '.xml': 'application/xml; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8'
 });
 
 const ALLOWED_PREFIXES = Object.freeze(['website/', 'assets/']);
 
-function notFound(response) {
+function notFound(response, rootDirectory) {
+  const customPage = rootDirectory && path.join(rootDirectory, 'website', '404.html');
+  if (customPage && fs.existsSync(customPage) && fs.statSync(customPage).isFile()) {
+    response.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8', 'X-Content-Type-Options': 'nosniff' });
+    fs.createReadStream(customPage).pipe(response);
+    return;
+  }
   response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
   response.end('Halaman tidak ditemukan.');
 }
@@ -76,11 +84,11 @@ function serveStaticFile(response, { pathname, rootDirectory }) {
       if (candidateAbs.startsWith(websiteDir) && fs.existsSync(candidateAbs) && fs.statSync(candidateAbs).isFile()) {
         normalizedPath = candidateRel;
       } else {
-        notFound(response);
+        notFound(response, rootDirectory);
         return;
       }
     } else {
-      notFound(response);
+      notFound(response, rootDirectory);
       return;
     }
   }
@@ -97,7 +105,7 @@ function serveStaticFile(response, { pathname, rootDirectory }) {
     filePath = path.join(filePath, 'index.html');
   }
   if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
-    notFound(response);
+    notFound(response, rootDirectory);
     return;
   }
 

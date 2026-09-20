@@ -238,12 +238,25 @@
                 <label for="article-body">Isi Artikel Lengkap</label>
                 <textarea id="article-body" rows="8" placeholder="Tuliskan ulasan informatif dan terstruktur..." required></textarea>
               </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                  <label for="article-status">Status editorial</label>
+                  <select id="article-status"><option value="draft">Simpan sebagai draf</option><option value="published" selected>Terbitkan</option></select>
+                </div>
+                <div>
+                  <label for="article-slug">Slug artikel (opsional saat baru)</label>
+                  <input id="article-slug" type="text" placeholder="dibuat otomatis dari judul" />
+                </div>
+              </div>
               <button class="button button--primary" type="submit" style="margin-top: 14px; height: 44px; width: 100%; justify-content: center;">
                 <span>Terbitkan Artikel Sekarang</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
               </button>
               <p id="article-form-status" class="form-status" role="status" aria-live="polite"></p>
             </form>
+            <div class="crm-white-card-header" style="margin-top: 28px;"><div><h3>Daftar editorial</h3><p>Kelola draf, artikel terbit, dan arsip tanpa menghapus riwayat.</p></div><button type="button" class="button button--secondary" id="refresh-articles">Perbarui</button></div>
+            <p id="article-list-status" class="form-status" role="status" aria-live="polite"></p>
+            <div id="article-manage-list" class="staff-registration-list"></div>
           </div>
           <div id="panel-notifications" class="crm-white-card" hidden>
             <div class="crm-white-card-header">
@@ -258,6 +271,6 @@
     </section>
 
     <script src="nav.js?v=3"></script>
-    <script src="staff.js?v=7"></script>
+    <script src="staff.js?v=8"></script>
   </body>
 </html>

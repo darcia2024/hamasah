@@ -9,6 +9,11 @@ const registrationListStatus = document.querySelector('#registration-list-status
 const conversionResult = document.querySelector('#conversion-result');
 const articleForm = document.querySelector('#article-form');
 const articleFormStatus = document.querySelector('#article-form-status');
+const articleStatus = document.querySelector('#article-status');
+const articleSlug = document.querySelector('#article-slug');
+const articleManageList = document.querySelector('#article-manage-list');
+const articleListStatus = document.querySelector('#article-list-status');
+const refreshArticles = document.querySelector('#refresh-articles');
 const staffNav = document.querySelector('#staff-nav');
 const registrationSearch = document.querySelector('#registration-search');
 const registrationStatusFilter = document.querySelector('#registration-status-filter');
@@ -17,6 +22,53 @@ const registrationPrev = document.querySelector('#registration-prev');
 const registrationNext = document.querySelector('#registration-next');
 const registrationPageLabel = document.querySelector('#registration-page-label');
 let registrationPage = 1;
+
+async function loadArticles() {
+  if (!articleManageList) return;
+  articleListStatus.textContent = 'Memuat artikel...';
+  articleListStatus.classList.remove('is-error');
+  try {
+    const response = await fetch('/api/staff/articles', { headers: authHeaders() });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Artikel belum dapat dimuat.');
+    articleManageList.replaceChildren();
+    if (!result.items.length) {
+      articleManageList.textContent = 'Belum ada artikel editorial.';
+    }
+    result.items.forEach((article) => {
+      const row = document.createElement('article');
+      row.className = 'staff-registration notification-row';
+      const detail = document.createElement('div');
+      detail.className = 'staff-registration__content';
+      const title = document.createElement('strong'); title.textContent = article.title;
+      const meta = document.createElement('small'); meta.textContent = `${article.slug} · ${article.status} · ${article.category}`;
+      detail.append(title, meta);
+      const actions = document.createElement('div'); actions.className = 'staff-registration__controls';
+      const edit = document.createElement('button'); edit.type = 'button'; edit.className = 'button button--secondary'; edit.textContent = 'Edit';
+      edit.addEventListener('click', () => {
+        articleSlug.value = article.slug; articleSlug.disabled = true;
+        document.querySelector('#article-title').value = article.title;
+        document.querySelector('#article-category').value = article.category;
+        document.querySelector('#article-excerpt').value = article.excerpt;
+        document.querySelector('#article-body').value = article.body;
+        articleStatus.value = article.status === 'archived' ? 'draft' : article.status;
+        document.querySelector('#article-form-title').textContent = `Edit artikel: ${article.title}`;
+        articleForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      const archive = document.createElement('button'); archive.type = 'button'; archive.className = 'button button--text'; archive.textContent = article.status === 'archived' ? 'Pulihkan sebagai draf' : 'Arsipkan';
+      archive.addEventListener('click', async () => {
+        archive.disabled = true;
+        try {
+          const response = await fetch(`/api/articles/${encodeURIComponent(article.slug)}`, { method: 'PATCH', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ status: article.status === 'archived' ? 'draft' : 'archived' }) });
+          const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Status artikel belum dapat disimpan.');
+          await loadArticles();
+        } catch (error) { articleListStatus.textContent = error.message; articleListStatus.classList.add('is-error'); archive.disabled = false; }
+      });
+      actions.append(edit, archive); row.append(detail, actions); articleManageList.append(row);
+    });
+    articleListStatus.textContent = `${result.items.length} artikel editorial.`;
+  } catch (error) { articleListStatus.textContent = error.message; articleListStatus.classList.add('is-error'); }
+}
 
 const STAFF_ROLES = Object.freeze(['admin', 'registration-officer']);
 
@@ -376,6 +428,7 @@ if (tabBtnRegs && tabBtnArticle && panelRegs && panelArticle) {
     panelArticle.hidden = false;
     panelRegs.hidden = true;
     if (panelNotifications) panelNotifications.hidden = true;
+    loadArticles().catch(() => {});
   });
   if (tabBtnNotifications && panelNotifications) tabBtnNotifications.addEventListener('click', () => {
     tabBtnNotifications.classList.add('is-active');
@@ -422,26 +475,33 @@ articleForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   articleFormStatus.classList.remove('is-error');
   try {
-    const response = await fetch('/api/articles', {
-      method: 'POST',
+    const editing = articleSlug.value.trim();
+    const response = await fetch(editing ? `/api/articles/${encodeURIComponent(editing)}` : '/api/articles', {
+      method: editing ? 'PATCH' : 'POST',
       headers: { ...authHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title: document.querySelector('#article-title').value,
         category: document.querySelector('#article-category').value,
         excerpt: document.querySelector('#article-excerpt').value,
-        body: document.querySelector('#article-body').value
+        body: document.querySelector('#article-body').value,
+        status: articleStatus.value,
+        ...(editing ? {} : { slug: articleSlug.value.trim() || undefined })
       })
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Artikel belum dapat diterbitkan.');
-    articleForm.reset();
+    articleForm.reset(); articleSlug.disabled = false; articleSlug.value = '';
     document.querySelector('#article-category').value = 'Kegiatan';
-    articleFormStatus.textContent = `Artikel “${result.item.title}” sudah diterbitkan.`;
+    document.querySelector('#article-form-title').textContent = 'Terbitkan Kabar & Wawasan Edukasi (Pena Hamasah)';
+    articleFormStatus.textContent = result.item.status === 'draft' ? `Draf “${result.item.title}” tersimpan.` : `Artikel “${result.item.title}” sudah diterbitkan.`;
+    loadArticles().catch(() => {});
   } catch (error) {
     articleFormStatus.textContent = error.message || 'Artikel belum dapat diterbitkan.';
     articleFormStatus.classList.add('is-error');
   }
 });
+
+if (refreshArticles) refreshArticles.addEventListener('click', () => loadArticles().catch(() => {}));
 
 logoutButton.addEventListener('click', async () => {
   await fetch('/api/auth/logout', { method: 'POST', headers: authHeaders() }).catch(() => {});

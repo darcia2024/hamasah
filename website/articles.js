@@ -7,6 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentCategory = 'all';
   let currentSearchQuery = '';
 
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[character]));
+  }
+
   const FALLBACK_ARTICLES = [
     {
       slug: 'pendampingan-santri-di-kairo',
@@ -80,19 +86,19 @@ document.addEventListener('DOMContentLoaded', () => {
       return `
         <article class="article-catalog-card">
           <div class="card-top-row">
-            <span class="m3-category-chip">${category}</span>
+            <span class="m3-category-chip">${escapeHtml(category)}</span>
             <time class="article-card-date" datetime="${a.publishedAt || ''}">${dateStr}</time>
           </div>
           <h2 class="article-card-title">
-            <a href="article.html?slug=${encodeURIComponent(a.slug)}">${a.title}</a>
+            <a href="article.html?slug=${encodeURIComponent(a.slug)}">${escapeHtml(a.title)}</a>
           </h2>
-          <p class="article-card-excerpt">${a.excerpt || ''}</p>
+          <p class="article-card-excerpt">${escapeHtml(a.excerpt || '')}</p>
           <div class="card-bottom-row">
             <div class="author-micro-badge">
               <span class="author-dot"></span>
               <span>Tim Hamasah Kairo</span>
             </div>
-            <a class="article-read-link" href="article.html?slug=${encodeURIComponent(a.slug)}" aria-label="Baca artikel ${a.title}">
+            <a class="article-read-link" href="article.html?slug=${encodeURIComponent(a.slug)}" aria-label="Baca artikel ${escapeHtml(a.title)}">
               <span>Baca Artikel</span>
               <span aria-hidden="true">→</span>
             </a>

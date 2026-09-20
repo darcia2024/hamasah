@@ -217,6 +217,26 @@ async function run() {
     const articles = await request(baseUrl, '/api/articles');
     assert.equal(articles.body.items.length, 1);
 
+    const draftArticle = await request(baseUrl, '/api/articles', {
+      method: 'POST', headers: adminHeaders,
+      body: JSON.stringify({ title: 'Draf Kegiatan Hamasah', excerpt: 'Draf untuk ditinjau.', body: 'Isi draf yang belum dipublikasikan.', status: 'draft' })
+    });
+    assert.equal(draftArticle.status, 201);
+    assert.equal((await request(baseUrl, '/api/articles')).body.items.length, 1);
+    const editorialList = await request(baseUrl, '/api/staff/articles', { headers: adminHeaders });
+    assert.equal(editorialList.status, 200);
+    assert.equal(editorialList.body.items.length, 2);
+    const publishedDraft = await request(baseUrl, `/api/articles/${draftArticle.body.item.slug}`, {
+      method: 'PATCH', headers: { ...adminHeaders, 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'published' })
+    });
+    assert.equal(publishedDraft.status, 200);
+    assert.equal((await request(baseUrl, '/api/articles')).body.items.length, 2);
+    const archivedDraft = await request(baseUrl, `/api/articles/${draftArticle.body.item.slug}`, {
+      method: 'PATCH', headers: { ...adminHeaders, 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'archived' })
+    });
+    assert.equal(archivedDraft.status, 200);
+    assert.equal((await request(baseUrl, '/api/articles')).body.items.length, 1);
+
     const logout = await request(baseUrl, '/api/auth/logout', { method: 'POST', headers: adminHeaders });
     assert.equal(logout.status, 204);
     const afterLogout = await request(baseUrl, '/api/me', { headers: adminHeaders });

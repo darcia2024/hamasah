@@ -6,6 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const slug = new URLSearchParams(window.location.search).get('slug');
 
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[character]));
+  }
+
   const FALLBACK_ARTICLES = {
     'pendampingan-santri-di-kairo': {
       slug: 'pendampingan-santri-di-kairo',
@@ -52,13 +58,14 @@ Program pembekalan intensif bahasa di Hamasah melatih santri mengerjakan model-m
   };
 
   function renderArticle(article) {
-    const category = article.category || 'Pena Hamasah';
-    const title = article.title;
+    const rawTitle = String(article.title || 'Artikel Hamasah');
+    const category = escapeHtml(article.category || 'Pena Hamasah');
+    const title = escapeHtml(rawTitle);
     const dateStr = article.publishedAt
       ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' }).format(new Date(article.publishedAt))
       : 'September 2026';
 
-    document.title = `${title} | Hamasah International`;
+    document.title = `${rawTitle} | Hamasah International`;
     if (breadcrumbTitle) breadcrumbTitle.textContent = title;
 
     const wordsCount = (article.body || '').split(/\s+/).length;
@@ -66,7 +73,7 @@ Program pembekalan intensif bahasa di Hamasah melatih santri mengerjakan model-m
 
     const paragraphsHtml = (article.body || '')
       .split(/\n{2,}/)
-      .map((p) => `<p>${p.trim()}</p>`)
+      .map((p) => `<p>${escapeHtml(p.trim())}</p>`)
       .join('');
 
     const html = `
@@ -86,7 +93,7 @@ Program pembekalan intensif bahasa di Hamasah melatih santri mengerjakan model-m
       </div>
 
       <div class="article-lead-box">
-        <p class="article-lead-text">${article.excerpt || ''}</p>
+        <p class="article-lead-text">${escapeHtml(article.excerpt || '')}</p>
       </div>
 
       <div class="article-prose">

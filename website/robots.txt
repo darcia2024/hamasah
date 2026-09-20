@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /website/staff.html
+Disallow: /website/portal.html
+Disallow: /website/monitoring.html
+Disallow: /website/audit.html
+Sitemap: /sitemap.xml

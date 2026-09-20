@@ -242,7 +242,7 @@ Gate: pertama membuat satu santri; retry tidak menggandakan; seluruh `npm test` 
 
 - [ ] T04.1 Audit konten asli Hamasah bersama pemilik; program, biaya, syarat, kontak dan jadwal mempunyai penanggung jawab.
 - [ ] T04.2 CMS draft/edit/publish/archive dan cover/media berizin; artikel kegiatan dapat dikelola staf.
-- [ ] T04.3 Lengkapi FAQ yang jujur, metadata halaman, sitemap, 404, tautan dan navigasi.
+- [x] T04.3 Lengkapi FAQ yang jujur, metadata halaman, sitemap, 404, tautan dan navigasi.
 - [ ] T04.4 Review mobile/keyboard/form error/loading/empty/success; pertahankan identitas logo dan tipografi yang sudah dipilih.
 - [ ] T04.5 Lengkapi pemberitahuan privasi/consent/retensi dengan pihak berwenang di Hamasah.
 - [ ] T04.6 Jalankan gate deployment pada Bagian 10 sebelum membuka Rilis A.
@@ -438,7 +438,7 @@ Snapshot ini menjadi acuan progres setelah UAT lokal terakhir; checklist tahap d
 - **Tahap 1 — notifikasi:** worker durable untuk undangan sudah selesai dengan claim, lease, retry, timeout, recovery, dan payload terenkripsi. UI status/resend undangan serta izin khusus petugas pendaftaran sudah tersedia. Recovery calon sekarang ikut antrean terenkripsi dan diproses worker; email provider nyata belum diuji, dan tipe schema masih memakai `password-reset` sampai enum notifikasi dipisahkan.
 - **Tahap 2 — pendaftaran:** alur inti selesai dan lulus UAT lokal: kontrak profil per program, validasi tanggal/umur/consent, auth calon, edit data, upload/download terotorisasi, review, revisi, penghapusan dokumen pending/rejected, catatan, next steps, recovery, locking, dan optimistic concurrency. Data legacy tetap dapat dibaca, sedangkan pendaftaran baru wajib memenuhi kontrak profil. Verifikasi storage provider nyata dan uji retensi terjadwal masih menjadi pekerjaan environment sebelum staging/production.
 - **Tahap 3 — konversi:** selesai di local. Konversi hanya menerima status siap keberangkatan/selesai, mengunci pendaftaran, memakai akun student satu kali, memakai ulang akun parent yang emailnya sama untuk saudara, menolak konflik role/email, dan hanya mengantrekan undangan untuk akun baru atau akun inactive tanpa undangan aktif. Retry idempotent, audit, outbox transaksional, permission matrix, dan hasil konversi di workspace petugas sudah diuji.
-- **Tahap 4 — Rilis A publik:** belum siap launch. Konten perlu disahkan pemilik, CMS artikel draft/publish/media belum lengkap, SEO/404/sitemap dan consent/retensi belum ditutup, serta browser UAT responsive/keyboard penuh belum dilakukan.
+- **Tahap 4 — Rilis A publik:** fondasi lokal selesai untuk editorial CMS draft/publish/archive, filter artikel publik, canonical metadata, sitemap, robots, dan halaman 404. Rilis belum boleh dibuka sebelum audit konten pada `docs/CONTENT_AUDIT_HAMASAH_2026-09-20.md` disahkan pemilik, media artikel/consent selesai, serta browser UAT responsive/keyboard dan form publik dilakukan.
 - **Tahap 5 — operasional/keuangan:** modul dasar invoice, pembayaran, kuitansi, asrama, visa, dan operasi sudah ada, tetapi gate koreksi berjejak, dokumen visa, inventaris, import data, dan UAT peran belum lengkap.
 - **Tahap 6 — keluarga/rekam jejak:** dashboard dasar wali dan pembatasan akses sudah ada. Visibility catatan/media, sibling selector, laporan lintas periode, retensi, dan UAT pengawas/wali belum lengkap.
 - **Tahap 7 — LMS:** course, materi, enrollment, progress, dan study-help dasar tersedia. Media nyata, tugas/submission, quiz/attempt/scoring, aturan kelulusan server-side, dan pengujian isolasi course belum selesai.
