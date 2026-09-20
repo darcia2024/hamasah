@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website.css?v=24" />
-    <link rel="stylesheet" href="staff.css?v=3" />
+    <link rel="stylesheet" href="staff.css?v=4" />
     <link rel="stylesheet" href="portal.css?v=5" />
   </head>
   <body class="staff-page">
@@ -100,6 +100,10 @@
             <button class="crm-topbar-action-btn" id="reload-operations" type="button">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l6.07-1.19"/></svg>
               <span>Perbarui Data</span>
+            </button>
+            <button class="crm-topbar-action-btn" id="download-report" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Unduh Laporan CSV</span>
             </button>
           </div>
         </header>
@@ -211,6 +215,15 @@
               </button>
               <p id="invoice-status" class="form-status" role="status" aria-live="polite"></p>
             </form>
+
+            <div class="crm-white-card-header op-subheader">
+              <div>
+                <h3>Daftar Invoice</h3>
+                <p>Tandai lunas setelah pembayaran diterima. Kuitansi PDF terbit dari nomor kuitansi resmi dan hanya tersedia untuk invoice yang sudah lunas.</p>
+              </div>
+            </div>
+            <div id="invoice-list" class="op-row-list"></div>
+            <p id="invoice-list-status" class="form-status" role="status" aria-live="polite"></p>
           </div>
 
           <!-- Tab Panel 2: Pembaruan Berkas Visa -->
@@ -297,6 +310,6 @@
 
     <script src="internal-shell.js?v=1"></script>
     <script src="nav.js?v=3"></script>
-    <script src="operations.js?v=3"></script>
+    <script src="operations.js?v=4"></script>
   </body>
 </html>
