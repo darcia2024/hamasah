@@ -23,6 +23,7 @@
     "test:csp-contract": "node scripts/csp-contract.test.js",
     "check:contrast": "node scripts/contrast-check.js",
     "test:performance": "node scripts/performance-smoke.test.js",
+    "test:scale": "node scripts/scale-check.js",
     "test:role-authorization": "node scripts/role-authorization.test.js",
     "test:http-performance": "node scripts/http-performance.test.js",
     "security:check": "node scripts/security-local-check.js",
