@@ -931,43 +931,6 @@ body.in-crm #portal-students-status,
 }
 
 /* Topbar Search Bar (Coursue Pill) */
-.crm-search-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--md-sys-color-surface-container-low);
-  border: 1px solid #EEF0F6;
-  border-radius: 9999px;
-  padding: 9px 18px;
-  width: min(100%, 380px);
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.crm-search-bar:focus-within {
-  border-color: var(--md-sys-color-primary);
-  background: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(231, 177, 12, 0.15);
-}
-
-.crm-search-bar svg {
-  color: var(--md-sys-color-outline);
-  flex-shrink: 0;
-}
-
-.crm-search-bar input {
-  border: none;
-  background: transparent;
-  outline: none;
-  font-size: 13px;
-  color: var(--md-sys-color-on-surface);
-  font-family: var(--apple-font-stack);
-  width: 100%;
-}
-
-.crm-search-bar input::placeholder {
-  color: var(--md-sys-color-outline);
-}
-
 .crm-breadcrumbs {
   display: flex;
   align-items: center;
@@ -993,6 +956,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-topbar-actions {
+  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -2802,7 +2766,6 @@ body.in-crm #portal-students-status,
   }
 
   .crm-topbar .crm-breadcrumbs { display: none; }
-  .crm-search-bar { display: none; }
   .crm-topbar-actions { margin-left: auto; gap: 6px; min-width: 0; }
   .crm-topbar-action-btn { min-width: 44px; padding: 0 10px; }
   .crm-topbar-action-btn span { display: none; }
