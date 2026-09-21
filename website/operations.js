@@ -54,8 +54,10 @@ async function loadStudents() {
   await Promise.all(studentPickers.map((picker) => picker.reload()));
 }
 
-function studentLabel(studentId) {
-  return studentNames.get(studentId) || studentId;
+// Nama datang dari peta santri yang sudah dimuat, lalu dari nama yang dibawa barisnya
+// sendiri (server menggabungkan tabel santri), dan baru terakhir id.
+function studentLabel(studentId, namaDariBaris) {
+  return studentNames.get(studentId) || namaDariBaris || studentId;
 }
 
 // Unduhan memakai header Authorization, yang tidak ikut terkirim oleh <a download>
@@ -322,7 +324,7 @@ function visaReminderRow(item) {
   const utama = document.createElement('div');
   utama.className = 'op-row__main';
   const judul = document.createElement('strong');
-  judul.textContent = `${VISA_DOCUMENT_LABELS[item.document] || item.document} \u00b7 ${studentLabel(item.studentId)}`;
+  judul.textContent = `${VISA_DOCUMENT_LABELS[item.document] || item.document} \u00b7 ${studentLabel(item.studentId, item.studentName)}`;
   const rinci = document.createElement('span');
   rinci.textContent = `Berlaku sampai ${tanggalIndonesia(item.expiresAt)} \u00b7 status ${item.status}`;
   utama.append(judul, rinci);
@@ -451,8 +453,8 @@ function bukaDialogInvoice(invoice, mode) {
   // bahwa aksinya tercatat, supaya tidak ada yang menekan tombol ini tanpa tahu
   // invoice mana yang berubah.
   invoiceActionSummary.textContent = koreksi
-    ? `${invoice.number} untuk ${studentLabel(invoice.studentId)}, saat ini ${nominal}. Perubahan tersimpan sebagai koreksi berjejak dan tercatat di jejak audit.`
-    : `${invoice.number} untuk ${studentLabel(invoice.studentId)} senilai ${nominal} akan dibatalkan. Pembatalan tidak dapat ditarik kembali dan tercatat di jejak audit.`;
+    ? `${invoice.number} untuk ${studentLabel(invoice.studentId, invoice.studentName)}, saat ini ${nominal}. Perubahan tersimpan sebagai koreksi berjejak dan tercatat di jejak audit.`
+    : `${invoice.number} untuk ${studentLabel(invoice.studentId, invoice.studentName)} senilai ${nominal} akan dibatalkan. Pembatalan tidak dapat ditarik kembali dan tercatat di jejak audit.`;
 
   invoiceActionFields.hidden = !koreksi;
   invoiceActionDescription.value = koreksi ? invoice.description : '';
@@ -617,7 +619,7 @@ function invoiceRow(invoice) {
   const judul = document.createElement('strong');
   judul.textContent = `${invoice.number} · Rp${invoice.amount.toLocaleString('id-ID')}`;
   const rinci = document.createElement('span');
-  rinci.textContent = `${studentLabel(invoice.studentId)} · ${invoice.description}`;
+  rinci.textContent = `${studentLabel(invoice.studentId, invoice.studentName)} · ${invoice.description}`;
   utama.append(judul, rinci);
 
   const status = document.createElement('span');
@@ -692,16 +694,79 @@ function invoiceRow(invoice) {
   return baris;
 }
 
-function renderInvoices(invoices) {
-  if (!invoices.length) {
+// Daftar tagihan dimuat per halaman dari /api/operations/invoices (Task R6.2); pencarian
+// dan "Muat lebih banyak" berjalan di server.
+const INVOICE_PAGE_SIZE = 20;
+let invoiceShown = 0;
+let invoiceSearchText = '';
+let invoiceRequest = 0;
+const invoiceTools = document.createElement('div');
+invoiceTools.className = 'portal-student-tools';
+const invoiceSearch = document.createElement('input');
+invoiceSearch.type = 'search';
+invoiceSearch.className = 'portal-student-search';
+invoiceSearch.placeholder = 'Cari nomor, keterangan, atau nama santri...';
+invoiceSearch.setAttribute('aria-label', 'Cari invoice');
+const invoiceHint = document.createElement('p');
+invoiceHint.className = 'portal-student-hint';
+invoiceHint.setAttribute('role', 'status');
+invoiceTools.append(invoiceSearch, invoiceHint);
+invoiceList.before(invoiceTools);
+const invoiceMore = document.createElement('button');
+invoiceMore.type = 'button';
+invoiceMore.className = 'button button--secondary';
+invoiceMore.textContent = 'Muat lebih banyak';
+invoiceMore.hidden = true;
+invoiceList.after(invoiceMore);
+
+function renderInvoices(invoices, append) {
+  if (!append) invoiceList.replaceChildren();
+  if (!invoices.length && !append) {
     const kosong = document.createElement('p');
     kosong.className = 'form-status';
-    kosong.textContent = 'Belum ada invoice. Terbitkan tagihan lewat formulir di atas.';
-    invoiceList.replaceChildren(kosong);
+    kosong.textContent = invoiceSearchText
+      ? 'Tidak ada invoice yang cocok dengan pencarian.'
+      : 'Belum ada invoice. Terbitkan tagihan lewat formulir di atas.';
+    invoiceList.append(kosong);
     return;
   }
-  invoiceList.replaceChildren(...invoices.map(invoiceRow));
+  invoiceList.append(...invoices.map(invoiceRow));
 }
+
+// append: tambahkan halaman berikutnya. Tanpa append, muat ulang dari awal sebanyak yang
+// sudah tampil (paling banyak 100), supaya posisi pengguna tidak hilang setelah mengubah tagihan.
+async function loadInvoices({ append = false } = {}) {
+  const token = ++invoiceRequest;
+  const params = new URLSearchParams();
+  const offset = append ? invoiceShown : 0;
+  params.set('limit', String(append ? INVOICE_PAGE_SIZE : Math.min(100, Math.max(INVOICE_PAGE_SIZE, invoiceShown))));
+  params.set('offset', String(offset));
+  if (invoiceSearchText) params.set('search', invoiceSearchText);
+  invoiceMore.disabled = true;
+  try {
+    const result = await jsonRequest(`/api/operations/invoices?${params}`, { headers: headers() });
+    if (token !== invoiceRequest) return;
+    renderInvoices(result.items, append);
+    invoiceShown = offset + result.items.length;
+    invoiceMore.hidden = invoiceShown >= result.total;
+    invoiceHint.textContent = result.total > invoiceShown || invoiceSearchText
+      ? `Menampilkan ${invoiceShown} dari ${result.total} invoice.`
+      : '';
+  } finally {
+    invoiceMore.disabled = false;
+  }
+}
+
+let invoiceSearchTimer = null;
+invoiceSearch.addEventListener('input', () => {
+  clearTimeout(invoiceSearchTimer);
+  invoiceSearchTimer = setTimeout(() => {
+    invoiceSearchText = invoiceSearch.value.trim();
+    invoiceShown = 0;
+    loadInvoices().catch((error) => { invoiceHint.textContent = error.message; });
+  }, 250);
+});
+invoiceMore.addEventListener('click', () => loadInvoices({ append: true }).catch((error) => { invoiceHint.textContent = error.message; }));
 
 async function unduhLaporan() {
   try {
@@ -719,7 +784,8 @@ function renderOperations(data) {
   operationsList.replaceChildren();
   const rows = [
     ...data.invoices.map((item) => `${item.number} · ${item.status === 'paid' ? item.receiptNumber : 'Belum dibayar'} · Rp${item.amount.toLocaleString('id-ID')}`),
-    ...data.visas.map((item) => `Visa ${item.studentId} · ${item.status}`),
+    ...(data.invoicesTotal > data.invoices.length ? [`${data.invoicesTotal - data.invoices.length} invoice lainnya ada di tab Faktur.`] : []),
+    ...data.visas.map((item) => `Visa ${studentLabel(item.studentId, item.studentName)} · ${item.status}`),
     ...data.inventory.map((item) => `${item.name} · ${item.location} · ${item.quantity} unit`)
   ];
   if (!rows.length) rows.push('Belum ada data operasional.');
@@ -734,7 +800,7 @@ function renderOperations(data) {
 async function loadOperations() {
   const result = await jsonRequest('/api/operations', { headers: headers() });
   renderOperations(result);
-  renderInvoices(result.invoices);
+  await loadInvoices();
   renderInventory(result.inventory);
 }
 

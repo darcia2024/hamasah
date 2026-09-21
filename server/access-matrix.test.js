@@ -210,6 +210,7 @@ async function run() {
       },
 
       { permission: 'operations.read', method: 'GET', path: '/api/operations' },
+      { permission: 'operations.read', method: 'GET', path: '/api/operations/invoices?limit=5' },
       {
         permission: 'finance.manage', method: 'POST', path: '/api/operations/invoices',
         body: () => ({ studentId, description: 'SPP tambahan', amount: 750000 })

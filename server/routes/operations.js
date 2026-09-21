@@ -32,7 +32,24 @@ module.exports = [
     pattern: /^\/api\/operations$/,
     permission: 'operations.read',
     async handler({ response, services }) {
-      json(response, 200, await services.operationsService.list());
+      json(response, 200, await services.operationsService.overview());
+    }
+  },
+
+  // Daftar tagihan berpaginasi, dengan nama santri. Konsol keuangan tidak boleh membaca
+  // daftar santri, jadi nama datang dari sini.
+  {
+    method: 'GET',
+    pattern: /^\/api\/operations\/invoices$/,
+    permission: 'operations.read',
+    async handler({ response, services, url }) {
+      const query = url.searchParams;
+      json(response, 200, await services.operationsService.listInvoicesPage({
+        status: query.get('status') || undefined,
+        search: query.get('search') || undefined,
+        limit: query.get('limit'),
+        offset: query.get('offset')
+      }));
     }
   },
 

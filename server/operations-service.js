@@ -1,4 +1,5 @@
 const crypto = require('node:crypto');
+const { normalizePage } = require('./pagination.js');
 
 const FINANCE_ROLES = Object.freeze(['admin', 'finance']);
 const VISA_STATUSES = Object.freeze(['not-started', 'collecting-documents', 'legalization', 'submitted', 'approved', 'expired']);
@@ -30,6 +31,16 @@ function createMemoryOperationsStore() {
     nextSequence,
     async getInvoice(id) { return database.invoices[id] ? clone(database.invoices[id]) : null; },
     async listInvoices() { return Object.values(database.invoices).map(clone); },
+    // Setara dengan listInvoicesPage milik store PostgreSQL, untuk test dan pengembangan.
+    async listInvoicesPage({ status, search, limit, offset } = {}) {
+      const kata = String(search || '').trim().toLocaleLowerCase('id-ID');
+      const page = normalizePage({ limit, offset });
+      const cocok = Object.values(database.invoices)
+        .filter((invoice) => (!status || invoice.status === status)
+          && (!kata || `${invoice.number} ${invoice.description}`.toLocaleLowerCase('id-ID').includes(kata)))
+        .sort((left, right) => right.issuedAt.localeCompare(left.issuedAt) || left.id.localeCompare(right.id));
+      return { items: cocok.slice(page.offset, page.offset + page.limit).map(clone), total: cocok.length };
+    },
     async saveInvoice(value) { database.invoices[value.id] = { version: 1, ...clone(value) }; return clone(database.invoices[value.id]); },
     async correctInvoice(id, correction) {
       const invoice = database.invoices[id];
@@ -286,6 +297,29 @@ function createOperationsService(options) {
     return { ok: true, value: result };
   }
 
+  // Satu halaman tagihan untuk konsol; dipotong di store (SQL pada PostgreSQL).
+  async function listInvoicesPage(options = {}) {
+    const page = normalizePage(options);
+    const result = typeof store.listInvoicesPage === 'function'
+      ? await store.listInvoicesPage({ status: options.status, search: options.search, ...page })
+      : { items: [], total: 0 };
+    return { items: result.items, total: result.total, limit: page.limit, offset: page.offset };
+  }
+
+  // Ringkasan untuk layar konsol: halaman pertama tagihan beserta totalnya, ditambah visa
+  // dan inventaris. Daftar tagihan selanjutnya diminta lewat listInvoicesPage.
+  async function overview() {
+    const [invoices, visas, inventory] = await Promise.all([listInvoicesPage({ limit: 20 }), store.listVisas(), store.listInventory()]);
+    return {
+      invoices: invoices.items,
+      invoicesTotal: invoices.total,
+      visas,
+      inventory: inventory.sort((a, b) => a.name.localeCompare(b.name, 'id-ID'))
+    };
+  }
+
+  // Seluruh data, tanpa pagination. HANYA untuk ekspor laporan (report.csv), yang memang
+  // harus memuat semuanya. Layar konsol memakai listInvoicesPage.
   async function list() {
     const [invoices, visas, inventory] = await Promise.all([store.listInvoices(), store.listVisas(), store.listInventory()]);
     return {
@@ -313,7 +347,7 @@ function createOperationsService(options) {
     return { ok: true, value: items.sort((a, b) => a.expiresAt.localeCompare(b.expiresAt)) };
   }
 
-  return Object.freeze({ createInvoice, createMemoryOperationsStore, correctInvoice, getInvoice, list, listInventoryMovements, listInvoiceCorrections, listVisaDocuments, markInvoicePaid, moveInventory, saveInventory, saveVisa, saveVisaDocument, visaReminders, voidInvoice });
+  return Object.freeze({ createInvoice, createMemoryOperationsStore, correctInvoice, getInvoice, list, listInvoicesPage, overview, listInventoryMovements, listInvoiceCorrections, listVisaDocuments, markInvoicePaid, moveInventory, saveInventory, saveVisa, saveVisaDocument, visaReminders, voidInvoice });
 }
 
 module.exports = { MAX_INVOICE_AMOUNT, VISA_STATUSES, createMemoryOperationsStore, createOperationsService, documentNumber, yearInJakarta };

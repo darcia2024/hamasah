@@ -2,6 +2,7 @@
 // Menggantikan penyimpanan berkas JSON yang lama.
 
 const { nextSequence } = require('./document-counters.js');
+const { likePattern, normalizePage } = require('./pagination.js');
 
 function toIso(value) {
   if (!value) {
@@ -22,7 +23,10 @@ function toInvoice(row) {
     issuedAt: toIso(row.issued_at),
     paidAt: toIso(row.paid_at),
     receiptNumber: row.receipt_number || null
-    ,version: Number(row.version || 1), voidedAt: toIso(row.voided_at), voidReason: row.void_reason || null
+    ,version: Number(row.version || 1), voidedAt: toIso(row.voided_at), voidReason: row.void_reason || null,
+    // Hanya ada pada daftar yang menggabungkan tabel santri. Konsol keuangan tidak punya
+    // izin membaca daftar santri, jadi tanpa ini barisnya jatuh ke UUID.
+    ...(row.student_name !== undefined ? { studentName: row.student_name || null } : {})
   };
 }
 
@@ -50,7 +54,8 @@ function toVisa(row) {
     passportExpiresAt: row.passport_expires_at || null,
     visaExpiresAt: row.visa_expires_at || null,
     note: row.note || '',
-    updatedAt: toIso(row.updated_at)
+    updatedAt: toIso(row.updated_at),
+    ...(row.student_name !== undefined ? { studentName: row.student_name || null } : {})
   };
 }
 
@@ -89,6 +94,32 @@ function createPostgresOperationsStore({ database } = {}) {
     async listInvoices() {
       const { rows } = await database.query(`${SELECT_INVOICE} ORDER BY issued_at DESC`);
       return rows.map(toInvoice);
+    },
+
+    // Satu halaman tagihan, disaring dan dipotong di SQL, dengan nama santri dari tabel
+    // students (Task R6.2). Pencarian mencocokkan nomor, keterangan, dan nama santri.
+    async listInvoicesPage({ status, search, limit, offset } = {}) {
+      const kondisi = [];
+      const nilai = [];
+      if (status) { nilai.push(String(status)); kondisi.push(`i.status = $${nilai.length}`); }
+      if (search && String(search).trim()) {
+        nilai.push(likePattern(search));
+        const n = nilai.length;
+        kondisi.push(`(i.invoice_number ILIKE $${n} OR i.description ILIKE $${n} OR s.name ILIKE $${n})`);
+      }
+      const where = kondisi.length ? `WHERE ${kondisi.join(' AND ')}` : '';
+      const page = normalizePage({ limit, offset });
+      const from = 'FROM invoices i LEFT JOIN students s ON s.id = i.student_id';
+      const total = await database.query(`SELECT count(*)::int AS jumlah ${from} ${where}`, nilai);
+      const { rows } = await database.query(
+        `SELECT i.id, i.invoice_number, i.receipt_number, i.student_id, i.description, i.amount_rupiah, i.status,
+                i.issued_at, i.paid_at, i.version, i.voided_at, i.void_reason, s.name AS student_name
+           ${from} ${where}
+          ORDER BY i.issued_at DESC, i.id
+          LIMIT $${nilai.length + 1} OFFSET $${nilai.length + 2}`,
+        [...nilai, page.limit, page.offset]
+      );
+      return { items: rows.map(toInvoice), total: total.rows[0].jumlah };
     },
 
     async saveInvoice(invoice) {
@@ -183,7 +214,12 @@ function createPostgresOperationsStore({ database } = {}) {
     },
 
     async listVisas() {
-      const { rows } = await database.query(`${SELECT_VISA} ORDER BY updated_at DESC`);
+      const { rows } = await database.query(
+        `SELECT v.student_id, v.status, v.passport_expires_at::text AS passport_expires_at,
+                v.visa_expires_at::text AS visa_expires_at, v.note, v.updated_at, s.name AS student_name
+           FROM visa_tracking v LEFT JOIN students s ON s.id = v.student_id
+          ORDER BY v.updated_at DESC`
+      );
       return rows.map(toVisa);
     },
 
