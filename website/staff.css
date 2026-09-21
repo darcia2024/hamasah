@@ -1120,3 +1120,28 @@
   color: #FFFFFF;
   background: #DC2626;
 }
+
+/* Keterangan kecil di bawah sebuah field, untuk menjelaskan batasan yang berlaku
+   pada isian itu (Task R3.6). */
+.field-note {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--crm-text-muted);
+}
+
+/* Aksi keluar dari semua perangkat (Task R3.7). Dibedakan dari tombol keluar
+   biasa karena akibatnya lebih luas: sesi di perangkat lain ikut berakhir. */
+.crm-logout-btn--all {
+  margin-top: 8px;
+  background: transparent;
+  border: 1px dashed var(--crm-border);
+  color: var(--crm-text-secondary);
+  font-size: 12.5px;
+}
+
+.crm-logout-btn--all:hover {
+  border-color: var(--crm-text-muted);
+  color: var(--crm-text-primary);
+}

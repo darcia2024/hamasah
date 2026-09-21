@@ -133,6 +133,34 @@ document.addEventListener('DOMContentLoaded', () => {
     docListContainer.innerHTML = html;
   }
 
+  // Task R3.7. POST /api/applicant/logout tidak pernah dipanggil. Berbeda dengan
+  // akun staf, endpoint ini hanya mencabut sesi yang sedang dipakai, bukan seluruh
+  // perangkat, jadi labelnya ditulis apa adanya.
+  const applicantSessionActions = document.querySelector('#applicant-session-actions');
+  const applicantLogout = document.querySelector('#applicant-logout');
+  if (applicantLogout) {
+    applicantLogout.addEventListener('click', async () => {
+      if (!currentToken) return;
+      const setuju = window.confirm(
+        'Keluar dari sesi ini?\n\nAnda perlu memasukkan nomor pendaftaran dan kode akses lagi untuk membukanya kembali.'
+      );
+      if (!setuju) return;
+      applicantLogout.disabled = true;
+      try {
+        await fetch('/api/applicant/logout', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+      } catch {
+        // Kegagalan jaringan tidak boleh menahan pengguna di halaman yang mengira
+        // dirinya masih masuk. Sesi lokal tetap dibuang.
+      }
+      currentToken = '';
+      currentRegId = '';
+      window.location.reload();
+    });
+  }
+
   docListContainer.addEventListener('click', async (event) => {
     const openButton = event.target.closest('.doc-open-button');
     if (openButton) {
@@ -232,6 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       updateStepper(reg.status, progress);
       renderDocuments(reg.documentSummary);
+      if (applicantSessionActions) applicantSessionActions.hidden = false;
       const canEdit = !['ready-for-departure', 'completed', 'cancelled'].includes(reg.status);
       applicantEditCard.hidden = !canEdit;
       if (canEdit && reg.applicant) {

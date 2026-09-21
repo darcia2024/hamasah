@@ -19,6 +19,64 @@
   backdrop.setAttribute('aria-label', 'Tutup navigasi samping');
   shell.append(backdrop);
 
+  // Task R3.7. POST /api/auth/logout-all ada sejak lama dan tidak pernah dipanggil:
+  // tidak ada cara mengakhiri sesi di perangkat lain. Dipasang di sini, bukan di
+  // tiap halaman, karena keenam halaman internal memuat berkas ini dan memakai
+  // .crm-sidebar-footer yang sama.
+  const sidebarFooter = sidebar.querySelector('.crm-sidebar-footer');
+  if (sidebarFooter) {
+    const keluarSemua = document.createElement('button');
+    keluarSemua.type = 'button';
+    keluarSemua.id = 'logout-all-button';
+    keluarSemua.className = 'crm-logout-btn crm-logout-btn--all';
+
+    const label = document.createElement('span');
+    label.textContent = 'Keluar dari Semua Perangkat';
+    keluarSemua.append(label);
+
+    keluarSemua.addEventListener('click', async () => {
+      let sesi = null;
+      try {
+        sesi = JSON.parse(sessionStorage.getItem('hamasahPortalSession') || 'null');
+      } catch {
+        sesi = null;
+      }
+      if (!sesi || !sesi.accessToken) return;
+
+      const setuju = window.confirm(
+        'Keluar dari semua perangkat?\n\n'
+        + 'Seluruh sesi akun ini akan berakhir, termasuk di ponsel dan komputer lain yang masih terbuka. '
+        + 'Sesi di perangkat ini ikut berakhir, jadi Anda perlu masuk kembali.'
+      );
+      if (!setuju) return;
+
+      const labelAsli = label.textContent;
+      keluarSemua.disabled = true;
+      label.textContent = 'Mengakhiri sesi...';
+      try {
+        const response = await fetch('/api/auth/logout-all', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${sesi.accessToken}` }
+        });
+        if (!response.ok) {
+          const isi = await response.json().catch(() => ({}));
+          throw new Error(isi.error || 'Sesi belum dapat diakhiri.');
+        }
+      } catch (error) {
+        keluarSemua.disabled = false;
+        label.textContent = labelAsli;
+        window.alert(error.message || 'Sesi belum dapat diakhiri.');
+        return;
+      }
+      // Sesi perangkat ini ikut dicabut server, jadi penyimpanan lokalnya harus
+      // dibuang juga. Tanpa ini halaman tetap memegang token yang sudah mati.
+      sessionStorage.removeItem('hamasahPortalSession');
+      window.location.reload();
+    });
+
+    sidebarFooter.append(keluarSemua);
+  }
+
   const focusables = () => Array.from(sidebar.querySelectorAll('a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter((el) => !el.disabled && el.offsetParent !== null);
   const isMobile = () => window.matchMedia('(max-width: 800px)').matches;
 
