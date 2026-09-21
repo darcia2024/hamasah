@@ -1327,20 +1327,43 @@ section[id], main[id], [tabindex="-1"] { scroll-margin-top: 88px; }
   object-fit: cover;
 }
 
+/* Teks kartu ini duduk di atas foto, jadi keterbacaannya harus dijamin oleh scrim,
+   bukan bergantung pada terang-gelapnya foto. Alfa terendah scrim (66%) dipilih dari
+   hitungan, bukan perasaan: itulah batas terendah yang membuat teks krem dan putih
+   tetap di atas 4,5:1 bahkan di atas foto putih polos. Sebelumnya gradien mulai dari
+   alfa 0, padahal label duduk di 32 px pertama, tempat scrim praktis belum ada. */
 .activity-card-content {
   position: relative;
   z-index: 2;
   padding: 32px 28px;
-  background: linear-gradient(180deg, rgba(30, 27, 22, 0) 0%, rgba(30, 27, 22, 0.92) 100%);
+  background: linear-gradient(180deg, rgba(30, 27, 22, 0.66) 0%, rgba(30, 27, 22, 0.92) 100%);
   color: #FFFFFF;
   margin-top: auto;
+}
+
+/* Pudar halus di atas kotak teks, supaya batas atas scrim tidak terlihat sebagai
+   garis tegas di atas foto. Sengaja di luar kotak teks: teks tidak pernah berada
+   di atas bagian yang lebih tipis dari 66%. */
+.activity-card-content::before {
+  content: '';
+  position: absolute;
+  top: auto;
+  right: 0;
+  bottom: 100%;
+  left: 0;
+  height: 72px;
+  background: linear-gradient(180deg, rgba(30, 27, 22, 0), rgba(30, 27, 22, 0.66));
+  pointer-events: none;
 }
 
 .activity-card-content .card-label {
   color: var(--md-sys-color-primary-container);
 }
 
-.activity-card-content h3 {
+/* Spesifisitas dinaikkan: `.activity-card h3` (warna gelap untuk kartu terang) ditulis
+   sesudah aturan ini dan sama-sama (0,1,1), jadi sebelumnya menang dan membuat judul
+   gelap di atas scrim gelap. */
+.activity-card .activity-card-content h3 {
   font-size: 19px;
   font-weight: 700;
   color: #FFFFFF;
@@ -2954,32 +2977,6 @@ h4 {
   text-align: center;
 }
 
-/* Outline icon and status treatment */
-.hero-badge,
-.hero-floating-badge,
-.hero-floating-chip,
-.image-badge,
-.pricing-card-badge,
-.trust-pill-item,
-.office-badge,
-.level-pill,
-.m3-category-chip,
-.m3-status-chip {
-  background: transparent !important;
-  border: 1px solid currentColor !important;
-  border-radius: 10px !important;
-  box-shadow: none !important;
-}
-
-.badge-dot,
-.hero-badge-sparkle,
-.chip-pin,
-.badge-icon {
-  background: transparent !important;
-  border: 1px solid currentColor;
-  border-radius: 8px;
-}
-
 .nav-cta,
 .button {
   text-decoration-thickness: 1px;
@@ -4209,4 +4206,49 @@ h4 {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 12px;
+}
+
+/* ==========================================================================
+   Gaya outline untuk lencana dan chip (pass "Outline UI"), dikoreksi di Task R4.2
+   ==========================================================================
+
+   Diletakkan di AKHIR berkas dengan sengaja. Blok ini dulu berada di tengah dan
+   memakai !important, karena aturan dasar .trust-pill-item dan .office-badge
+   ditulis SETELAH blok itu sehingga menang di cascade. Memindahkan blok ke akhir
+   membuat urutan yang menyelesaikan masalahnya, bukan !important.
+
+   Gaya outline (latar transparan, garis mengikuti warna teks) hanya aman untuk
+   elemen yang berada di atas permukaan yang dapat diprediksi: warna solid halaman
+   atau kartu. Berikut ini SENGAJA TIDAK termasuk, karena berada di atas foto atau
+   di tepi kartu, tempat latar transparan berarti teks bergantung pada terang-gelap
+   foto, bukan pada desain:
+
+     .image-badge           teks krem di atas foto; scrim gelapnya dulu dihapus
+     .hero-floating-badge   sama, mengambang di atas foto hero
+     .hero-floating-chip    teks gelap di atas foto hero
+     .pricing-card-badge    menempel di tepi kartu, setengah di luar; teksnya
+                            putih untuk latar isi, jadi tanpa isi ia menghilang
+
+   Keempatnya kembali ke aturan dasarnya yang berlatar tegas. Pengukuran kontras
+   lama menunjukkan 1,06:1 sampai 1,13:1 untuk teks di ketiga yang pertama.
+   ========================================================================== */
+.hero-badge,
+.trust-pill-item,
+.office-badge,
+.level-pill,
+.m3-category-chip,
+.m3-status-chip {
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.badge-dot,
+.hero-badge-sparkle,
+.chip-pin,
+.badge-icon {
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 8px;
 }
