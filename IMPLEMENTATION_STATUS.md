@@ -110,6 +110,16 @@ Rencana: `docs/RENCANA_REMEDIASI_PHASE_R1_R8_2026-09-20.md` Bagian 4. Hasil dan 
 
 **Menunggu pihak Hamasah:** isi tujuh bagian kebijakan privasi. Sampai materi itu turun, `website/kebijakan-privasi.html` berstatus draf, diberi `noindex`, tidak masuk sitemap, dan situs belum boleh dirilis ke publik.
 
+## LMS: tugas dan kuis ditunda (21 September 2026)
+
+Keputusan KR3 pada `docs/RENCANA_REMEDIASI_PHASE_R1_R8_2026-09-20.md`, dikerjakan sebagai Task R3.6 opsi (b).
+
+Tipe materi `assignment` dan `quiz` **tidak lagi dapat dipilih** saat guru membuat materi. Alasannya: backend-nya sudah lengkap (tabel `lms_attempts` di migrasi 025, `lms_submissions` di migrasi 026, beserta empat endpoint-nya), tetapi tidak ada satu pun UI untuk mengerjakannya di sisi santri maupun menilainya di sisi guru. Sebelum ini, guru dapat membuat tugas yang tidak bisa dikerjakan siapa pun.
+
+Yang tidak diubah: `MATERIAL_TYPES` di `server/lms-service.js` tetap memuat kedua tipe, dan API tetap menerimanya. Materi lama bertipe itu tetap terbaca di daftar materi. Yang dicabut hanya pilihannya di formulir, sehingga alurnya tinggal dipasang kembali tanpa migrasi data saat UI-nya dibangun.
+
+**Jangan menuliskannya sebagai fitur yang tersedia** pada materi pemasaran maupun dokumen serah terima sampai alur pengerjaan dan penilaiannya benar-benar ada.
+
 ## Sebelum go-live penuh
 
 - Runbook rilis, backup/restore, rollback, insiden, monitoring, retensi, dan rotasi akses tersedia di `docs/RUNBOOK_RELEASE_DAN_RESTORE_2026-09-20.md`. `npm run release:check` memeriksa env staging/production dan artefak rilis tanpa menulis database.

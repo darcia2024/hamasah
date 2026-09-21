@@ -7,8 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="website.css?v=25" />
-    <link rel="stylesheet" href="staff.css?v=6" />
+    <link rel="stylesheet" href="website.css?v=26" />
+    <link rel="stylesheet" href="staff.css?v=7" />
     <link rel="stylesheet" href="portal.css?v=5" />
   </head>
   <body class="staff-page">
@@ -256,13 +256,17 @@
                       </div>
                       <div>
                         <label for="material-type">Format Materi</label>
-                        <select id="material-type" class="monitoring-select">
+                        <select id="material-type" class="monitoring-select" aria-describedby="material-type-note">
                           <option value="video">Video Pembelajaran</option>
                           <option value="pdf">Modul PDF / Kitab Digital</option>
                           <option value="text">Teks &amp; Matan</option>
-                          <option value="assignment">Tugas Mandiri</option>
-                          <option value="quiz">Kuis &amp; Evaluasi</option>
                         </select>
+                        <!-- Keputusan KR3 opsi (b). Tipe assignment dan quiz dicabut dari
+                             pilihan karena santri belum punya cara mengerjakannya dan guru
+                             belum punya cara menilainya. Materi lama bertipe itu tetap
+                             terbaca; backend-nya pun tidak diubah, sehingga tinggal
+                             dipasang kembali saat alurnya dibangun. -->
+                        <small id="material-type-note" class="field-note">Tugas dan kuis belum tersedia. Alur pengerjaan dan penilaiannya sedang disiapkan, jadi tipe itu belum dapat dipilih.</small>
                       </div>
                     </div>
                     <div>
@@ -329,7 +333,7 @@
       </div>
     </section>
 
-    <script src="internal-shell.js?v=1"></script>
+    <script src="internal-shell.js?v=2"></script>
     <script src="nav.js?v=3"></script>
     <script src="lms.js?v=4"></script>
   </body>
