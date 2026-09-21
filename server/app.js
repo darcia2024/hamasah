@@ -310,7 +310,7 @@ function createHamasahApp(options) {
         }
         return;
       }
-      serveStaticFile(response, { pathname: url.pathname, rootDirectory });
+      serveStaticFile(response, { pathname: url.pathname, rootDirectory, request, search: url.search });
     } catch (error) {
       if (error instanceof RequestBodyError) {
         json(response, error.status, { error: error.message });

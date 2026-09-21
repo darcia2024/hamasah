@@ -3,6 +3,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const zlib = require('node:zlib');
 
 const MIME_TYPES = Object.freeze({
   '.css': 'text/css; charset=utf-8',
@@ -20,6 +21,114 @@ const MIME_TYPES = Object.freeze({
 });
 
 const ALLOWED_PREFIXES = Object.freeze(['website/', 'assets/']);
+
+// Cache dan kompresi (Task R6.3). Sebelumnya setiap navigasi mengunduh ulang seluruh CSS
+// dan JS (sekitar 300 KB) tanpa validasi, tanpa cache, dan tanpa kompresi.
+//
+//   HTML                      -> no-cache: selalu divalidasi ulang lewat ETag (304 bila sama),
+//                                supaya halaman baru dan versi aset barunya langsung dipakai.
+//   CSS/JS dengan ?v=<versi>  -> cache setahun dan immutable. Versinya diberi scripts/stamp-assets.js
+//                                dari isi berkas, jadi berkas yang berubah otomatis berganti URL.
+//   CSS/JS tanpa versi        -> no-cache (validasi ulang).
+//   Gambar dan font           -> cache sehari, tetap divalidasi lewat ETag.
+const COMPRESSIBLE = new Set(['.css', '.html', '.js', '.json', '.svg', '.txt', '.xml']);
+const IMMUTABLE_CANDIDATES = new Set(['.css', '.js']);
+const YEAR_SECONDS = 31536000;
+const DAY_SECONDS = 86400;
+// Variasi terkompresi disimpan di memori supaya biayanya dibayar sekali per versi berkas.
+const COMPRESSION_CACHE_LIMIT = 200;
+const compressionCache = new Map();
+
+function cacheControlFor(extension, search) {
+  if (IMMUTABLE_CANDIDATES.has(extension) && /(?:^|[?&])v=[\w.-]+/.test(search || '')) {
+    return `public, max-age=${YEAR_SECONDS}, immutable`;
+  }
+  if (extension === '.html' || IMMUTABLE_CANDIDATES.has(extension) || extension === '.json' || extension === '.txt' || extension === '.xml') {
+    return 'no-cache';
+  }
+  return `public, max-age=${DAY_SECONDS}`;
+}
+
+// ETag lemah dari ukuran dan waktu ubah. Lemah, karena isi yang sama dapat terkirim dalam
+// beberapa bentuk kompresi.
+function etagFor(stat) {
+  return `W/"${stat.size.toString(16)}-${Math.floor(stat.mtimeMs).toString(16)}"`;
+}
+
+function matchesEtag(header, etag) {
+  if (!header) return false;
+  if (header.trim() === '*') return true;
+  const strip = (value) => value.trim().replace(/^W\//, '');
+  return header.split(',').some((candidate) => strip(candidate) === strip(etag));
+}
+
+// Pilihan kompresi dari Accept-Encoding: brotli bila diterima, lalu gzip, selain itu tidak
+// dikompresi. Permintaan tanpa header itu (atau q=0) mendapat berkas apa adanya.
+function chooseEncoding(acceptEncoding) {
+  const accepted = new Map();
+  for (const part of String(acceptEncoding || '').split(',')) {
+    const [name, ...params] = part.trim().toLowerCase().split(';');
+    if (!name) continue;
+    const q = params.map((p) => p.trim()).find((p) => p.startsWith('q='));
+    accepted.set(name, q ? Number(q.slice(2)) : 1);
+  }
+  const ok = (name) => (accepted.has(name) ? accepted.get(name) > 0 : (accepted.get('*') || 0) > 0);
+  if (ok('br')) return 'br';
+  if (ok('gzip')) return 'gzip';
+  return null;
+}
+
+function compressedVariant(filePath, etag, encoding) {
+  const key = `${filePath}|${encoding}`;
+  const cached = compressionCache.get(key);
+  if (cached && cached.etag === etag) return cached.body;
+  const source = fs.readFileSync(filePath);
+  const body = encoding === 'br'
+    ? zlib.brotliCompressSync(source, { params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 5 } })
+    : zlib.gzipSync(source, { level: 6 });
+  if (compressionCache.size >= COMPRESSION_CACHE_LIMIT) compressionCache.delete(compressionCache.keys().next().value);
+  compressionCache.set(key, { etag, body });
+  return body;
+}
+
+// Mengirim satu berkas dengan ETag, Cache-Control, 304, dan kompresi. `request` boleh
+// kosong (test dan pemanggil lama): hasilnya berkas apa adanya tanpa validasi.
+function sendFile(response, request, filePath, search) {
+  const extension = path.extname(filePath).toLocaleLowerCase('en-US');
+  const stat = fs.statSync(filePath);
+  const etag = etagFor(stat);
+  const headers = {
+    'Content-Type': MIME_TYPES[extension] || 'application/octet-stream',
+    'X-Content-Type-Options': 'nosniff',
+    ETag: etag,
+    'Cache-Control': cacheControlFor(extension, search)
+  };
+  const compressible = COMPRESSIBLE.has(extension);
+  if (compressible) headers.Vary = 'Accept-Encoding';
+
+  const requestHeaders = (request && request.headers) || {};
+  if (matchesEtag(requestHeaders['if-none-match'], etag)) {
+    const notModified = { ETag: etag, 'Cache-Control': headers['Cache-Control'] };
+    if (compressible) notModified.Vary = 'Accept-Encoding';
+    response.writeHead(304, notModified);
+    response.end();
+    return;
+  }
+
+  const encoding = compressible && stat.size > 512 ? chooseEncoding(requestHeaders['accept-encoding']) : null;
+  if (encoding) {
+    const body = compressedVariant(filePath, etag, encoding);
+    headers['Content-Encoding'] = encoding;
+    headers['Content-Length'] = body.length;
+    response.writeHead(200, headers);
+    response.end(body);
+    return;
+  }
+
+  headers['Content-Length'] = stat.size;
+  response.writeHead(200, headers);
+  fs.createReadStream(filePath).pipe(response);
+}
 
 // Daftar-izin ekstensi, bukan daftar-tolak. Sebelum Task R2.2 modul ini menyajikan
 // ekstensi apa pun yang diminta: MIME_TYPES hanya menentukan Content-Type, dan
@@ -73,7 +182,7 @@ function notFound(response, rootDirectory) {
   response.end('Halaman tidak ditemukan.');
 }
 
-function serveStaticFile(response, { pathname, rootDirectory }) {
+function serveStaticFile(response, { pathname, rootDirectory, request, search }) {
   if (pathname === '/website') {
     response.writeHead(301, { Location: '/website/' });
     response.end();
@@ -155,12 +264,7 @@ function serveStaticFile(response, { pathname, rootDirectory }) {
     return;
   }
 
-  const extension = path.extname(filePath).toLocaleLowerCase('en-US');
-  response.writeHead(200, {
-    'Content-Type': MIME_TYPES[extension] || 'application/octet-stream',
-    'X-Content-Type-Options': 'nosniff'
-  });
-  fs.createReadStream(filePath).pipe(response);
+  sendFile(response, request, filePath, search);
 }
 
 module.exports = { MIME_TYPES, SERVABLE_EXTENSIONS, serveStaticFile };

@@ -19,6 +19,7 @@
     "worker:notifications": "node scripts/notification-worker.js",
     "worker:visa-reminders": "node scripts/visa-reminder-worker.js --once",
     "test:static-contract": "node scripts/static-contract.test.js",
+    "stamp:assets": "node scripts/stamp-assets.js",
     "test:browser-contract": "node scripts/browser-contract.js",
     "test:csp-contract": "node scripts/csp-contract.test.js",
     "check:contrast": "node scripts/contrast-check.js",
