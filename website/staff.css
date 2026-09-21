@@ -1145,3 +1145,35 @@
   border-color: var(--crm-text-muted);
   color: var(--crm-text-primary);
 }
+
+/* Sesi berakhir di tengah pemakaian (Task R4.4). Konsol disembunyikan sepenuhnya:
+   dialog modal saja tidak cukup, karena data pengguna tetap terlihat di baliknya. */
+html.is-session-ended .crm-shell {
+  visibility: hidden;
+}
+
+.session-ended {
+  width: min(440px, calc(100vw - 32px));
+  padding: 28px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 16px;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--md-sys-elevation-4);
+}
+
+.session-ended::backdrop {
+  background: rgba(30, 27, 22, 0.6);
+}
+
+.session-ended h2 {
+  margin: 0 0 10px;
+  font-size: 19px;
+}
+
+.session-ended p {
+  margin: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--md-sys-color-on-surface-variant);
+}
