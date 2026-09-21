@@ -128,6 +128,10 @@ Tiga tabel ternyata hanya ditulis dan tidak pernah dibaca dari mana pun sejak mi
 
 Kontras dan kejujuran tampilan. Palet logo emas/charcoal dipulihkan; pelanggaran kontras 117 → 0 (alat `npm run check:contrast`); status sesi jujur dengan penanganan 401 terpusat; data karangan dihapus dari portal; pencarian global dihapus; tinggi mobile index 19.115 → 16.001 px (target 12.000 tidak tercapai, diterima). Rincian dan temuan terbuka: `docs/REMEDIASI_R4_HASIL_2026-09-21.md`.
 
+## Remediasi Phase R5 (21 September 2026)
+
+Alat uji yang jujur. `test:browser-contract` membuka 17 halaman x 5 lebar di browser sungguhan (CSP, galat JS, gulir horizontal, gambar, nama aksesibel); kontrak lama menjadi `test:static-contract`. `uat-roles` diganti `test:role-authorization` (tujuh role lewat HTTP plus batas data wali/santri). `security:check` memindai folder publik dan menjalankan `npm audit`. `test:scale` mencatat angka awal E-01 (1.003 query untuk 200 pendaftar) dan E-03 (304 KB portal) dan sengaja gagal sampai R6. Rincian: `docs/REMEDIASI_R5_HASIL_2026-09-21.md`.
+
 ## LMS: tugas dan kuis ditunda (21 September 2026)
 
 Keputusan KR3 pada `docs/RENCANA_REMEDIASI_PHASE_R1_R8_2026-09-20.md`, dikerjakan sebagai Task R3.6 opsi (b).
