@@ -717,12 +717,11 @@ async function loadStaffCourses() {
   renderStaffCourses(result.items);
 }
 
+let studentPicker = null;
 async function loadStudents() {
-  const response = await fetch('/api/my-students', { headers: headers() });
-  const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Data santri belum dapat dimuat.');
-  studentSelect.replaceChildren(new Option('Pilih santri', ''));
-  result.items.forEach((student) => studentSelect.add(new Option(`${student.name} · ${student.program}`, student.id)));
-  if (result.items.length === 1) { studentSelect.value = result.items[0].id; await loadCourses(); }
+  if (!studentPicker) studentPicker = window.HamasahStudentPicker.attach(studentSelect, { headers, placeholder: 'Pilih santri' });
+  const page = await studentPicker.reload();
+  if (page && page.total === 1 && page.items.length === 1) { studentSelect.value = page.items[0].id; await loadCourses(); }
 }
 
 studentSelect.addEventListener('change', () => loadCourses().catch((error) => setStatus(status, error.message, true)));

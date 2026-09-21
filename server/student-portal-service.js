@@ -1,4 +1,5 @@
 const crypto = require('node:crypto');
+const { normalizePage } = require('./pagination.js');
 
 const STAFF_ROLES = Object.freeze(['admin', 'supervisor']);
 const VIEWER_ROLES = Object.freeze(['admin', 'supervisor', 'parent', 'student']);
@@ -48,6 +49,23 @@ function createMemoryStudentStore() {
     },
     async listStudents() {
       return Object.values(database.students).map(clone);
+    },
+    // Setara dengan listStudentsPage milik store PostgreSQL, untuk test dan pengembangan.
+    async listStudentsPage({ scope, search, limit, offset } = {}) {
+      const type = scope && scope.type;
+      const kata = String(search || '').trim().toLocaleLowerCase('id-ID');
+      const cocok = Object.values(database.students)
+        .filter(function inScope(student) {
+          if (type === 'all') return true;
+          if (type === 'dormitories') return Boolean(student.dormitoryId) && (scope.ids || []).includes(student.dormitoryId);
+          if (type === 'parent') return (student.parentAccountIds || []).includes(scope.accountId);
+          if (type === 'student') return student.studentAccountId === scope.accountId;
+          return false;
+        })
+        .filter(function matchesSearch(student) { return !kata || student.name.toLocaleLowerCase('id-ID').includes(kata); })
+        .sort(function byName(left, right) { return left.name.localeCompare(right.name) || left.id.localeCompare(right.id); });
+      const page = normalizePage({ limit, offset });
+      return { students: cocok.slice(page.offset, page.offset + page.limit).map(clone), total: cocok.length };
     },
     async saveStudent(student) {
       database.students[student.id] = clone(student);
@@ -379,6 +397,50 @@ function createStudentPortalService(options) {
     };
   }
 
+  // Cakupan akses pemanggil sebagai data, untuk diterapkan store di SQL. Harus setara
+  // dengan canView(); kesetaraannya diuji di student-portal-service.test.js.
+  async function scopeFor(actor) {
+    if (!actor || !VIEWER_ROLES.includes(actor.role)) return { type: 'none' };
+    if (actor.role === 'supervisor') return { type: 'dormitories', ids: [...(await dormitoryLimitFor(actor))] };
+    if (STAFF_ROLES.includes(actor.role)) return { type: 'all' };
+    if (actor.role === 'student') return { type: 'student', accountId: actor.id };
+    return { type: 'parent', accountId: actor.id };
+  }
+
+  // Satu halaman santri yang boleh dilihat pemanggil, disaring dan dipotong di store
+  // (Task R6.2). listForActor di bawah tetap ada untuk pemeriksaan kepemilikan di dalam
+  // proses; endpoint daftar memakai yang ini.
+  async function listPageForActor(actor, options = {}) {
+    const page = normalizePage(options);
+    const empty = { items: [], total: 0, limit: page.limit, offset: page.offset };
+    if (typeof store.listStudentsPage !== 'function') return empty;
+    const scope = await scopeFor(actor);
+    if (scope.type === 'none') return empty;
+    const { students, total } = await store.listStudentsPage({ scope, search: options.search, limit: page.limit, offset: page.offset });
+    const namaAsrama = new Map();
+    async function namaUntuk(dormitoryId) {
+      if (!dormitoryId) return null;
+      if (!namaAsrama.has(dormitoryId)) {
+        const asrama = await getDormitory(dormitoryId);
+        namaAsrama.set(dormitoryId, asrama ? asrama.name : null);
+      }
+      return namaAsrama.get(dormitoryId);
+    }
+    const items = await Promise.all(students.map(async function summary(student) {
+      return {
+        id: student.id,
+        name: student.name,
+        program: student.program,
+        city: student.city,
+        status: student.status,
+        gender: student.gender || null,
+        dormitoryId: student.dormitoryId || null,
+        dormitoryName: await namaUntuk(student.dormitoryId)
+      };
+    }));
+    return { items, total, limit: page.limit, offset: page.offset };
+  }
+
   async function listForActor(actor) {
     if (!actor || !VIEWER_ROLES.includes(actor.role) || typeof store.listStudents !== 'function') {
       return [];
@@ -424,6 +486,7 @@ function createStudentPortalService(options) {
     dashboard,
     correctRecord,
     listForActor,
+    listPageForActor,
     linkAccounts
   });
 }

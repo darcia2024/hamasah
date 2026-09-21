@@ -245,14 +245,10 @@ async function loadAssignableAccounts() {
   result.items.filter((account) => account.role === 'supervisor').forEach((account) => assignmentAccount.add(new Option(`${account.name} · ${account.email}`, account.id)));
 }
 
+let studentPicker = null;
 async function loadStudents() {
-  const response = await fetch('/api/my-students', { headers: headers() });
-  const result = await response.json();
-  if (!response.ok) throw new Error(result.error || 'Data santri belum dapat dimuat.');
-  const current = studentSelect.value;
-  studentSelect.replaceChildren(new Option('Pilih santri', ''));
-  result.items.forEach((student) => studentSelect.add(new Option(`${student.name} · ${student.program}`, student.id)));
-  studentSelect.value = result.items.some((student) => student.id === current) ? current : '';
+  if (!studentPicker) studentPicker = window.HamasahStudentPicker.attach(studentSelect, { headers, placeholder: 'Pilih santri' });
+  await studentPicker.reload();
   await loadDashboard();
 }
 

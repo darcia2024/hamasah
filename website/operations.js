@@ -38,16 +38,20 @@ async function jsonRequest(url, options) {
 // pekerjaan task ini.
 const studentNames = new Map();
 
+const studentPickers = [];
 async function loadStudents() {
-  const result = await jsonRequest('/api/my-students', { headers: headers() });
-  studentNames.clear();
-  result.items.forEach((student) => studentNames.set(student.id, student.name));
-  ['#invoice-student', '#visa-student'].forEach((selector) => {
-    const select = document.querySelector(selector);
-    if (!select) return;
-    select.replaceChildren();
-    result.items.forEach((student) => select.add(new Option(`${student.name} · ${student.program}`, student.id)));
-  });
+  if (!studentPickers.length) {
+    ['#invoice-student', '#visa-student'].forEach((selector) => {
+      const select = document.querySelector(selector);
+      if (!select) return;
+      studentPickers.push(window.HamasahStudentPicker.attach(select, {
+        headers,
+        placeholder: null,
+        onLoaded: ({ items }) => items.forEach((student) => studentNames.set(student.id, student.name))
+      }));
+    });
+  }
+  await Promise.all(studentPickers.map((picker) => picker.reload()));
 }
 
 function studentLabel(studentId) {

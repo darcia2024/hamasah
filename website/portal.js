@@ -580,7 +580,24 @@ function renderCrmDashboard(dashboard, account, onBack) {
   studentDashboard.hidden = false;
 }
 
-function renderExecutiveDashboard(students, account, accountsList = []) {
+// Daftar santri dimuat per halaman (Task R6.2). Yang ditampilkan selalu isi `items`;
+// `allTotal` adalah jumlah seluruh santri yang boleh dilihat akun ini, sedangkan `total`
+// mengikuti pencarian yang sedang aktif.
+const STUDENT_PAGE_SIZE = 20;
+let studentPage = { items: [], total: 0, allTotal: 0, search: '' };
+
+async function fetchStudentPage({ search = '', offset = 0 } = {}) {
+  const params = new URLSearchParams({ limit: String(STUDENT_PAGE_SIZE), offset: String(offset) });
+  if (search) params.set('search', search);
+  const response = await fetch(`/api/my-students?${params}`, { headers: requestHeaders() });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || 'Data santri belum dapat dimuat.');
+  return { items: result.items || [], total: typeof result.total === 'number' ? result.total : (result.items || []).length };
+}
+
+function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
+  const students = studentPage.items;
+  const allTotal = studentPage.allTotal;
   studentDashboard.replaceChildren();
   if (studentList) studentList.hidden = true;
 
@@ -604,10 +621,10 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
       ? 'Konsol Pembinaan Musyrif'
       : 'Pemantauan Ananda';
   const subtitleText = isAdmin
-    ? `Super Admin · ${students.length} santri terdaftar.`
+    ? `Super Admin · ${allTotal} santri terdaftar.`
     : isSupervisor
-      ? `${students.length} santri dalam pengawasan Anda.`
-      : `${students.length} ananda terhubung dengan akun ini.`;
+      ? `${allTotal} santri dalam pengawasan Anda.`
+      : `${allTotal} ananda terhubung dengan akun ini.`;
   const heroTag = isAdmin ? 'KONSOL EKSEKUTIF' : isSupervisor ? 'KONSOL MUSYRIF' : 'PORTAL KELUARGA';
 
   const heroBanner = document.createElement('div');
@@ -630,7 +647,7 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
     <div class="coursue-stat-pill">
       <div class="coursue-stat-icon coursue-stat-icon--gold">${renderBadgeIcon('mosque')}</div>
       <div class="coursue-stat-meta">
-        <p class="coursue-stat-count">${students.length} Santri</p>
+        <p class="coursue-stat-count">${allTotal} Santri</p>
         <p class="coursue-stat-label">terhubung dengan akun</p>
       </div>
     </div>
@@ -658,7 +675,7 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
   // 300 baris konten karangan, karena tidak ada sumber data agregat di tingkat ini.
   // Dihilangkan sampai ada datanya. Rekam jejak nyata per santri ada di detail santri.
   const tabDefs = [
-    { id: 'students', label: isParent ? 'Daftar Ananda' : 'Daftar Santri', icon: TAB_ICONS.users, count: students.length }
+    { id: 'students', label: isParent ? 'Daftar Ananda' : 'Daftar Santri', icon: TAB_ICONS.users, count: allTotal }
   ];
   if (isAdmin) {
     tabDefs.push({
@@ -677,17 +694,80 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
 
   const panelStudents = document.createElement('div');
   panelStudents.className = 'crm-card-stack';
-  if (!students.length) {
-    panelStudents.append(createEmptyState('Belum ada santri yang terhubung dengan akun ini.'));
-  } else {
-    students.forEach((student, idx) => {
-      panelStudents.append(createStudentCompactCard(student, idx, account, () => {
-        loadDashboard(student.id, account, () => renderExecutiveDashboard(students, account, accountsList)).catch((err) => {
-          alert(err.message || 'Dashboard belum dapat dimuat.');
-        });
-      }));
+
+  // Pencarian dan "Muat lebih banyak" berjalan di server. Kotak cari hanya ditawarkan
+  // bila daftarnya memang tidak muat dalam satu halaman.
+  const studentTools = document.createElement('div');
+  studentTools.className = 'portal-student-tools';
+  const studentSearch = document.createElement('input');
+  studentSearch.type = 'search';
+  studentSearch.className = 'portal-student-search';
+  studentSearch.placeholder = 'Cari nama santri...';
+  studentSearch.setAttribute('aria-label', 'Cari nama santri');
+  studentSearch.value = studentPage.search;
+  studentSearch.hidden = allTotal <= STUDENT_PAGE_SIZE && !studentPage.search;
+  const studentHint = document.createElement('p');
+  studentHint.className = 'portal-student-hint';
+  studentHint.setAttribute('role', 'status');
+  const studentCards = document.createElement('div');
+  studentCards.className = 'crm-card-stack';
+  const studentMore = document.createElement('button');
+  studentMore.type = 'button';
+  studentMore.className = 'button button--secondary';
+  studentMore.textContent = 'Muat lebih banyak';
+  studentTools.append(studentSearch, studentHint);
+
+  function openStudent(student) {
+    loadDashboard(student.id, account, () => renderExecutiveDashboard(null, account, accountsList)).catch((err) => {
+      alert(err.message || 'Dashboard belum dapat dimuat.');
     });
   }
+
+  function paintStudents() {
+    studentCards.replaceChildren();
+    if (!studentPage.items.length) {
+      studentCards.append(createEmptyState(studentPage.search
+        ? 'Tidak ada santri yang cocok dengan pencarian.'
+        : 'Belum ada santri yang terhubung dengan akun ini.'));
+    } else {
+      studentPage.items.forEach((student, idx) => {
+        studentCards.append(createStudentCompactCard(student, idx, account, () => openStudent(student)));
+      });
+    }
+    studentHint.textContent = studentPage.total > studentPage.items.length || studentPage.search
+      ? `Menampilkan ${studentPage.items.length} dari ${studentPage.total} santri.`
+      : '';
+    studentMore.hidden = studentPage.items.length >= studentPage.total;
+  }
+
+  let studentSearchTimer = null;
+  studentSearch.addEventListener('input', () => {
+    clearTimeout(studentSearchTimer);
+    studentSearchTimer = setTimeout(async () => {
+      const search = studentSearch.value.trim();
+      try {
+        const page = await fetchStudentPage({ search });
+        studentPage = { ...studentPage, items: page.items, total: page.total, search };
+        paintStudents();
+      } catch (err) {
+        studentHint.textContent = err.message || 'Pencarian belum dapat dijalankan.';
+      }
+    }, 250);
+  });
+  studentMore.addEventListener('click', async () => {
+    studentMore.disabled = true;
+    try {
+      const page = await fetchStudentPage({ search: studentPage.search, offset: studentPage.items.length });
+      studentPage = { ...studentPage, items: studentPage.items.concat(page.items), total: page.total };
+      paintStudents();
+    } catch (err) {
+      studentHint.textContent = err.message || 'Data santri belum dapat dimuat.';
+    } finally {
+      studentMore.disabled = false;
+    }
+  });
+  paintStudents();
+  panelStudents.append(studentTools, studentCards, studentMore);
 
   const panels = [panelStudents];
   if (isAdmin) {
@@ -740,7 +820,7 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
   if (heroBtn) {
     heroBtn.addEventListener('click', () => {
       if (students.length > 0) {
-        loadDashboard(students[0].id, account, () => renderExecutiveDashboard(students, account, accountsList)).catch((err) => {
+        loadDashboard(students[0].id, account, () => renderExecutiveDashboard(null, account, accountsList)).catch((err) => {
           alert(err.message || 'Dashboard belum dapat dimuat.');
         });
       }
@@ -833,11 +913,13 @@ async function loadStudents(account) {
   studentsStatus.textContent = '';
 
   const students = result.items || [];
+  const allTotal = typeof result.total === 'number' ? result.total : students.length;
+  studentPage = { items: students, total: allTotal, allTotal, search: '' };
 
   const urlParams = new URLSearchParams(window.location.search);
   const targetStudentId = urlParams.get('studentId') || (window.location.hash.startsWith('#student=') ? window.location.hash.replace('#student=', '') : null);
 
-  if (account && (account.role === 'student' || (account.role === 'parent' && students.length === 1))) {
+  if (account && (account.role === 'student' || (account.role === 'parent' && allTotal === 1))) {
     if (students.length >= 1) {
       await loadDashboard(students[0].id, account);
     } else {
@@ -851,16 +933,23 @@ async function loadStudents(account) {
       } catch {}
     }
 
-    if (targetStudentId && students.some(s => s.id === targetStudentId)) {
-      await loadDashboard(targetStudentId, account, () => {
-        try {
-          if (window.location.hash) history.replaceState(null, '', window.location.pathname);
-        } catch {}
-        renderExecutiveDashboard(students, account, accountsList);
-      });
-    } else {
-      renderExecutiveDashboard(students, account, accountsList);
+    // Santri yang dituju lewat tautan belum tentu ada di halaman pertama. Server yang
+    // menentukan boleh atau tidaknya; bila ditolak, konsol biasa yang ditampilkan.
+    let opened = false;
+    if (targetStudentId) {
+      try {
+        await loadDashboard(targetStudentId, account, () => {
+          try {
+            if (window.location.hash) history.replaceState(null, '', window.location.pathname);
+          } catch {}
+          renderExecutiveDashboard(null, account, accountsList);
+        });
+        opened = true;
+      } catch {
+        opened = false;
+      }
     }
+    if (!opened) renderExecutiveDashboard(null, account, accountsList);
   }
 }
 

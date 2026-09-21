@@ -4,6 +4,8 @@
 // konstanta di bawah, tidak pernah dari input, karena nama tabel tidak bisa
 // dipasang sebagai parameter query.
 
+const { likePattern, normalizePage } = require('./pagination.js');
+
 const COLLECTIONS = Object.freeze({
   activities: Object.freeze({
     table: 'student_activities',
@@ -106,6 +108,41 @@ function createPostgresStudentStore({ database } = {}) {
     async listStudents() {
       const { rows } = await database.query(`${SELECT_STUDENT} GROUP BY s.id ORDER BY s.name ASC`);
       return rows.map(toStudent);
+    },
+
+    // Satu halaman santri dengan cakupan akses yang sudah diterjemahkan service:
+    //   { type: 'all' } | { type: 'dormitories', ids } | { type: 'parent', accountId } | { type: 'student', accountId }
+    // Cakupan diterapkan di SQL, dan service menguji kesetaraannya dengan canView() (Task R6.2).
+    async listStudentsPage({ scope, search, limit, offset } = {}) {
+      const kondisi = [];
+      const nilai = [];
+      const type = scope && scope.type;
+      if (type === 'dormitories') {
+        if (!scope.ids || !scope.ids.length) return { students: [], total: 0 };
+        nilai.push(scope.ids);
+        kondisi.push(`s.dormitory_id = ANY($${nilai.length}::uuid[])`);
+      } else if (type === 'parent') {
+        nilai.push(scope.accountId);
+        kondisi.push(`EXISTS (SELECT 1 FROM student_parent_accounts pa WHERE pa.student_id = s.id AND pa.parent_account_id = $${nilai.length})`);
+      } else if (type === 'student') {
+        nilai.push(scope.accountId);
+        kondisi.push(`s.student_account_id = $${nilai.length}`);
+      } else if (type !== 'all') {
+        return { students: [], total: 0 };
+      }
+      if (search && String(search).trim()) {
+        nilai.push(likePattern(search));
+        kondisi.push(`s.name ILIKE $${nilai.length}`);
+      }
+      const where = kondisi.length ? `WHERE ${kondisi.join(' AND ')}` : '';
+      const page = normalizePage({ limit, offset });
+      const total = await database.query(`SELECT count(*)::int AS jumlah FROM students s ${where}`, nilai);
+      const { rows } = await database.query(
+        `${SELECT_STUDENT} ${where} GROUP BY s.id ORDER BY s.name ASC, s.id
+         LIMIT $${nilai.length + 1} OFFSET $${nilai.length + 2}`,
+        [...nilai, page.limit, page.offset]
+      );
+      return { students: rows.map(toStudent), total: total.rows[0].jumlah };
     },
 
     async countInDormitory(dormitoryId) {

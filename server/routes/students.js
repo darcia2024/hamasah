@@ -33,8 +33,11 @@ module.exports = [
     method: 'GET',
     pattern: /^\/api\/my-students$/,
     permission: 'students.read',
-    async handler({ response, services, auth }) {
-      json(response, 200, { items: await services.studentPortalService.listForActor(await auth.actor()) });
+    async handler({ response, services, auth, url }) {
+      const query = url.searchParams;
+      json(response, 200, await services.studentPortalService.listPageForActor(await auth.actor(), {
+        search: query.get('search') || undefined, limit: query.get('limit'), offset: query.get('offset')
+      }));
     }
   },
 
