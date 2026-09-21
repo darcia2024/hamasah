@@ -1,0 +1,505 @@
+Menyalakan aplikasi (database in-memory) dan browser...
+  mengukur index @375 ... 241 elemen, 10 temuan
+  mengukur index @1280 ... 247 elemen, 10 temuan
+  mengukur biaya @375 ... 107 elemen, 4 temuan
+  mengukur biaya @1280 ... 113 elemen, 4 temuan
+  mengukur kontak @375 ... 70 elemen, 3 temuan
+  mengukur kontak @1280 ... 76 elemen, 3 temuan
+  mengukur articles @375 ... 44 elemen, 3 temuan
+  mengukur articles @1280 ... 50 elemen, 3 temuan
+  mengukur kebijakan-privasi @375 ... 45 elemen, 4 temuan
+  mengukur kebijakan-privasi @1280 ... 51 elemen, 4 temuan
+  mengukur 404 @375 ... 4 elemen, 0 temuan
+  mengukur 404 @1280 ... 4 elemen, 0 temuan
+  mengukur lupa-password @375 ... 6 elemen, 0 temuan
+  mengukur lupa-password @1280 ... 6 elemen, 0 temuan
+  mengukur article @375 ... 46 elemen, 3 temuan
+  mengukur article @1280 ... 52 elemen, 3 temuan
+  mengukur reset-password @375 ... 11 elemen, 0 temuan
+  mengukur reset-password @1280 ... 11 elemen, 0 temuan
+  mengukur aktivasi @375 ... 11 elemen, 0 temuan
+  mengukur aktivasi @1280 ... 11 elemen, 0 temuan
+  mengukur cek-status @375 ... 167 elemen, 14 temuan
+  mengukur cek-status @1280 ... 179 elemen, 14 temuan
+  mengukur portal (layar masuk) @375 ... 12 elemen, 0 temuan
+  mengukur portal (layar masuk) @1280 ... 12 elemen, 0 temuan
+  mengukur staff (layar masuk) @375 ... 12 elemen, 0 temuan
+  mengukur staff (layar masuk) @1280 ... 12 elemen, 0 temuan
+  mengukur lms (layar masuk) @375 ... 8 elemen, 0 temuan
+  mengukur lms (layar masuk) @1280 ... 8 elemen, 0 temuan
+  mengukur monitoring (layar masuk) @375 ... 8 elemen, 0 temuan
+  mengukur monitoring (layar masuk) @1280 ... 8 elemen, 0 temuan
+  mengukur operations (layar masuk) @375 ... 8 elemen, 0 temuan
+  mengukur operations (layar masuk) @1280 ... 8 elemen, 0 temuan
+  mengukur audit (layar masuk) @375 ... 8 elemen, 0 temuan
+  mengukur audit (layar masuk) @1280 ... 8 elemen, 0 temuan
+  mengukur portal (admin) @375 ... 530 elemen, 121 temuan
+  mengukur portal (admin) @1280 ... 723 elemen, 177 temuan
+  mengukur portal (wali) @375 ... 472 elemen, 103 temuan
+  mengukur portal (wali) @1280 ... 606 elemen, 152 temuan
+  mengukur portal (santri) @375 ... 434 elemen, 109 temuan
+  mengukur portal (santri) @1280 ... 576 elemen, 158 temuan
+  mengukur portal (musyrif) @375 ... 458 elemen, 103 temuan
+  mengukur portal (musyrif) @1280 ... 606 elemen, 152 temuan
+  mengukur staff (petugas) @375 ... 212 elemen, 48 temuan
+  mengukur staff (petugas) @1280 ... 332 elemen, 90 temuan
+  mengukur lms (guru) @375 ... 114 elemen, 25 temuan
+  mengukur lms (guru) @1280 ... 174 elemen, 53 temuan
+  mengukur lms (santri) @375 ... 77 elemen, 22 temuan
+  mengukur lms (santri) @1280 ... 119 elemen, 43 temuan
+  mengukur monitoring (musyrif) @375 ... 99 elemen, 28 temuan
+  mengukur monitoring (musyrif) @1280 ... 167 elemen, 56 temuan
+  mengukur operations (keuangan) @375 ... 200 elemen, 40 temuan
+  mengukur operations (keuangan) @1280 ... 290 elemen, 75 temuan
+  mengukur audit (admin) @375 ... 75 elemen, 7 temuan
+  mengukur audit (admin) @1280 ... 94 elemen, 14 temuan
+  mengukur portal (admin, detail santri) @375 ... 448 elemen, 109 temuan
+  mengukur portal (admin, detail santri) @1280 ... 625 elemen, 158 temuan
+  mengukur portal (wali, detail santri) @375 ... 447 elemen, 110 temuan
+  mengukur portal (wali, detail santri) @1280 ... 589 elemen, 159 temuan
+  mengukur portal (santri, detail santri) @375 ... 434 elemen, 109 temuan
+  mengukur portal (santri, detail santri) @1280 ... 576 elemen, 158 temuan
+
+Ringkasan per halaman
+---------------------
+  GAGAL  index @375                                       241 elemen, 3 pelanggaran, 7 tinjau manual
+  GAGAL  index @1280                                      247 elemen, 3 pelanggaran, 7 tinjau manual
+  GAGAL  biaya @375                                       107 elemen, 4 pelanggaran, 0 tinjau manual
+  GAGAL  biaya @1280                                      113 elemen, 4 pelanggaran, 0 tinjau manual
+  GAGAL  kontak @375                                       70 elemen, 3 pelanggaran, 0 tinjau manual
+  GAGAL  kontak @1280                                      76 elemen, 3 pelanggaran, 0 tinjau manual
+  GAGAL  articles @375                                     44 elemen, 3 pelanggaran, 0 tinjau manual
+  GAGAL  articles @1280                                    50 elemen, 3 pelanggaran, 0 tinjau manual
+  GAGAL  kebijakan-privasi @375                            45 elemen, 4 pelanggaran, 0 tinjau manual
+  GAGAL  kebijakan-privasi @1280                           51 elemen, 4 pelanggaran, 0 tinjau manual
+  ok     404 @375                                           4 elemen, 0 pelanggaran, 0 tinjau manual
+  ok     404 @1280                                          4 elemen, 0 pelanggaran, 0 tinjau manual
+  ok     lupa-password @375                                 6 elemen, 0 pelanggaran, 0 tinjau manual
+  ok     lupa-password @1280                                6 elemen, 0 pelanggaran, 0 tinjau manual
+  GAGAL  article @375                                      46 elemen, 3 pelanggaran, 0 tinjau manual
+  GAGAL  article @1280                                     52 elemen, 3 pelanggaran, 0 tinjau manual
+  ok     reset-password @375                               11 elemen, 0 pelanggaran, 0 tinjau manual
+  ok     reset-password @1280                              11 elemen, 0 pelanggaran, 0 tinjau manual
+  ok     aktivasi @375                                     11 elemen, 0 pelanggaran, 0 tinjau manual
+  ok     aktivasi @1280                                    11 elemen, 0 pelanggaran, 0 tinjau manual
+  GAGAL  cek-status @375                                  167 elemen, 14 pelanggaran, 0 tinjau manual
+  GAGAL  cek-status @1280                                 179 elemen, 14 pelanggaran, 0 tinjau manual
+  ok     portal (layar masuk) @375                         12 elemen, 0 pelanggaran, 0 tinjau manual
+  ok     portal (layar masuk) @1280                        12 elemen, 0 pelanggaran, 0 tinjau manual
+  ok     staff (layar masuk) @375                          12 elemen, 0 pelanggaran, 0 tinjau manual
+  ok     staff (layar masuk) @1280                         12 elemen, 0 pelanggaran, 0 tinjau manual
+  ok     lms (layar masuk) @375                             8 elemen, 0 pelanggaran, 0 tinjau manual
+  ok     lms (layar masuk) @1280                            8 elemen, 0 pelanggaran, 0 tinjau manual
+  ok     monitoring (layar masuk) @375                      8 elemen, 0 pelanggaran, 0 tinjau manual
+  ok     monitoring (layar masuk) @1280                     8 elemen, 0 pelanggaran, 0 tinjau manual
+  ok     operations (layar masuk) @375                      8 elemen, 0 pelanggaran, 0 tinjau manual
+  ok     operations (layar masuk) @1280                     8 elemen, 0 pelanggaran, 0 tinjau manual
+  ok     audit (layar masuk) @375                           8 elemen, 0 pelanggaran, 0 tinjau manual
+  ok     audit (layar masuk) @1280                          8 elemen, 0 pelanggaran, 0 tinjau manual
+  GAGAL  portal (admin) @375                              530 elemen, 121 pelanggaran, 0 tinjau manual
+  GAGAL  portal (admin) @1280                             723 elemen, 177 pelanggaran, 0 tinjau manual
+  GAGAL  portal (wali) @375                               472 elemen, 103 pelanggaran, 0 tinjau manual
+  GAGAL  portal (wali) @1280                              606 elemen, 152 pelanggaran, 0 tinjau manual
+  GAGAL  portal (santri) @375                             434 elemen, 109 pelanggaran, 0 tinjau manual
+  GAGAL  portal (santri) @1280                            576 elemen, 158 pelanggaran, 0 tinjau manual
+  GAGAL  portal (musyrif) @375                            458 elemen, 103 pelanggaran, 0 tinjau manual
+  GAGAL  portal (musyrif) @1280                           606 elemen, 152 pelanggaran, 0 tinjau manual
+  GAGAL  staff (petugas) @375                             212 elemen, 48 pelanggaran, 0 tinjau manual
+  GAGAL  staff (petugas) @1280                            332 elemen, 90 pelanggaran, 0 tinjau manual
+  GAGAL  lms (guru) @375                                  114 elemen, 25 pelanggaran, 0 tinjau manual
+  GAGAL  lms (guru) @1280                                 174 elemen, 53 pelanggaran, 0 tinjau manual
+  GAGAL  lms (santri) @375                                 77 elemen, 22 pelanggaran, 0 tinjau manual
+  GAGAL  lms (santri) @1280                               119 elemen, 43 pelanggaran, 0 tinjau manual
+  GAGAL  monitoring (musyrif) @375                         99 elemen, 28 pelanggaran, 0 tinjau manual
+  GAGAL  monitoring (musyrif) @1280                       167 elemen, 56 pelanggaran, 0 tinjau manual
+  GAGAL  operations (keuangan) @375                       200 elemen, 40 pelanggaran, 0 tinjau manual
+  GAGAL  operations (keuangan) @1280                      290 elemen, 75 pelanggaran, 0 tinjau manual
+  GAGAL  audit (admin) @375                                75 elemen, 7 pelanggaran, 0 tinjau manual
+  GAGAL  audit (admin) @1280                               94 elemen, 14 pelanggaran, 0 tinjau manual
+  GAGAL  portal (admin, detail santri) @375               448 elemen, 109 pelanggaran, 0 tinjau manual
+  GAGAL  portal (admin, detail santri) @1280              625 elemen, 158 pelanggaran, 0 tinjau manual
+  GAGAL  portal (wali, detail santri) @375                447 elemen, 110 pelanggaran, 0 tinjau manual
+  GAGAL  portal (wali, detail santri) @1280               589 elemen, 159 pelanggaran, 0 tinjau manual
+  GAGAL  portal (santri, detail santri) @375              434 elemen, 109 pelanggaran, 0 tinjau manual
+  GAGAL  portal (santri, detail santri) @1280             576 elemen, 158 pelanggaran, 0 tinjau manual
+
+PELANGGARAN: 117 temuan unik
+   1. 1,00:1  (perlu 4,50:1)  "Program utama"
+      div.pricing-cards-grid > div.pricing-card.pricing-card--featured > div.pricing-card-badge  |  #ffffff pada solid #ffffff  |  11px/800
+      biaya @375, biaya @1280
+   2. 1,00:1  (perlu 3,00:1)  "Tambah Akun Baru"
+      div.form-title-group > div > h2  |  #ffffff pada solid #ffffff  |  24px/600 besar
+      portal (admin) @375 (tab: Kelola Akun Internal 7), portal (admin) @1280 (tab: Kelola Akun Internal 7)
+   3. 1,00:1  (perlu 3,00:1)  "Santri Contoh Pertama"
+      div > div.crm-summary-title-row > h2.crm-summary-title  |  #ffffff pada solid #ffffff  |  24px/600 besar
+      portal (santri) @375, portal (santri) @375 (tab: Mutaba'ah & Ibadah 2), portal (santri) @375 (tab: Sholat Berjamaah 2), +25 lainnya
+   4. 1,00:1  (perlu 3,00:1)  "Santri Contoh Kedua"
+      div > div.crm-summary-title-row > h2.crm-summary-title  |  #ffffff pada solid #ffffff  |  24px/600 besar
+      portal (admin, detail santri) @375, portal (admin, detail santri) @375 (tab: Mutaba'ah & Ibadah 2), portal (admin, detail santri) @375 (tab: Sholat Berjamaah 2), +25 lainnya
+   5. 1,04:1  (perlu 3,00:1)  "Kelola Akun Internal CRM"
+      h2#portal-admin-title  |  #ffffff pada solid #f8fafc  |  24px/600 besar
+      portal (admin) @375 (tab: Kelola Akun Internal 7), portal (admin) @1280 (tab: Kelola Akun Internal 7)
+   6. 1,04:1  (perlu 3,00:1)  "Daftar Akun Terdaftar"
+      div.form-title-group.u-mb-14 > div > h2.portal-list-title.u-m-0  |  #ffffff pada solid #f8fafc  |  24px/600 besar
+      portal (admin) @375 (tab: Kelola Akun Internal 7), portal (admin) @1280 (tab: Kelola Akun Internal 7)
+   7. 1,48:1  (perlu 4,50:1)  "Manajemen Akses & Pengguna"
+      section#portal-admin > div.u-mb-20 > p.eyebrow  |  #d6cfbe pada solid #f8fafc  |  13px/800
+      portal (admin) @375 (tab: Kelola Akun Internal 7), portal (admin) @1280 (tab: Kelola Akun Internal 7)
+   8. 1,48:1  (perlu 4,50:1)  "Buat akun baru untuk staf kantor, musyrif asrama Kairo, guru pengajar, serta akses portal "
+      section#portal-admin > div.u-mb-20 > p.u-text-secondary  |  #d6cfbe pada solid #f8fafc  |  13px/400
+      portal (admin) @375 (tab: Kelola Akun Internal 7), portal (admin) @1280 (tab: Kelola Akun Internal 7)
+   9. 1,48:1  (perlu 4,50:1)  "Akun aktif internal Hamasah International."
+      div.form-title-group.u-mb-14 > div > p.monitoring-hint  |  #d6cfbe pada solid #f8fafc  |  13px/400
+      portal (admin) @375 (tab: Kelola Akun Internal 7), portal (admin) @1280 (tab: Kelola Akun Internal 7)
+  10. 1,48:1  (perlu 4,50:1)  "2 Santri Binaan"
+      div.coursue-stat-pill > div.coursue-stat-meta > p.coursue-stat-count  |  #d6cfbe pada solid #f8fafc  |  13px/600
+      portal (admin) @375, portal (admin) @375 (tab: Daftar Santri Binaan 2), portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), +27 lainnya
+  11. 1,48:1  (perlu 4,50:1)  "Talaqqi Turots"
+      div.coursue-stat-pill > div.coursue-stat-meta > p.coursue-stat-label  |  #d6cfbe pada solid #f8fafc  |  13px/400
+      portal (admin) @375, portal (admin) @375 (tab: Daftar Santri Binaan 2), portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), +41 lainnya
+  12. 1,48:1  (perlu 4,50:1)  "Belum ada data"
+      div.coursue-stat-pill > div.coursue-stat-meta > p.coursue-stat-count  |  #d6cfbe pada solid #f8fafc  |  13px/600
+      portal (admin) @375, portal (admin) @375 (tab: Daftar Santri Binaan 2), portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), +41 lainnya
+  13. 1,48:1  (perlu 4,50:1)  "Tahfidz menunggu data"
+      div.coursue-stat-pill > div.coursue-stat-meta > p.coursue-stat-label  |  #d6cfbe pada solid #f8fafc  |  13px/400
+      portal (admin) @375, portal (admin) @375 (tab: Daftar Santri Binaan 2), portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), +41 lainnya
+  14. 1,48:1  (perlu 4,50:1)  "Presensi menunggu data"
+      div.coursue-stat-pill > div.coursue-stat-meta > p.coursue-stat-label  |  #d6cfbe pada solid #f8fafc  |  13px/400
+      portal (admin) @375, portal (admin) @375 (tab: Daftar Santri Binaan 2), portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), +41 lainnya
+  15. 1,48:1  (perlu 4,50:1)  "Program akan muncul setelah maddah dan materi dipublikasikan oleh pembina."
+      div.coursue-main-col > div.coursue-empty-state > p.coursue-user-subtext  |  #d6cfbe pada solid #f8fafc  |  13px/400
+      portal (admin) @375, portal (admin) @375 (tab: Daftar Santri Binaan 2), portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), +41 lainnya
+  16. 1,48:1  (perlu 4,50:1)  "1 Santri Binaan"
+      div.coursue-stat-pill > div.coursue-stat-meta > p.coursue-stat-count  |  #d6cfbe pada solid #f8fafc  |  13px/600
+      portal (musyrif) @375, portal (musyrif) @375 (tab: Daftar Santri Binaan 1), portal (musyrif) @375 (tab: Mutaba'ah & Ibadah 12), +11 lainnya
+  17. 1,55:1  (perlu 4,50:1)  "Registrasi hak akses pengguna sistem."
+      div.form-title-group > div > p.monitoring-hint  |  #d6cfbe pada solid #ffffff  |  13px/400
+      portal (admin) @375 (tab: Kelola Akun Internal 7), portal (admin) @1280 (tab: Kelola Akun Internal 7)
+  18. 1,55:1  (perlu 4,50:1)  "Belum ada maddah terdaftar untuk semester berjalan."
+      div#crm-student-courses > p.js-text-muted  |  #d6cfbe pada solid #ffffff  |  13px/400
+      portal (wali, detail santri) @375 (tab: Maddah Belajar LMS 6), portal (wali, detail santri) @1280 (tab: Maddah Belajar LMS 6)
+  19. 1,55:1  (perlu 4,50:1)  "Ringkasan akan terisi setelah aktivitas santri tercatat dalam sistem."
+      div.coursue-right-panel > div.coursue-statistic-card > p.coursue-user-subtext  |  #d6cfbe pada solid #ffffff  |  13px/400
+      portal (admin) @375, portal (admin) @375 (tab: Daftar Santri Binaan 2), portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), +41 lainnya
+  20. 1,55:1  (perlu 4,50:1)  "Belum ada rangkaian aktivitas untuk grafik periode ini."
+      div.coursue-right-panel > div.coursue-statistic-card > p.coursue-user-subtext  |  #d6cfbe pada solid #ffffff  |  13px/400
+      portal (admin) @375, portal (admin) @375 (tab: Daftar Santri Binaan 2), portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), +41 lainnya
+  21. 1,55:1  (perlu 4,50:1)  "Data musyrif dan asatidzah akan muncul setelah penugasan tercatat."
+      div.coursue-mentor-card > div.coursue-mentor-list > p.coursue-user-subtext  |  #d6cfbe pada solid #ffffff  |  13px/400
+      portal (admin) @375, portal (admin) @375 (tab: Daftar Santri Binaan 2), portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), +41 lainnya
+  22. 1,55:1  (perlu 4,50:1)  "Kuliah Al-Azhar · Kairo (NIM: 2026-AZH-019)"
+      div.crm-summary-col > div > p.crm-summary-subtitle  |  #d6cfbe pada solid #ffffff  |  13px/500
+      portal (santri) @375, portal (santri) @375 (tab: Mutaba'ah & Ibadah 2), portal (santri) @375 (tab: Sholat Berjamaah 2), +25 lainnya
+  23. 1,55:1  (perlu 4,50:1)  "MUSYRIF PENDAMPING"
+      div > p.crm-field-label > span  |  #d6cfbe pada solid #ffffff  |  13px/700
+      portal (santri) @375, portal (santri) @375 (tab: Mutaba'ah & Ibadah 2), portal (santri) @375 (tab: Sholat Berjamaah 2), +53 lainnya
+  24. 1,55:1  (perlu 4,50:1)  "PERIODE AKADEMIK"
+      div.crm-summary-col > div > p.crm-field-label  |  #d6cfbe pada solid #ffffff  |  13px/700
+      portal (santri) @375, portal (santri) @375 (tab: Mutaba'ah & Ibadah 2), portal (santri) @375 (tab: Sholat Berjamaah 2), +53 lainnya
+  25. 1,55:1  (perlu 4,50:1)  "MARKAZ & ASRAMA"
+      div > p.crm-field-label > span  |  #d6cfbe pada solid #ffffff  |  13px/700
+      portal (santri) @375, portal (santri) @375 (tab: Mutaba'ah & Ibadah 2), portal (santri) @375 (tab: Sholat Berjamaah 2), +53 lainnya
+  26. 1,55:1  (perlu 4,50:1)  "STATUS PEMBIAYAAN / SPP"
+      div.crm-summary-col > div > p.crm-field-label  |  #d6cfbe pada solid #ffffff  |  13px/700
+      portal (santri) @375, portal (santri) @375 (tab: Mutaba'ah & Ibadah 2), portal (santri) @375 (tab: Sholat Berjamaah 2), +53 lainnya
+  27. 1,55:1  (perlu 4,50:1)  "PRESENSI IBADAH"
+      div.crm-summary-col > div > p.crm-field-label  |  #d6cfbe pada solid #ffffff  |  13px/700
+      portal (santri) @375, portal (santri) @375 (tab: Mutaba'ah & Ibadah 2), portal (santri) @375 (tab: Sholat Berjamaah 2), +53 lainnya
+  28. 1,55:1  (perlu 4,50:1)  "CATATAN PEMBINA"
+      div.crm-summary-col > div > p.crm-field-label  |  #d6cfbe pada solid #ffffff  |  13px/700
+      portal (santri) @375, portal (santri) @375 (tab: Mutaba'ah & Ibadah 2), portal (santri) @375 (tab: Sholat Berjamaah 2), +53 lainnya
+  29. 1,55:1  (perlu 4,50:1)  ""Perkembangan bahasa Arab terlihat konsisten.""
+      div.crm-summary-col > div > p.crm-summary-note  |  #d6cfbe pada solid #ffffff  |  13px/400
+      portal (santri) @375, portal (santri) @375 (tab: Mutaba'ah & Ibadah 2), portal (santri) @375 (tab: Sholat Berjamaah 2), +25 lainnya
+  30. 1,55:1  (perlu 4,50:1)  "Mahad Al-Azhar · Kairo (NIM: 2026-AZH-019)"
+      div.crm-summary-col > div > p.crm-summary-subtitle  |  #d6cfbe pada solid #ffffff  |  13px/500
+      portal (admin, detail santri) @375, portal (admin, detail santri) @375 (tab: Mutaba'ah & Ibadah 2), portal (admin, detail santri) @375 (tab: Sholat Berjamaah 2), +25 lainnya
+  31. 1,55:1  (perlu 4,50:1)  ""Perkembangan bahasa Arab konsisten.""
+      div.crm-summary-col > div > p.crm-summary-note  |  #d6cfbe pada solid #ffffff  |  13px/400
+      portal (admin, detail santri) @375, portal (admin, detail santri) @375 (tab: Mutaba'ah & Ibadah 2), portal (admin, detail santri) @375 (tab: Sholat Berjamaah 2), +25 lainnya
+  32. 2,34:1  (perlu 4,50:1)  "Dibatalkan"
+      div#invoice-list > div.op-row > span.op-status.op-status--voided  |  #94a3b8 pada solid #f1f5f9  |  12px/700
+      operations (keuangan) @375, operations (keuangan) @375 (tab: Faktur & Invoice SPP), operations (keuangan) @1280, +1 lainnya
+  33. 2,45:1  (perlu 4,50:1)  "(placeholder) Cari santri, berkas, maddah, atau tagihan..."
+      input#crm-global-search  |  #94a3b8 pada solid #f8fafc  |  13px/400
+      portal (admin) @1280, portal (admin) @1280 (tab: Daftar Santri Binaan 2), portal (admin) @1280 (tab: Mutaba'ah & Ibadah 12), +47 lainnya
+  34. 2,53:1  (perlu 4,50:1)  "Sesi Terverifikasi Aman"
+      div.crm-sidebar-footer > div.crm-system-status > span  |  #10b981 pada solid #ffffff  |  11.5px/600
+      portal (admin) @1280, portal (admin) @1280 (tab: Daftar Santri Binaan 2), portal (admin) @1280 (tab: Mutaba'ah & Ibadah 12), +70 lainnya
+  35. 2,56:1  (perlu 4,50:1)  "HALAQAH & PROGRAM"
+      div.crm-activity-card__upper > div.crm-col-block > label  |  #94a3b8 pada solid #ffffff  |  10px/700
+      portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), portal (admin) @375 (tab: Sholat Berjamaah 30), portal (admin) @375 (tab: Talaqqi & Tahfidz 8), +47 lainnya
+  36. 2,56:1  (perlu 4,50:1)  "LOKASI / MASJID"
+      div.crm-activity-card__upper > div.crm-col-block > label  |  #94a3b8 pada solid #ffffff  |  10px/700
+      portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), portal (admin) @375 (tab: Sholat Berjamaah 30), portal (admin) @375 (tab: Talaqqi & Tahfidz 8), +47 lainnya
+  37. 2,56:1  (perlu 4,50:1)  "WAKTU KEGIATAN"
+      div.crm-activity-card__upper > div.crm-col-block > label  |  #94a3b8 pada solid #ffffff  |  10px/700
+      portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), portal (admin) @375 (tab: Sholat Berjamaah 30), portal (admin) @375 (tab: Talaqqi & Tahfidz 8), +47 lainnya
+  38. 2,56:1  (perlu 4,50:1)  "ASRAMA KAIRO"
+      div.crm-activity-card__upper > div.crm-col-block > label  |  #94a3b8 pada solid #ffffff  |  10px/700
+      portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), portal (admin) @375 (tab: Sholat Berjamaah 30), portal (admin) @375 (tab: Talaqqi & Tahfidz 8), +47 lainnya
+  39. 2,56:1  (perlu 4,50:1)  "STATUS ITINERARY"
+      div.crm-activity-card__upper > div.crm-col-block > label  |  #94a3b8 pada solid #ffffff  |  10px/700
+      portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), portal (admin) @375 (tab: Sholat Berjamaah 30), portal (admin) @375 (tab: Talaqqi & Tahfidz 8), +47 lainnya
+  40. 2,56:1  (perlu 4,50:1)  "PRESENSI SANTRI"
+      div.crm-activity-card__meta-group > div.crm-meta-item > label  |  #94a3b8 pada solid #ffffff  |  10px/700
+      portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), portal (admin) @375 (tab: Sholat Berjamaah 30), portal (admin) @375 (tab: Talaqqi & Tahfidz 8), +47 lainnya
+  41. 2,56:1  (perlu 4,50:1)  "KATEGORI"
+      div.crm-activity-card__meta-group > div.crm-meta-item > label  |  #94a3b8 pada solid #ffffff  |  10px/700
+      portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), portal (admin) @375 (tab: Sholat Berjamaah 30), portal (admin) @375 (tab: Talaqqi & Tahfidz 8), +47 lainnya
+  42. 2,56:1  (perlu 4,50:1)  "TIPE PEMBINAAN"
+      div.crm-activity-card__meta-group > div.crm-meta-item > label  |  #94a3b8 pada solid #ffffff  |  10px/700
+      portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), portal (admin) @375 (tab: Sholat Berjamaah 30), portal (admin) @375 (tab: Talaqqi & Tahfidz 8), +47 lainnya
+  43. 2,56:1  (perlu 4,50:1)  "CRM UTAMA"
+      aside#crm-sidebar > div.crm-nav-group-title > span  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      portal (admin) @1280, portal (admin) @1280 (tab: Daftar Santri Binaan 2), portal (admin) @1280 (tab: Mutaba'ah & Ibadah 12), +70 lainnya
+  44. 2,56:1  (perlu 4,50:1)  "PENANGGUNG JAWAB ADMISI"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      staff (petugas) @375, staff (petugas) @375 (tab: Daftar Calon Santri Masuk 1), staff (petugas) @375 (tab: Pena Hamasah CMS (Terbitkan Artikel)), +9 lainnya
+  45. 2,56:1  (perlu 4,50:1)  "TAHUN AKADEMIK"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      staff (petugas) @375, staff (petugas) @375 (tab: Daftar Calon Santri Masuk 1), staff (petugas) @375 (tab: Pena Hamasah CMS (Terbitkan Artikel)), +9 lainnya
+  46. 2,56:1  (perlu 4,50:1)  "STATUS SELEKSI & KUOTA"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      staff (petugas) @375, staff (petugas) @375 (tab: Daftar Calon Santri Masuk 1), staff (petugas) @375 (tab: Pena Hamasah CMS (Terbitkan Artikel)), +9 lainnya
+  47. 2,56:1  (perlu 4,50:1)  "STATUS KELENGKAPAN BERKAS"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      staff (petugas) @375, staff (petugas) @375 (tab: Daftar Calon Santri Masuk 1), staff (petugas) @375 (tab: Pena Hamasah CMS (Terbitkan Artikel)), +9 lainnya
+  48. 2,56:1  (perlu 4,50:1)  "STANDAR DOKUMEN AL-AZHAR"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      staff (petugas) @375, staff (petugas) @375 (tab: Daftar Calon Santri Masuk 1), staff (petugas) @375 (tab: Pena Hamasah CMS (Terbitkan Artikel)), +9 lainnya
+  49. 2,56:1  (perlu 4,50:1)  "SOP PENDAFTARAN"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      staff (petugas) @375, staff (petugas) @375 (tab: Daftar Calon Santri Masuk 1), staff (petugas) @375 (tab: Pena Hamasah CMS (Terbitkan Artikel)), +9 lainnya
+  50. 2,56:1  (perlu 4,50:1)  "Hamasah CRM"
+      header.crm-topbar > div.crm-breadcrumbs > span.crumb-root  |  #94a3b8 pada solid #ffffff  |  13.5px/500
+      staff (petugas) @1280, staff (petugas) @1280 (tab: Daftar Calon Santri Masuk 1), staff (petugas) @1280 (tab: Pena Hamasah CMS (Terbitkan Artikel)), +20 lainnya
+  51. 2,56:1  (perlu 4,50:1)  "STANDAR AKADEMIK KAIRO"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      lms (guru) @375, lms (guru) @375 (tab: Ruang Belajar Maddah), lms (guru) @375 (tab: Detail Materi & Tanya Jawab), +11 lainnya
+  52. 2,56:1  (perlu 4,50:1)  "METODE PEMBELAJARAN"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      lms (guru) @375, lms (guru) @375 (tab: Ruang Belajar Maddah), lms (guru) @375 (tab: Detail Materi & Tanya Jawab), +11 lainnya
+  53. 2,56:1  (perlu 4,50:1)  "EVALUASI PROGRES"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      lms (guru) @375, lms (guru) @375 (tab: Ruang Belajar Maddah), lms (guru) @375 (tab: Detail Materi & Tanya Jawab), +11 lainnya
+  54. 2,56:1  (perlu 4,50:1)  "STATUS MATERI & SILABUS"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      lms (guru) @375, lms (guru) @375 (tab: Ruang Belajar Maddah), lms (guru) @375 (tab: Detail Materi & Tanya Jawab), +11 lainnya
+  55. 2,56:1  (perlu 4,50:1)  "BIMBINGAN ASATIDZAH"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      lms (guru) @375, lms (guru) @375 (tab: Ruang Belajar Maddah), lms (guru) @375 (tab: Detail Materi & Tanya Jawab), +11 lainnya
+  56. 2,56:1  (perlu 4,50:1)  "TARGET KOMPETENSI"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      lms (guru) @375, lms (guru) @375 (tab: Ruang Belajar Maddah), lms (guru) @375 (tab: Detail Materi & Tanya Jawab), +11 lainnya
+  57. 2,56:1  (perlu 4,50:1)  "Tugas dan kuis belum tersedia. Alur pengerjaan dan penilaiannya sedang disiapkan, jadi tip"
+      small#material-type-note  |  #94a3b8 pada solid #ffffff  |  12px/400
+      lms (guru) @375 (tab: Kelola Silabus & Asatidzah), lms (guru) @1280 (tab: Kelola Silabus & Asatidzah)
+  58. 2,56:1  (perlu 4,50:1)  "WILAYAH SENTRAL KAIRO"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      monitoring (musyrif) @375, monitoring (musyrif) @375 (tab: Monitoring Rekam Jejak), monitoring (musyrif) @375 (tab: Form Profil Santri Baru), +5 lainnya
+  59. 2,56:1  (perlu 4,50:1)  "KATEGORI PENGAWASAN"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      monitoring (musyrif) @375, monitoring (musyrif) @375 (tab: Monitoring Rekam Jejak), monitoring (musyrif) @375 (tab: Form Profil Santri Baru), +5 lainnya
+  60. 2,56:1  (perlu 4,50:1)  "INTEGRASI WALI"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      monitoring (musyrif) @375, monitoring (musyrif) @375 (tab: Monitoring Rekam Jejak), monitoring (musyrif) @375 (tab: Form Profil Santri Baru), +5 lainnya
+  61. 2,56:1  (perlu 4,50:1)  "STATUS MUTABA'AH"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      monitoring (musyrif) @375, monitoring (musyrif) @375 (tab: Monitoring Rekam Jejak), monitoring (musyrif) @375 (tab: Form Profil Santri Baru), +5 lainnya
+  62. 2,56:1  (perlu 4,50:1)  "STANDAR KELULUSAN TALAQQI"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      monitoring (musyrif) @375, monitoring (musyrif) @375 (tab: Monitoring Rekam Jejak), monitoring (musyrif) @375 (tab: Form Profil Santri Baru), +5 lainnya
+  63. 2,56:1  (perlu 4,50:1)  "STANDAR PEMBINAAN ASRAMA"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      monitoring (musyrif) @375, monitoring (musyrif) @375 (tab: Monitoring Rekam Jejak), monitoring (musyrif) @375 (tab: Form Profil Santri Baru), +5 lainnya
+  64. 2,56:1  (perlu 4,50:1)  "PENANGGUNG JAWAB BENDAHARA"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      operations (keuangan) @375, operations (keuangan) @375 (tab: Faktur & Invoice SPP), operations (keuangan) @375 (tab: Tracker Visa Pelajar), +7 lainnya
+  65. 2,56:1  (perlu 4,50:1)  "REKENING TRANSAKSI RESMI"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      operations (keuangan) @375, operations (keuangan) @375 (tab: Faktur & Invoice SPP), operations (keuangan) @375 (tab: Tracker Visa Pelajar), +7 lainnya
+  66. 2,56:1  (perlu 4,50:1)  "VERIFIKASI IMIGRASI"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      operations (keuangan) @375, operations (keuangan) @375 (tab: Faktur & Invoice SPP), operations (keuangan) @375 (tab: Tracker Visa Pelajar), +7 lainnya
+  67. 2,56:1  (perlu 4,50:1)  "STATUS AUDIT KEUANGAN"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      operations (keuangan) @375, operations (keuangan) @375 (tab: Faktur & Invoice SPP), operations (keuangan) @375 (tab: Tracker Visa Pelajar), +7 lainnya
+  68. 2,56:1  (perlu 4,50:1)  "MATA UANG OPERASIONAL"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      operations (keuangan) @375, operations (keuangan) @375 (tab: Faktur & Invoice SPP), operations (keuangan) @375 (tab: Tracker Visa Pelajar), +7 lainnya
+  69. 2,56:1  (perlu 4,50:1)  "SOP INVOICE & VISA"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      operations (keuangan) @375, operations (keuangan) @375 (tab: Faktur & Invoice SPP), operations (keuangan) @375 (tab: Tracker Visa Pelajar), +7 lainnya
+  70. 2,56:1  (perlu 4,50:1)  "KEAMANAN DATA & PRIVASI"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      audit (admin) @375, audit (admin) @1280
+  71. 2,56:1  (perlu 4,50:1)  "INTEGRITAS REKAM JEJAK"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      audit (admin) @375, audit (admin) @1280
+  72. 2,56:1  (perlu 4,50:1)  "CAKUPAN PENGAWASAN"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      audit (admin) @375, audit (admin) @1280
+  73. 2,56:1  (perlu 4,50:1)  "STATUS AUDIT SISTEM"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      audit (admin) @375, audit (admin) @1280
+  74. 2,56:1  (perlu 4,50:1)  "KEBIJAKAN RETENSI"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      audit (admin) @375, audit (admin) @1280
+  75. 2,56:1  (perlu 4,50:1)  "AKUNTABILITAS"
+      div.crm-summary-col > div > p.crm-field-label  |  #94a3b8 pada solid #ffffff  |  10.5px/700
+      audit (admin) @375, audit (admin) @1280
+  76. 3,18:1  (perlu 4,50:1)  "AD"
+      div#crm-topbar-avatar  |  #ffffff pada solid #d97706  |  13px/700
+      portal (admin) @375, portal (admin) @375 (tab: Daftar Santri Binaan 2), portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), +27 lainnya
+  77. 3,18:1  (perlu 4,50:1)  "Buka Rekam Jejak Santri"
+      button#btn-hero-action > span  |  #ffffff pada solid #d97706  |  13px/600
+      portal (admin) @375, portal (admin) @375 (tab: Daftar Santri Binaan 2), portal (admin) @375 (tab: Mutaba'ah & Ibadah 12), +13 lainnya
+  78. 3,18:1  (perlu 4,50:1)  "Buka Detail"
+      div.crm-student-compact-card > div.crm-student-compact-action > span.crm-student-compact-cta-label  |  #d97706 pada solid #ffffff  |  12px/600
+      portal (admin) @375, portal (admin) @375 (tab: Daftar Santri Binaan 2), portal (admin) @1280, +9 lainnya
+  79. 3,18:1  (perlu 4,50:1)  "CRM"
+      div.crm-brand-text > span.crm-brand-title > strong  |  #d97706 pada solid #ffffff  |  15px/700
+      portal (admin) @1280, portal (admin) @1280 (tab: Daftar Santri Binaan 2), portal (admin) @1280 (tab: Mutaba'ah & Ibadah 12), +70 lainnya
+  80. 3,18:1  (perlu 4,50:1)  "AD"
+      div#crm-user-avatar  |  #ffffff pada solid #d97706  |  13px/600
+      portal (admin) @1280, portal (admin) @1280 (tab: Daftar Santri Binaan 2), portal (admin) @1280 (tab: Mutaba'ah & Ibadah 12), +13 lainnya
+  81. 3,18:1  (perlu 4,50:1)  "WD"
+      div#crm-topbar-avatar  |  #ffffff pada solid #d97706  |  13px/700
+      portal (wali) @375, portal (wali) @375 (tab: Daftar Ananda 2), portal (wali) @375 (tab: Mutaba'ah & Ibadah 12), +25 lainnya
+  82. 3,18:1  (perlu 4,50:1)  "Lihat Mutaba'ah Terkini"
+      button#btn-hero-action > span  |  #ffffff pada solid #d97706  |  13px/600
+      portal (wali) @375, portal (wali) @375 (tab: Daftar Ananda 2), portal (wali) @375 (tab: Mutaba'ah & Ibadah 12), +25 lainnya
+  83. 3,18:1  (perlu 4,50:1)  "WD"
+      div#crm-user-avatar  |  #ffffff pada solid #d97706  |  13px/600
+      portal (wali) @1280, portal (wali) @1280 (tab: Daftar Ananda 2), portal (wali) @1280 (tab: Mutaba'ah & Ibadah 12), +11 lainnya
+  84. 3,18:1  (perlu 4,50:1)  "SD"
+      div#crm-topbar-avatar  |  #ffffff pada solid #d97706  |  13px/700
+      portal (santri) @375, portal (santri) @375 (tab: Mutaba'ah & Ibadah 2), portal (santri) @375 (tab: Sholat Berjamaah 2), +25 lainnya
+  85. 3,18:1  (perlu 4,50:1)  "SD"
+      div#crm-user-avatar  |  #ffffff pada solid #d97706  |  13px/600
+      portal (santri) @1280, portal (santri) @1280 (tab: Mutaba'ah & Ibadah 2), portal (santri) @1280 (tab: Sholat Berjamaah 2), +14 lainnya
+  86. 3,18:1  (perlu 4,50:1)  "MD"
+      div#crm-topbar-avatar  |  #ffffff pada solid #d97706  |  13px/700
+      portal (musyrif) @375, portal (musyrif) @375 (tab: Daftar Santri Binaan 1), portal (musyrif) @375 (tab: Mutaba'ah & Ibadah 12), +11 lainnya
+  87. 3,18:1  (perlu 4,50:1)  "MD"
+      div#crm-user-avatar  |  #ffffff pada solid #d97706  |  13px/600
+      portal (musyrif) @1280, portal (musyrif) @1280 (tab: Daftar Santri Binaan 1), portal (musyrif) @1280 (tab: Mutaba'ah & Ibadah 12), +8 lainnya
+  88. 3,18:1  (perlu 4,50:1)  "PD"
+      div#crm-user-avatar  |  #ffffff pada solid #d97706  |  13px/600
+      staff (petugas) @1280, staff (petugas) @1280 (tab: Daftar Calon Santri Masuk 1), staff (petugas) @1280 (tab: Pena Hamasah CMS (Terbitkan Artikel)), +3 lainnya
+  89. 3,18:1  (perlu 4,50:1)  "GD"
+      div#crm-user-avatar  |  #ffffff pada solid #d97706  |  13px/600
+      lms (guru) @1280, lms (guru) @1280 (tab: Ruang Belajar Maddah), lms (guru) @1280 (tab: Detail Materi & Tanya Jawab), +1 lainnya
+  90. 3,18:1  (perlu 4,50:1)  "0% Selesai"
+      article.portal-student-card > div > span  |  #d97706 pada solid #ffffff  |  12px/600
+      lms (santri) @375, lms (santri) @375 (tab: Ruang Belajar Maddah), lms (santri) @1280, +1 lainnya
+  91. 3,18:1  (perlu 4,50:1)  "KD"
+      div#crm-user-avatar  |  #ffffff pada solid #d97706  |  13px/600
+      operations (keuangan) @1280, operations (keuangan) @1280 (tab: Faktur & Invoice SPP), operations (keuangan) @1280 (tab: Tracker Visa Pelajar), +2 lainnya
+  92. 3,29:1  (perlu 4,50:1)  "Proses Verifikasi Aktif"
+      div > div.crm-balance-value > span.crm-status-text--online  |  #16a34a pada solid #ffffff  |  15px/700
+      staff (petugas) @375, staff (petugas) @375 (tab: Daftar Calon Santri Masuk 1), staff (petugas) @375 (tab: Pena Hamasah CMS (Terbitkan Artikel)), +9 lainnya
+  93. 3,29:1  (perlu 4,50:1)  "Pemantauan kegiatan santri"
+      div > div.crm-balance-value > span.crm-status-text--online  |  #16a34a pada solid #ffffff  |  15px/700
+      monitoring (musyrif) @375, monitoring (musyrif) @375 (tab: Monitoring Rekam Jejak), monitoring (musyrif) @375 (tab: Form Profil Santri Baru), +5 lainnya
+  94. 3,29:1  (perlu 4,50:1)  "Tertib Rekonsiliasi"
+      div > div.crm-balance-value > span.crm-status-text--online  |  #16a34a pada solid #ffffff  |  15px/700
+      operations (keuangan) @375, operations (keuangan) @375 (tab: Faktur & Invoice SPP), operations (keuangan) @375 (tab: Tracker Visa Pelajar), +7 lainnya
+  95. 3,29:1  (perlu 4,50:1)  "Lunas · KWT/HI/2026/00001"
+      div#invoice-list > div.op-row > span.op-status.op-status--paid  |  #ffffff pada solid #16a34a  |  12px/700
+      operations (keuangan) @375, operations (keuangan) @375 (tab: Faktur & Invoice SPP), operations (keuangan) @1280, +1 lainnya
+  96. 3,29:1  (perlu 4,50:1)  "Pencatatan audit aktif"
+      div > div.crm-balance-value > span.crm-status-text--online  |  #16a34a pada solid #ffffff  |  15px/700
+      audit (admin) @375, audit (admin) @1280
+  97. 3,32:1  (perlu 4,50:1)  "1 pendaftaran tersedia."
+      p#registration-list-status  |  #059669 pada solid #d1fae5  |  12.5px/600
+      staff (petugas) @375, staff (petugas) @375 (tab: Daftar Calon Santri Masuk 1), staff (petugas) @1280, +1 lainnya
+  98. 3,32:1  (perlu 4,50:1)  "1 artikel editorial."
+      p#article-list-status  |  #059669 pada solid #d1fae5  |  12.5px/600
+      staff (petugas) @375 (tab: Pena Hamasah CMS (Terbitkan Artikel)), staff (petugas) @1280 (tab: Pena Hamasah CMS (Terbitkan Artikel))
+  99. 3,32:1  (perlu 4,50:1)  "0 catatan undangan."
+      p#notification-list-status  |  #059669 pada solid #d1fae5  |  12.5px/600
+      staff (petugas) @375 (tab: Notifikasi Akun), staff (petugas) @1280 (tab: Notifikasi Akun)
+  100. 3,32:1  (perlu 4,50:1)  "1 pesan pada filter ini."
+      p#inquiry-list-status  |  #059669 pada solid #d1fae5  |  12.5px/600
+      staff (petugas) @375 (tab: Pesan Konsultasi0), staff (petugas) @1280 (tab: Pesan Konsultasi0)
+  101. 3,32:1  (perlu 4,50:1)  "1 maddah tersedia."
+      p#lms-status  |  #059669 pada solid #d1fae5  |  13px/600
+      lms (santri) @375, lms (santri) @375 (tab: Ruang Belajar Maddah), lms (santri) @1280, +1 lainnya
+  102. 3,32:1  (perlu 4,50:1)  "Belum ada berkas visa untuk santri ini. Unggah pindaian lewat formulir di atas."
+      div#visa-document-list > p.form-status  |  #059669 pada solid #d1fae5  |  12.5px/600
+      operations (keuangan) @375 (tab: Tracker Visa Pelajar), operations (keuangan) @1280 (tab: Tracker Visa Pelajar)
+  103. 3,76:1  (perlu 4,50:1)  "Lunas (SPP & Dorm)"
+      div > div.crm-balance-value > span  |  #059669 pada solid #ffffff  |  15px/700
+      portal (santri) @375, portal (santri) @375 (tab: Mutaba'ah & Ibadah 2), portal (santri) @375 (tab: Sholat Berjamaah 2), +53 lainnya
+  104. 3,82:1  (perlu 4,50:1)  "© 2026 Hamasah International. Seluruh hak cipta dilindungi. Ketentuan penerimaan dan regul"
+      footer.site-footer > div.shell.footer-bottom > p  |  #f7f0e473 pada solid #1e293b  |  12px/400
+      index @375, index @1280
+  105. 3,82:1  (perlu 4,50:1)  "Kebijakan Privasi"
+      div.shell.footer-bottom > div.footer-legal-links > a  |  #f7f0e473 pada solid #1e293b  |  12px/400
+      index @375, index @1280, biaya @375, +13 lainnya
+  106. 3,82:1  (perlu 4,50:1)  "Rancangan arsitektur digital & ekosistem terpadu."
+      footer.site-footer > div.shell.footer-bottom > p.footer-credit  |  #f7f0e473 pada solid #1e293b  |  12px/400
+      index @375, index @1280, biaya @375, +13 lainnya
+  107. 3,82:1  (perlu 4,50:1)  "© 2026 Hamasah International. Seluruh hak cipta dilindungi."
+      footer.site-footer > div.shell.footer-bottom > p  |  #f7f0e473 pada solid #1e293b  |  12px/400
+      biaya @375, biaya @1280, kontak @375, +11 lainnya
+  108. 3,86:1  (perlu 4,50:1)  "1"
+      div#step-submitted > div.step-dot  |  #64748b pada solid #e2e8f0  |  14px/800
+      cek-status @375, cek-status @1280
+  109. 3,86:1  (perlu 4,50:1)  "2"
+      div#step-review > div.step-dot  |  #64748b pada solid #e2e8f0  |  14px/800
+      cek-status @375, cek-status @1280
+  110. 3,86:1  (perlu 4,50:1)  "3"
+      div#step-academic > div.step-dot  |  #64748b pada solid #e2e8f0  |  14px/800
+      cek-status @375, cek-status @375 (setelah masuk), cek-status @1280, +1 lainnya
+  111. 3,86:1  (perlu 4,50:1)  "4"
+      div#step-departure > div.step-dot  |  #64748b pada solid #e2e8f0  |  14px/800
+      cek-status @375, cek-status @375 (setelah masuk), cek-status @1280, +1 lainnya
+  112. 3,86:1  (perlu 4,50:1)  "5"
+      div#step-completed > div.step-dot  |  #64748b pada solid #e2e8f0  |  14px/800
+      cek-status @375, cek-status @375 (setelah masuk), cek-status @1280, +1 lainnya
+  113. 3,95:1  (perlu 4,50:1)  "Dokumen ini masih draf dan belum disahkan."
+      div.article-reader-card.article-prose > div.policy-draft-notice > strong  |  #dc2626 pada solid #fee2e2  |  15px/700
+      kebijakan-privasi @375, kebijakan-privasi @1280
+  114. 3,95:1  (perlu 4,50:1)  "Keluar Sesi"
+      button#portal-logout > span  |  #dc2626 pada solid #fee2e2  |  13px/700
+      portal (admin) @1280, portal (admin) @1280 (tab: Daftar Santri Binaan 2), portal (admin) @1280 (tab: Mutaba'ah & Ibadah 12), +47 lainnya
+  115. 3,95:1  (perlu 4,50:1)  "Keluar dari Semua Perangkat"
+      button#logout-all-button > span  |  #dc2626 pada solid #fee2e2  |  13px/700
+      portal (admin) @1280, portal (admin) @1280 (tab: Daftar Santri Binaan 2), portal (admin) @1280 (tab: Mutaba'ah & Ibadah 12), +70 lainnya
+  116. 3,95:1  (perlu 4,50:1)  "Anda tidak memiliki akses ke fitur ini."
+      p#operation-import-history-status  |  #dc2626 pada solid #fee2e2  |  12.5px/600
+      staff (petugas) @375 (tab: Import Operasional), staff (petugas) @1280 (tab: Import Operasional)
+  117. 3,95:1  (perlu 4,50:1)  "Keluar Sesi"
+      button#logout-button > span  |  #dc2626 pada solid #fee2e2  |  13px/700
+      staff (petugas) @1280, staff (petugas) @1280 (tab: Daftar Calon Santri Masuk 1), staff (petugas) @1280 (tab: Pena Hamasah CMS (Terbitkan Artikel)), +20 lainnya
+
+TINJAU MANUAL: 7 temuan unik (latar foto atau gradien, atau bergantung pada piksel)
+   1. 1,00:1 sampai 17,85:1  (perlu 4,50:1)  "Hay Asyir, Kairo"
+      div.hero-floating-chip > div > strong  |  #0f172a pada foto tanpa lapisan penutup  |  12.5px/700
+      index @375, index @1280
+   2. 1,00:1 sampai 4,75:1  (perlu 4,50:1)  "Pusat Pendampingan & Asrama Hamasah"
+      div.hero-floating-chip > div > small  |  #64748b pada foto tanpa lapisan penutup  |  11px/400
+      index @375, index @1280
+   3. 1,00:1 sampai 18,85:1  (perlu 4,50:1)  "Pendampingan Terstruktur"
+      div.hero-floating-badge > div > strong  |  #fef3c7 pada foto tanpa lapisan penutup  |  12.5px/700
+      index @375, index @1280
+   4. 1,00:1 sampai 18,85:1  (perlu 4,50:1)  "Pendampingan Belajar Talaqqi"
+      div.image-frame > div.image-badge > span  |  #fef3c7 pada foto tanpa lapisan penutup  |  12.5px/700
+      index @375, index @1280
+   5. 1,00:1 sampai 18,85:1  (perlu 4,50:1)  "Ibadah & Talaqqi"
+      article.activity-card.activity-card--large > div.activity-card-content > p.card-label  |  #fef3c7 pada foto tanpa lapisan penutup  |  11px/800
+      index @375, index @1280  |  gradien tembus pandang dihitung pada bagian terlemahnya
+   6. 1,00:1 sampai 17,85:1  (perlu 4,50:1)  "Sholat Subuh berjamaah, tahfidz harian, dan talaqqi di Rawaq Masjid Al-Azhar."
+      article.activity-card.activity-card--large > div.activity-card-content > h3  |  #0f172a pada foto tanpa lapisan penutup  |  15.5px/600
+      index @375, index @1280  |  gradien tembus pandang dihitung pada bagian terlemahnya
+   7. 1,02:1 sampai 10,18:1  (perlu 4,50:1)  "Mengikuti tahapan pendaftaran Al-Azhar"
+      div.hero-floating-badge > div > small  |  #f7f0e4bf pada foto tanpa lapisan penutup  |  11px/400
+      index @375, index @1280
+
+Diperiksa 11141 elemen teks: 7860 lulus, 117 pelanggaran unik, 7 tinjau manual unik.
+
+1 langkah data contoh gagal (jalankan --verbose untuk rinciannya). Halaman terkait mungkin terukur dengan lebih sedikit data.
+Hasil lengkap ditulis ke C:/Users/ASUS/AppData/Local/Temp/claude/C--Users-ASUS-OneDrive-Documents-Hamasah-International/d0871f1e-3470-49fb-832b-83715c6a7391/scratchpad/kontras-baseline-sebelum-R4.json
