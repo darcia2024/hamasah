@@ -1,47 +1,68 @@
 const crypto = require('node:crypto');
 const { nextSequence } = require('./document-counters.js');
 
+// Sama dengan batas di service; store tidak memercayai pemanggilnya.
+const DEFAULT_PAGE_SIZE = 20;
+const MAX_PAGE_SIZE = 100;
+
 function createPostgresRegistrationStore({ database } = {}) {
   if (!database) {
     throw new Error('createPostgresRegistrationStore membutuhkan database.');
   }
 
-  async function get(registrationId) {
-    const { rows } = await database.query('SELECT * FROM registrations WHERE registration_id = $1', [registrationId]);
-    if (!rows[0]) return null;
-    const registration = rows[0];
+  // Mengisi anak-anak (dokumen, riwayat, catatan, tindak lanjut) untuk SEKUMPULAN baris
+  // pendaftaran dengan empat query, berapa pun jumlah barisnya. Sebelumnya setiap
+  // pendaftar menjalankan empat query sendiri, sehingga daftar 200 pendaftar memakai
+  // lebih dari 1.000 query per permintaan (Task R6.1).
+  async function hydrate(registrationRows) {
+    if (!registrationRows.length) return [];
+    const ids = registrationRows.map((row) => row.id);
     const [documents, history, notes, nextSteps] = await Promise.all([
       database.query(
-        `SELECT d.id, d.document_type, d.storage_key, d.status, d.uploaded_at, d.uploaded_by_role,
+        `SELECT d.registration_id AS parent_id, d.id, d.document_type, d.storage_key, d.status, d.uploaded_at, d.uploaded_by_role,
                 d.uploaded_by_account_id, d.file_object_id, d.review_status, d.review_note, d.reviewed_at,
                 d.reviewed_by_account_id, a.name AS uploaded_by_name, reviewer.name AS reviewed_by_name
          FROM registration_documents d
          LEFT JOIN accounts a ON a.id = d.uploaded_by_account_id
          LEFT JOIN accounts reviewer ON reviewer.id = d.reviewed_by_account_id
-         WHERE d.registration_id = $1
+         WHERE d.registration_id = ANY($1::uuid[])
          ORDER BY d.uploaded_at`,
-        [registration.id]
+        [ids]
       ),
       database.query(
-        `SELECT e.previous_status, e.next_status, e.changed_at, e.changed_by_role,
+        `SELECT e.registration_id AS parent_id, e.previous_status, e.next_status, e.changed_at, e.changed_by_role,
                 e.changed_by_account_id, a.name AS changed_by_name, e.note
          FROM registration_status_events e
          LEFT JOIN accounts a ON a.id = e.changed_by_account_id
-         WHERE e.registration_id = $1
+         WHERE e.registration_id = ANY($1::uuid[])
          ORDER BY e.changed_at`,
-        [registration.id]
+        [ids]
       ),
       database.query(
-        `SELECT n.id, n.visibility, n.body, n.created_at, n.author_account_id, a.name AS author_name
+        `SELECT n.registration_id AS parent_id, n.id, n.visibility, n.body, n.created_at, n.author_account_id, a.name AS author_name
          FROM registration_notes n LEFT JOIN accounts a ON a.id = n.author_account_id
-         WHERE n.registration_id = $1 ORDER BY n.created_at`, [registration.id]
+         WHERE n.registration_id = ANY($1::uuid[]) ORDER BY n.created_at`, [ids]
       ),
       database.query(
-        `SELECT id, title, due_on, done_at, created_at FROM registration_next_steps
-         WHERE registration_id = $1 ORDER BY done_at NULLS FIRST, due_on NULLS LAST, created_at`, [registration.id]
+        `SELECT registration_id AS parent_id, id, title, due_on, done_at, created_at FROM registration_next_steps
+         WHERE registration_id = ANY($1::uuid[]) ORDER BY done_at NULLS FIRST, due_on NULLS LAST, created_at`, [ids]
       )
     ]);
-    return {
+
+    function groupByParent(result) {
+      const groups = new Map();
+      for (const row of result.rows) {
+        if (!groups.has(row.parent_id)) groups.set(row.parent_id, []);
+        groups.get(row.parent_id).push(row);
+      }
+      return groups;
+    }
+    const documentsBy = groupByParent(documents);
+    const historyBy = groupByParent(history);
+    const notesBy = groupByParent(notes);
+    const nextStepsBy = groupByParent(nextSteps);
+
+    return registrationRows.map((registration) => ({
       id: registration.id,
       registrationId: registration.registration_id,
       status: registration.status,
@@ -70,7 +91,7 @@ function createPostgresRegistrationStore({ database } = {}) {
       createdAt: registration.created_at.toISOString(),
       updatedAt: registration.updated_at.toISOString(),
       version: Number(registration.row_version || 1),
-      documents: documents.rows.map((row) => ({
+      documents: (documentsBy.get(registration.id) || []).map((row) => ({
         id: row.id,
         type: row.document_type,
         storageKey: row.storage_key,
@@ -86,7 +107,7 @@ function createPostgresRegistrationStore({ database } = {}) {
         reviewedByAccountId: row.reviewed_by_account_id || null,
         reviewedByName: row.reviewed_by_name || null
       })),
-      statusHistory: history.rows.map((row) => ({
+      statusHistory: (historyBy.get(registration.id) || []).map((row) => ({
         from: row.previous_status,
         to: row.next_status,
         changedAt: row.changed_at.toISOString(),
@@ -95,9 +116,15 @@ function createPostgresRegistrationStore({ database } = {}) {
         changedByName: row.changed_by_name || null,
         note: row.note || ''
       })),
-      notes: notes.rows.map((row) => ({ id: row.id, visibility: row.visibility, body: row.body, createdAt: row.created_at.toISOString(), authorAccountId: row.author_account_id || null, authorName: row.author_name || null })),
-      nextSteps: nextSteps.rows.map((row) => ({ id: row.id, title: row.title, dueOn: row.due_on ? row.due_on.toISOString().slice(0, 10) : null, doneAt: row.done_at ? row.done_at.toISOString() : null, createdAt: row.created_at.toISOString() }))
-    };
+      notes: (notesBy.get(registration.id) || []).map((row) => ({ id: row.id, visibility: row.visibility, body: row.body, createdAt: row.created_at.toISOString(), authorAccountId: row.author_account_id || null, authorName: row.author_name || null })),
+      nextSteps: (nextStepsBy.get(registration.id) || []).map((row) => ({ id: row.id, title: row.title, dueOn: row.due_on ? row.due_on.toISOString().slice(0, 10) : null, doneAt: row.done_at ? row.done_at.toISOString() : null, createdAt: row.created_at.toISOString() }))
+    }));
+  }
+
+  async function get(registrationId) {
+    const { rows } = await database.query('SELECT * FROM registrations WHERE registration_id = $1', [registrationId]);
+    if (!rows[0]) return null;
+    return (await hydrate(rows))[0];
   }
 
   // Riwayat status dan berkas selalu ditulis ulang dari record, di dalam transaksi pemanggilnya.
@@ -180,9 +207,33 @@ function createPostgresRegistrationStore({ database } = {}) {
       return result.rowCount ? get(registrationId) : null;
     },
 
-    async list() {
-      const { rows } = await database.query('SELECT registration_id FROM registrations ORDER BY updated_at DESC');
-      return Promise.all(rows.map((row) => get(row.registration_id)));
+    // Satu halaman pendaftar, disaring dan dipotong di SQL: satu query hitung, satu query
+    // halaman, dan empat query anak untuk baris halaman itu saja. Jumlahnya tetap enam
+    // berapa pun total pendaftar (Task R6.1). Pencarian mencocokkan nomor pendaftaran,
+    // nama, dan nomor telepon calon.
+    async list({ search, status, page, pageSize } = {}) {
+      const kondisi = [];
+      const nilai = [];
+      if (status) { nilai.push(status); kondisi.push(`status = $${nilai.length}`); }
+      const kata = String(search || '').trim();
+      if (kata) {
+        // % dan _ dari pengguna adalah huruf biasa, bukan pola.
+        nilai.push(`%${kata.replace(/[\\%_]/g, '\\$&')}%`);
+        const n = nilai.length;
+        kondisi.push(`(registration_id ILIKE $${n} OR applicant_name ILIKE $${n} OR phone_e164 ILIKE $${n})`);
+      }
+      const where = kondisi.length ? `WHERE ${kondisi.join(' AND ')}` : '';
+      const ukuran = Math.min(MAX_PAGE_SIZE, Math.max(1, Number(pageSize) || DEFAULT_PAGE_SIZE));
+      const halaman = Math.max(1, Number(page) || 1);
+
+      const total = await database.query(`SELECT count(*)::int AS jumlah FROM registrations ${where}`, nilai);
+      const { rows } = await database.query(
+        `SELECT * FROM registrations ${where}
+          ORDER BY updated_at DESC, id
+          LIMIT $${nilai.length + 1} OFFSET $${nilai.length + 2}`,
+        [...nilai, ukuran, (halaman - 1) * ukuran]
+      );
+      return { items: await hydrate(rows), total: total.rows[0].jumlah, page: halaman, pageSize: ukuran };
     },
 
     // Satu perintah atomik: dua permintaan bersamaan tidak mungkin mendapat nomor yang sama.

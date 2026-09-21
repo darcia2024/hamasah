@@ -142,8 +142,9 @@ async function testNormalFlow() {
   assert.equal(publicView.value.documentSummary[0].reviewStatus, 'accepted');
   assert.equal(publicView.value.notes.length, 1);
   const staffList = await service.listForStaff();
-  assert.equal(staffList.length, 1);
-  assert.equal(staffList[0].program, domain.PROGRAMS.MAHAD, 'Tampilan staf juga harus membawa program, bukan undefined.');
+  assert.deepEqual([staffList.total, staffList.page, staffList.pageSize], [1, 1, 20], 'listForStaff selalu mengembalikan satu bentuk.');
+  assert.equal(staffList.items.length, 1);
+  assert.equal(staffList.items[0].program, domain.PROGRAMS.MAHAD, 'Tampilan staf juga harus membawa program, bukan undefined.');
   const snapshot = await service.store.get(id);
   const current = await service.store.get(id);
   await service.store.update({ ...current, updatedAt: '2026-09-15T00:00:30.000Z' });

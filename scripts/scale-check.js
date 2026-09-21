@@ -24,6 +24,7 @@ const http = require('node:http');
 const path = require('node:path');
 const { createHamasahApp } = require('../server/app.js');
 const { createTestDatabase } = require('../server/test-support/database.js');
+const { createCountingDatabase } = require('../server/test-support/counting-database.js');
 const { createRelaxedRateLimiter } = require('../server/test-support/rate-limit.js');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -37,23 +38,6 @@ const LIMITS = Object.freeze({
   maxListMs: 1500,
   maxPortalWireBytes: 150 * 1024
 });
-
-// Membungkus database supaya setiap query terhitung, termasuk yang di dalam transaksi.
-function countingDatabase(inner) {
-  const counter = { queries: 0 };
-  return {
-    counter,
-    query(sql, params) { counter.queries += 1; return inner.query(sql, params); },
-    exec: inner.exec ? (sql) => { counter.queries += 1; return inner.exec(sql); } : undefined,
-    withTransaction(work) {
-      return inner.withTransaction((tx) => work({
-        query(sql, params) { counter.queries += 1; return tx.query(sql, params); },
-        exec: tx.exec ? (sql) => { counter.queries += 1; return tx.exec(sql); } : undefined
-      }));
-    },
-    close: () => inner.close()
-  };
-}
 
 async function request(baseUrl, method, pathname, { token, body } = {}) {
   const headers = { 'Content-Type': 'application/json' };
@@ -136,7 +120,7 @@ async function measurePortalWeight(baseUrl, page) {
 async function main() {
   const wantJson = process.argv.includes('--json');
   const inner = await createTestDatabase();
-  const database = countingDatabase(inner);
+  const database = createCountingDatabase(inner);
   const app = createHamasahApp({
     rootDirectory: ROOT,
     database,

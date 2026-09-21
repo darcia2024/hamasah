@@ -94,7 +94,8 @@ async function run() {
       changedByName: null
     })));
     assert.equal(await store.count(), 1);
-    assert.equal((await store.list()).length, 1);
+    const halaman = await store.list();
+    assert.deepEqual([halaman.items.length, halaman.total, halaman.page, halaman.pageSize], [1, 1, 1, 20]);
 
     // Rollback: dokumen dengan document_type tidak valid membuat CHECK gagal.
     // Seluruh perubahan dalam penyimpanan itu harus batal, data lama tetap utuh.

@@ -58,8 +58,18 @@
       count() {
         return records.size;
       },
-      list() {
-        return [...records.values()].map(clone);
+      // Sama bentuknya dengan store PostgreSQL: satu halaman yang sudah disaring.
+      list({ search, status, page, pageSize } = {}) {
+        const kata = String(search || '').trim().toLocaleLowerCase('id-ID');
+        const ukuran = Math.min(100, Math.max(1, Number(pageSize) || 20));
+        const halaman = Math.max(1, Number(page) || 1);
+        const cocok = [...records.values()]
+          .sort(function latestFirst(left, right) { return right.updatedAt.localeCompare(left.updatedAt); })
+          .filter((record) => {
+            const haystack = `${record.registrationId} ${record.applicant.applicantName} ${record.applicant.phone}`.toLocaleLowerCase('id-ID');
+            return (!status || record.status === status) && (!kata || haystack.includes(kata));
+          });
+        return { items: cocok.slice((halaman - 1) * ukuran, halaman * ukuran).map(clone), total: cocok.length, page: halaman, pageSize: ukuran };
       },
       async removeDocument(registrationId, documentId) {
         const record = records.get(registrationId);
@@ -214,24 +224,19 @@
       return { ok: true, value: toPublicRegistration(record) };
     }
 
+    // Selalu satu bentuk: { items, total, page, pageSize }. Penyaringan dan pemotongan
+    // halaman dilakukan store (SQL pada PostgreSQL), bukan di sini.
     async function listForStaff(options = {}) {
       if (typeof store.list !== 'function') {
         return { items: [], total: 0, page: 1, pageSize: 20 };
       }
-      const search = String(options.search || '').trim().toLocaleLowerCase('id-ID');
-      const status = String(options.status || '').trim();
-      const page = Math.max(1, Number(options.page) || 1);
-      const pageSize = Math.min(100, Math.max(1, Number(options.pageSize) || 20));
-      const filtered = (await store.list())
-        .sort(function latestFirst(left, right) { return right.updatedAt.localeCompare(left.updatedAt); })
-        .filter((record) => {
-          const matchesStatus = !status || record.status === status;
-          const haystack = `${record.registrationId} ${record.applicant.applicantName} ${record.applicant.phone}`.toLocaleLowerCase('id-ID');
-          return matchesStatus && (!search || haystack.includes(search));
-        });
-      const total = filtered.length;
-      const items = filtered.slice((page - 1) * pageSize, page * pageSize).map(toStaffRegistration);
-      return Object.keys(options).length === 0 ? filtered.map(toStaffRegistration) : { items, total, page, pageSize };
+      const page = await store.list({
+        search: String(options.search || '').trim(),
+        status: String(options.status || '').trim(),
+        page: Math.max(1, Number(options.page) || 1),
+        pageSize: Math.min(100, Math.max(1, Number(options.pageSize) || 20))
+      });
+      return { items: page.items.map(toStaffRegistration), total: page.total, page: page.page, pageSize: page.pageSize };
     }
 
     async function changeStatus(registrationId, nextStatus, actor) {
