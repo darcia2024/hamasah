@@ -110,6 +110,20 @@ Rencana: `docs/RENCANA_REMEDIASI_PHASE_R1_R8_2026-09-20.md` Bagian 4. Hasil dan 
 
 **Menunggu pihak Hamasah:** isi tujuh bagian kebijakan privasi. Sampai materi itu turun, `website/kebijakan-privasi.html` berstatus draf, diberi `noindex`, tidak masuk sitemap, dan situs belum boleh dirilis ke publik.
 
+## Remediasi Phase R3 (21 September 2026)
+
+Rencana: `docs/RENCANA_REMEDIASI_PHASE_R1_R8_2026-09-20.md` Bagian 5. Hasil dan bukti: `docs/REMEDIASI_R3_HASIL_2026-09-21.md`.
+
+Phase ini tidak menulis fitur baru. Ia menyelesaikan fitur yang backend-nya sudah jadi, sudah bermigrasi, sudah punya test, tetapi tidak punya satu pun kontrol di UI.
+
+- Konsol operasional: unduh laporan CSV, kuitansi PDF, tandai invoice lunas, koreksi dan pembatalan invoice beserta riwayat koreksinya, panel visa mendekati kedaluwarsa, unggah dan daftar berkas visa, serta ledger inventaris beserta riwayat mutasinya.
+- Konsol petugas dan halaman cek status dapat membuka berkas yang diunggah. Sebelumnya petugas menyetujui atau menolak paspor, ijazah, dan surat kesehatan tanpa bisa membukanya.
+- Aksi keluar dari semua perangkat untuk akun internal, dan keluar dari sesi ini untuk pendaftar.
+
+Tiga tabel ternyata hanya ditulis dan tidak pernah dibaca dari mana pun sejak migrasi 022: `invoice_corrections`, `visa_documents`, dan `inventory_movements`. Jalur bacanya ditambahkan di phase ini.
+
+**Temuan terbuka:** `POST /api/accounts/invitations` tidak dipanggil dari UI mana pun. Jalur pembuatan akun lewat undangan, yang membuat admin tidak perlu mengarang kata sandi untuk orang lain, lengkap dari ujung ke ujung kecuali tombol untuk memulainya. Bukan bagian dari task R3 mana pun.
+
 ## LMS: tugas dan kuis ditunda (21 September 2026)
 
 Keputusan KR3 pada `docs/RENCANA_REMEDIASI_PHASE_R1_R8_2026-09-20.md`, dikerjakan sebagai Task R3.6 opsi (b).
