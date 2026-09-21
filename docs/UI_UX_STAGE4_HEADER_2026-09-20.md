@@ -20,3 +20,7 @@ Lima halaman wajib (`biaya`, `kontak`, `articles`, `article`, `cek-status`) masi
 - `npm run test:browser-contract` — lulus, 16 halaman.
 - `node --check website/public-header.js` — lulus.
 - `git diff --check` — lulus; peringatan yang muncul hanya konversi akhir baris Git.
+
+---
+
+**Koreksi (21 September 2026, Task R5.1/R5.2):** kutipan `npm run test:browser-contract` ("lulus, 16 halaman") dan `npm run test:uat-roles` di dokumen ini tidak membuktikan apa yang tampaknya dibuktikan. Kontrak lama hanya membaca HTML dengan regex dan memeriksa CSS prototipe di root, tanpa membuka browser. Skrip uat-roles membandingkan array dengan dirinya sendiri dan tidak pernah memakai empat dari tujuh role. Keduanya sudah diganti: pemeriksaan statis kini `npm run test:static-contract`, pembuktian browser `npm run test:browser-contract` (browser sungguhan, 17 halaman x 5 lebar), dan otorisasi per role lewat HTTP `npm run test:role-authorization`. Lihat `docs/REMEDIASI_R5_HASIL_2026-09-21.md`.
