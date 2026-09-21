@@ -111,6 +111,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const statusLabel = reviewStatus === 'rejected' ? 'Perlu diunggah ulang' : reviewStatus === 'accepted' ? 'Diterima' : 'Menunggu review';
       const note = reviewStatus === 'rejected' && d.reviewNote ? `<small class="doc-review-note">Catatan petugas: ${escapeHtml(d.reviewNote)}</small>` : '';
       const deleteAction = reviewStatus === 'accepted' ? '' : `<button type="button" class="button button--text doc-delete-button" data-document-id="${escapeHtml(d.id)}">Hapus & unggah ulang</button>`;
+      // Pendaftar hanya dapat membuka berkasnya sendiri: endpoint memeriksa token
+      // pendaftaran terhadap pendaftaran pemilik berkas, bukan sekadar peran.
+      const openAction = d.fileObjectId
+        ? `<button type="button" class="button button--text doc-open-button" data-file-id="${escapeHtml(d.fileObjectId)}" data-file-name="${escapeHtml(label)}">Lihat berkas</button>`
+        : '';
       return `
         <div class="doc-item-row">
           <div class="doc-icon-badge" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
@@ -119,6 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <small>Diunggah: ${escapeHtml(dateStr)}</small>${note}
           </div>
           <span class="m3-chip-status ${reviewStatus === 'rejected' ? 'is-rejected' : reviewStatus === 'accepted' ? 'is-approved' : ''}">${statusLabel}</span>
+          ${openAction}
           ${deleteAction}
         </div>
       `;
@@ -128,6 +134,28 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   docListContainer.addEventListener('click', async (event) => {
+    const openButton = event.target.closest('.doc-open-button');
+    if (openButton) {
+      const labelAsli = openButton.textContent;
+      openButton.disabled = true;
+      openButton.textContent = 'Menyiapkan...';
+      try {
+        await window.HamasahFileOpen.buka(openButton.dataset.fileId, {
+          headers: { Authorization: `Bearer ${currentToken}` },
+          nama: `${currentRegId}-${openButton.dataset.fileName}`
+        });
+        docUploadStatus.textContent = '';
+        docUploadStatus.className = 'form-status';
+      } catch (error) {
+        docUploadStatus.textContent = error.message;
+        docUploadStatus.className = 'form-status is-error';
+      } finally {
+        openButton.disabled = false;
+        openButton.textContent = labelAsli;
+      }
+      return;
+    }
+
     const button = event.target.closest('.doc-delete-button');
     if (!button || !currentRegId || !currentToken) return;
     if (!window.confirm('Hapus dokumen ini agar Anda dapat mengunggah versi baru?')) return;

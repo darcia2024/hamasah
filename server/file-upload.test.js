@@ -257,6 +257,32 @@ async function run() {
     assert.equal(pasporKeWali.status, 403, 'Wali santri lain tidak boleh membuka paspor calon santri.');
     assert.equal((await request(baseUrl, 'GET', `/api/files/${pasporId}`)).status, 403, 'Tanpa token pendaftaran, ditolak.');
 
+    // Task R3.5. Kasus paling tajam: pendaftar LAIN yang tokennya sah.
+    // Kalau isCandidate hanya memeriksa "token ini milik pendaftaran mana pun"
+    // dan bukan "milik pendaftaran INI", pemeriksaan di atas tetap lolos
+    // sementara berkas orang lain terbuka.
+    const daftarLain = await request(baseUrl, 'POST', '/api/registrations', {
+      body: {
+        applicantName: 'Calon Berkas Lain', phone: '081234500000', guardianName: 'Wali Lain',
+        guardianPhone: '081298700000', email: 'berkas.lain@example.test', guardianEmail: 'wali.lain@example.test',
+        birthDate: '2004-02-02', gender: 'putra', schoolOrigin: 'SMA Uji', guardianConsent: true,
+        program: 'kuliah-al-azhar', educationLevel: 'SMA', city: 'Bandung', consent: true, dataProcessingConsent: true
+      }
+    });
+    assert.equal(daftarLain.status, 201, JSON.stringify(daftarLain.body));
+    const tokenPendaftarLain = daftarLain.body.accessToken;
+
+    const silang = await request(baseUrl, 'GET', `/api/files/${pasporId}`, { token: tokenPendaftarLain });
+    assert.equal(silang.status, 403, 'Pendaftar lain tidak boleh membuka berkas pendaftar ini.');
+    assert.match(silang.body.error, /tidak memiliki akses/);
+
+    // Sebaliknya juga: pemilik berkas pertama tidak boleh menumpang mengunggah
+    // ke pendaftaran orang lain.
+    assert.equal((await request(baseUrl, 'POST', '/api/uploads', {
+      token: tokenPendaftar,
+      body: { purpose: 'registration-document', entityId: daftarLain.body.registration.registrationId, fileName: 'paspor.pdf', contentType: 'application/pdf', size: PDF.length }
+    })).status, 403, 'Pendaftar tidak boleh mengunggah ke pendaftaran orang lain.');
+
     // --- Setiap unduhan tercatat di audit ---
     const audit = await request(baseUrl, 'GET', '/api/audit?limit=100', { token: adminToken });
     const aksi = audit.body.items.map((event) => event.action);

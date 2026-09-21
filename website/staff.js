@@ -243,6 +243,34 @@ function renderRegistrations(items) {
         });
         const note = document.createElement('input');
         note.type = 'text'; note.placeholder = 'Catatan review'; note.value = documentItem.reviewNote || '';
+        // Tanpa ini petugas menyetujui atau menolak paspor, ijazah, dan surat
+        // kesehatan tanpa pernah bisa membukanya dari konsol.
+        const buka = document.createElement('button');
+        buka.type = 'button';
+        buka.className = 'button button--secondary';
+        buka.textContent = 'Buka Berkas';
+        buka.disabled = !documentItem.fileObjectId;
+        if (!documentItem.fileObjectId) buka.title = 'Berkas belum terunggah lengkap.';
+        buka.addEventListener('click', async () => {
+          const labelAsli = buka.textContent;
+          buka.disabled = true;
+          buka.textContent = 'Menyiapkan...';
+          try {
+            await window.HamasahFileOpen.buka(documentItem.fileObjectId, {
+              headers: authHeaders(),
+              nama: `${registration.registrationId}-${documentItem.type}`
+            });
+            registrationListStatus.textContent = '';
+            registrationListStatus.classList.remove('is-error');
+          } catch (error) {
+            registrationListStatus.textContent = error.message;
+            registrationListStatus.classList.add('is-error');
+          } finally {
+            buka.disabled = false;
+            buka.textContent = labelAsli;
+          }
+        });
+
         const save = document.createElement('button'); save.type = 'button'; save.className = 'button button--secondary'; save.textContent = 'Simpan';
         save.addEventListener('click', async () => {
           save.disabled = true;
@@ -259,7 +287,7 @@ function renderRegistrations(items) {
             registrationListStatus.classList.add('is-error');
           } finally { save.disabled = false; }
         });
-        row.append(label, review, note, save); documents.append(row);
+        row.append(label, buka, review, note, save); documents.append(row);
       });
       content.append(documents);
     }

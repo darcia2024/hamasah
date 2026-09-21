@@ -830,6 +830,7 @@ if (visaStudentSelect) visaStudentSelect.addEventListener('change', () => loadVi
 
 movementForm.addEventListener('submit', kirimMutasi);
 document.querySelector('#movement-cancel').addEventListener('click', tutupDialogMutasi);
+movementDialog.addEventListener('keydown', (event) => { if (event.key === 'Escape') tutupDialogMutasi(); });
 movementDialog.addEventListener('close', () => { mutasiItem = null; });
 
 if (visaDocumentForm) {
@@ -877,6 +878,9 @@ invoiceActionForm.addEventListener('submit', kirimAksiInvoice);
 document.querySelector('#invoice-action-cancel').addEventListener('click', tutupDialogInvoice);
 // Escape menutup <dialog> sendiri; state internal ikut dibersihkan agar pembukaan
 // berikutnya tidak mewarisi invoice sebelumnya.
+// Escape menutup dialog tanpa melewati tombol Tutup. Event 'close' tidak selalu
+// terkirim, jadi keydown dipakai sebagai jalur yang pasti ada.
+invoiceActionDialog.addEventListener('keydown', (event) => { if (event.key === 'Escape') tutupDialogInvoice(); });
 invoiceActionDialog.addEventListener('close', () => { aksiInvoice = null; });
 
 if (logoutButton) {

@@ -4165,3 +4165,41 @@ h4 {
   color: inherit;
   text-decoration: underline;
 }
+
+/* Pratinjau berkas gambar di tempat (Task R3.5). Hanya gambar: CSP halaman ini
+   tidak mengizinkan blob: di dalam frame, dan object-src bernilai 'none'. */
+.file-preview {
+  width: min(680px, calc(100vw - 32px));
+  padding: 20px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-shape-corner-large);
+  background: var(--md-sys-color-surface-container-lowest);
+}
+
+.file-preview::backdrop {
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.file-preview__title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  word-break: break-word;
+}
+
+.file-preview__image {
+  display: block;
+  width: 100%;
+  max-height: 65vh;
+  object-fit: contain;
+  border-radius: var(--md-shape-corner-medium);
+  background: var(--md-sys-color-surface-container);
+}
+
+.file-preview__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
