@@ -712,19 +712,39 @@ function measureInPage() {
     measure(control, color, fontSize, fontWeight, label.slice(0, 90), [box], null);
   }
 
-  return { checked, passed, findings };
+  // Bukti bahwa transisi benar-benar beku. Bila tidak, pemanggil harus tahu bahwa
+  // hasil pada elemen bertransisi dapat menyimpang.
+  const durasi = getComputedStyle(document.body).transitionDuration;
+  const frozen = durasi === '0s' || durasi === '';
+
+  return { checked, passed, findings, frozen };
 }
 
 // ---------------------------------------------------------------------------
 // Menjalankan
 // ---------------------------------------------------------------------------
 
+// Tombol tab dan lencana bertransisi 0,2 sampai 0,3 detik. Diukur di tengah
+// transisi, teks putih tampak berada di atas latar putih padahal beberapa saat
+// kemudian ia di atas latar gelap. Itu bukan temuan, itu artefak alat. Karena itu
+// transisi dan animasi dibekukan sebelum halaman menjalankan skripnya.
+//
+// Memakai CSSStyleSheet konstruktif, bukan elemen <style>: CSP situs melarang gaya
+// inline (style-src 'self'), sedangkan lembar gaya yang diadopsi tidak terkena.
+const FREEZE_MOTION = `(() => {
+  try {
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync('*, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }');
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+  } catch (error) { /* dilaporkan lewat penanda frozen di hasil ukur */ }
+})();`;
+
 function bootScriptFor(token) {
   const math = fs.readFileSync(path.join(__dirname, 'contrast-math.js'), 'utf8');
   const session = token
     ? `try { sessionStorage.setItem('hamasahPortalSession', ${JSON.stringify(JSON.stringify({ accessToken: token }))}); } catch (error) { /* origin tanpa penyimpanan */ }`
     : '';
-  return `${math}\n${session}`;
+  return `${math}\n${FREEZE_MOTION}\n${session}`;
 }
 
 const MEASURE_EXPRESSION = `(${measureInPage.toString()})()`;
@@ -744,6 +764,7 @@ async function measureScenario(cdp, baseUrl, scenario, viewport, tokens, options
     const record = async (label) => {
       const result = await tab.evaluate(MEASURE_EXPRESSION);
       stateResults.push({ label, ...result });
+      if (!result.frozen) options.warn(`${scenario.name} @${viewport} (${label}): transisi tidak berhasil dibekukan, hasil pada elemen bertransisi dapat menyimpang`);
     };
 
     await record('awal');
@@ -891,7 +912,7 @@ async function main() {
         const label = `${scenario.name} @${viewport}`;
         process.stdout.write(`  mengukur ${label} ... `);
         try {
-          const states = await measureScenario(cdp, app.baseUrl, scenario, viewport, tokens, options);
+          const states = await measureScenario(cdp, app.baseUrl, scenario, viewport, tokens, { ...options, warn });
           runs.push({ scenario: scenario.name, viewport, states });
           const found = states.reduce((sum, state) => sum + state.findings.length, 0);
           console.log(`${states.reduce((sum, state) => sum + state.checked, 0)} elemen, ${found} temuan`);
