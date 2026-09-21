@@ -109,7 +109,12 @@
   display: none;
 }
 
-.portal-dashboard h2 {
+/* Warna bawaan kartu GELAP lama (judul putih, paragraf krem). Spesifisitasnya
+   sengaja diturunkan ke (0,0,1) dengan :where(). Sebelumnya `.portal-dashboard h2`
+   berspesifisitas (0,1,1) dan mengalahkan setiap kelas tunggal, sehingga di konsol
+   CRM, yang permukaannya terang, judul menjadi putih di atas putih (1,00:1) dan
+   paragraf krem di atas putih (1,55:1). Kelas apa pun kini menang atasnya. */
+:where(.portal-dashboard) h2 {
   margin: 0;
   font-size: 24px;
   font-weight: 600;
@@ -117,7 +122,7 @@
   color: #FFFFFF;
 }
 
-.portal-dashboard p {
+:where(.portal-dashboard) p {
   margin: 0;
   color: #D6CFBE;
   font-size: 13px;
@@ -496,6 +501,15 @@ body.in-crm #portal-students-status,
   display: none !important;
 }
 
+/* Di konsol CRM kartu itu transparan di atas permukaan terang, jadi judul dan
+   paragraf polos mewarisi warna konsol, bukan warna kartu gelap. Sama-sama
+   berspesifisitas (0,0,1) dan diletakkan sesudah aturan bawaan, sehingga menang
+   atasnya tanpa mengalahkan kelas apa pun. */
+:where(.crm-shell .portal-dashboard, .crm-canvas .portal-dashboard) h2,
+:where(.crm-shell .portal-dashboard, .crm-canvas .portal-dashboard) p {
+  color: inherit;
+}
+
 /* ==========================================================================
    Material 3 (M3) & Apple Typography Specification for Hamasah CRM
    ========================================================================== */
@@ -609,7 +623,7 @@ body.in-crm #portal-students-status,
   height: 36px;
   border-radius: 10px;
   background: var(--md-sys-color-primary);
-  color: #FFFFFF;
+  color: var(--md-sys-color-on-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -677,7 +691,7 @@ body.in-crm #portal-students-status,
   height: 36px;
   border-radius: 9999px;
   background: var(--md-sys-color-primary);
-  color: #FFFFFF;
+  color: var(--md-sys-color-on-primary);
   font-size: 13px;
   font-weight: 600;
   display: flex;
@@ -1026,7 +1040,7 @@ body.in-crm #portal-students-status,
   height: 32px;
   border-radius: 9999px;
   background: var(--crm-gold-gradient);
-  color: #FFFFFF;
+  color: var(--md-sys-color-on-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1125,7 +1139,10 @@ body.in-crm #portal-students-status,
   margin-bottom: 14px;
 }
 
-.coursue-hero-title {
+/* Spesifisitas (0,2,0): judul ini berada di dalam .portal-students, dan
+   `.portal-students h2` (0,1,1) mengalahkan kelas tunggal, sehingga judul menjadi
+   charcoal di atas panel charcoal (1,18:1). */
+.coursue-hero-banner .coursue-hero-title {
   font-size: 24px;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -1135,13 +1152,15 @@ body.in-crm #portal-students-status,
   color: #FFFFFF;
 }
 
-.coursue-hero-subtitle {
+/* Teks muted di atas panel GELAP: harus terang. Nilai lama (#94A3B8) berasal dari
+   panel Slate gelap; pemetaan mekanis ke abu-abu gelap membuatnya 2,54:1. */
+.coursue-hero-banner .coursue-hero-subtitle {
   font-size: 13.5px;
   font-weight: 400;
   line-height: 1.6;
   margin: 0 0 20px;
   max-width: 520px;
-  color: var(--md-sys-color-outline);
+  color: #B9B7B2;
 }
 
 /* Solid CTA Button */
@@ -1150,7 +1169,7 @@ body.in-crm #portal-students-status,
   align-items: center;
   gap: 8px;
   background: var(--md-sys-color-primary);
-  color: #FFFFFF;
+  color: var(--md-sys-color-on-primary);
   padding: 10px 22px;
   border-radius: 9999px;
   font-weight: 600;
@@ -1307,7 +1326,7 @@ body.in-crm #portal-students-status,
 .coursue-arrow-btn--active {
   background: var(--md-sys-color-primary);
   border-color: var(--md-sys-color-primary);
-  color: #FFFFFF;
+  color: var(--md-sys-color-on-primary);
 }
 
 /* --------------------------------------------------------------------------
@@ -1720,7 +1739,7 @@ body.in-crm #portal-students-status,
 
 .coursue-mentor-action:hover {
   background: var(--md-sys-color-primary);
-  color: #FFFFFF;
+  color: var(--md-sys-color-on-primary);
   border-color: var(--md-sys-color-primary);
   box-shadow: 0 2px 8px rgba(231, 177, 12, 0.25);
 }
@@ -2354,7 +2373,7 @@ body.in-crm #portal-students-status,
 
 .crm-action-link-btn:hover {
   background: var(--md-sys-color-primary);
-  color: #FFFFFF;
+  color: var(--md-sys-color-on-primary);
   border-color: var(--md-sys-color-primary);
   box-shadow: 0 4px 12px rgba(231, 177, 12, 0.25);
   transform: translateY(-1px);
@@ -2575,7 +2594,7 @@ body.in-crm #portal-students-status,
 
 .crm-student-compact-card:hover .crm-student-compact-arrow {
   background: var(--md-sys-color-primary);
-  color: #FFFFFF;
+  color: var(--md-sys-color-on-primary);
   border-color: var(--md-sys-color-primary);
   transform: translateX(3px);
 }
@@ -3257,7 +3276,7 @@ body.crm-page-exiting .lms-page {
   padding: 0 20px;
   border-radius: 10px;
   background: var(--md-sys-color-primary);
-  color: #FFFFFF;
+  color: var(--md-sys-color-on-primary);
   border: none;
   font-size: 13px;
   font-weight: 600;

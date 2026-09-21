@@ -133,7 +133,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--md-sys-color-primary, var(--gold-dark));
+  color: var(--gold-dark);
   margin-bottom: 6px;
 }
 
@@ -298,7 +298,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--md-sys-color-primary, var(--gold-dark));
+  color: var(--gold-dark);
   margin-bottom: 4px;
 }
 
@@ -623,7 +623,7 @@
 .staff-login__brand-name {
   font-size: 15px;
   font-weight: 800;
-  color: var(--md-sys-color-primary, var(--gold-dark));
+  color: var(--gold-dark);
 }
 
 .staff-login__copy {
@@ -793,9 +793,9 @@
 .js-text-label { margin: 0 0 4px; font-weight: 600; font-size: 13px; color: var(--crm-text-primary, var(--md-sys-color-on-surface)); }
 .js-text-body { font-size: 13px; color: var(--crm-text-primary, var(--md-sys-color-on-surface)); }
 .js-text-muted { color: var(--crm-text-secondary, var(--md-sys-color-outline)); font-size: 13px; }
-.js-text-accent { color: var(--md-sys-color-primary, var(--gold-dark)); }
-.js-text-accent-sm { font-size: 12px; color: var(--md-sys-color-primary, var(--gold-dark)); }
-.js-text-accent-strong { font-size: 13px; font-weight: 600; color: var(--md-sys-color-primary, var(--gold-dark)); }
+.js-text-accent { color: var(--gold-dark); }
+.js-text-accent-sm { font-size: 12px; color: var(--gold-dark); }
+.js-text-accent-strong { font-size: 13px; font-weight: 600; color: var(--gold-dark); }
 .js-text-meta { font-size: 12.5px; font-weight: 600; color: var(--crm-text-secondary, var(--md-sys-color-outline)); }
 .js-text-soft { font-size: 12px; opacity: 0.8; }
 .js-text-lg { font-size: 16px; }
@@ -817,7 +817,7 @@
 }
 .js-chip-accent {
   background: var(--md-sys-color-primary-container, #FEF3C7);
-  color: var(--md-sys-color-primary, var(--gold-dark));
+  color: var(--gold-dark);
 }
 .js-chip-active {
   background: #FFFFFF;
