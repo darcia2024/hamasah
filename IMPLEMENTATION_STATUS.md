@@ -132,6 +132,10 @@ Kontras dan kejujuran tampilan. Palet logo emas/charcoal dipulihkan; pelanggaran
 
 Alat uji yang jujur. `test:browser-contract` membuka 17 halaman x 5 lebar di browser sungguhan (CSP, galat JS, gulir horizontal, gambar, nama aksesibel); kontrak lama menjadi `test:static-contract`. `uat-roles` diganti `test:role-authorization` (tujuh role lewat HTTP plus batas data wali/santri). `security:check` memindai folder publik dan menjalankan `npm audit`. `test:scale` mencatat angka awal E-01 (1.003 query untuk 200 pendaftar) dan E-03 (304 KB portal) dan sengaja gagal sampai R6. Rincian: `docs/REMEDIASI_R5_HASIL_2026-09-21.md`.
 
+## Remediasi Phase R6 (21 September 2026)
+
+Skalabilitas. Daftar pendaftar 1.003 query -> 8 (tidak tumbuh); pagination untuk pendaftaran, artikel (tanpa body), santri (cakupan akses di SQL, diuji setara canView), dan tagihan (dengan nama santri); ETag/Cache-Control/304/brotli untuk aset statis dengan versi dari sidik isi (`npm run stamp:assets` wajib setelah mengubah CSS/JS); `website.css` dipecah jadi core (internal) dan public; portal 304 KB -> 45,6 KB di jaringan; rate limit token undangan/reset. **Migrasi 034 (index) perlu diterapkan ke staging lalu production bersama 017-033.** Akun, visa, inventaris, maddah belum berpaginasi (keputusan cakupan). Rincian: `docs/REMEDIASI_R6_HASIL_2026-09-21.md`.
+
 ## LMS: tugas dan kuis ditunda (21 September 2026)
 
 Keputusan KR3 pada `docs/RENCANA_REMEDIASI_PHASE_R1_R8_2026-09-20.md`, dikerjakan sebagai Task R3.6 opsi (b).
