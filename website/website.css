@@ -7,50 +7,55 @@
   /* ------------------------------------------------------------------------
      1. M3 Dynamic Color Tokens (Gold-Seeded Palette: #E7B10C)
      ------------------------------------------------------------------------ */
-  /* Primary Role: Vibrant Hamasah Gold / Warm Amber */
-  --md-sys-color-primary: #B45309;
-  --md-sys-color-on-primary: #FFFFFF;
-  --md-sys-color-primary-container: #FEF3C7;
-  --md-sys-color-on-primary-container: #78350F;
-  --md-sys-color-inverse-primary: #FBBF24;
+  /* Primary Role: emas Hamasah #E7B10C, diukur dari piksel assets/logo-emblem-gold.png.
+     Emas adalah warna ISI, bukan warna teks: teks putih di atasnya hanya 1,96:1, jadi
+     on-primary adalah charcoal (6,13:1). Untuk teks emas di atas permukaan terang
+     pakai --gold-dark (5,72:1). */
+  --md-sys-color-primary: #E7B10C;
+  --md-sys-color-on-primary: #363638;
+  --md-sys-color-primary-container: #FBEFC4;
+  --md-sys-color-on-primary-container: #5A4200;
+  --md-sys-color-inverse-primary: #F2C94C;
 
-  /* Secondary Role: Slate / Modern Corporate Neutral */
-  --md-sys-color-secondary: #475569;
+  /* Secondary Role: netral hangat berbasis charcoal logo #363638 (terukur #373638) */
+  --md-sys-color-secondary: #5C5B5D;
   --md-sys-color-on-secondary: #FFFFFF;
-  --md-sys-color-secondary-container: #F1F5F9;
-  --md-sys-color-on-secondary-container: #0F172A;
+  --md-sys-color-secondary-container: #F4F2EE;
+  --md-sys-color-on-secondary-container: #363638;
 
-  /* Tertiary Role: Islamic Emerald Green */
-  --md-sys-color-tertiary: #059669;
+  /* Tertiary Role: SUKSES SAJA. Hijau tidak dipakai sebagai warna dekoratif.
+     Satu-satunya sumber hijau; token sukses lain (--success, --crm-status-online,
+     --crm-emerald) menunjuk ke sini. */
+  --md-sys-color-tertiary: #1F6F3D;
   --md-sys-color-on-tertiary: #FFFFFF;
-  --md-sys-color-tertiary-container: #D1FAE5;
-  --md-sys-color-on-tertiary-container: #064E3B;
+  --md-sys-color-tertiary-container: #DDF1E3;
+  --md-sys-color-on-tertiary-container: #0F3D20;
 
   /* Error Role */
-  --md-sys-color-error: #DC2626;
+  --md-sys-color-error: #B91C1C;
   --md-sys-color-on-error: #FFFFFF;
   --md-sys-color-error-container: #FEE2E2;
   --md-sys-color-on-error-container: #7F1D1D;
 
   /* Surface & Surface Containers (Clean Crisp System) */
   --md-sys-color-surface: #FFFFFF;
-  --md-sys-color-on-surface: #0F172A;
-  --md-sys-color-surface-variant: #F1F5F9;
-  --md-sys-color-on-surface-variant: #475569;
+  --md-sys-color-on-surface: #363638;
+  --md-sys-color-surface-variant: #F4F2EE;
+  --md-sys-color-on-surface-variant: #5C5B5D;
   
   --md-sys-color-surface-container-lowest: #FFFFFF;
-  --md-sys-color-surface-container-low: #F8FAFC;
-  --md-sys-color-surface-container: #F1F5F9;
-  --md-sys-color-surface-container-high: #E2E8F0;
-  --md-sys-color-surface-container-highest: #CBD5E1;
+  --md-sys-color-surface-container-low: #FAF9F7;
+  --md-sys-color-surface-container: #F4F2EE;
+  --md-sys-color-surface-container-high: #EBE8E2;
+  --md-sys-color-surface-container-highest: #DDD9D1;
 
   /* Outline Roles */
-  --md-sys-color-outline: #64748B;
-  --md-sys-color-outline-variant: #E2E8F0;
+  --md-sys-color-outline: #68676A;
+  --md-sys-color-outline-variant: #E2DED6;
 
   /* Inverse Roles */
-  --md-sys-color-inverse-surface: #1E293B;
-  --md-sys-color-inverse-on-surface: #F8FAFC;
+  --md-sys-color-inverse-surface: #363638;
+  --md-sys-color-inverse-on-surface: #F5F3EE;
 
   /* Scrim & Shadow */
   --md-sys-color-scrim: #000000;
@@ -103,16 +108,16 @@
   --line-subtle: rgba(208, 197, 180, 0.4);
 
   --gold: #E7B10C;
-  --gold-dark: #A87900;
+  --gold-dark: #856000;
   --gold-hover: #D6A206;
   --gold-pale: var(--md-sys-color-primary-container);
   --gold-glow: rgba(231, 177, 12, 0.16);
   --gold-border: rgba(231, 177, 12, 0.32);
 
   --charcoal: var(--md-sys-color-inverse-surface);
-  --charcoal-soft: #272520;
+  --charcoal-soft: #2A2A2C;
   --danger: var(--md-sys-color-error);
-  --success: #226E3B;
+  --success: var(--md-sys-color-tertiary);
 
   /* Material-3 Legacy Tokens (for staff.html / portal.html) */
   --m3-primary: var(--md-sys-color-primary);

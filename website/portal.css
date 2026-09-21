@@ -504,36 +504,36 @@ body.in-crm #portal-students-status,
   --apple-font-stack: var(--main-font);
   
   /* Hamasah Solid Clean Palette */
-  --crm-bg: #F8FAFC;
+  --crm-bg: var(--md-sys-color-surface-container-low);
   --crm-card-bg: #FFFFFF;
   --crm-sidebar-bg: #FFFFFF;
-  --crm-border: #E2E8F0;
-  --crm-border-subtle: #F1F5F9;
-  --crm-text-primary: #0F172A;
-  --crm-text-secondary: #475569;
-  --crm-text-muted: #94A3B8;
+  --crm-border: var(--md-sys-color-outline-variant);
+  --crm-border-subtle: var(--md-sys-color-surface-container);
+  --crm-text-primary: var(--md-sys-color-on-surface);
+  --crm-text-secondary: var(--md-sys-color-on-surface-variant);
+  --crm-text-muted: var(--md-sys-color-outline);
 
-  /* Satu-satunya sumber hijau status pada konsol internal. Sebelumnya #16A34A
-     ditulis langsung di atribut style di enam halaman. Task R4.1 akan
-     menyatukan token ini dengan token sukses global. */
-  --crm-status-online: #16A34A;
+  /* Hijau status konsol internal. Menunjuk ke token sukses global, sehingga hanya
+     ada satu hijau di seluruh situs. Sebelumnya #16A34A ditulis langsung di atribut
+     style di enam halaman, lalu menjadi token sendiri, terpisah dari --success. */
+  --crm-status-online: var(--success);
   
-  /* Solid Primary Hamasah Gold & Solid Dark Slate */
-  --crm-gold: #D97706;
-  --crm-gold-hover: #B45309;
-  --crm-gold-light: #FEF3C7;
-  --crm-gold-container: #FEF3C7;
-  --crm-on-gold-container: #78350F;
-  --crm-gold-gradient: #D97706;
-  --crm-hero-gradient: #0F172A;
-  --crm-emerald: #059669;
-  --crm-emerald-light: #D1FAE5;
+  /* Emas Hamasah dan charcoal: seluruhnya menunjuk ke token global di website.css */
+  --crm-gold: var(--md-sys-color-primary);
+  --crm-gold-hover: var(--gold-hover);
+  --crm-gold-light: var(--md-sys-color-primary-container);
+  --crm-gold-container: var(--md-sys-color-primary-container);
+  --crm-on-gold-container: var(--md-sys-color-on-primary-container);
+  --crm-gold-gradient: var(--md-sys-color-primary);
+  --crm-hero-gradient: var(--md-sys-color-inverse-surface);
+  --crm-emerald: var(--md-sys-color-tertiary);
+  --crm-emerald-light: var(--md-sys-color-tertiary-container);
 
   /* Clean Solid Shadows */
   --crm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --crm-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05);
   --crm-shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --crm-shadow-hero: 0 4px 16px rgba(15, 23, 42, 0.12);
+  --crm-shadow-hero: 0 4px 16px rgba(30, 27, 22, 0.12);
 }
 
 .crm-shell {
