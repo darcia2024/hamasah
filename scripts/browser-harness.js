@@ -216,6 +216,8 @@ async function openTab(cdp, { width, height, bootScript }) {
 
   return {
     send,
+    sessionId,
+    on: (method, handler) => cdp.on(method, handler, sessionId),
     diagnostics,
     async waitIdle(quietMs = 500, timeoutMs = 12000) {
       const limit = Date.now() + timeoutMs;

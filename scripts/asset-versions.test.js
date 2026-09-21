@@ -25,10 +25,10 @@ for (const [file, urls] of urlsByFile) {
 }
 
 // Pemasangan bersifat idempoten dan hanya menyentuh versi.
-const contoh = '<link rel="stylesheet" href="website.css?v=1"><script src="nav.js"></script><script src="https://cdn.example.test/x.js"></script>';
+const contoh = '<link rel="stylesheet" href="website-core.css?v=1"><script src="nav.js"></script><script src="https://cdn.example.test/x.js"></script>';
 const sekali = stampHtml(contoh);
 assert.equal(sekali.stale.length, 2);
-assert.match(sekali.html, /website\.css\?v=[0-9a-f]{10}"/);
+assert.match(sekali.html, /website-core\.css\?v=[0-9a-f]{10}"/);
 assert.match(sekali.html, /nav\.js\?v=[0-9a-f]{10}"/);
 assert.ok(sekali.html.includes('https://cdn.example.test/x.js"'), 'Skrip eksternal tidak boleh diberi versi.');
 assert.equal(stampHtml(sekali.html).stale.length, 0);
