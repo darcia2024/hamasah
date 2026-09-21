@@ -41,7 +41,7 @@ const ICONS = {
   playFilled: '<svg class="js-ml-1" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 4 20 12 6 20 6 4"/></svg>',
   check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
   checkCircle: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
-  star: '<svg width="13" height="13" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  star: '<svg width="13" height="13" viewBox="0 0 24 24" fill="#E7B10C" stroke="#E7B10C" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
   clock: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
   book: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg>',
   globe: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
@@ -144,7 +144,7 @@ function renderCourse(course, activeMaterialId) {
     if (activeMaterial.completed) {
       actionComplete.innerHTML = `${ICONS.check} <span>Modul Ini Selesai</span>`;
       actionComplete.disabled = true;
-      actionComplete.style.background = '#059669';
+      actionComplete.style.background = '#1F6F3D';
     } else {
       actionComplete.innerHTML = `${ICONS.check} <span>Tandai Selesai</span>`;
       actionComplete.addEventListener('click', () => completeMaterial(course.id, activeMaterial.id));
@@ -166,7 +166,7 @@ function renderCourse(course, activeMaterialId) {
   // Player Container
   const playerContainer = document.createElement('div');
   playerContainer.className = 'lms-player-container';
-  playerContainer.style.background = 'radial-gradient(ellipse at center, #1E293B 0%, #0F172A 100%)';
+  playerContainer.style.background = 'radial-gradient(ellipse at center, #363638 0%, #2A2A2C 100%)';
 
   const overlay = document.createElement('div');
   overlay.className = 'lms-player-overlay';
@@ -227,11 +227,11 @@ function renderCourse(course, activeMaterialId) {
     if (activeMaterial.content && activeMaterial.content !== activeMaterial.summary) {
       const contentBox = document.createElement('div');
       contentBox.style.padding = '14px 16px';
-      contentBox.style.background = '#F8FAFC';
+      contentBox.style.background = '#FAF9F7';
       contentBox.style.borderRadius = '10px';
-      contentBox.style.border = '1px solid #E2E8F0';
+      contentBox.style.border = '1px solid #E2DED6';
       contentBox.style.fontSize = '13.5px';
-      contentBox.style.color = '#334155';
+      contentBox.style.color = '#4A4A4D';
       contentBox.style.lineHeight = '1.6';
       contentBox.textContent = activeMaterial.content;
       activeCard.append(contentBox);
@@ -242,7 +242,7 @@ function renderCourse(course, activeMaterialId) {
       pointsTitle.style.margin = '4px 0 0';
       pointsTitle.style.fontSize = '13px';
       pointsTitle.style.fontWeight = '600';
-      pointsTitle.style.color = '#0F172A';
+      pointsTitle.style.color = '#363638';
       pointsTitle.textContent = 'Poin-Poin Utama Pembahasan:';
 
       const pointsGrid = document.createElement('div');
@@ -379,16 +379,16 @@ function renderCourse(course, activeMaterialId) {
       guideTitle.style.margin = '16px 0 8px';
       guideTitle.style.fontSize = '13.5px';
       guideTitle.style.fontWeight = '600';
-      guideTitle.style.color = '#0F172A';
+      guideTitle.style.color = '#363638';
       guideTitle.textContent = 'Panduan & Tanya Jawab Terdaftar:';
       faqPanel.append(guideTitle);
 
       activeMaterial.studyGuide.forEach((sg) => {
         const guideItem = document.createElement('div');
         guideItem.style.padding = '10px 14px';
-        guideItem.style.background = '#F8FAFC';
+        guideItem.style.background = '#FAF9F7';
         guideItem.style.borderRadius = '8px';
-        guideItem.style.border = '1px solid #E2E8F0';
+        guideItem.style.border = '1px solid #E2DED6';
         guideItem.style.marginBottom = '8px';
         guideItem.innerHTML = `
           <p class="js-text-label">Q: ${sg.question}</p>
@@ -599,7 +599,7 @@ function renderCourses(courses) {
   if (emptyNote) emptyNote.hidden = false;
   if (!courses.length) {
     const empty = document.createElement('p');
-    empty.style.color = '#64748B';
+    empty.style.color = '#68676A';
     empty.style.fontSize = '13.5px';
     empty.style.padding = '24px 0';
     empty.textContent = 'Belum ada maddah yang diikuti.';
@@ -631,7 +631,7 @@ function renderCourses(courses) {
     title.style.margin = '0';
     title.style.fontSize = '16px';
     title.style.fontWeight = '600';
-    title.style.color = '#0F172A';
+    title.style.color = '#363638';
     title.textContent = course.title;
 
     titleBlock.append(category, title);
@@ -640,7 +640,7 @@ function renderCourses(courses) {
     const desc = document.createElement('p');
     desc.style.margin = '0';
     desc.style.fontSize = '13px';
-    desc.style.color = '#64748B';
+    desc.style.color = '#68676A';
     desc.style.lineHeight = '1.5';
     desc.textContent = course.description || 'Maddah persiapan akademik Al-Azhar Kairo.';
 
@@ -649,14 +649,14 @@ function renderCourses(courses) {
     metaRow.style.alignItems = 'center';
     metaRow.style.justifyContent = 'space-between';
     metaRow.style.fontSize = '12px';
-    metaRow.style.color = '#64748B';
+    metaRow.style.color = '#68676A';
 
     const materialCount = document.createElement('span');
     materialCount.innerHTML = `${ICONS.book} ${course.materials.length} materi`;
 
     const progressText = document.createElement('span');
     progressText.style.fontWeight = '600';
-    progressText.style.color = course.progress === 100 ? '#059669' : '#D97706';
+    progressText.style.color = course.progress === 100 ? '#1F6F3D' : '#856000';
     progressText.textContent = `${course.progress}% Selesai`;
 
     metaRow.append(materialCount, progressText);
@@ -665,14 +665,14 @@ function renderCourses(courses) {
     const progressTrack = document.createElement('div');
     progressTrack.style.width = '100%';
     progressTrack.style.height = '6px';
-    progressTrack.style.background = '#E2E8F0';
+    progressTrack.style.background = '#E2DED6';
     progressTrack.style.borderRadius = '9999px';
     progressTrack.style.overflow = 'hidden';
 
     const progressFill = document.createElement('div');
     progressFill.style.width = `${course.progress}%`;
     progressFill.style.height = '100%';
-    progressFill.style.background = course.progress === 100 ? '#059669' : '#D97706';
+    progressFill.style.background = course.progress === 100 ? '#1F6F3D' : '#E7B10C';
     progressFill.style.borderRadius = '9999px';
     progressFill.style.transition = 'width 0.3s ease';
     progressTrack.append(progressFill);

@@ -262,7 +262,7 @@ h1, h2, h3, h4 {
 }
 
 .button--primary:hover {
-  background-color: #92400E;
+  background-color: var(--gold-hover);
   box-shadow: var(--md-sys-elevation-1);
   transform: translateY(-1px);
 }
@@ -401,7 +401,7 @@ section[id], main[id], [tabindex="-1"] { scroll-margin-top: 88px; }
 }
 
 .nav-cta:hover {
-  background-color: #92400E !important;
+  background-color: var(--gold-hover) !important;
   box-shadow: var(--md-sys-elevation-2) !important;
   transform: translateY(-1px);
 }
@@ -2727,7 +2727,7 @@ h4 {
 .applicant-edit-card { grid-column: 1 / -1; }
 .edit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
 .edit-grid label { display: grid; gap: 6px; font-size: 12px; font-weight: 700; }
-.edit-grid input, .edit-grid select { min-height: 40px; padding: 8px 10px; border: 1px solid var(--md-sys-color-outline, #CBD5E1); border-radius: 8px; font: inherit; font-size: 13px; }
+.edit-grid input, .edit-grid select { min-height: 40px; padding: 8px 10px; border: 1px solid var(--md-sys-color-outline, var(--md-sys-color-surface-container-highest)); border-radius: 8px; font: inherit; font-size: 13px; }
 @media (max-width: 760px) { .edit-grid { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .doc-item-row { align-items: flex-start; flex-wrap: wrap; } .doc-delete-button { margin-left: 36px; } }
 
@@ -4179,7 +4179,7 @@ h4 {
 }
 
 .file-preview::backdrop {
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(30, 27, 22, 0.5);
 }
 
 .file-preview__title {

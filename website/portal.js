@@ -204,7 +204,7 @@ function createAltezzaCard(options) {
     <!-- Note snippet directly on card -->
     ${note ? `
     <div class="crm-activity-card__note">
-      <svg class="js-no-shrink" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <svg class="js-no-shrink" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E7B10C" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       <span>${escapeHtml(note)}</span>
     </div>
     ` : ''}
@@ -378,7 +378,7 @@ function renderCrmDashboard(dashboard, account, onBack) {
       <div>
         <p class="crm-field-label">
           <span>MUSYRIF PENDAMPING</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1F6F3D" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
         </p>
         <div class="crm-person-row">
           <div class="crm-person-avatar">RK</div>
@@ -399,7 +399,7 @@ function renderCrmDashboard(dashboard, account, onBack) {
       <div>
         <p class="crm-field-label">
           <span>MARKAZ &amp; ASRAMA</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#E7B10C" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
         </p>
         <div class="crm-person-row">
           <div class="crm-person-avatar js-chip-accent">HA</div>
@@ -1377,7 +1377,7 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
   statCard.innerHTML = `
     <div class="coursue-stat-card-header">
       <h3>Statistik Pekanan</h3>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B8A8D" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
     </div>
     <div class="coursue-circle-progress">
       <svg class="coursue-circle-svg" viewBox="0 0 100 100">
@@ -1396,7 +1396,7 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
   mentorCard.innerHTML = `
     <div class="coursue-mentor-header">
       <h3>Musyrif &amp; Asatidzah</h3>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B8A8D" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
     </div>
     <div class="coursue-mentor-list">
       <p class="coursue-user-subtext">Data musyrif dan asatidzah akan muncul setelah penugasan tercatat.</p>

@@ -181,7 +181,7 @@
 #account-form {
   background: #FFFFFF !important;
   border-radius: 16px !important;
-  border: 1px solid #E2E8F0 !important;
+  border: 1px solid var(--md-sys-color-outline-variant) !important;
   padding: 24px !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
 }
@@ -190,7 +190,7 @@
   display: block;
   font-size: 11.5px;
   font-weight: 700;
-  color: #475569;
+  color: var(--md-sys-color-on-surface-variant);
   margin: 12px 0 6px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -203,9 +203,9 @@
 #account-form input,
 #account-form select {
   background: #FFFFFF !important;
-  border: 1px solid #CBD5E1 !important;
+  border: 1px solid var(--md-sys-color-surface-container-highest) !important;
   border-radius: 10px !important;
-  color: #0F172A !important;
+  color: var(--md-sys-color-on-surface) !important;
   font-family: inherit;
   font-size: 13.5px !important;
   font-weight: 500 !important;
@@ -260,7 +260,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 14px 18px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 12px;
   background: #FFFFFF;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
@@ -268,7 +268,7 @@
 }
 
 .portal-account:hover {
-  border-color: #CBD5E1;
+  border-color: var(--md-sys-color-surface-container-highest);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
 }
 
@@ -276,13 +276,13 @@
   display: block;
   font-size: 13.5px;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   margin-bottom: 2px;
 }
 
 .portal-account span {
   display: block;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   font-size: 12px;
   font-weight: 500;
 }
@@ -419,7 +419,7 @@
 .record-form select:focus-visible,
 #account-form input:focus-visible,
 #account-form select:focus-visible {
-  outline: 3px solid var(--md-sys-color-primary, #D97706) !important;
+  outline: 3px solid var(--md-sys-color-primary, var(--md-sys-color-primary)) !important;
   outline-offset: 2px;
 }
 
@@ -539,8 +539,8 @@ body.in-crm #portal-students-status,
 .crm-shell {
   display: flex;
   min-height: 100vh;
-  background: var(--crm-bg, #F8FAFC);
-  color: var(--crm-text-primary, #0F172A);
+  background: var(--crm-bg, var(--md-sys-color-surface-container-low));
+  color: var(--crm-text-primary, var(--md-sys-color-on-surface));
   font-family: var(--main-font);
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
@@ -557,7 +557,7 @@ body.in-crm #portal-students-status,
   width: 250px;
   min-width: 250px;
   background: #FFFFFF;
-  border-right: 1px solid #E2E8F0;
+  border-right: 1px solid var(--md-sys-color-outline-variant);
   display: flex;
   flex-direction: column;
   position: sticky;
@@ -567,7 +567,7 @@ body.in-crm #portal-students-status,
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.02);
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #E2E8F0 transparent;
+  scrollbar-color: var(--md-sys-color-outline-variant) transparent;
   transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), width 0.25s cubic-bezier(0.2, 0, 0, 1);
   font-family: var(--main-font);
   font-weight: 400;
@@ -577,7 +577,7 @@ body.in-crm #portal-students-status,
   width: 4px;
 }
 .crm-sidebar::-webkit-scrollbar-thumb {
-  background: #E2E8F0;
+  background: var(--md-sys-color-outline-variant);
   border-radius: 9999px;
 }
 
@@ -592,7 +592,7 @@ body.in-crm #portal-students-status,
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   text-decoration: none;
   font-family: var(--main-font);
 }
@@ -608,7 +608,7 @@ body.in-crm #portal-students-status,
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: #D97706;
+  background: var(--md-sys-color-primary);
   color: #FFFFFF;
   display: flex;
   align-items: center;
@@ -624,19 +624,19 @@ body.in-crm #portal-students-status,
 .crm-brand-title {
   font-size: 15px;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   line-height: 1.2;
 }
 
 .crm-brand-title strong {
-  color: #D97706;
+  color: var(--gold-dark);
   font-weight: 700;
 }
 
 .crm-brand-sub {
   font-size: 10.5px;
   font-weight: 500;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
@@ -645,9 +645,9 @@ body.in-crm #portal-students-status,
   width: 30px;
   height: 30px;
   border-radius: 8px;
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  color: #64748B;
+  background: var(--md-sys-color-surface-container-low);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-outline);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -657,15 +657,15 @@ body.in-crm #portal-students-status,
 
 .crm-collapse-btn:hover {
   background: #FEF3C7;
-  color: #B45309;
+  color: var(--gold-dark);
 }
 
 /* User Badge In Sidebar */
 .crm-user-card {
   margin: 10px 14px;
   padding: 10px 12px;
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: var(--md-sys-color-surface-container-low);
+  border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 14px;
   display: flex;
   align-items: center;
@@ -676,7 +676,7 @@ body.in-crm #portal-students-status,
   width: 36px;
   height: 36px;
   border-radius: 9999px;
-  background: #D97706;
+  background: var(--md-sys-color-primary);
   color: #FFFFFF;
   font-size: 13px;
   font-weight: 600;
@@ -695,7 +695,7 @@ body.in-crm #portal-students-status,
 .crm-user-name {
   font-size: 13px;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -713,17 +713,17 @@ body.in-crm #portal-students-status,
   text-transform: uppercase;
   letter-spacing: 0.04em;
   background: #FEF3C7;
-  color: #B45309;
+  color: var(--gold-dark);
   font-family: var(--apple-font-stack);
 }
 
-.crm-user-role-pill--student { background: #DCFCE7; color: #15803D; }
-.crm-user-role-pill--parent { background: #FEF3C7; color: #B45309; }
+.crm-user-role-pill--student { background: var(--md-sys-color-tertiary-container); color: #15803D; }
+.crm-user-role-pill--parent { background: #FEF3C7; color: var(--gold-dark); }
 .crm-user-role-pill--supervisor { background: #E0F2FE; color: #0369A1; }
-.crm-user-role-pill--admin { background: #FEF3C7; color: #78350F; border: 1px solid #FDE68A; }
+.crm-user-role-pill--admin { background: #FEF3C7; color: var(--md-sys-color-on-primary-container); border: 1px solid #FDE68A; }
 .crm-user-role-pill--finance { background: #CCFBF1; color: #0F766E; }
 .crm-user-role-pill--registration-officer { background: #FFEDD5; color: #C2410C; }
-.crm-user-role-pill--teacher { background: #FEF3C7; color: #B45309; }
+.crm-user-role-pill--teacher { background: #FEF3C7; color: var(--gold-dark); }
 
 /* Navigation Grouping */
 .crm-nav-group {
@@ -740,7 +740,7 @@ body.in-crm #portal-students-status,
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #94A3B8;
+  color: var(--md-sys-color-outline);
   font-family: var(--apple-font-stack);
 }
 
@@ -764,7 +764,7 @@ body.in-crm #portal-students-status,
   text-decoration: none;
   font-size: 13.5px;
   font-weight: 500;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   font-family: var(--apple-font-stack);
   letter-spacing: -0.01em;
   transition: all 0.15s ease;
@@ -772,7 +772,7 @@ body.in-crm #portal-students-status,
 
 .crm-nav a svg,
 .crm-nav-link svg {
-  stroke: #64748B;
+  stroke: var(--md-sys-color-outline);
   flex-shrink: 0;
   transition: stroke 0.15s ease;
 }
@@ -792,27 +792,27 @@ body.in-crm #portal-students-status,
 
 .crm-nav a:hover,
 .crm-nav-link:hover {
-  background: #F8FAFC;
-  color: #0F172A;
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface);
 }
 
 .crm-nav a:hover svg,
 .crm-nav-link:hover svg {
-  stroke: #0F172A;
+  stroke: var(--charcoal-soft);
 }
 
 /* Active Nav Item (Warm Gold Container - Landing Page Style) */
 .crm-nav a[aria-current="page"],
 .crm-nav-link.is-active {
   background: #FEF3C7 !important;
-  color: #78350F !important;
+  color: var(--md-sys-color-on-primary-container) !important;
   font-weight: 700 !important;
   box-shadow: none !important;
 }
 
 .crm-nav a[aria-current="page"] svg,
 .crm-nav-link.is-active svg {
-  stroke: #D97706 !important;
+  stroke: var(--md-sys-color-primary) !important;
 }
 
 /* Sidebar Badges */
@@ -828,12 +828,12 @@ body.in-crm #portal-students-status,
 
 .crm-badge-counter--red {
   background: #FEE2E2;
-  color: #DC2626;
+  color: var(--md-sys-color-error);
 }
 
 .crm-badge-counter--gray {
-  background: #F1F5F9;
-  color: #64748B;
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-outline);
 }
 
 .crm-sidebar-footer {
@@ -849,7 +849,7 @@ body.in-crm #portal-students-status,
   gap: 8px;
   font-size: 11.5px;
   font-weight: 600;
-  color: #10B981;
+  color: var(--success);
   margin-bottom: 10px;
   font-family: var(--apple-font-stack);
 }
@@ -858,8 +858,8 @@ body.in-crm #portal-students-status,
   width: 8px;
   height: 8px;
   border-radius: 9999px;
-  background: #10B981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  background: var(--success);
+  box-shadow: 0 0 0 3px rgba(31, 111, 61, 0.2);
   display: inline-block;
 }
 
@@ -873,7 +873,7 @@ body.in-crm #portal-students-status,
   background: #FEE2E2;
   border: 1px solid #FECACA;
   border-radius: 12px;
-  color: #DC2626;
+  color: var(--md-sys-color-error);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -921,7 +921,7 @@ body.in-crm #portal-students-status,
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #F8FAFC;
+  background: var(--md-sys-color-surface-container-low);
   border: 1px solid #EEF0F6;
   border-radius: 9999px;
   padding: 9px 18px;
@@ -930,13 +930,13 @@ body.in-crm #portal-students-status,
 }
 
 .crm-search-bar:focus-within {
-  border-color: #D97706;
+  border-color: var(--md-sys-color-primary);
   background: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
+  box-shadow: 0 0 0 3px rgba(231, 177, 12, 0.15);
 }
 
 .crm-search-bar svg {
-  color: #94A3B8;
+  color: var(--md-sys-color-outline);
   flex-shrink: 0;
 }
 
@@ -945,13 +945,13 @@ body.in-crm #portal-students-status,
   background: transparent;
   outline: none;
   font-size: 13px;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   font-family: var(--apple-font-stack);
   width: 100%;
 }
 
 .crm-search-bar input::placeholder {
-  color: #94A3B8;
+  color: var(--md-sys-color-outline);
 }
 
 .crm-breadcrumbs {
@@ -960,21 +960,21 @@ body.in-crm #portal-students-status,
   gap: 8px;
   font-size: 13.5px;
   font-weight: 500;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   font-family: var(--apple-font-stack);
   letter-spacing: -0.01em;
 }
 
 .crm-breadcrumbs .crumb-root {
-  color: #94A3B8;
+  color: var(--md-sys-color-outline);
 }
 
 .crm-breadcrumbs .crumb-sep {
-  color: #CBD5E1;
+  color: #D9D5CD;
 }
 
 .crm-breadcrumbs .crumb-active {
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   font-weight: 700;
 }
 
@@ -988,19 +988,19 @@ body.in-crm #portal-students-status,
   width: 38px;
   height: 38px;
   border-radius: 9999px;
-  background: #F8FAFC;
+  background: var(--md-sys-color-surface-container-low);
   border: 1px solid #EEF0F6;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .crm-icon-circle-btn:hover {
   background: #FEF3C7;
-  color: #B45309;
+  color: var(--gold-dark);
 }
 
 .crm-profile-pill {
@@ -1009,7 +1009,7 @@ body.in-crm #portal-students-status,
   gap: 10px;
   padding: 4px 14px 4px 4px;
   border-radius: 9999px;
-  background: #F8FAFC;
+  background: var(--md-sys-color-surface-container-low);
   border: 1px solid #EEF0F6;
   text-decoration: none;
   cursor: pointer;
@@ -1017,8 +1017,8 @@ body.in-crm #portal-students-status,
 }
 
 .crm-profile-pill:hover {
-  background: #F1F5F9;
-  border-color: #E2E8F0;
+  background: var(--md-sys-color-surface-container);
+  border-color: var(--md-sys-color-outline-variant);
 }
 
 .crm-profile-pill-avatar {
@@ -1037,7 +1037,7 @@ body.in-crm #portal-students-status,
 .crm-profile-pill-name {
   font-size: 13px;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   font-family: var(--apple-font-stack);
 }
 
@@ -1047,7 +1047,7 @@ body.in-crm #portal-students-status,
   font-size: 10px;
   font-weight: 700;
   background: #FEF3C7;
-  color: #B45309;
+  color: var(--gold-dark);
   font-family: var(--apple-font-stack);
   letter-spacing: 0.02em;
 }
@@ -1099,14 +1099,14 @@ body.in-crm #portal-students-status,
    Coursue Hero Banner Card (Hamasah Slate & Warm Amber Style)
    -------------------------------------------------------------------------- */
 .coursue-hero-banner {
-  background: #0F172A;
+  background: var(--charcoal-soft);
   border-radius: 20px;
   padding: 32px 36px;
   color: #FFFFFF;
   position: relative;
   overflow: hidden;
   box-shadow: var(--crm-shadow-hero);
-  border: 1px solid #334155;
+  border: 1px solid #4A4A4D;
 }
 
 .coursue-hero-tag {
@@ -1116,7 +1116,7 @@ body.in-crm #portal-students-status,
   padding: 4px 12px;
   background: #FEF3C7;
   border: 1px solid #FDE68A;
-  color: #78350F;
+  color: var(--md-sys-color-on-primary-container);
   border-radius: 9999px;
   font-size: 10.5px;
   font-weight: 600;
@@ -1141,7 +1141,7 @@ body.in-crm #portal-students-status,
   line-height: 1.6;
   margin: 0 0 20px;
   max-width: 520px;
-  color: #94A3B8;
+  color: var(--md-sys-color-outline);
 }
 
 /* Solid CTA Button */
@@ -1149,7 +1149,7 @@ body.in-crm #portal-students-status,
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #D97706;
+  background: var(--md-sys-color-primary);
   color: #FFFFFF;
   padding: 10px 22px;
   border-radius: 9999px;
@@ -1158,12 +1158,12 @@ body.in-crm #portal-students-status,
   text-decoration: none;
   cursor: pointer;
   border: none;
-  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.3);
+  box-shadow: 0 2px 6px rgba(231, 177, 12, 0.3);
   transition: background 0.15s ease;
 }
 
 .coursue-hero-cta:hover {
-  background: #B45309;
+  background: var(--md-sys-color-primary);
 }
 
 .coursue-hero-cta svg {
@@ -1192,7 +1192,7 @@ body.in-crm #portal-students-status,
   display: flex;
   align-items: center;
   gap: 16px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--md-sys-color-outline-variant);
   box-shadow: var(--crm-shadow-card);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   min-width: 0;
@@ -1201,7 +1201,7 @@ body.in-crm #portal-students-status,
 
 .coursue-stat-pill:hover {
   box-shadow: var(--crm-shadow-card-hover);
-  border-color: #CBD5E1;
+  border-color: var(--md-sys-color-surface-container-highest);
 }
 
 .coursue-stat-icon {
@@ -1218,7 +1218,7 @@ body.in-crm #portal-students-status,
 .coursue-stat-icon--gold,
 .coursue-stat-icon--purple {
   background: #FEF3C7;
-  color: #B45309;
+  color: var(--gold-dark);
   border: 1px solid #FDE68A;
 }
 .coursue-stat-icon--pink {
@@ -1243,7 +1243,7 @@ body.in-crm #portal-students-status,
 .coursue-stat-count {
   font-size: 15px;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   margin: 0;
   line-height: 1.25;
   white-space: nowrap;
@@ -1254,7 +1254,7 @@ body.in-crm #portal-students-status,
 .coursue-stat-label {
   font-size: 11.5px;
   font-weight: 400;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   margin: 0;
   line-height: 1.3;
   white-space: nowrap;
@@ -1275,7 +1275,7 @@ body.in-crm #portal-students-status,
 .coursue-section-title {
   font-size: 16px;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   margin: 0;
 }
 
@@ -1289,24 +1289,24 @@ body.in-crm #portal-students-status,
   width: 32px;
   height: 32px;
   border-radius: 9999px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--md-sys-color-outline-variant);
   background: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   transition: all 0.15s ease;
 }
 
 .coursue-arrow-btn:hover {
-  border-color: #D97706;
-  color: #B45309;
+  border-color: var(--md-sys-color-primary);
+  color: var(--gold-dark);
 }
 
 .coursue-arrow-btn--active {
-  background: #D97706;
-  border-color: #D97706;
+  background: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-primary);
   color: #FFFFFF;
 }
 
@@ -1328,7 +1328,7 @@ body.in-crm #portal-students-status,
 .coursue-card {
   background: #FFFFFF;
   border-radius: 16px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--md-sys-color-outline-variant);
   overflow: hidden;
   box-shadow: var(--crm-shadow-card);
   display: flex;
@@ -1338,7 +1338,7 @@ body.in-crm #portal-students-status,
 
 .coursue-card:hover {
   box-shadow: var(--crm-shadow-card-hover);
-  border-color: #CBD5E1;
+  border-color: var(--md-sys-color-surface-container-highest);
 }
 
 .coursue-card-cover {
@@ -1363,8 +1363,8 @@ body.in-crm #portal-students-status,
 
 .coursue-card-pill--cyan { background: #E0F2FE; color: #0369A1; border: 1px solid #BAE6FD; }
 .coursue-card-pill--gold,
-.coursue-card-pill--purple { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
-.coursue-card-pill--pink { background: #DCFCE7; color: #15803D; }
+.coursue-card-pill--purple { background: #FEF3C7; color: var(--gold-dark); border: 1px solid #FDE68A; }
+.coursue-card-pill--pink { background: var(--md-sys-color-tertiary-container); color: #15803D; }
 
 .coursue-card-body {
   padding: 16px;
@@ -1377,7 +1377,7 @@ body.in-crm #portal-students-status,
 .coursue-card-title {
   font-size: 14px;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   line-height: 1.4;
   margin: 0 0 12px;
   letter-spacing: -0.01em;
@@ -1388,7 +1388,7 @@ body.in-crm #portal-students-status,
   align-items: center;
   gap: 8px;
   padding-top: 10px;
-  border-top: 1px solid #F1F5F9;
+  border-top: 1px solid var(--md-sys-color-surface-container);
 }
 
 .coursue-mentor-avatar {
@@ -1401,13 +1401,13 @@ body.in-crm #portal-students-status,
   justify-content: center;
   font-size: 11px;
   font-weight: 700;
-  color: #B45309;
+  color: var(--gold-dark);
 }
 
 .coursue-mentor-name {
   font-size: 12px;
   font-weight: 600;
-  color: #475569;
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 /* --------------------------------------------------------------------------
@@ -1431,7 +1431,7 @@ body.in-crm #portal-students-status,
 .coursue-table-header h3 {
   font-size: 16px;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   margin: 0;
   letter-spacing: -0.02em;
 }
@@ -1439,7 +1439,7 @@ body.in-crm #portal-students-status,
 .coursue-table-seeall {
   font-size: 12.5px;
   font-weight: 700;
-  color: #D97706;
+  color: var(--gold-dark);
   text-decoration: none;
 }
 
@@ -1458,16 +1458,16 @@ body.in-crm #portal-students-status,
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #94A3B8;
+  color: var(--md-sys-color-outline);
   padding: 8px 12px;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--md-sys-color-surface-container);
 }
 
 .coursue-table td {
   padding: 14px 12px;
   font-size: 13px;
-  color: #0F172A;
-  border-bottom: 1px solid #F8FAFC;
+  color: var(--md-sys-color-on-surface);
+  border-bottom: 1px solid var(--md-sys-color-surface-container-low);
   vertical-align: middle;
 }
 
@@ -1477,7 +1477,7 @@ body.in-crm #portal-students-status,
 .coursue-statistic-card {
   background: #FFFFFF;
   border-radius: 24px;
-  border: 1px solid rgba(226, 232, 240, 0.85);
+  border: 1px solid rgba(226, 222, 214, 0.85);
   padding: 24px 22px;
   box-shadow: var(--crm-shadow-card);
   display: flex;
@@ -1503,7 +1503,7 @@ body.in-crm #portal-students-status,
 .coursue-stat-card-header h3 {
   font-size: 16px;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   margin: 0;
   letter-spacing: -0.02em;
 }
@@ -1533,12 +1533,12 @@ body.in-crm #portal-students-status,
 
 .coursue-circle-bar {
   fill: none;
-  stroke: #D97706;
+  stroke: var(--md-sys-color-primary);
   stroke-width: 8;
   stroke-linecap: round;
   stroke-dasharray: 283;
   stroke-dashoffset: 28; /* ~90% filled */
-  filter: drop-shadow(0 2px 6px rgba(217, 119, 6, 0.3));
+  filter: drop-shadow(0 2px 6px rgba(231, 177, 12, 0.3));
 }
 
 .coursue-circle-avatar {
@@ -1546,7 +1546,7 @@ body.in-crm #portal-students-status,
   width: 82px;
   height: 82px;
   border-radius: 9999px;
-  background: #F8FAFC;
+  background: var(--md-sys-color-surface-container-low);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1561,14 +1561,14 @@ body.in-crm #portal-students-status,
 .coursue-user-greeting {
   font-size: 16px;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   margin: 0 0 4px;
   letter-spacing: -0.02em;
 }
 
 .coursue-user-subtext {
   font-size: 12px;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   margin: 0 0 20px;
   line-height: 1.45;
 }
@@ -1576,7 +1576,7 @@ body.in-crm #portal-students-status,
 /* Bar Chart Widget */
 .coursue-barchart {
   width: 100%;
-  background: #F8FAFC;
+  background: var(--md-sys-color-surface-container-low);
   border-radius: 18px;
   padding: 16px 18px;
   display: flex;
@@ -1584,7 +1584,7 @@ body.in-crm #portal-students-status,
   justify-content: space-around;
   height: 120px;
   box-sizing: border-box;
-  border: 1px solid rgba(226, 232, 240, 0.6);
+  border: 1px solid rgba(226, 222, 214, 0.6);
 }
 
 .coursue-bar-col {
@@ -1609,20 +1609,20 @@ body.in-crm #portal-students-status,
 .coursue-bar-fill {
   width: 100%;
   border-radius: 10px;
-  background: #D97706;
+  background: var(--md-sys-color-primary);
 }
 
 .coursue-bar-label {
   font-size: 10px;
   font-weight: 600;
-  color: #94A3B8;
+  color: var(--md-sys-color-outline);
 }
 
 /* Mentor / Asatidzah Card */
 .coursue-mentor-card {
   background: #FFFFFF;
   border-radius: 24px;
-  border: 1px solid rgba(226, 232, 240, 0.85);
+  border: 1px solid rgba(226, 222, 214, 0.85);
   padding: 22px;
   box-shadow: var(--crm-shadow-card);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1643,7 +1643,7 @@ body.in-crm #portal-students-status,
 .coursue-mentor-header h3 {
   font-size: 15.5px;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   margin: 0;
   letter-spacing: -0.02em;
 }
@@ -1674,14 +1674,14 @@ body.in-crm #portal-students-status,
   height: 38px;
   border-radius: 9999px;
   background: #FEF3C7;
-  color: #B45309;
+  color: var(--gold-dark);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
   font-weight: 700;
   flex-shrink: 0;
-  border: 1px solid rgba(217, 119, 6, 0.2);
+  border: 1px solid rgba(231, 177, 12, 0.2);
 }
 
 .coursue-mentor-info {
@@ -1692,7 +1692,7 @@ body.in-crm #portal-students-status,
 .coursue-mentor-title {
   font-size: 13px;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -1701,7 +1701,7 @@ body.in-crm #portal-students-status,
 
 .coursue-mentor-role {
   font-size: 11px;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   margin: 2px 0 0;
 }
 
@@ -1711,18 +1711,18 @@ body.in-crm #portal-students-status,
   font-size: 11px;
   font-weight: 700;
   background: #FEF3C7;
-  color: #B45309;
-  border: 1px solid rgba(217, 119, 6, 0.2);
+  color: var(--gold-dark);
+  border: 1px solid rgba(231, 177, 12, 0.2);
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
 }
 
 .coursue-mentor-action:hover {
-  background: #D97706;
+  background: var(--md-sys-color-primary);
   color: #FFFFFF;
-  border-color: #D97706;
-  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.25);
+  border-color: var(--md-sys-color-primary);
+  box-shadow: 0 2px 8px rgba(231, 177, 12, 0.25);
 }
 
 .coursue-mentor-seeall {
@@ -1730,9 +1730,9 @@ body.in-crm #portal-students-status,
   margin-top: 14px;
   height: 36px;
   border-radius: 12px;
-  background: #F8FAFC;
-  border: 1px solid rgba(226, 232, 240, 0.85);
-  color: #64748B;
+  background: var(--md-sys-color-surface-container-low);
+  border: 1px solid rgba(226, 222, 214, 0.85);
+  color: var(--md-sys-color-outline);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
@@ -1741,8 +1741,8 @@ body.in-crm #portal-students-status,
 
 .coursue-mentor-seeall:hover {
   background: #FEF3C7;
-  color: #B45309;
-  border-color: rgba(217, 119, 6, 0.3);
+  color: var(--gold-dark);
+  border-color: rgba(231, 177, 12, 0.3);
 }
 
 /* --------------------------------------------------------------------------
@@ -1751,7 +1751,7 @@ body.in-crm #portal-students-status,
 .crm-summary-card {
   background: #FFFFFF;
   border-radius: 22px;
-  border: 1px solid rgba(226, 232, 240, 0.85);
+  border: 1px solid rgba(226, 222, 214, 0.85);
   padding: 24px 28px;
   box-shadow: var(--crm-shadow-card);
   display: grid;
@@ -1763,7 +1763,7 @@ body.in-crm #portal-students-status,
 
 .crm-summary-card:hover {
   box-shadow: var(--crm-shadow-card-hover);
-  border-color: rgba(217, 119, 6, 0.3);
+  border-color: rgba(231, 177, 12, 0.3);
 }
 
 .crm-summary-col {
@@ -1784,13 +1784,13 @@ body.in-crm #portal-students-status,
   font-size: 20px;
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   font-family: var(--apple-font-stack);
   line-height: 1.3;
 }
 
 .crm-link-icon {
-  color: #94A3B8;
+  color: var(--md-sys-color-outline);
   cursor: pointer;
   transition: color 0.15s ease;
   flex-shrink: 0;
@@ -1804,7 +1804,7 @@ body.in-crm #portal-students-status,
   margin: 4px 0 0;
   font-size: 12.5px;
   font-weight: 500;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   line-height: 1.5;
   font-family: var(--apple-font-stack);
 }
@@ -1814,7 +1814,7 @@ body.in-crm #portal-students-status,
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #94A3B8;
+  color: var(--md-sys-color-outline);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1825,7 +1825,7 @@ body.in-crm #portal-students-status,
 .crm-field-value {
   font-size: 13.5px;
   font-weight: 600;
-  color: #1E293B;
+  color: var(--md-sys-color-on-surface);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1835,7 +1835,7 @@ body.in-crm #portal-students-status,
 .crm-balance-value {
   font-size: 15px;
   font-weight: 700;
-  color: #059669;
+  color: var(--success);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1846,7 +1846,7 @@ body.in-crm #portal-students-status,
   width: 8px;
   height: 8px;
   border-radius: 9999px;
-  background: var(--crm-gold, #D97706);
+  background: var(--crm-gold, var(--md-sys-color-primary));
   display: inline-block;
   flex-shrink: 0;
 }
@@ -1863,7 +1863,7 @@ body.in-crm #portal-students-status,
   height: 28px;
   border-radius: 9999px;
   background: #FEF3C7;
-  color: #B45309;
+  color: var(--gold-dark);
   font-size: 11px;
   font-weight: 700;
   display: flex;
@@ -1871,13 +1871,13 @@ body.in-crm #portal-students-status,
   justify-content: center;
   flex-shrink: 0;
   font-family: var(--apple-font-stack);
-  border: 1px solid rgba(217, 119, 6, 0.2);
+  border: 1px solid rgba(231, 177, 12, 0.2);
 }
 
 .crm-person-name {
   font-size: 13px;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   font-family: var(--apple-font-stack);
 }
 
@@ -1885,7 +1885,7 @@ body.in-crm #portal-students-status,
   margin: 4px 0 0;
   font-size: 12.5px;
   line-height: 1.55;
-  color: #475569;
+  color: var(--md-sys-color-on-surface-variant);
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -1896,7 +1896,7 @@ body.in-crm #portal-students-status,
 .crm-readmore-link {
   display: inline-block;
   margin-top: 5px;
-  color: #B45309;
+  color: var(--gold-dark);
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
@@ -1932,30 +1932,30 @@ body.in-crm #portal-students-status,
   height: 38px;
   border-radius: 9999px;
   background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.85);
-  color: #64748B;
+  border: 1px solid rgba(226, 222, 214, 0.85);
+  color: var(--md-sys-color-outline);
   font-family: var(--apple-font-stack);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: -0.01em;
   cursor: pointer;
   white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  box-shadow: 0 1px 2px rgba(30, 27, 22, 0.03);
   transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .crm-pill-btn:hover {
-  background: #F8FAFC;
-  color: #0F172A;
-  border-color: #CBD5E1;
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface);
+  border-color: var(--md-sys-color-surface-container-highest);
 }
 
 .crm-pill-btn.is-active {
-  background: #0F172A !important;
+  background: var(--charcoal-soft) !important;
   color: #FFFFFF !important;
-  border-color: #0F172A !important;
+  border-color: var(--charcoal-soft) !important;
   font-weight: 700;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+  box-shadow: 0 2px 8px rgba(30, 27, 22, 0.25);
 }
 
 .crm-pill-btn.is-active svg {
@@ -1967,8 +1967,8 @@ body.in-crm #portal-students-status,
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 9999px;
-  background: #F1F5F9;
-  color: #64748B;
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-outline);
   line-height: 1;
 }
 
@@ -2003,7 +2003,7 @@ body.in-crm #portal-students-status,
   border: 1px solid #EEF0F6;
   border-radius: 9999px;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  box-shadow: 0 1px 2px rgba(30, 27, 22, 0.03);
 }
 
 .crm-date-nav-btn {
@@ -2011,7 +2011,7 @@ body.in-crm #portal-students-status,
   border: none;
   padding: 8px 12px;
   cursor: pointer;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2019,20 +2019,20 @@ body.in-crm #portal-students-status,
 }
 
 .crm-date-nav-btn:hover {
-  background: #F1F5F9;
-  color: #0F172A;
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
 }
 
 .crm-date-display {
   padding: 8px 16px;
   font-size: 12.5px;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   display: flex;
   align-items: center;
   gap: 8px;
-  border-left: 1px solid #F1F5F9;
-  border-right: 1px solid #F1F5F9;
+  border-left: 1px solid var(--md-sys-color-surface-container);
+  border-right: 1px solid var(--md-sys-color-surface-container);
   font-family: var(--apple-font-stack);
 }
 
@@ -2046,15 +2046,15 @@ body.in-crm #portal-students-status,
   padding: 8px 16px;
   font-size: 12.5px;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   cursor: pointer;
   font-family: var(--apple-font-stack);
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .crm-filter-dropdown:hover {
-  border-color: #CBD5E1;
-  background: #F8FAFC;
+  border-color: var(--md-sys-color-surface-container-highest);
+  background: var(--md-sys-color-surface-container-low);
 }
 
 .crm-btn-primary-yellow {
@@ -2062,7 +2062,7 @@ body.in-crm #portal-students-status,
   align-items: center;
   gap: 8px;
   background: #FDC537;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   font-size: 13px;
   font-weight: 700;
   padding: 0 18px;
@@ -2083,7 +2083,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-btn-primary-yellow svg {
-  stroke: #0F172A;
+  stroke: var(--charcoal-soft);
 }
 
 /* --------------------------------------------------------------------------
@@ -2099,7 +2099,7 @@ body.in-crm #portal-students-status,
   width: 100% !important;
   box-sizing: border-box !important;
   background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.85);
+  border: 1px solid rgba(226, 222, 214, 0.85);
   border-radius: 22px;
   padding: 22px 26px;
   box-shadow: var(--crm-shadow-card);
@@ -2113,7 +2113,7 @@ body.in-crm #portal-students-status,
 
 .crm-activity-card:hover {
   box-shadow: var(--crm-shadow-card-hover);
-  border-color: rgba(217, 119, 6, 0.3);
+  border-color: rgba(231, 177, 12, 0.3);
   transform: translateY(-2px);
 }
 
@@ -2149,7 +2149,7 @@ body.in-crm #portal-students-status,
 
 .crm-square-badge--yellow {
   background: #FEF3C7;
-  color: #B45309;
+  color: var(--gold-dark);
   border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
@@ -2160,21 +2160,21 @@ body.in-crm #portal-students-status,
 }
 
 .crm-square-badge--green {
-  background: #DCFCE7;
+  background: var(--md-sys-color-tertiary-container);
   color: #15803D;
-  border: 1px solid rgba(22, 163, 74, 0.25);
+  border: 1px solid rgba(31, 111, 61, 0.25);
 }
 
 .crm-square-badge--purple {
   background: #FEF3C7;
-  color: #78350F;
-  border: 1px solid rgba(217, 119, 6, 0.25);
+  color: var(--md-sys-color-on-primary-container);
+  border: 1px solid rgba(231, 177, 12, 0.25);
 }
 
 .crm-activity-card__name {
   font-size: 15.5px;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   margin: 0;
   line-height: 1.4;
   letter-spacing: -0.015em;
@@ -2184,7 +2184,7 @@ body.in-crm #portal-students-status,
 .crm-activity-card__subtitle {
   font-size: 12px;
   font-weight: 500;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   margin-top: 3px;
   line-height: 1.4;
 }
@@ -2204,7 +2204,7 @@ body.in-crm #portal-students-status,
   align-items: start;
   width: 100%;
   padding: 14px 0 4px;
-  border-top: 1px solid #F8FAFC;
+  border-top: 1px solid var(--md-sys-color-surface-container-low);
 }
 
 .crm-col-block {
@@ -2217,7 +2217,7 @@ body.in-crm #portal-students-status,
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #94A3B8;
+  color: var(--md-sys-color-outline);
   margin-bottom: 4px;
   line-height: 1.2;
 }
@@ -2227,7 +2227,7 @@ body.in-crm #portal-students-status,
   display: block;
   font-size: 12.5px;
   font-weight: 600;
-  color: #1E293B;
+  color: var(--md-sys-color-on-surface);
   line-height: 1.4;
   word-break: break-word;
 }
@@ -2238,17 +2238,17 @@ body.in-crm #portal-students-status,
   gap: 4px;
   font-size: 12px;
   font-weight: 600;
-  color: #059669;
+  color: var(--success);
 }
 
 /* Clean luxury note box */
 .crm-activity-card__note {
   background: #FFFBEB;
-  border-left: 3px solid #D97706;
+  border-left: 3px solid var(--md-sys-color-primary);
   border-radius: 10px;
   padding: 11px 15px;
   font-size: 12px;
-  color: #78350F;
+  color: var(--md-sys-color-on-primary-container);
   line-height: 1.5;
   display: flex;
   align-items: flex-start;
@@ -2261,7 +2261,7 @@ body.in-crm #portal-students-status,
 /* Lower metadata and action row */
 .crm-activity-card__lower {
   padding-top: 14px;
-  border-top: 1px solid #F1F5F9;
+  border-top: 1px solid var(--md-sys-color-surface-container);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2287,13 +2287,13 @@ body.in-crm #portal-students-status,
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #94A3B8;
+  color: var(--md-sys-color-outline);
 }
 
 .crm-meta-item span {
   font-size: 12px;
   font-weight: 600;
-  color: #334155;
+  color: #4A4A4D;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -2321,9 +2321,9 @@ body.in-crm #portal-students-status,
 
 .crm-status-pill--pending {
   background: #FFFBEB;
-  color: #B45309;
+  color: var(--gold-dark);
   border: 1px solid #FDE68A;
-  box-shadow: 0 1px 2px rgba(180, 83, 9, 0.05);
+  box-shadow: 0 1px 2px rgba(231, 177, 12, 0.05);
 }
 
 .crm-status-pill--absent {
@@ -2340,23 +2340,23 @@ body.in-crm #portal-students-status,
   gap: 8px;
   padding: 8px 18px;
   background: #FEF3C7;
-  color: #B45309;
+  color: var(--gold-dark);
   font-size: 12px;
   font-weight: 700;
   border-radius: 9999px;
-  border: 1px solid rgba(217, 119, 6, 0.2);
+  border: 1px solid rgba(231, 177, 12, 0.2);
   cursor: pointer;
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   white-space: nowrap;
   font-family: var(--apple-font-stack);
-  box-shadow: 0 1px 2px rgba(180, 83, 9, 0.06);
+  box-shadow: 0 1px 2px rgba(231, 177, 12, 0.06);
 }
 
 .crm-action-link-btn:hover {
-  background: #D97706;
+  background: var(--md-sys-color-primary);
   color: #FFFFFF;
-  border-color: #D97706;
-  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);
+  border-color: var(--md-sys-color-primary);
+  box-shadow: 0 4px 12px rgba(231, 177, 12, 0.25);
   transform: translateY(-1px);
 }
 
@@ -2372,9 +2372,9 @@ body.in-crm #portal-students-status,
   width: 32px;
   height: 32px;
   border-radius: 9999px;
-  border: 1px solid rgba(226, 232, 240, 0.85);
-  background: #F8FAFC;
-  color: #64748B;
+  border: 1px solid rgba(226, 222, 214, 0.85);
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-outline);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2384,8 +2384,8 @@ body.in-crm #portal-students-status,
 
 .crm-icon-sub-btn:hover {
   background: #FEF3C7;
-  color: #B45309;
-  border-color: rgba(217, 119, 6, 0.3);
+  color: var(--gold-dark);
+  border-color: rgba(231, 177, 12, 0.3);
 }
 
 /* Action Dropdown Popover */
@@ -2409,7 +2409,7 @@ body.in-crm #portal-students-status,
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #94A3B8;
+  color: var(--md-sys-color-outline);
 }
 
 .crm-popover-item {
@@ -2422,7 +2422,7 @@ body.in-crm #portal-students-status,
   border: none;
   font-size: 13px;
   font-weight: 500;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   cursor: pointer;
   text-align: left;
   transition: background 0.1s ease;
@@ -2430,11 +2430,11 @@ body.in-crm #portal-students-status,
 }
 
 .crm-popover-item:hover {
-  background: #F8FAFC;
+  background: var(--md-sys-color-surface-container-low);
 }
 
 .crm-popover-item--danger {
-  color: #DC2626;
+  color: var(--md-sys-color-error);
 }
 
 .crm-popover-item--danger:hover {
@@ -2447,7 +2447,7 @@ body.in-crm #portal-students-status,
 .crm-student-compact-card {
   box-sizing: border-box !important;
   background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.85);
+  border: 1px solid rgba(226, 222, 214, 0.85);
   border-radius: 16px;
   padding: 14px 20px;
   box-shadow: var(--crm-shadow-card);
@@ -2465,14 +2465,14 @@ body.in-crm #portal-students-status,
 }
 
 .crm-student-compact-card:hover {
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
-  border-color: #D97706;
+  box-shadow: 0 4px 16px rgba(30, 27, 22, 0.08);
+  border-color: var(--md-sys-color-primary);
   transform: translateY(-2px);
   background: #FFFFFF;
 }
 
 .crm-student-compact-card:focus-visible {
-  outline: 2px solid #D97706;
+  outline: 2px solid var(--md-sys-color-primary);
   outline-offset: 2px;
 }
 
@@ -2502,7 +2502,7 @@ body.in-crm #portal-students-status,
 .crm-student-compact-name {
   font-size: 15.5px;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   margin: 0;
   line-height: 1.3;
   letter-spacing: -0.015em;
@@ -2514,31 +2514,31 @@ body.in-crm #portal-students-status,
   gap: 8px;
   flex-wrap: wrap;
   font-size: 12px;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   line-height: 1.4;
 }
 
 .crm-meta-dot {
-  color: #CBD5E1;
+  color: #D9D5CD;
   font-weight: 700;
 }
 
 .crm-student-compact-pill {
   display: inline-flex;
   align-items: center;
-  background: #F1F5F9;
-  color: #334155;
+  background: var(--md-sys-color-surface-container);
+  color: #4A4A4D;
   font-size: 11px;
   font-weight: 600;
   padding: 1px 8px;
   border-radius: 6px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .crm-student-compact-dorm {
   display: inline-flex;
   align-items: center;
-  color: #475569;
+  color: var(--md-sys-color-on-surface-variant);
   font-weight: 500;
 }
 
@@ -2552,12 +2552,12 @@ body.in-crm #portal-students-status,
 .crm-student-compact-cta-label {
   font-size: 12px;
   font-weight: 600;
-  color: #D97706;
+  color: var(--gold-dark);
   transition: color 0.15s ease;
 }
 
 .crm-student-compact-card:hover .crm-student-compact-cta-label {
-  color: #B45309;
+  color: var(--gold-dark);
 }
 
 .crm-student-compact-arrow {
@@ -2565,18 +2565,18 @@ body.in-crm #portal-students-status,
   height: 32px;
   border-radius: 9999px;
   background: #FEF3C7;
-  color: #B45309;
+  color: var(--gold-dark);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid rgba(217, 119, 6, 0.2);
+  border: 1px solid rgba(231, 177, 12, 0.2);
 }
 
 .crm-student-compact-card:hover .crm-student-compact-arrow {
-  background: #D97706;
+  background: var(--md-sys-color-primary);
   color: #FFFFFF;
-  border-color: #D97706;
+  border-color: var(--md-sys-color-primary);
   transform: translateX(3px);
 }
 
@@ -2584,20 +2584,20 @@ body.in-crm #portal-students-status,
   width: 32px;
   height: 32px;
   border-radius: 9999px;
-  background: #F8FAFC;
-  color: #64748B;
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-outline);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.15s ease;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--md-sys-color-outline-variant);
   text-decoration: none;
 }
 
 .crm-student-compact-newtab:hover {
   background: #FEF3C7;
-  color: #B45309;
-  border-color: rgba(217, 119, 6, 0.3);
+  color: var(--gold-dark);
+  border-color: rgba(231, 177, 12, 0.3);
   transform: scale(1.05);
 }
 
@@ -2612,7 +2612,7 @@ body.in-crm #portal-students-status,
     width: 100%;
     justify-content: flex-end;
     padding-top: 8px;
-    border-top: 1px solid #F1F5F9;
+    border-top: 1px solid var(--md-sys-color-surface-container);
   }
 }
 
@@ -2641,7 +2641,7 @@ body.in-crm #portal-students-status,
   margin: 0;
   font-size: 17px;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   letter-spacing: -0.015em;
   font-family: var(--apple-font-stack);
 }
@@ -2649,7 +2649,7 @@ body.in-crm #portal-students-status,
 .crm-white-card-header p {
   margin: 3px 0 0;
   font-size: 12.5px;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   line-height: 1.5;
   font-family: var(--apple-font-stack);
 }
@@ -2663,7 +2663,7 @@ body.in-crm #portal-students-status,
 .crm-feature-box {
   padding: 18px 20px;
   border-radius: 16px;
-  background: #F8FAFC;
+  background: var(--md-sys-color-surface-container-low);
   border: 1px solid #EEF0F6;
   display: flex;
   align-items: flex-start;
@@ -2676,7 +2676,7 @@ body.in-crm #portal-students-status,
   border-radius: 12px;
   background: #FEF3C7;
   border: 1px solid #FDE68A;
-  color: #B45309;
+  color: var(--gold-dark);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2687,14 +2687,14 @@ body.in-crm #portal-students-status,
   display: block;
   font-size: 13.5px;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   font-family: var(--apple-font-stack);
 }
 
 .crm-feature-box p {
   margin: 3px 0 0;
   font-size: 12px;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   line-height: 1.5;
   font-family: var(--apple-font-stack);
 }
@@ -2724,7 +2724,7 @@ body.in-crm #portal-students-status,
     height: 100dvh;
     transform: translateX(-105%);
     z-index: 420;
-    box-shadow: 12px 0 32px rgba(15, 23, 42, 0.16);
+    box-shadow: 12px 0 32px rgba(30, 27, 22, 0.16);
     transition: transform 0.24s cubic-bezier(0.2, 0, 0, 1);
   }
 
@@ -2740,7 +2740,7 @@ body.in-crm #portal-students-status,
     height: 100%;
     border: 0;
     padding: 0;
-    background: rgba(15, 23, 42, 0.36);
+    background: rgba(30, 27, 22, 0.36);
     opacity: 0;
     pointer-events: none;
     z-index: 410;
@@ -2760,10 +2760,10 @@ body.in-crm #portal-students-status,
     flex: 0 0 auto;
     min-width: 44px;
     min-height: 44px;
-    border: 1px solid #E2E8F0;
+    border: 1px solid var(--md-sys-color-outline-variant);
     border-radius: 12px;
-    background: #F8FAFC;
-    color: #0F172A;
+    background: var(--md-sys-color-surface-container-low);
+    color: var(--md-sys-color-on-surface);
     font: inherit;
     font-size: 18px;
     cursor: pointer;
@@ -3161,8 +3161,8 @@ body.crm-page-exiting .lms-page {
   height: 36px;
   border-radius: 10px;
   background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  color: #0F172A;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-on-surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3173,8 +3173,8 @@ body.crm-page-exiting .lms-page {
 
 .lms-back-arrow-btn:hover {
   background: #FEF3C7;
-  color: #B45309;
-  border-color: #D97706;
+  color: var(--gold-dark);
+  border-color: var(--md-sys-color-primary);
 }
 
 .lms-course-title-block {
@@ -3192,7 +3192,7 @@ body.crm-page-exiting .lms-page {
   margin: 0;
   font-size: 22px;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   letter-spacing: -0.02em;
 }
 
@@ -3201,11 +3201,11 @@ body.crm-page-exiting .lms-page {
   align-items: center;
   font-size: 11px;
   font-weight: 600;
-  color: #B45309;
+  color: var(--gold-dark);
   background: #FEF3C7;
   padding: 2px 10px;
   border-radius: 9999px;
-  border: 1px solid rgba(217, 119, 6, 0.2);
+  border: 1px solid rgba(231, 177, 12, 0.2);
 }
 
 .lms-course-stats-line {
@@ -3213,7 +3213,7 @@ body.crm-page-exiting .lms-page {
   align-items: center;
   gap: 14px;
   font-size: 12px;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   margin-top: 4px;
   flex-wrap: wrap;
 }
@@ -3236,8 +3236,8 @@ body.crm-page-exiting .lms-page {
   padding: 0 16px;
   border-radius: 10px;
   background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  color: #0F172A;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-on-surface);
   font-size: 13px;
   font-weight: 600;
   display: inline-flex;
@@ -3248,15 +3248,15 @@ body.crm-page-exiting .lms-page {
 }
 
 .lms-btn-share:hover {
-  background: #F8FAFC;
-  border-color: #CBD5E1;
+  background: var(--md-sys-color-surface-container-low);
+  border-color: var(--md-sys-color-surface-container-highest);
 }
 
 .lms-btn-enroll {
   height: 40px;
   padding: 0 20px;
   border-radius: 10px;
-  background: #D97706;
+  background: var(--md-sys-color-primary);
   color: #FFFFFF;
   border: none;
   font-size: 13px;
@@ -3266,11 +3266,11 @@ body.crm-page-exiting .lms-page {
   gap: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
-  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.25);
+  box-shadow: 0 2px 8px rgba(231, 177, 12, 0.25);
 }
 
 .lms-btn-enroll:hover {
-  background: #B45309;
+  background: var(--md-sys-color-primary);
   transform: translateY(-1px);
 }
 
@@ -3294,10 +3294,10 @@ body.crm-page-exiting .lms-page {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  background: #0F172A;
+  background: var(--charcoal-soft);
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 4px 20px rgba(30, 27, 22, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3315,7 +3315,7 @@ body.crm-page-exiting .lms-page {
 .lms-player-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.2) 0%, rgba(15, 23, 42, 0.7) 100%);
+  background: linear-gradient(180deg, rgba(30, 27, 22, 0.2) 0%, rgba(30, 27, 22, 0.7) 100%);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -3325,7 +3325,7 @@ body.crm-page-exiting .lms-page {
 
 .lms-player-badge {
   align-self: flex-start;
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(30, 27, 22, 0.7);
   color: #FFFFFF;
   padding: 4px 12px;
   border-radius: 9999px;
@@ -3343,7 +3343,7 @@ body.crm-page-exiting .lms-page {
   height: 64px;
   border-radius: 9999px;
   background: #FFFFFF;
-  color: #D97706;
+  color: var(--gold-dark);
   border: none;
   display: flex;
   align-items: center;
@@ -3372,7 +3372,7 @@ body.crm-page-exiting .lms-page {
   display: flex;
   align-items: center;
   gap: 8px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
   padding-bottom: 4px;
 }
 
@@ -3383,25 +3383,25 @@ body.crm-page-exiting .lms-page {
   border: none;
   font-size: 13px;
   font-weight: 600;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .lms-tab-link:hover {
-  color: #0F172A;
-  background: #F1F5F9;
+  color: var(--md-sys-color-on-surface);
+  background: var(--md-sys-color-surface-container);
 }
 
 .lms-tab-link.is-active {
-  color: #D97706;
+  color: var(--gold-dark);
   background: #FEF3C7;
 }
 
 /* Course Tab Content Card */
 .lms-content-card {
   background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.85);
+  border: 1px solid rgba(226, 222, 214, 0.85);
   border-radius: 18px;
   padding: 24px 28px;
   box-shadow: var(--crm-shadow-card);
@@ -3414,12 +3414,12 @@ body.crm-page-exiting .lms-page {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
 }
 
 .lms-about-text {
   font-size: 13.5px;
-  color: #475569;
+  color: var(--md-sys-color-on-surface-variant);
   line-height: 1.6;
   margin: 0;
 }
@@ -3435,12 +3435,12 @@ body.crm-page-exiting .lms-page {
   align-items: flex-start;
   gap: 8px;
   font-size: 13px;
-  color: #334155;
+  color: #4A4A4D;
   line-height: 1.45;
 }
 
 .lms-learn-icon {
-  color: #059669;
+  color: var(--success);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -3455,7 +3455,7 @@ body.crm-page-exiting .lms-page {
 
 .lms-curriculum-card {
   background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.85);
+  border: 1px solid rgba(226, 222, 214, 0.85);
   border-radius: 18px;
   padding: 20px;
   box-shadow: var(--crm-shadow-card);
@@ -3472,12 +3472,12 @@ body.crm-page-exiting .lms-page {
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
 }
 
 .lms-curriculum-header span {
   font-size: 12px;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
 }
 
 .lms-accordion {
@@ -3487,14 +3487,14 @@ body.crm-page-exiting .lms-page {
 }
 
 .lms-module-item {
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 12px;
   overflow: hidden;
   transition: border-color 0.15s ease;
 }
 
 .lms-module-item.is-open {
-  border-color: #CBD5E1;
+  border-color: var(--md-sys-color-surface-container-highest);
 }
 
 .lms-module-header {
@@ -3503,7 +3503,7 @@ body.crm-page-exiting .lms-page {
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  background: #F8FAFC;
+  background: var(--md-sys-color-surface-container-low);
   border: none;
   cursor: pointer;
   text-align: left;
@@ -3512,13 +3512,13 @@ body.crm-page-exiting .lms-page {
 }
 
 .lms-module-header:hover {
-  background: #F1F5F9;
+  background: var(--md-sys-color-surface-container);
 }
 
 .lms-module-title {
   font-size: 13px;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
 }
 
 .lms-module-meta {
@@ -3526,7 +3526,7 @@ body.crm-page-exiting .lms-page {
   align-items: center;
   gap: 8px;
   font-size: 11.5px;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
 }
 
 .lms-lessons-list {
@@ -3543,7 +3543,7 @@ body.crm-page-exiting .lms-page {
   padding: 10px 16px;
   gap: 10px;
   font-size: 12.5px;
-  color: #334155;
+  color: #4A4A4D;
   cursor: pointer;
   transition: background 0.12s ease;
   border: none;
@@ -3554,13 +3554,13 @@ body.crm-page-exiting .lms-page {
 }
 
 .lms-lesson-item:hover {
-  background: #F8FAFC;
-  color: #D97706;
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--gold-dark);
 }
 
 .lms-lesson-item.is-active {
   background: #FEF3C7;
-  color: #B45309;
+  color: var(--gold-dark);
   font-weight: 600;
 }
 
@@ -3573,16 +3573,16 @@ body.crm-page-exiting .lms-page {
 }
 
 .lms-lesson-icon {
-  color: #94A3B8;
+  color: var(--md-sys-color-outline);
   flex-shrink: 0;
 }
 
 .lms-lesson-item.is-active .lms-lesson-icon {
-  color: #D97706;
+  color: var(--gold-dark);
 }
 
 .lms-lesson-item.is-completed .lms-lesson-icon {
-  color: #059669;
+  color: var(--success);
 }
 
 .lms-lesson-name {
@@ -3593,14 +3593,14 @@ body.crm-page-exiting .lms-page {
 
 .lms-lesson-duration {
   font-size: 11px;
-  color: #94A3B8;
+  color: var(--md-sys-color-outline);
   flex-shrink: 0;
 }
 
 /* Author Card */
 .lms-author-card {
   background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.85);
+  border: 1px solid rgba(226, 222, 214, 0.85);
   border-radius: 18px;
   padding: 20px;
   box-shadow: var(--crm-shadow-card);
@@ -3621,7 +3621,7 @@ body.crm-page-exiting .lms-page {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #94A3B8;
+  color: var(--md-sys-color-outline);
 }
 
 .lms-author-profile {
@@ -3635,13 +3635,13 @@ body.crm-page-exiting .lms-page {
   height: 44px;
   border-radius: 9999px;
   background: #FEF3C7;
-  color: #B45309;
+  color: var(--gold-dark);
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
-  border: 1px solid rgba(217, 119, 6, 0.25);
+  border: 1px solid rgba(231, 177, 12, 0.25);
   flex-shrink: 0;
 }
 
@@ -3659,7 +3659,7 @@ body.crm-page-exiting .lms-page {
 .lms-author-name {
   font-size: 14px;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--md-sys-color-on-surface);
   margin: 0;
 }
 
@@ -3669,19 +3669,19 @@ body.crm-page-exiting .lms-page {
 
 .lms-author-role {
   font-size: 11.5px;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   margin: 2px 0 0;
 }
 
 .lms-author-rating {
   font-size: 12px;
   font-weight: 600;
-  color: #B45309;
+  color: var(--gold-dark);
 }
 
 .lms-author-bio {
   font-size: 12px;
-  color: #64748B;
+  color: var(--md-sys-color-outline);
   line-height: 1.5;
   margin: 0;
 }
