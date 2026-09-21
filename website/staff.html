@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website.css?v=32" />
     <link rel="stylesheet" href="staff.css?v=10" />
     <link rel="stylesheet" href="portal.css?v=12" />
@@ -343,7 +344,7 @@
               <div><h3>Riwayat batch import</h3><p>Filter batch untuk melihat siapa yang membuat dan status akhirnya.</p></div>
               <button type="button" class="button button--secondary" id="refresh-operation-imports">Perbarui</button>
             </div>
-            <div class="operation-import-filters"><select id="operation-import-status-filter"><option value="">Semua status</option><option value="previewed">Preview</option><option value="committed">Committed</option><option value="rolled-back">Rollback</option></select><select id="operation-import-entity-filter"><option value="">Semua jenis</option><option value="inventory">Inventaris</option><option value="visa">Visa</option></select></div>
+            <div class="operation-import-filters"><select id="operation-import-status-filter" aria-label="Filter status import"><option value="">Semua status</option><option value="previewed">Preview</option><option value="committed">Committed</option><option value="rolled-back">Rollback</option></select><select id="operation-import-entity-filter" aria-label="Filter jenis import"><option value="">Semua jenis</option><option value="inventory">Inventaris</option><option value="visa">Visa</option></select></div>
             <p id="operation-import-history-status" class="form-status" role="status" aria-live="polite"></p>
             <div id="operation-import-history" class="staff-registration-list"></div>
             <div class="registration-pagination" id="operation-import-pagination" hidden><button type="button" class="button button--secondary" id="operation-import-prev">Sebelumnya</button><span id="operation-import-page-label"></span><button type="button" class="button button--secondary" id="operation-import-next">Berikutnya</button></div>
