@@ -2816,7 +2816,6 @@ body.in-crm #portal-students-status,
   .lms-tabs-bar > * { flex: 0 0 auto; }
   .crm-sidebar-header { padding-top: max(18px, env(safe-area-inset-top)); }
   body.crm-drawer-open { overflow: hidden; }
-  }
 
   .crm-canvas {
     padding: 20px 18px 48px;
