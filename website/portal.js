@@ -111,154 +111,116 @@ function renderBadgeIcon(icon) {
   }
 }
 
-function createAltezzaCard(options) {
-  const {
-    badgeColor = 'yellow',
-    badgeIcon = 'mosque',
-    title = 'Sholat Subuh Berjamaah',
-    subtitle = 'Hari ini',
-    program = 'Al-Azhar · Markaz Kairo',
-    route = 'Hay Asyir -> Masjid Al-Azhar',
-    startTime = '04:30 CLT',
-    finishTime = '05:30 CLT',
-    dormUnit = 'Gedung Hay Asyir Lt. 3',
-    itineraryStatus = 'OPEN',
-    members = '12 Santri',
-    requestType = 'Presensi Subuh',
-    tourType = 'Wajib Berjamaah',
-    statusText = 'Tour Complete',
-    statusType = 'complete',
-    note = 'Presensi diverifikasi musyrif tepat waktu.',
-    actionBtnText = 'View note',
-    onAction = null
-  } = options;
+// ---------------------------------------------------------------------------
+// Tampilan santri dan konsol (Task R4.5)
+//
+// Bagian ini dulu dibangun dari templat "itinerary perjalanan" dan berisi data yang
+// ditulis keras di kode: nomor induk, nama musyrif pendamping, dan
+// "Status Pembiayaan: Lunas (SPP & Dorm)" untuk SEMUA santri, "100% Hadir" saat belum
+// ada satu pun presensi, kartu "Hadir Istiqomah" untuk lima waktu sholat yang tidak
+// pernah dicatat, serta hitungan tab (12, 30, 8) yang tidak berasal dari mana pun.
+// Wali yang membuka portal melihat klaim keuangan dan kehadiran yang tidak pernah
+// terjadi. Kini setiap nilai di layar berasal dari API, atau bagian itu menjadi
+// keadaan kosong yang menyatakan apa adanya.
+// ---------------------------------------------------------------------------
 
+const ATTENDANCE_LABELS = Object.freeze({ present: 'Hadir', late: 'Terlambat', excused: 'Izin / sakit', absent: 'Tidak hadir' });
+const ATTENDANCE_TYPES = Object.freeze({ present: 'complete', late: 'pending', excused: 'pending', absent: 'absent' });
+const PRAYER_PATTERN = /sholat|salat|shalat|subuh|shubuh|dzuhur|zuhur|dhuhur|ashar|asar|maghrib|magrib|isya|isha|berjamaah|jamaah/i;
+const STUDENT_STATUS_LABELS = Object.freeze({ active: 'Aktif', inactive: 'Tidak aktif', graduated: 'Lulus' });
+
+function formatTanggalPanjang(isoDate) {
+  if (!isoDate) return '';
+  try {
+    return new Intl.DateTimeFormat('id-ID', { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(isoDate));
+  } catch {
+    return String(isoDate);
+  }
+}
+
+function dormitoryLabel(student) {
+  if (student.dormitory) return [student.dormitory.name, student.dormitory.area].filter(Boolean).join(' · ');
+  if (student.dormitoryName) return student.dormitoryName;
+  return student.dormitoryId ? 'Asrama terdaftar' : 'Belum ditempatkan';
+}
+
+// Kartu satu catatan. Hanya field yang ADA di data yang ditampilkan: tidak ada lokasi,
+// unit asrama, jumlah anggota, atau "tipe pembinaan" yang dikarang untuk mengisi kolom.
+function createRecordCard({ badgeColor = 'yellow', badgeIcon = 'mosque', title, subtitle = '', statusText = '', statusType = 'pending', details = [], note = '' }) {
   const card = document.createElement('div');
   card.className = 'crm-activity-card';
 
+  const shown = details.filter((item) => item && item.value);
   card.innerHTML = `
-    <!-- Header Row: Title & Subtitle + Header Actions -->
     <div class="crm-activity-card__header-row">
       <div class="crm-activity-card__title-col">
-        <div class="crm-square-badge crm-square-badge--${badgeColor}">
+        <div class="crm-square-badge crm-square-badge--${escapeHtml(badgeColor)}">
           ${renderBadgeIcon(badgeIcon)}
         </div>
         <div class="js-flex-1-min">
           <h3 class="crm-activity-card__name">${escapeHtml(title)}</h3>
-          <div class="crm-activity-card__subtitle">${escapeHtml(subtitle)}</div>
+          ${subtitle ? `<div class="crm-activity-card__subtitle">${escapeHtml(subtitle)}</div>` : ''}
         </div>
       </div>
-      <div class="crm-activity-card__header-actions">
-        <span class="crm-status-pill crm-status-pill--${escapeHtml(statusType)}">${escapeHtml(statusText)}</span>
-        <button type="button" class="crm-icon-sub-btn crm-btn-more" title="More Actions" aria-label="More actions">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
-        </button>
-        <!-- Popover action dropdown -->
-        <div class="crm-action-popover" hidden>
-          <div class="crm-popover-header">MORE ACTION</div>
-          <button type="button" class="crm-popover-item crm-action-edit">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            <span>Edit Data</span>
-          </button>
-          <button type="button" class="crm-popover-item crm-popover-item--danger crm-action-delete">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            <span>Hapus</span>
-          </button>
-        </div>
-      </div>
+      ${statusText ? `<div class="crm-activity-card__header-actions"><span class="crm-status-pill crm-status-pill--${escapeHtml(statusType)}">${escapeHtml(statusText)}</span></div>` : ''}
     </div>
-
-    <!-- Upper multi-column grid -->
-    <div class="crm-activity-card__upper">
-      <!-- Col 1: Program / Halaqah -->
-      <div class="crm-col-block">
-        <label>HALAQAH &amp; PROGRAM</label>
-        <span class="crm-check-list">${escapeHtml(program)}</span>
-      </div>
-
-      <!-- Col 2: Route / Lokasi -->
-      <div class="crm-col-block">
-        <label>LOKASI / MASJID</label>
-        <span title="${escapeHtml(route)}">${escapeHtml(route)}</span>
-      </div>
-
-      <!-- Col 3: Start / Finish Time -->
-      <div class="crm-col-block">
-        <label>WAKTU KEGIATAN</label>
-        <span><svg class="js-icon-inline" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${startTime} - ${finishTime}</span>
-      </div>
-
-      <!-- Col 4: Unit Asrama -->
-      <div class="crm-col-block">
-        <label>ASRAMA KAIRO</label>
-        <span>${escapeHtml(dormUnit)}</span>
-      </div>
-
-      <!-- Col 5: Itinerary status -->
-      <div class="crm-col-block">
-        <label>STATUS ITINERARY</label>
-        <span class="js-text-ok">${escapeHtml(itineraryStatus)}</span>
-      </div>
-    </div>
-
-    <!-- Note snippet directly on card -->
-    ${note ? `
-    <div class="crm-activity-card__note">
-      <svg class="js-no-shrink" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E7B10C" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span>${escapeHtml(note)}</span>
-    </div>
-    ` : ''}
-
-    <!-- Lower metadata and action row -->
-    <div class="crm-activity-card__lower">
-      <div class="crm-activity-card__meta-group">
-        <div class="crm-meta-item">
-          <label>PRESENSI SANTRI</label>
-          <span><svg class="js-icon-inline" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>${members}</span>
-        </div>
-        <div class="crm-meta-item">
-          <label>KATEGORI</label>
-          <span><svg class="js-icon-inline" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>${requestType}</span>
-        </div>
-        <div class="crm-meta-item">
-          <label>TIPE PEMBINAAN</label>
-          <span><svg class="js-icon-inline" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${tourType}</span>
-        </div>
-      </div>
-
-      <!-- Action buttons -->
-      <div class="crm-activity-card__actions">
-        <button type="button" class="crm-action-link-btn crm-btn-view-note" title="${escapeHtml(actionBtnText)}">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          <span>${escapeHtml(actionBtnText)}</span>
-        </button>
-      </div>
-    </div>
+    ${shown.length ? `<div class="crm-activity-card__upper">${shown.map((item) => `<div class="crm-col-block"><label>${escapeHtml(item.label)}</label><span>${escapeHtml(item.value)}</span></div>`).join('')}</div>` : ''}
+    ${note ? `<div class="crm-activity-card__note"><svg class="js-no-shrink" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${escapeHtml(note)}</span></div>` : ''}
   `;
-
-  const moreBtn = card.querySelector('.crm-btn-more');
-  const popover = card.querySelector('.crm-action-popover');
-  const viewBtn = card.querySelector('.crm-btn-view-note');
-
-  if (moreBtn && popover) {
-    moreBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      popover.hidden = !popover.hidden;
-    });
-    document.addEventListener('click', () => { popover.hidden = true; });
-  }
-
-  if (viewBtn) {
-    if (onAction) {
-      viewBtn.addEventListener('click', onAction);
-    } else {
-      viewBtn.addEventListener('click', () => {
-        alert(`Catatan Pembina / Mutaba'ah:\n"${note}"`);
-      });
-    }
-  }
-
   return card;
+}
+
+function createEmptyState(message) {
+  const box = document.createElement('div');
+  box.className = 'crm-white-card';
+  const copy = document.createElement('p');
+  copy.className = 'js-text-muted';
+  copy.textContent = message;
+  box.append(copy);
+  return box;
+}
+
+function attendanceCard(entry) {
+  return createRecordCard({
+    badgeIcon: entry.status === 'present' ? 'mosque' : 'warning',
+    title: entry.category || 'Kehadiran',
+    subtitle: formatWaktu(entry.occurredAt),
+    statusText: ATTENDANCE_LABELS[entry.status] || entry.status,
+    statusType: ATTENDANCE_TYPES[entry.status] || 'pending',
+    // recordedByName hanya ada untuk staf; server mencabutnya dari tampilan keluarga.
+    details: [{ label: 'Dicatat oleh', value: entry.recordedByName }],
+    note: entry.note
+  });
+}
+
+// Unduhan yang membawa sesi. <a href download> biasa tidak mengirim header
+// Authorization, sehingga endpoint yang dilindungi menjawab 401 dan yang terunduh
+// adalah berkas galat, bukan datanya.
+async function downloadWithSession(url, fileName, button) {
+  const originalLabel = button.textContent;
+  button.disabled = true;
+  button.textContent = 'Menyiapkan...';
+  try {
+    const response = await fetch(url, { headers: requestHeaders() });
+    if (!response.ok) {
+      let message = 'Berkas belum dapat diunduh.';
+      try { message = (await response.json()).error || message; } catch { /* respons bukan JSON */ }
+      throw new Error(message);
+    }
+    const objectUrl = URL.createObjectURL(await response.blob());
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = fileName;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+  } catch (error) {
+    window.alert(error.message);
+  } finally {
+    button.disabled = false;
+    button.textContent = originalLabel;
+  }
 }
 
 function createStudentCompactCard(student, idx, account, onOpen) {
@@ -270,10 +232,13 @@ function createStudentCompactCard(student, idx, account, onOpen) {
 
   const colors = ['yellow', 'orange', 'green', 'purple'];
   const badgeColor = colors[idx % colors.length];
-  const dormText = student.dormitoryId ? 'Dorm Hay Asyir Lt. 3' : 'Markaz Kairo';
-  const nimText = `NIM: 2026-AZH-00${idx + 1}`;
-  const cityText = student.city || 'Kairo';
-  const programText = student.program || 'Al-Azhar';
+  // Tanpa NIM: nomor induk tidak ada di data, dan sebelumnya dikarang dari indeks
+  // baris (dibuat dari nomor urut), sehingga berganti setiap urutan daftar berubah.
+  const statusLabel = STUDENT_STATUS_LABELS[student.status] || student.status || '';
+  const metaParts = [];
+  if (student.city) metaParts.push(`Asal ${escapeHtml(student.city)}`);
+  if (student.program) metaParts.push(`<span class="crm-student-compact-pill">${escapeHtml(student.program)}</span>`);
+  metaParts.push(`<span class="crm-student-compact-dorm"><svg class="js-icon-inline--tight" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> ${escapeHtml(dormitoryLabel(student))}</span>`);
 
   card.innerHTML = `
     <div class="crm-student-compact-main">
@@ -282,21 +247,10 @@ function createStudentCompactCard(student, idx, account, onOpen) {
       </div>
       <div class="crm-student-compact-info">
         <div class="crm-student-compact-title-row">
-          <h3 class="crm-student-compact-name">${student.name}</h3>
-          <span class="crm-status-pill crm-status-pill--complete">Santri Terverifikasi</span>
+          <h3 class="crm-student-compact-name">${escapeHtml(student.name)}</h3>
+          ${statusLabel ? `<span class="crm-status-pill crm-status-pill--complete">${escapeHtml(statusLabel)}</span>` : ''}
         </div>
-        <div class="crm-student-compact-meta">
-          <span>${nimText}</span>
-          <span class="crm-meta-dot">·</span>
-          <span>Asal ${cityText}</span>
-          <span class="crm-meta-dot">·</span>
-          <span class="crm-student-compact-pill">${programText}</span>
-          <span class="crm-meta-dot">·</span>
-          <span class="crm-student-compact-dorm">
-            <svg class="js-icon-inline--tight" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-            ${dormText}
-          </span>
-        </div>
+        <div class="crm-student-compact-meta">${metaParts.join('<span class="crm-meta-dot">·</span>')}</div>
       </div>
     </div>
     <div class="crm-student-compact-action">
@@ -304,25 +258,21 @@ function createStudentCompactCard(student, idx, account, onOpen) {
       <div class="crm-student-compact-arrow">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
       </div>
-      <a href="portal.html?studentId=${encodeURIComponent(student.id)}" target="_blank" class="crm-student-compact-newtab" title="Buka di tab baru" aria-label="Buka di tab baru">
+      <a href="portal.html?studentId=${encodeURIComponent(student.id)}" target="_blank" rel="noopener" class="crm-student-compact-newtab" title="Buka di tab baru" aria-label="Buka di tab baru">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
       </a>
     </div>
   `;
 
   card.addEventListener('click', (e) => {
-    if (e.target.closest('.crm-student-compact-newtab')) {
-      return;
-    }
+    if (e.target.closest('.crm-student-compact-newtab')) return;
     e.preventDefault();
     if (onOpen) onOpen();
   });
 
   card.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
-      if (e.target.closest('.crm-student-compact-newtab')) {
-        return;
-      }
+      if (e.target.closest('.crm-student-compact-newtab')) return;
       e.preventDefault();
       if (onOpen) onOpen();
     }
@@ -331,437 +281,223 @@ function createStudentCompactCard(student, idx, account, onOpen) {
   return card;
 }
 
+function buildTabs(definitions, panels, container) {
+  const buttons = definitions.map((def, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `crm-pill-btn ${index === 0 ? 'is-active' : ''}`;
+    // Hitungan hanya ditampilkan bila diketahui dari data. Tidak ada angka bawaan.
+    const count = def.count === undefined ? '' : ` <span class="crm-pill-count" id="tab-count-${def.id}">${def.count}</span>`;
+    button.innerHTML = `${def.icon} <span>${def.label}</span>${count}`;
+    container.append(button);
+    return button;
+  });
+  buttons.forEach((button, index) => {
+    button.addEventListener('click', () => {
+      buttons.forEach((other) => other.classList.remove('is-active'));
+      panels.forEach((panel) => {
+        panel.hidden = true;
+        panel.classList.remove('crm-tab-enter');
+      });
+      button.classList.add('is-active');
+      panels[index].hidden = false;
+      panels[index].classList.add('crm-tab-enter');
+    });
+  });
+  return buttons;
+}
+
+const TAB_ICONS = Object.freeze({
+  clock: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  mosque: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+  award: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>',
+  home: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+  book: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>',
+  file: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  users: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  lock: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
+});
+
 function renderCrmDashboard(dashboard, account, onBack) {
   studentDashboard.replaceChildren();
   if (studentList) studentList.hidden = true;
-  const isStudent = account && account.role === 'student';
-  const isParent = account && account.role === 'parent';
-  const attendanceRate = dashboard.attendance.rate === null ? 100 : dashboard.attendance.rate;
   const student = dashboard.student;
+  const canRecord = Boolean(account) && ['admin', 'supervisor'].includes(account.role);
 
-  // If opened from executive dashboard, provide seamless back button
   if (onBack) {
     const backBar = document.createElement('div');
-    backBar.style.display = 'flex';
-    backBar.style.alignItems = 'center';
-    backBar.style.justifyContent = 'space-between';
-    backBar.style.marginBottom = '12px';
+    backBar.className = 'crm-back-bar';
     backBar.innerHTML = `
       <button type="button" class="crm-topbar-action-btn js-chip-active" id="crm-back-btn">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
         <span>Kembali ke Konsol Eksekutif</span>
       </button>
-      <span class="js-text-meta">Rekam Jejak CRM: <strong>${student.name}</strong></span>
+      <span class="js-text-meta">Rekam Jejak CRM: <strong>${escapeHtml(student.name)}</strong></span>
     `;
     backBar.querySelector('#crm-back-btn').addEventListener('click', onBack);
     studentDashboard.append(backBar);
   }
 
-  // 1. Altezza Top Detail Summary Profile Card
+  // Ringkasan profil. Dulu berisi NIM, nama musyrif, semester, dan status SPP yang
+  // ditulis keras; kini hanya yang ada di data.
   const summaryCard = document.createElement('div');
   summaryCard.className = 'crm-summary-card';
 
-  const latestEval = dashboard.evaluations.length
-    ? dashboard.evaluations[0].note
-    : "Santri istiqomah sholat berjamaah di markaz Hay Asyir, talaqqi kutub turots lancar dan berakhlak mulia.";
+  const attendanceText = dashboard.attendance.rate === null
+    ? 'Belum ada data presensi'
+    : `${dashboard.attendance.rate}% hadir (${dashboard.attendance.present || 0}/${dashboard.attendance.total || 0})`;
+  const latestEval = dashboard.evaluations.length ? dashboard.evaluations[0].note : 'Belum ada catatan pembina.';
+  const statusLabel = STUDENT_STATUS_LABELS[student.status] || student.status || '-';
+  const subtitle = [student.program, student.city].filter(Boolean).join(' · ');
 
   summaryCard.innerHTML = `
-    <!-- Col 1: Name, ID & Musyrif -->
     <div class="crm-summary-col">
       <div>
         <div class="crm-summary-title-row">
-          <h2 class="crm-summary-title">${student.name}</h2>
-          <svg class="crm-link-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          <h2 class="crm-summary-title">${escapeHtml(student.name)}</h2>
         </div>
-        <p class="crm-summary-subtitle">${student.program} · Kairo (NIM: 2026-AZH-019)</p>
+        ${subtitle ? `<p class="crm-summary-subtitle">${escapeHtml(subtitle)}</p>` : ''}
       </div>
       <div>
-        <p class="crm-field-label">
-          <span>MUSYRIF PENDAMPING</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1F6F3D" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
-        </p>
-        <div class="crm-person-row">
-          <div class="crm-person-avatar">RK</div>
-          <span class="crm-person-name">Ust. Ridwan Kamil, Lc.</span>
-        </div>
+        <p class="crm-field-label">BERGABUNG</p>
+        <div class="crm-field-value"><span>${escapeHtml(formatTanggalPanjang(student.joinDate) || '-')}</span></div>
       </div>
     </div>
 
-    <!-- Col 2: Academic Period & Asrama/Markaz -->
     <div class="crm-summary-col">
       <div>
-        <p class="crm-field-label">PERIODE AKADEMIK</p>
-        <div class="crm-field-value">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          <span>Semester Ganjil 2026/2027</span>
-        </div>
+        <p class="crm-field-label">STATUS</p>
+        <div class="crm-field-value"><span>${escapeHtml(statusLabel)}</span></div>
       </div>
       <div>
-        <p class="crm-field-label">
-          <span>MARKAZ &amp; ASRAMA</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#E7B10C" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
-        </p>
-        <div class="crm-person-row">
-          <div class="crm-person-avatar js-chip-accent">HA</div>
-          <span class="crm-person-name">Asrama Hay Asyir Kairo</span>
-        </div>
+        <p class="crm-field-label">ASRAMA</p>
+        <div class="crm-person-row"><span class="crm-person-name">${escapeHtml(dormitoryLabel(student))}</span></div>
       </div>
     </div>
 
-    <!-- Col 3: Balance & SPP Status -->
     <div class="crm-summary-col">
-      <div>
-        <p class="crm-field-label">STATUS PEMBIAYAAN / SPP</p>
-        <div class="crm-balance-value">
-          <span class="crm-bullet-blue"></span>
-          <span>Lunas (SPP &amp; Dorm)</span>
-        </div>
-      </div>
       <div>
         <p class="crm-field-label">PRESENSI IBADAH</p>
         <div class="crm-field-value">
           <span class="crm-outline-dot" aria-hidden="true"></span>
-          <span>${attendanceRate}% Hadir (${dashboard.attendance.present || 0}/${dashboard.attendance.total || 0})</span>
+          <span>${escapeHtml(attendanceText)}</span>
         </div>
       </div>
-    </div>
-
-    <!-- Col 4: Note with Readmore link -->
-    <div class="crm-summary-col">
       <div>
         <p class="crm-field-label">CATATAN PEMBINA</p>
-        <p class="crm-summary-note">"${latestEval}"</p>
-        <a class="crm-readmore-link" href="#evaluasi-section">Lihat Riwayat &amp; Evaluasi &rarr;</a>
+        <p class="crm-summary-note">${escapeHtml(latestEval)}</p>
       </div>
     </div>
   `;
 
-  // 2. Horizontal Sub-Tabs Bar
+  const attendanceEntries = dashboard.attendance.entries || [];
+  const prayerEntries = attendanceEntries.filter((entry) => PRAYER_PATTERN.test(entry.category || ''));
+
+  const tabDefs = [
+    { id: 'mutabaah', label: "Mutaba'ah & Ibadah", icon: TAB_ICONS.clock, count: attendanceEntries.length },
+    { id: 'sholat', label: 'Sholat Berjamaah', icon: TAB_ICONS.mosque, count: prayerEntries.length },
+    { id: 'talaqqi', label: 'Talaqqi & Tahfidz', icon: TAB_ICONS.award, count: dashboard.achievements.length },
+    { id: 'dorm', label: 'Asrama', icon: TAB_ICONS.home },
+    { id: 'lms', label: 'Maddah (LMS)', icon: TAB_ICONS.book },
+    { id: 'admin', label: 'Ringkasan Data', icon: TAB_ICONS.file }
+  ];
+
   const subtabsRow = document.createElement('div');
   subtabsRow.className = 'crm-subtabs-row';
 
-  const tabDefs = [
-    { id: 'mutabaah', label: "Mutaba'ah & Ibadah", icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>', count: dashboard.attendance.entries.length || 12 },
-    { id: 'sholat', label: 'Sholat Berjamaah', icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>', count: dashboard.attendance.present || 30 },
-    { id: 'talaqqi', label: 'Talaqqi & Tahfidz', icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>', count: dashboard.achievements.length || 8 },
-    { id: 'dorm', label: 'Asrama Kairo', icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>', count: 1 },
-    { id: 'lms', label: 'Maddah Belajar LMS', icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg>', count: 6 },
-    { id: 'admin', label: 'Administrasi & SPP', icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>', count: 1 }
-  ];
-
-  const pillButtons = [];
-  tabDefs.forEach((def, index) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = `crm-pill-btn ${index === 0 ? 'is-active' : ''}`;
-    btn.innerHTML = `${def.icon} <span>${def.label}</span> <span class="crm-pill-count">${def.count}</span>`;
-    subtabsRow.append(btn);
-    pillButtons.push(btn);
-  });
-
-  // 3. Sub-filter Bar & Yellow Action CTA
+  // Toolbar: hanya kontrol periode yang benar-benar menyaring data. Penanda tanggal
+  // "Pekan Ini: 15 Sep - 21 Sep 2026" dan dropdown "Semua Aktivitas" dulu hanya
+  // menampilkan teks tanpa menyaring apa pun, dan tombol "Input Mutaba'ah" tidak
+  // punya pendengar. Pencatatan sungguhan ada di konsol monitoring.
   const toolbar = document.createElement('div');
   toolbar.className = 'crm-toolbar';
-  toolbar.innerHTML = `
-    <div class="crm-toolbar-filters">
-      <div class="crm-date-selector">
-        <button type="button" class="crm-date-nav-btn" title="Pekan Sebelumnya" aria-label="Previous week">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
-        <div class="crm-date-display">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          <span>Pekan Ini: 15 Sep - 21 Sep 2026</span>
-        </div>
-        <button type="button" class="crm-date-nav-btn" title="Pekan Selanjutnya" aria-label="Next week">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
-        </button>
-      </div>
-
-      <button type="button" class="crm-filter-dropdown" aria-label="Filter kategori">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-        <span>Semua Aktivitas Mutaba'ah</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-      </button>
-    </div>
-
-    <div class="crm-toolbar-actions">
-      <button type="button" class="crm-btn-primary-yellow" id="btn-create-activity">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        <span>Input Mutaba'ah / Catatan</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
-      </button>
-    </div>
-  `;
   const periodControls = document.createElement('div');
   periodControls.className = 'crm-toolbar-filters';
-  periodControls.innerHTML = '<label class="sr-only" for="record-period-from">Dari tanggal</label><input id="record-period-from" type="date" value="' + (dashboard.period?.from || '') + '"><label class="sr-only" for="record-period-to">Sampai tanggal</label><input id="record-period-to" type="date" value="' + (dashboard.period?.to || '') + '"><button type="button" class="crm-filter-dropdown" id="apply-record-period">Terapkan periode</button>';
+  periodControls.innerHTML = '<label class="sr-only" for="record-period-from">Dari tanggal</label><input id="record-period-from" type="date" value="' + escapeHtml(dashboard.period?.from || '') + '"><label class="sr-only" for="record-period-to">Sampai tanggal</label><input id="record-period-to" type="date" value="' + escapeHtml(dashboard.period?.to || '') + '"><button type="button" class="crm-filter-dropdown" id="apply-record-period">Terapkan periode</button>';
   periodControls.querySelector('#apply-record-period').addEventListener('click', async () => {
     const from = periodControls.querySelector('#record-period-from').value;
     const to = periodControls.querySelector('#record-period-to').value;
     try { await loadDashboard(student.id, account, onBack, { from, to }); } catch (error) { window.alert(error.message); }
   });
-  toolbar.prepend(periodControls);
-
-  // 4. Tab Panels Container
-  const panelsContainer = document.createElement('div');
-  panelsContainer.style.display = 'flex';
-  panelsContainer.style.flexDirection = 'column';
-  panelsContainer.style.gap = '16px';
-
-  // --- PANEL 1: Mutaba'ah & Ibadah (Card Stack) ---
-  const panelMutabaah = document.createElement('div');
-  panelMutabaah.className = 'crm-card-stack';
-
-  const defaultEntries = [
-    {
-      badgeColor: 'yellow',
-      badgeIcon: 'mosque',
-      title: 'Sholat Subuh Berjamaah & Dzikir Al-Ma\'tsurat',
-      subtitle: 'Hari ini · 04:30 CLT',
-      program: 'Al-Azhar · Markaz Kairo',
-      route: 'Hay Asyir -> Masjid Al-Azhar',
-      startTime: '04:30 CLT',
-      finishTime: '05:45 CLT',
-      dormUnit: 'Gedung Hay Asyir Lt. 3',
-      itineraryStatus: 'VALID',
-      members: '12 Santri',
-      requestType: 'Sholat Wajib',
-      tourType: 'Berjamaah Utama',
-      statusText: 'Hadir Tepat Waktu',
-      statusType: 'complete',
-      note: 'Alhamdulillah santri hadir di shaf pertama dan mengikuti dzikir pagi berjamaah.'
-    },
-    {
-      badgeColor: 'orange',
-      badgeIcon: 'book',
-      title: 'Talaqqi Matan Taqrib Fiqh Syafi\'i bersama Syekh',
-      subtitle: 'Kemarin · 16:30 CLT',
-      program: 'Turots Syafi\'i · Al-Azhar',
-      route: 'Riwaq Al-Azhar Asy-Syarif',
-      startTime: '16:30 CLT',
-      finishTime: '18:00 CLT',
-      dormUnit: 'Markaz Mahasiswa',
-      itineraryStatus: 'OPEN',
-      members: '18 Santri',
-      requestType: 'Talaqqi Masyayikh',
-      tourType: 'Kutub Turots',
-      statusText: 'Mutaba\'ah Lengkap',
-      statusType: 'complete',
-      note: 'Membahas bab Sholat Jamak & Qashar dan menyetorkan hafalan bait matan.'
-    },
-    {
-      badgeColor: 'green',
-      badgeIcon: 'palm',
-      title: 'Setoran Ziyadah Tahfidz Al-Qur\'an (Juz 28)',
-      subtitle: '18 Sep 2026 · 19:30 CLT',
-      program: 'Tahfidz Al-Qur\'an · Mutqin',
-      route: 'Markaz Tahfidz Kairo',
-      startTime: '19:30 CLT',
-      finishTime: '20:30 CLT',
-      dormUnit: 'Gedung Hay Asyir',
-      itineraryStatus: 'MUMTAZ',
-      members: '1 Santri',
-      requestType: 'Tahfidz Ziyadah',
-      tourType: 'Setoran Privat',
-      statusText: 'Mumtaz Jayyid Jiddan',
-      statusType: 'complete',
-      note: 'Setoran lancar dengan tajwid makhraj fasih bersama musyrif tahfidz.'
-    },
-    {
-      badgeColor: 'purple',
-      badgeIcon: 'note',
-      title: 'Evaluasi Pembinaan Akhlak & Ketertiban Asrama',
-      subtitle: '17 Sep 2026 · Pekanan',
-      program: 'Kedisiplinan · Adab Ma\'had',
-      route: 'Asrama Hay Asyir Kairo',
-      startTime: '20:00 CLT',
-      finishTime: '21:00 CLT',
-      dormUnit: 'Gedung Hay Asyir Lt. 3',
-      itineraryStatus: 'EVALUASI',
-      members: '12 Santri',
-      requestType: 'Bimbingan Konseling',
-      tourType: 'Halaqah Asrama',
-      statusText: 'Disiplin Baik',
-      statusType: 'complete',
-      note: latestEval
-    }
-  ];
-
-  // If dashboard has actual attendance entries, convert them into cards
-  if (dashboard.attendance.entries.length) {
-    const colors = ['yellow', 'orange', 'green', 'purple'];
-    dashboard.attendance.entries.slice(0, 10).forEach((entry, idx) => {
-      const color = colors[idx % colors.length];
-      const isPresent = entry.status === 'present';
-      const statusLabel = {
-        present: 'Hadir Tepat Waktu',
-        late: 'Terlambat',
-        excused: 'Izin Sakit',
-        absent: 'Alfa'
-      }[entry.status] || entry.status;
-
-      const card = createAltezzaCard({
-        badgeColor: color,
-        badgeIcon: isPresent ? 'mosque' : 'warning',
-        title: `${entry.category || 'Sholat Berjamaah'}`,
-        subtitle: formatWaktu(entry.occurredAt),
-        program: 'Al-Azhar · Markaz Kairo',
-        route: 'Masjid Markaz Hay Asyir, Kairo',
-        startTime: formatWaktu(entry.occurredAt),
-        finishTime: 'Selesai',
-        dormUnit: 'Gedung Hay Asyir',
-        itineraryStatus: isPresent ? 'TERVERIFIKASI' : 'PERHATIAN',
-        members: '12 Santri',
-        requestType: 'Mutaba\'ah Sholat',
-        tourType: 'Wajib Berjamaah',
-        statusText: statusLabel,
-        statusType: isPresent ? 'complete' : entry.status === 'late' ? 'pending' : 'absent',
-        note: entry.note || 'Tercatat dalam log mutaba\'ah asrama Kairo.'
-      });
-      panelMutabaah.append(card);
-    });
-  } else {
-    // Render rich default entries for preview
-    defaultEntries.forEach((entry) => {
-      panelMutabaah.append(createAltezzaCard(entry));
-    });
+  toolbar.append(periodControls);
+  if (canRecord) {
+    const actions = document.createElement('div');
+    actions.className = 'crm-toolbar-actions';
+    actions.innerHTML = '<a class="crm-btn-primary-yellow" href="monitoring.html"><span>Catat di Monitoring</span></a>';
+    toolbar.append(actions);
   }
 
-  // --- PANEL 2: Sholat Berjamaah ---
+  const panelsContainer = document.createElement('div');
+  panelsContainer.className = 'crm-panels';
+
+  // Panel 1: Mutaba'ah & Ibadah
+  const panelMutabaah = document.createElement('div');
+  panelMutabaah.className = 'crm-card-stack';
+  if (attendanceEntries.length) {
+    attendanceEntries.slice(0, 10).forEach((entry) => panelMutabaah.append(attendanceCard(entry)));
+  } else {
+    panelMutabaah.append(createEmptyState("Belum ada catatan mutaba'ah pada periode ini."));
+  }
+
+  // Panel 2: Sholat Berjamaah, disaring dari presensi yang benar-benar tercatat.
   const panelSholat = document.createElement('div');
   panelSholat.className = 'crm-card-stack';
   panelSholat.hidden = true;
-  ['Subuh Berjamaah', 'Dzuhur Berjamaah', 'Ashar Berjamaah', 'Maghrib Berjamaah', 'Isya Berjamaah'].forEach((sholatName, idx) => {
-    panelSholat.append(createAltezzaCard({
-      badgeColor: ['yellow', 'orange', 'green', 'purple', 'yellow'][idx],
-      badgeIcon: 'mosque',
-      title: `${sholatName} di Masjid Markaz Kairo`,
-      subtitle: `Presensi Istiqomah Pekan Ini`,
-      program: 'Al-Azhar · Markaz Kairo',
-      route: 'Masjid Asrama Hay Asyir',
-      startTime: 'Sesuai Waktu Sholat',
-      finishTime: 'Selesai Berjamaah',
-      dormUnit: 'Gedung Hay Asyir',
-      itineraryStatus: 'TERJADWAL',
-      members: '12 Santri',
-      requestType: 'Sholat 5 Waktu',
-      tourType: 'Fardhu Berjamaah',
-      statusText: 'Hadir Istiqomah',
-      statusType: 'complete',
-      note: 'Wajib dilaksanakan berjamaah bersama seluruh santri di bawah pengawasan musyrif.'
-    }));
-  });
+  if (prayerEntries.length) {
+    prayerEntries.forEach((entry) => panelSholat.append(attendanceCard(entry)));
+  } else {
+    panelSholat.append(createEmptyState('Belum ada presensi sholat berjamaah yang tercatat pada periode ini.'));
+  }
 
-  // --- PANEL 3: Talaqqi & Tahfidz ---
+  // Panel 3: Talaqqi & Tahfidz
   const panelTalaqqi = document.createElement('div');
   panelTalaqqi.className = 'crm-card-stack';
   panelTalaqqi.hidden = true;
   if (dashboard.achievements.length) {
-    dashboard.achievements.forEach((ach, idx) => {
-      panelTalaqqi.append(createAltezzaCard({
+    dashboard.achievements.forEach((achievement) => {
+      panelTalaqqi.append(createRecordCard({
         badgeColor: 'green',
         badgeIcon: 'book',
-        title: ach.title,
-        subtitle: formatWaktu(ach.occurredAt),
-        program: 'Sanad Al-Azhar · Matan Turots',
-        route: 'Masjid Al-Azhar / Riwaq',
-        startTime: formatWaktu(ach.occurredAt),
-        finishTime: 'Tuntas',
-        dormUnit: 'Markaz Kairo',
-        itineraryStatus: 'MUMTAZ',
-        members: 'Mandiri',
-        requestType: 'Setoran Prestasi',
-        tourType: 'Tahfidz / Matan',
-        statusText: 'Capaian Mumtaz',
+        title: achievement.title,
+        subtitle: formatWaktu(achievement.occurredAt),
+        statusText: 'Capaian',
         statusType: 'complete',
-        note: ach.description || 'Setoran tuntas terverifikasi asatidzah.'
+        details: [{ label: 'Dicatat oleh', value: achievement.recordedByName }],
+        note: achievement.description
       }));
     });
   } else {
-    panelTalaqqi.append(createAltezzaCard({
-      badgeColor: 'green',
-      badgeIcon: 'book',
-      title: 'Talaqqi Matan Al-Jurumiyyah & Tuhfatul Athfal',
-      subtitle: 'Target Semester Ganjil',
-      program: 'Matan Tajwid · Lughah Arabiyyah',
-      route: 'Riwaq Al-Azhar Asy-Syarif',
-      startTime: 'Pekan Berjalan',
-      finishTime: 'Ujian Akhir',
-      dormUnit: 'Hay Asyir',
-      itineraryStatus: 'BERLANGSUNG',
-      members: '12 Santri',
-      requestType: 'Kutub Turots',
-      tourType: 'Kurikulum Resmi',
-      statusText: 'Progres 85%',
-      statusType: 'complete',
-      note: 'Santri telah menyetorkan bab Idgham dan Mad sampai bait akhir.'
-    }));
+    panelTalaqqi.append(createEmptyState('Belum ada capaian talaqqi atau tahfidz yang tercatat.'));
   }
 
-  // --- PANEL 4: Asrama Kairo ---
+  // Panel 4: Asrama. Dulu berisi nama gedung, katering, AC, dan Wi-Fi yang ditulis keras
+  // untuk setiap santri. Kini hanya asrama tempat santri ini ditempatkan.
   const panelDorm = document.createElement('div');
-  panelDorm.className = 'crm-white-card';
+  panelDorm.className = 'crm-card-stack';
   panelDorm.hidden = true;
-  panelDorm.innerHTML = `
-    <div class="crm-white-card-header">
-      <div>
-        <h3>Fasilitas &amp; Markaz Asrama di Kairo</h3>
-        <p>Gedung asrama terpadu, lingkungan kondusif, dan pengawalan musyrif 24 jam di Republik Arab Mesir.</p>
-      </div>
-      <a href="kontak.html" class="crm-topbar-action-btn">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        <span>Direktori Hotline Kairo</span>
-      </a>
-    </div>
-    <div class="crm-grid-2col">
-      <div class="crm-feature-box">
-        <div class="crm-feature-box-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-        </div>
-        <div>
-          <strong>Gedung Hay Asyir, Madinat Nasr</strong>
-          <p>Dekat dengan kampus Universitas Al-Azhar dan Masjid Al-Azhar, Kairo.</p>
-        </div>
-      </div>
-      <div class="crm-feature-box">
-        <div class="crm-feature-box-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        </div>
-        <div>
-          <strong>Pengawalan musyrif sesuai jadwal penugasan</strong>
-          <p>Dibimbing langsung oleh asatidzah Al-Azhar berdedikasi menjaga keselamatan dan kedisiplinan santri.</p>
-        </div>
-      </div>
-      <div class="crm-feature-box">
-        <div class="crm-feature-box-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
-        </div>
-        <div>
-          <strong>Katering Masakan Nusantara 3x Sehari</strong>
-          <p>Menu khas Indonesia yang higienis, bergizi seimbang, dan halal terjamin.</p>
-        </div>
-      </div>
-      <div class="crm-feature-box">
-        <div class="crm-feature-box-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
-        </div>
-        <div>
-          <strong>Kamar Nyaman, AC &amp; Wi-Fi Fiber</strong>
-          <p>Kamar berpendingin udara, kasur empuk, lemari pribadi, dan jaringan internet stabil untuk belajar.</p>
-        </div>
-      </div>
-    </div>
-  `;
+  if (student.dormitory) {
+    panelDorm.append(createRecordCard({
+      badgeIcon: 'building',
+      title: student.dormitory.name,
+      subtitle: student.dormitory.area || '',
+      statusText: 'Ditempatkan',
+      statusType: 'complete'
+    }));
+  } else {
+    panelDorm.append(createEmptyState(student.dormitoryId
+      ? 'Santri ini sudah ditempatkan, tetapi rincian asramanya belum dapat dimuat.'
+      : 'Santri ini belum ditempatkan di asrama.'));
+  }
 
-  // --- PANEL 5: Maddah Belajar (LMS) ---
+  // Panel 5: Maddah (LMS)
   const panelLms = document.createElement('div');
   panelLms.className = 'crm-white-card';
   panelLms.hidden = true;
   panelLms.innerHTML = `
     <div class="crm-white-card-header">
       <div>
-        <h3>Maddah Silabus Kurikulum Al-Azhar</h3>
-        <p>Mata pelajaran diniyah, lughah Arabiyyah, nahwu, balaghah, dan fiqh yang sedang dipelajari santri.</p>
+        <h3>Maddah yang Diikuti</h3>
+        <p>Daftar maddah dan progres belajar santri ini.</p>
       </div>
       <a href="lms.html" class="crm-btn-primary-yellow js-btn-sm">
         <span>Buka Ruang Belajar (LMS)</span>
@@ -769,18 +505,17 @@ function renderCrmDashboard(dashboard, account, onBack) {
       </a>
     </div>
     <div id="crm-student-courses">
-      <p class="js-text-muted">Memuat silabus maddah belajar...</p>
+      <p class="js-text-muted">Memuat maddah...</p>
     </div>
   `;
 
-  // Fetch student courses in background
   fetch(`/api/students/${encodeURIComponent(student.id)}/courses`, { headers: requestHeaders() })
     .then((res) => res.json())
     .then((data) => {
       const container = panelLms.querySelector('#crm-student-courses');
       if (!container) return;
       if (!data.items || !data.items.length) {
-        container.innerHTML = '<p class="js-text-muted">Belum ada maddah terdaftar untuk semester berjalan.</p>';
+        container.innerHTML = '<p class="js-text-muted">Belum ada maddah yang diikuti santri ini.</p>';
         return;
       }
       container.replaceChildren();
@@ -790,84 +525,56 @@ function renderCrmDashboard(dashboard, account, onBack) {
         const item = document.createElement('div');
         item.className = 'crm-feature-box';
         item.innerHTML = `
-          <div class="crm-feature-box-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg>
-          </div>
+          <div class="crm-feature-box-icon">${TAB_ICONS.book}</div>
           <div class="js-flex-1">
-            <strong>${course.title}</strong>
-            <p>${course.materials ? course.materials.length : 0} modul · Progres ${course.progress || 0}%</p>
+            <strong>${escapeHtml(course.title)}</strong>
+            <p>${course.materials ? course.materials.length : 0} modul · Progres ${Number(course.progress) || 0}%</p>
             <div class="js-progress-track">
               <div class="js-progress-bar"></div>
             </div>
           </div>
         `;
-        // Lebar diisi lewat element.style, bukan sebagai atribut style di markup.
-        // Penulisan properti satu per satu pada CSSStyleDeclaration tidak terkena
-        // Content Security Policy, sedangkan atribut style di markup terkena.
+        // Lebar diisi lewat element.style, bukan atribut style di markup: penulisan
+        // properti satu per satu tidak terkena Content Security Policy.
         const bar = item.querySelector('.js-progress-bar');
         if (bar) bar.style.width = `${Math.min(100, Math.max(0, Number(course.progress) || 0))}%`;
         grid.append(item);
       });
       container.append(grid);
     })
-    .catch(() => {});
+    .catch(() => {
+      const container = panelLms.querySelector('#crm-student-courses');
+      if (container) container.innerHTML = '<p class="js-text-muted">Maddah belum dapat dimuat.</p>';
+    });
 
-  // --- PANEL 6: Administrasi & SPP ---
+  // Panel 6: Ringkasan Data. Dulu menyatakan "Status SPP & Akomodasi: Lunas" dan
+  // "Garansi Tanpa Biaya Siluman" untuk semua santri. Dashboard tidak membawa data
+  // tagihan, jadi tidak ada klaim keuangan di sini. Yang tersisa hanya yang nyata:
+  // ekspor ringkasan rekam jejak.
   const panelAdmin = document.createElement('div');
   panelAdmin.className = 'crm-white-card';
   panelAdmin.hidden = true;
   panelAdmin.innerHTML = `
     <div class="crm-white-card-header">
       <div>
-        <h3>Rincian Administrasi &amp; Transparansi SPP</h3>
-        <p>Prinsip transparansi penuh: rincian biaya diterbitkan bertahap, dengan dokumen transaksi sesuai pembayaran.</p>
+        <h3>Ekspor Ringkasan Rekam Jejak</h3>
+        <p>Unduh ringkasan catatan santri ini dalam format CSV.</p>
       </div>
-      <a href="/api/students/${encodeURIComponent(student.id)}/report" download class="crm-topbar-action-btn">
+      <button type="button" class="crm-topbar-action-btn" id="download-student-report">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span>Unduh Ringkasan Rekam Jejak (CSV)</span>
-      </a>
-    </div>
-    <div class="crm-grid-2col">
-      <div class="crm-feature-box">
-        <div class="crm-feature-box-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-        </div>
-        <div>
-          <strong>Status SPP &amp; Akomodasi: Lunas</strong>
-        <p>Komponen program dapat mencakup asrama, konsumsi, talaqqi, dan pendampingan visa sesuai jalur yang dipilih.</p>
-        </div>
-      </div>
-      <div class="crm-feature-box">
-        <div class="crm-feature-box-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        </div>
-        <div>
-          <strong>Garansi Tanpa Biaya Siluman</strong>
-        <p>Setiap pembayaran dicatat bersama dokumen transaksi yang dapat ditinjau pada portal.</p>
-        </div>
-      </div>
+        <span>Unduh Ringkasan (CSV)</span>
+      </button>
     </div>
   `;
-
-  // Tab switching logic with smooth transition
-  const panels = [panelMutabaah, panelSholat, panelTalaqqi, panelDorm, panelLms, panelAdmin];
-
-  pillButtons.forEach((btn, index) => {
-    btn.addEventListener('click', () => {
-      pillButtons.forEach((b) => b.classList.remove('is-active'));
-      panels.forEach((p) => {
-        p.hidden = true;
-        p.classList.remove('crm-tab-enter');
-      });
-      btn.classList.add('is-active');
-      panels[index].hidden = false;
-      panels[index].classList.add('crm-tab-enter');
-    });
+  const reportButton = panelAdmin.querySelector('#download-student-report');
+  reportButton.addEventListener('click', () => {
+    downloadWithSession(`/api/students/${encodeURIComponent(student.id)}/report`, `ringkasan-${student.id}.csv`, reportButton.querySelector('span'));
   });
 
-  panelsContainer.append(panelMutabaah, panelSholat, panelTalaqqi, panelDorm, panelLms, panelAdmin);
+  const panels = [panelMutabaah, panelSholat, panelTalaqqi, panelDorm, panelLms, panelAdmin];
+  buildTabs(tabDefs, panels, subtabsRow);
+  panelsContainer.append(...panels);
 
-  // Append everything into studentDashboard with smooth view transition
   studentDashboard.append(summaryCard, subtabsRow, toolbar, panelsContainer);
   studentDashboard.classList.add('crm-view-enter');
   studentDashboard.hidden = false;
@@ -881,35 +588,34 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
   const isSupervisor = account && account.role === 'supervisor';
   const isParent = account && account.role === 'parent';
 
-  // Coursue 3-Column Layout Shell
   const coursueLayout = document.createElement('div');
   coursueLayout.className = 'coursue-layout';
-
   const mainCol = document.createElement('div');
   mainCol.className = 'coursue-main-col';
-
   const rightPanel = document.createElement('div');
   rightPanel.className = 'coursue-right-panel';
 
+  // Judul dan ringkasan hanya memakai peran dan jumlah dari data. Sebelumnya berisi
+  // nama kawasan dan gedung operasional yang belum dikonfirmasi klien dan ditulis keras
+  // di kode.
   const titleText = isAdmin
-    ? 'Pusat Pembinaan & Studi Islam Al-Azhar Kairo'
+    ? 'Konsol Pembinaan Santri'
     : isSupervisor
-    ? 'Konsol Pembinaan Musyrif Kairo'
-    : 'Pemantauan Ananda di Republik Arab Mesir';
-
+      ? 'Konsol Pembinaan Musyrif'
+      : 'Pemantauan Ananda';
   const subtitleText = isAdmin
-    ? `Super Admin · Markaz Utama Hay Asyir & Dokki · ${students.length} Santri Binaan aktif terdaftar.`
+    ? `Super Admin · ${students.length} santri terdaftar.`
     : isSupervisor
-    ? `Asrama Hay Asyir Madinat Nasr · ${students.length} Santri Binaan dalam pengawasan.`
-    : `Laporan Terpadu Perkembangan Santri · ${students.length} Ananda istiqomah di Kairo.`;
+      ? `${students.length} santri dalam pengawasan Anda.`
+      : `${students.length} ananda terhubung dengan akun ini.`;
+  const heroTag = isAdmin ? 'KONSOL EKSEKUTIF' : isSupervisor ? 'KONSOL MUSYRIF' : 'PORTAL KELUARGA';
 
-  // 1. Coursue Hero Banner
   const heroBanner = document.createElement('div');
   heroBanner.className = 'coursue-hero-banner';
   heroBanner.innerHTML = `
-    <div class="coursue-hero-tag">${isAdmin ? 'KONSOL EKSEKUTIF AL-AZHAR' : 'MARKAZ ASRAMA KAIRO'}</div>
+    <div class="coursue-hero-tag">${heroTag}</div>
     <h2 class="coursue-hero-title">${titleText}</h2>
-    <p class="coursue-hero-subtitle">${subtitleText}</p>
+    <p class="coursue-hero-subtitle">${escapeHtml(subtitleText)}</p>
     <button type="button" class="coursue-hero-cta" id="btn-hero-action">
       <span>${isAdmin ? 'Buka Rekam Jejak Santri' : 'Lihat Mutaba\'ah Terkini'}</span>
       <span class="coursue-hero-cta-arrow">
@@ -918,15 +624,14 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
     </button>
   `;
 
-  // 2. Coursue Row of 3 Stat Pills
   const statRow = document.createElement('div');
   statRow.className = 'coursue-stat-row';
   statRow.innerHTML = `
     <div class="coursue-stat-pill">
       <div class="coursue-stat-icon coursue-stat-icon--gold">${renderBadgeIcon('mosque')}</div>
       <div class="coursue-stat-meta">
-        <p class="coursue-stat-count">${students.length} Santri Binaan</p>
-        <p class="coursue-stat-label">Talaqqi Turots</p>
+        <p class="coursue-stat-count">${students.length} Santri</p>
+        <p class="coursue-stat-label">terhubung dengan akun</p>
       </div>
     </div>
     <div class="coursue-stat-pill">
@@ -945,430 +650,58 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
     </div>
   `;
 
-  // 3. Halaqah section hanya menampilkan data course dari API, tanpa fixture demo.
   const featuredSection = document.createElement('div');
   featuredSection.className = 'coursue-empty-state';
-  featuredSection.innerHTML = '<h3 class="coursue-section-title">Halaqah &amp; Program</h3><p class="coursue-user-subtext">Program akan muncul setelah maddah dan materi dipublikasikan oleh pembina.</p>';
+  featuredSection.innerHTML = '<h3 class="coursue-section-title">Halaqah &amp; Program</h3><p class="coursue-user-subtext">Program akan muncul setelah maddah dan materi diterbitkan oleh pembina.</p>';
 
-  const subtabsRow = document.createElement('div');
-  subtabsRow.className = 'crm-subtabs-row';
-
+  // Dulu ada lima tab tambahan (Mutaba'ah, Sholat, Talaqqi, Asrama, LMS) berisi sekitar
+  // 300 baris konten karangan, karena tidak ada sumber data agregat di tingkat ini.
+  // Dihilangkan sampai ada datanya. Rekam jejak nyata per santri ada di detail santri.
   const tabDefs = [
-    {
-      id: 'students',
-      label: isParent ? 'Daftar Ananda' : 'Daftar Santri Binaan',
-      icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-      count: students.length
-    },
-    {
-      id: 'mutabaah',
-      label: "Mutaba'ah & Ibadah",
-      icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
-      count: 12
-    },
-    {
-      id: 'sholat',
-      label: 'Sholat Berjamaah',
-      icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
-      count: 30
-    },
-    {
-      id: 'talaqqi',
-      label: 'Talaqqi & Tahfidz',
-      icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>',
-      count: 8
-    },
-    {
-      id: 'dorm',
-      label: 'Asrama & Fasilitas',
-      icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>',
-      count: 1
-    },
-    {
-      id: 'lms',
-      label: 'Maddah Belajar LMS',
-      icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg>',
-      count: 6
-    }
+    { id: 'students', label: isParent ? 'Daftar Ananda' : 'Daftar Santri', icon: TAB_ICONS.users, count: students.length }
   ];
-
   if (isAdmin) {
     tabDefs.push({
       id: 'accounts',
       label: 'Kelola Akun Internal',
-      icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
-      count: accountsList ? accountsList.length : 7
+      icon: TAB_ICONS.lock,
+      count: Array.isArray(accountsList) ? accountsList.length : undefined
     });
   }
 
-  const pillButtons = [];
-  tabDefs.forEach((def, index) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = `crm-pill-btn ${index === 0 ? 'is-active' : ''}`;
-    btn.innerHTML = `${def.icon} <span>${def.label}</span> <span class="crm-pill-count" id="tab-count-${def.id}">${def.count}</span>`;
-    subtabsRow.append(btn);
-    pillButtons.push(btn);
-  });
+  const subtabsRow = document.createElement('div');
+  subtabsRow.className = 'crm-subtabs-row';
 
-  // 3. Filter Toolbar with Date Selector and Yellow Action CTA
-  const toolbar = document.createElement('div');
-  toolbar.className = 'crm-toolbar';
-  toolbar.innerHTML = `
-    <div class="crm-toolbar-filters">
-      <div class="crm-date-selector">
-        <button type="button" class="crm-date-nav-btn" title="Pekan Sebelumnya" aria-label="Previous week">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
-        <div class="crm-date-display">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          <span id="crm-exec-date-label">Pekan Ini: 15 Sep - 21 Sep 2026</span>
-        </div>
-        <button type="button" class="crm-date-nav-btn" title="Pekan Selanjutnya" aria-label="Next week">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
-        </button>
-      </div>
-
-      <button type="button" class="crm-filter-dropdown" id="crm-exec-filter" aria-label="Filter kategori">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-        <span>Semua Santri &amp; Halaqah</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-      </button>
-    </div>
-
-    <div class="crm-toolbar-actions">
-      <button type="button" class="crm-btn-primary-yellow" id="btn-exec-create-activity">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        <span>${isAdmin ? 'Input Akun / Mutaba\'ah' : 'Input Catatan Pembinaan'}</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
-      </button>
-    </div>
-  `;
-
-  // Hook date nav buttons
-  const prevDateBtn = toolbar.querySelector('.crm-date-nav-btn[title="Pekan Sebelumnya"]');
-  const nextDateBtn = toolbar.querySelector('.crm-date-nav-btn[title="Pekan Selanjutnya"]');
-  const dateLabel = toolbar.querySelector('#crm-exec-date-label');
-  if (prevDateBtn && nextDateBtn && dateLabel) {
-    prevDateBtn.addEventListener('click', () => {
-      dateLabel.textContent = 'Pekan Sebelumnya: 08 Sep - 14 Sep 2026';
-    });
-    nextDateBtn.addEventListener('click', () => {
-      dateLabel.textContent = 'Pekan Depan: 22 Sep - 28 Sep 2026';
-    });
-  }
-
-  // Hook yellow button
-  const yellowBtn = toolbar.querySelector('#btn-exec-create-activity');
-  if (yellowBtn) {
-    yellowBtn.addEventListener('click', () => {
-      if (isAdmin) {
-        const accTabBtn = pillButtons[pillButtons.length - 1];
-        if (accTabBtn) accTabBtn.click();
-        const nameInput = document.querySelector('#account-name');
-        if (nameInput) nameInput.focus();
-      } else {
-        alert("Pencatatan mutaba'ah santri: Silakan klik 'Buka Rekam Jejak CRM' pada salah satu kartu santri untuk mengisi catatan pembinaan.");
-      }
-    });
-  }
-
-  // 4. Tab Panels
   const panelsContainer = document.createElement('div');
-  panelsContainer.style.display = 'flex';
-  panelsContainer.style.flexDirection = 'column';
-  panelsContainer.style.gap = '16px';
-  panelsContainer.style.width = '100%';
+  panelsContainer.className = 'crm-panels';
 
-  // --- PANEL 1: DAFTAR SANTRI BINAAN ---
   const panelStudents = document.createElement('div');
   panelStudents.className = 'crm-card-stack';
-
-  const colors = ['yellow', 'orange', 'green', 'purple'];
-  const badges = ['cap', 'mosque', 'book', 'building'];
-
   if (!students.length) {
-    const empty = document.createElement('div');
-    empty.className = 'crm-white-card';
-    empty.style.padding = '24px';
-    empty.textContent = 'Belum ada santri yang terhubung dengan akun ini.';
-    panelStudents.append(empty);
+    panelStudents.append(createEmptyState('Belum ada santri yang terhubung dengan akun ini.'));
   } else {
     students.forEach((student, idx) => {
-      const card = createStudentCompactCard(
-        student,
-        idx,
-        account,
-        () => {
-          loadDashboard(student.id, account, () => renderExecutiveDashboard(students, account, accountsList)).catch((err) => {
-            alert(err.message || 'Dashboard belum dapat dimuat.');
-          });
-        }
-      );
-      panelStudents.append(card);
+      panelStudents.append(createStudentCompactCard(student, idx, account, () => {
+        loadDashboard(student.id, account, () => renderExecutiveDashboard(students, account, accountsList)).catch((err) => {
+          alert(err.message || 'Dashboard belum dapat dimuat.');
+        });
+      }));
     });
   }
 
-  // --- PANEL 2: Mutaba'ah & Ibadah ---
-  const panelMutabaah = document.createElement('div');
-  panelMutabaah.className = 'crm-card-stack';
-  panelMutabaah.hidden = true;
-  [
-    {
-      badgeColor: 'yellow',
-      badgeIcon: 'mosque',
-      title: 'Sholat Subuh Berjamaah Seluruh Santri di Masjid Markaz',
-      subtitle: 'Hari ini · 04:30 CLT',
-      program: 'Al-Azhar · Markaz Kairo',
-      route: 'Asrama Hay Asyir -> Masjid Al-Azhar',
-      startTime: '04:30 CLT',
-      finishTime: '05:45 CLT',
-      dormUnit: 'Gedung Hay Asyir Lt. 3',
-      itineraryStatus: 'VALID',
-      members: `${students.length} Santri Hadir Penuh`,
-      requestType: 'Presensi Subuh',
-      tourType: 'Wajib Berjamaah',
-          statusText: 'Presensi tercatat pada kegiatan ini',
-      statusType: 'complete',
-      note: 'Alhamdulillah seluruh santri bangun sebelum adzan dan menempati shaf terdepan didampingi musyrif.'
-    },
-    {
-      badgeColor: 'orange',
-      badgeIcon: 'book',
-      title: 'Talaqqi Kutub Turots: Fiqh Syafi\'i & Nahwu Bersama Masyayikh',
-      subtitle: 'Kemarin · 16:30 CLT',
-      program: 'Turots Syafi\'i · Al-Azhar',
-      route: 'Riwaq Al-Azhar Asy-Syarif',
-      startTime: '16:30 CLT',
-      finishTime: '18:00 CLT',
-      dormUnit: 'Markaz Mahasiswa',
-      itineraryStatus: 'TERLAKSANA',
-      members: `${students.length} Santri`,
-      requestType: 'Talaqqi Masyayikh',
-      tourType: 'Daurah Ilmiah',
-      statusText: 'Tuntas & Berfaedah',
-      statusType: 'complete',
-      note: 'Pembahasan matan Taqrib bab Thaharah dan Sholat Jamak Qashar serta setoran hafal bait matan.'
-    },
-    {
-      badgeColor: 'green',
-      badgeIcon: 'palm',
-      title: 'Ziyadah & Muraja\'ah Tahfidz Al-Qur\'an Berkelanjutan',
-      subtitle: '18 Sep 2026 · 19:30 CLT',
-      program: 'Tahfidz Al-Qur\'an · Mutqin',
-      route: 'Markaz Tahfidz Kairo',
-      startTime: '19:30 CLT',
-      finishTime: '20:30 CLT',
-      dormUnit: 'Gedung Hay Asyir',
-      itineraryStatus: 'MUMTAZ',
-      members: `${students.length} Santri`,
-      requestType: 'Halaqah Tahfidz',
-      tourType: 'Setoran Rutin',
-      statusText: 'Capaian Jayyid Jiddan',
-      statusType: 'complete',
-      note: 'Setiap santri menyetorkan 1 lembar ziyadah baru dan 1 juz muraja\'ah hafalan mutqin.'
-    },
-    {
-      badgeColor: 'purple',
-      badgeIcon: 'note',
-      title: 'Evaluasi Kedisiplinan Asrama & Bimbingan Konseling Musyrif',
-      subtitle: '17 Sep 2026 · Pekanan',
-      program: 'Kedisiplinan · Adab Ma\'had',
-      route: 'Asrama Hay Asyir Kairo',
-      startTime: '20:00 CLT',
-      finishTime: '21:00 CLT',
-      dormUnit: 'Gedung Hay Asyir Lt. 3',
-      itineraryStatus: 'EVALUASI',
-      members: `${students.length} Santri`,
-      requestType: 'Bimbingan Konseling',
-      tourType: 'Halaqah Asrama',
-      statusText: 'Disiplin Sangat Baik',
-      statusType: 'complete',
-      note: 'Evaluasi pekanan berjalan tertib. Tidak ditemukan pelanggaran jam malam maupun kebersihan kamar.'
+  const panels = [panelStudents];
+  if (isAdmin) {
+    const panelAccounts = document.createElement('div');
+    panelAccounts.hidden = true;
+    if (portalAdmin) {
+      panelAccounts.append(portalAdmin);
+      portalAdmin.hidden = false;
     }
-  ].forEach((entry) => {
-    panelMutabaah.append(createAltezzaCard(entry));
-  });
-
-  // --- PANEL 3: Sholat Berjamaah ---
-  const panelSholat = document.createElement('div');
-  panelSholat.className = 'crm-card-stack';
-  panelSholat.hidden = true;
-  ['Subuh Berjamaah', 'Dzuhur Berjamaah', 'Ashar Berjamaah', 'Maghrib Berjamaah', 'Isya Berjamaah'].forEach((sholatName, idx) => {
-    panelSholat.append(createAltezzaCard({
-      badgeColor: ['yellow', 'orange', 'green', 'purple', 'yellow'][idx],
-      badgeIcon: 'mosque',
-      title: `${sholatName} di Masjid Markaz Kairo`,
-      subtitle: `Presensi Istiqomah Pekan Ini`,
-      program: 'Al-Azhar · Markaz Kairo',
-      route: 'Masjid Asrama Hay Asyir',
-      startTime: 'Sesuai Waktu Sholat Kairo',
-      finishTime: 'Selesai Berjamaah',
-      dormUnit: 'Gedung Hay Asyir',
-      itineraryStatus: 'TERJADWAL',
-      members: `${students.length} Santri`,
-      requestType: 'Sholat 5 Waktu',
-      tourType: 'Fardhu Berjamaah',
-      statusText: 'Hadir Istiqomah',
-      statusType: 'complete',
-      note: 'Wajib dilaksanakan berjamaah bersama seluruh santri di bawah pengawasan musyrif.'
-    }));
-  });
-
-  // --- PANEL 4: Talaqqi & Tahfidz ---
-  const panelTalaqqi = document.createElement('div');
-  panelTalaqqi.className = 'crm-card-stack';
-  panelTalaqqi.hidden = true;
-  [
-    {
-      badgeColor: 'green',
-      badgeIcon: 'book',
-      title: 'Talaqqi Matan Al-Jurumiyyah & Tuhfatul Athfal',
-      subtitle: 'Target Semester Ganjil',
-      program: 'Matan Tajwid · Lughah Arabiyyah',
-      route: 'Riwaq Al-Azhar Asy-Syarif',
-      startTime: 'Pekan Berjalan',
-      finishTime: 'Ujian Akhir',
-      dormUnit: 'Hay Asyir',
-      itineraryStatus: 'BERLANGSUNG',
-      members: `${students.length} Santri`,
-      requestType: 'Kutub Turots',
-      tourType: 'Kurikulum Resmi',
-      statusText: 'Progres 85%',
-      statusType: 'complete',
-      note: 'Santri telah menyetorkan bab Idgham, Mad, dan kaidah I\'rab nahwu dasar.'
-    },
-    {
-      badgeColor: 'yellow',
-      badgeIcon: 'palm',
-      title: 'Setoran Hafalan Al-Qur\'an Mutqin 30 Juz',
-      subtitle: 'Halaqah Tahfidz Asrama',
-      program: 'Sanad Al-Azhar · Tahfidz',
-      route: 'Markaz Tahfidz Kairo',
-      startTime: 'Senin & Kamis 19:30',
-      finishTime: 'Tuntas Ujian',
-      dormUnit: 'Hay Asyir Lt. 3',
-      itineraryStatus: 'MUMTAZ',
-      members: `${students.length} Santri`,
-      requestType: 'Tahfidz Al-Qur\'an',
-      tourType: 'Setoran Privat',
-      statusText: 'Lancar & Fashih',
-      statusType: 'complete',
-      note: 'Hafalan disimak dengan tajwid tartil dan talaqqi makharijul huruf.'
-    }
-  ].forEach((entry) => {
-    panelTalaqqi.append(createAltezzaCard(entry));
-  });
-
-  // --- PANEL 5: Asrama Kairo ---
-  const panelDorm = document.createElement('div');
-  panelDorm.className = 'crm-white-card';
-  panelDorm.hidden = true;
-  panelDorm.innerHTML = `
-    <div class="crm-white-card-header">
-      <div>
-        <h3>Fasilitas &amp; Markaz Asrama di Kairo</h3>
-        <p>Gedung asrama terpadu, lingkungan kondusif, dan pengawalan musyrif 24 jam di Republik Arab Mesir.</p>
-      </div>
-      <a href="kontak.html" class="crm-topbar-action-btn">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        <span>Direktori Hotline Kairo</span>
-      </a>
-    </div>
-    <div class="crm-grid-2col">
-      <div class="crm-feature-box">
-        <div class="crm-feature-box-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
-        <div>
-          <strong>Gedung Hay Asyir, Madinat Nasr</strong>
-          <p>Dekat dengan kampus Universitas Al-Azhar dan Masjid Al-Azhar, Kairo.</p>
-        </div>
-      </div>
-      <div class="crm-feature-box">
-        <div class="crm-feature-box-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-        <div>
-          <strong>Pengawalan musyrif sesuai jadwal penugasan</strong>
-          <p>Dibimbing langsung oleh asatidzah Al-Azhar berdedikasi menjaga keselamatan dan kedisiplinan santri.</p>
-        </div>
-      </div>
-      <div class="crm-feature-box">
-        <div class="crm-feature-box-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg></div>
-        <div>
-          <strong>Katering Masakan Nusantara 3x Sehari</strong>
-          <p>Menu khas Indonesia yang higienis, bergizi seimbang, dan halal terjamin.</p>
-        </div>
-      </div>
-      <div class="crm-feature-box">
-        <div class="crm-feature-box-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg></div>
-        <div>
-          <strong>Kamar Nyaman, AC &amp; Wi-Fi Fiber</strong>
-          <p>Kamar berpendingin udara, kasur empuk, lemari pribadi, dan jaringan internet stabil untuk belajar.</p>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // --- PANEL 6: Maddah Belajar LMS ---
-  const panelLms = document.createElement('div');
-  panelLms.className = 'crm-white-card';
-  panelLms.hidden = true;
-  panelLms.innerHTML = `
-    <div class="crm-white-card-header">
-      <div>
-        <h3>Maddah Silabus Kurikulum Al-Azhar</h3>
-        <p>Mata pelajaran diniyah, lughah Arabiyyah, nahwu, balaghah, dan fiqh yang sedang dipelajari santri.</p>
-      </div>
-      <a href="lms.html" class="crm-btn-primary-yellow js-btn-sm">
-        <span>Buka Ruang Belajar (LMS)</span>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-      </a>
-    </div>
-    <div class="crm-grid-2col">
-      <div class="crm-feature-box">
-        <div class="crm-feature-box-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg></div>
-        <div class="js-flex-1">
-          <strong>Matan Al-Jurumiyyah (Nahwu)</strong>
-          <p>Progress akan muncul setelah data pembelajaran santri tersedia.</p>
-        </div>
-      </div>
-      <div class="crm-feature-box">
-        <div class="crm-feature-box-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg></div>
-        <div class="js-flex-1">
-          <strong>Matan Ghoyah wa Taqrib (Fiqh)</strong>
-          <p>Progress akan muncul setelah data pembelajaran santri tersedia.</p>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // --- PANEL 7: Kelola Akun & Hak Akses (Admin only) ---
-  const panelAccounts = document.createElement('div');
-  panelAccounts.hidden = true;
-  if (isAdmin && portalAdmin) {
-    panelAccounts.append(portalAdmin);
-    portalAdmin.hidden = false;
+    panels.push(panelAccounts);
   }
+  buildTabs(tabDefs, panels, subtabsRow);
+  panelsContainer.append(...panels);
 
-  // Tab switching logic with smooth transition
-  const panels = [panelStudents, panelMutabaah, panelSholat, panelTalaqqi, panelDorm, panelLms];
-  if (isAdmin) panels.push(panelAccounts);
-
-  pillButtons.forEach((btn, index) => {
-    btn.addEventListener('click', () => {
-      pillButtons.forEach((b) => b.classList.remove('is-active'));
-      panels.forEach((p) => {
-        p.hidden = true;
-        p.classList.remove('crm-tab-enter');
-      });
-      btn.classList.add('is-active');
-      panels[index].hidden = false;
-      panels[index].classList.add('crm-tab-enter');
-    });
-  });
-
-  panelsContainer.append(panelStudents, panelMutabaah, panelSholat, panelTalaqqi, panelDorm, panelLms);
-  if (isAdmin) panelsContainer.append(panelAccounts);
-
-  // Right Panel: Statistic Card + Mentors Card
   const userInitial = account && account.name ? account.name.charAt(0).toUpperCase() : 'U';
   const userName = account && account.name ? account.name.split(' ')[0] : 'Ustadz';
 
@@ -1377,16 +710,15 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
   statCard.innerHTML = `
     <div class="coursue-stat-card-header">
       <h3>Statistik Pekanan</h3>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B8A8D" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
     </div>
     <div class="coursue-circle-progress">
       <svg class="coursue-circle-svg" viewBox="0 0 100 100">
         <circle class="coursue-circle-bg" cx="50" cy="50" r="42"></circle>
         <circle class="coursue-circle-bar" cx="50" cy="50" r="42"></circle>
       </svg>
-      <div class="coursue-circle-avatar">${userInitial}</div>
+      <div class="coursue-circle-avatar">${escapeHtml(userInitial)}</div>
     </div>
-    <h4 class="coursue-user-greeting">Assalamu'alaikum, ${userName}</h4>
+    <h4 class="coursue-user-greeting">Assalamu'alaikum, ${escapeHtml(userName)}</h4>
     <p class="coursue-user-subtext">Ringkasan akan terisi setelah aktivitas santri tercatat dalam sistem.</p>
     <p class="coursue-user-subtext">Belum ada rangkaian aktivitas untuk grafik periode ini.</p>
   `;
@@ -1396,7 +728,6 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
   mentorCard.innerHTML = `
     <div class="coursue-mentor-header">
       <h3>Musyrif &amp; Asatidzah</h3>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B8A8D" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
     </div>
     <div class="coursue-mentor-list">
       <p class="coursue-user-subtext">Data musyrif dan asatidzah akan muncul setelah penugasan tercatat.</p>
@@ -1405,7 +736,6 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
 
   rightPanel.append(statCard, mentorCard);
 
-  // Hook hero button
   const heroBtn = heroBanner.querySelector('#btn-hero-action');
   if (heroBtn) {
     heroBtn.addEventListener('click', () => {
@@ -1417,10 +747,7 @@ function renderExecutiveDashboard(students, account, accountsList = []) {
     });
   }
 
-  // Assemble main column
-  mainCol.append(heroBanner, statRow, featuredSection, subtabsRow, toolbar, panelsContainer);
-
-  // Assemble 3-column layout
+  mainCol.append(heroBanner, statRow, featuredSection, subtabsRow, panelsContainer);
   coursueLayout.append(mainCol, rightPanel);
   coursueLayout.classList.add('crm-view-enter');
 

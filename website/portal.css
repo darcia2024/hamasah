@@ -3904,3 +3904,18 @@ body.crm-page-exiting .lms-page {
     width: 100%;
   }
 }
+
+/* Pengganti penulisan element.style yang dulu dipakai untuk tata letak dasbor (Task R4.5). */
+.crm-back-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.crm-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}

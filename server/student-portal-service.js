@@ -324,6 +324,21 @@ function createStudentPortalService(options) {
       return { ok: false, error: 'Akses dashboard santri tidak diizinkan.' };
     }
 
+    // Pencatat (siapa yang menulis catatan) adalah informasi internal staf. Wali dan
+    // santri hanya perlu isi catatannya; nama musyrif dan id akunnya tidak.
+    const forViewer = assertStaff(actor)
+      ? function apaAdanya(items) { return items; }
+      : function tanpaPencatat(items) {
+        return items.map(function bersih(item) {
+          const { recordedByAccountId, recordedByName, ...selebihnya } = item;
+          return selebihnya;
+        });
+      };
+    // Nama asrama ikut dibawa supaya keluarga melihat asrama anaknya sendiri. Endpoint
+    // asrama hanya untuk pengelola, sehingga tanpa ini portal tidak punya nama untuk
+    // ditampilkan dan sebelumnya mengarangnya.
+    const asrama = student.dormitoryId ? await getDormitory(student.dormitoryId) : null;
+
     const latestFirst = function byLatest(left, right) { return right.occurredAt.localeCompare(left.occurredAt); };
     const range = options || {};
     const from = range.from ? new Date(range.from) : null;
@@ -351,14 +366,15 @@ function createStudentPortalService(options) {
           joinDate: student.joinDate,
           status: student.status,
           gender: student.gender || null,
-          dormitoryId: student.dormitoryId || null
+          dormitoryId: student.dormitoryId || null,
+          dormitory: asrama ? { name: asrama.name, area: asrama.area || null } : null
         },
         period: { from: range.from || null, to: range.to || null },
-        attendance: { total: attendance.length, present: presentCount, rate: attendanceRate, entries: attendance.slice(0, 30) },
-        activities: activities.sort(latestFirst).slice(0, 20),
-        achievements: achievements.sort(latestFirst),
-        evaluations: evaluations.sort(latestFirst),
-        discipline: discipline.sort(latestFirst)
+        attendance: { total: attendance.length, present: presentCount, rate: attendanceRate, entries: forViewer(attendance.slice(0, 30)) },
+        activities: forViewer(activities.sort(latestFirst).slice(0, 20)),
+        achievements: forViewer(achievements.sort(latestFirst)),
+        evaluations: forViewer(evaluations.sort(latestFirst)),
+        discipline: forViewer(discipline.sort(latestFirst))
       }
     };
   }
@@ -370,19 +386,30 @@ function createStudentPortalService(options) {
     // Batas asrama diambil sekali, bukan per santri, supaya daftar panjang tidak
     // menghasilkan satu query untuk setiap barisnya.
     const dormitoryLimit = await dormitoryLimitFor(actor);
-    return (await store.listStudents())
-      .filter(function readable(student) { return canView(student, actor, dormitoryLimit); })
-      .map(function summary(student) {
-        return {
-          id: student.id,
-          name: student.name,
-          program: student.program,
-          city: student.city,
-          status: student.status,
-          gender: student.gender || null,
-          dormitoryId: student.dormitoryId || null
-        };
-      });
+    // Satu pencarian per asrama, bukan per santri.
+    const namaAsrama = new Map();
+    async function namaUntuk(dormitoryId) {
+      if (!dormitoryId) return null;
+      if (!namaAsrama.has(dormitoryId)) {
+        const asrama = await getDormitory(dormitoryId);
+        namaAsrama.set(dormitoryId, asrama ? asrama.name : null);
+      }
+      return namaAsrama.get(dormitoryId);
+    }
+    const terbaca = (await store.listStudents())
+      .filter(function readable(student) { return canView(student, actor, dormitoryLimit); });
+    return Promise.all(terbaca.map(async function summary(student) {
+      return {
+        id: student.id,
+        name: student.name,
+        program: student.program,
+        city: student.city,
+        status: student.status,
+        gender: student.gender || null,
+        dormitoryId: student.dormitoryId || null,
+        dormitoryName: await namaUntuk(student.dormitoryId)
+      };
+    }));
   }
 
   return Object.freeze({
