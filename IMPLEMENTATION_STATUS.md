@@ -124,6 +124,10 @@ Tiga tabel ternyata hanya ditulis dan tidak pernah dibaca dari mana pun sejak mi
 
 **Temuan terbuka:** `POST /api/accounts/invitations` tidak dipanggil dari UI mana pun. Jalur pembuatan akun lewat undangan, yang membuat admin tidak perlu mengarang kata sandi untuk orang lain, lengkap dari ujung ke ujung kecuali tombol untuk memulainya. Bukan bagian dari task R3 mana pun.
 
+## Remediasi Phase R4 (21 September 2026)
+
+Kontras dan kejujuran tampilan. Palet logo emas/charcoal dipulihkan; pelanggaran kontras 117 → 0 (alat `npm run check:contrast`); status sesi jujur dengan penanganan 401 terpusat; data karangan dihapus dari portal; pencarian global dihapus; tinggi mobile index 19.115 → 16.001 px (target 12.000 tidak tercapai, diterima). Rincian dan temuan terbuka: `docs/REMEDIASI_R4_HASIL_2026-09-21.md`.
+
 ## LMS: tugas dan kuis ditunda (21 September 2026)
 
 Keputusan KR3 pada `docs/RENCANA_REMEDIASI_PHASE_R1_R8_2026-09-20.md`, dikerjakan sebagai Task R3.6 opsi (b).
