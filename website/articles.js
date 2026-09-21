@@ -84,36 +84,52 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function filterAndRender() {
-    let filtered = allArticles.slice();
+  // Pemilihan kategori dan pencarian dijalankan server; halaman dimuat 12 artikel sekali
+  // jalan, dan "Muat lebih banyak" menambah halaman berikutnya (Task R6.2).
+  const PAGE_SIZE = 12;
+  let requestToken = 0;
+  const moreWrap = document.createElement('div');
+  moreWrap.className = 'articles-more';
+  moreWrap.hidden = true;
+  const moreButton = document.createElement('button');
+  moreButton.type = 'button';
+  moreButton.className = 'button button--secondary';
+  moreButton.textContent = 'Muat lebih banyak';
+  moreWrap.append(moreButton);
+  articlesGrid.after(moreWrap);
 
-    if (currentCategory !== 'all') {
-      filtered = filtered.filter((a) => (a.category || '').toLowerCase() === currentCategory.toLowerCase());
+  async function loadArticles({ append }) {
+    const token = ++requestToken;
+    const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(append ? allArticles.length : 0) });
+    if (currentCategory !== 'all') params.set('category', currentCategory);
+    if (currentSearchQuery) params.set('search', currentSearchQuery);
+    moreButton.disabled = true;
+    try {
+      const response = await fetch('/api/articles?' + params);
+      if (!response.ok) throw new Error('Gagal memuat artikel.');
+      const data = await response.json();
+      // Permintaan yang sudah tertinggal oleh filter baru tidak boleh menimpa hasilnya.
+      if (token !== requestToken) return;
+      const items = Array.isArray(data.items) ? data.items : [];
+      allArticles = append ? allArticles.concat(items) : items;
+      renderCards(allArticles);
+      moreWrap.hidden = allArticles.length >= (data.total || 0);
+    } catch {
+      if (token !== requestToken) return;
+      if (!append) allArticles = [];
+      renderCards(allArticles);
+      moreWrap.hidden = true;
+    } finally {
+      moreButton.disabled = false;
     }
-
-    if (currentSearchQuery) {
-      const q = currentSearchQuery.toLowerCase();
-      filtered = filtered.filter((a) => {
-        const titleMatch = (a.title || '').toLowerCase().includes(q);
-        const excerptMatch = (a.excerpt || '').toLowerCase().includes(q);
-        return titleMatch || excerptMatch;
-      });
-    }
-
-    renderCards(filtered);
   }
 
-  // Fetch articles from API
-  fetch('/api/articles')
-    .then((res) => res.ok ? res.json() : Promise.reject(new Error('Gagal memuat artikel.')))
-    .then((data) => {
-      allArticles = Array.isArray(data.items) ? data.items : [];
-      filterAndRender();
-    })
-    .catch(() => {
-      allArticles = [];
-      filterAndRender();
-    });
+  function filterAndRender() {
+    return loadArticles({ append: false });
+  }
+
+  moreButton.addEventListener('click', () => loadArticles({ append: true }));
+  filterAndRender();
 
   // Filter chips click
   filterChips.forEach((chip) => {
@@ -126,8 +142,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Live search
+  let searchTimer = null;
   searchInput.addEventListener('input', (e) => {
     currentSearchQuery = e.target.value.trim();
-    filterAndRender();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(filterAndRender, 250);
   });
 });

@@ -36,22 +36,39 @@ const ARTICLE_STATUS_LABELS = Object.freeze({
   archived: 'Diarsipkan'
 });
 
-async function loadArticles() {
+const ARTICLE_PAGE_SIZE = 20;
+let articleShown = 0;
+let articleMoreButton = null;
+
+// Daftar editorial dimuat per halaman dan tanpa isi artikel; isi diambil saat Edit dibuka.
+async function loadArticles({ append = false } = {}) {
   if (!articleManageList) return;
   articleListStatus.textContent = 'Memuat artikel...';
   articleListStatus.classList.remove('is-error');
   try {
-    const response = await fetch('/api/staff/articles', { headers: authHeaders() });
+    const offset = append ? articleShown : 0;
+    const response = await fetch(`/api/staff/articles?limit=${ARTICLE_PAGE_SIZE}&offset=${offset}`, { headers: authHeaders() });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Artikel belum dapat dimuat.');
-    articleManageList.replaceChildren();
+    if (!append) articleManageList.replaceChildren();
+    articleShown = offset + result.items.length;
+    if (!articleMoreButton) {
+      articleMoreButton = document.createElement('button');
+      articleMoreButton.type = 'button';
+      articleMoreButton.className = 'button button--secondary';
+      articleMoreButton.textContent = 'Muat lebih banyak';
+      articleMoreButton.addEventListener('click', () => loadArticles({ append: true }).catch(() => {}));
+      articleManageList.after(articleMoreButton);
+    }
+    articleMoreButton.hidden = articleShown >= result.total;
     if (!result.items.length) {
       const empty = document.createElement('div');
       empty.className = 'crm-empty-state';
       empty.innerHTML = '<strong>Belum ada artikel editorial</strong><span>Simpan artikel pertama sebagai draf untuk mulai meninjau konten sebelum diterbitkan.</span>';
       articleManageList.append(empty);
     }
-    result.items.forEach((article) => {
+    result.items.forEach((listed) => {
+      let article = listed;
       const row = document.createElement('article');
       row.className = 'staff-registration notification-row article-editorial-row article-status-' + article.status;
       const detail = document.createElement('div');
@@ -77,7 +94,20 @@ async function loadArticles() {
       }
       const actions = document.createElement('div'); actions.className = 'staff-registration__controls';
       const edit = document.createElement('button'); edit.type = 'button'; edit.className = 'button button--secondary'; edit.textContent = 'Edit';
-      edit.addEventListener('click', () => {
+      edit.addEventListener('click', async () => {
+        edit.disabled = true;
+        try {
+          // Daftar tidak membawa isi artikel; ambil versi lengkapnya untuk formulir.
+          const detailResponse = await fetch(`/api/staff/articles/${encodeURIComponent(article.slug)}`, { headers: authHeaders() });
+          const detailResult = await detailResponse.json();
+          if (!detailResponse.ok) throw new Error(detailResult.error || 'Isi artikel belum dapat dimuat.');
+          article = detailResult.item;
+        } catch (error) {
+          articleListStatus.textContent = error.message; articleListStatus.classList.add('is-error');
+          edit.disabled = false;
+          return;
+        }
+        edit.disabled = false;
         articleSlug.value = article.slug; articleSlug.disabled = true;
         document.querySelector('#article-title').value = article.title;
         document.querySelector('#article-category').value = article.category;
@@ -102,7 +132,7 @@ async function loadArticles() {
       });
       actions.append(edit, archive); row.append(detail, actions); articleManageList.append(row);
     });
-    articleListStatus.textContent = `${result.items.length} artikel editorial.`;
+    articleListStatus.textContent = `${articleShown} dari ${result.total} artikel editorial.`;
   } catch (error) { articleListStatus.textContent = error.message; articleListStatus.classList.add('is-error'); }
 }
 

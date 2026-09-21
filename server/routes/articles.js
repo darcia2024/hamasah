@@ -4,8 +4,14 @@ module.exports = [
   {
     method: 'GET',
     pattern: /^\/api\/articles$/,
-    async handler({ response, services }) {
-      json(response, 200, { items: await services.articleStore.list() });
+    async handler({ response, services, url }) {
+      const query = url.searchParams;
+      json(response, 200, await services.articleStore.list({
+        category: query.get('category') || undefined,
+        search: query.get('search') || undefined,
+        limit: query.get('limit'),
+        offset: query.get('offset')
+      }));
     }
   },
 
@@ -26,8 +32,30 @@ module.exports = [
     method: 'GET',
     pattern: /^\/api\/staff\/articles$/,
     permission: 'articles.write',
-    async handler({ response, services }) {
-      json(response, 200, { items: await services.articleStore.list({ publicOnly: false }) });
+    async handler({ response, services, url }) {
+      const query = url.searchParams;
+      json(response, 200, await services.articleStore.list({
+        publicOnly: false,
+        category: query.get('category') || undefined,
+        search: query.get('search') || undefined,
+        limit: query.get('limit'),
+        offset: query.get('offset')
+      }));
+    }
+  },
+
+  // Daftar editorial tidak membawa isi artikel; formulir edit mengambilnya dari sini.
+  {
+    method: 'GET',
+    pattern: /^\/api\/staff\/articles\/([a-z0-9-]+)$/,
+    permission: 'articles.write',
+    async handler({ response, services, params }) {
+      const article = await services.articleStore.get(params[0], { publicOnly: false });
+      if (!article) {
+        json(response, 404, { error: 'Artikel tidak ditemukan.' });
+        return;
+      }
+      json(response, 200, { item: article });
     }
   },
 

@@ -102,7 +102,7 @@ function renderArticles(items) {
   journalList.replaceChildren(fragment);
 }
 
-fetch('/api/articles')
+fetch('/api/articles?limit=6')
   .then((response) => response.ok ? response.json() : Promise.reject(new Error('Artikel belum tersedia.')))
   .then((result) => {
     if (Array.isArray(result.items) && result.items.length) renderArticles(result.items);

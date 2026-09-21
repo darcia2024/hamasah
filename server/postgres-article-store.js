@@ -1,5 +1,6 @@
 const crypto = require('node:crypto');
 const { normalizeSlug } = require('./text-utils.js');
+const { likePattern, normalizePage } = require('./pagination.js');
 
 function toArticle(row) {
   return {
@@ -23,13 +24,27 @@ function createPostgresArticleStore({ database } = {}) {
   }
 
   return {
-    async list({ publicOnly = true } = {}) {
-      const filter = publicOnly ? "WHERE status = 'published'" : '';
+    // Katalog: tanpa isi artikel (body). Katalog hanya butuh judul dan ringkasan; isi
+    // lengkap datang dari get(). Satu halaman disaring dan dipotong di SQL (Task R6.2).
+    async list({ publicOnly = true, category, search, limit, offset } = {}) {
+      const kondisi = [];
+      const nilai = [];
+      if (publicOnly) kondisi.push("status = 'published'");
+      if (category) { nilai.push(String(category)); kondisi.push(`lower(category) = lower($${nilai.length})`); }
+      if (search && String(search).trim()) {
+        nilai.push(likePattern(search));
+        kondisi.push(`(title ILIKE $${nilai.length} OR excerpt ILIKE $${nilai.length})`);
+      }
+      const where = kondisi.length ? `WHERE ${kondisi.join(' AND ')}` : '';
+      const page = normalizePage({ limit, offset }, { defaultLimit: 12 });
+      const total = await database.query(`SELECT count(*)::int AS jumlah FROM articles ${where}`, nilai);
       const { rows } = await database.query(
-        `SELECT slug, title, excerpt, body, category, published_at, status, archived_at, updated_at, cover_url, cover_alt_text
-         FROM articles ${filter} ORDER BY published_at DESC NULLS LAST, updated_at DESC`
+        `SELECT slug, title, excerpt, category, published_at, status, archived_at, updated_at, cover_url, cover_alt_text
+         FROM articles ${where} ORDER BY published_at DESC NULLS LAST, updated_at DESC, slug
+         LIMIT $${nilai.length + 1} OFFSET $${nilai.length + 2}`,
+        [...nilai, page.limit, page.offset]
       );
-      return rows.map(toArticle);
+      return { items: rows.map((row) => { const { body, ...ringkas } = toArticle(row); return ringkas; }), total: total.rows[0].jumlah, limit: page.limit, offset: page.offset };
     },
     async get(slug, { publicOnly = true } = {}) {
       const filter = publicOnly ? "AND status = 'published'" : '';

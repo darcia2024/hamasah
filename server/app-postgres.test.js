@@ -258,6 +258,13 @@ async function run() {
     const editorialList = await request(baseUrl, '/api/staff/articles', { headers: adminHeaders });
     assert.equal(editorialList.status, 200);
     assert.equal(editorialList.body.items.length, 2);
+    assert.equal(editorialList.body.total, 2);
+    assert.equal('body' in editorialList.body.items[0], false, 'Daftar editorial tidak membawa isi artikel.');
+    assert.equal('body' in articles.body.items[0], false, 'Katalog publik tidak membawa isi artikel.');
+    const editorialDetail = await request(baseUrl, `/api/staff/articles/${draftArticle.body.item.slug}`, { headers: adminHeaders });
+    assert.equal(editorialDetail.status, 200);
+    assert.equal(editorialDetail.body.item.body, 'Isi draf yang belum dipublikasikan.', 'Draf dapat dibuka penuh oleh staf.');
+    assert.equal((await request(baseUrl, `/api/articles/${draftArticle.body.item.slug}`)).status, 404, 'Draf tetap tidak terbuka untuk publik.');
     const publishedDraft = await request(baseUrl, `/api/articles/${draftArticle.body.item.slug}`, {
       method: 'PATCH', headers: { ...adminHeaders, 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'published' })
     });
