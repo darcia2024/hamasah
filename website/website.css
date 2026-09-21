@@ -4261,3 +4261,170 @@ h4 {
   border: 1px solid currentColor;
   border-radius: 8px;
 }
+
+/* ==========================================================================
+   Kartu kegiatan tanpa foto (Task R4.8)
+   ==========================================================================
+
+   Dari empat kartu di seksi kegiatan, hanya yang pertama punya foto. Tiga sisanya
+   putih polos dengan satu ikon, dan di mobile masing-masing setinggi 230 px dengan
+   teks terdorong ke bawah, sehingga layar penuh berisi ruang kosong. Arah yang
+   dipilih: perlakuan visual yang bekerja TANPA foto, bukan foto stok yang
+   menggambarkan kegiatan yang mungkin tidak pernah terjadi. Bila klien menyediakan
+   foto kegiatan nyata, kartu ini dapat diganti tanpa mengubah tata letaknya.
+
+   Tiga perlakuan: emas pucat, putih berbingkai, dan charcoal. Kontrasnya diukur oleh
+   `npm run check:contrast`, tidak diandalkan dari gambar yang tidak ada. */
+.activity-card--gold {
+  background: var(--md-sys-color-primary-container);
+  border-color: rgba(231, 177, 12, 0.45);
+}
+
+.activity-card--gold .card-label {
+  color: var(--gold-dark);
+}
+
+.activity-card--gold h3 {
+  color: var(--md-sys-color-on-surface);
+}
+
+.activity-card--gold .activity-icon-badge {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+/* ==========================================================================
+   Ritme vertikal di mobile (Task R4.7)
+   ==========================================================================
+
+   Tinggi dokumen index.html pada 375 px adalah 19.115 px, sekitar 23 layar. Setiap
+   nilai di bawah diukur di halaman sebelum dipakai; tidak ada satu pun ukuran huruf
+   yang diubah. Yang dirapatkan hanya jarak, bukan teks.
+
+   Penyumbang terbesar sebelum perubahan: kartu pintasan entry-points 1.005 px,
+   kartu kegiatan 1.110 px, padding 96 px di atas dan bawah pada tiga belas seksi
+   (sekitar 2.500 px), formulir pendaftaran 2.406 px, dan footer 1.066 px. */
+@media (max-width: 768px) {
+  .hero {
+    padding: 40px 0 56px;
+  }
+
+  .entry-points,
+  .program-section,
+  .program-detail,
+  .courses-section,
+  .news-section,
+  .activity-section,
+  .journal-section,
+  .santri-section,
+  .about-section,
+  .help-section,
+  .registration-section {
+    padding-top: 56px;
+    padding-bottom: 56px;
+  }
+
+  .section-intro,
+  .section-heading,
+  .news-heading,
+  .activity-heading {
+    margin-bottom: 28px;
+  }
+
+  .hero-grid {
+    gap: 32px;
+  }
+
+  .program-grid,
+  .detail-layout,
+  .detail-layout--reverse,
+  .news-layout,
+  .santri-grid,
+  .about-layout,
+  .registration-grid,
+  .help-grid,
+  .footer-wrap {
+    gap: 28px;
+  }
+
+  /* Tiga dari empat kartu pintasan (01 sampai 03) menuju seksi yang muncul tepat
+     sesudahnya dan deskripsinya mengulang seksi itu. Di mobile cukup baris ringkas:
+     nomor, judul, panah. Deskripsi tetap ada di seksi tujuan. */
+  .entry-grid {
+    gap: 10px;
+  }
+
+  .entry {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    min-height: 0;
+  }
+
+  .entry-header {
+    display: contents;
+  }
+
+  .entry-arrow {
+    order: 3;
+  }
+
+  .entry-copy small,
+  .entry-footer {
+    display: none;
+  }
+
+  .program-visual img {
+    height: 240px;
+    object-fit: cover;
+  }
+
+  /* Kartu kegiatan: satu kolom, ikon di kiri dan teks di kanan, tanpa ruang kosong. */
+  .activity-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .activity-card:not(.activity-card--large) {
+    min-height: 0;
+    justify-content: flex-start;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    column-gap: 16px;
+    align-items: start;
+  }
+
+  .activity-card:not(.activity-card--large) .activity-icon-badge {
+    grid-row: 1 / span 2;
+    margin-bottom: 0;
+  }
+
+  .activity-card--large {
+    min-height: 280px;
+  }
+
+  .course-card,
+  .reg-highlight,
+  .mission-item,
+  .process-step {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+
+  /* Baris galat yang kosong tidak perlu menyisakan tinggi di setiap isian. */
+  .field-error:empty {
+    display: none;
+  }
+
+  .form-grid-2 {
+    gap: 14px;
+  }
+
+  .footer-links-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+}
