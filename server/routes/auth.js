@@ -145,6 +145,7 @@ module.exports = [
   {
     method: 'POST',
     pattern: /^\/api\/auth\/invitations\/accept$/,
+    rateLimit: { rule: 'token-redeem', identity: ({ ip }) => ip },
     async handler({ response, services, readBody, ip }) {
       const body = await readBody();
       const accepted = await services.identityService.acceptInvitation(body.token, body.password);
@@ -161,6 +162,7 @@ module.exports = [
   {
     method: 'POST',
     pattern: /^\/api\/auth\/password-reset$/,
+    rateLimit: { rule: 'token-redeem', identity: ({ ip }) => ip },
     async handler({ response, services, readBody, ip }) {
       const body = await readBody();
       const reset = await services.identityService.resetPassword(body.token, body.password);

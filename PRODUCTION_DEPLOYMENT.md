@@ -67,6 +67,9 @@ Pembatas laju (`server/rate-limit.js`) menyimpan hitungannya di memori proses. A
 - **Jalankan satu instance aplikasi.** Kalau dijalankan dua instance atau lebih di belakang load balancer, setiap instance punya hitungan sendiri, sehingga batas efektifnya menjadi batas dikali jumlah instance. Batas login 5 kali per 15 menit akan menjadi 10 kali kalau ada dua instance.
 - **Hitungan hilang saat restart.** Deploy atau restart mengosongkan seluruh hitungan. Ini dapat diterima untuk skala lembaga ini, tetapi berarti pembatas bukan pengaman mutlak.
 - Kalau nanti perlu lebih dari satu instance, pembatas harus pindah ke penyimpanan bersama (Redis) atau ke lapisan proxy platform.
+- **Kuota AI per akun (`server/ai-service.js`) memakai pola yang sama**: hitungannya di memori proses, per instance, dan kembali ke nol setiap deploy. Batasan yang sama berlaku.
+- **Semua aturan tercakup**, termasuk `token-redeem` (10 percobaan per 15 menit per alamat IP untuk `POST /api/auth/invitations/accept` dan `POST /api/auth/password-reset`, ditambahkan di Task R6.6).
+- **Keputusan K2 (hosting) belum diambil, jadi state bersama sengaja belum dibangun.** Memindahkannya sekarang menambah dependensi (Redis) yang mungkin tidak dibutuhkan. Bila K2 memutuskan lebih dari satu instance, pekerjaan ini menjadi wajib sebelum go-live, bukan opsional.
 
 ### `TRUST_PROXY`
 
