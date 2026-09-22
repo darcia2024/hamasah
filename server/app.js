@@ -38,6 +38,7 @@ const { json, tooManyRequests } = require('./http/respond.js');
 const { MAX_REQUEST_BODY_BYTES, RequestBodyError, readJsonBody } = require('./http/body.js');
 const { serveStaticFile } = require('./http/static.js');
 const seo = require('./seo.js');
+const articlePage = require('./article-page.js');
 const { createRequestAuth, hashToken, safeEqual } = require('./http/auth.js');
 const { NOT_ALLOWED, NOT_SIGNED_IN, roleHasPermission } = require('./access-policy.js');
 const { TOO_MANY_REQUESTS, createRateLimiter } = require('./rate-limit.js');
@@ -328,6 +329,15 @@ function createHamasahApp(options) {
       if (/^\/(?:website\/)?sitemap\.xml$/.test(url.pathname)) {
         const articles = await articleStore.listPublishedForSitemap();
         sendText(response, 'application/xml; charset=utf-8', seo.sitemapXml({ origin, websiteDirectory: path.join(rootDirectory, 'website'), articles }));
+        return;
+      }
+      // Halaman artikel dirender server dari database (Task R7.3). URL lama dipertahankan.
+      if ((url.pathname === '/website/article.html' || url.pathname === '/article.html') && ['GET', 'HEAD'].includes(request.method)) {
+        const slug = url.searchParams.get('slug') || '';
+        const article = /^[a-z0-9-]{1,160}$/.test(slug) ? await articleStore.get(slug) : null;
+        const page = articlePage.renderArticlePage({ template: articlePage.readTemplate(rootDirectory), article, origin });
+        response.writeHead(page.status, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff' });
+        response.end(page.html);
         return;
       }
       serveStaticFile(response, {

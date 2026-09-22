@@ -33,8 +33,9 @@ const TAB_SELECTOR = '[id^="tab-btn-"], .crm-pill-btn, [role="tab"]';
 
 // Halaman internal butuh sesi; sisanya publik. Selebihnya diperlakukan sama.
 const INTERNAL_ROLE = { audit: 'admin', monitoring: 'admin', operations: 'admin', lms: 'admin', portal: 'admin', staff: 'admin' };
-// Halaman yang hanya bermakna dengan token di hash atau query.
-const PAGE_HASH = { 'reset-password': '#token=uji-kontrak', aktivasi: '#token=uji-kontrak' };
+// Halaman yang hanya bermakna dengan token di hash atau query. Artikel dirender server
+// (Task R7.3), jadi tanpa slug yang terbit halamannya memang 404.
+const PAGE_HASH = { 'reset-password': '#token=uji-kontrak', aktivasi: '#token=uji-kontrak', article: '?slug=pendampingan-santri-di-kairo' };
 
 const INTERACTIVE_ROLES = new Set([
   'button', 'link', 'textbox', 'searchbox', 'combobox', 'checkbox', 'radio', 'switch',

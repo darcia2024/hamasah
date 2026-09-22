@@ -25,7 +25,8 @@ async function run() {
       archivedAt: null,
       coverUrl: null,
       coverAltText: null,
-      updatedAt: PUBLISHED_AT
+      updatedAt: PUBLISHED_AT,
+      authorName: null
     });
 
     const katalog = await store.list();

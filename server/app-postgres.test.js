@@ -297,6 +297,18 @@ async function run() {
       assert.ok(!xml.includes('kebijakan-privasi'), 'Halaman ber-noindex tidak masuk sitemap.');
       assert.match(xml, /<lastmod>\d{4}-\d{2}-\d{2}T/);
     }
+    // Halaman artikel dirender server dari URL lama (Task R7.3).
+    const halaman = await fetch(`${baseUrl}/website/article.html?slug=${article.body.item.slug}`);
+    assert.equal(halaman.status, 200);
+    const halamanHtml = await halaman.text();
+    assert.ok(halamanHtml.includes('<title>Kegiatan Santri Hamasah | Hamasah International</title>'));
+    assert.ok(halamanHtml.includes('<p>Isi kegiatan lengkap.</p>'));
+    assert.ok(halamanHtml.includes(`<meta property="og:url" content="https://app.hamasah.test/website/article.html?slug=${article.body.item.slug}" />`));
+    assert.ok(halamanHtml.includes('<strong>Admin Uji</strong>'));
+    assert.equal((await fetch(`${baseUrl}/website/article.html?slug=${draftOnly.body.item.slug}`)).status, 404, 'Draf tidak dirender untuk publik.');
+    assert.equal((await fetch(`${baseUrl}/website/article.html`)).status, 404);
+    assert.equal((await fetch(`${baseUrl}/website/article.html?slug=%3Cscript%3E`)).status, 404);
+
     for (const lokasi of ['/robots.txt', '/website/robots.txt']) {
       const robots = await (await fetch(`${baseUrl}${lokasi}`)).text();
       assert.match(robots, /^Sitemap: https:\/\/app\.hamasah\.test\/sitemap\.xml$/m);

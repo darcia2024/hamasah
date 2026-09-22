@@ -92,10 +92,11 @@ function decorateHead(html, { origin, canonicalPath, type, image }) {
   const description = readHeadValue(html, /<meta\s+name="description"\s+content="([^"]*)"/i);
   const canonical = `<link rel="canonical" href="${escapeHtml(url)}" />`;
   let result = /<link\s+rel="canonical"[^>]*>/i.test(html)
-    ? html.replace(/<link\s+rel="canonical"[^>]*>/i, canonical)
-    : html.replace(/<\/title>/i, `</title>\n    ${canonical}`);
-  result = result.replace(/\s*<\/head>/i, `
-    ${socialTags({ origin, url, title, description, type, image })}\n  </head>`);
+    ? html.replace(/<link\s+rel="canonical"[^>]*>/i, () => canonical)
+    : html.replace(/<\/title>/i, () => `</title>\n    ${canonical}`);
+  // Pengganti lewat fungsi: "$&" di judul tidak boleh ditafsirkan sebagai pola.
+  const tags = socialTags({ origin, url, title, description, type, image });
+  result = result.replace(/\s*<\/head>/i, () => `\n    ${tags}\n  </head>`);
   return result;
 }
 

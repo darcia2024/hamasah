@@ -539,9 +539,11 @@ async function run() {
     const staffPage = await request(baseUrl, '/website/staff.html');
     assert.equal(staffPage.status, 200);
     assert.match(staffPage.body, /Konsol pendaftaran/);
-    const articlePage = await request(baseUrl, '/website/article.html?slug=pendampingan-santri-di-kairo');
+    // Artikel dirender server (Task R7.3): judul artikel sudah ada tanpa JavaScript.
+    const articlePage = await request(baseUrl, `/website/article.html?slug=${articleCreated.body.item.slug}`);
     assert.equal(articlePage.status, 200);
-    assert.match(articlePage.body, /Pena Hamasah/);
+    assert.ok(articlePage.body.includes(`<h1 class="article-headline">${articleCreated.body.item.title}</h1>`));
+    assert.equal((await request(baseUrl, '/website/article.html?slug=tidak-ada')).status, 404);
     const monitoringPage = await request(baseUrl, '/website/monitoring.html');
     assert.equal(monitoringPage.status, 200);
     assert.match(monitoringPage.body, /Monitoring santri/);
