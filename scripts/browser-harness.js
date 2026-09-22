@@ -275,6 +275,8 @@ async function bootApp() {
     password: DEV_PASSWORD,
     async stop() {
       await new Promise((resolve) => server.close(resolve));
+      // Hentikan timer latar app (termasuk worker notifikasi) sebelum database ditutup.
+      await app.close();
       await database.close();
     }
   };
