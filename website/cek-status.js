@@ -71,8 +71,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const DOC_TYPE_LABELS = {
     'passport': 'Paspor Asli',
     'diploma': 'Ijazah Resmi',
-    'transcript': 'Transkrip Nilai',
-    'health-certificate': 'Surat Keterangan Sehat',
+    'transcript': 'Transkrip nilai',
+    'health-certificate': 'Surat keterangan sehat',
     'photo': 'Pasfoto Resmi (4x6)',
     'other': 'Dokumen Tambahan'
   };

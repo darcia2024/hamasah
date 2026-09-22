@@ -7,8 +7,8 @@
 
 const ROLE_NAV_LABELS = Object.freeze({
   student: {
-    portal: 'Dashboard Santri',
-    lms: 'Ruang Belajar (LMS)'
+    portal: 'Dashboard santri',
+    lms: 'Ruang belajar (LMS)'
   },
   parent: {
     portal: 'Pantau Ananda'

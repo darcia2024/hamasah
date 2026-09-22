@@ -50,15 +50,6 @@ const ICONS = {
   send: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>'
 };
 
-function getCourseCategory(title) {
-  const lower = (title || '').toLowerCase();
-  if (lower.includes('fiqh')) return "Fiqh Syafi'i · Al-Azhar";
-  if (lower.includes('nahwu') || lower.includes('sharaf') || lower.includes('ajurrum')) return 'Lughah Arabiyyah · Al-Azhar';
-  if (lower.includes('tahsin') || lower.includes('jazari') || lower.includes('qur')) return "Tahsin & Qira'at";
-  if (lower.includes('tauhid') || lower.includes('aqidah')) return 'Aqidah & Ushuluddin';
-  if (lower.includes('hadits')) return 'Hadits & Musthalah';
-  return 'Dirasah Islamiyyah Al-Azhar';
-}
 
 function renderCourse(course, activeMaterialId) {
   const materials = course.materials || [];
@@ -85,10 +76,10 @@ function renderCourse(course, activeMaterialId) {
   const backBtn = document.createElement('button');
   backBtn.type = 'button';
   backBtn.className = 'lms-back-arrow-btn';
-  backBtn.title = 'Kembali ke Daftar Maddah';
+  backBtn.title = 'Kembali ke daftar maddah';
   backBtn.innerHTML = ICONS.back;
   backBtn.addEventListener('click', () => {
-    if (breadcrumbActive) breadcrumbActive.textContent = 'LMS Hamasah & Silabus Maddah';
+    if (breadcrumbActive) breadcrumbActive.textContent = 'LMS Hamasah dan silabus maddah';
     switchLmsTab(tabBtnMyCourses);
   });
 
@@ -102,19 +93,14 @@ function renderCourse(course, activeMaterialId) {
   courseTitle.className = 'lms-course-title';
   courseTitle.textContent = course.title;
 
-  const categoryPill = document.createElement('span');
-  categoryPill.className = 'lms-course-category-pill';
-  categoryPill.textContent = getCourseCategory(course.title);
-
-  titleLine.append(courseTitle, categoryPill);
+  titleLine.append(courseTitle);
 
   const statsLine = document.createElement('div');
   statsLine.className = 'lms-course-stats-line';
+  // Hanya angka yang benar-benar ada di data. Rating, jumlah santri, tanggal
+  // pembaruan, dan bahasa pengantar sebelumnya ditulis keras di kode.
   statsLine.innerHTML = `
-    <span class="lms-stat-item">${ICONS.star} <strong class="js-text-accent">4.9</strong> (128 Santri)</span>
-    <span class="lms-stat-item">${ICONS.book} ${materials.length} Modul</span>
-    <span class="lms-stat-item">${ICONS.clock} Diperbarui September 2026</span>
-    <span class="lms-stat-item">${ICONS.globe} Bahasa Arab &amp; Indonesia</span>
+    <span class="lms-stat-item">${ICONS.book} ${materials.length} modul</span>
     <span class="lms-stat-item js-text-ok-sm">Progres: ${course.progress}%</span>
   `;
 
@@ -142,11 +128,11 @@ function renderCourse(course, activeMaterialId) {
     actionComplete.type = 'button';
     actionComplete.className = 'lms-btn-enroll';
     if (activeMaterial.completed) {
-      actionComplete.innerHTML = `${ICONS.check} <span>Modul Ini Selesai</span>`;
+      actionComplete.innerHTML = `${ICONS.check} <span>Modul ini selesai</span>`;
       actionComplete.disabled = true;
-      actionComplete.style.background = '#1F6F3D';
+      actionComplete.classList.add('is-complete');
     } else {
-      actionComplete.innerHTML = `${ICONS.check} <span>Tandai Selesai</span>`;
+      actionComplete.innerHTML = `${ICONS.check} <span>Tandai selesai</span>`;
       actionComplete.addEventListener('click', () => completeMaterial(course.id, activeMaterial.id));
     }
     headerActions.append(actionComplete);
@@ -166,7 +152,6 @@ function renderCourse(course, activeMaterialId) {
   // Player Container
   const playerContainer = document.createElement('div');
   playerContainer.className = 'lms-player-container';
-  playerContainer.style.background = 'radial-gradient(ellipse at center, #363638 0%, #2A2A2C 100%)';
 
   const overlay = document.createElement('div');
   overlay.className = 'lms-player-overlay';
@@ -175,41 +160,47 @@ function renderCourse(course, activeMaterialId) {
   badge.className = 'lms-player-badge';
   badge.textContent = activeMaterial ? `Modul Aktif: ${activeMaterial.title}` : `Maddah: ${course.title}`;
 
-  const playBtn = document.createElement('button');
-  playBtn.type = 'button';
-  playBtn.className = 'lms-play-btn';
-  playBtn.title = 'Mulai Belajar';
-  playBtn.innerHTML = ICONS.playFilled;
+  // Tombol putar hanya muncul bila materi benar-benar menunjuk ke tautan video.
+  // Sebelumnya tombol ini selalu tampil dan tidak melakukan apa pun saat diklik.
+  const tautanVideo = activeMaterial && /^https?:\/\//i.test(String(activeMaterial.content || '').trim())
+    ? String(activeMaterial.content).trim()
+    : '';
+  let playBtn = null;
+  if (tautanVideo) {
+    playBtn = document.createElement('a');
+    playBtn.className = 'lms-play-btn';
+    playBtn.href = tautanVideo;
+    playBtn.target = '_blank';
+    playBtn.rel = 'noopener';
+    playBtn.title = 'Buka materi di tab baru';
+    playBtn.setAttribute('aria-label', `Buka materi ${activeMaterial.title} di tab baru`);
+    playBtn.innerHTML = ICONS.playFilled;
+  }
 
   const bottomBar = document.createElement('div');
   bottomBar.className = 'lms-player-bottom-bar';
   bottomBar.innerHTML = `
     <span class="js-row">
-      ${ICONS.play} ${activeMaterial ? `${activeMaterial.title} · ${activeMaterial.type.toUpperCase()}` : 'Video Pembelajaran Al-Azhar'}
+      ${ICONS.play} ${activeMaterial ? `${activeMaterial.title} · ${activeMaterial.type.toUpperCase()}` : 'Materi belum dipilih'}
     </span>
     <span class="js-text-soft">Hamasah Learning Portal</span>
   `;
 
   overlay.append(badge, bottomBar);
-  playerContainer.append(overlay, playBtn);
-  mainCol.append(playerContainer);
+  playerContainer.append(overlay);
+  if (playBtn) playerContainer.append(playBtn);
+  // Panel pemutar hanya berguna bila ada tautan materi; tanpa itu ia hanya kotak hitam.
+  if (tautanVideo) mainCol.append(playerContainer);
 
   // Active Lesson Content Card
   if (activeMaterial) {
     const activeCard = document.createElement('div');
-    activeCard.className = 'lms-content-card';
-    activeCard.style.padding = '20px 24px';
-    activeCard.style.gap = '14px';
+    activeCard.className = 'lms-content-card lms-content-card--active';
 
     const cardHeader = document.createElement('div');
-    cardHeader.style.display = 'flex';
-    cardHeader.style.alignItems = 'center';
-    cardHeader.style.justifyContent = 'space-between';
-    cardHeader.style.flexWrap = 'wrap';
-    cardHeader.style.gap = '10px';
+    cardHeader.className = 'lms-content-card__header';
 
     const cardTitle = document.createElement('h3');
-    cardTitle.style.fontSize = '17px';
     cardTitle.textContent = activeMaterial.title;
 
     const cardBadge = document.createElement('span');
@@ -226,24 +217,15 @@ function renderCourse(course, activeMaterialId) {
 
     if (activeMaterial.content && activeMaterial.content !== activeMaterial.summary) {
       const contentBox = document.createElement('div');
-      contentBox.style.padding = '14px 16px';
-      contentBox.style.background = '#FAF9F7';
-      contentBox.style.borderRadius = '10px';
-      contentBox.style.border = '1px solid #E2DED6';
-      contentBox.style.fontSize = '13.5px';
-      contentBox.style.color = '#4A4A4D';
-      contentBox.style.lineHeight = '1.6';
+      contentBox.className = 'lms-note-box';
       contentBox.textContent = activeMaterial.content;
       activeCard.append(contentBox);
     }
 
     if (activeMaterial.keyPoints && activeMaterial.keyPoints.length) {
       const pointsTitle = document.createElement('h4');
-      pointsTitle.style.margin = '4px 0 0';
-      pointsTitle.style.fontSize = '13px';
-      pointsTitle.style.fontWeight = '600';
-      pointsTitle.style.color = '#363638';
-      pointsTitle.textContent = 'Poin-Poin Utama Pembahasan:';
+      pointsTitle.className = 'lms-subheading';
+      pointsTitle.textContent = 'Poin utama pembahasan';
 
       const pointsGrid = document.createElement('div');
       pointsGrid.className = 'lms-learn-grid';
@@ -263,12 +245,11 @@ function renderCourse(course, activeMaterialId) {
   const tabsBar = document.createElement('div');
   tabsBar.className = 'lms-tabs-bar';
 
+  // Tab Asatidzah, Pengumuman, dan Ulasan dihapus: isinya nama pengajar, pengumuman,
+  // dan ulasan karangan. Tab baru hanya ditambahkan bila datanya benar-benar ada.
   const subTabs = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'author', label: 'Asatidzah' },
-    { id: 'faq', label: 'Tanya jawab (FAQ)' },
-    { id: 'announcements', label: 'Pengumuman' },
-    { id: 'reviews', label: 'Ulasan' }
+    { id: 'overview', label: 'Ringkasan' },
+    { id: 'faq', label: 'Tanya jawab' }
   ];
 
   const tabPanels = {};
@@ -291,45 +272,32 @@ function renderCourse(course, activeMaterialId) {
   // Tab Panel 1: Overview
   const overviewPanel = document.createElement('div');
   overviewPanel.className = 'lms-content-card';
-  overviewPanel.innerHTML = `
-    <h3>Tentang Maddah Ini</h3>
-    <p class="lms-about-text">${escapeHtml(course.description || "Silabus resmi persiapan santri Al-Azhar Kairo yang disusun secara terstruktur sesuai kurikulum Ma'had & Kulliyyah Al-Azhar Asy-Syarif Mesir.")}</p>
-    <div class="js-divider"></div>
-    <h3>Yang Akan Dipelajari</h3>
-    <div class="lms-learn-grid">
-      <div class="lms-learn-item"><span class="lms-learn-icon">${ICONS.checkCircle}</span><span>Penguasaan kaidah &amp; i'rab aplikatif langsung dari kitab matan mu'tamad</span></div>
-      <div class="lms-learn-item"><span class="lms-learn-icon">${ICONS.checkCircle}</span><span>Metodologi talaqqi &amp; hafalan terarah bersama asatidzah Al-Azhar Kairo</span></div>
-      <div class="lms-learn-item"><span class="lms-learn-icon">${ICONS.checkCircle}</span><span>Persiapan komprehensif menghadapi imtihan mu'adalah &amp; tahdid mustawa</span></div>
-      <div class="lms-learn-item"><span class="lms-learn-icon">${ICONS.checkCircle}</span><span>Akses tanya jawab interaktif untuk mengurai materi musykil bersama musyrif</span></div>
-    </div>
+  const about = document.createElement('div');
+  about.innerHTML = `
+    <h3>Tentang maddah ini</h3>
+    <p class="lms-about-text">${escapeHtml(course.description || 'Deskripsi maddah belum diisi pengajar.')}</p>
   `;
+  overviewPanel.append(about);
+
+  // Poin yang dipelajari diambil dari poin utama materi yang sudah diisi pengajar.
+  const poin = materials.flatMap((mat) => mat.keyPoints || []).slice(0, 6);
+  if (poin.length) {
+    const learnTitle = document.createElement('h3');
+    learnTitle.textContent = 'Yang akan dipelajari';
+    const learnGrid = document.createElement('div');
+    learnGrid.className = 'lms-learn-grid';
+    poin.forEach((teks) => {
+      const row = document.createElement('div');
+      row.className = 'lms-learn-item';
+      row.innerHTML = `<span class="lms-learn-icon">${ICONS.checkCircle}</span><span></span>`;
+      row.lastElementChild.textContent = teks;
+      learnGrid.append(row);
+    });
+    overviewPanel.append(learnTitle, learnGrid);
+  }
+
   tabPanels.overview = overviewPanel;
   mainCol.append(overviewPanel);
-
-  // Tab Panel 2: Asatidzah
-  const authorPanel = document.createElement('div');
-  authorPanel.className = 'lms-content-card';
-  authorPanel.hidden = true;
-  authorPanel.innerHTML = `
-    <div class="js-row-start">
-      <div class="lms-author-pic js-avatar-lg">AZ</div>
-      <div class="js-flex-1">
-        <div class="lms-author-name-row">
-          <h3 class="lms-author-name js-text-lg">Ustadz Ahmad Al-Azhari, Lc., M.A.</h3>
-          <span class="lms-author-badge">${ICONS.verified}</span>
-        </div>
-        <p class="lms-author-role js-mt-2">Musyrif Akademik &amp; Dosen Tamu Al-Azhar Asy-Syarif</p>
-        <p class="lms-author-bio js-mt-3">Alumnus Fakultas Syariah Wal Qanun Universitas Al-Azhar Kairo. Memiliki sanad keilmuan muttashil pada matan-matan induk serta pengalaman lebih dari 8 tahun membimbing santri Indonesia menempuh studi sarjana dan pascasarjana di Kairo.</p>
-        <div class="js-meta-row">
-          <span><strong>12+</strong> Tahun Mengajar</span>
-          <span><strong>850+</strong> Santri Dibimbing</span>
-          <span><strong>4.9/5</strong> Rating Kepuasan</span>
-        </div>
-      </div>
-    </div>
-  `;
-  tabPanels.author = authorPanel;
-  mainCol.append(authorPanel);
 
   // Tab Panel 3: FAQ / Tanya Jawab
   const faqPanel = document.createElement('div');
@@ -346,12 +314,12 @@ function renderCourse(course, activeMaterialId) {
   if (activeMaterial) {
     const helpForm = document.createElement('form');
     helpForm.className = 'lms-help-form';
-    helpForm.style.marginTop = '10px';
+    helpForm.classList.add('lms-help-form');
 
     const questionInput = document.createElement('input');
     questionInput.type = 'text';
     questionInput.placeholder = `Tanyakan materi "${activeMaterial.title}"...`;
-    questionInput.style.flex = '1';
+    questionInput.classList.add('lms-help-input');
 
     const askBtn = document.createElement('button');
     askBtn.type = 'submit';
@@ -362,12 +330,12 @@ function renderCourse(course, activeMaterialId) {
 
     const answerBox = document.createElement('p');
     answerBox.className = 'lms-answer';
-    answerBox.style.display = 'none';
+    answerBox.hidden = true;
 
     helpForm.addEventListener('submit', (e) => {
       e.preventDefault();
       if (!questionInput.value.trim()) return;
-      answerBox.style.display = 'block';
+      answerBox.hidden = false;
       studyHelp(course.id, activeMaterial.id, questionInput.value, answerBox);
     });
 
@@ -376,20 +344,13 @@ function renderCourse(course, activeMaterialId) {
     // If activeMaterial has studyGuide items, display them!
     if (activeMaterial.studyGuide && activeMaterial.studyGuide.length) {
       const guideTitle = document.createElement('h4');
-      guideTitle.style.margin = '16px 0 8px';
-      guideTitle.style.fontSize = '13.5px';
-      guideTitle.style.fontWeight = '600';
-      guideTitle.style.color = '#363638';
+      guideTitle.className = 'lms-subheading lms-subheading--spaced';
       guideTitle.textContent = 'Panduan & Tanya Jawab Terdaftar:';
       faqPanel.append(guideTitle);
 
       activeMaterial.studyGuide.forEach((sg) => {
         const guideItem = document.createElement('div');
-        guideItem.style.padding = '10px 14px';
-        guideItem.style.background = '#FAF9F7';
-        guideItem.style.borderRadius = '8px';
-        guideItem.style.border = '1px solid #E2DED6';
-        guideItem.style.marginBottom = '8px';
+        guideItem.className = 'lms-note-box lms-note-box--row';
         guideItem.innerHTML = `
           <p class="js-text-label">Q: ${sg.question}</p>
           <p class="js-text-xs">A: ${sg.answer}</p>
@@ -406,60 +367,9 @@ function renderCourse(course, activeMaterialId) {
   tabPanels.faq = faqPanel;
   mainCol.append(faqPanel);
 
-  // Tab Panel 4: Pengumuman
-  const announcePanel = document.createElement('div');
-  announcePanel.className = 'lms-content-card';
-  announcePanel.hidden = true;
-  announcePanel.innerHTML = `
-    <h3>Pengumuman Akademik</h3>
-    <div class="js-col">
-      <div class="js-panel">
-        <span class="js-tag-pending">15 September 2026</span>
-        <h4 class="js-text-title">Jadwal Talaqqi Pekanan &amp; Setoran Matan</h4>
-        <p class="js-text-sm">Halaqah talaqqi bersama asatidzah Al-Azhar diselenggarakan setiap hari Rabu pukul 16.00 CLT (Waktu Kairo) melalui tautan ruang virtual terpadu.</p>
-      </div>
-      <div class="js-panel">
-        <span class="js-tag-ok">1 September 2026</span>
-        <h4 class="js-text-title">Penyelarasan Silabus Imtihan Qabul</h4>
-        <p class="js-text-sm">Seluruh materi telah diselaraskan dengan silabus muqorror terbaru untuk seleksi masuk Al-Azhar tahun akademik 2026/2027.</p>
-      </div>
-    </div>
-  `;
-  tabPanels.announcements = announcePanel;
-  mainCol.append(announcePanel);
-
-  // Tab Panel 5: Ulasan
-  const reviewsPanel = document.createElement('div');
-  reviewsPanel.className = 'lms-content-card';
-  reviewsPanel.hidden = true;
-  reviewsPanel.innerHTML = `
-    <div class="js-row-between">
-      <h3>Ulasan Santri</h3>
-      <span class="js-text-accent-strong">${ICONS.star} 4.9 dari 5 (128 ulasan)</span>
-    </div>
-    <div class="js-col">
-      <div class="js-panel">
-        <div class="js-row-between-tight">
-          <strong class="js-text-body">Muhammad Farhan (Santri Kairo)</strong>
-          <span class="js-text-accent-sm">${ICONS.star} 5.0</span>
-        </div>
-        <p class="js-text-xs">Penjelasan matan sangat sistematis dan mudah dipahami. Membantu sekali sebelum masuk halaqah syarah di Masjid Al-Azhar.</p>
-      </div>
-      <div class="js-panel">
-        <div class="js-row-between-tight">
-          <strong class="js-text-body">Ahmad Zaki (Persiapan Mu'adalah)</strong>
-          <span class="js-text-accent-sm">${ICONS.star} 5.0</span>
-        </div>
-        <p class="js-text-xs">Fitur tanya jawab interaktifnya sangat cepat dan akurat dalam menjelaskan kaidah nahwu yang rumit.</p>
-      </div>
-    </div>
-  `;
-  tabPanels.reviews = reviewsPanel;
-  mainCol.append(reviewsPanel);
-
   grid.append(mainCol);
 
-  // --- Right Column: Curriculum Accordion & Author Card ---
+  // --- Kolom kanan: kurikulum maddah ---
   const sideCol = document.createElement('div');
   sideCol.className = 'lms-side-col';
 
@@ -470,8 +380,8 @@ function renderCourse(course, activeMaterialId) {
   const currHeader = document.createElement('div');
   currHeader.className = 'lms-curriculum-header';
   currHeader.innerHTML = `
-    <h3>Kurikulum Maddah</h3>
-    <span>${materials.length} Pelajaran</span>
+    <h3>Kurikulum maddah</h3>
+    <span>${materials.length} materi</span>
   `;
   curriculumCard.append(currHeader);
 
@@ -491,8 +401,8 @@ function renderCourse(course, activeMaterialId) {
     const moduleHeader = document.createElement('div');
     moduleHeader.className = 'lms-module-header';
     moduleHeader.innerHTML = `
-      <span class="lms-module-title">Modul Utama: Muqorror Maddah</span>
-      <span class="lms-module-meta">${materials.length} Sesi ${ICONS.chevronDown}</span>
+      <span class="lms-module-title">Daftar materi</span>
+      <span class="lms-module-meta">${materials.length} materi ${ICONS.chevronDown}</span>
     `;
 
     const lessonsList = document.createElement('div');
@@ -524,28 +434,6 @@ function renderCourse(course, activeMaterialId) {
   }
   curriculumCard.append(accordion);
   sideCol.append(curriculumCard);
-
-  // Author Card
-  const authorCard = document.createElement('div');
-  authorCard.className = 'lms-author-card';
-  authorCard.innerHTML = `
-    <div class="lms-author-header">
-      <h4>INSTRUKTUR UTAMA</h4>
-    </div>
-    <div class="lms-author-profile">
-      <div class="lms-author-pic">AZ</div>
-      <div class="lms-author-info">
-        <div class="lms-author-name-row">
-          <h5 class="lms-author-name">Ustadz Ahmad Al-Azhari, Lc.</h5>
-          <span class="lms-author-badge">${ICONS.verified}</span>
-        </div>
-        <p class="lms-author-role">Musyrif Akademik &amp; Pembina Maddah</p>
-      </div>
-      <div class="lms-author-rating">${ICONS.star} 4.9</div>
-    </div>
-    <p class="lms-author-bio">Alumnus Universitas Al-Azhar Kairo dengan spesialisasi pengajaran matan klasik dan bimbingan seleksi santri ke Mesir.</p>
-  `;
-  sideCol.append(authorCard);
 
   grid.append(sideCol);
   stage.append(grid);
@@ -599,9 +487,7 @@ function renderCourses(courses) {
   if (emptyNote) emptyNote.hidden = false;
   if (!courses.length) {
     const empty = document.createElement('p');
-    empty.style.color = '#68676A';
-    empty.style.fontSize = '13.5px';
-    empty.style.padding = '24px 0';
+    empty.className = 'lms-empty-note';
     empty.textContent = 'Belum ada maddah yang diikuti.';
     courseList.append(empty);
     return;
@@ -610,80 +496,48 @@ function renderCourses(courses) {
   courses.forEach((course) => {
     const item = document.createElement('article');
     item.className = 'portal-student-card';
-    item.style.padding = '20px';
-    item.style.display = 'flex';
-    item.style.flexDirection = 'column';
-    item.style.gap = '14px';
+    item.classList.add('lms-course-item');
 
     const topRow = document.createElement('div');
-    topRow.style.display = 'flex';
-    topRow.style.justifyContent = 'space-between';
-    topRow.style.alignItems = 'flex-start';
-    topRow.style.gap = '10px';
+    topRow.className = 'lms-course-item__top';
 
     const titleBlock = document.createElement('div');
-    const category = document.createElement('span');
-    category.className = 'lms-course-category-pill';
-    category.style.marginBottom = '6px';
-    category.textContent = getCourseCategory(course.title);
-
     const title = document.createElement('h3');
-    title.style.margin = '0';
-    title.style.fontSize = '16px';
-    title.style.fontWeight = '600';
-    title.style.color = '#363638';
+    title.className = 'lms-course-item__title';
     title.textContent = course.title;
 
-    titleBlock.append(category, title);
+    titleBlock.append(title);
     topRow.append(titleBlock);
 
     const desc = document.createElement('p');
-    desc.style.margin = '0';
-    desc.style.fontSize = '13px';
-    desc.style.color = '#68676A';
-    desc.style.lineHeight = '1.5';
+    desc.className = 'lms-course-item__desc';
     desc.textContent = course.description || 'Maddah persiapan akademik Al-Azhar Kairo.';
 
     const metaRow = document.createElement('div');
-    metaRow.style.display = 'flex';
-    metaRow.style.alignItems = 'center';
-    metaRow.style.justifyContent = 'space-between';
-    metaRow.style.fontSize = '12px';
-    metaRow.style.color = '#68676A';
+    metaRow.className = 'lms-course-item__meta';
 
     const materialCount = document.createElement('span');
     materialCount.innerHTML = `${ICONS.book} ${course.materials.length} materi`;
 
     const progressText = document.createElement('span');
-    progressText.style.fontWeight = '600';
-    progressText.style.color = course.progress === 100 ? '#1F6F3D' : '#856000';
+    progressText.className = course.progress === 100 ? 'lms-progress-text is-complete' : 'lms-progress-text';
     progressText.textContent = `${course.progress}% Selesai`;
 
     metaRow.append(materialCount, progressText);
 
     // Progress bar
     const progressTrack = document.createElement('div');
-    progressTrack.style.width = '100%';
-    progressTrack.style.height = '6px';
-    progressTrack.style.background = '#E2DED6';
-    progressTrack.style.borderRadius = '9999px';
-    progressTrack.style.overflow = 'hidden';
+    progressTrack.className = 'lms-progress-track';
 
     const progressFill = document.createElement('div');
+    progressFill.className = course.progress === 100 ? 'lms-progress-fill is-complete' : 'lms-progress-fill';
     progressFill.style.width = `${course.progress}%`;
-    progressFill.style.height = '100%';
-    progressFill.style.background = course.progress === 100 ? '#1F6F3D' : '#E7B10C';
-    progressFill.style.borderRadius = '9999px';
-    progressFill.style.transition = 'width 0.3s ease';
     progressTrack.append(progressFill);
 
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'button button--secondary';
-    button.style.width = '100%';
-    button.style.justifyContent = 'center';
-    button.style.marginTop = '4px';
-    button.innerHTML = `<span>Buka Maddah</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>`;
+    button.className = 'button button--secondary coursue-card-cta';
+    button.innerHTML = `<span>Buka maddah</span> <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>`;
     button.addEventListener('click', () => renderCourse(course));
 
     item.append(topRow, desc, metaRow, progressTrack, button);
@@ -763,7 +617,7 @@ function switchLmsTab(targetBtn) {
   });
   if (targetBtn === tabBtnMyCourses || targetBtn === tabBtnManage) {
     const breadcrumbActive = document.querySelector('.crm-breadcrumbs .crumb-active');
-    if (breadcrumbActive) breadcrumbActive.textContent = 'LMS Hamasah & Silabus Maddah';
+    if (breadcrumbActive) breadcrumbActive.textContent = 'LMS Hamasah dan silabus maddah';
   }
 }
 

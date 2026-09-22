@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="empty-icon" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
           <h3>Tidak Ada Artikel yang Cocok</h3>
           <p>Coba gunakan kata kunci lain atau pilih kategori yang berbeda.</p>
-          <button class="button button--secondary" type="button" id="btn-reset-filter">Tampilkan Semua Artikel</button>
+          <button class="button button--secondary" type="button" id="btn-reset-filter">Tampilkan semua artikel</button>
         </div>
       `;
       const resetBtn = document.querySelector('#btn-reset-filter');

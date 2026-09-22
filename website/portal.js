@@ -24,11 +24,11 @@ function escapeHtml(value) {
 
 const roleLabels = {
   admin: 'Portal Hamasah · Super Admin',
-  'registration-officer': 'Portal Pendaftaran',
-  supervisor: 'Konsol Musyrif Asrama',
-  teacher: 'Portal Tenaga Pengajar',
+  'registration-officer': 'Portal pendaftaran',
+  supervisor: 'Konsol musyrif asrama',
+  teacher: 'Portal tenaga pengajar',
   finance: 'Konsol Keuangan & SPP',
-  parent: 'Portal Wali Santri',
+  parent: 'Portal wali santri',
   student: 'Portal Santri'
 };
 
@@ -254,7 +254,7 @@ function createStudentCompactCard(student, idx, account, onOpen) {
       </div>
     </div>
     <div class="crm-student-compact-action">
-      <span class="crm-student-compact-cta-label">Buka Detail</span>
+      <span class="crm-student-compact-cta-label">Buka detail</span>
       <div class="crm-student-compact-arrow">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
       </div>
@@ -464,7 +464,7 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
   toolbar.className = 'crm-toolbar';
   const periodControls = document.createElement('div');
   periodControls.className = 'crm-toolbar-filters';
-  periodControls.innerHTML = '<label class="sr-only" for="record-period-from">Dari tanggal</label><input id="record-period-from" type="date" value="' + escapeHtml(dashboard.period?.from || '') + '"><label class="sr-only" for="record-period-to">Sampai tanggal</label><input id="record-period-to" type="date" value="' + escapeHtml(dashboard.period?.to || '') + '"><button type="button" class="crm-filter-dropdown" id="apply-record-period">Terapkan periode</button>';
+  periodControls.innerHTML = '<label class="sr-only" for="record-period-from">Dari tanggal</label><input id="record-period-from" type="date" value="' + escapeHtml(dashboard.period?.from || '') + '"><label class="sr-only" for="record-period-to">Sampai tanggal</label><input id="record-period-to" type="date" value="' + escapeHtml(dashboard.period?.to || '') + '"><button type="button" class="crm-pill-btn" id="apply-record-period">Terapkan periode</button>';
   periodControls.querySelector('#apply-record-period').addEventListener('click', async () => {
     const from = periodControls.querySelector('#record-period-from').value;
     const to = periodControls.querySelector('#record-period-to').value;
@@ -647,7 +647,7 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
       <div class="crm-report-actions">
         <button type="button" class="crm-topbar-action-btn" id="download-student-rapor" aria-label="Unduh rapor PDF">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          <span>Unduh Rapor (PDF)</span>
+          <span>Unduh rapor (PDF)</span>
         </button>
         <button type="button" class="crm-topbar-action-btn" id="download-student-report" aria-label="Unduh ringkasan CSV">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -805,10 +805,10 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
   // nama kawasan dan gedung operasional yang belum dikonfirmasi klien dan ditulis keras
   // di kode.
   const titleText = isAdmin
-    ? 'Konsol Pembinaan Santri'
+    ? 'Konsol pembinaan santri'
     : isSupervisor
-      ? 'Konsol Pembinaan Musyrif'
-      : 'Pemantauan Ananda';
+      ? 'Konsol pembinaan musyrif'
+      : 'Pemantauan ananda';
   const subtitleText = isAdmin
     ? `Super Admin · ${allTotal} santri terdaftar.`
     : isSupervisor
@@ -823,7 +823,7 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
     <h2 class="coursue-hero-title">${titleText}</h2>
     <p class="coursue-hero-subtitle">${escapeHtml(subtitleText)}</p>
     <button type="button" class="coursue-hero-cta" id="btn-hero-action">
-      <span>${isAdmin ? 'Buka Rekam Jejak Santri' : 'Lihat Mutaba\'ah Terkini'}</span>
+      <span>${isAdmin ? 'Buka rekam jejak santri' : 'Lihat mutaba\'ah terkini'}</span>
       <span class="coursue-hero-cta-arrow">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </span>
@@ -852,12 +852,12 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
   // 300 baris konten karangan, karena tidak ada sumber data agregat di tingkat ini.
   // Dihilangkan sampai ada datanya. Rekam jejak nyata per santri ada di detail santri.
   const tabDefs = [
-    { id: 'students', label: isParent ? 'Daftar Ananda' : 'Daftar Santri', icon: TAB_ICONS.users, count: allTotal }
+    { id: 'students', label: isParent ? 'Daftar ananda' : 'Daftar santri', icon: TAB_ICONS.users, count: allTotal }
   ];
   if (isAdmin) {
     tabDefs.push({
       id: 'accounts',
-      label: 'Kelola Akun Internal',
+      label: 'Kelola akun internal',
       icon: TAB_ICONS.lock,
       count: Array.isArray(accountsList) ? accountsList.length : undefined
     });

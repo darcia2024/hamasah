@@ -156,7 +156,7 @@
     keluarSemua.className = 'crm-logout-btn crm-logout-btn--all';
 
     const label = document.createElement('span');
-    label.textContent = 'Keluar dari Semua Perangkat';
+    label.textContent = 'Keluar dari semua perangkat';
     keluarSemua.append(label);
 
     keluarSemua.addEventListener('click', async () => {

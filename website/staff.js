@@ -278,7 +278,7 @@ function renderRegistrations(items) {
         const buka = document.createElement('button');
         buka.type = 'button';
         buka.className = 'button button--secondary';
-        buka.textContent = 'Buka Berkas';
+        buka.textContent = 'Buka berkas';
         buka.disabled = !documentItem.fileObjectId;
         if (!documentItem.fileObjectId) buka.title = 'Berkas belum terunggah lengkap.';
         buka.addEventListener('click', async () => {

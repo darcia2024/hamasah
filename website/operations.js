@@ -244,7 +244,7 @@ function inventoryRow(item) {
   const catat = document.createElement('button');
   catat.type = 'button';
   catat.className = 'button button--secondary op-action';
-  catat.textContent = 'Catat Pergerakan';
+  catat.textContent = 'Catat pergerakan';
   catat.addEventListener('click', () => bukaDialogMutasi(item));
 
   const riwayatTombol = document.createElement('button');
@@ -256,7 +256,7 @@ function inventoryRow(item) {
   function setRiwayat(terbuka) {
     riwayatWadah.hidden = !terbuka;
     riwayatTombol.setAttribute('aria-expanded', String(terbuka));
-    riwayatTombol.textContent = terbuka ? 'Sembunyikan Riwayat' : 'Riwayat Mutasi';
+    riwayatTombol.textContent = terbuka ? 'Sembunyikan riwayat' : 'Riwayat mutasi';
     if (terbuka) muatRiwayatMutasi(item.id, riwayatWadah);
   }
 
@@ -448,7 +448,7 @@ function bukaDialogInvoice(invoice, mode) {
   const nominal = `Rp${invoice.amount.toLocaleString('id-ID')}`;
   const koreksi = mode === 'koreksi';
 
-  invoiceActionTitle.textContent = koreksi ? 'Koreksi Invoice' : 'Batalkan Invoice';
+  invoiceActionTitle.textContent = koreksi ? 'Koreksi invoice' : 'Batalkan invoice';
   // Konfirmasi menyebut invoice yang terdampak beserta nominalnya, dan menyatakan
   // bahwa aksinya tercatat, supaya tidak ada yang menekan tombol ini tanpa tahu
   // invoice mana yang berubah.
@@ -461,7 +461,7 @@ function bukaDialogInvoice(invoice, mode) {
   invoiceActionAmount.value = koreksi ? String(invoice.amount) : '';
   invoiceActionReason.value = '';
   invoiceActionError.textContent = '';
-  invoiceActionSubmit.textContent = koreksi ? 'Simpan Koreksi' : 'Batalkan Invoice';
+  invoiceActionSubmit.textContent = koreksi ? 'Simpan koreksi' : 'Batalkan invoice';
   invoiceActionSubmit.disabled = false;
 
   invoiceActionDialog.showModal();
@@ -635,7 +635,7 @@ function invoiceRow(invoice) {
     const bayar = document.createElement('button');
     bayar.type = 'button';
     bayar.className = 'button button--secondary op-action';
-    bayar.textContent = 'Tandai Lunas';
+    bayar.textContent = 'Tandai lunas';
     bayar.addEventListener('click', () => tandaiLunas(invoice, bayar));
     aksi.append(bayar);
   }
@@ -646,7 +646,7 @@ function invoiceRow(invoice) {
     const kuitansi = document.createElement('button');
     kuitansi.type = 'button';
     kuitansi.className = 'button button--secondary op-action';
-    kuitansi.textContent = 'Unduh Kuitansi';
+    kuitansi.textContent = 'Unduh kuitansi';
     kuitansi.addEventListener('click', () => unduhKuitansi(invoice, kuitansi));
     aksi.append(kuitansi);
   }
@@ -677,7 +677,7 @@ function invoiceRow(invoice) {
   function setRiwayat(terbuka) {
     riwayatWadah.hidden = !terbuka;
     riwayatTombol.setAttribute('aria-expanded', String(terbuka));
-    riwayatTombol.textContent = terbuka ? 'Sembunyikan Riwayat' : 'Riwayat Koreksi';
+    riwayatTombol.textContent = terbuka ? 'Sembunyikan riwayat' : 'Riwayat koreksi';
     if (terbuka) muatRiwayatKoreksi(invoice.id, riwayatWadah);
   }
 

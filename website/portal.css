@@ -4443,3 +4443,207 @@ table,
     row-gap: 8px;
   }
 }
+
+/* Keadaan kosong memakai bidang solid, sama seperti halaman publik. Garis putus-putus
+   disisakan hanya untuk aksi keluar dari semua perangkat, yang memang perlu terasa beda. */
+.crm-empty-state {
+  border: 0;
+  border-radius: var(--pub-radius-sm, 14px);
+  background: var(--md-sys-color-surface-container);
+}
+
+/* Tombol di baris filter: teksnya di tengah saat melebar penuh di layar sempit. */
+.crm-toolbar-filters .crm-pill-btn {
+  justify-content: center;
+}
+
+/* Kepala portal disamakan dengan konsol lain: judul di atas kanvas, bukan panel gelap
+   yang hanya muncul di satu halaman. */
+.coursue-hero-banner {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 4px 0 0;
+  color: var(--md-sys-color-on-surface);
+}
+
+.coursue-hero-banner .coursue-hero-tag {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--gold-dark);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+
+.coursue-hero-banner .coursue-hero-title {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--md-sys-color-on-surface);
+  margin-bottom: 10px;
+}
+
+.coursue-hero-banner .coursue-hero-subtitle {
+  font-size: 15px;
+  color: var(--md-sys-color-on-surface-variant);
+  margin-bottom: 20px;
+}
+
+.coursue-hero-banner .coursue-hero-cta {
+  min-height: 46px;
+  padding: 0 24px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Tombol pada kartu maddah: satu baris penuh di dalam kartu, teks di tengah. */
+.coursue-card-cta {
+  width: 100%;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   Ruang belajar LMS: gaya yang dulu ditulis di JavaScript, kini satu sistem.
+   -------------------------------------------------------------------------- */
+
+.lms-btn-enroll.is-complete {
+  background: var(--md-sys-color-tertiary);
+  color: var(--md-sys-color-on-tertiary);
+  border-color: transparent;
+}
+
+.lms-content-card--active {
+  padding: 22px 26px;
+  gap: 14px;
+}
+
+.lms-content-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.lms-content-card__header h3 {
+  font-size: 17px;
+}
+
+.lms-note-box {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 0;
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.lms-note-box--row {
+  margin-bottom: 8px;
+}
+
+.lms-subheading {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+}
+
+.lms-subheading--spaced {
+  margin: 16px 0 8px;
+}
+
+.lms-help-form {
+  margin-top: 10px;
+}
+
+.lms-help-input {
+  flex: 1;
+}
+
+.lms-empty-note {
+  padding: 20px;
+  border-radius: 14px;
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 14px;
+}
+
+.lms-course-item {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+}
+
+.lms-course-item__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.lms-course-item__category {
+  margin-bottom: 6px;
+}
+
+.lms-course-item__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+}
+
+.lms-course-item__desc {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.lms-course-item__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.lms-progress-text {
+  font-weight: 700;
+  color: var(--gold-dark);
+}
+
+.lms-progress-text.is-complete {
+  color: var(--md-sys-color-tertiary);
+}
+
+.lms-progress-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--md-sys-color-outline-variant);
+  overflow: hidden;
+}
+
+.lms-progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--md-sys-color-primary);
+  transition: width 0.3s ease;
+}
+
+.lms-progress-fill.is-complete {
+  background: var(--md-sys-color-tertiary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lms-progress-fill {
+    transition: none;
+  }
+}
