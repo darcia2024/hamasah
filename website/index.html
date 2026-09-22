@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website-core.css?v=77cf22cbe7" />
-    <link rel="stylesheet" href="website-public.css?v=9c737096ce" />
+    <link rel="stylesheet" href="website-public.css?v=b0c8b396f3" />
   </head>
   <body>
     <a class="skip-link" href="#konten">Lewati ke konten utama</a>
@@ -617,7 +617,7 @@
                 <p>Lengkapi kolom bertanda bintang (<span aria-hidden="true">*</span>) untuk memulai.</p>
               </div>
 
-              <div class="form-section-heading"><h4>Data calon</h4><p>Informasi dasar calon santri untuk pemetaan awal.</p></div>
+              <div class="form-section-heading"><h4>Data calon</h4><p>Informasi dasar dan kontak calon santri.</p></div>
               <div class="form-grid-2">
                 <div class="field-group">
                   <label for="full-name">Nama lengkap calon santri <span aria-hidden="true">*</span></label>
@@ -632,13 +632,13 @@
                 </div>
               </div>
 
-              <div class="form-section-heading"><h4>Pendidikan dan program</h4><p>Pilih jalur yang paling sesuai dengan rencana studi.</p></div>
               <div class="form-grid-2">
                 <div class="field-group">
                   <label for="email">Email calon santri <span aria-hidden="true">*</span></label>
                   <input id="email" name="email" type="email" autocomplete="email" placeholder="nama@email.com" aria-describedby="email-error" />
                   <p class="field-error" id="email-error"></p>
                 </div>
+
                 <div class="field-group">
                   <label for="birth-date">Tanggal lahir <span aria-hidden="true">*</span></label>
                   <input id="birth-date" name="birthDate" type="date" autocomplete="bday" aria-describedby="birth-date-error" />
@@ -652,33 +652,6 @@
                   <select id="gender" name="gender" aria-describedby="gender-error"><option value="">Pilih</option><option value="putra">Putra</option><option value="putri">Putri</option></select>
                   <p class="field-error" id="gender-error"></p>
                 </div>
-                <div class="field-group">
-                  <label for="school-origin">Sekolah asal <span aria-hidden="true">*</span></label>
-                  <input id="school-origin" name="schoolOrigin" type="text" placeholder="SMA / MA / Pondok Pesantren" aria-describedby="school-origin-error" />
-                  <p class="field-error" id="school-origin-error"></p>
-                </div>
-              </div>
-
-              <div class="field-group">
-                <label for="program-tujuan">Program tujuan yang diminati <span aria-hidden="true">*</span></label>
-                <div class="select-wrapper">
-                  <select id="program-tujuan" name="program" aria-describedby="program-tujuan-error">
-                    <option value="">-- Pilih salah satu program --</option>
-                    <option value="kuliah-al-azhar">Program Kuliah S1 Al-Azhar Kairo</option>
-                    <option value="mahad-al-azhar">Program Ma'had Al-Azhar (Sekolah Formal)</option>
-                    <option value="hamasah-courses">Hamasah Courses (Kelas Bahasa Arab Digital)</option>
-                  </select>
-                </div>
-                <p class="field-error" id="program-tujuan-error"></p>
-              </div>
-
-              <div class="form-section-heading"><h4>Data wali</h4><p>Kontak wali dipakai untuk tindak lanjut dan persetujuan pendaftaran.</p></div>
-              <div class="form-grid-2">
-                <div class="field-group">
-                  <label for="education-level">Pendidikan terakhir <span aria-hidden="true">*</span></label>
-                  <input id="education-level" name="educationLevel" type="text" autocomplete="education-level" placeholder="SMA / MA / Pondok Pesantren" aria-describedby="education-level-error" />
-                  <p class="field-error" id="education-level-error"></p>
-                </div>
 
                 <div class="field-group">
                   <label for="city">Kota domisili saat ini</label>
@@ -687,6 +660,35 @@
                 </div>
               </div>
 
+              <div class="form-section-heading"><h4>Pendidikan dan program</h4><p>Riwayat pendidikan dan jalur studi yang dituju.</p></div>
+              <div class="form-grid-2">
+                <div class="field-group">
+                  <label for="school-origin">Sekolah asal <span aria-hidden="true">*</span></label>
+                  <input id="school-origin" name="schoolOrigin" type="text" placeholder="SMA / MA / Pondok Pesantren" aria-describedby="school-origin-error" />
+                  <p class="field-error" id="school-origin-error"></p>
+                </div>
+
+                <div class="field-group">
+                  <label for="education-level">Pendidikan terakhir <span aria-hidden="true">*</span></label>
+                  <input id="education-level" name="educationLevel" type="text" autocomplete="education-level" placeholder="SMA / MA / Pondok Pesantren" aria-describedby="education-level-error" />
+                  <p class="field-error" id="education-level-error"></p>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label for="program-tujuan">Program tujuan yang diminati <span aria-hidden="true">*</span></label>
+                <div class="select-wrapper">
+                <select id="program-tujuan" name="program" aria-describedby="program-tujuan-error">
+                <option value="">-- Pilih salah satu program --</option>
+                <option value="kuliah-al-azhar">Program Kuliah S1 Al-Azhar Kairo</option>
+                <option value="mahad-al-azhar">Program Ma'had Al-Azhar (Sekolah Formal)</option>
+                <option value="hamasah-courses">Hamasah Courses (Kelas Bahasa Arab Digital)</option>
+                </select>
+              </div>
+                <p class="field-error" id="program-tujuan-error"></p>
+              </div>
+
+              <div class="form-section-heading"><h4>Data wali</h4><p>Kontak wali dipakai untuk tindak lanjut dan persetujuan pendaftaran.</p></div>
               <div class="form-grid-2">
                 <div class="field-group">
                   <label for="guardian-name">Nama lengkap wali santri <span aria-hidden="true">*</span></label>
