@@ -33,3 +33,28 @@ ENERGY 3 / RHYTHM 3 / MOTION 2.
 - Referensi komposisi: [SpaceX](https://www.spacex.com/).
 
 Foto arsitektur bersifat ilustrasi lokasi. Data, harga, artikel, dan testimoni dalam prototype lama belum diverifikasi untuk publikasi.
+
+## Skala bentuk dan tipografi (23 September 2026)
+
+Satu sistem untuk beranda, halaman publik lain, halaman masuk akun, dan konsol internal.
+Lapisan penyeragamannya ditulis di akhir `website-public.css` (publik), `website/portal.css`
+(internal), `website/auth-pages.css` (masuk akun), dan `website/landing.css` (khusus beranda).
+
+- **Radius:** kartu 20px, kotak kecil dan keadaan kosong 14px, kontrol 12px, tombol dan chip kapsul.
+- **Bayangan kartu:** garis rambut `0 0 0 1px rgba(54,54,56,.07)` plus bayangan charcoal lembut.
+  Tidak memakai bingkai abu solid, dan tidak ada kartu di dalam kartu.
+- **Kontrol:** tinggi 46-48px, cincin fokus emas 3px.
+- **Tombol:** tinggi 46-48px, isi emas `#E7B10C` dengan teks charcoal untuk aksi utama,
+  garis tepi untuk aksi kedua, tautan berpanah untuk aksi ketiga. Tidak melebar penuh di
+  layar lebar kecuali di dalam formulir sempit.
+- **Judul:** h1 halaman `clamp(34px, 4.2vw, 50px)`, h1 beranda `clamp(36px, 4.7vw, 58px)`,
+  h2 bagian `clamp(30px, 3.4vw, 44px)`, teks pengantar 17-18px, isi 15-16px, label kecil 12-14px.
+- **Perataan:** kepala halaman dan judul bagian rata kiri. Tidak ada judul rata tengah.
+- **Kapital:** judul, label, dan tombol memakai kapital di awal kalimat. Nama diri, nama peran,
+  dan singkatan (LMS, CSV, SPP, PDF) tetap seperti aslinya. Satu maksud memakai satu label;
+  ajakan mendaftar selalu "Daftar konsultasi".
+- **Irama bagian:** `padding-block: clamp(72px, 9vw, 120px)`, kepala halaman lebih rapat.
+- **Keadaan kosong:** bidang solid `surface-container`, tanpa garis putus-putus. Garis putus-putus
+  hanya dipakai untuk aksi keluar dari semua perangkat.
+- **Gaya di JavaScript:** dilarang. Semua tampilan lewat kelas CSS, kecuali nilai yang memang
+  dinamis seperti lebar bilah progres.
