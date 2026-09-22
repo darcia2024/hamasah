@@ -21,8 +21,12 @@ const path = require('node:path');
 const WEBSITE = path.resolve(__dirname, '..', 'website');
 const REFERENCE = /(<(?:link|script)\b[^>]*?\b(?:href|src)=")([^"?#]+\.(?:css|js))(\?v=[^"#]*)?(")/gi;
 
+// Akhir baris dinormalkan supaya sidik sama di Windows (core.autocrlf) dan Linux.
 function fingerprint(file) {
-  return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0, 10);
+  const content = fs.readFileSync(file, 'utf8').replace(/
+/g, '
+');
+  return crypto.createHash('sha256').update(content).digest('hex').slice(0, 10);
 }
 
 function isLocal(reference) {
