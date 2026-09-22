@@ -162,6 +162,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Atribut hidden selalu menang. Tanpa ini, aturan seperti .status-result-area { display: flex }
+   membuat elemen yang disembunyikan JS tetap tampil (kartu hasil kosong di cek status,
+   tautan pemulihan kode sebelum ada galat, tombol sesi sebelum masuk). */
+[hidden] {
+  display: none !important;
+}
+
 img {
   max-width: 100%;
   height: auto;
