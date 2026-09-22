@@ -1,5 +1,7 @@
 # Deployment production
 
+> Langkah demi langkah dari nol sampai online (staging lalu production), termasuk daftar variabel lingkungan, worker, cron, dan daftar periksa: `docs/PANDUAN_RILIS_HOSTING_2026-09-22.md`. Dokumen ini berisi aturan pendukungnya.
+
 ## Prasyarat
 
 - PostgreSQL terkelola dan `DATABASE_URL` dengan akses TLS.
