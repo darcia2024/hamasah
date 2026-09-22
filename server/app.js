@@ -300,6 +300,11 @@ function createHamasahApp(options) {
     return false;
   }
 
+  function sendText(response, contentType, body) {
+    response.writeHead(200, { 'Content-Type': contentType, 'Cache-Control': 'public, max-age=3600', 'X-Content-Type-Options': 'nosniff' });
+    response.end(body);
+  }
+
   async function requestListener(request, response) {
     const url = new URL(request.url, 'http://localhost');
     const isApi = url.pathname.startsWith('/api/');
@@ -314,6 +319,17 @@ function createHamasahApp(options) {
         return;
       }
       const origin = seo.resolveOrigin({ appBaseUrl: siteBaseUrl, request, appEnvironment });
+      // robots.txt dan sitemap.xml dihasilkan server supaya URL-nya absolut dan artikel
+      // terbit ikut masuk (Task R7.2). Keduanya tersedia di akar dan di bawah /website/.
+      if (/^\/(?:website\/)?robots\.txt$/.test(url.pathname)) {
+        sendText(response, 'text/plain; charset=utf-8', seo.robotsTxt({ origin, websiteDirectory: path.join(rootDirectory, 'website') }));
+        return;
+      }
+      if (/^\/(?:website\/)?sitemap\.xml$/.test(url.pathname)) {
+        const articles = await articleStore.listPublishedForSitemap();
+        sendText(response, 'application/xml; charset=utf-8', seo.sitemapXml({ origin, websiteDirectory: path.join(rootDirectory, 'website'), articles }));
+        return;
+      }
       serveStaticFile(response, {
         pathname: url.pathname,
         rootDirectory,

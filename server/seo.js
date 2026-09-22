@@ -94,7 +94,8 @@ function decorateHead(html, { origin, canonicalPath, type, image }) {
   let result = /<link\s+rel="canonical"[^>]*>/i.test(html)
     ? html.replace(/<link\s+rel="canonical"[^>]*>/i, canonical)
     : html.replace(/<\/title>/i, `</title>\n    ${canonical}`);
-  result = result.replace(/<\/head>/i, `    ${socialTags({ origin, url, title, description, type, image })}\n  </head>`);
+  result = result.replace(/\s*<\/head>/i, `
+    ${socialTags({ origin, url, title, description, type, image })}\n  </head>`);
   return result;
 }
 
@@ -135,7 +136,8 @@ function sitemapXml({ origin, websiteDirectory, articles = [] }) {
     const file = path.join(websiteDirectory, name);
     if (!fs.existsSync(file)) continue;
     if (!isIndexable(fs.readFileSync(file, 'utf8'))) continue;
-    entries.push({ loc: origin + canonicalPath, lastmod: fs.statSync(file).mtime.toISOString() });
+    // Tanpa lastmod: waktu ubah berkas berganti setiap checkout, bukan tanggal isi berubah.
+    entries.push({ loc: origin + canonicalPath, lastmod: null });
   }
   for (const article of articles) {
     entries.push({ loc: origin + articlePath(article.slug), lastmod: isoDate(article.updatedAt) || isoDate(article.publishedAt) });

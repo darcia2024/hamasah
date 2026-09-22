@@ -46,6 +46,19 @@ function createPostgresArticleStore({ database } = {}) {
       );
       return { items: rows.map((row) => { const { body, ...ringkas } = toArticle(row); return ringkas; }), total: total.rows[0].jumlah, limit: page.limit, offset: page.offset };
     },
+    // Semua artikel terbit untuk sitemap (Task R7.2): hanya slug dan tanggal, tanpa isi.
+    async listPublishedForSitemap({ limit = 50000 } = {}) {
+      const { rows } = await database.query(
+        `SELECT slug, published_at, updated_at FROM articles WHERE status = 'published'
+         ORDER BY published_at DESC NULLS LAST, slug LIMIT $1`,
+        [limit]
+      );
+      return rows.map((row) => ({
+        slug: row.slug,
+        publishedAt: row.published_at ? new Date(row.published_at).toISOString() : null,
+        updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : null
+      }));
+    },
     async get(slug, { publicOnly = true } = {}) {
       const filter = publicOnly ? "AND status = 'published'" : '';
       const { rows } = await database.query(

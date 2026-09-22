@@ -276,6 +276,33 @@ async function run() {
     assert.equal(archivedDraft.status, 200);
     assert.equal((await request(baseUrl, '/api/articles')).body.items.length, 1);
 
+    // Sitemap dan robots dihasilkan server dengan URL absolut (Task R7.2).
+    const draftOnly = await request(baseUrl, '/api/articles', {
+      method: 'POST', headers: adminHeaders,
+      body: JSON.stringify({ title: 'Draf Lain Hamasah', excerpt: 'Masih draf.', body: 'Belum terbit.', status: 'draft' })
+    });
+    for (const lokasi of ['/sitemap.xml', '/website/sitemap.xml']) {
+      const sitemap = await fetch(`${baseUrl}${lokasi}`);
+      assert.equal(sitemap.status, 200);
+      assert.match(sitemap.headers.get('content-type'), /application\/xml/);
+      const xml = await sitemap.text();
+      const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+      assert.ok(locs.length > 0 && locs.every((loc) => loc.startsWith('https://app.hamasah.test/')), 'Semua URL sitemap absolut.');
+      assert.ok(locs.includes(`https://app.hamasah.test/website/article.html?slug=${article.body.item.slug}`), 'Artikel terbit masuk sitemap.');
+      assert.ok(!xml.includes(draftArticle.body.item.slug), 'Artikel arsip tidak masuk sitemap.');
+      assert.ok(!xml.includes(draftOnly.body.item.slug), 'Artikel draf tidak masuk sitemap.');
+      assert.ok(!xml.includes('kebijakan-privasi'), 'Halaman ber-noindex tidak masuk sitemap.');
+      assert.match(xml, /<lastmod>\d{4}-\d{2}-\d{2}T/);
+    }
+    for (const lokasi of ['/robots.txt', '/website/robots.txt']) {
+      const robots = await (await fetch(`${baseUrl}${lokasi}`)).text();
+      assert.match(robots, /^Sitemap: https:\/\/app\.hamasah\.test\/sitemap\.xml$/m);
+      for (const internal of ['staff', 'portal', 'monitoring', 'audit', 'lms', 'operations', 'aktivasi', 'reset-password']) {
+        assert.match(robots, new RegExp(`^Disallow: /website/${internal}\\.html$`, 'm'), `${internal}.html harus dilarang`);
+      }
+      assert.doesNotMatch(robots, /Disallow: \/website\/(?:index|biaya|kontak|articles|article|cek-status)\.html/);
+    }
+
     const logout = await request(baseUrl, '/api/auth/logout', { method: 'POST', headers: adminHeaders });
     assert.equal(logout.status, 204);
     const afterLogout = await request(baseUrl, '/api/me', { headers: adminHeaders });
