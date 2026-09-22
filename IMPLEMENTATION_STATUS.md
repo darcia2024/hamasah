@@ -156,7 +156,7 @@ Tab "Tagihan & Kuitansi" di portal (wali dan admin). `GET /api/students/:id/invo
 
 ## Jadwal keberangkatan per kloter (22 September 2026)
 
-Petugas pendaftaran dan admin (izin baru `departures.manage`) membuat kloter di konsol pendaftaran (nama, tanggal rencana, kota/bandara asal, status, catatan untuk pendaftar) dan menugaskan pendaftar dari kartunya. Halaman cek status menampilkan kloter pendaftar; tanpa kloter atau tanpa tanggal tertulis "belum ditetapkan". Kloter dibatalkan tidak menerima pendaftar baru. Perubahan diaudit. **Migrasi 037 perlu diterapkan ke Supabase** bersama 017-036. Belum ada email ke pendaftar saat kloter ditetapkan atau berubah.
+Petugas pendaftaran dan admin (izin baru `departures.manage`) membuat kloter di konsol pendaftaran (nama, tanggal rencana, kota/bandara asal, status, catatan untuk pendaftar) dan menugaskan pendaftar dari kartunya. Halaman cek status menampilkan kloter pendaftar; tanpa kloter atau tanpa tanggal tertulis "belum ditetapkan". Kloter dibatalkan tidak menerima pendaftar baru. Perubahan diaudit. **Migrasi 037 perlu diterapkan ke Supabase** bersama 017-036. Email ke pendaftar dan wali saat kloter ditetapkan atau dipindah (tipe outbox `departure-assigned`, migrasi 038); tidak dikirim saat kloter yang sama disimpan ulang, saat dilepas, atau untuk pendaftaran dibatalkan. Perubahan tanggal/status kloter setelahnya belum mengirim email ke anggotanya.
 
 ## Gerbang rilis setelah R1 sampai R8 (22 September 2026)
 

@@ -52,6 +52,9 @@ module.exports = [
       const actor = await auth.actor();
       const body = await readBody();
       const result = await services.departureService.assign(params[0], body.departureGroupId || null, actor);
+      if (result.ok && result.changed && result.value) {
+        await services.eventNotifier.departureAssigned(params[0], await services.departureService.forApplicant(params[0]));
+      }
       if (result.ok) {
         await services.auditService.record({ action: ACTIONS.REGISTRATION_DEPARTURE_ASSIGNED, actor, ip, entityType: 'registration', entityId: params[0], metadata: { departureGroupId: body.departureGroupId || null } });
       }

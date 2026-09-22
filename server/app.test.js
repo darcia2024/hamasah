@@ -396,6 +396,13 @@ async function run() {
       name: 'Kloter 1 Jakarta', plannedDate: '2026-09-15', origin: 'Jakarta (CGK)',
       status: 'confirmed', statusLabel: 'Terkonfirmasi', note: 'Kumpul di bandara pukul 18.00 WIB.'
     });
+    // Email kloter ke pendaftar dan wali: sekali saat ditetapkan, tidak dobel saat disimpan ulang.
+    const emailKloter = async () => (await database.query("SELECT recipient_email, status FROM notification_outbox WHERE notification_type = 'departure-assigned' ORDER BY recipient_email")).rows;
+    assert.deepEqual((await emailKloter()).map((row) => row.recipient_email), ['naufal@hamasah.test', 'wali-naufal@hamasah.test']);
+    assert.equal((await request(baseUrl, `/api/registrations/${registrationId}/departure`, { method: 'PUT', headers: adminHeaders, body: JSON.stringify({ departureGroupId: kloter.body.group.id }) })).status, 200);
+    assert.equal((await emailKloter()).length, 2, 'Menyimpan ulang kloter yang sama tidak mengirim email kedua.');
+    await app.notificationWorker.runOnce({ limit: 50 });
+    assert.deepEqual((await emailKloter()).map((row) => row.status), ['sent', 'sent'], 'Worker merender dan mengirim email kloter.');
     const daftarKloter = await request(baseUrl, '/api/departures', { headers: adminHeaders });
     assert.equal(daftarKloter.body.items.find((item) => item.id === kloter.body.group.id).memberCount, 1);
     const daftarPendaftar = await request(baseUrl, '/api/registrations?pageSize=50', { headers: adminHeaders });
@@ -408,6 +415,7 @@ async function run() {
     assert.equal((await request(baseUrl, `/api/registrations/${registrationId}/departure`, { method: 'PUT', headers: adminHeaders, body: JSON.stringify({ departureGroupId: kloter.body.group.id }) })).status, 422);
     assert.equal((await request(baseUrl, `/api/registrations/${registrationId}/departure`, { method: 'PUT', headers: adminHeaders, body: JSON.stringify({ departureGroupId: null }) })).status, 200);
     assert.equal(await kloterPendaftar(), null);
+    assert.equal((await emailKloter()).length, 2, 'Melepas atau membatalkan kloter tidak mengirim email kloter.');
     assert.equal((await request(baseUrl, '/api/registrations/HI-REG-2099-99999/departure', { method: 'PUT', headers: adminHeaders, body: JSON.stringify({ departureGroupId: null }) })).status, 404);
     assert.equal(retrieved.body.registration.status, 'submitted');
     const applicantUpdate = await request(baseUrl, `/api/applicant/registrations/${registrationId}`, {

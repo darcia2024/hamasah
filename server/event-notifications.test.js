@@ -37,6 +37,20 @@ async function run() {
   const rusak = createEventNotifier({ notificationService: { canSend: () => true, async queueEvent() { throw new Error('db mati'); } }, registrationStore: { async get(id) { return records[id]; } }, logger: { error() {} } });
   assert.equal(await rusak.registrationStatusChanged('HI-REG-2026-00001'), 0);
 
+  // Kloter ditetapkan: ke pendaftar dan wali (tanpa duplikat), tidak untuk dibatalkan atau tanpa kloter.
+  const kloter = { name: 'Kloter 1 <Jakarta>', plannedDate: '2026-10-15', origin: 'Jakarta (CGK)', status: 'confirmed', statusLabel: 'Terkonfirmasi', note: 'Bawa paspor asli.' };
+  const sebelumKloter = antre.length;
+  assert.equal(await notifier.departureAssigned('HI-REG-2026-00001', kloter), 1);
+  assert.equal(antre[sebelumKloter].notificationType, 'departure-assigned');
+  assert.equal(antre[sebelumKloter].payload.departureName, 'Kloter 1 <Jakarta>');
+  assert.equal(await notifier.departureAssigned('HI-REG-2026-00002', kloter), 0, 'Pendaftaran dibatalkan tidak dikirimi.');
+  assert.equal(await notifier.departureAssigned('HI-REG-2026-00001', null), 0, 'Tanpa kloter tidak ada email.');
+  const pesanKloter = eventMessage('departure-assigned', { name: 'Calon', registrationId: 'HI-REG-2026-00001', departureName: 'Kloter 1 <Jakarta>', plannedDate: '2026-10-15', origin: 'Jakarta (CGK)', statusLabel: 'Terkonfirmasi', note: '<script>x</script>' }, 'https://app.test');
+  assert.ok(pesanKloter.html.includes('Kamis, 15 Oktober 2026'));
+  assert.ok(pesanKloter.html.includes('Kloter 1 &lt;Jakarta&gt;') && !pesanKloter.html.includes('<script>'));
+  assert.ok(pesanKloter.html.includes('https://app.test/website/cek-status.html'));
+  assert.ok(eventMessage('departure-assigned', { registrationId: 'X', departureName: 'K', plannedDate: null }, '').html.includes('Rencana berangkat: belum ditetapkan'));
+
   // Isi email di-escape.
   const pesan = eventMessage('document-revision', { name: 'Calon <b>Uji</b>', registrationId: 'HI-REG-2026-00001', note: '<script>x</script>' }, 'https://app.test');
   assert.ok(!pesan.html.includes('<script>') && !pesan.html.includes('<b>Uji'));

@@ -5,8 +5,14 @@ const { escapeHtml } = require('./seo.js');
 const EVENT_TYPES = Object.freeze({
   REGISTRATION_STATUS: 'registration-status',
   DOCUMENT_REVISION: 'document-revision',
-  PAYMENT_RECEIVED: 'payment-received'
+  PAYMENT_RECEIVED: 'payment-received',
+  DEPARTURE_ASSIGNED: 'departure-assigned'
 });
+
+function tanggalPanjang(value) {
+  if (!value) return 'belum ditetapkan';
+  return new Intl.DateTimeFormat('id-ID', { dateStyle: 'full', timeZone: 'UTC' }).format(new Date(value + 'T00:00:00Z'));
+}
 
 function rupiah(amount) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(amount) || 0);
@@ -30,6 +36,13 @@ function eventMessage(type, payload, appBaseUrl) {
     return {
       subject: `Berkas pendaftaran ${payload.registrationId} perlu diperbaiki`,
       html: `${salam}<p>Salah satu berkas pada pendaftaran <strong>${escapeHtml(payload.registrationId)}</strong> belum dapat diterima dan perlu diunggah ulang.</p>${catatan}<p><a href="${escapeHtml(cekStatus)}">Buka halaman cek status</a> untuk mengunggah berkas pengganti.</p>${penutup}`
+    };
+  }
+  if (type === EVENT_TYPES.DEPARTURE_ASSIGNED) {
+    const catatan = payload.note ? `<p>Catatan dari tim: ${escapeHtml(payload.note)}</p>` : '';
+    return {
+      subject: `Kloter keberangkatan ${payload.registrationId}: ${payload.departureName}`,
+      html: `${salam}<p>Pendaftaran <strong>${escapeHtml(payload.registrationId)}</strong> sudah ditetapkan masuk <strong>${escapeHtml(payload.departureName)}</strong>.</p><ul><li>Rencana berangkat: ${escapeHtml(tanggalPanjang(payload.plannedDate))}</li><li>Berangkat dari: ${escapeHtml(payload.origin || 'belum ditetapkan')}</li><li>Status kloter: ${escapeHtml(payload.statusLabel || '')}</li></ul>${catatan}<p>Jadwal dapat berubah; informasi terbaru selalu ada di <a href="${escapeHtml(cekStatus)}">halaman cek status</a>.</p>${penutup}`
     };
   }
   if (type === EVENT_TYPES.PAYMENT_RECEIVED) {

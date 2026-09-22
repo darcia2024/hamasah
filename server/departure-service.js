@@ -80,9 +80,13 @@ function createDepartureService({ store, now = () => new Date().toISOString(), r
         if (!group) return { ok: false, status: 404, error: 'Kloter tidak ditemukan.' };
         if (group.status === 'cancelled') return { ok: false, error: 'Kloter yang dibatalkan tidak bisa menerima pendaftar.' };
       }
+      const sebelum = (await store.forRegistrations([registrationId]))[registrationId] || null;
       await store.assign(registrationId, groupId || null, { accountId: actor.id || null, at: now() });
       const map = await store.forRegistrations([registrationId]);
-      return { ok: true, value: map[registrationId] || null };
+      const sesudah = map[registrationId] || null;
+      // changed: kloter berganti (termasuk dari "belum ditetapkan"); menyimpan ulang kloter
+      // yang sama bukan perubahan dan tidak boleh memicu email kedua.
+      return { ok: true, value: sesudah, changed: (sebelum ? sebelum.id : null) !== (sesudah ? sesudah.id : null) };
     },
     // Untuk daftar petugas: { registrationId: kloter } (bentuk lengkap).
     async forRegistrations(registrationIds) {

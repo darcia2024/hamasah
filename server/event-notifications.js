@@ -63,6 +63,18 @@ function createEventNotifier({ notificationService, registrationStore, database,
         return queueAll(EVENT_TYPES.DOCUMENT_REVISION, target.emails, { name: target.name, registrationId, note: document.reviewNote || '' });
       });
     },
+    // Kloter ditetapkan atau dipindah. departure adalah bentuk untuk pendaftar (forApplicant).
+    departureAssigned(registrationId, departure) {
+      return guarded('kloter keberangkatan', async () => {
+        if (!departure) return 0;
+        const target = await registrationTarget(registrationId);
+        if (!target) return 0;
+        return queueAll(EVENT_TYPES.DEPARTURE_ASSIGNED, target.emails, {
+          name: target.name, registrationId, departureName: departure.name, plannedDate: departure.plannedDate,
+          origin: departure.origin, statusLabel: departure.statusLabel, note: departure.note
+        });
+      });
+    },
     invoicePaid(invoice) {
       return guarded('pembayaran diterima', async () => {
         if (!invoice || !invoice.studentId) return 0;
