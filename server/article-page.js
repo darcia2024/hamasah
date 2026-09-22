@@ -11,6 +11,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const seo = require('./seo.js');
+const { renderMarkdown } = require('./article-markdown.js');
 
 const { escapeHtml } = seo;
 const CONTENT_PATTERN = /(<article id="article-content"[^>]*>)[\s\S]*?(<\/article>)/;
@@ -37,14 +38,10 @@ function renderByline(article) {
         </div>`;
 }
 
-// Isi: paragraf dipisah baris kosong, teks polos yang di-escape. Format lain menunggu KR5.
+// Isi: Markdown terbatas (Task R7.5, server/article-markdown.js, juga dipakai pratinjau CMS).
+// Teks polos lama tetap menjadi paragraf.
 function renderBody(body) {
-  return String(body || '')
-    .split(/\n{2,}/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean)
-    .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
-    .join('\n        ');
+  return renderMarkdown(body);
 }
 
 function renderArticle(article) {

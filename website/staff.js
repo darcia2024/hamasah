@@ -796,17 +796,34 @@ function renderCoverPreview() {
   articleCoverPreview.append(image);
 }
 
-function renderArticlePreview() {
+async function renderArticlePreview() {
   if (!articlePreviewPanel) return;
   articlePreviewPanel.replaceChildren();
   const heading = document.createElement('p'); heading.className = 'eyebrow'; heading.textContent = 'PRATINJAU ARTIKEL';
   const title = document.createElement('h3'); title.textContent = document.querySelector('#article-title')?.value.trim() || 'Judul belum diisi';
   const meta = document.createElement('small'); meta.textContent = (document.querySelector('#article-category')?.value.trim() || 'Kegiatan') + ' · ' + (articleStatus?.value === 'published' ? 'Terbit' : 'Draf');
   const excerpt = document.createElement('p'); excerpt.className = 'article-preview-excerpt'; excerpt.textContent = document.querySelector('#article-excerpt')?.value.trim() || 'Ringkasan belum diisi.';
-  const body = document.createElement('p'); body.className = 'article-preview-body'; body.textContent = document.querySelector('#article-body')?.value.trim() || 'Isi artikel belum diisi.';
+  // Isi dirender server dengan renderer yang sama dengan halaman publik (Task R7.5), supaya
+  // pratinjau tidak menyimpang dari hasil terbit.
+  const body = document.createElement('div'); body.className = 'article-preview-body article-prose';
+  const source = document.querySelector('#article-body')?.value.trim() || '';
+  body.textContent = source ? 'Menyiapkan pratinjau isi...' : 'Isi artikel belum diisi.';
   articlePreviewPanel.append(heading, title, meta, excerpt, body);
   articlePreviewPanel.hidden = false;
   articlePreviewPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!source) return;
+  try {
+    const response = await fetch('/api/staff/articles/preview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ body: source })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'Pratinjau isi belum dapat dibuat.');
+    body.innerHTML = data.html;
+  } catch (error) {
+    body.textContent = error.message;
+  }
 }
 
 articleStatus?.addEventListener('change', updateArticleSubmitLabel);

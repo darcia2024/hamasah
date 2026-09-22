@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=77cf22cbe7" />
-    <link rel="stylesheet" href="staff.css?v=8f51741743" />
+    <link rel="stylesheet" href="staff.css?v=12bddaf2a8" />
     <link rel="stylesheet" href="portal.css?v=4554c72232" />
   </head>
   <body class="staff-page">
@@ -239,7 +239,8 @@
               </div>
               <div>
                 <label for="article-body">Isi Artikel Lengkap</label>
-                <textarea id="article-body" rows="8" placeholder="Tuliskan ulasan informatif dan terstruktur..." required></textarea>
+                <textarea id="article-body" rows="8" placeholder="Tuliskan ulasan informatif dan terstruktur..." aria-describedby="article-body-help" required></textarea>
+                <small id="article-body-help" class="field-help">Format: pisahkan paragraf dengan baris kosong. <code>## Subjudul</code>, <code>### Sub-subjudul</code>, <code>- daftar</code>, <code>1. daftar bernomor</code>, <code>&gt; kutipan</code>, <code>**tebal**</code>, <code>*miring*</code>, <code>[teks](https://alamat)</code>. HTML tidak didukung.</small>
                 <div class="article-cover-fields">
                   <div>
                     <label for="article-cover-url">Cover media (URL HTTPS opsional)</label>
@@ -356,6 +357,6 @@
     <script src="internal-shell.js?v=65f421ce4a"></script>
     <script src="nav.js?v=d38649e945"></script>
     <script src="file-open.js?v=23834ad36d"></script>
-    <script src="staff.js?v=451ad632ff"></script>
+    <script src="staff.js?v=38a0af2d0a"></script>
   </body>
 </html>

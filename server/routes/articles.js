@@ -1,4 +1,5 @@
 const { json, publicError } = require('../http/respond.js');
+const { renderMarkdown } = require('../article-markdown.js');
 
 module.exports = [
   {
@@ -56,6 +57,17 @@ module.exports = [
         return;
       }
       json(response, 200, { item: article });
+    }
+  },
+
+  // Pratinjau isi memakai renderer yang sama dengan halaman publik (Task R7.5).
+  {
+    method: 'POST',
+    pattern: /^\/api\/staff\/articles\/preview$/,
+    permission: 'articles.write',
+    async handler({ response, readBody }) {
+      const input = await readBody();
+      json(response, 200, { html: renderMarkdown(String((input && input.body) || '').slice(0, 100000)) });
     }
   },
 

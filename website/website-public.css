@@ -2881,6 +2881,48 @@
   margin-bottom: 24px;
 }
 
+/* Markdown terbatas di isi artikel (Task R7.5). */
+.article-prose h2,
+.article-prose h3 {
+  color: var(--md-sys-color-on-surface);
+  line-height: 1.3;
+  margin: 36px 0 14px;
+}
+
+.article-prose h2 { font-size: 24px; }
+.article-prose h3 { font-size: 19px; }
+
+.article-prose ul,
+.article-prose ol {
+  margin: 0 0 24px;
+  padding-left: 24px;
+  font-size: 16.5px;
+  line-height: 1.8;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.article-prose li + li { margin-top: 6px; }
+
+.article-prose blockquote {
+  margin: 0 0 24px;
+  padding: 4px 0 4px 20px;
+  border-left: 4px solid var(--gold);
+}
+
+.article-prose blockquote p {
+  margin: 0;
+  font-style: italic;
+  color: var(--md-sys-color-on-surface);
+}
+
+.article-prose a {
+  color: var(--gold-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.article-prose strong { color: var(--md-sys-color-on-surface); }
+
 .article-signature {
   margin-top: 48px;
   padding-top: 24px;
