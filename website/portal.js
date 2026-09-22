@@ -381,7 +381,7 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
     backBar.innerHTML = `
       <button type="button" class="crm-topbar-action-btn js-chip-active" id="crm-back-btn">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-        <span>Kembali ke Konsol Eksekutif</span>
+        <span>Kembali ke konsol</span>
       </button>
       <span class="js-text-meta">Rekam Jejak CRM: <strong>${escapeHtml(student.name)}</strong></span>
     `;
@@ -445,12 +445,12 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
   const prayerEntries = attendanceEntries.filter((entry) => PRAYER_PATTERN.test(entry.category || ''));
 
   const tabDefs = [
-    { id: 'mutabaah', label: "Mutaba'ah & Ibadah", icon: TAB_ICONS.clock, count: attendanceEntries.length },
-    { id: 'sholat', label: 'Sholat Berjamaah', icon: TAB_ICONS.mosque, count: care ? care.prayers.recorded : prayerEntries.length },
-    { id: 'talaqqi', label: 'Talaqqi & Tahfidz', icon: TAB_ICONS.award, count: dashboard.achievements.length + (care ? care.memorization.length : 0) },
+    { id: 'mutabaah', label: "Mutaba'ah & ibadah", icon: TAB_ICONS.clock, count: attendanceEntries.length },
+    { id: 'sholat', label: 'Sholat berjamaah', icon: TAB_ICONS.mosque, count: care ? care.prayers.recorded : prayerEntries.length },
+    { id: 'talaqqi', label: 'Talaqqi & tahfidz', icon: TAB_ICONS.award, count: dashboard.achievements.length + (care ? care.memorization.length : 0) },
     { id: 'dorm', label: 'Asrama', icon: TAB_ICONS.home },
     { id: 'lms', label: 'Maddah (LMS)', icon: TAB_ICONS.book },
-    { id: 'admin', label: 'Rapor & Ringkasan', icon: TAB_ICONS.file }
+    { id: 'admin', label: 'Rapor & ringkasan', icon: TAB_ICONS.file }
   ];
 
   const subtabsRow = document.createElement('div');
@@ -757,7 +757,7 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
       .catch((error) => {
         list.replaceChildren(createEmptyState(error.message));
       });
-    tabDefs.push({ id: 'billing', label: 'Tagihan & Kuitansi', icon: TAB_ICONS.file });
+    tabDefs.push({ id: 'billing', label: 'Tagihan & kuitansi', icon: TAB_ICONS.file });
     panels.push(panelBilling);
   }
 

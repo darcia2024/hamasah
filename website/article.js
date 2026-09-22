@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
       failed.className = 'article-cover article-cover--empty';
       failed.setAttribute('role', 'img');
       failed.setAttribute('aria-label', 'Cover artikel tidak tersedia');
-      failed.textContent = 'Cover tidak tersedia';
+      failed.textContent = 'Belum ada gambar sampul';
       cover.replaceWith(failed);
     };
     if (cover.complete && cover.naturalWidth === 0) replaceCover();

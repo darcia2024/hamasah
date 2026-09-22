@@ -50,7 +50,7 @@ function renderArticle(article) {
   const minutes = Math.max(1, Math.round(words / 180));
   const cover = article.coverUrl
     ? `<img class="article-cover" src="${escapeHtml(article.coverUrl)}" alt="${escapeHtml(article.coverAltText || title)}" />`
-    : '<div class="article-cover article-cover--empty" role="img" aria-label="Cover artikel tidak tersedia">Cover tidak tersedia</div>';
+    : '<div class="article-cover article-cover--empty" role="img" aria-label="Cover artikel tidak tersedia">Belum ada gambar sampul</div>';
   return `
       <div class="article-header">
         ${cover}

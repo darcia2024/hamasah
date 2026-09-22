@@ -4364,3 +4364,82 @@ table,
   background: var(--md-sys-color-surface-container-lowest);
   font-size: 14px;
 }
+
+/* ==========================================================================
+   Penyeragaman konsol internal (23 September 2026)
+   Skala bentuk yang sama dengan halaman publik: kontrol 12px, kartu 20px,
+   tombol kapsul, garis rambut plus bayangan charcoal. Ditulis paling akhir.
+   ========================================================================== */
+
+.crm-canvas,
+.staff-shell {
+  --crm-radius-card: 20px;
+  --crm-radius-control: 12px;
+  --crm-card-line: 0 0 0 1px rgba(54, 54, 56, 0.07), 0 1px 2px rgba(54, 54, 56, 0.05), 0 12px 32px -20px rgba(54, 54, 56, 0.16);
+}
+
+/* 1. Kartu: satu radius dan satu bayangan. */
+.crm-white-card,
+.crm-activity-card,
+.crm-summary-card,
+.crm-user-card,
+.crm-student-compact-card,
+.crm-feature-box,
+.portal-student-card,
+.coursue-card,
+.coursue-table-card,
+.coursue-statistic-card,
+.coursue-mentor-card,
+.coursue-right-panel {
+  border-radius: 20px;
+  border-color: transparent;
+  box-shadow: 0 0 0 1px rgba(54, 54, 56, 0.07), 0 1px 2px rgba(54, 54, 56, 0.05), 0 12px 32px -20px rgba(54, 54, 56, 0.16);
+}
+
+/* 2. Kontrol: satu radius dan satu tinggi, cincin fokus emas. */
+.staff-form input,
+.staff-form select,
+.staff-form textarea,
+.crm-canvas input:not([type="checkbox"]):not([type="radio"]),
+.crm-canvas select,
+.crm-canvas textarea,
+#account-form input,
+#account-form select {
+  border-radius: 12px !important;
+  min-height: 46px;
+}
+
+.staff-form textarea,
+.crm-canvas textarea {
+  min-height: 96px;
+  padding-block: 12px;
+}
+
+/* 3. Tombol: kapsul, tinggi tetap, tidak melebar penuh di layar lebar. */
+.crm-canvas .button,
+.staff-form .button,
+#account-form button[type="submit"] {
+  border-radius: 9999px;
+  min-height: 46px;
+  height: auto;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+@media (min-width: 861px) {
+  .staff-form .button,
+  #account-form button[type="submit"] {
+    align-self: flex-start;
+    width: auto;
+    padding-inline: 28px;
+  }
+}
+
+/* 4. Subtab: di layar lebar seluruh tab terlihat, tidak ada yang terpotong. */
+@media (min-width: 1025px) {
+  .crm-subtabs-row {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    row-gap: 8px;
+  }
+}

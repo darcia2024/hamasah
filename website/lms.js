@@ -266,7 +266,7 @@ function renderCourse(course, activeMaterialId) {
   const subTabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'author', label: 'Asatidzah' },
-    { id: 'faq', label: 'Tanya Jawab / FAQ' },
+    { id: 'faq', label: 'Tanya jawab (FAQ)' },
     { id: 'announcements', label: 'Pengumuman' },
     { id: 'reviews', label: 'Ulasan' }
   ];

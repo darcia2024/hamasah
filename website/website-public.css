@@ -4259,3 +4259,220 @@ a.entry:hover,
     transform: none;
   }
 }
+
+/* ==========================================================================
+   Penyeragaman halaman publik (23 September 2026)
+   Satu bahasa visual untuk beranda dan seluruh halaman turunannya: irama bagian,
+   skala judul, bentuk kartu, tinggi kontrol, label, dan keadaan kosong.
+   Ditulis paling akhir supaya menimpa lapisan lama tanpa mengubah markup.
+   ========================================================================== */
+
+:root {
+  --pub-radius: 20px;
+  --pub-radius-sm: 14px;
+  --pub-control-height: 48px;
+  --pub-card-shadow: 0 0 0 1px rgba(54, 54, 56, 0.07), 0 1px 2px rgba(54, 54, 56, 0.05), 0 12px 32px -18px rgba(54, 54, 56, 0.18);
+  --pub-card-shadow-hover: 0 0 0 1px rgba(133, 96, 0, 0.2), 0 20px 40px -20px rgba(54, 54, 56, 0.3);
+}
+
+/* 1. Irama bagian sama seperti beranda. */
+main > section {
+  padding-block: clamp(72px, 9vw, 120px);
+}
+
+main > section:first-child {
+  padding-block: clamp(44px, 6vw, 76px) clamp(48px, 6vw, 80px);
+}
+
+/* 2. Kepala halaman rata kiri, seukuran hierarki beranda. */
+.biaya-hero .section-intro,
+.biaya-hero .section-heading,
+.kontak-hero .section-intro,
+.kontak-hero .section-heading,
+.articles-hero .section-intro,
+.articles-hero .section-heading,
+.status-hero .section-intro,
+.status-hero .section-heading {
+  text-align: left;
+  margin-inline: 0;
+  max-width: 760px;
+}
+
+.biaya-hero .section-heading--center p,
+.kontak-hero .section-heading--center p,
+.articles-hero .section-heading--center p,
+.status-hero .section-heading--center p,
+.biaya-hero .section-intro--center p,
+.kontak-hero .section-intro--center p,
+.articles-hero .section-intro--center p,
+.status-hero .section-intro--center p {
+  margin-inline: 0;
+}
+
+main .eyebrow + h1 {
+  font-size: clamp(34px, 4.2vw, 50px);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  max-width: 18ch;
+}
+
+main .eyebrow + h1 + p {
+  font-size: 18px;
+  line-height: 1.65;
+  max-width: 56ch;
+}
+
+main .eyebrow + h2,
+main .reg-kicker + h2 {
+  font-size: clamp(30px, 3.4vw, 44px);
+  line-height: 1.12;
+  letter-spacing: -0.028em;
+  margin-bottom: 18px;
+}
+
+/* 3. Kartu: satu radius, garis rambut, bayangan bernuansa charcoal. */
+.faq-item-card,
+.breakdown-item,
+.divisions-box,
+.division-btn-card,
+.article-reader-card,
+.article-cta-box,
+.detail-card,
+.doc-list-box,
+.doc-upload-box,
+.page-notice__card,
+.articles-search-bar,
+.article-catalog-card,
+.biaya-cta-banner,
+.inquiry-form-card,
+.kontak-office-card,
+.departure-schedule {
+  border-color: transparent;
+  border-radius: var(--pub-radius);
+  box-shadow: var(--pub-card-shadow);
+}
+
+a.division-btn-card,
+a.article-catalog-card {
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+a.division-btn-card:hover,
+a.article-catalog-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--pub-card-shadow-hover);
+}
+
+/* 4. Label kecil: satu gaya di seluruh halaman. */
+.card-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+/* 5. Kontrol: tinggi dan radius yang sama, cincin fokus emas. */
+.field-group input,
+.field-group select,
+.field-group textarea,
+.articles-search-bar input,
+.faq-input-row input {
+  border-radius: 12px;
+  border-color: var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface);
+  font-size: 15px;
+}
+
+.field-group input:focus,
+.field-group select:focus,
+.field-group textarea:focus,
+.articles-search-bar input:focus,
+.faq-input-row input:focus {
+  border-color: var(--md-sys-color-primary);
+  box-shadow: 0 0 0 3px var(--gold-glow, rgba(231, 177, 12, 0.28));
+}
+
+.button {
+  min-height: var(--pub-control-height);
+  font-size: 15px;
+}
+
+/* Tombol utama tidak melebar penuh di layar lebar; tetap penuh di ponsel. */
+@media (min-width: 641px) {
+  .biaya-programs-section .button,
+  .kontak-hero .button,
+  .article-cta-box .button {
+    width: auto;
+  }
+}
+
+/* 6. Keadaan kosong: satu bentuk, tanpa kotak putus-putus. */
+.policy-placeholder,
+.empty-docs-note,
+.articles-loading-indicator,
+.departure-schedule__empty,
+.article-loading-state,
+.article-card-cover--empty {
+  border: 0;
+  border-radius: var(--pub-radius-sm);
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 18px 20px;
+  text-align: left;
+}
+
+.article-card-cover--empty {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  text-align: center;
+}
+
+/* Lapisan penyeragaman, bagian kedua: perataan, kartu di dalam kartu, dan sampul. */
+
+/* Judul bagian rata kiri di semua halaman, sama seperti beranda. */
+main .section-heading--center,
+main .section-intro--center,
+main [class*="heading--center"] {
+  text-align: left;
+}
+
+main .section-heading--center p,
+main .section-intro--center p,
+main [class*="heading--center"] p,
+main .section-heading--center .eyebrow + h1 + p,
+main .section-heading--center .eyebrow + h2 + p {
+  margin-inline: 0;
+}
+
+/* Kolom isi mengikuti kepala halaman, tidak melayang di tengah. */
+.lookup-card-wrap,
+.status-page-main .detail-card,
+.articles-controls-wrap {
+  margin-inline: 0;
+}
+
+main .eyebrow + h1 {
+  max-width: 22ch;
+}
+
+/* Satu kartu, bukan kartu di dalam kartu. */
+.articles-subscribe-section .subscribe-box {
+  border-color: transparent;
+  border-radius: var(--pub-radius);
+  box-shadow: var(--pub-card-shadow);
+}
+
+.article-reader-card .article-cover,
+.article-reader-card .article-cover--empty {
+  border: 0;
+  box-shadow: none;
+  border-radius: var(--pub-radius-sm);
+  margin: 0 0 24px;
+}
+
+.article-card-cover {
+  border-radius: var(--pub-radius-sm);
+}

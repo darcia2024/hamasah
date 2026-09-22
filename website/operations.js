@@ -292,7 +292,7 @@ const visaStudentSelect = document.querySelector('#visa-student');
 const VISA_DOCUMENT_LABELS = Object.freeze({
   passport: 'Paspor',
   visa: 'Visa',
-  residence: 'Izin Tinggal',
+  residence: 'Izin tinggal',
   other: 'Lainnya'
 });
 
