@@ -48,16 +48,22 @@ function readEmailConfig(values, appEnvironment) {
     throw new Error(`EMAIL_DRIVER 'console' tidak boleh dipakai di lingkungan ${appEnvironment}.`);
   }
   const appBaseUrl = optionalEnvironment(values, 'APP_BASE_URL');
-  if (driver === 'resend') {
-    const resendApiKey = requiredEnvironment(values, 'RESEND_API_KEY', appEnvironment);
-    const emailFrom = requiredEnvironment(values, 'EMAIL_FROM', appEnvironment);
-    if (!appBaseUrl) throw new Error(`APP_BASE_URL harus diisi untuk menjalankan ${appEnvironment} dengan email.`);
+  // Staging dan production selalu butuh host absolut: tautan email, tag bagikan, dan
+  // sitemap (Phase R7) tidak boleh menebak host dari header permintaan.
+  if (!appBaseUrl && (driver === 'resend' || ['staging', 'production'].includes(appEnvironment))) {
+    throw new Error(`APP_BASE_URL harus diisi untuk menjalankan ${appEnvironment}${driver === 'resend' ? ' dengan email' : ''}.`);
+  }
+  if (appBaseUrl) {
     try {
       const parsed = new URL(appBaseUrl);
       if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('protokol');
     } catch (error) {
       throw new Error('APP_BASE_URL harus memakai URL http atau https.');
     }
+  }
+  if (driver === 'resend') {
+    const resendApiKey = requiredEnvironment(values, 'RESEND_API_KEY', appEnvironment);
+    const emailFrom = requiredEnvironment(values, 'EMAIL_FROM', appEnvironment);
     return Object.freeze({ driver, resendApiKey, emailFrom, appBaseUrl: appBaseUrl.replace(/\/$/, '') });
   }
   return Object.freeze({ driver, resendApiKey: '', emailFrom: '', appBaseUrl: appBaseUrl.replace(/\/$/, '') });

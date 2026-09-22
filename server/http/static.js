@@ -1,6 +1,7 @@
 // Penyajian berkas statis: halaman website dan aset.
 // Hanya folder website/ dan assets/ yang boleh dibaca.
 
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const zlib = require('node:zlib');
@@ -78,11 +79,11 @@ function chooseEncoding(acceptEncoding) {
   return null;
 }
 
-function compressedVariant(filePath, etag, encoding) {
+function compressedVariant(filePath, etag, encoding, content) {
   const key = `${filePath}|${encoding}`;
   const cached = compressionCache.get(key);
   if (cached && cached.etag === etag) return cached.body;
-  const source = fs.readFileSync(filePath);
+  const source = content || fs.readFileSync(filePath);
   const body = encoding === 'br'
     ? zlib.brotliCompressSync(source, { params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 5 } })
     : zlib.gzipSync(source, { level: 6 });
@@ -93,10 +94,20 @@ function compressedVariant(filePath, etag, encoding) {
 
 // Mengirim satu berkas dengan ETag, Cache-Control, 304, dan kompresi. `request` boleh
 // kosong (test dan pemanggil lama): hasilnya berkas apa adanya tanpa validasi.
-function sendFile(response, request, filePath, search) {
+// `transform(html)` (opsional, hanya HTML) mengembalikan isi pengganti, mis. halaman publik
+// yang diberi tag bagikan; ETag-nya lalu dihitung dari isi hasil, bukan dari berkas.
+function sendFile(response, request, filePath, search, transform) {
   const extension = path.extname(filePath).toLocaleLowerCase('en-US');
   const stat = fs.statSync(filePath);
-  const etag = etagFor(stat);
+  let content = null;
+  if (transform && extension === '.html') {
+    const replaced = transform(fs.readFileSync(filePath, 'utf8'));
+    if (typeof replaced === 'string') content = Buffer.from(replaced, 'utf8');
+  }
+  const etag = content
+    ? `W/"${crypto.createHash('sha1').update(content).digest('hex').slice(0, 16)}"`
+    : etagFor(stat);
+  const size = content ? content.length : stat.size;
   const headers = {
     'Content-Type': MIME_TYPES[extension] || 'application/octet-stream',
     'X-Content-Type-Options': 'nosniff',
@@ -115,9 +126,9 @@ function sendFile(response, request, filePath, search) {
     return;
   }
 
-  const encoding = compressible && stat.size > 512 ? chooseEncoding(requestHeaders['accept-encoding']) : null;
+  const encoding = compressible && size > 512 ? chooseEncoding(requestHeaders['accept-encoding']) : null;
   if (encoding) {
-    const body = compressedVariant(filePath, etag, encoding);
+    const body = compressedVariant(filePath, etag, encoding, content);
     headers['Content-Encoding'] = encoding;
     headers['Content-Length'] = body.length;
     response.writeHead(200, headers);
@@ -125,8 +136,12 @@ function sendFile(response, request, filePath, search) {
     return;
   }
 
-  headers['Content-Length'] = stat.size;
+  headers['Content-Length'] = size;
   response.writeHead(200, headers);
+  if (content) {
+    response.end(content);
+    return;
+  }
   fs.createReadStream(filePath).pipe(response);
 }
 
@@ -182,7 +197,9 @@ function notFound(response, rootDirectory) {
   response.end('Halaman tidak ditemukan.');
 }
 
-function serveStaticFile(response, { pathname, rootDirectory, request, search }) {
+// `transformHtml(relativePath, html)` (opsional) boleh mengembalikan isi pengganti untuk
+// satu halaman HTML, atau null untuk menyajikannya apa adanya.
+function serveStaticFile(response, { pathname, rootDirectory, request, search, transformHtml }) {
   if (pathname === '/website') {
     response.writeHead(301, { Location: '/website/' });
     response.end();
@@ -264,7 +281,8 @@ function serveStaticFile(response, { pathname, rootDirectory, request, search })
     return;
   }
 
-  sendFile(response, request, filePath, search);
+  const relativePath = path.relative(rootPath, filePath).split(path.sep).join('/');
+  sendFile(response, request, filePath, search, transformHtml && ((html) => transformHtml(relativePath, html)));
 }
 
-module.exports = { MIME_TYPES, SERVABLE_EXTENSIONS, serveStaticFile };
+module.exports = { MIME_TYPES, SERVABLE_EXTENSIONS, sendFile, serveStaticFile };

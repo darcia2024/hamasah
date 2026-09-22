@@ -37,6 +37,7 @@ const { createSupabaseStorage } = require('./storage/supabase.js');
 const { json, tooManyRequests } = require('./http/respond.js');
 const { MAX_REQUEST_BODY_BYTES, RequestBodyError, readJsonBody } = require('./http/body.js');
 const { serveStaticFile } = require('./http/static.js');
+const seo = require('./seo.js');
 const { createRequestAuth, hashToken, safeEqual } = require('./http/auth.js');
 const { NOT_ALLOWED, NOT_SIGNED_IN, roleHasPermission } = require('./access-policy.js');
 const { TOO_MANY_REQUESTS, createRateLimiter } = require('./rate-limit.js');
@@ -122,6 +123,8 @@ function createHamasahApp(options) {
     appBaseUrl: config.appBaseUrl || process.env.APP_BASE_URL || 'http://localhost:4273',
     senderTimeoutMs: Number(config.notificationSenderTimeoutMs || process.env.NOTIFICATION_SENDER_TIMEOUT_MS || 10000)
   });
+  // Host untuk URL absolut di tag bagikan dan sitemap (Phase R7).
+  const siteBaseUrl = String(config.appBaseUrl || email.appBaseUrl || process.env.APP_BASE_URL || '').replace(/\/+$/, '');
   const auditStore = config.auditStore || createPostgresAuditStore({ database });
   const auditService = config.auditService || createAuditService({
     store: auditStore,
@@ -310,7 +313,14 @@ function createHamasahApp(options) {
         }
         return;
       }
-      serveStaticFile(response, { pathname: url.pathname, rootDirectory, request, search: url.search });
+      const origin = seo.resolveOrigin({ appBaseUrl: siteBaseUrl, request, appEnvironment });
+      serveStaticFile(response, {
+        pathname: url.pathname,
+        rootDirectory,
+        request,
+        search: url.search,
+        transformHtml: (relativePath, html) => seo.decoratePublicPage(relativePath, html, origin)
+      });
     } catch (error) {
       if (error instanceof RequestBodyError) {
         json(response, error.status, { error: error.message });
