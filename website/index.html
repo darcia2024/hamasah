@@ -12,11 +12,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website-core.css?v=37c09cfe85" />
     <link rel="stylesheet" href="website-public.css?v=bd738f8e56" />
+    <link rel="stylesheet" href="landing.css?v=7de5bfff3a" />
   </head>
   <body>
     <a class="skip-link" href="#konten">Lewati ke konten utama</a>
-
-    <!-- Top floating frosted glass navigation -->
     <header class="site-header">
       <div class="shell nav-wrap">
         <a class="brand" href="#beranda" aria-label="Hamasah International, kembali ke beranda">
@@ -33,478 +32,306 @@
         </button>
 
         <nav class="site-nav" id="site-nav" aria-label="Navigasi utama">
-          <a href="#program">Program Studi</a>
+          <a href="#program">Program</a>
           <a href="biaya.html">Biaya & Fasilitas</a>
           <a href="articles.html">Pena Hamasah</a>
           <a href="cek-status.html">Cek Status</a>
           <a href="kontak.html">Kontak</a>
           <a href="portal.html" class="nav-portal">Portal Santri</a>
-          <a class="nav-cta" href="#pendaftaran">Daftar Awal</a>
+          <a class="nav-cta" href="#pendaftaran">Daftar konsultasi</a>
         </nav>
       </div>
     </header>
 
-    <main id="konten">
-      <!-- Hero Section -->
-      <section class="hero" id="beranda">
-        <div class="hero-glow" aria-hidden="true"></div>
-        <div class="shell hero-grid">
-          <div class="hero-copy">
-            <div class="hero-badge">
-              <span class="badge-dot" aria-hidden="true"></span>
-              <span class="hero-badge-sparkle"><svg class="m3-icon m3-icon--sparkle" viewBox="0 0 24 24"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg></span>
-              <span>Pendampingan Studi Al-Azhar dari Indonesia hingga Kairo</span>
-            </div>
-            
-            <h1>Langkah tenang & terarah menuju <em>Al-Azhar Kairo.</em></h1>
-            
-            <p class="hero-intro">
-              Konsultan dan pendamping pelajar Indonesia menuju Universitas Al-Azhar Mesir. Dari pemilihan fakultas, persiapan Tahdid Mustawa, legalisasi berkas, hingga penyambutan asrama di Kairo.
-            </p>
-            
-            <div class="hero-actions">
-              <a class="button button--primary" href="#pendaftaran">
-                <span>Mulai Konsultasi Pendaftaran</span>
+    <main id="konten" class="lp">
+      <section class="lp-hero" id="beranda" aria-labelledby="hero-title">
+        <div class="shell lp-hero__grid">
+          <div class="lp-hero__copy">
+            <p class="lp-hero__kicker">Pendampingan studi <span class="lp-nb">Al-Azhar</span>, dari Indonesia ke Kairo</p>
+            <h1 id="hero-title">Belajar ke <span class="lp-nb">Al-Azhar,</span> <em>didampingi sejak awal.</em></h1>
+            <p class="lp-hero__lede">Kami membantu pelajar Indonesia memilih jalur, menyiapkan bahasa Arab dan berkas, hingga tiba dan tinggal di Kairo.</p>
+            <div class="lp-hero__actions">
+              <a class="button button--primary lp-cta" href="#pendaftaran">
+                <span>Daftar konsultasi</span>
                 <span class="btn-arrow" aria-hidden="true"></span>
               </a>
-              <a class="button button--secondary" href="#program">
-                <span>Jelajahi Program</span>
-                <span class="btn-arrow" aria-hidden="true">↓</span>
-              </a>
-            </div>
-
-            <!-- Trust Metrics / Reassurance Ribbon -->
-            <div class="hero-metrics" aria-label="Ringkasan pendampingan Hamasah International">
-              <div class="metric-item">
-                <strong>Sejak awal</strong>
-                <span>Pendampingan pendaftaran hingga keberangkatan</span>
-              </div>
-              <div class="metric-divider" aria-hidden="true"></div>
-              <div class="metric-item">
-                <strong>3 Jalur</strong>
-                <span>Kuliah, Ma'had & Kursus</span>
-              </div>
-              <div class="metric-divider" aria-hidden="true"></div>
-              <div class="metric-item">
-                <strong>Di Kairo</strong>
-                <span>Pendampingan asrama dan orientasi santri</span>
-              </div>
+              <a class="lp-link" href="#program">Lihat tiga program</a>
             </div>
           </div>
 
-          <div class="hero-media" aria-label="Visual arsitektur bersejarah Kairo Mesir">
-            <div class="hero-media-wrapper">
-              <div class="hero-arch">
-                <img src="../assets/cairo-arches.jpg" alt="Kemegahan arsitektur Al-Azhar dan masjid bersejarah Kairo" width="900" height="760" priority />
-                <div class="hero-media-overlay" aria-hidden="true"></div>
-                
-                <!-- Floating status chip -->
-                <div class="hero-floating-chip">
-                  <span class="chip-pin" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg></span>
-                  <div>
-                    <strong>Hay Asyir, Kairo</strong>
-                    <small>Pusat Pendampingan & Asrama Hamasah</small>
-                  </div>
-                </div>
-
-              </div>
-
-              <!-- Floating reassurance badge stays outside the clipped photo frame. -->
-              <div class="hero-floating-badge">
-                <span class="badge-icon" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
-                <div>
-                    <strong>Pendampingan Terstruktur</strong>
-                    <small>Mengikuti tahapan pendaftaran Al-Azhar</small>
-                </div>
-              </div>
-            </div>
-          </div>
+          <figure class="lp-hero__media">
+            <img src="../assets/cairo-arches.jpg" alt="Serambi berpilar dan kubah masjid bersejarah di Kairo" width="2000" height="1333" fetchpriority="high" decoding="async" />
+            <figcaption class="lp-hero__caption">
+              <span class="lp-hero__pin" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg></span>
+              <span><strong>Hay Asyir, Kairo</strong><small>Asrama dan pusat pendampingan Hamasah</small></span>
+            </figcaption>
+          </figure>
         </div>
-      </section>
 
-      <!-- Entry Points (Bento Quick Access) -->
-      <section class="entry-points" aria-labelledby="mulai-dari-sini">
         <div class="shell">
-          <div class="section-intro">
-            <p class="eyebrow">Akses Cepat Layanan</p>
-            <h2 id="mulai-dari-sini">Pilih gerbang masa depan pendidikan Anda.</h2>
-            <p>Jalur komprehensif bagi calon mahasiswa sarjana, pelajar sekolah formal, hingga santri daring.</p>
-          </div>
+          <ul class="lp-assure" aria-label="Yang Anda dapatkan bersama Hamasah">
+            <li>
+              <strong>Satu tim, Indonesia sampai Kairo</strong>
+              <span>Konsultasi, berkas resmi, visa, sampai penjemputan di bandara.</span>
+            </li>
+            <li>
+              <strong>Status pendaftaran selalu terlihat</strong>
+              <span>Pantau tahapan dan unggah berkas di halaman <a href="cek-status.html">Cek status</a>.</span>
+            </li>
+            <li>
+              <strong>Wali ikut memantau</strong>
+              <span>Presensi, hafalan, rapor, dan kuitansi tersedia di portal wali.</span>
+            </li>
+          </ul>
+        </div>
+      </section>
 
-          <div class="entry-grid">
-            <a class="entry entry--program" href="#kuliah">
-              <div class="entry-header">
-                <span class="entry-number" aria-hidden="true">01</span>
-                <span class="entry-arrow" aria-hidden="true"></span>
-              </div>
-              <div class="entry-copy">
-                <strong>Program Kuliah Al-Azhar</strong>
-                <small>Bimbingan studi S1 bagi lulusan SMA/MA ke fakultas keislaman & umum Universitas Al-Azhar Kairo.</small>
-              </div>
-              <div class="entry-footer">
-                <span class="entry-tag">Jalur Strata-1 (S1)</span>
-              </div>
+      <section class="lp-section" id="program" aria-labelledby="program-title">
+        <div class="shell">
+          <header class="lp-head">
+            <p class="eyebrow">Program</p>
+            <h2 class="lp-h2" id="program-title">Tiga jalur, satu pendampingan yang sama.</h2>
+            <p class="lp-lede">Pilih sesuai usia dan tujuan belajar. Belum yakin? Kita timbang bersama saat konsultasi.</p>
+          </header>
+
+          <div class="lp-paths">
+            <a class="lp-path lp-path--feature" href="#kuliah">
+              <img src="../assets/cairo-skyline.jpg" alt="" width="2200" height="1469" loading="lazy" decoding="async" />
+              <span class="lp-path__body">
+                <span class="lp-path__meta">Lulusan SMA, MA, atau pesantren</span>
+                <strong class="lp-path__title">Kuliah S1 <span class="lp-nb">Al-Azhar</span></strong>
+                <span class="lp-path__text">Bahasa Arab, Tahdid Mustawa, pilihan fakultas, dan berkas sampai resmi terdaftar.</span>
+                <span class="lp-path__more">Selengkapnya</span>
+              </span>
             </a>
 
-            <a class="entry entry--news" href="#mahad">
-              <div class="entry-header">
-                <span class="entry-number" aria-hidden="true">02</span>
-                <span class="entry-arrow" aria-hidden="true"></span>
-              </div>
-              <div class="entry-copy">
-                <strong>Program Ma'had Al-Azhar</strong>
-                <small>Pendidikan formal bersanad tingkat sekolah (Ibtidai, I'dadi, Tsanawi) langsung di jantung Kairo.</small>
-              </div>
-              <div class="entry-footer">
-                <span class="entry-tag">Pendidikan Formal</span>
-              </div>
+            <a class="lp-path" href="#mahad">
+              <span class="lp-path__meta">Usia SD sampai SMA</span>
+              <strong class="lp-path__title">Ma'had <span class="lp-nb">Al-Azhar</span></strong>
+              <span class="lp-path__text">Sekolah formal <span class="lp-nb">Al-Azhar</span> di Kairo, lengkap dengan asrama dan musyrif.</span>
+              <span class="lp-path__more">Selengkapnya</span>
             </a>
 
-            <a class="entry entry--help" href="#courses">
-              <div class="entry-header">
-                <span class="entry-number" aria-hidden="true">03</span>
-                <span class="entry-arrow" aria-hidden="true"></span>
-              </div>
-              <div class="entry-copy">
-                <strong>Hamasah Courses</strong>
-                <small>Pembelajaran digital intensif nahwu, sharaf, balaghah, dan adab secara bertahap & terstruktur.</small>
-              </div>
-              <div class="entry-footer">
-                <span class="entry-tag">Platform Belajar Online</span>
-              </div>
-            </a>
-
-            <a class="entry entry--santri" href="portal.html">
-              <div class="entry-header">
-                <span class="entry-number" aria-hidden="true">04</span>
-                <span class="entry-arrow" aria-hidden="true"></span>
-              </div>
-              <div class="entry-copy">
-                <strong>Portal Santri & Wali</strong>
-                <small>Dashboard terpadu presensi sholat, capaian tahfidz, evaluasi musyrif, dan laporan belajar berkala.</small>
-              </div>
-              <div class="entry-footer">
-                <span class="entry-tag entry-tag--gold">Akses Akun Terproteksi</span>
-              </div>
+            <a class="lp-path" href="#courses">
+              <span class="lp-path__meta">Daring, dari mana saja</span>
+              <strong class="lp-path__title">Hamasah Courses</strong>
+              <span class="lp-path__text">Nahwu, sharaf, adab, dan balaghah bertahap sebagai bekal membaca kitab.</span>
+              <span class="lp-path__more">Selengkapnya</span>
             </a>
           </div>
         </div>
       </section>
 
-      <!-- Program Overview Section -->
-      <section class="program-section" id="program" aria-labelledby="program-title">
-        <div class="shell program-grid">
-          <div class="program-visual">
-            <div class="image-frame">
-              <img src="../assets/hero-student.jpg" alt="Santri Hamasah sedang menelaah kitab bersama pengajar" width="900" height="1050" loading="lazy" />
-              <div class="image-badge">
-                <span class="hero-badge-sparkle"><svg class="m3-icon m3-icon--sparkle" viewBox="0 0 24 24"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg></span>
-                <span>Pendampingan Belajar Talaqqi</span>
+      <section class="lp-section lp-section--tint" id="kuliah" aria-labelledby="kuliah-title">
+        <div class="shell lp-split">
+          <div class="lp-split__copy">
+            <p class="lp-index">Jalur 1 · Kuliah S1</p>
+            <h2 class="lp-h2" id="kuliah-title">Kuliah di Universitas <span class="lp-nb">Al-Azhar</span> Kairo.</h2>
+            <p class="lp-lede">Untuk lulusan SMA, MA, pesantren muadalah, atau sederajat. Kami menemani dari memilih fakultas dan menyiapkan bahasa Arab, sampai Anda resmi tercatat sebagai mahasiswa.</p>
+            <a class="lp-link" href="#pendaftaran">Konsultasikan jalur kuliah</a>
+          </div>
+
+          <div class="lp-panel">
+            <div class="lp-panel__row">
+              <h3>Fakultas yang bisa dituju</h3>
+              <div class="lp-faculties">
+                <div>
+                  <p class="lp-label">Putra (banin)</p>
+                  <p>Ushuluddin, Syariah wal Qanun, Bahasa Arab, Dirasat Islamiyah, dan Dakwah Islamiyah.</p>
+                </div>
+                <div>
+                  <p class="lp-label">Putri (banat)</p>
+                  <p>Dirasat Islamiyah wal Arabiyah, bidang Ushuluddin, Syariah Islamiyah, dan Bahasa Arab.</p>
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div class="program-copy">
-            <p class="eyebrow">Fokus Pembinaan</p>
-            <h2 id="program-title">Pendampingan utuh sejak niat pertama hingga wisuda.</h2>
-            <p class="section-desc">
-              Menuntut ilmu ke Al-Azhar membutuhkan persiapan matang. Hamasah hadir memastikan Anda melewati setiap rintangan administrasi dan akademik dengan tenang.
-            </p>
-            
-            <div class="program-list" aria-label="Pilar utama bimbingan Hamasah">
-              <article class="program-item">
-                <div class="program-icon-box">01</div>
-                <div>
-                  <h3>Konsultasi & pemetaan jalur studi</h3>
-                  <p>Menentukan fakultas dan jenjang yang tepat sesuai minat keilmuan, latar belakang sekolah, dan prospek masa depan.</p>
-                </div>
-              </article>
-              
-              <article class="program-item">
-                <div class="program-icon-box">02</div>
-                <div>
-                  <h3>Matrikulasi bahasa (Tahdid Mustawa)</h3>
-                  <p>Pelatihan bahasa Arab standar Al-Azhar untuk persiapan tes penempatan Markaz Lughoh Syaikh Zaid Kairo.</p>
-                </div>
-              </article>
-              
-              <article class="program-item">
-                <div class="program-icon-box">03</div>
-                <div>
-                  <h3>Legalisasi berkas & visa pelajar</h3>
-                  <p>Pengurusan dokumen Kemenag, Kemlu, Kemenkumham, serta Kedutaan Besar Mesir hingga tiket keberangkatan.</p>
-                </div>
-              </article>
+            <div class="lp-panel__row">
+              <h3>Tahdid Mustawa, tes penempatan bahasa</h3>
+              <ol class="lp-levels" aria-label="Tingkat penempatan bahasa Arab">
+                <li>Mubtadi</li>
+                <li>Mutawasith</li>
+                <li>Mutaqaddim</li>
+              </ol>
+              <p class="lp-note">Hasil tes menentukan tingkat persiapan bahasa sebelum kuliah resmi dimulai.</p>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Program Detail 01: Kuliah Al-Azhar -->
-      <section class="program-detail" id="kuliah" aria-labelledby="kuliah-title">
-        <div class="shell detail-layout">
-          <div class="detail-intro">
-            <p class="eyebrow">01 · Program Sarjana (S1)</p>
-            <h2 id="kuliah-title">Persiapan kuliah di Universitas Al-Azhar Kairo.</h2>
-            <p>
-              Program bimbingan khusus bagi lulusan SMA, MA, Pesantren Muadalah, atau sederajat. Mengantarkan Anda menjadi bagian dari ribuan penuntut ilmu dunia di kampus tertua dan paling dihormati di dunia Islam.
-            </p>
-            <div class="detail-cta-wrap">
-              <a class="button button--primary" href="#pendaftaran">Daftar Jalur Kuliah</a>
-            </div>
+      <section class="lp-section" id="mahad" aria-labelledby="mahad-title">
+        <div class="shell lp-split lp-split--reverse">
+          <div class="lp-split__copy">
+            <p class="lp-index">Jalur 2 · Ma'had</p>
+            <h2 class="lp-h2" id="mahad-title">Sekolah formal <span class="lp-nb">Al-Azhar</span> sejak usia dini.</h2>
+            <p class="lp-lede">Anak belajar dalam tradisi <span class="lp-nb">Al-Azhar</span>: adab, hafalan <span class="lp-nb">Al-Qur'an</span>, bahasa Arab, dan ilmu keislaman yang moderat, sambil tinggal di asrama yang diawasi musyrif.</p>
+            <ul class="lp-checks">
+              <li>Tahfidz <span class="lp-nb">Al-Qur'an</span> dan kajian matan bersanad</li>
+              <li>Bahasa Arab aktif, lisan dan tulisan</li>
+              <li>Asrama ber-AC di Hay Asyir dengan musyrif 24 jam</li>
+              <li>Laporan berkala untuk wali lewat portal</li>
+            </ul>
+            <a class="lp-link" href="#pendaftaran">Konsultasikan jalur ma'had</a>
           </div>
 
-          <div class="study-map">
-            <article class="study-map__feature">
-              <div class="feature-head">
-                <span class="mini-icon" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M3 21h18M3 10h18M5 10v11M9 10v11M15 10v11M19 10v11M12 2L2 7h20L12 2z"/></svg></span>
-                <strong>Fakultas Pilihan Resmi</strong>
-              </div>
-              <p>Tersedia untuk banin (putra) dan banat (putri) dengan sistem kurikulum talaqqi dan muqarrar resmi Al-Azhar.</p>
-            </article>
-
-            <article class="study-card">
-              <p class="card-label">Pilihan Banin (Putra)</p>
-              <h3>Ushuluddin, Syariah wal Qanun, Bahasa Arab, Dirasat Islamiyah, & Dakwah Islamiyah.</h3>
-            </article>
-
-            <article class="study-card">
-              <p class="card-label">Pilihan Banat (Putri)</p>
-              <h3>Dirasat Islamiyah wal Arabiyah (Bidang Ushuluddin, Syariah Islamiyah, & Bahasa Arab).</h3>
-            </article>
-
-            <article class="study-map__levels">
-              <p class="card-label">Jenjang Ujian Bahasa (Tahdid Mustawa)</p>
-              <div class="level-badges" aria-label="Enam jenjang penempatan bahasa Arab">
-                <span class="level-pill">Mubtadi</span>
-                <span class="level-arrow" aria-hidden="true"></span>
-                <span class="level-pill">Mutawasith</span>
-                <span class="level-arrow" aria-hidden="true"></span>
-                <span class="level-pill">Mutaqaddim</span>
-              </div>
-              <small>Hasil penempatan menentukan kesiapan sebelum masuk kuliah resmi di Al-Azhar.</small>
-            </article>
+          <div class="lp-panel">
+            <div class="lp-panel__row">
+              <h3>Jenjang yang tersedia</h3>
+              <dl class="lp-stages">
+                <div><dt>Ibtidai</dt><dd>Setingkat SD atau MI</dd></div>
+                <div><dt>I'dadi</dt><dd>Setingkat SMP atau MTs</dd></div>
+                <div><dt>Tsanawi</dt><dd>Setingkat SMA atau MA</dd></div>
+              </dl>
+              <p class="lp-note">Ijazah <span class="lp-nb">Al-Azhar</span> dari jenjang Tsanawi menjadi jalan untuk melanjutkan ke universitas.</p>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- Program Detail 02: Ma'had Al-Azhar -->
-      <section class="program-detail program-detail--mahad" id="mahad" aria-labelledby="mahad-title">
-        <div class="shell detail-layout detail-layout--reverse">
-          <div class="detail-intro">
-            <p class="eyebrow">02 · Sekolah Formal</p>
-            <h2 id="mahad-title">Pendidikan formal Al-Azhar sejak usia sekolah.</h2>
-            <p>
-              Bagi peserta usia dini dan remaja yang ingin menimba ilmu langsung dalam tradisi keilmuan Al-Azhar. Menanamkan adab, tahfidz Al-Qur'an, bahasa Arab fasih, serta wawasan keislaman moderat (wasathiyyah).
-            </p>
-            <div class="detail-cta-wrap">
-              <a class="button button--secondary" href="#pendaftaran">Konsultasi Jalur Ma'had</a>
-            </div>
-          </div>
+      <section class="lp-section lp-section--tint" id="courses" aria-labelledby="courses-title">
+        <div class="shell lp-media-split">
+          <figure class="lp-photo">
+            <img src="../assets/hero-student.jpg" alt="Peserta kelas daring belajar di depan laptop" width="1200" height="800" loading="lazy" decoding="async" />
+          </figure>
 
-          <div class="mahad-board">
-            <article class="mahad-board__lead">
-              <div class="feature-head">
-                <span class="mini-icon" aria-hidden="true"><svg class="m3-icon m3-icon--sparkle" viewBox="0 0 24 24"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg></span>
-                <strong>Tingkat Pendidikan Formal</strong>
-              </div>
-              <h3>Belajar, tinggal, dan bertumbuh dalam ritme berkah Kairo.</h3>
-              <p>Mendapat ijazah resmi Al-Azhar yang diakui secara internasional untuk melanjutkan langsung ke jenjang universitas tanpa tes penyetaraan lagi.</p>
-            </article>
-
-            <div class="mahad-board__levels">
-              <div class="mahad-level-card">
-                <strong>Ibtidai</strong>
-                <span>Setingkat SD/MI</span>
-              </div>
-              <div class="mahad-level-card">
-                <strong>I'dadi</strong>
-                <span>Setingkat MTs/SMP</span>
-              </div>
-              <div class="mahad-level-card">
-                <strong>Tsanawi</strong>
-                <span>Setingkat MA/SMA</span>
-              </div>
-            </div>
-
-            <ul class="mahad-features">
-              <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Studi tahfidz Al-Qur'an dan mutun ilmiah bersanad</li>
-              <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Bahasa Arab aktif percakapan dan literasi kitab klasik</li>
-              <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Asrama terpisah berfasilitas AC di kawasan aman Kairo</li>
-              <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Pengawalan musyrif 24 jam dan monitoring berkala ke wali santri</li>
+          <div>
+            <p class="lp-index">Jalur 3 · Kelas daring</p>
+            <h2 class="lp-h2" id="courses-title">Belajar ilmu alat dari rumah.</h2>
+            <p class="lp-lede">Kelas daring bertahap untuk bekal membaca kitab. Cocok sebelum berangkat, atau untuk belajar mandiri.</p>
+            <ul class="lp-courses">
+              <li><strong>Nahwu dasar Jurumiyah</strong><span>Tata bahasa Arab dari matan yang paling banyak dipakai.</span></li>
+              <li><strong>Sharaf Bina' wa Asas</strong><span>Pola perubahan kata, kunci membaca kitab gundul.</span></li>
+              <li><strong>Ta'lim Muta'allim</strong><span>Adab penuntut ilmu dan cara belajar para ulama.</span></li>
+              <li><strong>Balaghah dasar</strong><span>Keindahan susunan makna dalam bahasa <span class="lp-nb">Al-Qur'an</span>.</span></li>
             </ul>
           </div>
         </div>
       </section>
 
-      <!-- Courses Section -->
-      <section class="courses-section" id="courses" aria-labelledby="courses-title">
+      <section class="lp-section" id="proses" aria-labelledby="proses-title">
         <div class="shell">
-          <div class="section-heading section-heading--center">
-            <p class="eyebrow">03 · Kelas Digital Daring</p>
-            <h2 id="courses-title">Belajar ilmu alat tetap berjalan, dari mana saja.</h2>
-            <p>Ruang belajar digital Hamasah untuk ilmu tata bahasa Arab, aqidah, dan adab thalabul ilmi dengan kurikulum terstruktur dan fleksibel.</p>
-          </div>
+          <header class="lp-head">
+            <p class="eyebrow">Alur pendaftaran</p>
+            <h2 class="lp-h2" id="proses-title">Empat langkah dari konsultasi sampai Kairo.</h2>
+            <p class="lp-lede">Setiap tahap tercatat, sehingga Anda dan keluarga selalu tahu posisi pendaftaran.</p>
+          </header>
 
-          <div class="course-grid">
-            <article class="course-card">
-              <div class="course-glyph" aria-hidden="true">ا</div>
-              <p class="card-label">Kelas Dasar</p>
-              <h3>Nahwu Dasar Jurumiyah</h3>
-              <p>Membangun pemahaman tata bahasa Arab dasar dari matan paling otoritatif.</p>
-            </article>
+          <ol class="lp-steps">
+            <li>
+              <span class="lp-steps__num" aria-hidden="true">1</span>
+              <h3>Konsultasi dan pilih program</h3>
+              <p>Kami bantu menimbang jalur yang cocok dengan usia, latar sekolah, dan tujuan belajar.</p>
+            </li>
+            <li>
+              <span class="lp-steps__num" aria-hidden="true">2</span>
+              <h3>Periksa berkas awal</h3>
+              <p>Paspor, ijazah, dan transkrip diperiksa tim sebelum masuk tahap legalisasi.</p>
+            </li>
+            <li>
+              <span class="lp-steps__num" aria-hidden="true">3</span>
+              <h3>Persiapan bahasa</h3>
+              <p>Bimbingan menuju Tahdid Mustawa, tes penempatan bahasa Arab <span class="lp-nb">Al-Azhar</span>.</p>
+            </li>
+            <li>
+              <span class="lp-steps__num" aria-hidden="true">4</span>
+              <h3>Visa dan keberangkatan</h3>
+              <p>Visa pelajar, tiket rombongan, penjemputan bandara, dan orientasi asrama.</p>
+            </li>
+          </ol>
 
-            <article class="course-card">
-              <div class="course-glyph" aria-hidden="true">ب</div>
-              <p class="card-label">Kelas Morfologi</p>
-              <h3>Sharaf Bina' wa Asas</h3>
-              <p>Memahami rumus perubahan bentuk kata sebagai kunci membaca kitab gundul.</p>
-            </article>
-
-            <article class="course-card">
-              <div class="course-glyph" aria-hidden="true">۞</div>
-              <p class="card-label">Adab & Akhlak</p>
-              <h3>Ta'lim Muta'allim</h3>
-              <p>Menyelami adab penuntut ilmu, berkah guru, dan metode belajar para ulama.</p>
-            </article>
-
-            <article class="course-card">
-              <div class="course-glyph" aria-hidden="true">◌</div>
-              <p class="card-label">Sastra Arab</p>
-              <h3>Balaghah Dasar</h3>
-              <p>Merasakan keindahan susunan makna dan rahasia retorika bahasa Al-Qur'an.</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- Journey / Step-by-Step Registration -->
-      <section class="news-section" id="proses" aria-labelledby="proses-title">
-        <div class="shell news-layout">
-          <div class="news-heading">
-            <p class="eyebrow">Tahapan Pendaftaran</p>
-            <h2 id="proses-title">Alur yang jelas dan transparan sejak langkah pertama.</h2>
-            <p>Calon santri dan wali santri dapat memantau setiap langkah keberangkatan secara tenang dengan panduan resmi tim kami.</p>
-          </div>
-
-          <div class="process-board" aria-label="Alur pendampingan keberangkatan">
-            <article class="process-step">
-              <div class="step-num">01</div>
-              <div class="step-content">
-                <h3>Konsultasi & pilih program</h3>
-                <p>Tentukan jalur Kuliah, Ma'had, atau Kursus sesuai cita-cita studi dan latar belakang pendidikan Anda.</p>
-              </div>
-            </article>
-
-            <article class="process-step">
-              <div class="step-num">02</div>
-              <div class="step-content">
-                <h3>Verifikasi berkas awal</h3>
-                <p>Pengumpulan data, paspor, ijazah, dan transkrip nilai untuk diteliti oleh tim legalisasi kami.</p>
-              </div>
-            </article>
-
-            <article class="process-step">
-              <div class="step-num">03</div>
-              <div class="step-content">
-                <h3>Matrikulasi & ujian bahasa</h3>
-                <p>Bimbingan persiapan Tahdid Mustawa dan tes penempatan bahasa Arab resmi Al-Azhar.</p>
-              </div>
-            </article>
-
-            <article class="process-step">
-              <div class="step-num">04</div>
-              <div class="step-content">
-                <h3>Visa & keberangkatan Kairo</h3>
-                <p>Penerbitan visa pelajar Mesir, tiket penerbangan rombongan, penjemputan bandara, dan orientasi asrama.</p>
-              </div>
-            </article>
-          </div>
-
-          <aside class="process-note" aria-labelledby="dokumen-title">
-            <div class="note-header">
-              <span class="note-icon" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6M9 16h6"/></svg></span>
-              <h3 id="dokumen-title">Dokumen awal yang perlu disiapkan</h3>
+          <aside class="lp-docs" aria-labelledby="dokumen-title">
+            <div>
+              <h3 id="dokumen-title">Dokumen yang perlu disiapkan</h3>
+              <p>Daftar lengkapnya kami pandu satu per satu setelah data awal diterima.</p>
             </div>
-            <ul class="doc-list">
-              <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Paspor asli dengan masa berlaku minimal 18 bulan</li>
-              <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Ijazah & Transkrip Nilai SMA/MA/Pesantren legalisir</li>
-              <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Akta Kelahiran dan Kartu Keluarga</li>
-              <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Surat keterangan sehat dan bebas penyakit menular</li>
-              <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span> Pasfoto resmi latar putih ukuran 4x6 (6 lembar)</li>
+            <ul class="lp-checks lp-checks--two">
+              <li>Paspor berlaku minimal 18 bulan</li>
+              <li>Ijazah dan transkrip yang dilegalisir</li>
+              <li>Akta kelahiran dan kartu keluarga</li>
+              <li>Surat keterangan sehat</li>
+              <li>Pasfoto 4x6 latar putih, 6 lembar</li>
             </ul>
-            <p class="doc-disclaimer">
-              *Detail kelengkapan berkas akan dipandu secara personal oleh tim pemberkasan Hamasah setelah data awal diterima.
-            </p>
           </aside>
         </div>
       </section>
 
-      <!-- Life in Cairo / Gallery Section -->
-      <section class="activity-section" id="kegiatan" aria-labelledby="kegiatan-title">
+      <section class="lp-section lp-section--tint" id="kegiatan" aria-labelledby="kegiatan-title">
         <div class="shell">
-          <div class="section-heading activity-heading">
-            <p class="eyebrow">Galeri Kehidupan di Mesir</p>
-            <h2 id="kegiatan-title">Menempa ilmu, adab, dan ukhuwah di tanah Kinanah.</h2>
-            <p>Keseharian santri Hamasah di Kairo dirancang seimbang: talaqqi keilmuan para masyayikh, rutinitas ibadah berjamaah, kenyamanan asrama, serta kehangatan keluarga baru.</p>
-          </div>
+          <header class="lp-head lp-head--row">
+            <h2 class="lp-h2" id="kegiatan-title">Keseharian di Kairo: ilmu, ibadah, dan keluarga baru.</h2>
+            <p class="lp-lede">Hari-hari santri diatur seimbang antara talaqqi, ibadah berjamaah, istirahat, dan kebersamaan.</p>
+          </header>
 
-          <div class="activity-grid">
-            <article class="activity-card activity-card--large">
-              <img src="../assets/cairo-skyline.jpg" alt="Panorama kota Kairo dengan menara masjid yang megah" loading="lazy" />
-              <div class="activity-card-content">
-                <p class="card-label">Ibadah & Talaqqi</p>
-                <h3>Sholat Subuh berjamaah, tahfidz harian, dan talaqqi di Rawaq Masjid Al-Azhar.</h3>
-              </div>
-            </article>
-
-            <article class="activity-card activity-card--gold">
-              <div class="activity-icon-badge" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
-              <p class="card-label">Asrama Hay Asyir</p>
-              <h3>Kamar tidur ber-AC, katering menu nusantara, dan lingkungan tenang untuk mudzakarah.</h3>
-            </article>
-
-            <article class="activity-card">
-              <div class="activity-icon-badge" aria-hidden="true"><svg class="m3-icon m3-icon--sparkle" viewBox="0 0 24 24"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg></div>
-              <p class="card-label">Bimbingan Musyrif</p>
-              <h3>Evaluasi adab harian, pendampingan kesehatan, dan laporan teratur ke orang tua santri.</h3>
-            </article>
-
-            <article class="activity-card activity-card--dark">
-              <div class="activity-icon-badge" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></div>
-              <p class="card-label">Rihlah & Budaya</p>
-              <h3>Orientasi mahasiswa baru, ziarah makam aulia dan ulama Kairo, serta kebersamaan hari raya.</h3>
-            </article>
+          <div class="lp-gallery">
+            <figure class="lp-gallery__photo">
+              <img src="../assets/cairo-skyline.jpg" alt="Menara dan kubah masjid bersejarah di langit Kairo" width="2200" height="1469" loading="lazy" decoding="async" />
+              <figcaption>
+                <span class="lp-label">Ibadah dan talaqqi</span>
+                <span>Subuh berjamaah, setoran hafalan harian, dan talaqqi di serambi Masjid <span class="lp-nb">Al-Azhar</span>.</span>
+              </figcaption>
+            </figure>
+            <div class="lp-gallery__tile lp-gallery__tile--gold">
+              <span class="lp-label">Asrama Hay Asyir</span>
+              <p>Kamar ber-AC, katering masakan Nusantara tiga kali sehari, dan suasana tenang untuk mudzakarah.</p>
+            </div>
+            <div class="lp-gallery__tile">
+              <span class="lp-label">Bimbingan musyrif</span>
+              <p>Catatan adab harian, perhatian pada kesehatan, dan laporan rutin kepada orang tua.</p>
+            </div>
+            <div class="lp-gallery__tile">
+              <span class="lp-label">Rihlah dan budaya</span>
+              <p>Orientasi mahasiswa baru, ziarah ke makam para ulama Kairo, dan kebersamaan hari raya.</p>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- Pena Hamasah (CMS / Articles) -->
-      <section class="journal-section" id="artikel" aria-labelledby="artikel-title">
-        <div class="shell journal-layout">
-          <div class="section-heading">
-            <p class="eyebrow">Pena Hamasah</p>
-            <h2 id="artikel-title">Wawasan & kabar terkini dari bumi para nabi.</h2>
-            <p>Ruang berbagi ilmu, informasi resmi universitas, inspirasi santri, dan panduan hidup bagi calon mahasiswa di Mesir.</p>
+      <section class="lp-section" id="santri" aria-labelledby="santri-title">
+        <div class="shell lp-portal">
+          <div>
+            <p class="eyebrow">Portal wali</p>
+            <h2 class="lp-h2" id="santri-title">Orang tua tetap dekat, walau berbeda benua.</h2>
+            <p class="lp-lede">Tim di Kairo mencatat perkembangan setiap santri. Wali di Indonesia bisa melihatnya kapan saja dari ponsel.</p>
+            <a class="button button--secondary" href="portal.html">Masuk portal santri &amp; wali</a>
           </div>
 
+          <ul class="lp-portal__list" aria-label="Yang bisa dilihat wali di portal">
+            <li><strong>Presensi sholat berjamaah</strong><span>Lima waktu, tercatat per hari.</span></li>
+            <li><strong>Setoran hafalan</strong><span>Bagian hafalan dan penilaian musyrif.</span></li>
+            <li><strong>Rapor digital</strong><span>Nilai per maddah, bisa diunduh sebagai PDF.</span></li>
+            <li><strong>Kuitansi pembayaran</strong><span>Riwayat pembayaran atas nama santri.</span></li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="lp-section lp-section--tint" id="tentang" aria-labelledby="tentang-title">
+        <div class="shell lp-about">
+          <div>
+            <h2 class="lp-h2" id="tentang-title">Tentang Hamasah International.</h2>
+            <p class="lp-statement">Perjalanan menuntut ilmu layak dimulai dengan tenang: jelas jalurnya, jelas biayanya, dan jelas siapa yang mendampingi.</p>
+            <p class="lp-lede">Hamasah International adalah konsultan pendidikan yang mendampingi pelajar Indonesia menuju Universitas <span class="lp-nb">Al-Azhar</span> Kairo, Mesir.</p>
+          </div>
+          <ol class="lp-mission" aria-label="Misi Hamasah">
+            <li>Menyederhanakan alur birokrasi dan pemberkasan resmi ke Kairo.</li>
+            <li>Menyiapkan bahasa Arab dan adab penuntut ilmu sebelum berangkat.</li>
+            <li>Menyiapkan tempat tinggal, asrama, dan komunikasi dengan keluarga di Mesir.</li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="lp-section" id="artikel" aria-labelledby="artikel-title">
+        <div class="shell lp-journal">
+          <div>
+            <h2 class="lp-h2" id="artikel-title">Pena Hamasah.</h2>
+            <p class="lp-lede">Tulisan tentang <span class="lp-nb">Al-Azhar</span>, persiapan berangkat, dan kehidupan pelajar di Mesir.</p>
+            <a class="lp-link" href="articles.html">Semua tulisan</a>
+          </div>
           <div class="journal-list" id="journal-list" aria-live="polite">
-            <a href="https://hamasahinternational.com/artikel/" target="_blank" rel="noopener" class="journal-item">
+            <a href="articles.html" class="journal-item">
               <span class="journal-num">01</span>
               <div>
-                <p class="card-label">Keilmuan Islam</p>
-                <h3>Sekilas tentang Universitas Al-Azhar Kairo</h3>
-                <p>Mengenal pusat peradaban Islam tertua yang melahirkan para ulama dan pemikir dunia.</p>
-              </div>
-              <b class="journal-arrow" aria-hidden="true"></b>
-            </a>
-            
-            <a href="https://hamasahinternational.com/artikel/" target="_blank" rel="noopener" class="journal-item">
-              <span class="journal-num">02</span>
-              <div>
-                <p class="card-label">Panduan Hidup</p>
-                <h3>Persiapan adaptasi belajar di tanah Kinanah</h3>
-                <p>Tips memilih tempat tinggal, adaptasi cuaca, kuliner, dan ritme belajar santri di Kairo.</p>
+                <p class="card-label">Pena Hamasah</p>
+                <h3>Baca tulisan terbaru</h3>
+                <p>Kabar, panduan, dan cerita santri dari Kairo.</p>
               </div>
               <b class="journal-arrow" aria-hidden="true"></b>
             </a>
@@ -512,109 +339,61 @@
         </div>
       </section>
 
-      <!-- Portal Santri Ecosystem Banner -->
-      <section class="santri-section" id="santri" aria-labelledby="santri-title">
-        <div class="shell santri-grid">
-          <div class="santri-copy">
-            <p class="eyebrow">Ekosistem Digital</p>
-            <h2 id="santri-title">Transparansi belajar dan kehadiran untuk ketenangan orang tua.</h2>
-            <p>
-              Melalui Portal Keluarga dan Portal Akademik Hamasah, wali santri di Indonesia dapat melihat presensi sholat, perkembangan tahfidz, evaluasi adab oleh musyrif, hingga riwayat pembayaran sesuai data yang tersedia di portal.
-            </p>
-            <div class="santri-actions">
-              <a class="button button--primary" href="portal.html">Masuk ke Portal Santri & Wali</a>
-              <a class="button button--secondary" href="staff.html">Portal Petugas & Admin</a>
-            </div>
+      <section class="lp-section lp-section--tint" id="bantuan" aria-labelledby="bantuan-title">
+        <div class="shell lp-faq">
+          <div>
+            <h2 class="lp-h2" id="bantuan-title">Pertanyaan yang sering muncul.</h2>
+            <p class="lp-lede">Pilih topik untuk membaca jawabannya, atau tulis pertanyaan Anda sendiri.</p>
           </div>
 
-          <div class="scan-card" aria-label="Gambaran fitur portal santri Hamasah">
-            <div class="scan-card-glow" aria-hidden="true"></div>
-            <div class="scan-mark" aria-hidden="true">
-              <i></i><i></i><i></i><i></i>
-              <img src="../assets/logo-emblem-gold.png" alt="" width="32" height="32" />
+          <div class="faq-panel">
+            <div class="faq-questions" aria-label="Daftar topik pertanyaan umum">
+              <button class="faq-question is-active" type="button" data-answer="program" aria-pressed="true">Apa itu Hamasah International?</button>
+              <button class="faq-question" type="button" data-answer="registration" aria-pressed="false">Apakah harus mahir bahasa Arab untuk daftar?</button>
+              <button class="faq-question" type="button" data-answer="mahad" aria-pressed="false">Apa saja yang dipelajari di Program Ma'had?</button>
+              <button class="faq-question" type="button" data-answer="parent" aria-pressed="false">Bagaimana alur pendaftaran melalui Hamasah?</button>
+              <button class="faq-question" type="button" data-answer="documents" aria-pressed="false">Dokumen awal apa yang perlu dipersiapkan?</button>
             </div>
-            <h3>Absensi digital & rekam jejak belajar</h3>
-            <p>Sistem verifikasi kehadiran talaqqi kelas & monitoring asrama berbasis QR aman.</p>
-            <div class="scan-meta">
-              <span><i class="crm-outline-dot" aria-hidden="true"></i> Presensi dan catatan pembinaan tersimpan per santri</span>
-              <span><i class="crm-outline-dot" aria-hidden="true"></i> Progres belajar dapat ditinjau bersama wali</span>
+
+            <div class="faq-answer" id="faq-answer" aria-live="polite">
+              <p class="faq-answer__topic">Tentang Hamasah</p>
+              <h3>Pendamping pendidikan bagi pelajar Indonesia menuju <span class="lp-nb">Al-Azhar</span>, Mesir.</h3>
+              <p>Hamasah International membantu proses dari awal pendaftaran hingga pelajar tiba dan terdaftar sebagai mahasiswa di Kairo.</p>
             </div>
+
+            <form class="faq-form" id="faq-form">
+              <label for="faq-question-input">Punya pertanyaan lain seputar <span class="lp-nb">Al-Azhar</span>?</label>
+              <div class="faq-input-row">
+                <input id="faq-question-input" name="question" type="text" placeholder="Ketik pertanyaan Anda, contoh: bagaimana proses berkas?" required />
+                  <button class="button button--primary" type="submit">Tanyakan</button>
+              </div>
+              <p class="field-error" id="faq-form-status" role="status" aria-live="polite"></p>
+            </form>
           </div>
         </div>
       </section>
 
-      <!-- About Hamasah -->
-      <section class="about-section" id="tentang" aria-labelledby="tentang-title">
-        <div class="shell about-layout">
-          <div class="about-copy">
-            <p class="eyebrow">Tentang Kami</p>
-            <h2 id="tentang-title">Menemani pelajar Indonesia membuka gerbang keilmuan dunia.</h2>
-            <p>
-              Hamasah International adalah konsultan pendidikan luar negeri yang membimbing perjalanan studi ke Timur Tengah, khususnya Universitas Al-Azhar Kairo, Mesir.
-            </p>
-          </div>
+      <section class="lp-section lp-register" id="pendaftaran" aria-labelledby="daftar-title">
+        <div class="shell lp-register__grid">
+          <div class="lp-register__copy">
+            <p class="eyebrow">Penerimaan 2026/2027</p>
+            <h2 class="lp-h2" id="daftar-title">Mulai dengan konsultasi, tanpa biaya.</h2>
+            <p class="lp-lede">Isi data singkat ini. Tim kami meninjaunya lalu menghubungi Anda untuk membahas jalur yang paling pas.</p>
 
-          <div class="mission-board">
-            <article class="mission-card">
-              <p class="card-label">Visi Mulia</p>
-              <h3>Membantu generasi muda Indonesia menimba ilmu di pusat keilmuan dunia agar kembali membangun peradaban bangsa.</h3>
-            </article>
-
-            <article class="mission-card">
-              <p class="card-label">Misi Hamasah</p>
-              <ul class="mission-list">
-                <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--sparkle" viewBox="0 0 24 24"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg></span> Menyederhanakan seluruh alur birokrasi dan pemberkasan legal ke Kairo.</li>
-                <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--sparkle" viewBox="0 0 24 24"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg></span> Menyelenggarakan persiapan bahasa Arab dan pembinaan adab thalabul ilmi.</li>
-                <li><span class="feature-bullet" aria-hidden="true"><svg class="m3-icon m3-icon--sparkle" viewBox="0 0 24 24"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg></span> Membantu menyiapkan fasilitas tinggal, asrama, serta komunikasi keluarga di Mesir.</li>
-              </ul>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- Registration Form Section (Pendaftaran Calon Santri) -->
-      <section class="registration-section" id="pendaftaran" aria-labelledby="daftar-title">
-        <div class="shell registration-grid">
-          <div class="registration-copy">
-            <div class="reg-kicker">
-              <span class="reg-dot" aria-hidden="true"></span>
-              <span>Penerimaan Calon Santri 2026/2027</span>
-            </div>
-            <h2 id="daftar-title">Mulai langkah pendaftaran awal bersama Hamasah.</h2>
-            <p>
-              Isi data awal calon santri di formulir ini agar tim konsultan kami dapat memberikan panduan jalur yang paling sesuai. Bebas biaya konsultasi awal.
-            </p>
-
-            <div class="reg-highlights">
-              <div class="highlight-item">
-                <span class="highlight-icon"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
-                <div>
-                  <strong>Konsultasi Personal</strong>
-                  <small>Tim akan meninjau data awal dan menghubungi melalui kanal resmi yang tersedia.</small>
-                </div>
-              </div>
-              <div class="highlight-item">
-                <span class="highlight-icon"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
-                <div>
-                  <strong>Cek Berkas Gratis</strong>
-                  <small>Peninjauan kelayakan ijazah dan paspor Anda sebelum mendaftar.</small>
-                </div>
-              </div>
-              <div class="highlight-item">
-                <span class="highlight-icon"><svg class="m3-icon m3-icon--check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
-                <div>
-                  <strong>Kerahasiaan Terjamin</strong>
-                  <small>Data calon santri dan wali hanya digunakan untuk keperluan pendaftaran resmi.</small>
-                </div>
-              </div>
-            </div>
+            <h3 class="lp-after-title">Setelah Anda mengirim</h3>
+            <ol class="lp-after">
+              <li><strong>Nomor registrasi langsung muncul.</strong> Simpan nomor ini untuk memantau status.</li>
+              <li><strong>Tim menghubungi Anda.</strong> Lewat WhatsApp atau email yang Anda isi.</li>
+              <li><strong>Unggah berkas bertahap.</strong> Lewat halaman <a href="cek-status.html">Cek status</a>, tanpa perlu datang.</li>
+            </ol>
+            <p class="lp-note">Data calon santri dan wali hanya dipakai untuk pendaftaran. Baca <a href="kebijakan-privasi.html">Kebijakan Privasi</a>.</p>
           </div>
 
           <div class="registration-form-wrap">
             <form class="registration-form" id="registration-form" novalidate>
               <div class="form-heading">
-                <h3>Formulir konsultasi & pendaftaran</h3>
-                <p>Lengkapi kolom bertanda bintang (<span aria-hidden="true">*</span>) untuk memulai.</p>
+                <h3>Formulir konsultasi</h3>
+                <p>Kolom bertanda <span aria-hidden="true">*</span> wajib diisi. Butuh sekitar 3 menit.</p>
               </div>
 
               <div class="form-section-heading"><h4>Data calon</h4><p>Informasi dasar dan kontak calon santri.</p></div>
@@ -735,7 +514,7 @@
               </div>
 
               <button class="button button--primary submit-button" type="submit">
-                <span>Kirim Data Pendaftaran Awal</span>
+                <span>Kirim data konsultasi</span>
                 <span class="btn-arrow" aria-hidden="true"></span>
               </button>
 
@@ -744,57 +523,19 @@
               <div class="registration-tracker" id="registration-tracker" hidden>
                 <div class="tracker-header">
                   <span class="tracker-icon" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M22 12h-4M6 12H2M12 6V2M12 22v-4"/><circle cx="12" cy="12" r="3"/></svg></span>
-                  <p class="card-label">Status Pendaftaran Anda</p>
+                  <p class="card-label">Status pendaftaran Anda</p>
                 </div>
                 <p id="registration-tracker-copy">Cek perkembangan pendaftaran pada perangkat ini.</p>
                 <div class="tracker-actions">
-                  <button class="button button--secondary" id="check-registration-status" type="button">Perbarui Status</button>
-                  <a class="button button--primary" id="open-full-tracker" href="cek-status.html">Lacak & Unggah Berkas</a>
+                  <button class="button button--secondary" id="check-registration-status" type="button">Perbarui status</button>
+                  <a class="button button--primary" id="open-full-tracker" href="cek-status.html">Lacak dan unggah berkas</a>
                 </div>
               </div>
-            </form>
-          </div>
-        </div>
-      </section>
-
-      <!-- FAQ Section -->
-      <section class="help-section" id="bantuan" aria-labelledby="bantuan-title">
-        <div class="shell help-grid">
-          <div class="help-copy">
-            <p class="eyebrow">Pusat Informasi</p>
-            <h2 id="bantuan-title">Pertanyaan yang paling sering diajukan.</h2>
-            <p>Pilih salah satu topik di samping untuk membaca penjelasan Hamasah mengenai jalur studi, syarat, dan kehidupan di Mesir.</p>
-          </div>
-
-          <div class="faq-panel">
-            <div class="faq-questions" aria-label="Daftar topik pertanyaan umum">
-              <button class="faq-question is-active" type="button" data-answer="program" aria-pressed="true">Apa itu Hamasah International?</button>
-              <button class="faq-question" type="button" data-answer="registration" aria-pressed="false">Apakah harus mahir bahasa Arab untuk daftar?</button>
-              <button class="faq-question" type="button" data-answer="mahad" aria-pressed="false">Apa saja yang dipelajari di Program Ma'had?</button>
-              <button class="faq-question" type="button" data-answer="parent" aria-pressed="false">Bagaimana alur pendaftaran melalui Hamasah?</button>
-              <button class="faq-question" type="button" data-answer="documents" aria-pressed="false">Dokumen awal apa yang perlu dipersiapkan?</button>
-            </div>
-
-            <div class="faq-answer" id="faq-answer" aria-live="polite">
-              <p class="faq-answer__topic">Tentang Hamasah</p>
-              <h3>Pendamping pendidikan bagi pelajar Indonesia menuju Al-Azhar, Mesir.</h3>
-              <p>Hamasah International membantu proses dari awal pendaftaran hingga pelajar tiba dan terdaftar sebagai mahasiswa di Kairo.</p>
-            </div>
-
-            <form class="faq-form" id="faq-form">
-              <label for="faq-question-input">Punya pertanyaan lain seputar Al-Azhar?</label>
-              <div class="faq-input-row">
-                <input id="faq-question-input" name="question" type="text" placeholder="Ketik pertanyaan Anda, contoh: bagaimana proses berkas?" required />
-                  <button class="button button--primary" type="submit">Tanyakan</button>
-              </div>
-              <p class="field-error" id="faq-form-status" role="status" aria-live="polite"></p>
             </form>
           </div>
         </div>
       </section>
     </main>
-
-    <!-- Footer -->
     <footer class="site-footer">
       <div class="shell footer-wrap">
         <div class="footer-brand-col">
@@ -806,54 +547,50 @@
             </div>
           </a>
           <p class="footer-desc">
-            Lembaga konsultan dan bimbingan pendidikan menuju Universitas Al-Azhar Kairo. Mendampingi pelajar menuntut ilmu dengan rasa aman, nyaman, dan terarah.
+            Konsultan dan pendamping pelajar Indonesia menuju Universitas Al-Azhar Kairo, dari konsultasi pertama sampai kehidupan belajar di Mesir.
           </p>
         </div>
 
         <div class="footer-links-grid">
           <div class="footer-col">
-            <p class="footer-col-title">Program Studi</p>
+            <p class="footer-col-title">Program</p>
             <ul class="footer-links">
               <li><a href="#kuliah">Kuliah S1 Al-Azhar</a></li>
               <li><a href="#mahad">Ma'had Al-Azhar</a></li>
               <li><a href="#courses">Hamasah Courses</a></li>
-              <li><a href="biaya.html">Biaya & Fasilitas</a></li>
+              <li><a href="biaya.html">Biaya &amp; fasilitas</a></li>
             </ul>
           </div>
 
           <div class="footer-col">
-            <p class="footer-col-title">Pusat Layanan</p>
+            <p class="footer-col-title">Layanan</p>
             <ul class="footer-links">
-              <li><a href="cek-status.html">Cek Status Pendaftaran</a></li>
+              <li><a href="cek-status.html">Cek status pendaftaran</a></li>
               <li><a href="articles.html">Pena Hamasah</a></li>
-              <li><a href="kontak.html">Kontak & Lokasi</a></li>
-              <li><a href="portal.html">Portal Santri & Wali</a></li>
+              <li><a href="kontak.html">Kontak &amp; lokasi</a></li>
             </ul>
           </div>
 
           <div class="footer-col">
-            <p class="footer-col-title">Layanan Akun</p>
+            <p class="footer-col-title">Akun</p>
             <ul class="footer-links">
-              <li><a href="portal.html">Portal Keluarga & Santri</a></li>
-              <li><a href="staff.html">Portal Petugas</a></li>
-              <li><a href="monitoring.html">Monitoring Musyrif</a></li>
-              <li><a href="operations.html">Manajemen Operasional</a></li>
+              <li><a href="portal.html">Portal santri &amp; wali</a></li>
+              <li><a href="staff.html">Portal petugas</a></li>
             </ul>
           </div>
         </div>
       </div>
 
       <div class="shell footer-bottom">
-        <p>&copy; 2026 Hamasah International. Seluruh hak cipta dilindungi. Ketentuan penerimaan dan regulasi akhir selalu mengacu pada otoritas resmi Al-Azhar Kairo.</p>
+        <p>&copy; 2026 Hamasah International. Ketentuan penerimaan mengikuti otoritas resmi Al-Azhar Kairo.</p>
         <div class="footer-legal-links">
           <a href="kebijakan-privasi.html">Kebijakan Privasi</a>
         </div>
-        <p class="footer-credit">Rancangan arsitektur digital & ekosistem terpadu.</p>
       </div>
     </footer>
 
     <script src="public-header.js?v=6f2879ebf1"></script>
     <script src="registration-domain.js?v=b3640ec58b"></script>
-    <script src="website.js?v=8b9b366b19"></script>
+    <script src="website.js?v=4aae77fa4f"></script>
   </body>
 </html>

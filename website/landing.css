@@ -1,0 +1,1121 @@
+/* Beranda (index.html) saja. Dimuat setelah website-public.css.
+   Satu aksen (emas), satu keluarga abu hangat, radius kartu 20px, tombol kapsul.
+   Skala huruf: 13 / 15 / 16 / 17 / 18 / 22 / h2 30-44 / h1 38-60. */
+
+.lp {
+  --lp-radius: 20px;
+  --lp-line: var(--md-sys-color-outline-variant);
+  --lp-ink: var(--md-sys-color-on-surface);
+  --lp-soft: var(--md-sys-color-on-surface-variant);
+  --lp-tint: var(--md-sys-color-surface-container-low);
+  --lp-card-shadow: 0 0 0 1px rgba(54, 54, 56, 0.07), 0 1px 2px rgba(54, 54, 56, 0.05), 0 12px 32px -18px rgba(54, 54, 56, 0.18);
+  color: var(--lp-ink);
+}
+
+/* ---------- Pola dasar ---------- */
+
+.lp-section {
+  padding: clamp(72px, 9vw, 120px) 0;
+  background: var(--md-sys-color-surface);
+}
+
+.lp-section--tint {
+  background: var(--lp-tint);
+  border-block: 1px solid rgba(54, 54, 56, 0.05);
+}
+
+.lp-head {
+  max-width: 720px;
+  margin-bottom: clamp(36px, 5vw, 56px);
+}
+
+.lp-head--row {
+  max-width: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 24px 64px;
+  align-items: end;
+}
+
+main h2.lp-h2 {
+  font-size: clamp(30px, 3.4vw, 44px);
+  line-height: 1.12;
+  letter-spacing: -0.028em;
+  font-weight: 700 !important;
+  margin: 0 0 18px;
+  max-width: 20ch;
+  text-wrap: balance;
+}
+
+.lp-head--row h2.lp-h2 {
+  margin: 0;
+  max-width: 22ch;
+}
+
+.lp .lp-lede,
+main .eyebrow + h2 + p.lp-lede {
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--lp-soft);
+  max-width: 56ch;
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.lp .eyebrow {
+  margin-bottom: 14px;
+}
+
+.lp-index {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--gold-dark);
+}
+
+/* Nama diri berhubung (Al-Azhar, Al-Qur'an) tidak dipenggal di tanda hubung. */
+.lp-nb {
+  white-space: nowrap;
+}
+
+.lp-label {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+}
+
+.lp-note {
+  margin: 16px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--lp-soft);
+}
+
+.lp-note a,
+.lp-assure a,
+.lp-after a {
+  color: var(--gold-dark);
+  font-weight: 600;
+  text-underline-offset: 3px;
+}
+
+/* Tautan teks dengan panah: aksi sekunder tanpa menambah tombol. */
+.lp-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gold-dark);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.lp-link::after {
+  content: "\2192";
+  transition: transform 200ms ease;
+}
+
+.lp-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.lp-link:hover::after {
+  transform: translateX(3px);
+}
+
+.lp-split__copy .lp-link {
+  margin-top: 20px;
+}
+
+.lp .button {
+  white-space: nowrap;
+}
+
+/* Daftar bercentang tanpa ikon gambar: tanda centang dari garis CSS. */
+.lp-checks {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.lp-checks li {
+  position: relative;
+  padding-left: 30px;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.lp-checks li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 7px;
+  width: 11px;
+  height: 6px;
+  border-left: 2px solid var(--gold-dark);
+  border-bottom: 2px solid var(--gold-dark);
+  transform: rotate(-45deg);
+}
+
+/* ---------- Hero ---------- */
+
+/* Cahaya emas tipis di pojok ada di lapisan hias, jadi latar teks tetap putih solid. */
+.lp-hero {
+  position: relative;
+  isolation: isolate;
+  padding: clamp(40px, 6vw, 72px) 0 0;
+  background: var(--md-sys-color-surface);
+}
+
+.lp-hero::before,
+.lp-register::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.lp-hero::before {
+  background: radial-gradient(60% 50% at 88% 0%, rgba(231, 177, 12, 0.10), transparent 70%);
+}
+
+.lp-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: clamp(32px, 5vw, 72px);
+  align-items: center;
+  min-height: min(620px, calc(100dvh - 180px));
+}
+
+.lp-hero__kicker {
+  margin: 0 0 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gold-dark);
+}
+
+.lp-hero h1 {
+  margin: 0 0 22px;
+  font-size: clamp(36px, 4.7vw, 58px);
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  font-weight: 700 !important;
+  max-width: 13em;
+  text-wrap: balance;
+}
+
+.lp-hero h1 em {
+  white-space: normal;
+  font-style: normal;
+  color: var(--gold-large);
+}
+
+.lp-hero__lede {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 18px;
+  line-height: 1.65;
+  color: var(--lp-soft);
+}
+
+.lp-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 28px;
+  margin-top: 36px;
+}
+
+.lp-cta {
+  min-height: 52px;
+  padding: 0 28px;
+  font-size: 15px;
+}
+
+.lp-hero__media {
+  position: relative;
+  margin: 0;
+  border-radius: 28px;
+  overflow: hidden;
+  aspect-ratio: 5 / 6;
+  max-height: 600px;
+  box-shadow: 0 30px 60px -30px rgba(54, 54, 56, 0.35);
+}
+
+.lp-hero__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 42% 50%;
+  display: block;
+}
+
+.lp-hero__caption {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 320px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 24px -12px rgba(54, 54, 56, 0.35);
+}
+
+.lp-hero__caption strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--lp-ink);
+}
+
+.lp-hero__caption small {
+  display: block;
+  font-size: 13px;
+  color: var(--lp-soft);
+}
+
+.lp-hero__pin {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.lp-hero__pin .m3-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.lp-assure {
+  list-style: none;
+  margin: clamp(48px, 6vw, 72px) 0 0;
+  padding: 28px 0 clamp(40px, 5vw, 56px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--lp-line);
+}
+
+.lp-assure li {
+  display: grid;
+  gap: 6px;
+  padding: 0 28px;
+  border-left: 1px solid var(--lp-line);
+}
+
+.lp-assure li:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.lp-assure strong {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.lp-assure span {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--lp-soft);
+}
+
+/* ---------- Program: satu jalur utama, dua pendamping ---------- */
+
+.lp-paths {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 20px;
+}
+
+.lp-path {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 28px;
+  border-radius: var(--lp-radius);
+  background: var(--md-sys-color-surface);
+  box-shadow: var(--lp-card-shadow);
+  color: inherit;
+  text-decoration: none;
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.lp-path:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 1px rgba(133, 96, 0, 0.2), 0 20px 40px -20px rgba(54, 54, 56, 0.3);
+}
+
+.lp-path--feature {
+  grid-row: span 2;
+  padding: 0;
+  overflow: hidden;
+}
+
+.lp-path--feature img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  flex: 1 1 auto;
+  min-height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.lp-path__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 28px 32px 32px;
+}
+
+.lp-path__meta {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold-dark);
+}
+
+.lp-path__title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+.lp-path--feature .lp-path__title {
+  font-size: 26px;
+}
+
+.lp-path__text {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--lp-soft);
+  max-width: 44ch;
+}
+
+.lp-path__more {
+  margin-top: auto;
+  padding-top: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold-dark);
+}
+
+.lp-path__more::after {
+  content: " \2192";
+}
+
+/* ---------- Detail jalur: teks dan panel berdampingan ---------- */
+
+.lp-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(40px, 6vw, 88px);
+  align-items: center;
+}
+
+.lp-split--reverse .lp-split__copy {
+  order: 2;
+}
+
+.lp-panel {
+  border-radius: var(--lp-radius);
+  background: var(--md-sys-color-surface);
+  box-shadow: var(--lp-card-shadow);
+}
+
+.lp-panel__row {
+  padding: 28px 32px;
+}
+
+.lp-panel__row + .lp-panel__row {
+  border-top: 1px solid var(--lp-line);
+}
+
+main .lp-panel h3 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 700 !important;
+}
+
+.lp-faculties {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.lp-faculties p:not(.lp-label) {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.lp-levels {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 28px;
+}
+
+.lp-levels li {
+  position: relative;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--lp-line);
+  background: var(--md-sys-color-surface);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.lp-levels li + li::before {
+  content: "\2192";
+  position: absolute;
+  left: -21px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--lp-soft);
+}
+
+.lp-stages {
+  margin: 0;
+}
+
+.lp-stages div {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 16px;
+  align-items: baseline;
+  padding: 14px 0;
+  border-top: 1px solid var(--lp-line);
+}
+
+.lp-stages div:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.lp-stages dt {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.lp-stages dd {
+  margin: 0;
+  font-size: 15px;
+  color: var(--lp-soft);
+}
+
+/* ---------- Kelas daring ---------- */
+
+.lp-media-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(40px, 6vw, 88px);
+  align-items: center;
+}
+
+.lp-photo {
+  margin: 0;
+  border-radius: 24px;
+  overflow: hidden;
+  aspect-ratio: 4 / 3.4;
+}
+
+.lp-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.lp-courses {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--lp-line);
+}
+
+.lp-courses li {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 4px 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--lp-line);
+}
+
+.lp-courses strong {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.lp-courses span {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--lp-soft);
+}
+
+/* ---------- Alur pendaftaran ---------- */
+
+.lp-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 28px;
+}
+
+.lp-steps li {
+  position: relative;
+  padding-top: 28px;
+  border-top: 2px solid var(--lp-line);
+}
+
+.lp-steps li:first-child {
+  border-top-color: var(--md-sys-color-primary);
+}
+
+.lp-steps__num {
+  position: absolute;
+  top: -19px;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 0 0 6px var(--md-sys-color-surface);
+}
+
+main .lp-steps h3 {
+  margin: 8px 0 8px;
+  font-size: 18px;
+  font-weight: 700 !important;
+}
+
+.lp-steps p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--lp-soft);
+}
+
+.lp-docs {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 24px 56px;
+  margin-top: clamp(48px, 6vw, 72px);
+  padding: 32px 36px;
+  border-radius: var(--lp-radius);
+  background: var(--lp-tint);
+  border: 1px solid rgba(54, 54, 56, 0.06);
+}
+
+main .lp-docs h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 700 !important;
+}
+
+.lp-docs p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--lp-soft);
+}
+
+.lp-docs .lp-checks {
+  margin: 0;
+}
+
+.lp-checks--two {
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 32px;
+}
+
+/* ---------- Keseharian di Kairo ---------- */
+
+.lp-gallery {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  grid-template-rows: repeat(3, auto);
+  gap: 16px;
+}
+
+.lp-gallery__photo {
+  position: relative;
+  grid-row: span 3;
+  margin: 0;
+  min-height: 460px;
+  border-radius: var(--lp-radius);
+  overflow: hidden;
+}
+
+.lp-gallery__photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lp-gallery__photo figcaption {
+  position: absolute;
+  inset: auto 0 0;
+  display: grid;
+  gap: 6px;
+  padding: 72px 28px 26px;
+  background: linear-gradient(180deg, rgba(28, 28, 30, 0) 0%, rgba(28, 28, 30, 0.82) 62%);
+  color: #FFFFFF;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.lp-gallery__photo .lp-label {
+  color: #F2C94C;
+  margin: 0;
+}
+
+.lp-gallery__tile {
+  padding: 24px 26px;
+  border-radius: var(--lp-radius);
+  background: var(--md-sys-color-surface);
+  box-shadow: var(--lp-card-shadow);
+}
+
+.lp-gallery__tile p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.lp-gallery__tile--gold {
+  background: var(--md-sys-color-primary-container);
+  box-shadow: none;
+}
+
+.lp-gallery__tile--gold .lp-label,
+.lp-gallery__tile--gold p {
+  color: var(--md-sys-color-on-primary-container);
+}
+
+/* ---------- Portal wali ---------- */
+
+.lp-portal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(40px, 6vw, 88px);
+  align-items: center;
+}
+
+.lp-portal .button {
+  margin-top: 28px;
+}
+
+.lp-portal__list {
+  list-style: none;
+  margin: 0;
+  padding: 8px 32px;
+  border-radius: var(--lp-radius);
+  background: var(--md-sys-color-surface);
+  box-shadow: var(--lp-card-shadow);
+}
+
+.lp-portal__list li {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  padding: 20px 0 20px 28px;
+}
+
+.lp-portal__list li + li {
+  border-top: 1px solid var(--lp-line);
+}
+
+.lp-portal__list li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 27px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--md-sys-color-primary);
+}
+
+.lp-portal__list strong {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.lp-portal__list span {
+  font-size: 15px;
+  color: var(--lp-soft);
+}
+
+/* ---------- Tentang ---------- */
+
+.lp-about {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: clamp(40px, 6vw, 88px);
+  align-items: start;
+}
+
+.lp-statement {
+  margin: 8px 0 24px;
+  padding-left: 22px;
+  border-left: 3px solid var(--md-sys-color-primary);
+  font-size: clamp(20px, 2vw, 24px);
+  line-height: 1.5;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  max-width: 34ch;
+}
+
+.lp-mission {
+  list-style: none;
+  counter-reset: misi;
+  margin: 0;
+  padding: 0;
+}
+
+.lp-mission li {
+  counter-increment: misi;
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 12px;
+  padding: 20px 0;
+  border-top: 1px solid var(--lp-line);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.lp-mission li:last-child {
+  border-bottom: 1px solid var(--lp-line);
+}
+
+.lp-mission li::before {
+  content: "0" counter(misi);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold-dark);
+  padding-top: 2px;
+}
+
+/* ---------- Pena Hamasah & FAQ ---------- */
+
+.lp-journal,
+.lp-faq {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 32px clamp(40px, 6vw, 88px);
+  align-items: start;
+}
+
+.lp-journal .lp-link {
+  margin-top: 16px;
+}
+
+.lp .journal-item {
+  border-color: transparent;
+  box-shadow: var(--lp-card-shadow);
+  border-radius: 16px;
+}
+
+/* Topik FAQ: daftar bergaris, bukan deretan chip yang membungkus acak. */
+.lp-faq .faq-questions {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0;
+  border-top: 1px solid var(--lp-line);
+}
+
+.lp-faq .faq-question {
+  width: 100%;
+  height: auto;
+  min-height: 52px;
+  justify-content: flex-start;
+  padding: 12px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--lp-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: left;
+  color: var(--lp-soft);
+}
+
+.lp-faq .faq-question:hover {
+  color: var(--lp-ink);
+  background: rgba(231, 177, 12, 0.06);
+}
+
+.lp-faq .faq-question.is-active {
+  color: var(--lp-ink);
+  font-weight: 700;
+  background: var(--md-sys-color-surface);
+  box-shadow: inset 3px 0 0 var(--md-sys-color-primary);
+}
+
+.lp-faq .faq-answer {
+  min-height: 0;
+  border: 0;
+  border-radius: var(--lp-radius);
+  box-shadow: var(--lp-card-shadow);
+  padding: 28px 32px;
+}
+
+.lp-faq .faq-form {
+  border-radius: var(--lp-radius);
+}
+
+/* ---------- Pendaftaran ---------- */
+
+.lp-register {
+  position: relative;
+  isolation: isolate;
+}
+
+.lp-register::before {
+  bottom: auto;
+  height: 560px;
+  background: linear-gradient(180deg, rgba(251, 239, 196, 0.55) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.lp-register__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(40px, 5vw, 72px);
+  align-items: start;
+}
+
+.lp-register__copy {
+  position: sticky;
+  top: 104px;
+}
+
+main .lp-after-title {
+  margin: 36px 0 16px;
+  font-size: 16px;
+  font-weight: 700 !important;
+}
+
+.lp-after {
+  list-style: none;
+  counter-reset: sesudah;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.lp-after li {
+  counter-increment: sesudah;
+  position: relative;
+  padding-left: 44px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--lp-soft);
+}
+
+.lp-after li strong {
+  color: var(--lp-ink);
+}
+
+.lp-after li::before {
+  content: counter(sesudah);
+  position: absolute;
+  left: 0;
+  top: -2px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--md-sys-color-surface);
+  border: 1px solid var(--gold-border);
+  color: var(--gold-dark);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.lp-register .lp-note {
+  margin-top: 28px;
+}
+
+.lp-register .registration-form {
+  border: 0;
+  border-radius: 24px;
+  box-shadow: 0 0 0 1px rgba(54, 54, 56, 0.07), 0 24px 48px -28px rgba(54, 54, 56, 0.3);
+}
+
+/* ---------- Layar sedang dan kecil ---------- */
+
+@media (max-width: 1024px) {
+  .lp-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 48px;
+  }
+
+  .lp-docs,
+  .lp-journal,
+  .lp-faq,
+  .lp-head--row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .lp-hero__grid,
+  .lp-split,
+  .lp-media-split,
+  .lp-portal,
+  .lp-about,
+  .lp-register__grid,
+  .lp-paths {
+    grid-template-columns: 1fr;
+  }
+
+  .lp-hero__grid {
+    min-height: 0;
+  }
+
+  .lp-hero__media {
+    aspect-ratio: 4 / 3;
+  }
+
+  .lp-split--reverse .lp-split__copy {
+    order: 0;
+  }
+
+  .lp-path--feature {
+    grid-row: auto;
+  }
+
+  .lp-gallery {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .lp-gallery__photo {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    min-height: 340px;
+  }
+
+  .lp-gallery__tile--gold {
+    grid-column: 1 / -1;
+  }
+
+  .lp-register__copy {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .lp-assure {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .lp-assure li {
+    padding: 20px 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--lp-line);
+  }
+
+  .lp-assure li:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .lp-hero__lede {
+    font-size: 17px;
+  }
+
+  .lp-hero__actions {
+    gap: 8px 20px;
+  }
+
+  .lp-steps {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .lp-faculties,
+  .lp-checks--two,
+  .lp-courses li,
+  .lp-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .lp-panel__row,
+  .lp-docs,
+  .lp-portal__list,
+  .lp-faq .faq-answer {
+    padding-left: 22px;
+    padding-right: 22px;
+  }
+
+  .lp-path__body {
+    padding: 24px;
+  }
+
+  .lp-path {
+    padding: 24px;
+  }
+
+  .lp-path--feature {
+    padding: 0;
+  }
+
+  .lp-gallery__photo {
+    min-height: 300px;
+  }
+
+  .lp-gallery__photo figcaption {
+    font-size: 16px;
+    padding: 64px 22px 22px;
+  }
+
+  .lp-stages div {
+    grid-template-columns: 96px 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-path,
+  .lp-path:hover,
+  .lp-link::after,
+  .lp-link:hover::after {
+    transition: none;
+    transform: none;
+  }
+}

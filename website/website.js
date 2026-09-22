@@ -289,6 +289,6 @@ form.addEventListener('submit', async (event) => {
     status.classList.add('is-error');
   } finally {
     submitButton.disabled = false;
-    submitButton.textContent = 'Kirim data awal';
+    submitButton.textContent = 'Kirim data konsultasi';
   }
 });
