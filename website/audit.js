@@ -185,5 +185,7 @@ if (logoutButton) {
     await loadEvents();
   } catch (error) {
     guardCopy.textContent = error.message || 'Silakan masuk melalui Portal Hamasah.';
+    const judul = guard.querySelector('h1');
+    if (judul) judul.textContent = 'Akses log audit belum tersedia';
   }
 }());

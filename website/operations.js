@@ -975,5 +975,7 @@ if (logoutButton) {
     await Promise.all([loadOperations(), loadVisaReminders(), loadVisaDocuments()]);
   } catch (error) {
     guardCopy.textContent = error.message || 'Silakan masuk melalui Portal Hamasah.';
+    const judul = guard.querySelector('h1');
+    if (judul) judul.textContent = 'Akses operasional belum tersedia';
   }
 }());

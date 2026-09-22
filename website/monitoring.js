@@ -514,5 +514,9 @@ if (logoutButton) {
       await loadDormitories();
     }
     await loadStudents();
-  } catch (error) { guardCopy.textContent = error.message || 'Silakan masuk melalui Portal Hamasah.'; }
+  } catch (error) {
+    guardCopy.textContent = error.message || 'Silakan masuk melalui Portal Hamasah.';
+    const judul = guard.querySelector('h1');
+    if (judul) judul.textContent = 'Akses monitoring belum tersedia';
+  }
 }());

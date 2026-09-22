@@ -785,7 +785,9 @@ if (logoutButton) {
   try {
     const response = await fetch('/api/me', { headers: headers() });
     const result = await response.json();
-    if (!response.ok || !LMS_VIEW_ROLES.includes(result.account.role)) throw new Error('Halaman ini hanya tersedia untuk santri, guru, pengawas, atau admin.');
+    // Belum masuk / sesi berakhir dibedakan dari peran yang tidak berhak.
+    if (!response.ok) throw Object.assign(new Error('Sesi Anda belum ada atau sudah berakhir. Masuk lewat Portal Hamasah untuk membuka LMS.'), { judul: 'Masuk untuk membuka LMS' });
+    if (!LMS_VIEW_ROLES.includes(result.account.role)) throw Object.assign(new Error('Halaman ini hanya tersedia untuk santri, guru, pengawas, atau admin.'), { judul: 'LMS tidak tersedia untuk akun ini' });
     role = result.account.role;
     guard.hidden = true;
     consoleSection.hidden = false;
@@ -801,5 +803,8 @@ if (logoutButton) {
     }
   } catch (error) {
     guardCopy.textContent = error.message || 'Silakan masuk melalui Portal Hamasah.';
+    // Judul tidak boleh tetap "Memeriksa..." setelah pemeriksaan selesai.
+    const judul = guard.querySelector('h1');
+    if (judul) judul.textContent = error.judul || 'Masuk untuk membuka LMS';
   }
 }());

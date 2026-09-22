@@ -4240,3 +4240,127 @@ table,
 .crm-canvas .portal-dashboard[hidden] {
   display: none !important;
 }
+
+/* Kepala halaman internal: emblem logo dan nama lengkap. Aturan lama ".staff-brand span"
+   memberi gaya badge ke semua span, jadi nama lengkap dikecualikan. */
+.staff-brand .brand-logo-icon {
+  width: 30px;
+  height: auto;
+}
+
+.staff-brand .staff-brand__name {
+  padding: 0;
+  background: none;
+  color: var(--md-sys-color-on-surface);
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+
+.staff-brand span:not(.staff-brand__name) {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+/* Baris tab yang bisa digeser: tepi kanan memudar sebagai tanda masih ada tab lain. */
+@media (max-width: 900px) {
+  .crm-subtabs-row {
+    -webkit-mask-image: linear-gradient(to right, #000 82%, transparent);
+    mask-image: linear-gradient(to right, #000 82%, transparent);
+    padding-right: 32px;
+    scroll-snap-type: x proximity;
+  }
+
+  .crm-subtabs-row > * {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Toolbar: kolom cari dan filter masing-masing selebar layar. */
+  .crm-toolbar-filters {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .crm-toolbar-filters > * {
+    width: 100%;
+    max-width: none;
+  }
+
+  /* Formulir di dalam kartu: tidak ada kotak kedua yang memakan lebar. */
+  .crm-white-card .staff-form,
+  .crm-white-card form {
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .crm-white-card {
+    padding: 20px 16px;
+  }
+
+  /* Halaman masuk dan guard: jarak tepi 16 px, kepala satu baris. */
+  .staff-header--shell {
+    margin: 12px 16px 24px;
+    padding: 8px 12px;
+  }
+
+  .staff-header--shell .staff-brand .staff-brand__name {
+    font-size: 15px;
+  }
+
+  .staff-header--shell .staff-brand span:not(.staff-brand__name) {
+    display: none;
+  }
+
+  .staff-header--shell .button {
+    padding-inline: 14px;
+  }
+
+  .staff-login {
+    width: calc(100% - 32px);
+  }
+}
+
+/* Formulir yang sudah berada di dalam kartu tidak diberi bingkai kedua. Aturan
+   ".crm-canvas .staff-form" di atas memakai !important sehingga aturan serupa di awal
+   berkas ini tidak pernah berlaku; selektor ini setara dan ditulis sesudahnya. */
+.crm-canvas .crm-white-card .staff-form {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* Kepala halaman masuk: tetap satu baris (aturan lama menumpuknya jadi kolom <= 860 px). */
+@media (max-width: 860px) {
+  .staff-header.staff-header--shell {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+/* Kontrol periode rekam jejak: label kecil dan tebal seperti label formulir lain.
+   (Kelas sr-only tidak pernah didefinisikan, jadi labelnya memang tampil.) */
+.crm-toolbar-filters label[for^="record-period"] {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.crm-toolbar-filters input[type="date"] {
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 10px;
+  background: var(--md-sys-color-surface-container-lowest);
+  font-size: 14px;
+}
