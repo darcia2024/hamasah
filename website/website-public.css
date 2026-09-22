@@ -3699,6 +3699,26 @@
   padding: 48px 20px;
 }
 
+.page-notice__card {
+  max-width: 560px;
+}
+
+.page-notice__code {
+  margin: 0 0 8px;
+  font-size: clamp(64px, 18vw, 112px);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--gold-dark);
+}
+
+.page-notice__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
 /* Jalur kontak alternatif pada kartu formulir konsultasi (Task R1.6). */
 .inquiry-alt-channel {
   margin-top: 20px;

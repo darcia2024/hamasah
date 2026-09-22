@@ -4,19 +4,26 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex" />
+  <!-- Halaman ini dijawab untuk alamat apa pun, juga yang bertingkat (/a/b/c). Tanpa base,
+       CSS dan tautan relatifnya ikut 404 dan halaman tampil polos (Task R8.6). -->
+  <base href="/website/" />
   <title>Halaman tidak ditemukan | Hamasah International</title>
     <link rel="icon" href="../assets/favicon.png" />
   <link rel="stylesheet" href="website-core.css?v=77cf22cbe7" />
-  <link rel="stylesheet" href="website-public.css?v=79523c03a9" />
+  <link rel="stylesheet" href="website-public.css?v=64f0c87d0e" />
 </head>
 <body>
   <a class="skip-link" href="#main-content">Lewati ke isi utama</a>
   <main id="main-content" class="shell page-notice">
-    <div>
+    <div class="page-notice__card">
+      <p class="page-notice__code" aria-hidden="true">404</p>
       <p class="eyebrow">Hamasah International</p>
       <h1>Halaman yang Anda cari tidak tersedia.</h1>
-      <p>Periksa kembali alamatnya atau kembali ke halaman utama untuk melihat program dan alur pendaftaran.</p>
-      <a class="button button--primary" href="index.html">Kembali ke beranda</a>
+      <p>Periksa kembali alamatnya, kembali ke halaman utama, atau kirim pertanyaan kepada tim kami.</p>
+      <div class="page-notice__actions">
+        <a class="button button--primary" href="index.html">Kembali ke beranda</a>
+        <a class="button button--secondary" href="kontak.html">Hubungi kami</a>
+      </div>
     </div>
   </main>
 </body>
