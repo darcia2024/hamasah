@@ -87,5 +87,5 @@ Tulis hasilnya sebagai dokumen audit terpisah dan buat phase lanjutan bila perlu
 
 ## Temuan di luar lingkup (dicatat, tidak dikerjakan)
 
-- `identityService.login` langsung menolak email yang tidak ada tanpa menjalankan scrypt, sehingga waktu respons membedakan email terdaftar dan tidak (enumerasi akun lewat waktu). Dengan scrypt ~225 ms perbedaannya kini lebih jelas. Perbaikannya: verifikasi terhadap hash tiruan saat akun tidak ada.
+- ~~Enumerasi akun lewat waktu login~~ **Diperbaiki 22 September 2026** (cabang `perbaikan-enumerasi-login`): `login` kini selalu menjalankan scrypt, terhadap hash tiruan berparameter sama bila email tidak terdaftar, dan juga untuk akun nonaktif (yang dulu ikut dilewati). Terukur: kata sandi salah 263 ms, email tidak ada 264 ms, akun nonaktif 266 ms; sebelumnya email tidak ada hampir 0 ms. Bukti: `server/login-enumeration.test.js`, yang gagal pada kode lama. Sisa kecil: akun berhash format lama (N=2^14) terverifikasi lebih cepat (~28 ms); itu membedakan umur hash, bukan keberadaan akun, dan hilang saat hash diperbarui.
 - Migrasi 035 dan 036 hanya diterapkan lokal, seperti 017 sampai 034.

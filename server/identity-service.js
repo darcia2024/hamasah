@@ -111,6 +111,14 @@ async function hashPassword(password) {
   return `scrypt$N=${N},r=${r},p=${p}$${salt.toString('base64url')}$${derivedKey.toString('base64url')}`;
 }
 
+// Hash tiruan berparameter sama dengan hash baru, dipakai login untuk akun yang tidak ada.
+// Dibuat sekali per proses; kata sandinya acak dan tidak pernah disimpan.
+let dummyHashPromise = null;
+function dummyPasswordHash() {
+  if (!dummyHashPromise) dummyHashPromise = hashPassword(crypto.randomBytes(32).toString('base64url'));
+  return dummyHashPromise;
+}
+
 async function verifyPassword(password, storedHash) {
   const segments = String(storedHash || '').split('$');
   if (segments[0] !== 'scrypt' || (segments.length !== 3 && segments.length !== 4)) return false;
@@ -284,7 +292,10 @@ function createIdentityService(options) {
 
   async function login(emailInput, password) {
     const account = await accountStore.getByEmail(normalizeEmail(emailInput));
-    if (!account || !account.active || !(await verifyPassword(String(password || ''), account.passwordHash))) {
+    // scrypt selalu dijalankan, juga untuk email yang tidak terdaftar atau akun nonaktif, supaya
+    // waktu respons tidak membedakan keduanya dari kata sandi yang salah (enumerasi akun).
+    const cocok = await verifyPassword(String(password || ''), account ? account.passwordHash : await dummyPasswordHash());
+    if (!account || !account.active || !cocok) {
       return { ok: false, error: 'Email atau kata sandi tidak tepat.' };
     }
     return { ok: true, value: await createSession(account) };
