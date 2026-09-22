@@ -23,9 +23,7 @@ const REFERENCE = /(<(?:link|script)\b[^>]*?\b(?:href|src)=")([^"?#]+\.(?:css|js
 
 // Akhir baris dinormalkan supaya sidik sama di Windows (core.autocrlf) dan Linux.
 function fingerprint(file) {
-  const content = fs.readFileSync(file, 'utf8').replace(/
-/g, '
-');
+  const content = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
   return crypto.createHash('sha256').update(content).digest('hex').slice(0, 10);
 }
 
