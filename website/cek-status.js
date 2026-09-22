@@ -202,6 +202,47 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Kloter keberangkatan pendaftar. Hanya menampilkan yang diisi petugas: kloter tanpa
+  // tanggal tertulis "belum ditetapkan", pendaftar tanpa kloter mendapat keterangan jujur.
+  function renderDeparture(departure) {
+    const box = document.querySelector('#res-departure');
+    if (!box) return;
+    box.replaceChildren();
+    if (!departure) {
+      const empty = document.createElement('p');
+      empty.className = 'departure-schedule__empty';
+      empty.textContent = 'Jadwal keberangkatan belum ditetapkan. Kloter dan tanggal akan diumumkan di sini setelah ditetapkan oleh tim Hamasah.';
+      box.append(empty);
+      return;
+    }
+    const tanggal = departure.plannedDate
+      ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'full', timeZone: 'UTC' }).format(new Date(`${departure.plannedDate}T00:00:00Z`))
+      : 'Tanggal belum ditetapkan';
+    const list = document.createElement('dl');
+    list.className = 'departure-schedule__list';
+    [
+      ['Kloter', departure.name],
+      ['Rencana berangkat', tanggal],
+      ['Berangkat dari', departure.origin || 'Belum ditetapkan'],
+      ['Status kloter', departure.statusLabel || departure.status]
+    ].forEach(([label, value]) => {
+      const row = document.createElement('div');
+      const dt = document.createElement('dt');
+      dt.textContent = label;
+      const dd = document.createElement('dd');
+      dd.textContent = value;
+      row.append(dt, dd);
+      list.append(row);
+    });
+    box.append(list);
+    if (departure.note) {
+      const note = document.createElement('p');
+      note.className = 'departure-schedule__note';
+      note.textContent = departure.note;
+      box.append(note);
+    }
+  }
+
   function renderHistory(history) {
     if (!Array.isArray(history) || history.length === 0) {
       historyTimeline.innerHTML = '<p class="empty-docs-note">Belum ada catatan pembaruan status.</p>';
@@ -260,6 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       updateStepper(reg.status, progress);
       renderDocuments(reg.documentSummary);
+      renderDeparture(reg.departure || null);
       if (applicantSessionActions) applicantSessionActions.hidden = false;
       const canEdit = !['ready-for-departure', 'completed', 'cancelled'].includes(reg.status);
       applicantEditCard.hidden = !canEdit;

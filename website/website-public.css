@@ -4031,3 +4031,52 @@
     grid-template-columns: 1fr 1fr;
     gap: 24px;
   }}
+
+/* Jadwal keberangkatan per kloter di halaman cek status. */
+.departure-schedule {
+  margin-top: 24px;
+  padding: 18px 20px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 16px;
+  background: var(--md-sys-color-surface-container-lowest);
+}
+
+.departure-schedule h3 {
+  margin: 0 0 12px;
+  font-size: 17px;
+  color: var(--md-sys-color-on-surface);
+}
+
+.departure-schedule__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px 20px;
+  margin: 0;
+}
+
+.departure-schedule__list dt {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.departure-schedule__list dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+.departure-schedule__empty,
+.departure-schedule__note {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.departure-schedule__note {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--md-sys-color-outline-variant);
+}

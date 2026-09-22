@@ -32,6 +32,8 @@ const LABEL = {
   'account.active-changed': 'Status aktif akun diubah',
   'registration.created': 'Pendaftaran masuk',
   'registration.status-changed': 'Status pendaftaran berubah',
+  'registration.departure-assigned': 'Kloter pendaftar diubah',
+  'departure-group.saved': 'Kloter keberangkatan disimpan',
   'registration.document-added': 'Dokumen pendaftaran ditambahkan',
   'student.created': 'Santri ditambahkan',
   'student.accounts-linked': 'Relasi akun santri diubah',

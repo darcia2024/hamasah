@@ -378,6 +378,37 @@ async function run() {
     const candidateHeaders = { Authorization: `Bearer ${created.body.accessToken}`, 'Content-Type': 'application/json' };
     const retrieved = await request(baseUrl, `/api/registrations/${registrationId}`, { headers: candidateHeaders });
     assert.equal(retrieved.status, 200);
+
+    // Kloter keberangkatan: belum ditetapkan -> dibuat -> ditugaskan -> terlihat pendaftar.
+    assert.equal(retrieved.body.registration.departure, null, 'Tanpa kloter, pendaftar tidak diberi jadwal karangan.');
+    assert.equal((await request(baseUrl, '/api/departures', { method: 'POST', headers: adminHeaders, body: JSON.stringify({ name: 'ab' }) })).status, 422);
+    assert.equal((await request(baseUrl, '/api/departures', { method: 'POST', headers: adminHeaders, body: JSON.stringify({ name: 'Kloter Uji', plannedDate: '15-09-2026' }) })).status, 422);
+    const kloter = await request(baseUrl, '/api/departures', {
+      method: 'POST', headers: adminHeaders,
+      body: JSON.stringify({ name: 'Kloter 1 Jakarta', plannedDate: '2026-09-15', origin: 'Jakarta (CGK)', status: 'confirmed', applicantNote: 'Kumpul di bandara pukul 18.00 WIB.' })
+    });
+    assert.equal(kloter.status, 201);
+    const tugaskan = await request(baseUrl, `/api/registrations/${registrationId}/departure`, { method: 'PUT', headers: adminHeaders, body: JSON.stringify({ departureGroupId: kloter.body.group.id }) });
+    assert.equal(tugaskan.status, 200);
+    // Satu GET pendaftar saja: rute ini dibatasi 5 permintaan per 15 menit per nomor pendaftaran.
+    const denganKloter = await request(baseUrl, `/api/registrations/${registrationId}`, { headers: candidateHeaders });
+    assert.deepEqual(denganKloter.body.registration.departure, {
+      name: 'Kloter 1 Jakarta', plannedDate: '2026-09-15', origin: 'Jakarta (CGK)',
+      status: 'confirmed', statusLabel: 'Terkonfirmasi', note: 'Kumpul di bandara pukul 18.00 WIB.'
+    });
+    const daftarKloter = await request(baseUrl, '/api/departures', { headers: adminHeaders });
+    assert.equal(daftarKloter.body.items.find((item) => item.id === kloter.body.group.id).memberCount, 1);
+    const daftarPendaftar = await request(baseUrl, '/api/registrations?pageSize=50', { headers: adminHeaders });
+    assert.equal(daftarPendaftar.body.items.find((item) => item.registrationId === registrationId).departure.name, 'Kloter 1 Jakarta');
+    assert.equal((await request(baseUrl, `/api/registrations/${registrationId}/departure`, { method: 'PUT', headers: candidateHeaders, body: JSON.stringify({ departureGroupId: null }) })).status, 401, 'Pendaftar tidak bisa mengubah kloternya.');
+    // Kloter dibatalkan: pendaftar melihat statusnya, dan kloter itu tidak menerima pendaftar baru.
+    assert.equal((await request(baseUrl, `/api/departures/${kloter.body.group.id}`, { method: 'PATCH', headers: adminHeaders, body: JSON.stringify({ status: 'cancelled' }) })).status, 200);
+    const kloterPendaftar = async () => (await request(baseUrl, '/api/registrations?pageSize=50', { headers: adminHeaders })).body.items.find((item) => item.registrationId === registrationId).departure;
+    assert.equal((await kloterPendaftar()).status, 'cancelled');
+    assert.equal((await request(baseUrl, `/api/registrations/${registrationId}/departure`, { method: 'PUT', headers: adminHeaders, body: JSON.stringify({ departureGroupId: kloter.body.group.id }) })).status, 422);
+    assert.equal((await request(baseUrl, `/api/registrations/${registrationId}/departure`, { method: 'PUT', headers: adminHeaders, body: JSON.stringify({ departureGroupId: null }) })).status, 200);
+    assert.equal(await kloterPendaftar(), null);
+    assert.equal((await request(baseUrl, '/api/registrations/HI-REG-2099-99999/departure', { method: 'PUT', headers: adminHeaders, body: JSON.stringify({ departureGroupId: null }) })).status, 404);
     assert.equal(retrieved.body.registration.status, 'submitted');
     const applicantUpdate = await request(baseUrl, `/api/applicant/registrations/${registrationId}`, {
       method: 'PATCH', headers: candidateHeaders,

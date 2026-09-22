@@ -6,6 +6,11 @@ const { TOO_MANY_REQUESTS } = require('../rate-limit.js');
 
 const REGISTRATION_ID = String.raw`HI-REG-\d{4}-\d{5}`;
 
+// Kloter keberangkatan untuk tampilan pendaftar (bentuk aman, atau null bila belum ditetapkan).
+async function withDeparture(services, registration) {
+  return { ...registration, departure: await services.departureService.forApplicant(registration.registrationId) };
+}
+
 module.exports = [
   // Pendaftaran publik. Token akses dikembalikan sekali saja; yang disimpan hanya hash-nya.
   {
@@ -92,7 +97,7 @@ module.exports = [
         return;
       }
       const registration = await services.registrationService.getPublic(params[0]);
-      json(response, registration.ok ? 200 : 404, registration.ok ? { registration: registration.value } : publicError(registration));
+      json(response, registration.ok ? 200 : 404, registration.ok ? { registration: await withDeparture(services, registration.value) } : publicError(registration));
     }
   },
 
@@ -119,7 +124,10 @@ module.exports = [
     permission: 'registrations.read',
     async handler({ request, response, services }) {
       const query = new URL(request.url, 'http://localhost').searchParams;
-      json(response, 200, await services.registrationService.listForStaff({ search: query.get('search'), status: query.get('status'), page: query.get('page'), pageSize: query.get('pageSize') }));
+      const page = await services.registrationService.listForStaff({ search: query.get('search'), status: query.get('status'), page: query.get('page'), pageSize: query.get('pageSize') });
+      // Kloter tiap pendaftaran pada halaman ini, satu query untuk seluruh halaman.
+      const kloter = await services.departureService.forRegistrations((page.items || []).map((item) => item.registrationId));
+      json(response, 200, { ...page, items: (page.items || []).map((item) => ({ ...item, departure: kloter[item.registrationId] || null })) });
     }
   },
 
@@ -135,7 +143,7 @@ module.exports = [
         return;
       }
       const registration = await services.registrationService.getPublic(registrationId);
-      json(response, registration.ok ? 200 : 404, registration.ok ? { registration: registration.value } : publicError(registration));
+      json(response, registration.ok ? 200 : 404, registration.ok ? { registration: await withDeparture(services, registration.value) } : publicError(registration));
     }
   },
 

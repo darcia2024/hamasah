@@ -387,6 +387,7 @@ function renderRegistrations(items) {
       finally { addNextStep.disabled = false; }
     });
     nextStepBox.append(nextStepTitle, nextStepDue, addNextStep); controls.append(nextStepBox);
+    if (registration.status !== 'cancelled') controls.append(createDepartureControl(registration));
     if (['ready-for-departure', 'completed'].includes(registration.status)) {
       const convert = document.createElement('button');
       convert.className = 'button button--primary';
@@ -422,8 +423,150 @@ function renderRegistrations(items) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Kloter keberangkatan. Daftar kloter dimuat bersama daftar pendaftar supaya pilihan kloter
+// di setiap kartu selalu sesuai data terbaru.
+// ---------------------------------------------------------------------------
+const DEPARTURE_STATUS = { planned: 'Direncanakan', confirmed: 'Terkonfirmasi', departed: 'Sudah berangkat', cancelled: 'Dibatalkan' };
+const departureForm = document.querySelector('#departure-form');
+const departureFormStatus = document.querySelector('#departure-form-status');
+const departureList = document.querySelector('#departure-list');
+const departureReset = document.querySelector('#departure-reset');
+let departureGroups = [];
+
+function formatTanggalKloter(value) {
+  if (!value) return 'Tanggal belum ditetapkan';
+  return new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(value + 'T00:00:00Z'));
+}
+
+function resetDepartureForm() {
+  departureForm.reset();
+  document.querySelector('#departure-id').value = '';
+  document.querySelector('#departure-submit').textContent = 'Simpan kloter';
+  departureReset.hidden = true;
+}
+
+function renderDepartureGroups() {
+  const count = document.querySelector('#departure-count');
+  if (count) count.textContent = departureGroups.length;
+  departureList.replaceChildren();
+  if (!departureGroups.length) {
+    const empty = document.createElement('p');
+    empty.className = 'departure-list__empty';
+    empty.textContent = 'Belum ada kloter. Buat kloter lebih dulu, lalu tugaskan pendaftar dari kartunya.';
+    departureList.append(empty);
+    return;
+  }
+  departureGroups.forEach((group) => {
+    const row = document.createElement('div');
+    row.className = 'departure-list__row';
+    const info = document.createElement('div');
+    const name = document.createElement('strong');
+    name.textContent = group.name;
+    const meta = document.createElement('span');
+    meta.textContent = [formatTanggalKloter(group.plannedDate), group.origin || 'Asal belum ditetapkan', DEPARTURE_STATUS[group.status] || group.status, (group.memberCount || 0) + ' pendaftar'].join(' · ');
+    info.append(name, meta);
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'button button--secondary';
+    edit.textContent = 'Ubah';
+    edit.setAttribute('aria-label', 'Ubah ' + group.name);
+    edit.addEventListener('click', () => {
+      document.querySelector('#departure-id').value = group.id;
+      document.querySelector('#departure-name').value = group.name;
+      document.querySelector('#departure-date').value = group.plannedDate || '';
+      document.querySelector('#departure-origin').value = group.origin || '';
+      document.querySelector('#departure-status').value = group.status;
+      document.querySelector('#departure-note').value = group.applicantNote || '';
+      document.querySelector('#departure-submit').textContent = 'Simpan perubahan';
+      departureReset.hidden = false;
+      document.querySelector('#departure-name').focus();
+    });
+    row.append(info, edit);
+    departureList.append(row);
+  });
+}
+
+async function loadDepartureGroups() {
+  const response = await fetch('/api/departures', { headers: authHeaders() });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || 'Kloter belum dapat dimuat.');
+  departureGroups = result.items || [];
+  renderDepartureGroups();
+}
+
+departureReset?.addEventListener('click', resetDepartureForm);
+departureForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const id = document.querySelector('#departure-id').value;
+  const body = {
+    name: document.querySelector('#departure-name').value,
+    plannedDate: document.querySelector('#departure-date').value || null,
+    origin: document.querySelector('#departure-origin').value,
+    status: document.querySelector('#departure-status').value,
+    applicantNote: document.querySelector('#departure-note').value
+  };
+  departureFormStatus.classList.remove('is-error');
+  try {
+    const response = await fetch(id ? '/api/departures/' + encodeURIComponent(id) : '/api/departures', {
+      method: id ? 'PATCH' : 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || 'Kloter belum dapat disimpan.');
+    departureFormStatus.textContent = 'Kloter "' + result.group.name + '" tersimpan.';
+    resetDepartureForm();
+    await loadRegistrations();
+  } catch (error) {
+    departureFormStatus.textContent = error.message;
+    departureFormStatus.classList.add('is-error');
+  }
+});
+
+function createDepartureControl(registration) {
+  const box = document.createElement('div');
+  box.className = 'staff-note-box staff-note-box--secondary departure-assign';
+  const label = document.createElement('label');
+  label.textContent = 'Kloter keberangkatan';
+  const select = document.createElement('select');
+  const currentId = registration.departure ? registration.departure.id : null;
+  const kosong = document.createElement('option');
+  kosong.value = '';
+  kosong.textContent = 'Belum ditetapkan';
+  select.append(kosong);
+  departureGroups.forEach((group) => {
+    const option = document.createElement('option');
+    option.value = group.id;
+    option.textContent = group.name + ' (' + formatTanggalKloter(group.plannedDate) + ')';
+    option.disabled = group.status === 'cancelled' && currentId !== group.id;
+    option.selected = currentId === group.id;
+    select.append(option);
+  });
+  label.append(select);
+  const save = document.createElement('button');
+  save.type = 'button';
+  save.className = 'button button--secondary';
+  save.textContent = 'Simpan kloter';
+  save.addEventListener('click', async () => {
+    save.disabled = true;
+    try {
+      const response = await fetch('/api/registrations/' + encodeURIComponent(registration.registrationId) + '/departure', {
+        method: 'PUT', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ departureGroupId: select.value || null })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Kloter belum dapat disimpan.');
+      await loadRegistrations();
+    } catch (error) {
+      registrationListStatus.textContent = error.message;
+      registrationListStatus.classList.add('is-error');
+    } finally { save.disabled = false; }
+  });
+  box.append(label, save);
+  return box;
+}
+
 async function loadRegistrations() {
   registrationListStatus.classList.remove('is-error');
+  await loadDepartureGroups();
   registrationListStatus.textContent = 'Memuat data pendaftar...';
   const params = new URLSearchParams({ page: String(registrationPage), pageSize: '10' });
   if (registrationSearch.value.trim()) params.set('search', registrationSearch.value.trim());

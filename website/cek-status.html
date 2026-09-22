@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website-core.css?v=77cf22cbe7" />
-    <link rel="stylesheet" href="website-public.css?v=6055a2a759" />
+    <link rel="stylesheet" href="website-public.css?v=9c737096ce" />
   </head>
   <body>
     <a class="skip-link" href="#status-content">Lewati ke konten utama</a>
@@ -157,6 +157,12 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Jadwal keberangkatan per kloter. Diisi dari data petugas; tanpa kloter tampil "belum ditetapkan". -->
+              <section class="departure-schedule" aria-labelledby="departure-schedule-title">
+                <h3 id="departure-schedule-title">Jadwal Keberangkatan</h3>
+                <div id="res-departure"><p class="departure-schedule__empty">Memuat jadwal...</p></div>
+              </section>
             </div>
 
             <!-- 2-Column Detail Grid: Document Upload & Status History -->
@@ -307,6 +313,6 @@
 
     <script src="public-header.js?v=6f2879ebf1"></script>
     <script src="file-open.js?v=23834ad36d"></script>
-    <script src="cek-status.js?v=93f6e6005c"></script>
+    <script src="cek-status.js?v=d2ce51ac37"></script>
   </body>
 </html>

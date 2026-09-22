@@ -32,6 +32,8 @@ const ACTIONS = Object.freeze({
   ACCOUNT_BOOTSTRAPPED: 'account.bootstrapped',
   REGISTRATION_CREATED: 'registration.created',
   REGISTRATION_STATUS_CHANGED: 'registration.status-changed',
+  REGISTRATION_DEPARTURE_ASSIGNED: 'registration.departure-assigned',
+  DEPARTURE_GROUP_SAVED: 'departure-group.saved',
   REGISTRATION_DOCUMENT_ADDED: 'registration.document-added',
   REGISTRATION_DOCUMENT_REVIEWED: 'registration.document-reviewed',
   REGISTRATION_DOCUMENT_DELETED: 'registration.document-deleted',

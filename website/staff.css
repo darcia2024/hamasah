@@ -1184,3 +1184,81 @@ html.is-session-ended .crm-shell {
   line-height: 1.6;
   color: var(--md-sys-color-on-surface-variant);
 }
+
+/* Kloter keberangkatan di konsol pendaftaran. */
+.departure-manager {
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 16px;
+  background: var(--md-sys-color-surface-container-lowest);
+  padding: 12px 16px;
+}
+
+.departure-manager summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.departure-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px 16px;
+  margin-top: 12px;
+}
+
+.departure-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.departure-form__wide,
+.departure-form__actions,
+.departure-form .form-status { grid-column: 1 / -1; }
+
+.departure-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.departure-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.departure-list__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--md-sys-color-surface-container-low, #F7F5F0);
+}
+
+.departure-list__row > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.departure-list__row span,
+.departure-list__empty {
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.departure-assign label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}

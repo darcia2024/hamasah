@@ -154,6 +154,10 @@ Pengerasan. Prototipe lama dan rute `/proposal`, `/hamasah` dihapus (KR6 a); `.v
 
 Tab "Tagihan & Kuitansi" di portal (wali dan admin). `GET /api/students/:id/invoices` dan `GET /api/students/:id/invoices/:invoiceId/receipt.pdf`: service hanya meloloskan wali santri yang terhubung dan admin; wali tidak menerima alasan pembatalan dan versi internal; kuitansi hanya untuk tagihan lunas milik santri di URL; unduhan diaudit sebagai `invoice.receipt-downloaded`. Endpoint keuangan `/api/operations/invoices/:id/receipt.pdf` tetap khusus keuangan. Kuitansi memakai nama santri (bukan ID), rupiah, dan tanggal WIB.
 
+## Jadwal keberangkatan per kloter (22 September 2026)
+
+Petugas pendaftaran dan admin (izin baru `departures.manage`) membuat kloter di konsol pendaftaran (nama, tanggal rencana, kota/bandara asal, status, catatan untuk pendaftar) dan menugaskan pendaftar dari kartunya. Halaman cek status menampilkan kloter pendaftar; tanpa kloter atau tanpa tanggal tertulis "belum ditetapkan". Kloter dibatalkan tidak menerima pendaftar baru. Perubahan diaudit. **Migrasi 037 perlu diterapkan ke Supabase** bersama 017-036. Belum ada email ke pendaftar saat kloter ditetapkan atau berubah.
+
 ## Gerbang rilis setelah R1 sampai R8 (22 September 2026)
 
 - **Gerbang 1 (boleh dilihat orang luar): tertahan.** R1 dan R2 selesai (kecuali R1.0 putar kredensial, tugas manusia). R8.7 belum dilakukan. Konten publik juga masih menunggu klien: alamat Hay Asyir/Madinat Nasr (K16), teks kebijakan privasi, nomor WhatsApp resmi.

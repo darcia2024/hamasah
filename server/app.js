@@ -40,6 +40,8 @@ const { serveStaticFile } = require('./http/static.js');
 const seo = require('./seo.js');
 const articlePage = require('./article-page.js');
 const { createEventNotifier } = require('./event-notifications.js');
+const { createDepartureService } = require('./departure-service.js');
+const { createPostgresDepartureStore } = require('./postgres-departure-store.js');
 const { createRequestAuth, hashToken, safeEqual } = require('./http/auth.js');
 const { NOT_ALLOWED, NOT_SIGNED_IN, roleHasPermission } = require('./access-policy.js');
 const { TOO_MANY_REQUESTS, createRateLimiter } = require('./rate-limit.js');
@@ -61,6 +63,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/articles.js'),
   ...require('./routes/inquiries.js'),
   ...require('./routes/faq.js'),
+  ...require('./routes/departures.js'),
   ...require('./routes/registrations.js')
 ]);
 
@@ -117,6 +120,10 @@ function createHamasahApp(options) {
     store: notificationStore,
     sender: emailSender,
     notificationPayloadKey: config.notificationPayloadKey || process.env.NOTIFICATION_PAYLOAD_KEY || process.env.IP_HASH_SECRET || 'development-only-key'
+  });
+  const departureService = config.departureService || createDepartureService({
+    store: createPostgresDepartureStore({ database }),
+    async registrationExists(registrationId) { return Boolean(await registrationStore.get(registrationId)); }
   });
   const eventNotifier = config.eventNotifier || createEventNotifier({ notificationService, registrationStore, database, logger: config.logger || console });
   const notificationWorker = config.notificationWorker || createNotificationWorker({
@@ -227,6 +234,7 @@ function createHamasahApp(options) {
 
   const services = Object.freeze({
     accountStore,
+    departureService,
     eventNotifier,
     applicantService,
     articleStore,

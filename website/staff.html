@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=77cf22cbe7" />
-    <link rel="stylesheet" href="staff.css?v=12bddaf2a8" />
+    <link rel="stylesheet" href="staff.css?v=d203202041" />
     <link rel="stylesheet" href="portal.css?v=5e5369f3ce" />
   </head>
   <body class="staff-page">
@@ -208,6 +208,33 @@
                 </div>
               </div>
             </div>
+            <!-- Kloter keberangkatan: dibuat di sini, ditugaskan dari kartu pendaftar. -->
+            <details id="departure-manager" class="departure-manager">
+              <summary>Kloter keberangkatan <span id="departure-count" class="crm-pill-count">0</span></summary>
+              <form id="departure-form" class="departure-form">
+                <input type="hidden" id="departure-id">
+                <label>Nama kloter <input id="departure-name" required minlength="3" maxlength="80" placeholder="Contoh: Kloter 1 Jakarta"></label>
+                <label>Rencana berangkat <input id="departure-date" type="date"></label>
+                <label>Berangkat dari <input id="departure-origin" maxlength="80" placeholder="Contoh: Jakarta (CGK)"></label>
+                <label>Status kloter
+                  <select id="departure-status">
+                    <option value="planned">Direncanakan</option>
+                    <option value="confirmed">Terkonfirmasi</option>
+                    <option value="departed">Sudah berangkat</option>
+                    <option value="cancelled">Dibatalkan</option>
+                  </select>
+                </label>
+                <label class="departure-form__wide">Catatan untuk pendaftar (terlihat di halaman cek status)
+                  <textarea id="departure-note" rows="2" maxlength="500" placeholder="Contoh: Kumpul di bandara pukul 18.00 WIB."></textarea>
+                </label>
+                <div class="departure-form__actions">
+                  <button type="submit" class="button button--primary" id="departure-submit">Simpan kloter</button>
+                  <button type="button" class="button button--secondary" id="departure-reset" hidden>Batal ubah</button>
+                </div>
+                <p id="departure-form-status" class="form-status" role="status" aria-live="polite"></p>
+              </form>
+              <div id="departure-list" class="departure-list"></div>
+            </details>
             <p id="registration-list-status" class="form-status" role="status" aria-live="polite"></p>
             <div id="registration-pagination" class="registration-pagination" hidden><button id="registration-prev" type="button" class="button button--secondary">Sebelumnya</button><span id="registration-page-label"></span><button id="registration-next" type="button" class="button button--secondary">Berikutnya</button></div>
             <section id="conversion-result" class="conversion-result" hidden aria-labelledby="conversion-result-title"></section>
@@ -357,6 +384,6 @@
     <script src="internal-shell.js?v=65f421ce4a"></script>
     <script src="nav.js?v=d38649e945"></script>
     <script src="file-open.js?v=23834ad36d"></script>
-    <script src="staff.js?v=38a0af2d0a"></script>
+    <script src="staff.js?v=fc413c04b5"></script>
   </body>
 </html>
