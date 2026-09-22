@@ -51,6 +51,19 @@ async function run() {
   assert.ok(pesanKloter.html.includes('https://app.test/website/cek-status.html'));
   assert.ok(eventMessage('departure-assigned', { registrationId: 'X', departureName: 'K', plannedDate: null }, '').html.includes('Rencana berangkat: belum ditetapkan'));
 
+  // Kloter berubah: satu email per penerima anggota; pendaftaran dibatalkan dilewati.
+  const sebelumUbah = antre.length;
+  const perubahan = [{ field: 'plannedDate', from: '2026-10-15', to: '2026-10-22' }, { field: 'status', from: 'confirmed', to: 'cancelled' }];
+  assert.equal(await notifier.departureUpdated(['HI-REG-2026-00001', 'HI-REG-2026-00002'], { name: 'Kloter 1' }, perubahan), 1);
+  assert.equal(antre[sebelumUbah].notificationType, 'departure-updated');
+  assert.equal(await notifier.departureUpdated(['HI-REG-2026-00001'], { name: 'Kloter 1' }, []), 0, 'Tanpa perubahan tidak ada email.');
+  const pesanUbah = eventMessage('departure-updated', { name: 'Calon', registrationId: 'HI-REG-2026-00001', departureName: 'Kloter <1>', changes: perubahan.concat([{ field: 'origin', from: null, to: 'Surabaya (SUB)' }]) }, 'https://app.test');
+  assert.ok(pesanUbah.html.includes('Rencana berangkat: Kamis, 15 Oktober 2026 menjadi <strong>Kamis, 22 Oktober 2026</strong>'));
+  assert.ok(pesanUbah.html.includes('Status kloter: Terkonfirmasi menjadi <strong>Dibatalkan</strong>'));
+  assert.ok(pesanUbah.html.includes('Berangkat dari: belum ditetapkan menjadi <strong>Surabaya (SUB)</strong>'));
+  assert.ok(pesanUbah.html.includes('Kloter ini dibatalkan.'));
+  assert.ok(pesanUbah.html.includes('Kloter &lt;1&gt;'));
+
   // Isi email di-escape.
   const pesan = eventMessage('document-revision', { name: 'Calon <b>Uji</b>', registrationId: 'HI-REG-2026-00001', note: '<script>x</script>' }, 'https://app.test');
   assert.ok(!pesan.html.includes('<script>') && !pesan.html.includes('<b>Uji'));

@@ -36,10 +36,14 @@ module.exports = [
     async handler({ response, services, auth, params, readBody, ip }) {
       const actor = await auth.actor();
       const result = await services.departureService.updateGroup(params[0], await readBody(), actor);
+      let notified = 0;
+      if (result.ok && result.changes.length && result.members.length) {
+        notified = await services.eventNotifier.departureUpdated(result.members, result.value, result.changes);
+      }
       if (result.ok) {
         await services.auditService.record({ action: ACTIONS.DEPARTURE_GROUP_SAVED, actor, ip, entityType: 'departure-group', entityId: result.value.id, metadata: { name: result.value.name, status: result.value.status } });
       }
-      json(response, result.ok ? 200 : (result.status || 422), result.ok ? { group: result.value } : publicError(result));
+      json(response, result.ok ? 200 : (result.status || 422), result.ok ? { group: result.value, notified } : publicError(result));
     }
   },
 

@@ -57,6 +57,10 @@ function createPostgresDepartureStore({ database } = {}) {
         [registrationId, groupId, at, accountId]
       );
     },
+    async memberRegistrationIds(groupId) {
+      const { rows } = await database.query('SELECT registration_id FROM registration_departures WHERE departure_group_id = $1 ORDER BY registration_id', [groupId]);
+      return rows.map((row) => row.registration_id);
+    },
     async forRegistrations(registrationIds) {
       const { rows } = await database.query(
         `SELECT rd.registration_id, ${COLUMNS} FROM registration_departures rd

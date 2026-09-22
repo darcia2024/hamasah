@@ -513,7 +513,7 @@ departureForm?.addEventListener('submit', async (event) => {
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.error || 'Kloter belum dapat disimpan.');
-    departureFormStatus.textContent = 'Kloter "' + result.group.name + '" tersimpan.';
+    departureFormStatus.textContent = 'Kloter "' + result.group.name + '" tersimpan.' + (result.notified ? ' ' + result.notified + ' email perubahan jadwal masuk antrean untuk pendaftar dan wali.' : '');
     resetDepartureForm();
     await loadRegistrations();
   } catch (error) {

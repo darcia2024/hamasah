@@ -75,6 +75,19 @@ function createEventNotifier({ notificationService, registrationStore, database,
         });
       });
     },
+    // Tanggal/asal/status kloter berubah: beri tahu setiap anggota.
+    departureUpdated(registrationIds, group, changes) {
+      return guarded('perubahan kloter', async () => {
+        if (!group || !changes || !changes.length) return 0;
+        let jumlah = 0;
+        for (const registrationId of registrationIds || []) {
+          const target = await registrationTarget(registrationId);
+          if (!target) continue;
+          jumlah += await queueAll(EVENT_TYPES.DEPARTURE_UPDATED, target.emails, { name: target.name, registrationId, departureName: group.name, changes });
+        }
+        return jumlah;
+      });
+    },
     invoicePaid(invoice) {
       return guarded('pembayaran diterima', async () => {
         if (!invoice || !invoice.studentId) return 0;

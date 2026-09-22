@@ -409,7 +409,19 @@ async function run() {
     assert.equal(daftarPendaftar.body.items.find((item) => item.registrationId === registrationId).departure.name, 'Kloter 1 Jakarta');
     assert.equal((await request(baseUrl, `/api/registrations/${registrationId}/departure`, { method: 'PUT', headers: candidateHeaders, body: JSON.stringify({ departureGroupId: null }) })).status, 401, 'Pendaftar tidak bisa mengubah kloternya.');
     // Kloter dibatalkan: pendaftar melihat statusnya, dan kloter itu tidak menerima pendaftar baru.
+    // Perubahan kloter: catatan saja tidak memicu email; tanggal dan pembatalan memicu email ke anggota.
+    const emailPerubahan = async () => (await database.query("SELECT recipient_email FROM notification_outbox WHERE notification_type = 'departure-updated' ORDER BY created_at, recipient_email")).rows.map((row) => row.recipient_email);
+    assert.equal((await request(baseUrl, `/api/departures/${kloter.body.group.id}`, { method: 'PATCH', headers: adminHeaders, body: JSON.stringify({ applicantNote: 'Catatan baru.' }) })).status, 200);
+    assert.deepEqual(await emailPerubahan(), [], 'Mengubah catatan saja tidak mengirim email.');
+    assert.equal((await request(baseUrl, `/api/departures/${kloter.body.group.id}`, { method: 'PATCH', headers: adminHeaders, body: JSON.stringify({ plannedDate: '2026-09-22' }) })).status, 200);
+    assert.deepEqual(await emailPerubahan(), ['naufal@hamasah.test', 'wali-naufal@hamasah.test']);
+    assert.equal((await request(baseUrl, `/api/departures/${kloter.body.group.id}`, { method: 'PATCH', headers: adminHeaders, body: JSON.stringify({ plannedDate: '2026-09-22' }) })).status, 200);
+    assert.equal((await emailPerubahan()).length, 2, 'Menyimpan tanggal yang sama tidak mengirim email.');
     assert.equal((await request(baseUrl, `/api/departures/${kloter.body.group.id}`, { method: 'PATCH', headers: adminHeaders, body: JSON.stringify({ status: 'cancelled' }) })).status, 200);
+    assert.equal((await emailPerubahan()).length, 4, 'Pembatalan kloter diberitahukan ke anggota.');
+    await app.notificationWorker.runOnce({ limit: 50 });
+    const belumTerkirimKloter = await database.query("SELECT count(*)::int AS n FROM notification_outbox WHERE notification_type = 'departure-updated' AND status <> 'sent'");
+    assert.equal(belumTerkirimKloter.rows[0].n, 0, 'Worker merender dan mengirim email perubahan kloter.');
     const kloterPendaftar = async () => (await request(baseUrl, '/api/registrations?pageSize=50', { headers: adminHeaders })).body.items.find((item) => item.registrationId === registrationId).departure;
     assert.equal((await kloterPendaftar()).status, 'cancelled');
     assert.equal((await request(baseUrl, `/api/registrations/${registrationId}/departure`, { method: 'PUT', headers: adminHeaders, body: JSON.stringify({ departureGroupId: kloter.body.group.id }) })).status, 422);

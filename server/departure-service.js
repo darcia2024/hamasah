@@ -8,6 +8,7 @@ const crypto = require('node:crypto');
 
 const STATUSES = Object.freeze({ planned: 'Direncanakan', confirmed: 'Terkonfirmasi', departed: 'Sudah berangkat', cancelled: 'Dibatalkan' });
 const STAFF_ROLES = Object.freeze(['admin', 'registration-officer']);
+const NOTIFIED_FIELDS = Object.freeze(['plannedDate', 'origin', 'status']);
 
 function clean(value, max) {
   const text = String(value ?? '').trim();
@@ -69,7 +70,13 @@ function createDepartureService({ store, now = () => new Date().toISOString(), r
       if (!current) return { ok: false, status: 404, error: 'Kloter tidak ditemukan.' };
       const parsed = readGroupInput(input, current);
       if (!parsed.ok) return parsed;
-      return { ok: true, value: await store.updateGroup(groupId, { ...parsed.value, updatedAt: now() }) };
+      const value = await store.updateGroup(groupId, { ...parsed.value, updatedAt: now() });
+      // Perubahan yang perlu diberitahukan ke anggota: tanggal, asal, status. Nama dan catatan
+      // tidak memicu email.
+      const changes = NOTIFIED_FIELDS.filter((field) => (current[field] || null) !== (value[field] || null))
+        .map((field) => ({ field, from: current[field] || null, to: value[field] || null }));
+      const members = changes.length && typeof store.memberRegistrationIds === 'function' ? await store.memberRegistrationIds(groupId) : [];
+      return { ok: true, value, changes, members };
     },
     // groupId null melepas pendaftar dari kloter.
     async assign(registrationId, groupId, actor) {

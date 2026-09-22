@@ -6,8 +6,18 @@ const EVENT_TYPES = Object.freeze({
   REGISTRATION_STATUS: 'registration-status',
   DOCUMENT_REVISION: 'document-revision',
   PAYMENT_RECEIVED: 'payment-received',
-  DEPARTURE_ASSIGNED: 'departure-assigned'
+  DEPARTURE_ASSIGNED: 'departure-assigned',
+  DEPARTURE_UPDATED: 'departure-updated'
 });
+
+const LABEL_PERUBAHAN = Object.freeze({ plannedDate: 'Rencana berangkat', origin: 'Berangkat dari', status: 'Status kloter' });
+const STATUS_KLOTER = Object.freeze({ planned: 'Direncanakan', confirmed: 'Terkonfirmasi', departed: 'Sudah berangkat', cancelled: 'Dibatalkan' });
+
+function nilaiPerubahan(field, value) {
+  if (field === 'plannedDate') return tanggalPanjang(value);
+  if (field === 'status') return STATUS_KLOTER[value] || value || '-';
+  return value || 'belum ditetapkan';
+}
 
 function tanggalPanjang(value) {
   if (!value) return 'belum ditetapkan';
@@ -43,6 +53,16 @@ function eventMessage(type, payload, appBaseUrl) {
     return {
       subject: `Kloter keberangkatan ${payload.registrationId}: ${payload.departureName}`,
       html: `${salam}<p>Pendaftaran <strong>${escapeHtml(payload.registrationId)}</strong> sudah ditetapkan masuk <strong>${escapeHtml(payload.departureName)}</strong>.</p><ul><li>Rencana berangkat: ${escapeHtml(tanggalPanjang(payload.plannedDate))}</li><li>Berangkat dari: ${escapeHtml(payload.origin || 'belum ditetapkan')}</li><li>Status kloter: ${escapeHtml(payload.statusLabel || '')}</li></ul>${catatan}<p>Jadwal dapat berubah; informasi terbaru selalu ada di <a href="${escapeHtml(cekStatus)}">halaman cek status</a>.</p>${penutup}`
+    };
+  }
+  if (type === EVENT_TYPES.DEPARTURE_UPDATED) {
+    const daftar = (payload.changes || []).map((change) => `<li>${escapeHtml(LABEL_PERUBAHAN[change.field] || change.field)}: ${escapeHtml(nilaiPerubahan(change.field, change.from))} menjadi <strong>${escapeHtml(nilaiPerubahan(change.field, change.to))}</strong></li>`).join('');
+    const dibatalkan = (payload.changes || []).some((change) => change.field === 'status' && change.to === 'cancelled')
+      ? '<p>Kloter ini dibatalkan. Tim Hamasah akan menghubungi Anda mengenai jadwal pengganti.</p>'
+      : '';
+    return {
+      subject: `Perubahan jadwal ${payload.departureName} (${payload.registrationId})`,
+      html: `${salam}<p>Ada perubahan pada kloter keberangkatan <strong>${escapeHtml(payload.departureName)}</strong> untuk pendaftaran <strong>${escapeHtml(payload.registrationId)}</strong>:</p><ul>${daftar}</ul>${dibatalkan}<p>Informasi terbaru selalu ada di <a href="${escapeHtml(cekStatus)}">halaman cek status</a>.</p>${penutup}`
     };
   }
   if (type === EVENT_TYPES.PAYMENT_RECEIVED) {
