@@ -15,6 +15,9 @@ function toArticle(row) {
     updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : null
     ,coverUrl: row.cover_url || null
     ,coverAltText: row.cover_alt_text || null
+    // Nama penulis dari akun yang membuat artikel (Task R7.4). Null untuk artikel lama yang
+    // dibuat sebelum penulis dicatat, atau bila akunnya sudah dihapus.
+    ,authorName: row.author_name || null
   };
 }
 
@@ -62,13 +65,16 @@ function createPostgresArticleStore({ database } = {}) {
     async get(slug, { publicOnly = true } = {}) {
       const filter = publicOnly ? "AND status = 'published'" : '';
       const { rows } = await database.query(
-        `SELECT slug, title, excerpt, body, category, published_at, status, archived_at, updated_at, cover_url, cover_alt_text
-         FROM articles WHERE slug = $1 ${filter}`,
+        `SELECT a.slug, a.title, a.excerpt, a.body, a.category, a.published_at, a.status, a.archived_at, a.updated_at,
+                a.cover_url, a.cover_alt_text, penulis.name AS author_name
+         FROM articles a LEFT JOIN accounts penulis ON penulis.id = a.author_account_id
+         WHERE a.slug = $1 ${filter.replace('status', 'a.status')}`,
         [slug]
       );
       return rows[0] ? toArticle(rows[0]) : null;
     },
-    async create(input, createdAt) {
+    // authorAccountId: akun yang sedang login saat artikel dibuat.
+    async create(input, createdAt, { authorAccountId = null } = {}) {
       const title = String(input.title || '').trim();
       const excerpt = String(input.excerpt || '').trim();
       const body = String(input.body || '').trim();
@@ -83,13 +89,12 @@ function createPostgresArticleStore({ database } = {}) {
         return { ok: false, error: 'Judul, ringkasan, dan isi artikel belum valid.' };
       }
       try {
-        const { rows } = await database.query(
-          `INSERT INTO articles (id, slug, title, excerpt, body, category, published_at, status, updated_at, cover_url, cover_alt_text)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-           RETURNING slug, title, excerpt, body, category, published_at, status, archived_at, updated_at, cover_url, cover_alt_text`,
-          [crypto.randomUUID(), slug, title, excerpt, body, category, status === 'published' ? createdAt : null, status, createdAt, coverUrl, coverAltText]
+        await database.query(
+          `INSERT INTO articles (id, slug, title, excerpt, body, category, published_at, status, updated_at, cover_url, cover_alt_text, author_account_id)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+          [crypto.randomUUID(), slug, title, excerpt, body, category, status === 'published' ? createdAt : null, status, createdAt, coverUrl, coverAltText, authorAccountId]
         );
-        return { ok: true, value: toArticle(rows[0]) };
+        return { ok: true, value: await this.get(slug, { publicOnly: false }) };
       } catch (error) {
         if (error && error.code === '23505') {
           return { ok: false, error: 'Slug artikel sudah digunakan.' };
@@ -117,14 +122,13 @@ function createPostgresArticleStore({ database } = {}) {
       const changedAt = updatedAt || new Date().toISOString();
       const publishedAt = status === 'published' ? (current.publishedAt || changedAt) : null;
       const archivedAt = status === 'archived' ? (current.archivedAt || changedAt) : null;
-      const { rows } = await database.query(
+      await database.query(
         `UPDATE articles SET title = $2, excerpt = $3, body = $4, category = $5,
            status = $6, published_at = $7, archived_at = $8, updated_at = $9, cover_url = $10, cover_alt_text = $11
-         WHERE slug = $1
-         RETURNING slug, title, excerpt, body, category, published_at, status, archived_at, updated_at, cover_url, cover_alt_text`,
+         WHERE slug = $1`,
         [slug, title, excerpt, body, category, status, publishedAt, archivedAt, changedAt, coverUrl, coverAltText]
       );
-      return { ok: true, value: toArticle(rows[0]) };
+      return { ok: true, value: await this.get(slug, { publicOnly: false }) };
     }
   };
 }

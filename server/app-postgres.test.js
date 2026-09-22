@@ -246,6 +246,9 @@ async function run() {
       body: JSON.stringify({ title: 'Kegiatan Santri Hamasah', excerpt: 'Ringkasan kegiatan.', body: 'Isi kegiatan lengkap.' })
     });
     assert.equal(article.status, 201);
+    // Penulis dicatat dari sesi yang membuat artikel dan tampil di detail publik (Task R7.4).
+    assert.equal(article.body.item.authorName, 'Admin Uji');
+    assert.equal((await request(baseUrl, `/api/articles/${article.body.item.slug}`)).body.item.authorName, article.body.item.authorName);
     const articles = await request(baseUrl, '/api/articles');
     assert.equal(articles.body.items.length, 1);
 

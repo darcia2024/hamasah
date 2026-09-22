@@ -17,9 +17,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const rawTitle = String(article.title || 'Artikel Hamasah');
     const category = escapeHtml(article.category || 'Pena Hamasah');
     const title = escapeHtml(rawTitle);
+    // Tanpa tanggal karangan: artikel yang belum tercatat tanggal terbitnya dikatakan begitu.
     const dateStr = article.publishedAt
-      ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' }).format(new Date(article.publishedAt))
-      : 'September 2026';
+      ? `Diterbitkan pada ${new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' }).format(new Date(article.publishedAt))}`
+      : 'Tanggal terbit belum tercatat';
+    // Penulis sebenarnya; artikel lama tanpa data penulis memakai nama redaksi dan
+    // menyebut terus terang bahwa penulisnya tidak tercatat (Task R7.4).
+    const authorName = article.authorName ? String(article.authorName) : '';
+    const byline = authorName
+      ? `<strong>${escapeHtml(authorName)}</strong><small>${dateStr}</small>`
+      : `<strong>Tim Redaksi Hamasah International</strong><small>Penulis tidak tercatat · ${dateStr}</small>`;
+    const initial = escapeHtml((authorName || 'Hamasah').trim().charAt(0).toLocaleUpperCase('id-ID'));
 
     document.title = `${rawTitle} | Hamasah International`;
     if (breadcrumbTitle) breadcrumbTitle.textContent = title;
@@ -41,10 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <h1 class="article-headline">${title}</h1>
         <div class="article-byline">
-          <div class="author-avatar" aria-hidden="true">H</div>
+          <div class="author-avatar" aria-hidden="true">${initial}</div>
           <div class="author-info">
-            <strong>Tim Redaksi Hamasah International</strong>
-            <small>Kairo, Mesir · Diterbitkan pada ${dateStr}</small>
+            ${byline}
           </div>
         </div>
       </div>

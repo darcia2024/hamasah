@@ -63,8 +63,9 @@ module.exports = [
     method: 'POST',
     pattern: /^\/api\/articles$/,
     permission: 'articles.write',
-    async handler({ response, services, readBody }) {
-      const created = await services.articleStore.create(await readBody(), new Date().toISOString());
+    async handler({ response, services, readBody, auth }) {
+      const actor = await auth.actor();
+      const created = await services.articleStore.create(await readBody(), new Date().toISOString(), { authorAccountId: actor ? actor.id : null });
       json(response, created.ok ? 201 : 422, created.ok ? { item: created.value } : publicError(created));
     }
   },
