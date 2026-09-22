@@ -26,7 +26,12 @@ function periodeLabel(period) {
 
 function kosong(blocks, pesan) { blocks.push({ kind: 'muted', text: pesan }); }
 
-function buildStudentReportBlocks(dashboard, { courses = null, generatedAt = new Date() } = {}) {
+const LABEL_HAFALAN = Object.freeze({ lancar: 'lancar', 'kurang-lancar': 'kurang lancar', ulang: 'perlu diulang' });
+const LABEL_KONDISI = Object.freeze({ sehat: 'Sehat', 'sakit-ringan': 'Sakit ringan', 'perlu-perhatian': 'Perlu perhatian', dirujuk: 'Dirujuk ke fasilitas kesehatan' });
+
+// care: ringkasan dari student-care-service (atau null). Kesehatan di rapor selalu versi
+// wali: kondisi dan catatan untuk wali saja, tanpa keluhan dan tindakan.
+function buildStudentReportBlocks(dashboard, { courses = null, care = null, generatedAt = new Date() } = {}) {
   const { student, attendance } = dashboard;
   const period = dashboard.period || {};
   const blocks = [
@@ -49,6 +54,25 @@ function buildStudentReportBlocks(dashboard, { courses = null, generatedAt = new
     const perStatus = attendance.byStatus || {};
     const rincian = Object.entries(STATUS_KEHADIRAN).filter(([key]) => perStatus[key]).map(([key, label]) => `${label} ${perStatus[key]}`);
     if (rincian.length) blocks.push({ kind: 'text', text: `Rincian: ${rincian.join(', ')}.` });
+  }
+
+  if (care) {
+    const periodeIbadah = `${tanggal(care.period.from)} sampai ${tanggal(care.period.to)}`;
+    blocks.push({ kind: 'heading', text: 'Sholat berjamaah' });
+    blocks.push({ kind: 'muted', text: `Periode catatan ibadah: ${periodeIbadah}.` });
+    if (!care.prayers.recorded) kosong(blocks, 'Belum ada presensi sholat yang dicatat musyrif pada periode ini.');
+    else {
+      const t = care.prayers.totals;
+      blocks.push({ kind: 'text', text: `${care.prayers.recorded} waktu sholat tercatat: ${t.berjamaah} berjamaah (${care.prayers.berjamaahRate}%), ${t.munfarid} munfarid, ${t.tidak} tidak sholat, ${t.izin} izin.` });
+    }
+    blocks.push({ kind: 'heading', text: 'Setoran hafalan' });
+    if (!care.memorization.length) kosong(blocks, 'Belum ada setoran hafalan pada periode ini.');
+    else care.memorization.forEach((setoran) => blocks.push({ kind: 'item', text: `${tanggal(setoran.occurredOn)}: ${setoran.kind === 'ziyadah' ? 'Ziyadah' : 'Murajaah'} ${setoran.portion} (${LABEL_HAFALAN[setoran.grade] || setoran.grade})${setoran.note ? `. ${setoran.note}` : ''}` }));
+    if (care.health !== null) {
+      blocks.push({ kind: 'heading', text: 'Kesehatan' });
+      if (!care.health.length) kosong(blocks, 'Tidak ada catatan kesehatan pada periode ini.');
+      else care.health.forEach((catatan) => blocks.push({ kind: 'item', text: `${tanggal(catatan.occurredOn)}: ${LABEL_KONDISI[catatan.condition] || catatan.condition}${catatan.parentNote ? `. ${catatan.parentNote}` : ''}` }));
+    }
   }
 
   blocks.push({ kind: 'heading', text: 'Progres maddah (per tanggal rapor dibuat)' });

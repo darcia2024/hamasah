@@ -4,6 +4,11 @@ const { ACTIONS } = require('../audit-service.js');
 const { createStudentReportPdf } = require('../student-report-pdf.js');
 const { createReceiptPdf, receiptFileName } = require('../receipt-pdf.js');
 
+// Rapor ditujukan ke wali: kesehatan selalu versi wali meskipun diunduh staf.
+function forParent(care) {
+  return { ...care, health: care.health === null ? null : care.health.map(({ occurredOn, condition, parentNote }) => ({ occurredOn, condition, parentNote })) };
+}
+
 const RECORD_METHODS = Object.freeze({
   activities: 'addActivity',
   achievements: 'addAchievement',
@@ -211,7 +216,19 @@ module.exports = [
         action: ACTIONS.STUDENT_REPORT_EXPORTED, actor, ip,
         entityType: 'student', entityId: params[0], metadata: { format: 'pdf' }
       });
-      const pdf = createStudentReportPdf(report.value, { courses: courses.ok ? courses.value : null });
+      // Ibadah dan kesehatan: periode rapor bila <= 92 hari, selain itu 92 hari terakhir.
+      const dari = url.searchParams.get('from');
+      const sampai = url.searchParams.get('to');
+      const rentang = dari && sampai && (new Date(sampai) - new Date(dari)) / 86400000 <= 92 ? { from: dari, to: sampai } : { to: sampai || undefined, from: undefined };
+      if (!rentang.from) {
+        const akhir = rentang.to || new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
+        const awal = new Date(akhir + 'T00:00:00Z');
+        awal.setUTCDate(awal.getUTCDate() - 91);
+        rentang.to = akhir;
+        rentang.from = awal.toISOString().slice(0, 10);
+      }
+      const care = await services.studentCareService.summary(params[0], actor, rentang);
+      const pdf = createStudentReportPdf(report.value, { courses: courses.ok ? courses.value : null, care: care.ok ? forParent(care.value) : null });
       response.writeHead(200, {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="rapor-${report.value.student.id}.pdf"`,

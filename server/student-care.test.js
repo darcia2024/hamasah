@@ -76,6 +76,17 @@ async function run() {
     assert.equal((await request(baseUrl, `/api/students/${id}/care${periode}`, { headers: waliLain })).status, 403);
     assert.equal((await request(baseUrl, `/api/students/${id}/care?from=2026-01-01&to=2026-12-31`, { headers: admin })).status, 422, 'Rentang terlalu panjang ditolak.');
 
+    // Rapor PDF memuat ibadah dan kesehatan versi wali, siapa pun yang mengunduh.
+    for (const [nama, headers] of [['wali', wali], ['admin', admin]]) {
+      const rapor = await fetch(`${baseUrl}/api/students/${id}/report.pdf?from=2026-09-01&to=2026-09-30`, { headers });
+      assert.equal(rapor.status, 200, nama);
+      const teks = Buffer.from(await rapor.arrayBuffer()).toString('latin1');
+      assert.ok(teks.includes('4 waktu sholat tercatat: 2 berjamaah \\(50%\\), 0 munfarid, 1 tidak sholat, 1 izin.'), nama);
+      assert.ok(teks.includes('Ziyadah An-Naba 1-20 \\(lancar\\)'), nama);
+      assert.ok(teks.includes('Sakit ringan. Ananda demam ringan dan sudah membaik.'), nama);
+      assert.ok(!teks.includes('Demam 38') && !teks.includes('Paracetamol'), `${nama}: detail medis tidak tercetak di rapor`);
+    }
+
     // Isi kesehatan tidak masuk audit.
     const audit = await database.query("SELECT metadata::text AS m FROM audit_events WHERE action = 'student.health-recorded'");
     assert.equal(audit.rows.length, 1);

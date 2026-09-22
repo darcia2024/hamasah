@@ -318,7 +318,58 @@ const TAB_ICONS = Object.freeze({
   lock: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
 });
 
-function renderCrmDashboard(dashboard, account, onBack) {
+const HAFALAN_GRADE = Object.freeze({ lancar: ['Lancar', 'complete'], 'kurang-lancar': ['Kurang lancar', 'pending'], ulang: ['Perlu diulang', 'absent'] });
+const KONDISI_KESEHATAN = Object.freeze({ sehat: ['Sehat', 'complete'], 'sakit-ringan': ['Sakit ringan', 'pending'], 'perlu-perhatian': ['Perlu perhatian', 'absent'], dirujuk: ['Dirujuk', 'absent'] });
+const SHOLAT_WAKTU = Object.freeze([['subuh', 'Subuh'], ['dzuhur', 'Dzuhur'], ['ashar', 'Ashar'], ['maghrib', 'Maghrib'], ['isya', 'Isya']]);
+const SHOLAT_STATUS = Object.freeze({ berjamaah: 'Berjamaah', munfarid: 'Munfarid', tidak: 'Tidak', izin: 'Izin' });
+
+// Rekap sholat berjamaah dari catatan terstruktur: ringkasan periode dan tabel per hari.
+function createPrayerRecap(care) {
+  const box = document.createElement('div');
+  box.className = 'crm-white-card prayer-recap';
+  const heading = document.createElement('h3');
+  heading.textContent = 'Sholat berjamaah ' + formatTanggalPanjang(care.period.from) + ' sampai ' + formatTanggalPanjang(care.period.to);
+  const summary = document.createElement('p');
+  const t = care.prayers.totals;
+  summary.textContent = care.prayers.recorded
+    ? care.prayers.recorded + ' waktu sholat tercatat: ' + t.berjamaah + ' berjamaah (' + care.prayers.berjamaahRate + '%), ' + t.munfarid + ' munfarid, ' + t.tidak + ' tidak, ' + t.izin + ' izin.'
+    : 'Belum ada presensi sholat yang dicatat musyrif pada periode ini.';
+  box.append(heading, summary);
+  if (!care.prayers.days.length) return box;
+  const wrap = document.createElement('div');
+  wrap.className = 'prayer-recap__scroll';
+  const table = document.createElement('table');
+  table.className = 'prayer-recap__table';
+  const caption = document.createElement('caption');
+  caption.className = 'prayer-recap__caption';
+  caption.textContent = 'Presensi sholat per hari';
+  const head = document.createElement('tr');
+  ['Tanggal', ...SHOLAT_WAKTU.map(([, label]) => label)].forEach((text) => { const th = document.createElement('th'); th.scope = 'col'; th.textContent = text; head.append(th); });
+  const thead = document.createElement('thead');
+  thead.append(head);
+  const tbody = document.createElement('tbody');
+  care.prayers.days.forEach((day) => {
+    const row = document.createElement('tr');
+    const th = document.createElement('th');
+    th.scope = 'row';
+    th.textContent = formatTanggalPanjang(day.date);
+    row.append(th);
+    SHOLAT_WAKTU.forEach(([key]) => {
+      const td = document.createElement('td');
+      const status = day.prayers[key];
+      td.textContent = status ? SHOLAT_STATUS[status] || status : '-';
+      if (status) td.className = 'prayer-recap__cell prayer-recap__cell--' + status;
+      row.append(td);
+    });
+    tbody.append(row);
+  });
+  table.append(caption, thead, tbody);
+  wrap.append(table);
+  box.append(wrap);
+  return box;
+}
+
+function renderCrmDashboard(dashboard, account, onBack, care = null) {
   studentDashboard.replaceChildren();
   if (studentList) studentList.hidden = true;
   const student = dashboard.student;
@@ -395,8 +446,8 @@ function renderCrmDashboard(dashboard, account, onBack) {
 
   const tabDefs = [
     { id: 'mutabaah', label: "Mutaba'ah & Ibadah", icon: TAB_ICONS.clock, count: attendanceEntries.length },
-    { id: 'sholat', label: 'Sholat Berjamaah', icon: TAB_ICONS.mosque, count: prayerEntries.length },
-    { id: 'talaqqi', label: 'Talaqqi & Tahfidz', icon: TAB_ICONS.award, count: dashboard.achievements.length },
+    { id: 'sholat', label: 'Sholat Berjamaah', icon: TAB_ICONS.mosque, count: care ? care.prayers.recorded : prayerEntries.length },
+    { id: 'talaqqi', label: 'Talaqqi & Tahfidz', icon: TAB_ICONS.award, count: dashboard.achievements.length + (care ? care.memorization.length : 0) },
     { id: 'dorm', label: 'Asrama', icon: TAB_ICONS.home },
     { id: 'lms', label: 'Maddah (LMS)', icon: TAB_ICONS.book },
     { id: 'admin', label: 'Rapor & Ringkasan', icon: TAB_ICONS.file }
@@ -443,7 +494,9 @@ function renderCrmDashboard(dashboard, account, onBack) {
   const panelSholat = document.createElement('div');
   panelSholat.className = 'crm-card-stack';
   panelSholat.hidden = true;
-  if (prayerEntries.length) {
+  if (care) {
+    panelSholat.append(createPrayerRecap(care));
+  } else if (prayerEntries.length) {
     prayerEntries.forEach((entry) => panelSholat.append(attendanceCard(entry)));
   } else {
     panelSholat.append(createEmptyState('Belum ada presensi sholat berjamaah yang tercatat pada periode ini.'));
@@ -453,6 +506,17 @@ function renderCrmDashboard(dashboard, account, onBack) {
   const panelTalaqqi = document.createElement('div');
   panelTalaqqi.className = 'crm-card-stack';
   panelTalaqqi.hidden = true;
+  if (care && care.memorization.length) {
+    care.memorization.forEach((setoran) => {
+      const [statusText, statusType] = HAFALAN_GRADE[setoran.grade] || [setoran.grade, 'pending'];
+      panelTalaqqi.append(createRecordCard({
+        badgeColor: 'green', badgeIcon: 'book',
+        title: setoran.portion,
+        subtitle: (setoran.kind === 'ziyadah' ? 'Ziyadah (hafalan baru)' : 'Murajaah') + ' · ' + formatTanggalPanjang(setoran.occurredOn),
+        statusText, statusType, note: setoran.note || ''
+      }));
+    });
+  }
   if (dashboard.achievements.length) {
     dashboard.achievements.forEach((achievement) => {
       panelTalaqqi.append(createRecordCard({
@@ -466,8 +530,8 @@ function renderCrmDashboard(dashboard, account, onBack) {
         note: achievement.description
       }));
     });
-  } else {
-    panelTalaqqi.append(createEmptyState('Belum ada capaian talaqqi atau tahfidz yang tercatat.'));
+  } else if (!(care && care.memorization.length)) {
+    panelTalaqqi.append(createEmptyState('Belum ada capaian talaqqi atau setoran hafalan yang tercatat.'));
   }
 
   // Panel 4: Asrama. Dulu berisi nama gedung, katering, AC, dan Wi-Fi yang ditulis keras
@@ -605,6 +669,29 @@ function renderCrmDashboard(dashboard, account, onBack) {
   });
 
   const panels = [panelMutabaah, panelSholat, panelTalaqqi, panelDorm, panelLms, panelAdmin];
+
+  // Panel Kesehatan: hanya bila fitur kesehatan aktif (care.health bukan null). Wali dan santri
+  // menerima kondisi dan catatan untuk wali; keluhan dan tindakan hanya ada pada data staf.
+  if (care && care.health !== null) {
+    const panelHealth = document.createElement('div');
+    panelHealth.className = 'crm-card-stack';
+    panelHealth.hidden = true;
+    if (!care.health.length) {
+      panelHealth.append(createEmptyState('Belum ada catatan kesehatan pada periode ini.'));
+    } else {
+      care.health.forEach((catatan) => {
+        const [statusText, statusType] = KONDISI_KESEHATAN[catatan.condition] || [catatan.condition, 'pending'];
+        panelHealth.append(createRecordCard({
+          badgeColor: statusType === 'complete' ? 'green' : 'yellow', badgeIcon: 'note',
+          title: 'Kondisi: ' + statusText, subtitle: formatTanggalPanjang(catatan.occurredOn), statusText, statusType,
+          details: [{ label: 'Keluhan (internal)', value: catatan.complaint || '' }, { label: 'Tindakan (internal)', value: catatan.actionTaken || '' }],
+          note: catatan.parentNote || ''
+        }));
+      });
+    }
+    tabDefs.push({ id: 'kesehatan', label: 'Kesehatan', icon: TAB_ICONS.clock, count: care.health.length });
+    panels.push(panelHealth);
+  }
 
   // Panel 7: Tagihan & Kuitansi. Hanya untuk wali (santri yang terhubung) dan admin; peran
   // lain tidak punya akses ke data keuangan santri. Kuitansi hanya untuk tagihan lunas.
@@ -959,7 +1046,19 @@ async function loadDashboard(studentId, account, onBack, range = {}) {
     onBack();
   } : null;
 
-  renderCrmDashboard(result.dashboard, account || currentAccount, wrappedOnBack);
+  // Ringkasan ibadah dan kesehatan: periode yang sama bila rentangnya <= 92 hari, selain itu
+  // 30 hari terakhir. Gagal dimuat tidak menggagalkan dashboard (tab sholat kembali ke data lama).
+  let care = null;
+  try {
+    const careParams = new URLSearchParams();
+    const span = range.from && range.to ? (new Date(range.to) - new Date(range.from)) / 86400000 : null;
+    if (span !== null && span >= 0 && span <= 92) { careParams.set('from', range.from); careParams.set('to', range.to); }
+    else if (range.to) careParams.set('to', range.to);
+    const careResponse = await fetch('/api/students/' + encodeURIComponent(studentId) + '/care' + (careParams.toString() ? '?' + careParams : ''), { headers: requestHeaders() });
+    if (careResponse.ok) care = (await careResponse.json()).care;
+  } catch { care = null; }
+
+  renderCrmDashboard(result.dashboard, account || currentAccount, wrappedOnBack, care);
 }
 
 function renderStudents(students, account) {
