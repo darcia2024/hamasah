@@ -33,6 +33,8 @@ const LABEL = {
   'registration.created': 'Pendaftaran masuk',
   'registration.status-changed': 'Status pendaftaran berubah',
   'registration.departure-assigned': 'Kloter pendaftar diubah',
+  'student.worship-recorded': 'Catatan ibadah santri disimpan',
+  'student.health-recorded': 'Catatan kesehatan santri dibuat',
   'departure-group.saved': 'Kloter keberangkatan disimpan',
   'registration.document-added': 'Dokumen pendaftaran ditambahkan',
   'student.created': 'Santri ditambahkan',

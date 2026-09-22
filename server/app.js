@@ -41,6 +41,8 @@ const seo = require('./seo.js');
 const articlePage = require('./article-page.js');
 const { createEventNotifier } = require('./event-notifications.js');
 const { createDepartureService } = require('./departure-service.js');
+const { createStudentCareService } = require('./student-care-service.js');
+const { createPostgresStudentCareStore } = require('./postgres-student-care-store.js');
 const { createPostgresDepartureStore } = require('./postgres-departure-store.js');
 const { createRequestAuth, hashToken, safeEqual } = require('./http/auth.js');
 const { NOT_ALLOWED, NOT_SIGNED_IN, roleHasPermission } = require('./access-policy.js');
@@ -59,6 +61,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/operations.js'),
   ...require('./routes/dormitories.js'),
   ...require('./routes/students.js'),
+  ...require('./routes/student-care.js'),
   ...require('./routes/lms.js'),
   ...require('./routes/articles.js'),
   ...require('./routes/inquiries.js'),
@@ -120,6 +123,13 @@ function createHamasahApp(options) {
     store: notificationStore,
     sender: emailSender,
     notificationPayloadKey: config.notificationPayloadKey || process.env.NOTIFICATION_PAYLOAD_KEY || process.env.IP_HASH_SECRET || 'development-only-key'
+  });
+  // Catatan kesehatan (data pribadi spesifik) dikunci sampai kebijakan privasi memuatnya.
+  const healthRecordsEnabled = config.healthRecordsEnabled !== undefined ? Boolean(config.healthRecordsEnabled) : process.env.HEALTH_RECORDS_ENABLED === 'true';
+  const studentCareService = config.studentCareService || createStudentCareService({
+    store: createPostgresStudentCareStore({ database }),
+    accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor),
+    healthEnabled: healthRecordsEnabled
   });
   const departureService = config.departureService || createDepartureService({
     store: createPostgresDepartureStore({ database }),
@@ -235,6 +245,7 @@ function createHamasahApp(options) {
   const services = Object.freeze({
     accountStore,
     departureService,
+    studentCareService,
     eventNotifier,
     applicantService,
     articleStore,

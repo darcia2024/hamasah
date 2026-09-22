@@ -33,6 +33,8 @@ const ACTIONS = Object.freeze({
   REGISTRATION_CREATED: 'registration.created',
   REGISTRATION_STATUS_CHANGED: 'registration.status-changed',
   REGISTRATION_DEPARTURE_ASSIGNED: 'registration.departure-assigned',
+  STUDENT_WORSHIP_RECORDED: 'student.worship-recorded',
+  STUDENT_HEALTH_RECORDED: 'student.health-recorded',
   DEPARTURE_GROUP_SAVED: 'departure-group.saved',
   REGISTRATION_DOCUMENT_ADDED: 'registration.document-added',
   REGISTRATION_DOCUMENT_REVIEWED: 'registration.document-reviewed',

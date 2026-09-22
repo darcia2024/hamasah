@@ -476,7 +476,21 @@ function createStudentPortalService(options) {
     }));
   }
 
+  // Hak akses satu santri untuk modul lain (ibadah, kesehatan): memakai canView/canWrite yang
+  // sama dengan rekam jejak, termasuk batas asrama musyrif.
+  async function accessFor(studentId, actor) {
+    const student = await store.getStudent(studentId);
+    if (!student) return { exists: false, view: false, write: false, staff: false };
+    return {
+      exists: true,
+      view: canView(student, actor, await dormitoryLimitFor(actor)),
+      write: Boolean(await canWrite(student, actor)),
+      staff: Boolean(assertStaff(actor))
+    };
+  }
+
   return Object.freeze({
+    accessFor,
     setPlacement,
     addActivity(studentId, input, actor) { return addRecord('activities', studentId, input, actor); },
     addAchievement(studentId, input, actor) { return addRecord('achievements', studentId, input, actor); },

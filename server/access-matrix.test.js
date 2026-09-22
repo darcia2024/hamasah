@@ -164,6 +164,10 @@ async function run() {
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/report` },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/report.pdf` },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/course-progress` },
+      { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/care` },
+      { permission: 'students.manage', method: 'PUT', path: () => `/api/students/${studentId}/prayers`, body: () => ({ date: '2026-09-01', entries: [{ prayer: 'subuh', status: 'berjamaah' }] }) },
+      { permission: 'students.manage', method: 'POST', path: () => `/api/students/${studentId}/memorization`, body: () => ({ occurredOn: '2026-09-01', kind: 'ziyadah', portion: 'An-Naba 1-10', grade: 'lancar' }) },
+      { permission: 'students.manage', method: 'POST', path: () => `/api/students/${studentId}/health`, body: () => ({ occurredOn: '2026-09-01', condition: 'sehat' }) },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/invoices` },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/invoices/00000000-0000-4000-8000-000000000000/receipt.pdf` },
       {
