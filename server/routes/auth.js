@@ -42,7 +42,7 @@ module.exports = [
   {
     method: 'POST',
     pattern: /^\/api\/auth\/login$/,
-    async handler({ response, services, config, readBody, rateLimit, ip }) {
+    async handler({ response, services, readBody, rateLimit, ip }) {
       const body = await readBody();
       const identitas = `${String(body.email || '').trim().toLocaleLowerCase('en-US')}|${ip}`;
       const jatah = rateLimit.check('login', identitas);
@@ -118,7 +118,7 @@ module.exports = [
   {
     method: 'POST',
     pattern: /^\/api\/auth\/password-reset-request$/,
-    async handler({ response, services, config, readBody, rateLimit, ip }) {
+    async handler({ response, services, readBody, rateLimit, ip }) {
       const body = await readBody();
       const email = String(body.email || '').trim().toLocaleLowerCase('en-US');
       // Dibatasi per email supaya tidak bisa dipakai membanjiri kotak masuk orang lain.
@@ -128,14 +128,11 @@ module.exports = [
         return;
       }
       const issued = await services.identityService.issuePasswordReset(body.email);
+      // Email reset diantrekan, tidak dikirim di dalam request: dulu request untuk email
+      // terdaftar menunggu penyedia email (ratusan ms) sedangkan email lain langsung dijawab,
+      // sehingga keberadaan akun terbaca dari waktu respons. Status kirim tercatat di outbox.
       if (issued.value && services.notificationService.canSend()) {
-        const resetUrl = `${config.appBaseUrl || 'http://localhost:4273'}/website/reset-password.html#token=${encodeURIComponent(issued.value.resetToken)}`;
-        const sent = await services.notificationService.sendPasswordReset({ email, name: issued.value.accountName, resetUrl });
-        await services.auditService.record({
-          action: sent.ok ? ACTIONS.NOTIFICATION_SENT : ACTIONS.NOTIFICATION_FAILED, ip,
-          entityType: 'account', entityId: issued.value.accountId,
-          metadata: { type: 'password-reset', email }
-        });
+        await services.notificationService.queuePasswordReset({ email, name: issued.value.accountName, resetToken: issued.value.resetToken });
       }
       await services.auditService.record({ action: ACTIONS.PASSWORD_RESET_REQUESTED, ip, metadata: { email } });
       json(response, 202, { message: 'Jika akun tersedia, instruksi reset akan dikirim melalui kanal resmi.' });

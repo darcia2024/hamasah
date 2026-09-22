@@ -92,6 +92,18 @@ function createNotificationService({ store, sender, notificationPayloadKey = '',
     });
   }
 
+  // Reset kata sandi lewat antrean: request tidak lagi menunggu penyedia email hanya untuk
+  // email yang terdaftar, sehingga waktu respons tidak membocorkan keberadaan akun.
+  async function queuePasswordReset({ email, name, resetToken }) {
+    if (!notificationPayloadKey) throw new Error('Kunci payload notifikasi belum tersedia.');
+    const payload = encryptNotificationPayload({ kind: 'password-reset', name, resetToken }, notificationPayloadKey);
+    return store.create({
+      id: crypto.randomUUID(), notificationType: NOTIFICATION_TYPES.PASSWORD_RESET,
+      recipientEmail: email, provider: sender.provider, createdAt: now().toISOString(),
+      payloadCiphertext: payload.ciphertext, payloadNonce: payload.nonce, payloadTag: payload.tag
+    });
+  }
+
   async function queueApplicantRecovery({ email, name, registrationId, accessCode }) {
     if (!notificationPayloadKey) throw new Error('Kunci payload notifikasi belum tersedia.');
     const payload = encryptNotificationPayload({ kind: 'applicant-recovery', name, registrationId, accessCode }, notificationPayloadKey);
@@ -102,7 +114,7 @@ function createNotificationService({ store, sender, notificationPayloadKey = '',
     });
   }
 
-  return Object.freeze({ canSend, list: (query) => store.list(query), queueApplicantRecovery, queueEvent, sendApplicantRecovery, sendInvitation, sendPasswordReset, sendVisaReminderDigest });
+  return Object.freeze({ canSend, list: (query) => store.list(query), queueApplicantRecovery, queueEvent, queuePasswordReset, sendApplicantRecovery, sendInvitation, sendPasswordReset, sendVisaReminderDigest });
 }
 
 module.exports = { NOTIFICATION_TYPES, createNotificationService, escapeHtml };

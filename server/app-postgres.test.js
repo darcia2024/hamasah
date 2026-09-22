@@ -95,7 +95,20 @@ async function run() {
       body: JSON.stringify({ email: 'wali.undangan@hamasah.test' })
     });
     assert.equal(resetRequest.status, 202);
+    // Email reset diantrekan, bukan dikirim di dalam request (waktu respons tidak boleh
+    // membedakan email terdaftar). Email tak terdaftar tidak mengantre apa pun.
+    assert.equal(sentEmails.length, 1);
+    const resetTakAda = await request(baseUrl, '/api/auth/password-reset-request', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'tidak-terdaftar@hamasah.test' })
+    });
+    assert.equal(resetTakAda.status, 202);
+    assert.deepEqual(resetTakAda.body, resetRequest.body, 'Jawaban sama untuk email terdaftar dan tidak.');
+    const antreanReset = await database.query("SELECT recipient_email, status FROM notification_outbox WHERE notification_type = 'password-reset'");
+    assert.deepEqual(antreanReset.rows.map((row) => [row.recipient_email, row.status]), [['wali.undangan@hamasah.test', 'pending']]);
+    await app.notificationWorker.runOnce({ limit: 10 });
     assert.equal(sentEmails.length, 2);
+    assert.match(sentEmails[1].subject, /Atur ulang kata sandi/);
     const resetUrl = new URL(sentEmails[1].html.match(/href="([^"]+)"/)[1].replaceAll('&amp;', '&'));
     const resetComplete = await request(baseUrl, '/api/auth/password-reset', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },

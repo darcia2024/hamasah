@@ -3,7 +3,11 @@
 // sekitar 0 ms lawan sekitar 225 ms untuk kata sandi salah.
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
+const path = require('node:path');
 const identity = require('./identity-service.js');
+const { createHamasahApp } = require('./app.js');
+const { createTestDatabase } = require('./test-support/database.js');
+const { createRelaxedRateLimiter } = require('./test-support/rate-limit.js');
 
 async function run() {
   const service = identity.createIdentityService();
@@ -41,6 +45,38 @@ async function run() {
     console.log(`login enumeration tests passed (salah ${salah.ms.toFixed(0)} ms, tidak ada ${tidakAda.ms.toFixed(0)} ms, nonaktif ${nonaktif.ms.toFixed(0)} ms)`);
   } finally {
     crypto.scrypt = asli;
+  }
+
+  // Permintaan reset: dulu request untuk email terdaftar menunggu penyedia email di dalam
+  // request. Dengan pengirim lambat (400 ms) keduanya kini tetap dijawab cepat dan sama.
+  const database = await createTestDatabase();
+  const app = createHamasahApp({
+    rootDirectory: path.resolve(__dirname, '..'), database, auditRetention: false,
+    rateLimiter: createRelaxedRateLimiter(),
+    email: { driver: 'test', appBaseUrl: 'https://app.hamasah.test' },
+    emailSender: { provider: 'test', configured: true, async send() { await new Promise((r) => setTimeout(r, 400)); return { id: 'lambat' }; } }
+  });
+  const server = app.createServer();
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const baseUrl = `http://127.0.0.1:${server.address().port}`;
+  try {
+    await app.identityService.createAccount({ email: 'terdaftar@hamasah.test', name: 'Akun Uji', role: identity.ROLES.PARENT, password: 'kata-sandi-akun-aman' });
+    const minta = async (email) => {
+      const mulai = process.hrtime.bigint();
+      const response = await fetch(`${baseUrl}/api/auth/password-reset-request`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+      return { status: response.status, body: await response.text(), ms: Number(process.hrtime.bigint() - mulai) / 1e6 };
+    };
+    await minta('pemanasan@hamasah.test');
+    const ada = await minta('terdaftar@hamasah.test');
+    const tidak = await minta('tidak-terdaftar@hamasah.test');
+    assert.equal(ada.status, 202);
+    assert.equal(tidak.status, 202);
+    assert.equal(ada.body, tidak.body);
+    assert.ok(ada.ms < 300, `request email terdaftar tidak boleh menunggu pengirim email (${ada.ms.toFixed(0)} ms)`);
+    console.log(`reset request timing passed (terdaftar ${ada.ms.toFixed(0)} ms, tidak terdaftar ${tidak.ms.toFixed(0)} ms)`);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+    await database.close();
   }
 }
 run().catch((error) => { console.error(error); process.exitCode = 1; });

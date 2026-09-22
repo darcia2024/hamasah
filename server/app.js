@@ -365,6 +365,7 @@ function createHamasahApp(options) {
   let auditPurgeTimer = null;
   let sessionPurgeTimer = null;
   let staleUploadPurgeTimer = null;
+  let notificationWorkerTimer = null;
 
   // Timer di-unref supaya tidak menahan proses berhenti saat shutdown.
   function jadwalkan(pekerjaan, jeda) {
@@ -426,6 +427,25 @@ function createHamasahApp(options) {
     return bersihkan();
   }
 
+  // Worker notifikasi di dalam proses web. Default hanya di development, supaya link reset,
+  // undangan, dan notifikasi peristiwa tetap keluar di console tanpa proses kedua. Di
+  // staging/production pakai `npm run worker:notifications`, atau NOTIFICATION_WORKER_IN_PROCESS=true
+  // untuk hosting satu instance. Klaim di outbox memakai lease, jadi keduanya aman bersamaan.
+  const inProcessWorker = config.inProcessNotificationWorker !== undefined
+    ? Boolean(config.inProcessNotificationWorker)
+    : (process.env.NOTIFICATION_WORKER_IN_PROCESS ? process.env.NOTIFICATION_WORKER_IN_PROCESS === 'true' : appEnvironment === 'development');
+  function startNotificationWorker() {
+    async function kirim() {
+      try {
+        const hasil = await notificationWorker.runOnce({ limit: 20 });
+        if (hasil.claimed > 0) console.log(`[notifikasi] ${hasil.claimed} item diproses.`);
+      } catch (error) {
+        console.error(`[notifikasi] Worker gagal: ${error.message}`);
+      }
+    }
+    notificationWorkerTimer = jadwalkan(kirim, Number(process.env.NOTIFICATION_WORKER_INTERVAL_MS || 5000));
+  }
+
   return {
     createServer() {
       // Pembersihan pertama berjalan saat server benar-benar dinyalakan, bukan saat
@@ -435,11 +455,16 @@ function createHamasahApp(options) {
         startSessionCleanup();
         startStaleUploadCleanup();
       }
+      if (inProcessWorker && !notificationWorkerTimer) startNotificationWorker();
       return http.createServer(requestListener);
     },
     // Menutup pool koneksi database yang dibuat app ini. Database dari luar (config.database) tidak ditutup.
     async close() {
       rateLimiter.stop();
+      if (notificationWorkerTimer) {
+        clearInterval(notificationWorkerTimer);
+        notificationWorkerTimer = null;
+      }
       if (auditPurgeTimer) {
         clearInterval(auditPurgeTimer);
         auditPurgeTimer = null;
