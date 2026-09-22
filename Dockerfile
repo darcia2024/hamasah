@@ -13,6 +13,8 @@ COPY --chown=node:node database ./database
 COPY --chown=node:node website ./website
 COPY --chown=node:node assets ./assets
 COPY --chown=node:node data/articles.json ./data/articles.json
+# Worker dijalankan dari image yang sama (scheduler/cron platform): notifikasi dan pengingat visa.
+COPY --chown=node:node scripts/notification-worker.js scripts/visa-reminder-worker.js ./scripts/
 
 USER node
 ENV PORT=4273

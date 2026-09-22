@@ -66,7 +66,9 @@ function startServer(directory, port) {
       STORAGE_BUCKET: 'docker-private',
       SUPABASE_URL: 'https://storage.invalid',
       SUPABASE_SERVICE_ROLE_KEY: 'docker-check-service-role-key',
-      IP_HASH_SECRET: 'docker-check-ip-hash-secret-minimum-32-chars'
+      IP_HASH_SECRET: 'docker-check-ip-hash-secret-minimum-32-chars',
+      // Wajib di staging/production sejak R7.1 (tag bagikan, sitemap, tautan email).
+      APP_BASE_URL: 'https://docker-check.invalid'
     }
   });
   let output = '';
