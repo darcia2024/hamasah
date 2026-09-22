@@ -71,34 +71,54 @@ function safeEqual(left, right) {
   return leftBuffer.length === rightBuffer.length && crypto.timingSafeEqual(leftBuffer, rightBuffer);
 }
 
-function hashPassword(password) {
+// Parameter scrypt (Task R8.4). Sebelumnya default Node: N=2^14, r=8, p=1 (16 MB, sekitar
+// 28 ms). Sekarang N=2^16, r=8, p=2: padanan OWASP untuk N=2^17/p=1 dengan separuh memori
+// (64 MB per verifikasi), sekitar 225 ms di laptop pengembangan. N=2^17/p=1 (128 MB per
+// login) sengaja tidak dipakai sebelum ukuran hosting diputuskan (K2).
+//
+// Format baru menyimpan parameternya: scrypt$N=65536,r=8,p=2$<salt>$<kunci>. Format lama
+// tanpa parameter (scrypt$<salt>$<kunci>) tetap diverifikasi dengan parameter lamanya, dan
+// terganti ketika kata sandi diatur ulang.
+const SCRYPT_PARAMS = Object.freeze({ N: 65536, r: 8, p: 2 });
+const LEGACY_SCRYPT_PARAMS = Object.freeze({ N: 16384, r: 8, p: 1 });
+const SCRYPT_KEY_LENGTH = 64;
+
+function scrypt(password, salt, { N, r, p }) {
   return new Promise(function resolveHash(resolve, reject) {
-    const salt = crypto.randomBytes(16);
-    crypto.scrypt(password, salt, 64, function onHash(error, derivedKey) {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve(`scrypt$${salt.toString('base64url')}$${derivedKey.toString('base64url')}`);
+    // maxmem wajib dinaikkan: batas default Node (32 MB) menolak N di atas 2^14.
+    crypto.scrypt(password, salt, SCRYPT_KEY_LENGTH, { N, r, p, maxmem: 256 * N * r }, function onHash(error, derivedKey) {
+      if (error) reject(error);
+      else resolve(derivedKey);
     });
   });
 }
 
-function verifyPassword(password, storedHash) {
-  const segments = String(storedHash || '').split('$');
-  if (segments.length !== 3 || segments[0] !== 'scrypt') {
-    return Promise.resolve(false);
-  }
+// Parameter dari hash tersimpan, dibatasi supaya hash rusak tidak memicu alokasi besar.
+function parseScryptParams(text) {
+  const values = Object.fromEntries(String(text).split(',').map((pair) => pair.split('=')));
+  const N = Number(values.N);
+  const r = Number(values.r);
+  const p = Number(values.p);
+  const valid = Number.isInteger(N) && N >= 1024 && N <= 1048576 && (N & (N - 1)) === 0
+    && Number.isInteger(r) && r >= 1 && r <= 32 && Number.isInteger(p) && p >= 1 && p <= 16;
+  return valid ? { N, r, p } : null;
+}
 
-  return new Promise(function resolveVerification(resolve, reject) {
-    crypto.scrypt(password, Buffer.from(segments[1], 'base64url'), 64, function onHash(error, derivedKey) {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve(safeEqual(derivedKey.toString('base64url'), segments[2]));
-    });
-  });
+async function hashPassword(password) {
+  const salt = crypto.randomBytes(16);
+  const derivedKey = await scrypt(password, salt, SCRYPT_PARAMS);
+  const { N, r, p } = SCRYPT_PARAMS;
+  return `scrypt$N=${N},r=${r},p=${p}$${salt.toString('base64url')}$${derivedKey.toString('base64url')}`;
+}
+
+async function verifyPassword(password, storedHash) {
+  const segments = String(storedHash || '').split('$');
+  if (segments[0] !== 'scrypt' || (segments.length !== 3 && segments.length !== 4)) return false;
+  const params = segments.length === 3 ? LEGACY_SCRYPT_PARAMS : parseScryptParams(segments[1]);
+  if (!params) return false;
+  const [salt, expected] = segments.slice(-2);
+  const derivedKey = await scrypt(password, Buffer.from(salt, 'base64url'), params);
+  return safeEqual(derivedKey.toString('base64url'), expected);
 }
 
   function createMemoryAccountStore() {
