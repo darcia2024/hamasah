@@ -163,7 +163,9 @@ function createOperationsService(options) {
     if (!adminOnly(actor)) return { ok: false, error: 'Akses admin diperlukan.' };
     const invoice = await store.getInvoice(invoiceId);
     if (!invoice) return { ok: false, error: 'Invoice tidak ditemukan.' };
-    if (invoice.status === 'paid') return { ok: true, value: invoice };
+    // changed: false bila sudah lunas sebelumnya, supaya pemanggil tidak memicu notifikasi
+    // pembayaran kedua untuk peristiwa yang sama (Task R8.3).
+    if (invoice.status === 'paid') return { ok: true, value: invoice, changed: false };
 
     const paidAt = now();
     const year = yearInJakarta(paidAt);
@@ -178,9 +180,9 @@ function createOperationsService(options) {
     });
     if (!paid) {
       const terkini = await store.getInvoice(invoiceId);
-      return terkini ? { ok: true, value: terkini } : { ok: false, error: 'Invoice tidak ditemukan.' };
+      return terkini ? { ok: true, value: terkini, changed: false } : { ok: false, error: 'Invoice tidak ditemukan.' };
     }
-    return { ok: true, value: paid };
+    return { ok: true, value: paid, changed: true };
   }
 
   async function getInvoice(invoiceId, actor) {

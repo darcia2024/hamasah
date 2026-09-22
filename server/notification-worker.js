@@ -1,5 +1,6 @@
 const { decryptNotificationPayload } = require('./notification-payload.js');
 const { escapeHtml, NOTIFICATION_TYPES } = require('./notification-service.js');
+const { EVENT_TYPES, eventMessage } = require('./notification-templates.js');
 
 function createNotificationWorker({ store, sender, notificationPayloadKey, appBaseUrl, now = () => new Date(), senderTimeoutMs = 10000, maxAttempts = 5, baseRetryMs = 60000, leaseMs = 300000 } = {}) {
   if (!store || typeof store.claim !== 'function') throw new Error('Worker membutuhkan store durable dengan claim().');
@@ -25,6 +26,9 @@ function createNotificationWorker({ store, sender, notificationPayloadKey, appBa
         message = { type: NOTIFICATION_TYPES.INVITATION, to: item.recipient_email, subject: 'Aktivasi akun Hamasah International', html: `<p>Assalamu'alaikum,</p><p>Akun Hamasah International Anda telah dibuat. Buat kata sandi melalui tautan berikut:</p><p><a href="${escapeHtml(activationUrl)}">Aktivasi akun</a></p><p>Tautan ini memiliki masa berlaku terbatas.</p>` };
       } else if (item.notification_type === NOTIFICATION_TYPES.PASSWORD_RESET && payload.kind === 'applicant-recovery') {
         message = { type: NOTIFICATION_TYPES.PASSWORD_RESET, to: item.recipient_email, subject: 'Kode akses pendaftaran Hamasah International', html: `<p>Assalamu'alaikum ${escapeHtml(payload.name)},</p><p>Berikut kode akses baru untuk memeriksa pendaftaran ${escapeHtml(payload.registrationId)}:</p><p style="font-size:24px;font-weight:700;letter-spacing:3px">${escapeHtml(payload.accessCode)}</p><p>Jangan bagikan kode ini kepada orang lain.</p>` };
+      } else if (Object.values(EVENT_TYPES).includes(item.notification_type)) {
+        const content = eventMessage(item.notification_type, payload, appBaseUrl);
+        message = { type: item.notification_type, to: item.recipient_email, ...content };
       } else {
         throw new Error('Tipe payload notifikasi belum didukung worker.');
       }

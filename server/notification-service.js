@@ -1,7 +1,9 @@
 const crypto = require('node:crypto');
 const { encryptNotificationPayload } = require('./notification-payload.js');
 
-const NOTIFICATION_TYPES = Object.freeze({ INVITATION: 'account-invitation', PASSWORD_RESET: 'password-reset', VISA_REMINDER: 'visa-reminder' });
+const { EVENT_TYPES } = require('./notification-templates.js');
+
+const NOTIFICATION_TYPES = Object.freeze({ INVITATION: 'account-invitation', PASSWORD_RESET: 'password-reset', VISA_REMINDER: 'visa-reminder', ...EVENT_TYPES });
 
 function escapeHtml(value) {
   return String(value || '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
@@ -79,6 +81,17 @@ function createNotificationService({ store, sender, notificationPayloadKey = '',
     });
   }
 
+  // Notifikasi peristiwa (Task R8.3): diantrekan dengan payload terenkripsi, dikirim worker.
+  async function queueEvent({ notificationType, recipientEmail, payload }) {
+    if (!Object.values(EVENT_TYPES).includes(notificationType)) throw new Error('Jenis notifikasi peristiwa tidak dikenal.');
+    if (!notificationPayloadKey) throw new Error('Kunci payload notifikasi belum tersedia.');
+    const sealed = encryptNotificationPayload({ kind: notificationType, ...payload }, notificationPayloadKey);
+    return store.create({
+      id: crypto.randomUUID(), notificationType, recipientEmail, provider: sender.provider, createdAt: now().toISOString(),
+      payloadCiphertext: sealed.ciphertext, payloadNonce: sealed.nonce, payloadTag: sealed.tag
+    });
+  }
+
   async function queueApplicantRecovery({ email, name, registrationId, accessCode }) {
     if (!notificationPayloadKey) throw new Error('Kunci payload notifikasi belum tersedia.');
     const payload = encryptNotificationPayload({ kind: 'applicant-recovery', name, registrationId, accessCode }, notificationPayloadKey);
@@ -89,7 +102,7 @@ function createNotificationService({ store, sender, notificationPayloadKey = '',
     });
   }
 
-  return Object.freeze({ canSend, list: (query) => store.list(query), queueApplicantRecovery, sendApplicantRecovery, sendInvitation, sendPasswordReset, sendVisaReminderDigest });
+  return Object.freeze({ canSend, list: (query) => store.list(query), queueApplicantRecovery, queueEvent, sendApplicantRecovery, sendInvitation, sendPasswordReset, sendVisaReminderDigest });
 }
 
 module.exports = { NOTIFICATION_TYPES, createNotificationService, escapeHtml };

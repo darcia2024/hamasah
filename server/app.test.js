@@ -145,6 +145,14 @@ async function run() {
     const paidInvoice = await request(baseUrl, `/api/operations/invoices/${invoice.body.invoice.id}/paid`, { method: 'PATCH', headers: adminHeaders });
     assert.equal(paidInvoice.status, 200);
     assert.match(paidInvoice.body.invoice.receiptNumber, /^KWT\/HI\/2026\//);
+    // Notifikasi pembayaran diterima (Task R8.3): satu per wali aktif, tidak dobel bila
+    // tagihan yang sudah lunas ditandai lunas lagi.
+    const jumlahOutbox = async (jenis) => (await database.query('SELECT count(*)::int AS n FROM notification_outbox WHERE notification_type = $1', [jenis])).rows[0].n;
+    const waliTerhubung = (await database.query('SELECT count(*)::int AS n FROM student_parent_accounts pa JOIN accounts a ON a.id = pa.parent_account_id AND a.active WHERE pa.student_id = $1', [studentId])).rows[0].n;
+    assert.ok(waliTerhubung >= 1);
+    assert.equal(await jumlahOutbox('payment-received'), waliTerhubung);
+    assert.equal((await request(baseUrl, `/api/operations/invoices/${invoice.body.invoice.id}/paid`, { method: 'PATCH', headers: adminHeaders })).status, 200);
+    assert.equal(await jumlahOutbox('payment-received'), waliTerhubung, 'Tanpa notifikasi ganda untuk satu pembayaran.');
     const visa = await request(baseUrl, '/api/operations/visas', {
       method: 'POST', headers: adminHeaders,
       body: JSON.stringify({ studentId, status: 'collecting-documents', note: 'Paspor diperiksa.' })
@@ -362,6 +370,15 @@ async function run() {
       body: JSON.stringify({ reviewStatus: 'rejected', note: 'Foto paspor kurang jelas, mohon unggah ulang.' })
     });
     assert.equal(rejectedDocument.status, 200);
+    // Perubahan status dan berkas ditolak diantrekan ke outbox, lalu dikirim worker (Task R8.3).
+    const antrean = await database.query(
+      "SELECT notification_type FROM notification_outbox WHERE notification_type IN ('registration-status', 'document-revision')"
+    );
+    assert.ok(antrean.rows.some((row) => row.notification_type === 'registration-status'));
+    assert.ok(antrean.rows.some((row) => row.notification_type === 'document-revision'));
+    await app.notificationWorker.runOnce({ limit: 50 });
+    const belumTerkirim = await database.query("SELECT count(*)::int AS n FROM notification_outbox WHERE notification_type IN ('registration-status', 'document-revision', 'payment-received') AND status <> 'sent'");
+    assert.equal(belumTerkirim.rows[0].n, 0, 'Semua notifikasi peristiwa terkirim oleh worker.');
     const candidateAfterReview = await request(baseUrl, `/api/registrations/${registrationId}`, { headers: candidateHeaders });
     assert.equal(candidateAfterReview.body.registration.documentSummary[0].reviewStatus, 'rejected');
     assert.equal(candidateAfterReview.body.registration.documentSummary[0].reviewNote, 'Foto paspor kurang jelas, mohon unggah ulang.');

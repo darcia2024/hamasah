@@ -135,6 +135,7 @@ module.exports = [
           entityType: 'invoice', entityId: paid.value.id,
           metadata: { number: paid.value.number, receiptNumber: paid.value.receiptNumber, amount: paid.value.amount }
         });
+        if (paid.changed) await services.eventNotifier.invoicePaid(paid.value);
       }
       json(response, paid.ok ? 200 : 422, paid.ok ? { invoice: paid.value } : publicError(paid));
     }

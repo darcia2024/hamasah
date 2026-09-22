@@ -188,6 +188,7 @@ module.exports = [
           entityType: 'registration', entityId: params[0],
           metadata: { status: result.value.status }
         });
+        await services.eventNotifier.registrationStatusChanged(params[0]);
       }
       json(response, result.ok ? 200 : 422, result.ok ? { registration: result.value } : publicError(result));
     }
@@ -236,7 +237,10 @@ module.exports = [
     async handler({ response, services, auth, params, readBody, ip }) {
       const staff = await auth.actor();
       const result = await services.registrationService.reviewDocument(params[0], params[1], await readBody(), { role: registrationRoleOf(staff), accountId: staff.id });
-      if (result.ok) await services.auditService.record({ action: ACTIONS.REGISTRATION_DOCUMENT_REVIEWED, actor: staff, ip, entityType: 'registration', entityId: params[0] });
+      if (result.ok) {
+        await services.auditService.record({ action: ACTIONS.REGISTRATION_DOCUMENT_REVIEWED, actor: staff, ip, entityType: 'registration', entityId: params[0] });
+        await services.eventNotifier.documentRejected(params[0], params[1]);
+      }
       json(response, result.ok ? 200 : 422, result.ok ? { registration: result.value } : publicError(result));
     }
   },
