@@ -47,6 +47,7 @@ Selesai sebagai API pembelajaran inti.
 - Invoice memakai nomor `INV/HI/YYYY/NNNNN`; pembayaran membuat nomor kuitansi `KWT/HI/YYYY/NNNNN`.
 - Status visa, catatan persiapan berkas, serta inventaris asrama tersimpan pada modul operasional.
 - `website/operations.html` menyediakan konsol admin untuk tiga alur tersebut.
+- **Batasan satu mata uang (KR7, diputuskan 22 September 2026: opsi a).** Tagihan dan koreksinya hanya dalam rupiah (`invoices.amount_rupiah`, `invoice_corrections.corrected_amount_rupiah`); tidak ada kolom mata uang maupun kurs. Biaya yang dibayar dalam EGP di Mesir harus dicatat dalam rupiah secara manual. Ditinjau ulang begitu ada transaksi EGP nyata yang harus dicatat apa adanya; saat itu bagian keuangan perlu memutuskan kapan kurs dikunci (saat tagihan dibuat atau saat dibayar).
 
 ## Menjalankan secara lokal
 

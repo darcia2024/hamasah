@@ -123,9 +123,9 @@ Isi kolom **Status** dengan `Diputuskan: <pilihan> (tanggal)`. Sonnet hanya bole
 | KR2 | Isi kebijakan privasi dan retensi | Data apa, tujuan, retensi, hak subjek data, penanganan calon di bawah umur | Selaras dengan K14 di `PANDUAN_BUILD.md` (anonimkan setelah 12 bulan) | Task R2.3 | Belum |
 | KR3 | Alur tugas dan kuis LMS | (a) bangun sekarang; (b) tunda dan sembunyikan tipe materi `tugas`/`kuis` dari form | **(b)** jika Rilis C belum dekat; janji UI harus turun bersamaan | Task R3.6 | Belum |
 | KR4 | Pencarian global CRM | (a) implementasi lintas modul; (b) persempit jadi pencarian santri; (c) hapus | **(c)** untuk sekarang, (b) saat ada waktu | Task R4.6 | Belum |
-| KR5 | Format isi artikel | (a) Markdown terbatas; (b) editor kaya dengan sanitasi; (c) tetap teks polos | **(a)** Markdown terbatas: heading, daftar, tebal, miring, tautan, kutipan | Task R7.5 | Belum |
-| KR6 | Nasib prototipe lama di root | (a) hapus; (b) pertahankan dan ikut diaudit; (c) pindahkan ke repo terpisah | **(a)** jika sudah tidak dipakai review klien | Task R8.1 | Belum |
-| KR7 | Mata uang | (a) tetap rupiah saja; (b) tambah kolom mata uang dan kurs | **(a)** sampai ada transaksi EGP nyata yang harus dicatat | Task R8.5 | Belum |
+| KR5 | Format isi artikel | (a) Markdown terbatas; (b) editor kaya dengan sanitasi; (c) tetap teks polos | **(a)** Markdown terbatas: heading, daftar, tebal, miring, tautan, kutipan | Task R7.5 | Diputuskan 22 Sep 2026: (a) Markdown terbatas |
+| KR6 | Nasib prototipe lama di root | (a) hapus; (b) pertahankan dan ikut diaudit; (c) pindahkan ke repo terpisah | **(a)** jika sudah tidak dipakai review klien | Task R8.1 | Diputuskan 22 Sep 2026: (a) hapus |
+| KR7 | Mata uang | (a) tetap rupiah saja; (b) tambah kolom mata uang dan kurs | **(a)** sampai ada transaksi EGP nyata yang harus dicatat | Task R8.5 | Diputuskan 22 Sep 2026: (a) rupiah saja |
 
 Keputusan yang sudah ada di `PANDUAN_BUILD.md` dan dipakai lagi di sini: **K4** (domain dan email pengirim), **K5** (provider email), **K10** (WhatsApp), **K14** (retensi data), **K16** (klaim dan konten publik).
 
