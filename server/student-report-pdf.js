@@ -56,8 +56,7 @@ function buildStudentReportBlocks(dashboard, { courses = null, generatedAt = new
   else if (!courses.length) kosong(blocks, 'Santri belum terdaftar pada maddah mana pun.');
   else {
     for (const course of courses) {
-      const selesai = course.materials.filter((material) => material.completed).length;
-      blocks.push({ kind: 'item', text: `${course.title}: ${selesai} dari ${course.materials.length} materi selesai (${course.progress}%)` });
+      blocks.push({ kind: 'item', text: `${course.title}: ${course.completedMaterials} dari ${course.totalMaterials} materi selesai (${course.progress}%)` });
     }
   }
 

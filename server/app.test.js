@@ -250,6 +250,18 @@ async function run() {
     });
     assert.equal(completed.status, 200);
     assert.equal(completed.body.course.progress, 100);
+    // Wali melihat ringkasan progres maddah anaknya, tanpa isi materi; isi LMS tetap tertutup.
+    const parentHeaders = { Authorization: `Bearer ${parentLogin.body.accessToken}` };
+    const ringkasanMaddah = await request(baseUrl, `/api/students/${studentId}/course-progress`, { headers: parentHeaders });
+    assert.equal(ringkasanMaddah.status, 200);
+    assert.deepEqual(ringkasanMaddah.body.items.map(({ totalMaterials, completedMaterials, progress, completionStatus }) => ({ totalMaterials, completedMaterials, progress, completionStatus })),
+      [{ totalMaterials: 1, completedMaterials: 1, progress: 100, completionStatus: 'completed' }]);
+    assert.deepEqual(Object.keys(ringkasanMaddah.body.items[0]).sort(), ['completedMaterials', 'completionStatus', 'id', 'progress', 'title', 'totalMaterials']);
+    assert.equal(JSON.stringify(ringkasanMaddah.body).includes('khabar'), false, 'Isi materi tidak ikut.');
+    assert.equal((await request(baseUrl, `/api/students/${studentId}/courses`, { headers: parentHeaders })).status, 403, 'Isi LMS tetap tertutup untuk wali.');
+    assert.equal((await request(baseUrl, `/api/students/${studentId}/course-progress`, { headers: waliLainHeaders })).status, 403, 'Wali lain ditolak.');
+    const raporDenganMaddah = Buffer.from(await (await fetch(`${baseUrl}/api/students/${studentId}/report.pdf`, { headers: parentHeaders })).arrayBuffer()).toString('latin1');
+    assert.ok(raporDenganMaddah.includes('1 dari 1 materi selesai \\(100%\\)'), 'Rapor wali memuat progres maddah.');
     const studyHelp = await request(baseUrl, `/api/students/${studentId}/courses/${courseId}/materials/${materialCreated.body.material.id}/study-help`, {
       method: 'POST', headers: studentHeaders,
       body: JSON.stringify({ question: 'Apa fungsi khabar?' })

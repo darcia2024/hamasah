@@ -27,7 +27,7 @@ const dashboard = {
   evaluations: [{ occurredAt: '2026-09-12T08:00:00Z', area: 'Adab', note: 'Membantu teman — rajin' }],
   discipline: []
 };
-const courses = [{ title: 'Fathul Qorib', progress: 50, materials: [{ completed: true }, { completed: false }] }];
+const courses = [{ title: 'Fathul Qorib', progress: 50, totalMaterials: 2, completedMaterials: 1 }];
 
 const text = assertValidPdf(createStudentReportPdf(dashboard, { courses, generatedAt: new Date('2026-09-30T10:00:00Z') }));
 assert.ok(text.includes(pdfLiteral('Nama: Santri (Uji) \\ Contoh')), 'kurung dan backslash di-escape');

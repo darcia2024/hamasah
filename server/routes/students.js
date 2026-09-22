@@ -142,6 +142,18 @@ module.exports = [
     }
   },
 
+  // Ringkasan progres maddah: judul dan hitungan materi saja. Wali boleh melihatnya untuk
+  // santri yang terhubung; isi materi tetap hanya lewat /courses (santri, staf, musyrif).
+  {
+    method: 'GET',
+    pattern: /^\/api\/students\/([\w-]+)\/course-progress$/,
+    permission: 'students.read',
+    async handler({ response, services, auth, params }) {
+      const summary = await services.lmsService.progressSummary(params[0], await auth.actor());
+      json(response, summary.ok ? 200 : 403, summary.ok ? { items: summary.value } : publicError(summary));
+    }
+  },
+
   // Rapor digital PDF. Hak akses sama dengan dashboard (wali hanya santrinya sendiri).
   {
     method: 'GET',
@@ -154,8 +166,8 @@ module.exports = [
         json(response, 403, publicError(report));
         return;
       }
-      // Progres maddah hanya bila akun ini memang boleh melihat pembelajaran santri tersebut.
-      const courses = await services.lmsService.listStudentCourses(params[0], actor);
+      // Ringkasan progres maddah (wali termasuk, tanpa isi materi).
+      const courses = await services.lmsService.progressSummary(params[0], actor);
       await services.auditService.record({
         action: ACTIONS.STUDENT_REPORT_EXPORTED, actor, ip,
         entityType: 'student', entityId: params[0], metadata: { format: 'pdf' }

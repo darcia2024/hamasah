@@ -508,9 +508,22 @@ function renderCrmDashboard(dashboard, account, onBack) {
       <p class="js-text-muted">Memuat maddah...</p>
     </div>
   `;
+  // Wali hanya melihat ringkasan progres; ruang belajar LMS bukan untuknya.
+  if (currentAccount && currentAccount.role === 'parent') {
+    const lmsLink = panelLms.querySelector('a[href="lms.html"]');
+    if (lmsLink) lmsLink.remove();
+    const subjudul = panelLms.querySelector('.crm-white-card-header p');
+    if (subjudul) subjudul.textContent = 'Ringkasan progres belajar ananda per maddah.';
+  }
 
-  fetch(`/api/students/${encodeURIComponent(student.id)}/courses`, { headers: requestHeaders() })
-    .then((res) => res.json())
+  // Ringkasan progres (judul dan hitungan materi) juga terbuka untuk wali. Dulu tab ini
+  // memanggil /courses yang menolak wali, dan penolakan itu tampil sebagai "belum ada maddah".
+  fetch(`/api/students/${encodeURIComponent(student.id)}/course-progress`, { headers: requestHeaders() })
+    .then(async (res) => {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Maddah belum dapat dimuat.');
+      return data;
+    })
     .then((data) => {
       const container = panelLms.querySelector('#crm-student-courses');
       if (!container) return;
@@ -528,7 +541,7 @@ function renderCrmDashboard(dashboard, account, onBack) {
           <div class="crm-feature-box-icon">${TAB_ICONS.book}</div>
           <div class="js-flex-1">
             <strong>${escapeHtml(course.title)}</strong>
-            <p>${course.materials ? course.materials.length : 0} modul · Progres ${Number(course.progress) || 0}%</p>
+            <p>${Number(course.completedMaterials) || 0} dari ${Number(course.totalMaterials) || 0} materi selesai · Progres ${Number(course.progress) || 0}%</p>
             <div class="js-progress-track">
               <div class="js-progress-bar"></div>
             </div>
@@ -542,9 +555,13 @@ function renderCrmDashboard(dashboard, account, onBack) {
       });
       container.append(grid);
     })
-    .catch(() => {
+    .catch((error) => {
       const container = panelLms.querySelector('#crm-student-courses');
-      if (container) container.innerHTML = '<p class="js-text-muted">Maddah belum dapat dimuat.</p>';
+      if (!container) return;
+      const pesan = document.createElement('p');
+      pesan.className = 'js-text-muted';
+      pesan.textContent = error.message || 'Maddah belum dapat dimuat.';
+      container.replaceChildren(pesan);
     });
 
   // Panel 6: Ringkasan Data. Dulu menyatakan "Status SPP & Akomodasi: Lunas" dan

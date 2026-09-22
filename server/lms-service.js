@@ -72,6 +72,8 @@ function createLmsService(options) {
   const store = config.store || createMemoryLmsStore();
   const now = config.now || function currentTime() { return new Date().toISOString(); };
   const canAccessStudent = config.canAccessStudent || async function noStudentAccess() { return false; };
+  // Wali hanya boleh melihat RINGKASAN progres santri yang terhubung dengannya, bukan isi materi.
+  const canViewProgress = config.canViewProgress || async function noProgressAccess() { return false; };
   const aiService = config.aiService || null;
 
   function isStaff(actor) {
@@ -174,6 +176,11 @@ function createLmsService(options) {
     if (!(await canStudy(studentId, actor))) {
       return { ok: false, error: 'Akses pembelajaran tidak diizinkan.' };
     }
+    return buildStudentCourse(studentId, courseId);
+  }
+
+  // Isi maddah beserta progres santri; pemeriksaan akses ada di pemanggil.
+  async function buildStudentCourse(studentId, courseId) {
     if (!(await store.getEnrollments(studentId)).includes(courseId)) {
       return { ok: false, error: 'Santri belum terdaftar pada maddah ini.' };
     }
@@ -203,6 +210,28 @@ function createLmsService(options) {
         completionStatus: activeMaterials.length && completedMaterialIds.filter((id) => activeMaterials.some((material) => material.id === id)).length === activeMaterials.length ? 'completed' : 'in-progress'
       }
     };
+  }
+
+  // Ringkasan progres per maddah: judul dan hitungan saja, tanpa isi, ringkasan, atau poin
+  // materi. Terbuka untuk yang boleh belajar/memantau (canStudy) dan untuk wali santri itu.
+  async function progressSummary(studentId, actor) {
+    const boleh = (await canStudy(studentId, actor)) || Boolean(actor && actor.role === 'parent' && (await canViewProgress(studentId, actor)));
+    if (!boleh) return { ok: false, error: 'Akses progres maddah tidak diizinkan.' };
+    const items = [];
+    for (const courseId of await store.getEnrollments(studentId)) {
+      const result = await buildStudentCourse(studentId, courseId);
+      if (!result.ok) continue;
+      const course = result.value;
+      items.push({
+        id: course.id,
+        title: course.title,
+        totalMaterials: course.materials.length,
+        completedMaterials: course.materials.filter((material) => material.completed).length,
+        progress: course.progress,
+        completionStatus: course.completionStatus
+      });
+    }
+    return { ok: true, value: items };
   }
 
   async function listStudentCourses(studentId, actor) {
@@ -323,7 +352,7 @@ function createLmsService(options) {
     };
   }
 
-  return Object.freeze({
+  return Object.freeze({ progressSummary,
     addMaterial,
     archiveMaterial,
     completeMaterial,

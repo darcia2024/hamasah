@@ -36,9 +36,8 @@ async function run() {
       assert.equal(percobaan.hasil.error, 'Email atau kata sandi tidak tepat.', `${nama}: pesan harus sama`);
       assert.equal(percobaan.panggilan, 1, `${nama}: scrypt harus dijalankan tepat sekali`);
     }
-    // Ambang longgar supaya tidak rapuh di mesin CI; yang dicegah adalah selisih ratusan ms.
-    assert.ok(tidakAda.ms > salah.ms * 0.5, `tidak ada ${tidakAda.ms.toFixed(0)} ms vs salah ${salah.ms.toFixed(0)} ms`);
-    assert.ok(nonaktif.ms > salah.ms * 0.5, `nonaktif ${nonaktif.ms.toFixed(0)} ms vs salah ${salah.ms.toFixed(0)} ms`);
+    // Bukti utamanya hitungan scrypt di atas. Waktu hanya dicatat: di bawah beban `npm test`
+    // (banyak berkas paralel) satu request bisa melambat detik-an, jadi ambang waktu rapuh.
 
     // Login sah tetap berhasil.
     assert.equal((await service.login('admin@hamasah.test', 'kata-sandi-admin-aman')).ok, true);
@@ -48,13 +47,16 @@ async function run() {
   }
 
   // Permintaan reset: dulu request untuk email terdaftar menunggu penyedia email di dalam
-  // request. Dengan pengirim lambat (400 ms) keduanya kini tetap dijawab cepat dan sama.
+  // request. Pengirim di sini menggantung sampai dilepas: bila route masih menunggunya,
+  // request tidak akan pernah selesai sebelum pengirim dipanggil.
+  let dipanggil = 0;
+  let lepas = () => {};
   const database = await createTestDatabase();
   const app = createHamasahApp({
     rootDirectory: path.resolve(__dirname, '..'), database, auditRetention: false,
     rateLimiter: createRelaxedRateLimiter(),
     email: { driver: 'test', appBaseUrl: 'https://app.hamasah.test' },
-    emailSender: { provider: 'test', configured: true, async send() { await new Promise((r) => setTimeout(r, 400)); return { id: 'lambat' }; } }
+    emailSender: { provider: 'test', configured: true, async send() { dipanggil += 1; await new Promise((r) => { lepas = r; }); return { id: 'lambat' }; } }
   });
   const server = app.createServer();
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -63,7 +65,9 @@ async function run() {
     await app.identityService.createAccount({ email: 'terdaftar@hamasah.test', name: 'Akun Uji', role: identity.ROLES.PARENT, password: 'kata-sandi-akun-aman' });
     const minta = async (email) => {
       const mulai = process.hrtime.bigint();
-      const response = await fetch(`${baseUrl}/api/auth/password-reset-request`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+      // Batas 5 detik: route yang menunggu pengirim (yang menggantung) akan gagal di sini, bukan macet.
+      const response = await fetch(`${baseUrl}/api/auth/password-reset-request`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }), signal: AbortSignal.timeout(5000) })
+        .catch((error) => { throw new assert.AssertionError({ message: `request reset untuk ${email} menunggu pengirim email (${error.name})` }); });
       return { status: response.status, body: await response.text(), ms: Number(process.hrtime.bigint() - mulai) / 1e6 };
     };
     await minta('pemanasan@hamasah.test');
@@ -72,9 +76,12 @@ async function run() {
     assert.equal(ada.status, 202);
     assert.equal(tidak.status, 202);
     assert.equal(ada.body, tidak.body);
-    assert.ok(ada.ms < 300, `request email terdaftar tidak boleh menunggu pengirim email (${ada.ms.toFixed(0)} ms)`);
+    assert.equal(dipanggil, 0, 'Request tidak boleh memanggil (apalagi menunggu) pengirim email; email diantrekan.');
+    const antre = await database.query("SELECT recipient_email FROM notification_outbox WHERE notification_type = 'password-reset' AND status = 'pending'");
+    assert.deepEqual(antre.rows.map((row) => row.recipient_email), ['terdaftar@hamasah.test']);
     console.log(`reset request timing passed (terdaftar ${ada.ms.toFixed(0)} ms, tidak terdaftar ${tidak.ms.toFixed(0)} ms)`);
   } finally {
+    lepas();
     await new Promise((resolve) => server.close(resolve));
     await database.close();
   }

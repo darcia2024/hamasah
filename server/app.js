@@ -169,6 +169,11 @@ function createHamasahApp(options) {
       }
       // Wajib di-await. Tanpa await, Promise selalu bernilai benar dan santri bisa membuka maddah santri lain.
       return (await studentPortalService.dashboard(studentId, actor)).ok;
+    },
+    // Wali: sama dengan hak melihat dashboard santri (hanya santri yang terhubung).
+    async canViewProgress(studentId, actor) {
+      if (!actor || actor.role !== identity.ROLES.PARENT) return false;
+      return (await studentPortalService.dashboard(studentId, actor)).ok;
     }
   });
   const operationsStore = config.operationsStore || createPostgresOperationsStore({ database });
