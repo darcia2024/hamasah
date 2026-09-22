@@ -138,6 +138,20 @@ Alat uji yang jujur. `test:browser-contract` membuka 17 halaman x 5 lebar di bro
 
 Skalabilitas. Daftar pendaftar 1.003 query -> 8 (tidak tumbuh); pagination untuk pendaftaran, artikel (tanpa body), santri (cakupan akses di SQL, diuji setara canView), dan tagihan (dengan nama santri); ETag/Cache-Control/304/brotli untuk aset statis dengan versi dari sidik isi (`npm run stamp:assets` wajib setelah mengubah CSS/JS); `website.css` dipecah jadi core (internal) dan public; portal 304 KB -> 45,6 KB di jaringan; rate limit token undangan/reset. **Migrasi 034 (index) perlu diterapkan ke staging lalu production bersama 017-033.** Akun, visa, inventaris, maddah belum berpaginasi (keputusan cakupan). Rincian: `docs/REMEDIASI_R6_HASIL_2026-09-21.md`.
 
+## Remediasi Phase R7 (22 September 2026)
+
+Distribusi dan konten. Tag Open Graph/Twitter disisipkan server untuk halaman publik dengan URL absolut dari `APP_BASE_URL` (**kini wajib di staging/production**); gambar bagikan `assets/og-default.jpg` 1200 x 630. `/robots.txt` dan `/sitemap.xml` dihasilkan server (halaman internal otomatis Disallow, artikel terbit dengan lastmod). `article.html?slug=...` dirender server (judul, meta, tag bagikan, isi; 404 noindex untuk draf/arsip). Byline dari akun pembuat; tanpa lokasi dan tanggal karangan. Isi artikel memakai Markdown terbatas (KR5 a) dengan satu renderer server untuk halaman dan pratinjau CMS. **R7.6 (artikel nyata) menunggu klien.** Rincian: `docs/REMEDIASI_R7_HASIL_2026-09-22.md`.
+
+## Remediasi Phase R8 (22 September 2026)
+
+Pengerasan. Prototipe lama dan rute `/proposal`, `/hamasah` dihapus (KR6 a); `.vercelignore` tolak-semua, **deployment Vercel lama akan kosong setelah push**. Worker pengingat visa tersambung (migrasi 035). Notifikasi email untuk status pendaftaran, berkas perlu diperbaiki, dan pembayaran diterima (migrasi 036). scrypt N=2^16 r=8 p=2 (~225 ms), hash lama tetap sah. 404 dengan CTA dan base href. Mata uang tetap rupiah (KR7 a). **R8.7 (audit per role) menunggu pemilik proyek.** **Migrasi 035 dan 036 perlu diterapkan ke staging lalu production bersama 017-034.** Rincian: `docs/REMEDIASI_R8_HASIL_2026-09-22.md`.
+
+## Gerbang rilis setelah R1 sampai R8 (22 September 2026)
+
+- **Gerbang 1 (boleh dilihat orang luar): tertahan.** R1 dan R2 selesai (kecuali R1.0 putar kredensial, tugas manusia). R8.7 belum dilakukan. Konten publik juga masih menunggu klien: alamat Hay Asyir/Madinat Nasr (K16), teks kebijakan privasi, nomor WhatsApp resmi.
+- **Gerbang 2 (boleh dipakai staf): tertahan pada Gerbang 1.** R3 dan R5 selesai.
+- **Gerbang 3 (trafik nyata): tertahan.** R4 dan R6 selesai, angka performa R6 tercatat; R7 selesai kecuali R7.6 (artikel nyata dari klien). Di luar rencana: hosting (K2), penerapan migrasi 017-036 ke Supabase, scheduler untuk `worker:notifications` dan `worker:visa-reminders`, dan belum ada CI.
+
 ## LMS: tugas dan kuis ditunda (21 September 2026)
 
 Keputusan KR3 pada `docs/RENCANA_REMEDIASI_PHASE_R1_R8_2026-09-20.md`, dikerjakan sebagai Task R3.6 opsi (b).

@@ -1586,27 +1586,27 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [ ] R6.5 Index database
 - [ ] R6.6 Rate limit dan kuota bersama
 
-**Phase R7: Distribusi dan Konten**
-- [ ] R7.1 Open Graph dan Twitter Card
-- [ ] R7.2 Sitemap dan robots yang benar
-- [ ] R7.3 `[KOMPLEKS]` Artikel dapat ditemukan dan dibagikan
-- [ ] R7.4 Byline penulis yang sebenarnya
-- [ ] R7.5 `[KEPUTUSAN KR5]` Format isi artikel
-- [ ] R7.6 `[KLIEN]` Isi konten nyata
+**Phase R7: Distribusi dan Konten** — 22 September 2026, kecuali R7.6 (lihat `docs/REMEDIASI_R7_HASIL_2026-09-22.md`)
+- [x] R7.1 Open Graph dan Twitter Card (b6d9e7d)
+- [x] R7.2 Sitemap dan robots yang benar (725bcc5)
+- [x] R7.3 `[KOMPLEKS]` Artikel dapat ditemukan dan dibagikan (12756ff)
+- [x] R7.4 Byline penulis yang sebenarnya (c17d8c0, ad94f11)
+- [x] R7.5 `[KEPUTUSAN KR5]` Format isi artikel, opsi a (2a84bbc)
+- [ ] R7.6 `[KLIEN]` Isi konten nyata (kerangka permintaan di dokumen hasil R7)
 
-**Phase R8: Pengerasan dan Keputusan Sisa**
-- [ ] R8.1 `[KEPUTUSAN KR6]` Nasib prototipe lama
-- [ ] R8.2 Sambungkan worker pengingat visa
-- [ ] R8.3 `[KEPUTUSAN K10]` Notifikasi peristiwa penting
-- [ ] R8.4 Perkuat parameter scrypt
-- [ ] R8.5 `[KEPUTUSAN KR7]` Mata uang
-- [ ] R8.6 Halaman 404
-- [ ] R8.7 `[MANUSIA]` Audit ulang per role
+**Phase R8: Pengerasan dan Keputusan Sisa** — 22 September 2026, kecuali R8.7 (lihat `docs/REMEDIASI_R8_HASIL_2026-09-22.md`)
+- [x] R8.1 `[KEPUTUSAN KR6]` Nasib prototipe lama, opsi a (70752a9)
+- [x] R8.2 Sambungkan worker pengingat visa (4ed1c2e; scheduler di hosting menunggu K2)
+- [x] R8.3 `[KEPUTUSAN K10]` Notifikasi peristiwa penting, email (bb33661; WhatsApp di Phase 16)
+- [x] R8.4 Perkuat parameter scrypt (7c69227)
+- [x] R8.5 `[KEPUTUSAN KR7]` Mata uang, opsi a (b629c35)
+- [x] R8.6 Halaman 404 (d968ea1)
+- [ ] R8.7 `[MANUSIA]` Audit ulang per role (daftar periksa di dokumen hasil R8)
 
 **Sisa pekerjaan manusia:** R1.0 (putar kredensial, periksa riwayat git), R8.7 (audit ulang per role).
 
 **Sisa Phase R1 yang menunggu klien:** nomor WhatsApp resmi untuk `WHATSAPP_NUMBER` di `website/kontak.js`. Selama kosong, tombol WhatsApp tidak ditampilkan dan formulir tetap berfungsi penuh.
 
-**Menunggu keputusan:** KR1 sampai KR7 di Bagian 2, serta K4, K5, K10, K14, dan K16 di `PANDUAN_BUILD.md`.
+**Menunggu keputusan:** KR5, KR6, KR7 dan bagian email K10 diputuskan 22 September 2026. Masih terbuka: K2 (hosting), K4, K5, K14, K16 di `PANDUAN_BUILD.md`, dan kanal WhatsApp K10 (Phase 16).
 
 **Menunggu materi klien:** R1.6 (nomor resmi), R2.3 (isi kebijakan privasi), R4.8 (foto kegiatan), R7.6 (artikel).
