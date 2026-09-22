@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const html = articles.map((a) => {
       const dateStr = a.publishedAt
         ? new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(a.publishedAt))
-        : 'September 2026';
+        : 'Tanggal belum tercatat';
       const category = a.category || 'Wawasan';
 
       return `
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="card-bottom-row">
             <div class="author-micro-badge">
               <span class="author-dot"></span>
-              <span>Tim Hamasah Kairo</span>
+              <span>${escapeHtml(a.authorName || 'Tim Redaksi Hamasah International')}</span>
             </div>
             <a class="article-read-link" href="article.html?slug=${encodeURIComponent(a.slug)}" aria-label="Baca artikel ${escapeHtml(a.title)}">
               <span>Baca Artikel</span>

@@ -42,7 +42,8 @@ function createPostgresArticleStore({ database } = {}) {
       const page = normalizePage({ limit, offset }, { defaultLimit: 12 });
       const total = await database.query(`SELECT count(*)::int AS jumlah FROM articles ${where}`, nilai);
       const { rows } = await database.query(
-        `SELECT slug, title, excerpt, category, published_at, status, archived_at, updated_at, cover_url, cover_alt_text
+        `SELECT slug, title, excerpt, category, published_at, status, archived_at, updated_at, cover_url, cover_alt_text,
+                (SELECT name FROM accounts WHERE accounts.id = articles.author_account_id) AS author_name
          FROM articles ${where} ORDER BY published_at DESC NULLS LAST, updated_at DESC, slug
          LIMIT $${nilai.length + 1} OFFSET $${nilai.length + 2}`,
         [...nilai, page.limit, page.offset]

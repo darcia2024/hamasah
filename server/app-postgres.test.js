@@ -249,6 +249,7 @@ async function run() {
     // Penulis dicatat dari sesi yang membuat artikel dan tampil di detail publik (Task R7.4).
     assert.equal(article.body.item.authorName, 'Admin Uji');
     assert.equal((await request(baseUrl, `/api/articles/${article.body.item.slug}`)).body.item.authorName, article.body.item.authorName);
+    assert.equal((await request(baseUrl, '/api/articles')).body.items[0].authorName, 'Admin Uji', 'Kartu katalog memakai penulis sebenarnya.');
     const articles = await request(baseUrl, '/api/articles');
     assert.equal(articles.body.items.length, 1);
 
