@@ -2,22 +2,22 @@ const answers = {
   program: {
     topic: 'Tentang Hamasah',
     title: 'Pendamping pendidikan bagi pelajar Indonesia menuju Al-Azhar, Mesir.',
-    text: 'Hamasah International membantu proses dari awal pendaftaran hingga pelajar tiba dan terdaftar sebagai mahasiswa di Kairo.'
+    text: 'Hamasah International adalah lembaga konsultan pendidikan luar negeri yang mendampingi pelajar Indonesia dari awal pendaftaran hingga tiba dan resmi menjadi mahasiswa Universitas Al-Azhar atau pelajar Ma\'had Al-Azhar di Kairo.'
   },
   registration: {
     topic: 'Tentang persiapan bahasa',
     title: 'Calon mahasiswa tidak harus sudah mahir bahasa Arab untuk memulai proses.',
-    text: 'Peserta mengikuti Ujian Tahdid Mustawa untuk mengetahui level bahasa Arab, lalu menjalani tahapan persiapan yang sesuai sebelum seleksi.'
+    text: 'Semua calon mahasiswa mengikuti Ujian Tahdid Mustawa untuk penempatan level bahasa Arab, lalu karantina bahasa (Dauroh Ta’hili) sebelum ujian seleksi. Bila level awal belum mencukupi, ada kelas bahasa terlebih dahulu.'
   },
   mahad: {
     topic: 'Tentang Program Ma\'had',
-    title: 'Ma\'had Al-Azhar memadukan ilmu keislaman, bahasa Arab, dan pelajaran umum.',
-    text: 'Jalur pendidikan formal ini mencakup jenjang Ibtidai, I\'dadi, dan Tsanawi. Tahap registrasi, orientasi, penempatan bahasa, serta evaluasi mengikuti ketentuan dan kesiapan masing-masing peserta.'
+    title: 'Ma\'had Al-Azhar memadukan ilmu syar’i, bahasa Arab, dan pelajaran umum.',
+    text: 'Program ini untuk usia 13 sampai 30 tahun. Setibanya di Kairo, calon santri mengikuti tes bahasa Arab, kelas bahasa, lalu tes qobul untuk penempatan di kelas I\'dadi (setingkat SMP) atau Tsanawi (setingkat SMA).'
   },
   parent: {
     topic: 'Tentang pendaftaran',
     title: 'Pendaftaran dimulai dengan formulir dan verifikasi berkas.',
-    text: 'Tahap berikutnya dapat mencakup Tahdid Mustawa, Dauroh Ta’hili, ujian muadalah, pemberkasan, dan persiapan keberangkatan sesuai ketentuan yang berlaku.'
+    text: 'Alurnya: isi formulir, verifikasi berkas, Ujian Tahdid Mustawa, karantina daring (Dauroh Ta’hili), ujian muadalah, lalu pemberkasan dan keberangkatan sampai resmi kuliah di Al-Azhar.'
   },
   documents: {
     topic: 'Tentang dokumen awal',
