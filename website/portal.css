@@ -3935,3 +3935,18 @@ body.crm-page-exiting .lms-page {
 }
 
 .crm-report-actions .crm-topbar-action-btn span { display: inline; }
+
+/* Tab "Tagihan & Kuitansi" wali: daftar kartu tagihan, tombol kuitansi dengan label tetap
+   tampil di layar kecil (tombol topbar lain menyembunyikan labelnya). */
+.crm-billing-list {
+  display: grid;
+  gap: 12px;
+}
+
+.crm-receipt-btn {
+  margin-top: 12px;
+  align-self: flex-start;
+  gap: 6px;
+}
+
+.crm-activity-card .crm-receipt-btn span { display: inline; }

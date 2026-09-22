@@ -164,6 +164,8 @@ async function run() {
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/report` },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/report.pdf` },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/course-progress` },
+      { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/invoices` },
+      { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/invoices/00000000-0000-4000-8000-000000000000/receipt.pdf` },
       {
         permission: 'students.manage', method: 'POST', path: '/api/students',
         body: () => ({ name: 'Santri Tambahan', program: 'Mahad Al-Azhar', city: 'Kairo', joinDate: '2026-08-22' })

@@ -43,7 +43,8 @@ const LABEL = {
   'file.uploaded': 'Berkas diunggah',
   'file.downloaded': 'Berkas diunduh',
   'invoice.created': 'Invoice dibuat',
-  'invoice.paid': 'Invoice ditandai lunas'
+  'invoice.paid': 'Invoice ditandai lunas',
+  'invoice.receipt-downloaded': 'Kuitansi diunduh'
 };
 
 function session() {

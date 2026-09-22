@@ -32,11 +32,11 @@ function createMemoryOperationsStore() {
     async getInvoice(id) { return database.invoices[id] ? clone(database.invoices[id]) : null; },
     async listInvoices() { return Object.values(database.invoices).map(clone); },
     // Setara dengan listInvoicesPage milik store PostgreSQL, untuk test dan pengembangan.
-    async listInvoicesPage({ status, search, limit, offset } = {}) {
+    async listInvoicesPage({ status, search, studentId, limit, offset } = {}) {
       const kata = String(search || '').trim().toLocaleLowerCase('id-ID');
       const page = normalizePage({ limit, offset });
       const cocok = Object.values(database.invoices)
-        .filter((invoice) => (!status || invoice.status === status)
+        .filter((invoice) => (!status || invoice.status === status) && (!studentId || invoice.studentId === studentId)
           && (!kata || `${invoice.number} ${invoice.description}`.toLocaleLowerCase('id-ID').includes(kata)))
         .sort((left, right) => right.issuedAt.localeCompare(left.issuedAt) || left.id.localeCompare(right.id));
       return { items: cocok.slice(page.offset, page.offset + page.limit).map(clone), total: cocok.length };
@@ -125,6 +125,9 @@ function createOperationsService(options) {
   const store = config.store || createMemoryOperationsStore();
   const now = config.now || function currentTime() { return new Date().toISOString(); };
   const studentExists = config.studentExists || async function missingStudent() { return false; };
+  // Wali melihat tagihan dan kuitansi santri yang terhubung dengannya (diinjeksi app: sama
+  // dengan hak melihat dashboard santri itu). Tanpa injeksi, tidak ada wali yang boleh.
+  const parentCanViewStudent = config.parentCanViewStudent || async function noParentAccess() { return false; };
 
   // Harus sepadan dengan izin finance.manage dan operations.manage di server/access-policy.js.
   function adminOnly(actor) { return Boolean(actor && FINANCE_ROLES.includes(actor.role)); }
@@ -188,6 +191,35 @@ function createOperationsService(options) {
   async function getInvoice(invoiceId, actor) {
     if (!adminOnly(actor)) return null;
     return store.getInvoice(invoiceId);
+  }
+
+  // Tagihan satu santri untuk wali (hanya santri yang terhubung) dan staf keuangan. Wali tidak
+  // menerima alasan pembatalan dan versi internal.
+  async function canViewStudentBilling(studentId, actor) {
+    if (adminOnly(actor)) return true;
+    return Boolean(actor && actor.role === 'parent' && (await parentCanViewStudent(studentId, actor)));
+  }
+
+  function forBillingViewer(invoice, actor) {
+    if (adminOnly(actor)) return invoice;
+    const { voidReason, version, ...selebihnya } = invoice;
+    return selebihnya;
+  }
+
+  async function listStudentInvoices(studentId, actor) {
+    if (!(await canViewStudentBilling(studentId, actor))) return { ok: false, error: 'Akses tagihan santri tidak diizinkan.' };
+    const result = typeof store.listInvoicesPage === 'function'
+      ? await store.listInvoicesPage({ studentId, limit: 100, offset: 0 })
+      : { items: [] };
+    return { ok: true, value: result.items.map((invoice) => forBillingViewer(invoice, actor)) };
+  }
+
+  // Kuitansi satu tagihan milik santri itu; hanya bila sudah lunas.
+  async function studentReceiptInvoice(studentId, invoiceId, actor) {
+    if (!(await canViewStudentBilling(studentId, actor))) return { ok: false, status: 403, error: 'Akses tagihan santri tidak diizinkan.' };
+    const invoice = await store.getInvoice(invoiceId);
+    if (!invoice || invoice.studentId !== studentId || invoice.status !== 'paid') return { ok: false, status: 404, error: 'Kuitansi belum tersedia.' };
+    return { ok: true, value: invoice };
   }
 
   async function correctInvoice(invoiceId, input, actor) {
@@ -349,7 +381,7 @@ function createOperationsService(options) {
     return { ok: true, value: items.sort((a, b) => a.expiresAt.localeCompare(b.expiresAt)) };
   }
 
-  return Object.freeze({ createInvoice, createMemoryOperationsStore, correctInvoice, getInvoice, list, listInvoicesPage, overview, listInventoryMovements, listInvoiceCorrections, listVisaDocuments, markInvoicePaid, moveInventory, saveInventory, saveVisa, saveVisaDocument, visaReminders, voidInvoice });
+  return Object.freeze({ createInvoice, createMemoryOperationsStore, correctInvoice, getInvoice, list, listInvoicesPage, listStudentInvoices, studentReceiptInvoice, overview, listInventoryMovements, listInvoiceCorrections, listVisaDocuments, markInvoicePaid, moveInventory, saveInventory, saveVisa, saveVisaDocument, visaReminders, voidInvoice });
 }
 
 module.exports = { MAX_INVOICE_AMOUNT, VISA_STATUSES, createMemoryOperationsStore, createOperationsService, documentNumber, yearInJakarta };

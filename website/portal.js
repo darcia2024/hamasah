@@ -605,6 +605,75 @@ function renderCrmDashboard(dashboard, account, onBack) {
   });
 
   const panels = [panelMutabaah, panelSholat, panelTalaqqi, panelDorm, panelLms, panelAdmin];
+
+  // Panel 7: Tagihan & Kuitansi. Hanya untuk wali (santri yang terhubung) dan admin; peran
+  // lain tidak punya akses ke data keuangan santri. Kuitansi hanya untuk tagihan lunas.
+  if (currentAccount && ['parent', 'admin'].includes(currentAccount.role)) {
+    const panelBilling = document.createElement('div');
+    panelBilling.className = 'crm-white-card';
+    panelBilling.hidden = true;
+    const header = document.createElement('div');
+    header.className = 'crm-white-card-header';
+    header.innerHTML = '<div><h3>Tagihan &amp; Kuitansi</h3><p>Tagihan santri ini dan kuitansi untuk tagihan yang sudah lunas.</p></div>';
+    const list = document.createElement('div');
+    list.className = 'crm-billing-list';
+    list.textContent = 'Memuat tagihan...';
+    panelBilling.append(header, list);
+    const STATUS_TAGIHAN = { paid: ['Lunas', 'complete'], unpaid: ['Belum dibayar', 'pending'], voided: ['Dibatalkan', 'absent'] };
+    const rupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value) || 0);
+    fetch(`/api/students/${encodeURIComponent(student.id)}/invoices`, { headers: requestHeaders() })
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Tagihan belum dapat dimuat.');
+        return data.items || [];
+      })
+      .then((items) => {
+        list.replaceChildren();
+        if (!items.length) {
+          list.append(createEmptyState('Belum ada tagihan untuk santri ini.'));
+          return;
+        }
+        items.forEach((invoice) => {
+          const [statusText, statusType] = STATUS_TAGIHAN[invoice.status] || [invoice.status, 'pending'];
+          const card = createRecordCard({
+            badgeColor: invoice.status === 'paid' ? 'green' : 'yellow',
+            badgeIcon: 'note',
+            title: invoice.description,
+            subtitle: invoice.number,
+            statusText,
+            statusType,
+            details: [
+              { label: 'Jumlah', value: rupiah(invoice.amount) },
+              { label: 'Diterbitkan', value: formatTanggal(invoice.issuedAt) },
+              { label: 'Dibayar', value: invoice.paidAt ? formatTanggal(invoice.paidAt) : '' },
+              { label: 'Nomor kuitansi', value: invoice.receiptNumber || '' }
+            ]
+          });
+          if (invoice.status === 'paid' && invoice.receiptNumber) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'crm-topbar-action-btn crm-receipt-btn';
+            button.setAttribute('aria-label', `Unduh kuitansi ${invoice.receiptNumber}`);
+            button.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span>Unduh Kuitansi (PDF)</span>';
+            button.addEventListener('click', () => {
+              downloadWithSession(
+                `/api/students/${encodeURIComponent(student.id)}/invoices/${encodeURIComponent(invoice.id)}/receipt.pdf`,
+                `${invoice.receiptNumber.replace(/[^\w.-]+/g, '-')}.pdf`,
+                button.querySelector('span')
+              );
+            });
+            card.append(button);
+          }
+          list.append(card);
+        });
+      })
+      .catch((error) => {
+        list.replaceChildren(createEmptyState(error.message));
+      });
+    tabDefs.push({ id: 'billing', label: 'Tagihan & Kuitansi', icon: TAB_ICONS.file });
+    panels.push(panelBilling);
+  }
+
   buildTabs(tabDefs, panels, subtabsRow);
   panelsContainer.append(...panels);
 

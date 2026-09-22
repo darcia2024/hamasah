@@ -179,7 +179,12 @@ function createHamasahApp(options) {
   const operationsStore = config.operationsStore || createPostgresOperationsStore({ database });
   const operationsService = config.operationsService || createOperationsService({
     store: operationsStore,
-    async studentExists(studentId) { return Boolean(await studentStore.getStudent(studentId)); }
+    async studentExists(studentId) { return Boolean(await studentStore.getStudent(studentId)); },
+    // Wali: sama dengan hak melihat dashboard santri (hanya santri yang terhubung).
+    async parentCanViewStudent(studentId, actor) {
+      if (!actor || actor.role !== identity.ROLES.PARENT) return false;
+      return (await studentPortalService.dashboard(studentId, actor)).ok;
+    }
   });
   const operationsImportService = config.operationsImportService || createOperationsImportService({
     store: operationsStore,

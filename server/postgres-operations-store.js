@@ -104,10 +104,11 @@ function createPostgresOperationsStore({ database } = {}) {
 
     // Satu halaman tagihan, disaring dan dipotong di SQL, dengan nama santri dari tabel
     // students (Task R6.2). Pencarian mencocokkan nomor, keterangan, dan nama santri.
-    async listInvoicesPage({ status, search, limit, offset } = {}) {
+    async listInvoicesPage({ status, search, studentId, limit, offset } = {}) {
       const kondisi = [];
       const nilai = [];
       if (status) { nilai.push(String(status)); kondisi.push(`i.status = $${nilai.length}`); }
+      if (studentId) { nilai.push(String(studentId)); kondisi.push(`i.student_id = $${nilai.length}`); }
       if (search && String(search).trim()) {
         nilai.push(likePattern(search));
         const n = nilai.length;

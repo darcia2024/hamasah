@@ -152,6 +152,26 @@ async function run() {
     const kuitansiTeks = Buffer.from(await kuitansi.arrayBuffer()).toString('latin1');
     assert.ok(kuitansiTeks.includes('(Atas nama santri: Fikri Santri)'));
     assert.ok(!kuitansiTeks.includes(studentId), 'ID santri tidak tercetak di kuitansi.');
+
+    // Wali melihat tagihan anaknya dan mengunduh kuitansinya sendiri.
+    const waliHeaders = { Authorization: `Bearer ${parentLogin.body.accessToken}` };
+    const tagihanWali = await request(baseUrl, `/api/students/${studentId}/invoices`, { headers: waliHeaders });
+    assert.equal(tagihanWali.status, 200);
+    assert.equal(tagihanWali.body.items.length, 1);
+    assert.equal(tagihanWali.body.items[0].status, 'paid');
+    assert.equal('voidReason' in tagihanWali.body.items[0] || 'version' in tagihanWali.body.items[0], false, 'Wali tidak menerima data internal tagihan.');
+    const kuitansiWali = await fetch(`${baseUrl}/api/students/${studentId}/invoices/${invoice.body.invoice.id}/receipt.pdf`, { headers: waliHeaders });
+    assert.equal(kuitansiWali.status, 200);
+    assert.ok(Buffer.from(await kuitansiWali.arrayBuffer()).toString('latin1').includes('(Atas nama santri: Fikri Santri)'));
+    // Wali lain, tagihan santri lain, dan tagihan belum lunas ditolak.
+    assert.equal((await request(baseUrl, `/api/students/${studentId}/invoices`, { headers: waliLainHeaders })).status, 403);
+    assert.equal((await fetch(`${baseUrl}/api/students/${studentId}/invoices/${invoice.body.invoice.id}/receipt.pdf`, { headers: waliLainHeaders })).status, 403);
+    const belumLunas = await request(baseUrl, '/api/operations/invoices', { method: 'POST', headers: adminHeaders, body: JSON.stringify({ studentId, description: 'SPP Oktober', amount: 1500000 }) });
+    assert.equal((await fetch(`${baseUrl}/api/students/${studentId}/invoices/${belumLunas.body.invoice.id}/receipt.pdf`, { headers: waliHeaders })).status, 404, 'Kuitansi hanya untuk tagihan lunas.');
+    assert.equal((await fetch(`${baseUrl}/api/students/00000000-0000-4000-8000-000000000000/invoices/${invoice.body.invoice.id}/receipt.pdf`, { headers: adminHeaders })).status, 404, 'Tagihan harus milik santri di URL.');
+    assert.equal((await fetch(`${baseUrl}/api/operations/invoices/${invoice.body.invoice.id}/receipt.pdf`, { headers: waliHeaders })).status, 403, 'Endpoint keuangan tetap tertutup untuk wali.');
+    const auditKuitansi = await database.query("SELECT count(*)::int AS n FROM audit_events WHERE action = 'invoice.receipt-downloaded'");
+    assert.equal(auditKuitansi.rows[0].n, 1, 'Unduhan kuitansi oleh wali diaudit.');
     // Notifikasi pembayaran diterima (Task R8.3): satu per wali aktif, tidak dobel bila
     // tagihan yang sudah lunas ditandai lunas lagi.
     const jumlahOutbox = async (jenis) => (await database.query('SELECT count(*)::int AS n FROM notification_outbox WHERE notification_type = $1', [jenis])).rows[0].n;
@@ -198,7 +218,7 @@ async function run() {
     assert.equal(supervisorOperations.status, 403);
     const operations = await request(baseUrl, '/api/operations', { headers: adminHeaders });
     assert.equal(operations.status, 200);
-    assert.equal(operations.body.invoices.length, 3);
+    assert.equal(operations.body.invoices.length, 4); // termasuk "SPP Oktober" dari uji kuitansi wali
     const report = await request(baseUrl, `/api/students/${studentId}/report`, {
       headers: { Authorization: `Bearer ${parentLogin.body.accessToken}` }
     });

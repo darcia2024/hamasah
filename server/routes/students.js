@@ -2,6 +2,7 @@ const identity = require('../identity-service.js');
 const { csv, json, publicError } = require('../http/respond.js');
 const { ACTIONS } = require('../audit-service.js');
 const { createStudentReportPdf } = require('../student-report-pdf.js');
+const { createReceiptPdf, receiptFileName } = require('../receipt-pdf.js');
 
 const RECORD_METHODS = Object.freeze({
   activities: 'addActivity',
@@ -151,6 +152,44 @@ module.exports = [
     async handler({ response, services, auth, params }) {
       const summary = await services.lmsService.progressSummary(params[0], await auth.actor());
       json(response, summary.ok ? 200 : 403, summary.ok ? { items: summary.value } : publicError(summary));
+    }
+  },
+
+  // Tagihan dan kuitansi santri untuk wali (hanya santri yang terhubung). Izin route
+  // students.read hanya pintu pertama; service hanya meloloskan wali santri itu dan admin.
+  // Petugas keuangan memakai /api/operations/invoices di halaman operasional.
+  {
+    method: 'GET',
+    pattern: /^\/api\/students\/([\w-]+)\/invoices$/,
+    permission: 'students.read',
+    async handler({ response, services, auth, params }) {
+      const result = await services.operationsService.listStudentInvoices(params[0], await auth.actor());
+      json(response, result.ok ? 200 : 403, result.ok ? { items: result.value } : publicError(result));
+    }
+  },
+
+  {
+    method: 'GET',
+    pattern: /^\/api\/students\/([\w-]+)\/invoices\/([\w-]+)\/receipt\.pdf$/,
+    permission: 'students.read',
+    async handler({ response, services, auth, params, ip }) {
+      const actor = await auth.actor();
+      const result = await services.operationsService.studentReceiptInvoice(params[0], params[1], actor);
+      if (!result.ok) {
+        json(response, result.status || 403, publicError(result));
+        return;
+      }
+      await services.auditService.record({
+        action: ACTIONS.RECEIPT_DOWNLOADED, actor, ip,
+        entityType: 'invoice', entityId: result.value.id, metadata: { format: 'receipt-pdf', receiptNumber: result.value.receiptNumber }
+      });
+      response.writeHead(200, {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${receiptFileName(result.value)}"`,
+        'Cache-Control': 'no-store',
+        'X-Content-Type-Options': 'nosniff'
+      });
+      response.end(createReceiptPdf(result.value));
     }
   },
 

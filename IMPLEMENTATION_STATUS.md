@@ -150,6 +150,10 @@ Pengerasan. Prototipe lama dan rute `/proposal`, `/hamasah` dihapus (KR6 a); `.v
 
 `GET /api/students/:id/report.pdf?from=&to=` (izin `students.read`, akses sama dengan dashboard: wali hanya santrinya sendiri; diaudit sebagai ekspor). Tombol "Unduh Rapor (PDF)" di tab "Rapor & Ringkasan" portal, mengikuti periode yang diterapkan. Isi hanya catatan nyata: identitas, kehadiran dengan rincian status, progres maddah, prestasi, kegiatan (20 terbaru), evaluasi pembina, catatan disiplin; bagian kosong dinyatakan kosong, tanpa nilai atau predikat. Generator PDF multi-halaman tanpa dependency (`server/pdf.js`, Helvetica WinAnsi; huruf di luar Latin-1 seperti Arab menjadi "?"). Progres maddah untuk wali (diputuskan pemilik proyek 22 September 2026): ringkasan saja lewat `GET /api/students/:id/course-progress` (judul, jumlah materi, jumlah selesai, persen), hanya untuk santri yang terhubung; isi materi LMS (`/courses`) tetap tertutup untuk wali. Tab Maddah portal dan rapor PDF memakai ringkasan ini.
 
+## Tagihan dan kuitansi untuk wali (22 September 2026)
+
+Tab "Tagihan & Kuitansi" di portal (wali dan admin). `GET /api/students/:id/invoices` dan `GET /api/students/:id/invoices/:invoiceId/receipt.pdf`: service hanya meloloskan wali santri yang terhubung dan admin; wali tidak menerima alasan pembatalan dan versi internal; kuitansi hanya untuk tagihan lunas milik santri di URL; unduhan diaudit sebagai `invoice.receipt-downloaded`. Endpoint keuangan `/api/operations/invoices/:id/receipt.pdf` tetap khusus keuangan. Kuitansi memakai nama santri (bukan ID), rupiah, dan tanggal WIB.
+
 ## Gerbang rilis setelah R1 sampai R8 (22 September 2026)
 
 - **Gerbang 1 (boleh dilihat orang luar): tertahan.** R1 dan R2 selesai (kecuali R1.0 putar kredensial, tugas manusia). R8.7 belum dilakukan. Konten publik juga masih menunggu klien: alamat Hay Asyir/Madinat Nasr (K16), teks kebijakan privasi, nomor WhatsApp resmi.

@@ -50,6 +50,7 @@ const ACTIONS = Object.freeze({
   INVOICE_PAID: 'invoice.paid'
   ,INVOICE_CORRECTED: 'invoice.corrected'
   ,INVOICE_VOIDED: 'invoice.voided'
+  ,RECEIPT_DOWNLOADED: 'invoice.receipt-downloaded'
   ,INVENTORY_MOVED: 'inventory.moved'
   ,VISA_DOCUMENT_ADDED: 'visa.document-added'
   ,OPERATION_IMPORT_PREVIEWED: 'operation-import.previewed'
