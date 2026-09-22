@@ -86,8 +86,14 @@ function createPostgresOperationsStore({ database } = {}) {
       return nextSequence(database, scope, year);
     },
 
+    // Satu tagihan beserta nama santri (dipakai kuitansi PDF).
     async getInvoice(id) {
-      const { rows } = await database.query(`${SELECT_INVOICE} WHERE id = $1`, [id]);
+      const { rows } = await database.query(
+        `SELECT id, invoice_number, receipt_number, student_id, description, amount_rupiah, status, issued_at, paid_at, version, voided_at, void_reason,
+                (SELECT name FROM students WHERE students.id = invoices.student_id) AS student_name
+         FROM invoices WHERE id = $1`,
+        [id]
+      );
       return rows[0] ? toInvoice(rows[0]) : null;
     },
 

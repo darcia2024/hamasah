@@ -1,6 +1,6 @@
 const { csv, json, publicError } = require('../http/respond.js');
 const { ACTIONS } = require('../audit-service.js');
-const { createTextPdf } = require('../pdf.js');
+const { createReceiptPdf, receiptFileName } = require('../receipt-pdf.js');
 
 module.exports = [
   {
@@ -23,8 +23,8 @@ module.exports = [
     async handler({ response, services, params, auth }) {
       const invoice = await services.operationsService.getInvoice(params[0], await auth.actor());
       if (!invoice || invoice.status !== 'paid') { json(response, 404, { error: 'Kuitansi belum tersedia.' }); return; }
-      const pdf = createTextPdf({ title: 'Kuitansi Pembayaran Hamasah International', lines: [`Nomor kuitansi: ${invoice.receiptNumber}`, `Nomor invoice: ${invoice.number}`, `Santri: ${invoice.studentId}`, `Keterangan: ${invoice.description}`, `Jumlah: Rp${invoice.amount.toLocaleString('id-ID')}`, `Dibayar: ${invoice.paidAt || '-'}`] });
-      response.writeHead(200, { 'Content-Type': 'application/pdf', 'Content-Disposition': `attachment; filename="${invoice.receiptNumber}.pdf"`, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }); response.end(pdf);
+      const pdf = createReceiptPdf(invoice);
+      response.writeHead(200, { 'Content-Type': 'application/pdf', 'Content-Disposition': `attachment; filename="${receiptFileName(invoice)}"`, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }); response.end(pdf);
     }
   },
   {

@@ -145,6 +145,13 @@ async function run() {
     const paidInvoice = await request(baseUrl, `/api/operations/invoices/${invoice.body.invoice.id}/paid`, { method: 'PATCH', headers: adminHeaders });
     assert.equal(paidInvoice.status, 200);
     assert.match(paidInvoice.body.invoice.receiptNumber, /^KWT\/HI\/2026\//);
+    // Kuitansi PDF memakai nama santri, bukan ID internal.
+    const kuitansi = await fetch(`${baseUrl}/api/operations/invoices/${invoice.body.invoice.id}/receipt.pdf`, { headers: adminHeaders });
+    assert.equal(kuitansi.status, 200);
+    assert.match(kuitansi.headers.get('content-disposition'), /filename="KWT-HI-2026-\d{5}\.pdf"/);
+    const kuitansiTeks = Buffer.from(await kuitansi.arrayBuffer()).toString('latin1');
+    assert.ok(kuitansiTeks.includes('(Atas nama santri: Fikri Santri)'));
+    assert.ok(!kuitansiTeks.includes(studentId), 'ID santri tidak tercetak di kuitansi.');
     // Notifikasi pembayaran diterima (Task R8.3): satu per wali aktif, tidak dobel bila
     // tagihan yang sudah lunas ditandai lunas lagi.
     const jumlahOutbox = async (jenis) => (await database.query('SELECT count(*)::int AS n FROM notification_outbox WHERE notification_type = $1', [jenis])).rows[0].n;

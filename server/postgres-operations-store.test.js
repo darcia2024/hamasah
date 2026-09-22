@@ -37,7 +37,11 @@ async function run() {
     // amount_rupiah bertipe BIGINT: pg mengembalikannya sebagai teks, jadi harus tetap angka.
     assert.equal(invoice.amount, 1500000);
     assert.equal(typeof invoice.amount, 'number');
-    assert.deepEqual(await store.getInvoice(invoice.id), invoice);
+    // getInvoice juga membawa nama santri (untuk kuitansi PDF).
+    const dibaca = await store.getInvoice(invoice.id);
+    assert.equal(dibaca.studentName, 'Abdullah Fikri');
+    const { studentName, ...tanpaNama } = dibaca;
+    assert.deepEqual(tanpaNama, invoice);
 
     const payment = (year) => ({
       paidAt: '2026-09-16T00:00:00.000Z',
