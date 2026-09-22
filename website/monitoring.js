@@ -149,6 +149,101 @@ function renderDashboard(data) {
   renderRecordTrail(data);
 }
 
+// ---------------------------------------------------------------------------
+// Ibadah (sholat berjamaah, setoran hafalan) dan kesehatan.
+// ---------------------------------------------------------------------------
+const careSection = document.querySelector('#care-section');
+const careSummary = document.querySelector('#care-summary');
+const healthForm = document.querySelector('#health-form');
+const LABEL_HAFALAN = { lancar: 'lancar', 'kurang-lancar': 'kurang lancar', ulang: 'perlu diulang' };
+
+function hariIniWib() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
+}
+
+async function loadCare(studentId) {
+  careSection.hidden = false;
+  ['#prayer-date', '#memorization-date', '#health-date'].forEach((selector) => {
+    const field = document.querySelector(selector);
+    if (field && !field.value) field.value = hariIniWib();
+    if (field) field.max = hariIniWib();
+  });
+  try {
+    const response = await fetch('/api/students/' + encodeURIComponent(studentId) + '/care', { headers: headers() });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || 'Ringkasan ibadah belum dapat dimuat.');
+    const care = result.care;
+    healthForm.hidden = !result.healthEnabled;
+    const sholat = care.prayers.recorded
+      ? care.prayers.recorded + ' presensi sholat tercatat 30 hari terakhir, ' + care.prayers.berjamaahRate + '% berjamaah.'
+      : 'Belum ada presensi sholat 30 hari terakhir.';
+    const terakhir = care.memorization[0];
+    const hafalan = terakhir
+      ? ' Setoran terakhir ' + terakhir.occurredOn + ': ' + terakhir.portion + ' (' + (LABEL_HAFALAN[terakhir.grade] || terakhir.grade) + ').'
+      : ' Belum ada setoran hafalan 30 hari terakhir.';
+    careSummary.textContent = sholat + hafalan;
+  } catch (error) {
+    careSummary.textContent = error.message;
+  }
+}
+
+async function kirimCare(url, method, body, statusEl, pesanSukses) {
+  statusEl.classList.remove('is-error');
+  try {
+    const response = await fetch(url, { method, headers: { ...headers(), 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || 'Catatan belum dapat disimpan.');
+    statusEl.textContent = pesanSukses;
+    await loadCare(studentSelect.value);
+    return true;
+  } catch (error) {
+    statusEl.textContent = error.message;
+    statusEl.classList.add('is-error');
+    return false;
+  }
+}
+
+document.querySelector('#prayer-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const statusEl = document.querySelector('#prayer-form-status');
+  if (!studentSelect.value) { statusEl.textContent = 'Pilih santri terlebih dahulu.'; statusEl.classList.add('is-error'); return; }
+  const entries = [...document.querySelectorAll('#prayer-form select[data-prayer]')]
+    .filter((select) => select.value)
+    .map((select) => ({ prayer: select.dataset.prayer, status: select.value }));
+  if (!entries.length) { statusEl.textContent = 'Pilih status untuk minimal satu waktu sholat.'; statusEl.classList.add('is-error'); return; }
+  const tanggal = document.querySelector('#prayer-date').value;
+  const ok = await kirimCare('/api/students/' + encodeURIComponent(studentSelect.value) + '/prayers', 'PUT', { date: tanggal, entries }, statusEl, entries.length + ' waktu sholat tanggal ' + tanggal + ' tersimpan.');
+  if (ok) document.querySelectorAll('#prayer-form select[data-prayer]').forEach((select) => { select.value = ''; });
+});
+
+document.querySelector('#memorization-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const statusEl = document.querySelector('#memorization-form-status');
+  if (!studentSelect.value) { statusEl.textContent = 'Pilih santri terlebih dahulu.'; statusEl.classList.add('is-error'); return; }
+  const ok = await kirimCare('/api/students/' + encodeURIComponent(studentSelect.value) + '/memorization', 'POST', {
+    occurredOn: document.querySelector('#memorization-date').value,
+    kind: document.querySelector('#memorization-kind').value,
+    portion: document.querySelector('#memorization-portion').value,
+    grade: document.querySelector('#memorization-grade').value,
+    note: document.querySelector('#memorization-note').value
+  }, statusEl, 'Setoran hafalan tersimpan.');
+  if (ok) { document.querySelector('#memorization-portion').value = ''; document.querySelector('#memorization-note').value = ''; }
+});
+
+healthForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const statusEl = document.querySelector('#health-form-status');
+  if (!studentSelect.value) { statusEl.textContent = 'Pilih santri terlebih dahulu.'; statusEl.classList.add('is-error'); return; }
+  const ok = await kirimCare('/api/students/' + encodeURIComponent(studentSelect.value) + '/health', 'POST', {
+    occurredOn: document.querySelector('#health-date').value,
+    condition: document.querySelector('#health-condition').value,
+    complaint: document.querySelector('#health-complaint').value,
+    actionTaken: document.querySelector('#health-action').value,
+    parentNote: document.querySelector('#health-parent-note').value
+  }, statusEl, 'Catatan kesehatan tersimpan.');
+  if (ok) ['#health-complaint', '#health-action', '#health-parent-note'].forEach((selector) => { document.querySelector(selector).value = ''; });
+});
+
 async function loadDashboard() {
   const studentId = studentSelect.value;
   if (!studentId) {
@@ -165,6 +260,7 @@ async function loadDashboard() {
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Dashboard belum dapat dimuat.');
   renderDashboard(result.dashboard); recordSection.hidden = false; recordTrailSection.hidden = false; downloadReport.hidden = false;
+  await loadCare(studentId);
   placementSection.hidden = false;
   placementGender.value = result.dashboard.student.gender || '';
   fillDormitorySelect(placementDormitory, result.dashboard.student.dormitoryId, 'Belum ditempatkan');
