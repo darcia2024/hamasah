@@ -3925,3 +3925,13 @@ body.crm-page-exiting .lms-page {
 .student-picker__hint {
   margin-top: 6px;
 }
+
+/* Tombol rapor digital dan ringkasan di panel "Rapor & Ringkasan". Labelnya tetap tampil di
+   layar kecil (tombol topbar lain menyembunyikannya), karena dua ikon unduh mudah tertukar. */
+.crm-report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.crm-report-actions .crm-topbar-action-btn span { display: inline; }

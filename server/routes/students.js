@@ -1,6 +1,7 @@
 const identity = require('../identity-service.js');
 const { csv, json, publicError } = require('../http/respond.js');
 const { ACTIONS } = require('../audit-service.js');
+const { createStudentReportPdf } = require('../student-report-pdf.js');
 
 const RECORD_METHODS = Object.freeze({
   activities: 'addActivity',
@@ -138,6 +139,35 @@ module.exports = [
         entityType: 'student', entityId: params[0]
       });
       csv(response, { filename: `ringkasan-${report.value.student.id}.csv`, rows: reportRows(report.value) });
+    }
+  },
+
+  // Rapor digital PDF. Hak akses sama dengan dashboard (wali hanya santrinya sendiri).
+  {
+    method: 'GET',
+    pattern: /^\/api\/students\/([\w-]+)\/report\.pdf$/,
+    permission: 'students.read',
+    async handler({ response, services, auth, params, ip, url }) {
+      const actor = await auth.actor();
+      const report = await services.studentPortalService.dashboard(params[0], actor, { from: url.searchParams.get('from') || null, to: url.searchParams.get('to') || null });
+      if (!report.ok) {
+        json(response, 403, publicError(report));
+        return;
+      }
+      // Progres maddah hanya bila akun ini memang boleh melihat pembelajaran santri tersebut.
+      const courses = await services.lmsService.listStudentCourses(params[0], actor);
+      await services.auditService.record({
+        action: ACTIONS.STUDENT_REPORT_EXPORTED, actor, ip,
+        entityType: 'student', entityId: params[0], metadata: { format: 'pdf' }
+      });
+      const pdf = createStudentReportPdf(report.value, { courses: courses.ok ? courses.value : null });
+      response.writeHead(200, {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="rapor-${report.value.student.id}.pdf"`,
+        'Cache-Control': 'no-store',
+        'X-Content-Type-Options': 'nosniff'
+      });
+      response.end(pdf);
     }
   },
 

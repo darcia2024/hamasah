@@ -197,6 +197,18 @@ async function run() {
     });
     assert.equal(report.status, 200);
     assert.match(report.body, /Fikri Santri/);
+    // Rapor digital PDF: wali mengunduh rapor anaknya sendiri, wali lain ditolak.
+    const rapor = await fetch(`${baseUrl}/api/students/${studentId}/report.pdf?from=2026-01-01&to=2026-12-31`, {
+      headers: { Authorization: `Bearer ${parentLogin.body.accessToken}` }
+    });
+    assert.equal(rapor.status, 200);
+    assert.equal(rapor.headers.get('content-type'), 'application/pdf');
+    assert.equal(rapor.headers.get('cache-control'), 'no-store');
+    const raporTeks = Buffer.from(await rapor.arrayBuffer()).toString('latin1');
+    assert.ok(raporTeks.startsWith('%PDF-1.4') && raporTeks.includes('(Nama: Fikri Santri)'));
+    assert.ok(raporTeks.includes('Periode rapor: 1 Januari 2026 sampai 31 Desember 2026'));
+    assert.equal((await fetch(`${baseUrl}/api/students/${studentId}/report.pdf`, { headers: waliLainHeaders })).status, 403);
+    assert.equal((await fetch(`${baseUrl}/api/students/${studentId}/report.pdf`)).status, 401);
     const accounts = await request(baseUrl, '/api/accounts', { headers: adminHeaders });
     assert.equal(accounts.status, 200);
     assert.equal(accounts.body.items.length, 6);

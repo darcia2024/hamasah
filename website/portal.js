@@ -399,7 +399,7 @@ function renderCrmDashboard(dashboard, account, onBack) {
     { id: 'talaqqi', label: 'Talaqqi & Tahfidz', icon: TAB_ICONS.award, count: dashboard.achievements.length },
     { id: 'dorm', label: 'Asrama', icon: TAB_ICONS.home },
     { id: 'lms', label: 'Maddah (LMS)', icon: TAB_ICONS.book },
-    { id: 'admin', label: 'Ringkasan Data', icon: TAB_ICONS.file }
+    { id: 'admin', label: 'Rapor & Ringkasan', icon: TAB_ICONS.file }
   ];
 
   const subtabsRow = document.createElement('div');
@@ -550,25 +550,41 @@ function renderCrmDashboard(dashboard, account, onBack) {
   // Panel 6: Ringkasan Data. Dulu menyatakan "Status SPP & Akomodasi: Lunas" dan
   // "Garansi Tanpa Biaya Siluman" untuk semua santri. Dashboard tidak membawa data
   // tagihan, jadi tidak ada klaim keuangan di sini. Yang tersisa hanya yang nyata:
-  // ekspor ringkasan rekam jejak.
+  // rapor PDF (dari catatan nyata) dan ekspor ringkasan rekam jejak.
+  const recordPeriodLabel = dashboard.period?.from || dashboard.period?.to
+    ? [formatTanggalPanjang(dashboard.period.from) || 'awal', formatTanggalPanjang(dashboard.period.to) || 'sekarang'].join(' sampai ')
+    : 'seluruh catatan';
   const panelAdmin = document.createElement('div');
   panelAdmin.className = 'crm-white-card';
   panelAdmin.hidden = true;
   panelAdmin.innerHTML = `
     <div class="crm-white-card-header">
       <div>
-        <h3>Ekspor Ringkasan Rekam Jejak</h3>
-        <p>Unduh ringkasan catatan santri ini dalam format CSV.</p>
+        <h3>Rapor Digital &amp; Ringkasan</h3>
+        <p>Rapor PDF memuat kehadiran, progres maddah, prestasi, kegiatan, evaluasi, dan catatan disiplin yang tercatat pada periode ${escapeHtml(recordPeriodLabel)}.</p>
       </div>
-      <button type="button" class="crm-topbar-action-btn" id="download-student-report">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span>Unduh Ringkasan (CSV)</span>
-      </button>
+      <div class="crm-report-actions">
+        <button type="button" class="crm-topbar-action-btn" id="download-student-rapor" aria-label="Unduh rapor PDF">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span>Unduh Rapor (PDF)</span>
+        </button>
+        <button type="button" class="crm-topbar-action-btn" id="download-student-report" aria-label="Unduh ringkasan CSV">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Unduh Ringkasan (CSV)</span>
+        </button>
+      </div>
     </div>
   `;
+  // Rapor mengikuti periode yang sedang diterapkan, sama dengan data yang tampil di layar.
+  const recordPeriodQuery = new URLSearchParams(Object.entries({ from: dashboard.period?.from, to: dashboard.period?.to }).filter(([, value]) => value)).toString();
+  const reportSuffix = recordPeriodQuery ? `?${recordPeriodQuery}` : '';
+  const raporButton = panelAdmin.querySelector('#download-student-rapor');
+  raporButton.addEventListener('click', () => {
+    downloadWithSession(`/api/students/${encodeURIComponent(student.id)}/report.pdf${reportSuffix}`, `rapor-${student.id}.pdf`, raporButton.querySelector('span'));
+  });
   const reportButton = panelAdmin.querySelector('#download-student-report');
   reportButton.addEventListener('click', () => {
-    downloadWithSession(`/api/students/${encodeURIComponent(student.id)}/report`, `ringkasan-${student.id}.csv`, reportButton.querySelector('span'));
+    downloadWithSession(`/api/students/${encodeURIComponent(student.id)}/report${reportSuffix}`, `ringkasan-${student.id}.csv`, reportButton.querySelector('span'));
   });
 
   const panels = [panelMutabaah, panelSholat, panelTalaqqi, panelDorm, panelLms, panelAdmin];

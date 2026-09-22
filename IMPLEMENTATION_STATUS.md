@@ -146,6 +146,10 @@ Distribusi dan konten. Tag Open Graph/Twitter disisipkan server untuk halaman pu
 
 Pengerasan. Prototipe lama dan rute `/proposal`, `/hamasah` dihapus (KR6 a); `.vercelignore` tolak-semua, **deployment Vercel lama akan kosong setelah push**. Worker pengingat visa tersambung (migrasi 035). Notifikasi email untuk status pendaftaran, berkas perlu diperbaiki, dan pembayaran diterima (migrasi 036). scrypt N=2^16 r=8 p=2 (~225 ms), hash lama tetap sah. 404 dengan CTA dan base href. Mata uang tetap rupiah (KR7 a). **R8.7 (audit per role) menunggu pemilik proyek.** **Migrasi 035 dan 036 perlu diterapkan ke staging lalu production bersama 017-034.** Rincian: `docs/REMEDIASI_R8_HASIL_2026-09-22.md`.
 
+## Rapor digital PDF untuk wali (22 September 2026)
+
+`GET /api/students/:id/report.pdf?from=&to=` (izin `students.read`, akses sama dengan dashboard: wali hanya santrinya sendiri; diaudit sebagai ekspor). Tombol "Unduh Rapor (PDF)" di tab "Rapor & Ringkasan" portal, mengikuti periode yang diterapkan. Isi hanya catatan nyata: identitas, kehadiran dengan rincian status, progres maddah, prestasi, kegiatan (20 terbaru), evaluasi pembina, catatan disiplin; bagian kosong dinyatakan kosong, tanpa nilai atau predikat. Generator PDF multi-halaman tanpa dependency (`server/pdf.js`, Helvetica WinAnsi; huruf di luar Latin-1 seperti Arab menjadi "?"). **Wali tidak mendapat progres maddah** karena akses LMS memang tidak dibuka untuk wali; membukanya adalah keputusan kebijakan.
+
 ## Gerbang rilis setelah R1 sampai R8 (22 September 2026)
 
 - **Gerbang 1 (boleh dilihat orang luar): tertahan.** R1 dan R2 selesai (kecuali R1.0 putar kredensial, tugas manusia). R8.7 belum dilakukan. Konten publik juga masih menunggu klien: alamat Hay Asyir/Madinat Nasr (K16), teks kebijakan privasi, nomor WhatsApp resmi.

@@ -366,6 +366,8 @@ function createStudentPortalService(options) {
     const attendance = (await store.byStudent('attendance', studentId)).filter(withinRange).sort(latestFirst);
     const presentCount = attendance.filter(function present(entry) { return entry.status === 'present' || entry.status === 'late'; }).length;
     const attendanceRate = attendance.length ? Math.round((presentCount / attendance.length) * 100) : null;
+    // Hitungan per status dari seluruh presensi pada periode (entries dipotong 30), untuk rapor.
+    const byStatus = attendance.reduce((hitung, entry) => ({ ...hitung, [entry.status]: (hitung[entry.status] || 0) + 1 }), {});
     const [activities, achievements, evaluations, discipline] = await Promise.all([
       store.byStudent('activities', studentId).then((items) => items.filter(withinRange)),
       store.byStudent('achievements', studentId).then((items) => items.filter(withinRange)),
@@ -388,7 +390,7 @@ function createStudentPortalService(options) {
           dormitory: asrama ? { name: asrama.name, area: asrama.area || null } : null
         },
         period: { from: range.from || null, to: range.to || null },
-        attendance: { total: attendance.length, present: presentCount, rate: attendanceRate, entries: forViewer(attendance.slice(0, 30)) },
+        attendance: { total: attendance.length, present: presentCount, rate: attendanceRate, byStatus, entries: forViewer(attendance.slice(0, 30)) },
         activities: forViewer(activities.sort(latestFirst).slice(0, 20)),
         achievements: forViewer(achievements.sort(latestFirst)),
         evaluations: forViewer(evaluations.sort(latestFirst)),
