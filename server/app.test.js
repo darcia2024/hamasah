@@ -675,7 +675,7 @@ async function run() {
 
     const auditPage = await request(baseUrl, '/website/audit.html');
     assert.equal(auditPage.status, 200);
-    assert.match(auditPage.body, /Siapa melakukan apa/);
+    assert.match(auditPage.body, /Jejak audit/);
 
     // Kejadian penting benar-benar tercatat, bukan hanya ada modulnya.
     const audit = await request(baseUrl, '/api/audit?limit=100', { headers: adminHeaders });

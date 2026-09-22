@@ -4131,3 +4131,112 @@ table,
 .coursue-stat-count {
   font-variant-numeric: tabular-nums;
 }
+
+/* Kepala halaman ringkas: judul dan satu kalimat fungsi halaman. Menggantikan panel
+   empat kolom berisi klaim yang ditulis mati (status, rekening, instansi, SOP). */
+.crm-page-header {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.crm-page-header .crm-summary-title {
+  margin: 0;
+  font-size: clamp(22px, 2.2vw, 28px);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--md-sys-color-on-surface);
+}
+
+.crm-page-header .crm-summary-subtitle {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--md-sys-color-on-surface-variant);
+  max-width: 70ch;
+}
+
+.crm-page-header__status {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold-dark);
+}
+
+/* Kartu sapaan di kolom kanan portal (menggantikan dua kartu placeholder). */
+.portal-greeting {
+  display: grid;
+  gap: 6px;
+  text-align: left;
+  align-content: start;
+}
+
+.portal-greeting h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+}
+
+.portal-greeting__role {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold-dark);
+}
+
+.portal-greeting__count {
+  margin: 6px 0 0;
+  font-size: 15px;
+  color: var(--md-sys-color-on-surface);
+}
+
+.portal-greeting__label {
+  margin: 14px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.portal-greeting__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.portal-greeting__links a {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  background: var(--md-sys-color-surface-container-low);
+  transition: background var(--md-sys-motion-duration-short) ease;
+}
+
+.portal-greeting__links a:hover {
+  background: var(--md-sys-color-primary-container);
+}
+
+/* Baris statistik berisi satu kartu: jangan meregang sepanjang kolom. */
+.coursue-stat-row--single {
+  grid-template-columns: minmax(0, 320px);
+}
+
+/* Aturan display !important di atas (daftar santri, dasbor) lebih spesifik daripada
+   [hidden] di website-core.css; elemen yang disembunyikan JS tetap harus tersembunyi. */
+#portal-student-list[hidden],
+.portal-student-grid[hidden],
+.crm-shell .portal-dashboard[hidden],
+.crm-canvas .portal-dashboard[hidden] {
+  display: none !important;
+}

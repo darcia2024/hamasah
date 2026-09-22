@@ -831,27 +831,15 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
   `;
 
   const statRow = document.createElement('div');
-  statRow.className = 'coursue-stat-row';
+  // Hanya angka yang benar-benar diketahui. Dua kartu 'Belum ada data' (tahfidz, presensi)
+  // dulu tampil permanen karena tidak ada kode yang mengisinya.
+  statRow.className = 'coursue-stat-row coursue-stat-row--single';
   statRow.innerHTML = `
     <div class="coursue-stat-pill">
       <div class="coursue-stat-icon coursue-stat-icon--gold">${renderBadgeIcon('mosque')}</div>
       <div class="coursue-stat-meta">
         <p class="coursue-stat-count">${allTotal} Santri</p>
         <p class="coursue-stat-label">terhubung dengan akun</p>
-      </div>
-    </div>
-    <div class="coursue-stat-pill">
-      <div class="coursue-stat-icon coursue-stat-icon--pink">${renderBadgeIcon('book')}</div>
-      <div class="coursue-stat-meta">
-        <p class="coursue-stat-count">Belum ada data</p>
-        <p class="coursue-stat-label">Tahfidz menunggu data</p>
-      </div>
-    </div>
-    <div class="coursue-stat-pill">
-      <div class="coursue-stat-icon coursue-stat-icon--cyan">${renderBadgeIcon('cap')}</div>
-      <div class="coursue-stat-meta">
-        <p class="coursue-stat-count">Belum ada data</p>
-        <p class="coursue-stat-label">Presensi menunggu data</p>
       </div>
     </div>
   `;
@@ -971,39 +959,50 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
   buildTabs(tabDefs, panels, subtabsRow);
   panelsContainer.append(...panels);
 
-  const userInitial = account && account.name ? account.name.charAt(0).toUpperCase() : 'U';
-  const userName = account && account.name ? account.name.split(' ')[0] : 'Ustadz';
-
+  // Kartu sapaan: hanya yang benar-benar diketahui (nama, peran, jumlah santri) dan
+  // pintasan kerja sesuai peran. Dulu ada "Statistik Pekanan" dengan cincin progres dan
+  // "Musyrif & Asatidzah" yang tidak pernah terisi oleh kode mana pun.
+  const userName = account && account.name ? account.name.split(' ')[0] : '';
+  const PINTASAN = {
+    admin: [['staff.html', 'Pendaftaran calon santri'], ['monitoring.html', 'Monitoring santri & asrama'], ['operations.html', 'Keuangan, visa, dan inventaris'], ['audit.html', 'Jejak audit']],
+    'registration-officer': [['staff.html', 'Pendaftaran calon santri']],
+    supervisor: [['monitoring.html', 'Catat kegiatan dan ibadah santri']],
+    teacher: [['lms.html', 'Kelola maddah dan materi']],
+    finance: [['operations.html', 'Tagihan dan kuitansi']],
+    student: [['lms.html', 'Buka ruang belajar']]
+  };
   const statCard = document.createElement('div');
-  statCard.className = 'coursue-statistic-card';
-  statCard.innerHTML = `
-    <div class="coursue-stat-card-header">
-      <h3>Statistik Pekanan</h3>
-    </div>
-    <div class="coursue-circle-progress">
-      <svg class="coursue-circle-svg" viewBox="0 0 100 100">
-        <circle class="coursue-circle-bg" cx="50" cy="50" r="42"></circle>
-        <circle class="coursue-circle-bar" cx="50" cy="50" r="42"></circle>
-      </svg>
-      <div class="coursue-circle-avatar">${escapeHtml(userInitial)}</div>
-    </div>
-    <h4 class="coursue-user-greeting">Assalamu'alaikum, ${escapeHtml(userName)}</h4>
-    <p class="coursue-user-subtext">Ringkasan akan terisi setelah aktivitas santri tercatat dalam sistem.</p>
-    <p class="coursue-user-subtext">Belum ada rangkaian aktivitas untuk grafik periode ini.</p>
-  `;
+  statCard.className = 'coursue-statistic-card portal-greeting';
+  const salam = document.createElement('h3');
+  salam.textContent = userName ? `Assalamu'alaikum, ${userName}` : "Assalamu'alaikum";
+  const peran = document.createElement('p');
+  peran.className = 'portal-greeting__role';
+  peran.textContent = roleLabels[account && account.role] || '';
+  const jumlah = document.createElement('p');
+  jumlah.className = 'portal-greeting__count';
+  jumlah.textContent = isParent
+    ? `${allTotal} ananda terhubung dengan akun ini.`
+    : `${allTotal} santri dapat Anda akses.`;
+  statCard.append(salam, peran, jumlah);
+  const tautan = PINTASAN[account && account.role] || [];
+  if (tautan.length) {
+    const judul = document.createElement('p');
+    judul.className = 'portal-greeting__label';
+    judul.textContent = 'Pintasan kerja';
+    const daftar = document.createElement('ul');
+    daftar.className = 'portal-greeting__links';
+    tautan.forEach(([href, label]) => {
+      const item = document.createElement('li');
+      const link = document.createElement('a');
+      link.href = href;
+      link.textContent = label;
+      item.append(link);
+      daftar.append(item);
+    });
+    statCard.append(judul, daftar);
+  }
 
-  const mentorCard = document.createElement('div');
-  mentorCard.className = 'coursue-mentor-card';
-  mentorCard.innerHTML = `
-    <div class="coursue-mentor-header">
-      <h3>Musyrif &amp; Asatidzah</h3>
-    </div>
-    <div class="coursue-mentor-list">
-      <p class="coursue-user-subtext">Data musyrif dan asatidzah akan muncul setelah penugasan tercatat.</p>
-    </div>
-  `;
-
-  rightPanel.append(statCard, mentorCard);
+  rightPanel.append(statCard);
 
   const heroBtn = heroBanner.querySelector('#btn-hero-action');
   if (heroBtn) {

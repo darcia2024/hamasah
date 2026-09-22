@@ -8,9 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="icon" href="../assets/favicon.png" />
-    <link rel="stylesheet" href="website-core.css?v=77cf22cbe7" />
+    <link rel="stylesheet" href="website-core.css?v=37c09cfe85" />
     <link rel="stylesheet" href="staff.css?v=4fb639678f" />
-    <link rel="stylesheet" href="portal.css?v=a3f04fdf94" />
+    <link rel="stylesheet" href="portal.css?v=a6b3de6e37" />
   </head>
   <body class="staff-page">
     <!-- Header saat Belum Login -->
@@ -102,63 +102,10 @@
         </header>
 
         <div class="crm-canvas">
-          <!-- Altezza Top Summary Card for LMS Hamasah -->
-          <div class="crm-summary-card">
-            <div class="crm-summary-col">
-              <div>
-                <div class="crm-summary-title-row">
-                  <h2 class="crm-summary-title">LMS Hamasah &amp; Kurikulum Al-Azhar</h2>
-                  <svg class="crm-link-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                </div>
-                <p class="crm-summary-subtitle">Silabus Maddah Syar'iyyah, Nahwu Sharaf, Balaghah &amp; Modul Interaktif</p>
-              </div>
-              <div>
-                <p class="crm-field-label">STANDAR AKADEMIK KAIRO</p>
-                <div class="crm-person-row">
-                  <div class="crm-person-avatar">AZ</div>
-                  <span class="crm-person-name">Kulliyyah &amp; Ma'had Al-Azhar Asy-Syarif</span>
-                </div>
-              </div>
-            </div>
-            <div class="crm-summary-col">
-              <div>
-                <p class="crm-field-label">METODE PEMBELAJARAN</p>
-                <div class="crm-field-value">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg>
-                  <span>Matan, Syarah &amp; Tanya Jawab Muqorror</span>
-                </div>
-              </div>
-              <div>
-                <p class="crm-field-label">EVALUASI PROGRES</p>
-                <div class="crm-person-row">
-                  <div class="crm-person-avatar crm-person-avatar--outline" aria-label="Terverifikasi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg></div>
-                  <span class="crm-person-name">Penuntasan Modul Mandiri Berjenjang</span>
-                </div>
-              </div>
-            </div>
-            <div class="crm-summary-col">
-              <div>
-                <p class="crm-field-label">STATUS MATERI &amp; SILABUS</p>
-                <div class="crm-balance-value">
-                  <span class="crm-bullet-blue crm-status-dot--online"></span>
-                  <span class="crm-status-text--muted" id="lms-sync-status">Belum memilih santri atau materi</span>
-                </div>
-              </div>
-              <div>
-                <p class="crm-field-label">BIMBINGAN ASATIDZAH</p>
-                <div class="crm-field-value">
-                  <span class="crm-outline-dot" aria-hidden="true"></span>
-                  <span>Talaqqi Daring &amp; Mudzakarah Asrama</span>
-                </div>
-              </div>
-            </div>
-            <div class="crm-summary-col">
-              <div>
-                <p class="crm-field-label">TARGET KOMPETENSI</p>
-                <p class="crm-summary-note">"Santri ditargetkan menguasai nahwu dasar, hafalan matan jazariyyah/tuhfah, serta pemahaman komprehensif sebelum imtihan masuk."</p>
-                <a class="crm-readmore-link" href="article.html?slug=pendampingan-santri-di-kairo">Buka Silabus Lengkap &rarr;</a>
-              </div>
-            </div>
+          <div class="crm-page-header">
+            <h2 class="crm-summary-title">LMS maddah</h2>
+            <p class="crm-summary-subtitle">Kelola maddah dan materi, lalu pantau progres belajar santri.</p>
+            <p class="crm-page-header__status" id="lms-sync-status" role="status">Belum memilih santri atau materi</p>
           </div>
 
           <!-- Horizontal Subtabs for LMS -->
