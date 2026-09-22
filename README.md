@@ -64,10 +64,8 @@ Rancangan 1 Website Terpadu dengan 2 Layanan Utama (**Publik & App Portal**) dar
 
 ---
 
-## Cara Mencoba Prototype
-1. Buka browser: **http://localhost:3000**
-2. Jelajahi struktur arsitektur 1 Website Terpadu dengan 2 Layanan Utama.
-3. Coba fitur **Akun Registrasi Keberangkatan** calon santri pada Layanan Publik.
-4. Coba simulasi **Portal Keluarga Hamasah** untuk monitoring santri & unduh kuitansi PDF.
-5. Coba simulasi **Portal Akademik Hamasah** untuk progress maddah & AI study partner.
-6. Coba simulasi **Portal Operasional Hamasah** untuk auto-generate invoice & kuitansi sah.
+## Cara Mencoba Aplikasi
+Prototipe proposal lama (landing di root, `/proposal`, `/hamasah`) sudah dihapus (keputusan KR6, 22 September 2026). Aplikasi yang sebenarnya ada di `website/` dan dijalankan server Node:
+
+1. `npm run dev` (database lokal berisi data contoh), lalu buka alamat yang dicetak di terminal.
+2. Lihat `IMPLEMENTATION_STATUS.md` bagian "Menjalankan secara lokal" untuk akun dev dan perintah lain.

@@ -4,7 +4,7 @@
 // sungguhan dan memeriksa apa yang hanya bisa dibuktikan browser.
 //
 // Versi lama (test:browser-contract) tidak membuka browser; ia membaca HTML dengan regex
-// dan memeriksa styles.css milik prototipe lama. Berkas itu kini scripts/static-contract.test.js
+// dan memeriksa styles.css milik prototipe lama (dihapus di R8.1). Berkas itu kini scripts/static-contract.test.js
 // dan dijalankan oleh `npm test`; kalimat "lulus, 16 halaman" dari sana hanya membuktikan
 // keberadaan viewport, landmark, skip link, dan breakpoint. Yang di sini:
 //

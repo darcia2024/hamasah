@@ -152,6 +152,11 @@ async function run() {
     assert.equal(dilarang.status, takAda.status);
     assert.equal(dilarang.isi(), takAda.isi());
 
+    // Prototipe lama dihapus (KR6, Task R8.1): rutenya tidak ada lagi.
+    for (const lama of ['/proposal', '/proposal/', '/hamasah/', '/hamasah/styles.css', '/proposal/app.js']) {
+      assert.equal((await serve(lama)).status, 404, lama);
+    }
+
     // Yang sah tetap tersaji: txt dan xml dipakai robots.txt dan sitemap.xml.
     const robots = await serve('/website/robots.txt');
     assert.equal(robots.status, 200);

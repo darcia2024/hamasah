@@ -1,12 +1,8 @@
-# Vercel hanya menyajikan prototype proposal (landing page di root).
-# Aplikasi nyata (server/, database/, website/), dokumen internal, dan
-# file konfigurasi lain tidak ikut di-deploy.
+# Vercel dulu hanya menyajikan prototipe proposal di root. Prototipe itu dihapus
+# (keputusan KR6, Task R8.1, 22 September 2026). Aplikasi yang sebenarnya butuh server
+# Node dan database, jadi tidak bisa disajikan Vercel sebagai berkas statis; hosting-nya
+# menunggu keputusan K2.
 #
-# Pola allowlist: abaikan semua isi root, lalu izinkan yang dipakai prototype.
-# Jika prototype menambah file baru di root, tambahkan barisnya di bawah.
+# Sengaja tolak-semua: tanpa berkas ini, proyek Vercel yang masih tersambung akan
+# menyajikan seluruh isi repo (server/, database/, docs/) sebagai berkas statis.
 /*
-!index.html
-!styles.css
-!app.js
-!assets
-!vercel.json

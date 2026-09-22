@@ -206,12 +206,6 @@ function serveStaticFile(response, { pathname, rootDirectory, request, search, t
     return;
   }
 
-  if (pathname === '/proposal' || pathname === '/hamasah') {
-    response.writeHead(301, { Location: `${pathname}/` });
-    response.end();
-    return;
-  }
-
   const requestedPath = pathname === '/' ? '/website/' : pathname;
   // Backslash disamakan dengan garis miring lebih dulu. Di Windows path.resolve
   // memperlakukan "\" sebagai pemisah folder, sedangkan path.posix.normalize tidak,
@@ -222,25 +216,8 @@ function serveStaticFile(response, { pathname, rootDirectory, request, search, t
   // normalize lebih dulu, supaya "/website/../.env" tidak lolos pemeriksaan awalan.
   let normalizedPath = path.posix.normalize(withSlashes).replace(/^\/+/, '');
 
-  if (normalizedPath.startsWith('proposal/') || normalizedPath.startsWith('hamasah/')) {
-    const subPath = normalizedPath.replace(/^(proposal|hamasah)\/?/, '');
-    const proposalFile = subPath === '' ? 'index.html' : subPath;
-    const safeProposalPath = path.posix.normalize(proposalFile);
-    const allowedProposalFiles = ['index.html', 'styles.css', 'cinematic.css', 'proposal.css', 'app.js'];
-    if (allowedProposalFiles.includes(safeProposalPath)) {
-      const target = path.resolve(rootDirectory, safeProposalPath);
-      if (fs.existsSync(target) && fs.statSync(target).isFile()) {
-        const ext = path.extname(target).toLocaleLowerCase('en-US');
-        response.writeHead(200, {
-          'Content-Type': MIME_TYPES[ext] || 'application/octet-stream',
-          'X-Content-Type-Options': 'nosniff'
-        });
-        fs.createReadStream(target).pipe(response);
-        return;
-      }
-    }
-  }
-
+  // /proposal/ dan /hamasah/ (prototipe lama di root) dihapus sesuai keputusan KR6 (Task R8.1);
+  // keduanya kini jatuh ke 404 seperti alamat lain yang tidak ada.
   if (!ALLOWED_PREFIXES.some((prefix) => normalizedPath.startsWith(prefix))) {
     // Jika berkas diminta tanpa awalan /website/ (mis. /website.css saat halaman / dibuka),
     // periksa apakah berkas tersebut ada langsung di folder website/.
