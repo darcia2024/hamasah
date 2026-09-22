@@ -1,7 +1,7 @@
 const crypto = require('node:crypto');
 const { encryptNotificationPayload } = require('./notification-payload.js');
 
-const NOTIFICATION_TYPES = Object.freeze({ INVITATION: 'account-invitation', PASSWORD_RESET: 'password-reset' });
+const NOTIFICATION_TYPES = Object.freeze({ INVITATION: 'account-invitation', PASSWORD_RESET: 'password-reset', VISA_REMINDER: 'visa-reminder' });
 
 function escapeHtml(value) {
   return String(value || '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
@@ -67,6 +67,18 @@ function createNotificationService({ store, sender, notificationPayloadKey = '',
     });
   }
 
+  // Ringkasan pengingat visa/paspor untuk admin (Task R8.2). Sengaja hanya jumlah dan
+  // tautan: nama santri dan tanggal dokumen tidak ikut ke kotak surat.
+  async function sendVisaReminderDigest({ email, name, total, overdue, operationsUrl }) {
+    const lewat = overdue > 0 ? ` ${overdue} di antaranya sudah melewati tanggal kedaluwarsa.` : '';
+    return send({
+      notificationType: NOTIFICATION_TYPES.VISA_REMINDER,
+      recipientEmail: email,
+      subject: `Pengingat: ${total} dokumen visa/paspor perlu ditindaklanjuti`,
+      html: `<p>Assalamu'alaikum ${escapeHtml(name)},</p><p>Ada ${Number(total)} dokumen visa atau paspor santri yang akan kedaluwarsa dalam waktu dekat.${escapeHtml(lewat)}</p><p><a href="${escapeHtml(operationsUrl)}">Buka halaman operasional</a> untuk melihat rinciannya.</p><p>Email ini dikirim otomatis dan hanya memuat dokumen yang belum pernah diingatkan.</p>`
+    });
+  }
+
   async function queueApplicantRecovery({ email, name, registrationId, accessCode }) {
     if (!notificationPayloadKey) throw new Error('Kunci payload notifikasi belum tersedia.');
     const payload = encryptNotificationPayload({ kind: 'applicant-recovery', name, registrationId, accessCode }, notificationPayloadKey);
@@ -77,7 +89,7 @@ function createNotificationService({ store, sender, notificationPayloadKey = '',
     });
   }
 
-  return Object.freeze({ canSend, list: (query) => store.list(query), queueApplicantRecovery, sendApplicantRecovery, sendInvitation, sendPasswordReset });
+  return Object.freeze({ canSend, list: (query) => store.list(query), queueApplicantRecovery, sendApplicantRecovery, sendInvitation, sendPasswordReset, sendVisaReminderDigest });
 }
 
 module.exports = { NOTIFICATION_TYPES, createNotificationService, escapeHtml };
