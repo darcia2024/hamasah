@@ -193,7 +193,7 @@
 
 #account-form label {
   display: block;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--md-sys-color-on-surface-variant);
   margin: 12px 0 6px;
@@ -212,7 +212,7 @@
   border-radius: 10px !important;
   color: var(--md-sys-color-on-surface) !important;
   font-family: inherit;
-  font-size: 13.5px !important;
+  font-size: 14px !important;
   font-weight: 500 !important;
   min-height: 46px !important;
   height: auto !important;
@@ -238,7 +238,7 @@
   color: #111827;
   border: none;
   border-radius: 10px;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
@@ -279,7 +279,7 @@
 
 .portal-account strong {
   display: block;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--md-sys-color-on-surface);
   margin-bottom: 2px;
@@ -297,7 +297,7 @@
   min-height: 44px;
   height: auto;
   padding: 0 12px;
-  font-size: 11.5px;
+  font-size: 12px;
   border-radius: 8px;
 }
 
@@ -318,7 +318,7 @@
   background: var(--md-sys-color-surface, #FEF9EE);
   color: var(--md-sys-color-on-surface, #1E1B16);
   font: inherit;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 600;
   outline: none;
 }
@@ -333,7 +333,7 @@
   margin-top: 14px;
   min-height: 44px;
   height: auto;
-  font-size: 12.5px;
+  font-size: 13px;
 }
 
 .monitoring-hint {
@@ -454,7 +454,7 @@
 }
 
 .portal-dashboard .portal-account span {
-  font-size: 13.5px;
+  font-size: 14px;
   line-height: 1.6;
   color: var(--md-sys-color-on-surface-variant, #4B4639);
 }
@@ -648,7 +648,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-brand-sub {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--md-sys-color-outline);
   letter-spacing: 0.02em;
@@ -722,7 +722,7 @@ body.in-crm #portal-students-status,
   margin-top: 2px;
   padding: 2px 8px;
   border-radius: 9999px;
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -750,7 +750,7 @@ body.in-crm #portal-students-status,
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -776,7 +776,7 @@ body.in-crm #portal-students-status,
   padding: 10px 14px;
   border-radius: 14px;
   text-decoration: none;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--md-sys-color-outline);
   font-family: var(--apple-font-stack);
@@ -861,7 +861,7 @@ body.in-crm #portal-students-status,
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--success);
   margin-bottom: 10px;
@@ -935,7 +935,7 @@ body.in-crm #portal-students-status,
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--md-sys-color-outline);
   font-family: var(--apple-font-stack);
@@ -1022,7 +1022,7 @@ body.in-crm #portal-students-status,
 .crm-role-chip {
   padding: 3px 10px;
   border-radius: 9999px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   background: #FEF3C7;
   color: var(--gold-dark);
@@ -1096,7 +1096,7 @@ body.in-crm #portal-students-status,
   border: 1px solid #FDE68A;
   color: var(--md-sys-color-on-primary-container);
   border-radius: 9999px;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -1119,7 +1119,7 @@ body.in-crm #portal-students-status,
 /* Teks muted di atas panel GELAP: harus terang. Nilai lama (#94A3B8) berasal dari
    panel Slate gelap; pemetaan mekanis ke abu-abu gelap membuatnya 2,54:1. */
 .coursue-hero-banner .coursue-hero-subtitle {
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.6;
   margin: 0 0 20px;
@@ -1235,7 +1235,7 @@ body.in-crm #portal-students-status,
 }
 
 .coursue-stat-label {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 400;
   color: var(--md-sys-color-outline);
   margin: 0;
@@ -1338,7 +1338,7 @@ body.in-crm #portal-students-status,
   left: 10px;
   padding: 3px 8px;
   border-radius: 6px;
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -1420,7 +1420,7 @@ body.in-crm #portal-students-status,
 }
 
 .coursue-table-seeall {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--gold-dark);
   text-decoration: none;
@@ -1437,7 +1437,7 @@ body.in-crm #portal-students-status,
 
 .coursue-table th {
   text-align: left;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -1596,7 +1596,7 @@ body.in-crm #portal-students-status,
 }
 
 .coursue-bar-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--md-sys-color-outline);
 }
@@ -1624,7 +1624,7 @@ body.in-crm #portal-students-status,
 }
 
 .coursue-mentor-header h3 {
-  font-size: 15.5px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   margin: 0;
@@ -1785,7 +1785,7 @@ body.in-crm #portal-students-status,
 
 .crm-summary-subtitle {
   margin: 4px 0 0;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--md-sys-color-outline);
   line-height: 1.5;
@@ -1793,7 +1793,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-field-label {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1806,7 +1806,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-field-value {
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   display: flex;
@@ -1866,7 +1866,7 @@ body.in-crm #portal-students-status,
 
 .crm-summary-note {
   margin: 4px 0 0;
-  font-size: 12.5px;
+  font-size: 13px;
   line-height: 1.55;
   color: var(--md-sys-color-on-surface-variant);
   display: -webkit-box;
@@ -2008,7 +2008,7 @@ body.in-crm #portal-students-status,
 
 .crm-date-display {
   padding: 8px 16px;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   display: flex;
@@ -2027,7 +2027,7 @@ body.in-crm #portal-students-status,
   border: 1px solid #EEF0F6;
   border-radius: 9999px;
   padding: 8px 16px;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   cursor: pointer;
@@ -2155,7 +2155,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-activity-card__name {
-  font-size: 15.5px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--md-sys-color-on-surface);
   margin: 0;
@@ -2196,7 +2196,7 @@ body.in-crm #portal-students-status,
 
 .crm-col-block label {
   display: block;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -2208,7 +2208,7 @@ body.in-crm #portal-students-status,
 .crm-col-block span,
 .crm-col-block strong {
   display: block;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   line-height: 1.4;
@@ -2266,7 +2266,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-meta-item label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -2289,7 +2289,7 @@ body.in-crm #portal-students-status,
   gap: 6px;
   padding: 4px 12px;
   border-radius: 9999px;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   font-family: var(--apple-font-stack);
   white-space: nowrap;
@@ -2388,7 +2388,7 @@ body.in-crm #portal-students-status,
 
 .crm-popover-header {
   padding: 6px 14px 2px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -2483,7 +2483,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-student-compact-name {
-  font-size: 15.5px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   margin: 0;
@@ -2631,7 +2631,7 @@ body.in-crm #portal-students-status,
 
 .crm-white-card-header p {
   margin: 3px 0 0;
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--md-sys-color-outline);
   line-height: 1.5;
   font-family: var(--apple-font-stack);
@@ -2668,7 +2668,7 @@ body.in-crm #portal-students-status,
 
 .crm-feature-box strong {
   display: block;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--md-sys-color-on-surface);
   font-family: var(--apple-font-stack);
@@ -2817,7 +2817,7 @@ body.in-crm #portal-students-status,
 
 .crm-canvas .staff-form label {
   display: block;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--md-sys-color-on-surface-variant, #4D4639);
   margin: 14px 0 6px;
@@ -2866,7 +2866,7 @@ body.in-crm #portal-students-status,
   border-radius: var(--md-shape-corner-full, 9999px) !important;
   height: 44px !important;
   padding: 0 24px !important;
-  font-size: 13.5px !important;
+  font-size: 14px !important;
   font-weight: 600 !important;
   letter-spacing: -0.01em !important;
   box-shadow: var(--md-sys-elevation-1) !important;
@@ -3310,7 +3310,7 @@ body.crm-page-exiting .lms-page {
   color: #FFFFFF;
   padding: 4px 12px;
   border-radius: 9999px;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
@@ -3399,7 +3399,7 @@ body.crm-page-exiting .lms-page {
 }
 
 .lms-about-text {
-  font-size: 13.5px;
+  font-size: 14px;
   color: var(--md-sys-color-on-surface-variant);
   line-height: 1.6;
   margin: 0;
@@ -3506,7 +3506,7 @@ body.crm-page-exiting .lms-page {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--md-sys-color-outline);
 }
 
@@ -3523,7 +3523,7 @@ body.crm-page-exiting .lms-page {
   justify-content: space-between;
   padding: 10px 16px;
   gap: 10px;
-  font-size: 12.5px;
+  font-size: 13px;
   color: #4A4A4D;
   cursor: pointer;
   transition: background 0.12s ease;
@@ -3649,7 +3649,7 @@ body.crm-page-exiting .lms-page {
 }
 
 .lms-author-role {
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--md-sys-color-outline);
   margin: 2px 0 0;
 }
@@ -3917,7 +3917,7 @@ body.crm-page-exiting .lms-page {
 .portal-student-hint,
 .student-picker__hint {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 13px;
   line-height: 1.5;
   color: var(--md-sys-color-on-surface-variant);
 }
@@ -3999,4 +3999,135 @@ body.crm-page-exiting .lms-page {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* ==========================================================================
+   Penyegaran visual halaman internal (September 2026)
+   Berkas ini dimuat terakhir di semua halaman internal, jadi aturan di sini
+   menjadi kata akhir untuk komponen bersama.
+   ========================================================================== */
+
+/* Pesan status: netral secara bawaan. Hijau hanya untuk sukses yang ditandai
+   is-success, merah hanya untuk galat. Sebelumnya semua pesan non-galat hijau,
+   termasuk "Memuat..." dan keadaan kosong. */
+.form-status:not(.is-error):not(:empty) {
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface-variant);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  font-weight: 500;
+}
+
+.form-status.is-success:not(:empty) {
+  background: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
+  border-color: rgba(31, 111, 61, 0.25);
+}
+
+/* Tombol aksi di topbar (Segarkan, Perbarui, Unduh). Dulu tidak punya gaya dasar
+   sehingga tampil sebagai tombol bawaan browser. */
+.crm-topbar-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container-lowest);
+  color: var(--md-sys-color-on-surface);
+  font-family: var(--main-font);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--md-sys-motion-duration-short) ease, border-color var(--md-sys-motion-duration-short) ease, transform 80ms ease;
+}
+
+.crm-topbar-action-btn:hover {
+  background: var(--md-sys-color-surface-container);
+  border-color: var(--md-sys-color-surface-container-highest);
+}
+
+.crm-topbar-action-btn:active {
+  transform: translateY(1px);
+}
+
+.crm-topbar-action-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.crm-topbar-action-btn svg {
+  flex-shrink: 0;
+}
+
+/* Keluar sesi adalah aksi rutin, bukan peringatan: netral, bukan blok merah. */
+.crm-logout-btn {
+  background: var(--md-sys-color-surface-container-lowest);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-on-surface);
+  height: 42px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.crm-logout-btn:hover {
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+}
+
+/* Spesifisitas dinaikkan: staff.css memuat aturan ini lebih dulu dan tertimpa. */
+.crm-logout-btn.crm-logout-btn--all {
+  background: transparent;
+  border: 1px dashed var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.crm-logout-btn.crm-logout-btn--all:hover {
+  border-color: var(--md-sys-color-error);
+  color: var(--md-sys-color-error);
+}
+
+/* Kartu statistik: teks boleh turun baris, tidak dipotong "...". Ikon satu
+   keluarga warna (emas/netral), bukan pink dan cyan. */
+.coursue-stat-count,
+.coursue-stat-label {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.coursue-stat-label {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 13px;
+}
+
+.coursue-stat-icon--pink,
+.coursue-stat-icon--cyan {
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+/* Hierarki judul di area kerja. */
+.crm-white-card-header h3,
+.crm-summary-title {
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.crm-white-card-header p {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--md-sys-color-on-surface-variant);
+  max-width: 70ch;
+}
+
+/* Angka sejajar per digit di tabel dan penghitung. */
+table,
+.crm-pill-count,
+.coursue-stat-count {
+  font-variant-numeric: tabular-nums;
 }

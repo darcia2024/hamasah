@@ -65,7 +65,7 @@
   border-radius: var(--md-shape-corner-small, 8px);
   background: #FDC537;
   color: #181F25;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -198,7 +198,7 @@
   width: 100%;
   box-sizing: border-box;
   font-family: inherit;
-  font-size: 13.5px;
+  font-size: 14px;
   color: var(--md-sys-color-on-surface, var(--md-sys-color-on-surface));
   background: #FFFFFF;
   border: 1px solid var(--md-sys-color-outline, var(--md-sys-color-surface-container-highest));
@@ -258,7 +258,7 @@
   margin: 4px 0 0;
   padding: 10px 14px;
   border-radius: var(--md-shape-corner-small, 8px);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.45;
   display: none;
@@ -294,7 +294,7 @@
 
 .staff-intro .eyebrow {
   display: inline-block;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -363,7 +363,7 @@
 }
 
 .staff-registration__meta p {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--md-sys-color-on-surface-variant, var(--md-sys-color-on-surface-variant));
 }
 
@@ -383,7 +383,7 @@
   background: #FFFFFF;
   color: var(--md-sys-color-on-surface, var(--md-sys-color-on-surface));
   font: inherit;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -636,7 +636,7 @@
 .staff-login__copy {
   margin-top: 0;
   color: var(--md-sys-color-on-surface-variant, #4B4639);
-  font-size: 13.5px;
+  font-size: 14px;
   line-height: 1.55;
 }
 
@@ -738,7 +738,7 @@
   border: none;
   background: transparent;
   font-weight: 600;
-  font-size: 13.5px;
+  font-size: 14px;
   color: inherit;
   width: 100%;
   cursor: pointer;
@@ -776,7 +776,7 @@
 .u-text-sm { margin: 0; font-size: 13px; }
 .u-text-secondary {
   margin: 0;
-  font-size: 13.5px;
+  font-size: 14px;
   color: var(--md-sys-color-on-surface-variant, #4B4639);
 }
 
@@ -795,7 +795,7 @@
 
 /* Blok teks */
 .js-text-sm { margin: 0; font-size: 13px; color: var(--crm-text-secondary, var(--md-sys-color-on-surface-variant)); }
-.js-text-xs { margin: 0; font-size: 12.5px; color: var(--crm-text-secondary, var(--md-sys-color-on-surface-variant)); }
+.js-text-xs { margin: 0; font-size: 13px; color: var(--crm-text-secondary, var(--md-sys-color-on-surface-variant)); }
 .js-text-title { margin: 4px 0; font-size: 14px; font-weight: 600; color: var(--crm-text-primary, var(--md-sys-color-on-surface)); }
 .js-text-label { margin: 0 0 4px; font-weight: 600; font-size: 13px; color: var(--crm-text-primary, var(--md-sys-color-on-surface)); }
 .js-text-body { font-size: 13px; color: var(--crm-text-primary, var(--md-sys-color-on-surface)); }
@@ -803,7 +803,7 @@
 .js-text-accent { color: var(--gold-dark); }
 .js-text-accent-sm { font-size: 12px; color: var(--gold-dark); }
 .js-text-accent-strong { font-size: 13px; font-weight: 600; color: var(--gold-dark); }
-.js-text-meta { font-size: 12.5px; font-weight: 600; color: var(--crm-text-secondary, var(--md-sys-color-outline)); }
+.js-text-meta { font-size: 13px; font-weight: 600; color: var(--crm-text-secondary, var(--md-sys-color-outline)); }
 .js-text-soft { font-size: 12px; opacity: 0.8; }
 .js-text-lg { font-size: 16px; }
 .js-text-ok { color: var(--crm-status-online, var(--success)); font-weight: 700; }
@@ -860,7 +860,7 @@
   border-radius: 10px;
 }
 .js-avatar-lg { width: 56px; height: 56px; font-size: 20px; }
-.js-btn-sm { min-height: 36px; padding: 0 14px; font-size: 12.5px; }
+.js-btn-sm { min-height: 36px; padding: 0 14px; font-size: 13px; }
 
 /* Bilah progres maddah. Lebar diisi lewat element.style.width dari JavaScript,
    yang tidak terkena CSP karena bukan atribut style di markup. */
@@ -918,7 +918,7 @@
 }
 
 .record-trail__kind {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -929,19 +929,19 @@
 }
 
 .record-trail__date {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--crm-text-muted);
 }
 
 .record-trail__summary {
   margin: 0 0 6px;
-  font-size: 13.5px;
+  font-size: 14px;
   color: var(--crm-text-primary);
 }
 
 .record-trail__actor {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--crm-text-secondary);
 }
 
@@ -984,7 +984,7 @@
 
 .op-row__main strong {
   display: block;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--crm-text-primary);
   margin-bottom: 2px;
@@ -992,7 +992,7 @@
 
 .op-row__main span {
   display: block;
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--crm-text-secondary);
 }
 
@@ -1005,7 +1005,7 @@
 .op-action {
   min-height: 36px;
   padding: 6px 14px;
-  font-size: 12.5px;
+  font-size: 13px;
 }
 
 /* Status invoice. Hijau hanya untuk yang benar-benar selesai; emas untuk yang
@@ -1116,7 +1116,7 @@
 
 .op-history__reason {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--crm-text-secondary);
 }
 
@@ -1145,7 +1145,7 @@
   background: transparent;
   border: 1px dashed var(--crm-border);
   color: var(--crm-text-secondary);
-  font-size: 12.5px;
+  font-size: 13px;
 }
 
 .crm-logout-btn--all:hover {
@@ -1175,7 +1175,7 @@ html.is-session-ended .crm-shell {
 
 .session-ended h2 {
   margin: 0 0 10px;
-  font-size: 19px;
+  font-size: 20px;
 }
 
 .session-ended p {
