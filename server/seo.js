@@ -29,6 +29,9 @@ const PUBLIC_PAGES = Object.freeze({
   'kontak.html': '/website/kontak.html',
   'articles.html': '/website/articles.html',
   'cek-status.html': '/website/cek-status.html',
+  'program-kuliah.html': '/website/program-kuliah.html',
+  'program-mahad.html': '/website/program-mahad.html',
+  'program-courses.html': '/website/program-courses.html',
   'kebijakan-privasi.html': '/website/kebijakan-privasi.html'
 });
 

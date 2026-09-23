@@ -1,4 +1,4 @@
-/* Beranda (index.html) saja. Dimuat setelah website-public.css.
+/* Tata letak beranda dan halaman program. Dimuat setelah website-public.css.
    Satu aksen (emas), satu keluarga abu hangat, radius kartu 20px, tombol kapsul.
    Skala huruf: 13 / 15 / 16 / 17 / 18 / 22 / h2 30-44 / h1 38-60. */
 
@@ -502,7 +502,7 @@ main .lp-panel h3 {
 
 .lp-stages div {
   display: grid;
-  grid-template-columns: 120px 1fr;
+  grid-template-columns: minmax(120px, 0.32fr) 1fr;
   gap: 16px;
   align-items: baseline;
   padding: 14px 0;
@@ -1117,5 +1117,41 @@ main .lp-after-title {
   .lp-link:hover::after {
     transition: none;
     transform: none;
+  }
+}
+
+/* ---------- Halaman program: kepala halaman dan pita penutup ---------- */
+
+.lp-page-hero {
+  padding-block: clamp(44px, 6vw, 76px) clamp(48px, 6vw, 80px);
+}
+
+.lp-page-hero .lp-hero__actions {
+  margin-top: 32px;
+}
+
+.lp-closing {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px 48px;
+  align-items: center;
+}
+
+.lp-closing h2.lp-h2 {
+  margin-bottom: 12px;
+}
+
+/* Daftar dokumen di dalam bagian bernuansa: tanpa kotak kedua. */
+.lp-docs--plain {
+  margin-top: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+@media (max-width: 900px) {
+  .lp-closing {
+    grid-template-columns: 1fr;
+    justify-items: start;
   }
 }

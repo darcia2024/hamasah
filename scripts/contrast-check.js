@@ -157,7 +157,7 @@ async function seedScenarioData(baseUrl, tokens, warn) {
 
 function buildScenarios(context) {
   const scenarios = [];
-  const publicPages = ['index', 'biaya', 'kontak', 'articles', 'kebijakan-privasi', '404', 'lupa-password'];
+  const publicPages = ['index', 'biaya', 'kontak', 'articles', 'program-kuliah', 'program-mahad', 'program-courses', 'kebijakan-privasi', '404', 'lupa-password'];
   for (const page of publicPages) scenarios.push({ name: page, page });
 
   scenarios.push({ name: 'article', page: 'article', query: context.articleSlug ? `?slug=${encodeURIComponent(context.articleSlug)}` : '' });
