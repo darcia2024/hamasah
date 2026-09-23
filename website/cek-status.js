@@ -444,16 +444,46 @@ document.addEventListener('DOMContentLoaded', () => {
       const uploadData = await uploadRequest.json().catch(() => ({}));
       if (!uploadRequest.ok) throw new Error(uploadData.error || 'Tempat unggah belum dapat dibuat.');
 
-      const contentResponse = await fetch(`/api/uploads/${encodeURIComponent(uploadData.upload.id)}/content`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': file.type || 'application/octet-stream',
-          'Authorization': `Bearer ${currentToken}`
-        },
-        body: file
-      });
-      const contentData = await contentResponse.json().catch(() => ({}));
-      if (!contentResponse.ok) throw new Error(contentData.error || 'Isi berkas belum dapat disimpan.');
+      // Dua jalur pengiriman isi berkas. Kalau penyimpanan mendukung unggah
+      // langsung, berkasnya dikirim peramban ke storage, tidak lewat server, jadi
+      // tidak terhalang batas ukuran badan permintaan. Servernya tetap memeriksa
+      // ukuran, tipe, dan sidik isi lewat langkah konfirmasi.
+      const uploadId = encodeURIComponent(uploadData.upload.id);
+      if (uploadData.directUpload) {
+        docUploadStatus.textContent = 'Mengunggah berkas...';
+        const tautan = await fetch(`/api/uploads/${uploadId}/direct`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const tautanData = await tautan.json().catch(() => ({}));
+        if (!tautan.ok) throw new Error(tautanData.error || 'Tautan unggah belum dapat dibuat.');
+
+        const kirim = await fetch(tautanData.uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': file.type || 'application/octet-stream' },
+          body: file
+        });
+        if (!kirim.ok) throw new Error('Berkas gagal dikirim ke penyimpanan. Periksa koneksi lalu coba lagi.');
+
+        docUploadStatus.textContent = 'Memeriksa berkas...';
+        const konfirmasi = await fetch(`/api/uploads/${uploadId}/confirm`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const konfirmasiData = await konfirmasi.json().catch(() => ({}));
+        if (!konfirmasi.ok) throw new Error(konfirmasiData.error || 'Berkas belum dapat diterima.');
+      } else {
+        const contentResponse = await fetch(`/api/uploads/${uploadId}/content`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': file.type || 'application/octet-stream',
+            'Authorization': `Bearer ${currentToken}`
+          },
+          body: file
+        });
+        const contentData = await contentResponse.json().catch(() => ({}));
+        if (!contentResponse.ok) throw new Error(contentData.error || 'Isi berkas belum dapat disimpan.');
+      }
 
       const res = await fetch(`/api/registrations/${encodeURIComponent(currentRegId)}/documents`, {
         method: 'POST',

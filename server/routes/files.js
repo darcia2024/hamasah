@@ -34,7 +34,10 @@ module.exports = [
           originalName: hasil.value.originalName,
           contentType: hasil.value.contentType,
           status: hasil.value.status
-        }
+        },
+        // Peramban memilih jalurnya dari sini: kalau tersedia, isi berkas dikirim
+        // langsung ke storage; kalau tidak, lewat PUT .../content seperti biasa.
+        directUpload: services.fileService.supportsDirectUpload === true
       });
     }
   },
@@ -64,6 +67,45 @@ module.exports = [
         action: ACTIONS.FILE_UPLOADED, actor, ip,
         entityType: hasil.value.entityType, entityId: hasil.value.entityId,
         metadata: { fileId: hasil.value.id, purpose: hasil.value.purpose, ukuran: hasil.value.sizeBytes }
+      });
+      json(response, 200, { file: { id: hasil.value.id, status: hasil.value.status, sha256: hasil.value.sha256 } });
+    }
+  },
+
+  // Langkah 2 versi langsung, bagian a: meminta tautan unggah ke storage.
+  // Izin diperiksa di sini, sebelum tautan diberikan.
+  {
+    method: 'POST',
+    pattern: /^\/api\/uploads\/([\w-]+)\/direct$/,
+    rateLimit: { rule: 'upload', identity: ({ ip }) => ip },
+    async handler({ response, services, auth, params }) {
+      const actor = await auth.actor();
+      const hasil = await services.fileService.createDirectUpload(params[0], { actor, auth });
+      if (!hasil.ok) {
+        json(response, hasil.status || 422, publicError(hasil));
+        return;
+      }
+      json(response, 200, hasil.value);
+    }
+  },
+
+  // Langkah 2 versi langsung, bagian b: server memeriksa isi yang benar-benar
+  // tersimpan. Berkas yang tidak lolos dihapus lagi dari storage.
+  {
+    method: 'POST',
+    pattern: /^\/api\/uploads\/([\w-]+)\/confirm$/,
+    rateLimit: { rule: 'upload', identity: ({ ip }) => ip },
+    async handler({ response, services, auth, params, ip }) {
+      const actor = await auth.actor();
+      const hasil = await services.fileService.confirmContent(params[0], { actor, auth });
+      if (!hasil.ok) {
+        json(response, hasil.status || 422, publicError(hasil));
+        return;
+      }
+      await services.auditService.record({
+        action: ACTIONS.FILE_UPLOADED, actor, ip,
+        entityType: hasil.value.entityType, entityId: hasil.value.entityId,
+        metadata: { fileId: hasil.value.id, purpose: hasil.value.purpose, ukuran: hasil.value.sizeBytes, jalur: 'langsung' }
       });
       json(response, 200, { file: { id: hasil.value.id, status: hasil.value.status, sha256: hasil.value.sha256 } });
     }

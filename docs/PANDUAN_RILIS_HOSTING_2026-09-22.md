@@ -298,3 +298,67 @@ Production:
 - [ ] Pemantauan 24 jam
 
 Sebelum dibuka untuk publik (Gerbang 1): kebijakan privasi final, nomor WhatsApp, alamat K16, artikel nyata, R1.0, dan R8.7.
+
+---
+
+## Lampiran: rilis ke Vercel (23 September 2026)
+
+Keputusan K2 jatuh ke Vercel. Vercel tidak menjalankan proses yang menyala terus, jadi tiga
+bagian aplikasi diubah lebih dulu. Semuanya sudah ada di repo dan ada tesnya.
+
+### Apa yang berubah karena Vercel
+
+| Bagian | Di server biasa | Di Vercel |
+|---|---|---|
+| Pembatas percobaan login | memori proses | tabel `rate_limit_hits` (migrasi 041) |
+| Pembersih sesi, audit, unggahan | timer di dalam proses | cron harian ke `/api/tasks/maintenance` |
+| Titik masuk | `server.js` menyalakan server | `api/index.js` mengekspor satu penangan |
+| Unggah berkas | byte lewat server | peramban langsung ke Supabase, server memeriksa hasilnya |
+| Email notifikasi | worker di proses atau terpisah | tidak dipakai; pemberitahuan manual lewat WhatsApp |
+
+### Langkah
+
+1. **Terapkan migrasi 041** ke database yang dituju:
+
+   ```bash
+   ALLOW_PRODUCTION_WRITE=I_UNDERSTAND npm run migrate
+   ```
+
+2. **Hubungkan repo ke Vercel.** Framework preset: Other. Tidak ada build command; `vercel.json`
+   sudah mengarahkan seluruh permintaan ke `api/index.js` dan menyertakan berkas yang dibaca
+   saat berjalan (`website`, `assets`, `data`, `database`).
+
+3. **Isi environment variable** di Project Settings → Environment Variables:
+
+   | Variabel | Isi | Catatan |
+   |---|---|---|
+   | `DATABASE_URL` | connection string Supabase | **pakai port 6543** (pooler mode transaksi). Port 5432 membuka satu koneksi per instance dan cepat habis. |
+   | `APP_ENV` | `production` | |
+   | `APP_BASE_URL` | alamat penuh situs | dipakai tautan aktivasi, sitemap, dan tag bagikan |
+   | `IP_HASH_SECRET` | 32 karakter acak | |
+   | `CRON_SECRET` | 32 karakter acak | Vercel mengirimkannya sendiri ke cron; endpoint perawatan memeriksanya |
+   | `STORAGE_DRIVER` | `supabase` | |
+   | `STORAGE_BUCKET` | nama bucket privat | |
+   | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | dari dashboard Supabase | dipakai membuat tautan unggah dan unduh |
+   | `TRUST_PROXY` | `true` | |
+
+   **Jangan** mengisi `RESEND_API_KEY` selama pemberitahuan masih manual lewat WhatsApp. Tanpa
+   kunci itu sistem tidak mengirim dan tidak mengantre apa pun, dan konsol petugas menyatakannya
+   apa adanya.
+
+4. **Periksa cron.** `vercel.json` menjadwalkan `/api/tasks/maintenance` sekali sehari pukul 20.00
+   UTC (03.00 WIB). Jalankan sekali secara manual dari dashboard, lalu periksa lognya.
+
+5. **Uji unggah berkas sungguhan.** Jalur unggah langsung sudah diuji dengan penyimpanan tiruan
+   (`server/direct-upload.test.js`), tetapi belum pernah melawan Supabase sungguhan. Setelah
+   deploy, unggah satu berkas besar (5 MB) dari halaman cek status, lalu pastikan statusnya
+   menjadi terverifikasi dan berkasnya dapat diunduh petugas.
+
+### Yang tetap tidak ada di Vercel
+
+- **Pengingat visa harian** (`scripts/visa-reminder-worker.js`) butuh pengirim email. Selama
+  email belum dipakai, pengingat ini tidak berjalan dan penjagaannya dilakukan manual.
+- **Worker notifikasi** juga tidak berjalan, dengan alasan yang sama.
+
+Kalau nanti email diaktifkan, dua pekerjaan itu perlu cron tambahan, dan pada paket Hobby cron
+hanya dapat berjalan sekali sehari.

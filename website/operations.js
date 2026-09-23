@@ -405,11 +405,25 @@ async function unggahBerkasVisa(file, studentId) {
       size: file.size
     })
   });
-  await jsonRequest(`/api/uploads/${encodeURIComponent(minta.upload.id)}/content`, {
-    method: 'PUT',
-    headers: { ...headers(), 'Content-Type': file.type || 'application/octet-stream' },
-    body: file
-  });
+  const uploadId = encodeURIComponent(minta.upload.id);
+  if (minta.directUpload) {
+    // Isi berkas dikirim peramban langsung ke penyimpanan; server hanya memberi
+    // tautan dan memeriksa hasilnya. Lihat catatan di website/cek-status.js.
+    const tautan = await jsonRequest(`/api/uploads/${uploadId}/direct`, { method: 'POST', headers: headers() });
+    const kirim = await fetch(tautan.uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': file.type || 'application/octet-stream' },
+      body: file
+    });
+    if (!kirim.ok) throw new Error('Berkas gagal dikirim ke penyimpanan.');
+    await jsonRequest(`/api/uploads/${uploadId}/confirm`, { method: 'POST', headers: headers() });
+  } else {
+    await jsonRequest(`/api/uploads/${uploadId}/content`, {
+      method: 'PUT',
+      headers: { ...headers(), 'Content-Type': file.type || 'application/octet-stream' },
+      body: file
+    });
+  }
   return minta.upload.id;
 }
 

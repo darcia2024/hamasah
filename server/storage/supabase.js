@@ -64,6 +64,33 @@ function createSupabaseStorage({ url, serviceRoleKey, fetchImpl } = {}) {
       }
     },
 
+    // Tautan unggah bertanda tangan: peramban mengirim berkasnya langsung ke
+    // Supabase, tidak lewat server aplikasi. Dipakai supaya unggahan tidak terkena
+    // batas ukuran badan permintaan pada platform serverless, dan supaya berkas
+    // besar tidak dua kali melintasi server.
+    //
+    // Tautan ini hanya berlaku untuk satu kunci objek dan waktu terbatas. Isi
+    // berkasnya tetap diperiksa server lewat confirmContent setelah unggahan
+    // selesai: ukuran, tanda tangan tipe, dan sha256.
+    supportsSignedUpload: true,
+
+    async signedUploadUrl(bucket, key) {
+      const response = await panggil(`${base}/storage/v1/object/upload/sign/${bucket}/${encodeKey(key)}`, {
+        method: 'POST',
+        headers: headers({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({})
+      });
+      if (!response.ok) {
+        throw new Error(`Tautan unggah gagal dibuat (${response.status}): ${await bacaPesanError(response)}`);
+      }
+      const hasil = await response.json();
+      const jalur = String(hasil.url || hasil.signedURL || hasil.signedUrl || '');
+      if (!jalur) {
+        throw new Error('Balasan storage tidak memuat tautan unggah.');
+      }
+      return jalur.startsWith('http') ? jalur : `${base}/storage/v1${jalur.startsWith('/') ? '' : '/'}${jalur}`;
+    },
+
     async signedUrl(bucket, key, seconds = DEFAULT_SIGNED_URL_SECONDS) {
       const response = await panggil(`${base}/storage/v1/object/sign/${bucket}/${encodeKey(key)}`, {
         method: 'POST',
@@ -91,10 +118,19 @@ function createSupabaseStorage({ url, serviceRoleKey, fetchImpl } = {}) {
       }
     },
 
-    async read() {
-      // Tidak dipakai: unduhan dari Supabase selalu lewat tautan bertanda tangan.
-      throw new Error('Driver supabase tidak membaca isi berkas lewat aplikasi.');
+    // Dipakai confirmContent untuk memeriksa berkas yang diunggah langsung oleh
+    // peramban. Unduhan untuk pengguna tetap lewat tautan bertanda tangan.
+    async read(bucket, key) {
+      const response = await panggil(`${base}/storage/v1/object/${bucket}/${encodeKey(key)}`, {
+        method: 'GET',
+        headers: headers()
+      });
+      if (!response.ok) {
+        throw new Error(`Berkas gagal dibaca dari storage (${response.status}): ${await bacaPesanError(response)}`);
+      }
+      return Buffer.from(await response.arrayBuffer());
     }
+
   };
 }
 

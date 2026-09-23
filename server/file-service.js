@@ -153,6 +153,71 @@ function createFileService(options = {}) {
     return { ok: true, value: siap };
   }
 
+  // Jalur unggah langsung: peramban mengirim berkasnya ke storage, bukan ke server.
+  //
+  // Dipakai supaya berkas besar tidak terhalang batas ukuran badan permintaan pada
+  // platform serverless. Pemeriksaannya tidak dikurangi: izin diperiksa sebelum
+  // tautan diberikan, dan isi berkasnya diperiksa server setelah unggahan selesai
+  // lewat confirmContent. Tanpa confirmContent, baris berkasnya tetap berstatus
+  // pending dan dibuang pembersih berkala.
+  async function createDirectUpload(fileId, { actor, auth }) {
+    const izin = await beginContent(fileId, { actor, auth });
+    if (!izin.ok) return izin;
+    if (!storage.supportsSignedUpload || typeof storage.signedUploadUrl !== 'function') {
+      return { ok: false, status: 501, error: 'Storage ini tidak mendukung unggah langsung.' };
+    }
+    const record = await store.get(fileId);
+    const uploadUrl = await storage.signedUploadUrl(record.bucket, record.storageKey);
+    return { ok: true, value: { uploadUrl, maxBytes: izin.value.maxBytes, contentType: record.contentType } };
+  }
+
+  // Memeriksa berkas yang sudah diunggah peramban langsung ke storage. Ukuran,
+  // tanda tangan tipe, dan sha256 dihitung dari isi yang benar-benar tersimpan,
+  // bukan dari yang dijanjikan peramban. Berkas yang tidak lolos dihapus lagi.
+  async function confirmContent(fileId, { actor, auth }) {
+    const record = await store.get(fileId);
+    if (!record || record.status === 'deleted') {
+      return { ok: false, status: 404, error: 'Berkas tidak ditemukan.' };
+    }
+    if (record.status === 'ready') {
+      return { ok: false, error: 'Isi berkas sudah pernah dikirim.' };
+    }
+    const policy = policyFor(record.purpose);
+    if (!policy) {
+      return { ok: false, error: 'Jenis unggahan tidak dikenal.' };
+    }
+    if (!(await policy.canUpload(await konteks(actor, auth, record.entityId)))) {
+      return { ok: false, status: 403, error: 'Anda tidak memiliki akses untuk mengunggah berkas ini.' };
+    }
+
+    let buffer;
+    try {
+      buffer = await storage.read(record.bucket, record.storageKey);
+    } catch (error) {
+      return { ok: false, error: 'Berkas belum sampai di penyimpanan. Coba unggah ulang.' };
+    }
+
+    async function tolak(pesan, status) {
+      // Berkas yang tidak lolos tidak boleh tertinggal di penyimpanan.
+      try { if (typeof storage.remove === 'function') await storage.remove(record.bucket, record.storageKey); } catch (error) { /* biarkan pembersih berkala */ }
+      return { ok: false, status, error: pesan };
+    }
+
+    if (!buffer || buffer.length === 0) {
+      return tolak('Isi berkas kosong.');
+    }
+    if (buffer.length > policy.maxBytes) {
+      return tolak('Ukuran berkas melebihi batas.', 413);
+    }
+    if (!matchesSignature(record.contentType, buffer)) {
+      return tolak('Isi berkas tidak sesuai dengan tipe yang dinyatakan.');
+    }
+
+    const sha256 = crypto.createHash('sha256').update(buffer).digest('hex');
+    const siap = await store.markReady(record.id, { sha256, sizeBytes: buffer.length });
+    return { ok: true, value: siap };
+  }
+
   // Langkah 3: mengunduh.
   async function prepareDownload(fileId, { actor, auth }) {
     const record = await store.get(fileId);
@@ -180,7 +245,7 @@ function createFileService(options = {}) {
     return store.deletePendingBefore(batas);
   }
 
-  return Object.freeze({ beginContent, createUpload, prepareDownload, purgeStalePending, saveContent });
+  return Object.freeze({ beginContent, confirmContent, createDirectUpload, createUpload, prepareDownload, purgeStalePending, saveContent, supportsDirectUpload: Boolean(storage.supportsSignedUpload) });
 }
 
 module.exports = { PENDING_EXPIRY_MS, createFileService, safeFileName };
