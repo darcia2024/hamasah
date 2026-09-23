@@ -1,10 +1,17 @@
-// Pembatas laju permintaan, jendela bergeser, disimpan di memori proses.
+// Pembatas laju permintaan dengan jendela bergeser.
 //
-// Batasan yang harus disadari: hitungannya per proses. Kalau nanti aplikasi berjalan
-// di lebih dari satu instance, setiap instance punya hitungannya sendiri, sehingga
-// batas efektifnya menjadi batas dikali jumlah instance. Untuk skala lembaga ini satu
-// instance sudah cukup; kalau nanti ditambah, pembatas ini harus pindah ke Redis atau
-// ke lapisan proxy. Catatan yang sama ada di PRODUCTION_DEPLOYMENT.md.
+// Ada dua penyimpanan. `createRateLimiter` menyimpan di memori proses dan dipakai
+// saat aplikasi berjalan tanpa database, misalnya pada sebagian test.
+// `createDatabaseRateLimiter` menyimpan di tabel `rate_limit_hits` (migrasi 041) dan
+// dipakai begitu database tersedia.
+//
+// Yang berbasis memori hanya benar bila aplikasi berjalan sebagai satu proses yang
+// menyala terus. Di platform serverless setiap permintaan dapat dilayani instance
+// berbeda dan instance mati saat sepi, sehingga batas seperti "5 percobaan per 15
+// menit" tidak berlaku sama sekali. Karena itu jalur production memakai database.
+//
+// Kedua pembatas memakai antarmuka yang sama dan keduanya asinkron, supaya
+// pemanggilnya tidak perlu tahu data hitungannya disimpan di mana.
 
 const MENIT = 60 * 1000;
 const JAM = 60 * MENIT;
@@ -75,7 +82,7 @@ function createRateLimiter(options = {}) {
 
   return {
     // Mencatat satu percobaan. Mengembalikan { allowed, retryAfterSeconds, remaining }.
-    check(name, identity) {
+    async check(name, identity) {
       const rule = ruleFor(name);
       const key = `${name}:${identity}`;
       const saatIni = now();
@@ -101,7 +108,7 @@ function createRateLimiter(options = {}) {
 
     // Dipanggil setelah percobaan yang berhasil, misalnya login yang benar, supaya
     // pengguna sah yang masuk dari beberapa perangkat tidak ikut terkunci.
-    reset(name, identity) {
+    async reset(name, identity) {
       ruleFor(name);
       buckets.delete(`${name}:${identity}`);
     },
@@ -117,4 +124,88 @@ function createRateLimiter(options = {}) {
   };
 }
 
-module.exports = { CLEANUP_INTERVAL_MS, RULES, TOO_MANY_REQUESTS, createRateLimiter };
+// Jendela terpanjang di antara semua aturan; dipakai pembersih berkala untuk tahu
+// sampai kapan baris lama masih mungkin berguna.
+function longestWindowMs(rules = RULES) {
+  return Object.values(rules).reduce((paling, rule) => Math.max(paling, rule.windowMs), 0);
+}
+
+// Aturan yang hitungannya WAJIB bertahan antar proses, karena melindungi kredensial
+// dan data pribadi: menebak kata sandi, menebak kode akses pendaftar, meminta kode
+// baru, menukar token, dan membanjiri pendaftaran.
+//
+// Sisanya, terutama jaring pengaman `api-default`, tetap di memori. Alasannya dua:
+// menyimpannya di database berarti satu tulisan untuk setiap permintaan API, dan
+// `/api/health` harus tetap menjawab meski database sedang mati.
+const DATABASE_RULES = Object.freeze([
+  'login',
+  'password-reset-request',
+  'registration-create',
+  'inquiry-create',
+  'applicant-login',
+  'applicant-recovery',
+  'token-redeem',
+  'upload'
+]);
+
+// Pembatas yang hitungannya disimpan di database. Antarmukanya sama persis dengan
+// versi memori, jadi app.js tinggal memilih salah satu.
+function createDatabaseRateLimiter({ store, rules = RULES } = {}) {
+  if (!store) throw new Error('createDatabaseRateLimiter membutuhkan store.');
+
+  function ruleFor(name) {
+    if (!Object.prototype.hasOwnProperty.call(rules, name)) {
+      throw new Error(`Aturan rate limit tidak dikenal: ${name}`);
+    }
+    return rules[name];
+  }
+
+  return {
+    async check(name, identity) {
+      const rule = ruleFor(name);
+      return store.hit(`${name}:${identity}`, rule);
+    },
+    async reset(name, identity) {
+      ruleFor(name);
+      await store.clear(`${name}:${identity}`);
+    },
+    // Pembersihan dijalankan pekerjaan perawatan, bukan timer di dalam proses.
+    async sweep() {
+      return store.sweep(longestWindowMs(rules));
+    },
+    stop() {}
+  };
+}
+
+// Gabungan keduanya: aturan yang melindungi kredensial memakai database, sisanya
+// memakai memori proses.
+function createHybridRateLimiter({ store, rules = RULES, databaseRules = DATABASE_RULES, memory } = {}) {
+  const diDatabase = new Set(databaseRules);
+  const lewatDatabase = createDatabaseRateLimiter({ store, rules });
+  const lewatMemori = memory || createRateLimiter({ rules });
+
+  function pilih(name) {
+    return diDatabase.has(name) ? lewatDatabase : lewatMemori;
+  }
+
+  return {
+    async check(name, identity) { return pilih(name).check(name, identity); },
+    async reset(name, identity) { return pilih(name).reset(name, identity); },
+    async sweep() {
+      lewatMemori.sweep();
+      return lewatDatabase.sweep();
+    },
+    stop() { lewatMemori.stop(); }
+  };
+}
+
+module.exports = {
+  CLEANUP_INTERVAL_MS,
+  DATABASE_RULES,
+  createHybridRateLimiter,
+  RULES,
+  TOO_MANY_REQUESTS,
+  createDatabaseRateLimiter,
+  createRateLimiter,
+  longestWindowMs
+};

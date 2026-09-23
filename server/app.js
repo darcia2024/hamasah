@@ -46,7 +46,8 @@ const { createPostgresStudentCareStore } = require('./postgres-student-care-stor
 const { createPostgresDepartureStore } = require('./postgres-departure-store.js');
 const { createRequestAuth, hashToken, safeEqual } = require('./http/auth.js');
 const { NOT_ALLOWED, NOT_SIGNED_IN, roleHasPermission } = require('./access-policy.js');
-const { TOO_MANY_REQUESTS, createRateLimiter } = require('./rate-limit.js');
+const { TOO_MANY_REQUESTS, createHybridRateLimiter, createRateLimiter, longestWindowMs } = require('./rate-limit.js');
+const { createPostgresRateLimitStore } = require('./postgres-rate-limit-store.js');
 const { clientIp } = require('./http/client-ip.js');
 const { applyHeaders, createSecurityHeaders } = require('./http/security-headers.js');
 const { readAppEnvironment } = require('./environment.js');
@@ -54,6 +55,7 @@ const { readAppEnvironment } = require('./environment.js');
 // Urutan berpengaruh: route pertama yang cocok yang dipakai.
 const ROUTES = Object.freeze([
   ...require('./routes/health.js'),
+  ...require('./routes/maintenance.js'),
   ...require('./routes/auth.js'),
   ...require('./routes/accounts.js'),
   ...require('./routes/audit.js'),
@@ -92,7 +94,12 @@ function createHamasahApp(options) {
   const appEnvironment = config.appEnvironment || readAppEnvironment(process.env);
   // X-Forwarded-For hanya dipercaya kalau aplikasi memang di belakang proxy platform.
   const trustProxy = config.trustProxy === undefined ? process.env.TRUST_PROXY === 'true' : Boolean(config.trustProxy);
-  const rateLimiter = config.rateLimiter || createRateLimiter();
+  // Hitungan percobaan disimpan di database begitu database tersedia. Versi memori
+  // hanya dipakai saat aplikasi dirakit tanpa database, misalnya pada sebagian test.
+  const rateLimiter = config.rateLimiter
+    || (database
+      ? createHybridRateLimiter({ store: createPostgresRateLimitStore({ database }) })
+      : createRateLimiter());
   const securityHeaders = createSecurityHeaders({ appEnvironment });
   const registrationStore = config.registrationStore || createPostgresRegistrationStore({ database });
   const registrationService = config.registrationService || registrationServiceModule.createRegistrationService({
@@ -246,7 +253,26 @@ function createHamasahApp(options) {
     }
   });
 
+  // Dipakai rute perawatan (POST /api/tasks/maintenance) pada platform yang tidak
+  // menjalankan proses menyala terus, sehingga timer di bawah tidak pernah jalan.
+  const maintenanceService = {
+    async run() {
+      const [sesi, audit, unggahan, pembatas] = await Promise.all([
+        bersihkanSesi(),
+        bersihkanAudit(),
+        bersihkanUnggahanTertunda(),
+        typeof rateLimiter.sweep === 'function' ? rateLimiter.sweep() : 0
+      ]);
+      return { sesi, audit, unggahan, pembatas };
+    },
+    // Kunci diambil dari environment. Tanpa kunci, endpointnya tertutup.
+    secret() {
+      return process.env.MAINTENANCE_KEY || process.env.CRON_SECRET || '';
+    }
+  };
+
   const services = Object.freeze({
+    maintenanceService,
     accountStore,
     departureService,
     studentCareService,
@@ -274,7 +300,7 @@ function createHamasahApp(options) {
 
     // Jaring pengaman untuk seluruh API, termasuk permintaan ke endpoint yang tidak
     // ada, supaya penyisiran endpoint ikut terbatasi.
-    const umum = rateLimiter.check('api-default', ip);
+    const umum = await rateLimiter.check('api-default', ip);
     if (!umum.allowed) {
       tooManyRequests(response, umum.retryAfterSeconds, TOO_MANY_REQUESTS);
       return true;
@@ -295,7 +321,7 @@ function createHamasahApp(options) {
       // kata sandi tetap terbatasi walau belum punya sesi sama sekali.
       if (route.rateLimit) {
         const identitas = route.rateLimit.identity({ ip, params });
-        const hasil = rateLimiter.check(route.rateLimit.rule, identitas);
+        const hasil = await rateLimiter.check(route.rateLimit.rule, identitas);
         if (!hasil.allowed) {
           tooManyRequests(response, hasil.retryAfterSeconds, TOO_MANY_REQUESTS);
           return true;
@@ -409,41 +435,51 @@ function createHamasahApp(options) {
     return timer;
   }
 
-  function startAuditRetention() {
-    async function bersihkan() {
+  async function bersihkanAudit() {
+    {
       try {
         const dihapus = await auditService.purgeOlderThan(auditRetentionDays);
         if (dihapus > 0) {
           console.log(`[audit] ${dihapus} catatan lebih tua dari ${auditRetentionDays} hari dihapus.`);
         }
+        return dihapus;
       } catch (error) {
         console.error(`[audit] Pembersihan catatan lama gagal: ${error.message}`);
       }
     }
-    auditPurgeTimer = jadwalkan(bersihkan, AUDIT_PURGE_INTERVAL_MS);
-    return bersihkan();
+    return 0;
+  }
+
+  function startAuditRetention() {
+    auditPurgeTimer = jadwalkan(bersihkanAudit, AUDIT_PURGE_INTERVAL_MS);
+    return bersihkanAudit();
   }
 
   // Sesi kedaluwarsa memang sudah ditolak saat dipakai, tetapi barisnya tetap
   // menumpuk di database kalau tidak pernah dibuang.
   // Baris unggahan yang isinya tidak pernah dikirim hanya menumpuk.
-  function startStaleUploadCleanup() {
-    async function bersihkan() {
+  async function bersihkanUnggahanTertunda() {
+    {
       try {
         const dihapus = await fileService.purgeStalePending();
         if (dihapus > 0) {
           console.log(`[berkas] ${dihapus} unggahan yang tidak pernah selesai dihapus.`);
         }
+        return dihapus;
       } catch (error) {
         console.error(`[berkas] Pembersihan unggahan tertunda gagal: ${error.message}`);
       }
     }
-    staleUploadPurgeTimer = jadwalkan(bersihkan, SESSION_PURGE_INTERVAL_MS);
-    return bersihkan();
+    return 0;
   }
 
-  function startSessionCleanup() {
-    async function bersihkan() {
+  function startStaleUploadCleanup() {
+    staleUploadPurgeTimer = jadwalkan(bersihkanUnggahanTertunda, SESSION_PURGE_INTERVAL_MS);
+    return bersihkanUnggahanTertunda();
+  }
+
+  async function bersihkanSesi() {
+    {
       try {
         const [dihapus, pendaftarDihapus] = await Promise.all([
           identityService.purgeExpiredSessions(),
@@ -452,12 +488,17 @@ function createHamasahApp(options) {
         if (dihapus + pendaftarDihapus > 0) {
           console.log(`[sesi] ${dihapus + pendaftarDihapus} sesi kedaluwarsa dihapus.`);
         }
+        return dihapus + pendaftarDihapus;
       } catch (error) {
         console.error(`[sesi] Pembersihan sesi kedaluwarsa gagal: ${error.message}`);
       }
     }
-    sessionPurgeTimer = jadwalkan(bersihkan, SESSION_PURGE_INTERVAL_MS);
-    return bersihkan();
+    return 0;
+  }
+
+  function startSessionCleanup() {
+    sessionPurgeTimer = jadwalkan(bersihkanSesi, SESSION_PURGE_INTERVAL_MS);
+    return bersihkanSesi();
   }
 
   // Worker notifikasi di dalam proses web. Default hanya di development, supaya link reset,
@@ -490,6 +531,11 @@ function createHamasahApp(options) {
       }
       if (inProcessWorker && !notificationWorkerTimer) startNotificationWorker();
       return http.createServer(requestListener);
+    },
+    // Dipakai platform serverless yang tidak menjalankan server sendiri: yang
+    // dibutuhkan hanya fungsi penangan permintaannya. Lihat api/index.js.
+    requestListener() {
+      return requestListener;
     },
     // Menutup pool koneksi database yang dibuat app ini. Database dari luar (config.database) tidak ditutup.
     async close() {

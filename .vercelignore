@@ -1,8 +1,21 @@
-# Vercel dulu hanya menyajikan prototipe proposal di root. Prototipe itu dihapus
-# (keputusan KR6, Task R8.1, 22 September 2026). Aplikasi yang sebenarnya butuh server
-# Node dan database, jadi tidak bisa disajikan Vercel sebagai berkas statis; hosting-nya
-# menunggu keputusan K2.
+# Yang tidak ikut ke Vercel.
 #
-# Sengaja tolak-semua: tanpa berkas ini, proyek Vercel yang masih tersambung akan
-# menyajikan seluruh isi repo (server/, database/, docs/) sebagai berkas statis.
-/*
+# Aplikasi ini server Node, bukan situs statis. Yang dideploy adalah api/index.js
+# beserta berkas yang dibutuhkannya saat berjalan (website/, assets/, data/,
+# database/), diatur lewat "includeFiles" di vercel.json.
+#
+# Sisanya tidak perlu ikut, dan sebagian memang tidak boleh ikut: berkas test,
+# dokumen internal, dan berkas environment.
+.env
+.env.*
+.git
+.github
+node_modules
+data/dev-db
+docs
+scripts/*.test.js
+server/**/*.test.js
+server/test-support
+database/*.test.js
+*.md
+!README.md

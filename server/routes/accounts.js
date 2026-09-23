@@ -81,10 +81,14 @@ module.exports = [
     pattern: /^\/api\/notifications$/,
     permission: 'accounts.invitation-send',
     async handler({ response, services, url }) {
-      json(response, 200, await services.notificationService.list({
+      const daftar = await services.notificationService.list({
         limit: url.searchParams.get('limit'), offset: url.searchParams.get('offset'),
         recipientEmail: url.searchParams.get('email'), status: url.searchParams.get('status')
-      }));
+      });
+      // Konsol perlu tahu apakah email benar-benar dikirim. Bila pengiriman email
+      // tidak dikonfigurasi, pemberitahuan ke pendaftar dilakukan manual oleh tim,
+      // dan konsol harus mengatakannya apa adanya.
+      json(response, 200, { ...daftar, emailEnabled: services.notificationService.canSend() });
     }
   },
 

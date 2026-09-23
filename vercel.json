@@ -1,0 +1,23 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30,
+      "memory": 1024,
+      "includeFiles": "{website,assets,data,database}/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.js"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/tasks/maintenance",
+      "schedule": "0 20 * * *"
+    }
+  ]
+}

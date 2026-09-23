@@ -45,7 +45,7 @@ module.exports = [
     async handler({ response, services, readBody, rateLimit, ip }) {
       const body = await readBody();
       const identitas = `${String(body.email || '').trim().toLocaleLowerCase('en-US')}|${ip}`;
-      const jatah = rateLimit.check('login', identitas);
+      const jatah = await rateLimit.check('login', identitas);
       if (!jatah.allowed) {
         // Dicatat karena inilah tanda paling awal adanya percobaan menebak kata sandi.
         await services.auditService.record({ action: ACTIONS.LOGIN_RATE_LIMITED, ip, metadata: { email: identitas.split('|')[0] } });
@@ -64,7 +64,7 @@ module.exports = [
       if (loggedIn.ok) {
         // Masuk dari beberapa perangkat dalam waktu dekat itu wajar, jadi hitungan
         // dikosongkan begitu kata sandi terbukti benar.
-        rateLimit.reset('login', identitas);
+        await rateLimit.reset('login', identitas);
       }
       json(response, loggedIn.ok ? 200 : 401, loggedIn.ok
         ? { accessToken: loggedIn.value.accessToken, account: loggedIn.value.account }
@@ -122,7 +122,7 @@ module.exports = [
       const body = await readBody();
       const email = String(body.email || '').trim().toLocaleLowerCase('en-US');
       // Dibatasi per email supaya tidak bisa dipakai membanjiri kotak masuk orang lain.
-      const jatah = rateLimit.check('password-reset-request', email);
+      const jatah = await rateLimit.check('password-reset-request', email);
       if (!jatah.allowed) {
         tooManyRequests(response, jatah.retryAfterSeconds, TOO_MANY_REQUESTS);
         return;

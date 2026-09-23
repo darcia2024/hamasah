@@ -607,6 +607,19 @@ async function loadNotifications() {
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Status notifikasi belum dapat dimuat.');
   notificationList.replaceChildren();
+  // Bila pengiriman email tidak dikonfigurasi, sistem tidak mengirim dan tidak
+  // mengantre apa pun. Itu dikatakan apa adanya, supaya petugas tahu pemberitahuan
+  // ke pendaftar harus dilakukan manual lewat WhatsApp.
+  if (result.emailEnabled === false) {
+    notificationList.replaceChildren();
+    const catatan = document.createElement('p');
+    catatan.className = 'monitoring-hint';
+    catatan.textContent = 'Pengiriman email belum dikonfigurasi. Sistem tidak mengirim pemberitahuan otomatis, jadi kabar ke pendaftar dan wali dilakukan manual oleh tim.';
+    notificationList.append(catatan);
+    notificationListStatus.textContent = 'Email nonaktif.';
+    return;
+  }
+
   const invitations = (result.items || []).filter((item) => item.notificationType === 'account-invitation');
   if (!invitations.length) {
     const empty = document.createElement('p'); empty.textContent = 'Belum ada pengiriman undangan akun.'; notificationList.append(empty);

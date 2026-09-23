@@ -43,7 +43,7 @@ module.exports = [
     async handler({ response, services, readBody, rateLimit }) {
       const body = await readBody();
       const registrationId = String(body.registrationId || '').trim();
-      const limit = rateLimit.check('applicant-login', registrationId);
+      const limit = await rateLimit.check('applicant-login', registrationId);
       if (!limit.allowed) {
         const { tooManyRequests } = require('../http/respond.js');
         const { TOO_MANY_REQUESTS } = require('../rate-limit.js');
@@ -61,7 +61,7 @@ module.exports = [
     async handler({ response, services, readBody, rateLimit, ip }) {
       const body = await readBody();
       const registrationId = String(body.registrationId || '').trim().toUpperCase();
-      const limit = rateLimit.check('applicant-recovery', `${ip}:${registrationId}`);
+      const limit = await rateLimit.check('applicant-recovery', `${ip}:${registrationId}`);
       if (!limit.allowed) {
         tooManyRequests(response, limit.retryAfterSeconds, TOO_MANY_REQUESTS);
         return;
