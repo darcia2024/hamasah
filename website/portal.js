@@ -11,6 +11,8 @@ const portalAdmin = document.querySelector('#portal-admin');
 const accountForm = document.querySelector('#account-form');
 const accountFormStatus = document.querySelector('#account-form-status');
 const accountList = document.querySelector('#account-list');
+const inviteForm = document.querySelector('#invite-form');
+const inviteFormStatus = document.querySelector('#invite-form-status');
 const publicHeader = document.querySelector('#public-header');
 const staffNav = document.querySelector('#staff-nav');
 
@@ -1158,11 +1160,49 @@ function renderAccounts(accounts) {
   accounts.forEach((account) => {
     const item = document.createElement('div');
     item.className = 'portal-account';
+
+    const head = document.createElement('div');
+    head.className = 'portal-account__head';
     const name = document.createElement('strong');
     name.textContent = account.name;
+    const state = document.createElement('span');
+    state.className = account.active ? 'portal-account__state is-active' : 'portal-account__state';
+    state.textContent = account.active ? 'Aktif' : 'Nonaktif';
+    head.append(name, state);
+
     const copy = document.createElement('span');
     copy.textContent = `${account.email} · ${roleLabels[account.role] || account.role}`;
-    item.append(name, copy);
+
+    // PATCH /api/accounts/:id/active. Menonaktifkan akun juga mencabut sesinya
+    // di semua perangkat, jadi tombolnya diberi konfirmasi.
+    const action = document.createElement('button');
+    action.type = 'button';
+    action.className = 'button button--secondary portal-account__action';
+    action.textContent = account.active ? 'Nonaktifkan' : 'Aktifkan';
+    action.addEventListener('click', async () => {
+      if (account.active && !window.confirm(`Nonaktifkan akun ${account.name}? Sesi di semua perangkatnya ikut berakhir.`)) return;
+      action.disabled = true;
+      accountFormStatus.classList.remove('is-error');
+      try {
+        const response = await fetch(`/api/accounts/${encodeURIComponent(account.id)}/active`, {
+          method: 'PATCH',
+          headers: { ...requestHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ active: !account.active })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Status akun belum dapat diubah.');
+        accountFormStatus.textContent = result.account && result.account.active
+          ? `Akun ${account.name} diaktifkan.`
+          : `Akun ${account.name} dinonaktifkan. ${result.sessionsRevoked || 0} sesi dicabut.`;
+        await loadAccounts();
+      } catch (error) {
+        accountFormStatus.textContent = error.message || 'Status akun belum dapat diubah.';
+        accountFormStatus.classList.add('is-error');
+        action.disabled = false;
+      }
+    });
+
+    item.append(head, copy, action);
     accountList.append(item);
   });
 }
@@ -1230,6 +1270,42 @@ accountForm.addEventListener('submit', async (event) => {
     accountFormStatus.classList.add('is-error');
   }
 });
+
+// POST /api/accounts/invitations: akun dibuat nonaktif, penerima memasang kata
+// sandinya sendiri lewat tautan aktivasi. Admin tidak perlu mengarang kata sandi.
+if (inviteForm) {
+  inviteForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    inviteFormStatus.classList.remove('is-error');
+    inviteFormStatus.textContent = 'Mengirim undangan...';
+    try {
+      const response = await fetch('/api/accounts/invitations', {
+        method: 'POST',
+        headers: { ...requestHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: document.querySelector('#invite-name').value,
+          email: document.querySelector('#invite-email').value,
+          role: document.querySelector('#invite-role').value
+        })
+      });
+      const result = await response.json();
+      // 502 berarti akun sudah dibuat tetapi emailnya gagal terkirim. Itu bukan
+      // kegagalan penuh, jadi pesannya dibedakan dari galat validasi.
+      if (!response.ok && !result.account) throw new Error(result.error || 'Undangan belum dapat dikirim.');
+      inviteForm.reset();
+      inviteFormStatus.textContent = response.ok
+        ? `Undangan terkirim ke ${result.account.email}. Tautan aktivasi berlaku terbatas.`
+        : `Akun ${result.account.name} dibuat, tetapi email undangan belum terkirim. Periksa konfigurasi email lalu kirim ulang.`;
+      if (!response.ok) inviteFormStatus.classList.add('is-error');
+      const accounts = await loadAccounts();
+      const countBadge = document.querySelector('#tab-count-accounts');
+      if (countBadge) countBadge.textContent = accounts.length;
+    } catch (error) {
+      inviteFormStatus.textContent = error.message || 'Undangan belum dapat dikirim.';
+      inviteFormStatus.classList.add('is-error');
+    }
+  });
+}
 
 portalLogout.addEventListener('click', async () => {
   await fetch('/api/auth/logout', { method: 'POST', headers: requestHeaders() }).catch(() => {});

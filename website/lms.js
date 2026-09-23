@@ -12,6 +12,8 @@ const courseStatus = document.querySelector('#course-form-status');
 const materialForm = document.querySelector('#material-form');
 const materialStatus = document.querySelector('#material-form-status');
 const materialCourse = document.querySelector('#material-course');
+const staffMaterialList = document.querySelector('#staff-material-list');
+const staffMaterialStatus = document.querySelector('#staff-material-status');
 const enrollmentForm = document.querySelector('#enrollment-form');
 const enrollmentStatus = document.querySelector('#enrollment-form-status');
 const enrollmentCourse = document.querySelector('#enrollment-course');
@@ -555,9 +557,81 @@ async function loadCourses() {
   if (syncStatus) syncStatus.textContent = result.items.length ? 'Materi tersedia untuk santri terpilih' : 'Belum ada materi untuk santri terpilih';
 }
 
+let staffCourses = [];
+
 function renderStaffCourses(courses) {
+  staffCourses = courses || [];
+  const terpilih = materialCourse.value;
   [materialCourse, enrollmentCourse].forEach((select) => select.replaceChildren());
-  courses.forEach((course) => [materialCourse, enrollmentCourse].forEach((select) => select.add(new Option(course.title, course.id))));
+  staffCourses.forEach((course) => [materialCourse, enrollmentCourse].forEach((select) => select.add(new Option(course.title, course.id))));
+  if (terpilih && staffCourses.some((course) => course.id === terpilih)) materialCourse.value = terpilih;
+  renderStaffMaterials();
+}
+
+// Daftar materi maddah terpilih. Materi yang sudah diarsipkan tetap ditampilkan
+// dengan penanda, supaya guru tahu apa yang pernah ada dan tidak menambah ulang.
+function renderStaffMaterials() {
+  if (!staffMaterialList) return;
+  staffMaterialList.replaceChildren();
+  const course = staffCourses.find((item) => item.id === materialCourse.value);
+  const materials = (course && course.materials) || [];
+  if (!course) {
+    staffMaterialStatus.textContent = 'Pilih maddah untuk melihat materinya.';
+    return;
+  }
+  if (!materials.length) {
+    staffMaterialStatus.textContent = 'Belum ada materi pada maddah ini.';
+    return;
+  }
+  staffMaterialStatus.textContent = `${materials.filter((m) => !m.archivedAt).length} materi aktif dari ${materials.length} materi.`;
+  materials.forEach((material) => {
+    const row = document.createElement('div');
+    row.className = material.archivedAt ? 'lms-material-row is-archived' : 'lms-material-row';
+
+    const info = document.createElement('div');
+    const title = document.createElement('strong');
+    title.textContent = material.title;
+    const meta = document.createElement('span');
+    meta.textContent = material.archivedAt
+      ? `${material.type} · diarsipkan`
+      : material.type;
+    info.append(title, meta);
+
+    row.append(info);
+
+    if (!material.archivedAt) {
+      const archive = document.createElement('button');
+      archive.type = 'button';
+      archive.className = 'button button--secondary lms-material-row__action';
+      archive.textContent = 'Arsipkan';
+      archive.addEventListener('click', () => archiveMaterial(course.id, material, archive));
+      row.append(archive);
+    }
+
+    staffMaterialList.append(row);
+  });
+}
+
+// PATCH /api/courses/:id/materials/:id/archive
+async function archiveMaterial(courseId, material, button) {
+  if (!window.confirm(`Arsipkan materi "${material.title}"? Materi ini tidak lagi muncul untuk santri.`)) return;
+  button.disabled = true;
+  staffMaterialStatus.classList.remove('is-error');
+  try {
+    const response = await fetch(`/api/courses/${encodeURIComponent(courseId)}/materials/${encodeURIComponent(material.id)}/archive`, {
+      method: 'PATCH',
+      headers: headers()
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Materi belum dapat diarsipkan.');
+    await loadStaffCourses();
+    staffMaterialStatus.textContent = `Materi "${material.title}" diarsipkan.`;
+    if (studentSelect.value) await loadCourses().catch(() => {});
+  } catch (error) {
+    staffMaterialStatus.textContent = error.message || 'Materi belum dapat diarsipkan.';
+    staffMaterialStatus.classList.add('is-error');
+    button.disabled = false;
+  }
 }
 
 async function loadStaffCourses() {
@@ -574,6 +648,7 @@ async function loadStudents() {
   if (page && page.total === 1 && page.items.length === 1) { studentSelect.value = page.items[0].id; await loadCourses(); }
 }
 
+materialCourse.addEventListener('change', () => renderStaffMaterials());
 studentSelect.addEventListener('change', () => loadCourses().catch((error) => setStatus(status, error.message, true)));
 courseForm.addEventListener('submit', async (event) => {
   event.preventDefault();

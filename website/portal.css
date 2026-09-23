@@ -4647,3 +4647,147 @@ table,
     transition: none;
   }
 }
+
+/* Baris akun: nama dan status di kiri, satu tombol aksi di kanan. */
+.portal-account {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "head action"
+    "copy action";
+  gap: 4px 16px;
+  align-items: center;
+  border-radius: 16px;
+}
+
+.portal-account__head {
+  grid-area: head;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.portal-account > span {
+  grid-area: copy;
+}
+
+.portal-account__action {
+  grid-area: action;
+}
+
+.portal-account__state {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.portal-account__state.is-active {
+  background: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
+}
+
+.portal-account__action {
+  min-height: 40px;
+  padding-inline: 18px;
+  font-size: 13px;
+}
+
+@media (max-width: 600px) {
+  .portal-account {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "head"
+      "copy"
+      "action";
+    gap: 6px;
+  }
+
+  .portal-account__action {
+    width: 100%;
+    margin-top: 6px;
+  }
+}
+
+/* Daftar materi di panel guru, dengan aksi arsipkan. */
+.lms-material-manager {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.lms-material-manager h4 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.lms-material-list {
+  display: grid;
+  gap: 8px;
+}
+
+.lms-material-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--md-sys-color-surface-container-low);
+}
+
+.lms-material-row strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.lms-material-row span {
+  font-size: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+  text-transform: capitalize;
+}
+
+.lms-material-row.is-archived strong {
+  color: var(--md-sys-color-on-surface-variant);
+  text-decoration: line-through;
+}
+
+.lms-material-row__action {
+  min-height: 38px;
+  padding-inline: 16px;
+  font-size: 13px;
+}
+
+/* Manajemen akun: dua formulir berdampingan, daftar akun melebar di bawahnya. */
+.crm-canvas .portal-admin-grid,
+.portal-admin-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.portal-admin-grid > div:last-child {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 860px) {
+  .crm-canvas .portal-admin-grid,
+  .portal-admin-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* Label formulir akun mengikuti label formulir lain: kapital awal kalimat, 14px. */
+#account-form label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  text-transform: none;
+  letter-spacing: 0;
+}

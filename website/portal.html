@@ -11,7 +11,7 @@
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=8765fb2d41" />
     <link rel="stylesheet" href="staff.css?v=4fb639678f" />
-    <link rel="stylesheet" href="portal.css?v=83e9f70f32" />
+    <link rel="stylesheet" href="portal.css?v=279b77a55a" />
   </head>
   <body class="staff-page">
     <!-- Header saat Belum Login -->
@@ -182,9 +182,41 @@
 
                 <button class="button button--primary" type="submit">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-                  Buat Akun Sekarang
+                  Buat akun
                 </button>
                 <p id="account-form-status" class="form-status" role="status" aria-live="polite"></p>
+              </form>
+
+              <form id="invite-form" class="staff-form">
+                <div class="form-title-group">
+                  <div class="form-title-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4z"/><polyline points="4 6 12 13 20 6"/></svg>
+                  </div>
+                  <div>
+                    <h2>Undang lewat email</h2>
+                    <p class="monitoring-hint">Penerima membuat kata sandinya sendiri lewat tautan aktivasi.</p>
+                  </div>
+                </div>
+
+                <label for="invite-name">Nama lengkap pengguna</label>
+                <input id="invite-name" type="text" placeholder="Nama sesuai identitas" required />
+
+                <label for="invite-email">Alamat email resmi</label>
+                <input id="invite-email" type="email" placeholder="nama@hamasah.test" required />
+
+                <label for="invite-role">Tingkat hak akses (role)</label>
+                <select id="invite-role" class="monitoring-select">
+                  <option value="registration-officer">Petugas Pendaftaran</option>
+                  <option value="supervisor">Pengawas / Musyrif Asrama Kairo</option>
+                  <option value="teacher">Guru / Tenaga Pengajar</option>
+                  <option value="finance">Divisi Keuangan &amp; SPP</option>
+                  <option value="parent">Wali Santri</option>
+                  <option value="student">Santri</option>
+                  <option value="admin">Administrator Sistem</option>
+                </select>
+
+                <button class="button button--secondary" type="submit">Kirim undangan</button>
+                <p id="invite-form-status" class="form-status" role="status" aria-live="polite"></p>
               </form>
 
               <div>
@@ -207,6 +239,6 @@
 
     <script src="internal-shell.js?v=347afbb4e7"></script>
     <script src="nav.js?v=5bff154c06"></script>
-    <script src="portal.js?v=6dc28a25fa"></script>
+    <script src="portal.js?v=8f5d66b7e8"></script>
   </body>
 </html>
