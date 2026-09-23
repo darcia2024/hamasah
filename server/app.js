@@ -191,6 +191,10 @@ function createHamasahApp(options) {
     async canViewProgress(studentId, actor) {
       if (!actor || actor.role !== identity.ROLES.PARENT) return false;
       return (await studentPortalService.dashboard(studentId, actor)).ok;
+    },
+    async studentNameOf(studentId) {
+      const santri = await studentStore.getStudent(studentId);
+      return santri ? santri.fullName || santri.name || null : null;
     }
   });
   const operationsStore = config.operationsStore || createPostgresOperationsStore({ database });

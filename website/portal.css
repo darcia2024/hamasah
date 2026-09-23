@@ -4791,3 +4791,215 @@ table,
   text-transform: none;
   letter-spacing: 0;
 }
+
+/* --------------------------------------------------------------------------
+   Tugas dan kuis: penyusun soal untuk guru, pengerjaan untuk santri, dan
+   penilaian kiriman.
+   -------------------------------------------------------------------------- */
+
+.lms-quiz-builder {
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--md-sys-color-surface-container-low);
+}
+
+.lms-quiz-builder__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lms-quiz-builder__head h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.lms-quiz-builder__head .button {
+  min-height: 38px;
+  padding-inline: 16px;
+  font-size: 13px;
+}
+
+.lms-quiz-builder__list {
+  display: grid;
+  gap: 12px;
+}
+
+.lms-quiz-question {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.lms-quiz-question label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.lms-quiz-question__remove {
+  min-height: 46px;
+  padding-inline: 14px;
+  font-size: 13px;
+}
+
+.lms-task {
+  display: grid;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.lms-task__note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.lms-task__form {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+
+.lms-task__field {
+  width: 100%;
+}
+
+.lms-task__field label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.lms-task__field input,
+.lms-task__field textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 14px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 12px;
+  background: var(--md-sys-color-surface);
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--md-sys-color-on-surface);
+}
+
+.lms-task__result {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.lms-task__result.is-pass {
+  color: var(--md-sys-color-tertiary);
+}
+
+.lms-task__result.is-error {
+  color: var(--md-sys-color-error);
+}
+
+.lms-review-manager {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.lms-review-manager h4 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.lms-submission-list {
+  display: grid;
+  gap: 12px;
+}
+
+.lms-submission {
+  display: grid;
+  gap: 10px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--md-sys-color-surface-container-low);
+}
+
+.lms-submission.is-reviewed {
+  background: var(--md-sys-color-surface-container);
+}
+
+.lms-submission__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lms-submission__head strong {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.lms-submission__head span {
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.lms-submission__body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.lms-submission__verdict {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--md-sys-color-tertiary);
+}
+
+.lms-submission__form {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.lms-submission__form label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.lms-submission__form input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 12px;
+  background: var(--md-sys-color-surface);
+  font-family: inherit;
+  font-size: 15px;
+}
+
+.lms-submission__form .button {
+  min-height: 46px;
+}
+
+@media (max-width: 860px) {
+  .lms-quiz-question,
+  .lms-submission__form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -168,15 +168,30 @@ Migrasi 040. Musyrif/admin mencatat di halaman monitoring: presensi sholat 5 wak
 - **Gerbang 2 (boleh dipakai staf): tertahan pada Gerbang 1.** R3 dan R5 selesai.
 - **Gerbang 3 (trafik nyata): tertahan.** R4 dan R6 selesai, angka performa R6 tercatat; R7 selesai kecuali R7.6 (artikel nyata dari klien). Di luar rencana: hosting (K2), penerapan migrasi 017-036 ke Supabase, scheduler untuk `worker:notifications` dan `worker:visa-reminders`, dan belum ada CI.
 
-## LMS: tugas dan kuis ditunda (21 September 2026)
+## LMS: tugas dan kuis (23 September 2026)
 
-Keputusan KR3 pada `docs/RENCANA_REMEDIASI_PHASE_R1_R8_2026-09-20.md`, dikerjakan sebagai Task R3.6 opsi (b).
+Keputusan KR3 opsi (b) dicabut: alurnya kini lengkap dari ujung ke ujung, sehingga tipe
+materi `assignment` dan `quiz` dapat dipilih kembali saat guru membuat materi.
 
-Tipe materi `assignment` dan `quiz` **tidak lagi dapat dipilih** saat guru membuat materi. Alasannya: backend-nya sudah lengkap (tabel `lms_attempts` di migrasi 025, `lms_submissions` di migrasi 026, beserta empat endpoint-nya), tetapi tidak ada satu pun UI untuk mengerjakannya di sisi santri maupun menilainya di sisi guru. Sebelum ini, guru dapat membuat tugas yang tidak bisa dikerjakan siapa pun.
-
-Yang tidak diubah: `MATERIAL_TYPES` di `server/lms-service.js` tetap memuat kedua tipe, dan API tetap menerimanya. Materi lama bertipe itu tetap terbaca di daftar materi. Yang dicabut hanya pilihannya di formulir, sehingga alurnya tinggal dipasang kembali tanpa migrasi data saat UI-nya dibangun.
-
-**Jangan menuliskannya sebagai fitur yang tersedia** pada materi pemasaran maupun dokumen serah terima sampai alur pengerjaan dan penilaiannya benar-benar ada.
+- **Guru menyusun.** Tipe kuis memunculkan penyusun pertanyaan (pertanyaan dan kunci
+  jawaban, bisa ditambah dan dihapus); isinya disimpan sebagai JSON pada kolom `content`,
+  bentuk yang sama dengan yang dibaca `submitQuiz`. Tipe tugas memakai kolom isi materi
+  sebagai instruksi.
+- **Santri mengerjakan.** Kuis tampil sebagai daftar isian dengan keterangan batas tiga
+  percobaan dan nilai lulus 70; penilaian dikerjakan server. Tugas dikirim sekali, lalu
+  kartunya berubah menjadi menunggu penilaian, dan setelah dinilai menampilkan nilai serta
+  catatan pengajar.
+- **Guru menilai.** `GET /api/courses/:id/submissions` (izin `courses.manage`, hanya maddah
+  milik guru bersangkutan) menampilkan kiriman beserta nama santri dan judul materi. Nama
+  santri diambil di server lewat `studentNameOf`, karena guru tidak memiliki izin
+  `students.read`. Penilaian memakai `PATCH /api/lms/submissions/:id/review`; nilai 70 ke
+  atas menandai materi selesai.
+- **Kunci jawaban tidak pernah dikirim ke peramban santri.** Sebelumnya `content` kuis
+  dikirim apa adanya, sehingga kunci jawaban dapat dibaca dari respons API. Kini santri
+  hanya menerima daftar pertanyaan, batas percobaan, dan ambang kelulusan; riwayat
+  percobaan serta status kiriman tugasnya sendiri ikut disertakan.
+- Migrasi tidak berubah: `lms_attempts` (025) dan `lms_submissions` (026) sudah ada sejak
+  awal. Yang ditambahkan hanya satu jalur baca `listSubmissionsByCourse` pada store.
 
 ## Sebelum go-live penuh
 

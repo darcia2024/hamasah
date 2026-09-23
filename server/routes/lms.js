@@ -123,6 +123,15 @@ module.exports = [
     }
   },
   {
+    method: 'GET',
+    pattern: /^\/api\/courses\/([\w-]+)\/submissions$/,
+    permission: 'courses.manage',
+    async handler({ response, services, auth, params }) {
+      const result = await services.lmsService.listSubmissions(params[0], await auth.actor());
+      json(response, result.ok ? 200 : 403, result.ok ? { items: result.value } : publicError(result));
+    }
+  },
+  {
     method: 'PATCH',
     pattern: /^\/api\/lms\/submissions\/([\w-]+)\/review$/,
     permission: 'courses.manage',

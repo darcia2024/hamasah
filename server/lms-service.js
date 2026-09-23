@@ -1,6 +1,10 @@
 const crypto = require('node:crypto');
 
 const MATERIAL_TYPES = Object.freeze(['video', 'pdf', 'text', 'assignment', 'quiz']);
+// Dipakai submitQuiz dan ditampilkan ke santri supaya aturannya tidak tersembunyi.
+const QUIZ_ATTEMPT_LIMIT = 3;
+const QUIZ_PASSING_SCORE = 70;
+const ASSIGNMENT_PASSING_SCORE = 70;
 // Harus sepadan dengan izin courses.manage dan courses.read di server/access-policy.js.
 const MANAGE_ROLES = Object.freeze(['admin', 'teacher']);
 const VIEW_ROLES = Object.freeze(['admin', 'teacher', 'supervisor']);
@@ -61,6 +65,7 @@ function createMemoryLmsStore() {
     async addAttempt(record) { database.attempts.push(clone(record)); return clone(record); }
     ,async getSubmission(studentId, materialId) { return clone(database.submissions.find((item) => item.studentId === studentId && item.materialId === materialId && item.status !== 'returned') || null); }
     ,async addSubmission(record) { database.submissions.push(clone(record)); return clone(record); }
+    ,async listSubmissionsByCourse(courseId) { return clone(database.submissions.filter((item) => item.courseId === courseId)); }
     ,async reviewSubmission(id, review) { const item = database.submissions.find((entry) => entry.id === id); if (!item) return null; Object.assign(item, review); return clone(item); }
     ,async updateMaterial(courseId, materialId, value) { const course = database.courses[courseId]; const item = course && course.materials.find((entry) => entry.id === materialId); if (!item) return null; Object.assign(item, value, { version: (item.version || 1) + 1 }); return clone(item); }
     ,async archiveMaterial(courseId, materialId, archivedAt) { const course = database.courses[courseId]; const item = course && course.materials.find((entry) => entry.id === materialId); if (!item) return null; item.archivedAt = archivedAt; item.version = (item.version || 1) + 1; return clone(item); }
@@ -75,6 +80,9 @@ function createLmsService(options) {
   // Wali hanya boleh melihat RINGKASAN progres santri yang terhubung dengannya, bukan isi materi.
   const canViewProgress = config.canViewProgress || async function noProgressAccess() { return false; };
   const aiService = config.aiService || null;
+  // Guru tidak punya izin students.read, jadi nama santri pada daftar kiriman tugas
+  // diambil di server lewat pencari ini, bukan dengan memanggil API santri dari peramban.
+  const studentNameOf = config.studentNameOf || async function noName() { return null; };
 
   function isStaff(actor) {
     return Boolean(actor && MANAGE_ROLES.includes(actor.role));
@@ -193,12 +201,35 @@ function createLmsService(options) {
       .filter(function currentCourse(entry) { return entry.courseId === courseId; })
       .map(function materialId(entry) { return entry.materialId; });
     const activeMaterials = course.materials.filter((material) => !material.archivedAt);
-    const materials = activeMaterials.map(function learnerMaterial(material) {
-      return {
+    const attempts = typeof store.listAttempts === 'function' ? await store.listAttempts(studentId, null) : [];
+    const materials = await Promise.all(activeMaterials.map(async function learnerMaterial(material) {
+      const dasar = {
         id: material.id, type: material.type, title: material.title, content: material.content,
         summary: material.summary, keyPoints: material.keyPoints, completed: completedMaterialIds.includes(material.id)
       };
-    });
+      if (material.type === 'quiz') {
+        // Kunci jawaban tidak pernah dikirim ke peramban santri: yang dikirim hanya
+        // pertanyaannya. Penilaian tetap dikerjakan server di submitQuiz.
+        let questions = [];
+        try { questions = JSON.parse(material.content).questions || []; } catch { questions = []; }
+        dasar.content = '';
+        dasar.quiz = {
+          questions: questions.map((question, index) => ({ index, prompt: question.prompt })),
+          attemptLimit: QUIZ_ATTEMPT_LIMIT,
+          passingScore: QUIZ_PASSING_SCORE
+        };
+        dasar.attempts = attempts
+          .filter((attempt) => attempt.materialId === material.id)
+          .map((attempt) => ({ attemptNumber: attempt.attemptNumber, score: attempt.score, passed: attempt.passed, createdAt: attempt.createdAt }));
+      }
+      if (material.type === 'assignment' && typeof store.getSubmission === 'function') {
+        const submission = await store.getSubmission(studentId, material.id);
+        dasar.submission = submission
+          ? { id: submission.id, status: submission.status, score: submission.score, reviewerNote: submission.reviewerNote, submittedAt: submission.submittedAt || submission.createdAt || null }
+          : null;
+      }
+      return dasar;
+    }));
     return {
       ok: true,
       value: {
@@ -284,7 +315,7 @@ function createLmsService(options) {
     try { questions = JSON.parse(material.content).questions; } catch { questions = null; }
     if (!Array.isArray(questions) || !questions.length) return { ok: false, error: 'Konfigurasi kuis belum valid.' };
     const previous = await store.listAttempts(studentId, materialId);
-    if (previous.length >= 3) return { ok: false, error: 'Batas percobaan kuis sudah tercapai.' };
+    if (previous.length >= QUIZ_ATTEMPT_LIMIT) return { ok: false, error: 'Batas percobaan kuis sudah tercapai.' };
     const submitted = answers && typeof answers === 'object' ? answers : {};
     const benar = questions.reduce((total, question, index) => total + (String(submitted[index] ?? '') === String(question.answer) ? 1 : 0), 0);
     const score = Math.round((benar / questions.length) * 100);
@@ -303,12 +334,37 @@ function createLmsService(options) {
     return { ok: true, value: await store.addSubmission({ id: crypto.randomUUID(), studentId, courseId, materialId, body, fileObjectId: clean(input && input.fileObjectId) || null, status: 'submitted', score: null, reviewerNote: '', submittedAt: now(), reviewedAt: null, reviewerAccountId: null }) };
   }
 
+  // Guru perlu tahu kiriman mana yang menunggu dinilai. Tanpa ini, review hanya
+  // bisa dipanggil kalau id kirimannya sudah diketahui dari tempat lain.
+  async function listSubmissions(courseId, actor) {
+    if (!isStaff(actor)) return { ok: false, error: 'Akses guru atau admin diperlukan.' };
+    const course = await store.getCourse(courseId);
+    if (!course || !canManageCourse(course, actor)) return { ok: false, error: 'Maddah tidak ditemukan.' };
+    if (typeof store.listSubmissionsByCourse !== 'function') return { ok: true, value: [] };
+    const judul = new Map(course.materials.map((material) => [material.id, material.title]));
+    const items = await store.listSubmissionsByCourse(courseId);
+    const nama = new Map();
+    for (const item of items) {
+      if (!nama.has(item.studentId)) nama.set(item.studentId, await studentNameOf(item.studentId));
+    }
+    return {
+      ok: true,
+      value: items
+        .map((item) => ({
+          ...item,
+          materialTitle: judul.get(item.materialId) || 'Materi tidak ditemukan',
+          studentName: nama.get(item.studentId) || item.studentId
+        }))
+        .sort((left, right) => String(right.submittedAt || '').localeCompare(String(left.submittedAt || '')))
+    };
+  }
+
   async function reviewSubmission(submissionId, input, actor) {
     if (!isStaff(actor)) return { ok: false, error: 'Akses guru atau admin diperlukan.' };
     const score = Number(input && input.score); const note = clean(input && input.note);
     if (!Number.isInteger(score) || score < 0 || score > 100 || note.length < 3) return { ok: false, error: 'Nilai dan catatan review belum valid.' };
     const saved = await store.reviewSubmission(submissionId, { status: 'reviewed', score, reviewerNote: note, reviewedAt: now(), reviewerAccountId: actor.id || null });
-    if (saved && score >= 70) await store.addCompletion({ id: crypto.randomUUID(), studentId: saved.studentId, courseId: saved.courseId, materialId: saved.materialId, completedAt: now() });
+    if (saved && score >= ASSIGNMENT_PASSING_SCORE) await store.addCompletion({ id: crypto.randomUUID(), studentId: saved.studentId, courseId: saved.courseId, materialId: saved.materialId, completedAt: now() });
     return saved ? { ok: true, value: saved } : { ok: false, error: 'Submission tidak ditemukan.' };
   }
 
@@ -365,6 +421,7 @@ function createLmsService(options) {
     studyHelp,
     updateMaterial,
     submitAssignment,
+    listSubmissions,
     reviewSubmission
     ,submitQuiz
   });

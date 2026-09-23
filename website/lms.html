@@ -10,7 +10,7 @@
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=8765fb2d41" />
     <link rel="stylesheet" href="staff.css?v=4fb639678f" />
-    <link rel="stylesheet" href="portal.css?v=279b77a55a" />
+    <link rel="stylesheet" href="portal.css?v=4ffe2d851c" />
   </head>
   <body class="staff-page">
     <!-- Header saat Belum Login -->
@@ -208,13 +208,10 @@
                           <option value="video">Video pembelajaran</option>
                           <option value="pdf">Modul PDF / Kitab Digital</option>
                           <option value="text">Teks &amp; Matan</option>
+                          <option value="assignment">Tugas</option>
+                          <option value="quiz">Kuis</option>
                         </select>
-                        <!-- Keputusan KR3 opsi (b). Tipe assignment dan quiz dicabut dari
-                             pilihan karena santri belum punya cara mengerjakannya dan guru
-                             belum punya cara menilainya. Materi lama bertipe itu tetap
-                             terbaca; backend-nya pun tidak diubah, sehingga tinggal
-                             dipasang kembali saat alurnya dibangun. -->
-                        <small id="material-type-note" class="field-note">Tugas dan kuis belum tersedia. Alur pengerjaan dan penilaiannya sedang disiapkan, jadi tipe itu belum dapat dipilih.</small>
+                        <small id="material-type-note" class="field-note">Tugas dinilai guru; kuis dinilai otomatis dengan batas tiga percobaan dan nilai lulus 70.</small>
                       </div>
                     </div>
                     <div>
@@ -225,12 +222,20 @@
                       <label for="material-content">Referensi atau isi materi lengkap</label>
                       <textarea id="material-content" rows="3" placeholder="Tautan video, transkrip bacaan, atau rujukan kitab..." required></textarea>
                     </div>
+                    <div id="quiz-builder" class="lms-quiz-builder" hidden>
+                      <div class="lms-quiz-builder__head">
+                        <h4>Pertanyaan kuis</h4>
+                        <button type="button" class="button button--secondary" id="quiz-add-question">Tambah pertanyaan</button>
+                      </div>
+                      <div id="quiz-question-list" class="lms-quiz-builder__list"></div>
+                      <small class="field-note">Jawaban dicocokkan persis dengan kunci, jadi tulis kunci sesingkat mungkin, misalnya satu kata.</small>
+                    </div>
                     <div>
                       <label for="material-summary">Rangkuman materi</label>
                       <textarea id="material-summary" rows="2" placeholder="Inti sari pokok bahasan..." required></textarea>
                     </div>
                     <div>
-                      <label for="material-points">Poin-Poin Penting (Pisahkan dengan koma)</label>
+                      <label for="material-points">Poin penting (pisahkan dengan koma)</label>
                       <input id="material-points" type="text" placeholder="Kalam lafadz murokkab, 3 tanda isim, tanwin" required />
                     </div>
                     <div class="form-grid-2 form-grid-2--tight">
@@ -249,6 +254,12 @@
                     </button>
                     <p id="material-form-status" class="form-status" role="status" aria-live="polite"></p>
                   </form>
+
+                  <div class="lms-review-manager">
+                    <h4>Kiriman tugas</h4>
+                    <div id="submission-list" class="lms-submission-list" aria-live="polite"></div>
+                    <p id="submission-status" class="form-status" role="status" aria-live="polite"></p>
+                  </div>
 
                   <div class="lms-material-manager">
                     <h4 id="staff-material-title">Materi pada maddah terpilih</h4>
@@ -290,6 +301,6 @@
     <script src="internal-shell.js?v=347afbb4e7"></script>
     <script src="nav.js?v=5bff154c06"></script>
     <script src="student-picker.js?v=cd591eea97"></script>
-    <script src="lms.js?v=43a3dc7f56"></script>
+    <script src="lms.js?v=e6393bb4b7"></script>
   </body>
 </html>

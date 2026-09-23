@@ -192,6 +192,7 @@ async function run() {
       },
 
       { permission: 'courses.manage', method: 'GET', path: '/api/courses' },
+      { permission: 'courses.manage', method: 'GET', path: () => `/api/courses/${courseId}/submissions` },
       {
         permission: 'courses.manage', method: 'POST', path: '/api/courses',
         body: () => ({ title: 'Maddah Tambahan', description: 'Deskripsi maddah tambahan.' })

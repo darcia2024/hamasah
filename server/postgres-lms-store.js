@@ -209,6 +209,14 @@ function createPostgresLmsStore({ database } = {}) {
       return toSubmission(rows[0]);
     },
 
+    async listSubmissionsByCourse(courseId) {
+      const { rows } = await database.query(
+        'SELECT id, student_id, course_id, material_id, body, file_object_id, status, score, reviewer_note, reviewer_account_id, submitted_at, reviewed_at FROM lms_submissions WHERE course_id = $1 ORDER BY submitted_at DESC',
+        [courseId]
+      );
+      return rows.map(toSubmission);
+    },
+
     async reviewSubmission(id, review) {
       const { rows } = await database.query(`UPDATE lms_submissions SET status = $2, score = $3, reviewer_note = $4, reviewed_at = $5, reviewer_account_id = $6 WHERE id = $1 RETURNING id, student_id, course_id, material_id, body, file_object_id, status, score, reviewer_note, submitted_at, reviewed_at, reviewer_account_id`, [id, review.status, review.score, review.reviewerNote, review.reviewedAt, review.reviewerAccountId || null]);
       return rows[0] ? toSubmission(rows[0]) : null;

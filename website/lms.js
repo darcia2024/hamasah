@@ -13,6 +13,13 @@ const materialForm = document.querySelector('#material-form');
 const materialStatus = document.querySelector('#material-form-status');
 const materialCourse = document.querySelector('#material-course');
 const staffMaterialList = document.querySelector('#staff-material-list');
+const materialType = document.querySelector('#material-type');
+const materialContentField = document.querySelector('#material-content');
+const quizBuilder = document.querySelector('#quiz-builder');
+const quizQuestionList = document.querySelector('#quiz-question-list');
+const quizAddQuestion = document.querySelector('#quiz-add-question');
+const submissionList = document.querySelector('#submission-list');
+const submissionStatus = document.querySelector('#submission-status');
 const staffMaterialStatus = document.querySelector('#staff-material-status');
 const enrollmentForm = document.querySelector('#enrollment-form');
 const enrollmentStatus = document.querySelector('#enrollment-form-status');
@@ -218,6 +225,14 @@ function renderCourse(course, activeMaterialId) {
       contentBox.className = 'lms-note-box';
       contentBox.textContent = activeMaterial.content;
       activeCard.append(contentBox);
+    }
+
+    if (activeMaterial.type === 'quiz' && activeMaterial.quiz) {
+      activeCard.append(buildQuizForm(course, activeMaterial));
+    }
+
+    if (activeMaterial.type === 'assignment') {
+      activeCard.append(buildAssignmentForm(course, activeMaterial));
     }
 
     if (activeMaterial.keyPoints && activeMaterial.keyPoints.length) {
@@ -444,6 +459,184 @@ function renderCourse(course, activeMaterialId) {
   switchLmsTab(tabBtnCourseDetail);
 }
 
+// Hasil percobaan terakhir disimpan di sini supaya tetap terbaca setelah kartu
+// materi dirender ulang dengan progres terbaru.
+let quizFeedback = null;
+
+// Kuis dinilai server. Peramban hanya mengirim jawaban; kunci jawabannya tidak
+// pernah ikut dikirim ke sini.
+function buildQuizForm(course, material) {
+  const wrap = document.createElement('div');
+  wrap.className = 'lms-task';
+
+  const riwayat = material.attempts || [];
+  const terbaik = riwayat.reduce((nilai, attempt) => Math.max(nilai, attempt.score || 0), 0);
+  const lulus = riwayat.some((attempt) => attempt.passed);
+  const sisa = Math.max(0, (material.quiz.attemptLimit || 3) - riwayat.length);
+
+  if (quizFeedback && quizFeedback.materialId === material.id) {
+    const pesan = document.createElement('p');
+    pesan.className = quizFeedback.pass ? 'lms-task__result is-pass' : 'lms-task__result';
+    pesan.textContent = quizFeedback.text;
+    wrap.append(pesan);
+  }
+
+  const info = document.createElement('p');
+  info.className = 'lms-task__note';
+  info.textContent = riwayat.length
+    ? `Percobaan terpakai ${riwayat.length} dari ${material.quiz.attemptLimit}. Nilai tertinggi ${terbaik}. Nilai lulus ${material.quiz.passingScore}.`
+    : `Tersedia ${material.quiz.attemptLimit} percobaan. Nilai lulus ${material.quiz.passingScore}.`;
+  wrap.append(info);
+
+  if (lulus) {
+    const selesai = document.createElement('p');
+    selesai.className = 'lms-task__result is-pass';
+    selesai.textContent = `Kuis sudah lulus dengan nilai ${terbaik}.`;
+    wrap.append(selesai);
+    return wrap;
+  }
+
+  if (!sisa) {
+    const habis = document.createElement('p');
+    habis.className = 'lms-task__result';
+    habis.textContent = 'Batas percobaan sudah habis. Hubungi pengajar untuk langkah berikutnya.';
+    wrap.append(habis);
+    return wrap;
+  }
+
+  const form = document.createElement('form');
+  form.className = 'lms-task__form';
+  material.quiz.questions.forEach((question) => {
+    const field = document.createElement('div');
+    field.className = 'lms-task__field';
+    const label = document.createElement('label');
+    label.setAttribute('for', `quiz-${material.id}-${question.index}`);
+    label.textContent = `${question.index + 1}. ${question.prompt}`;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = `quiz-${material.id}-${question.index}`;
+    input.name = String(question.index);
+    input.autocomplete = 'off';
+    input.required = true;
+    field.append(label, input);
+    form.append(field);
+  });
+
+  const kirim = document.createElement('button');
+  kirim.type = 'submit';
+  kirim.className = 'button button--primary';
+  kirim.textContent = 'Kirim jawaban';
+  const hasil = document.createElement('p');
+  hasil.className = 'lms-task__result';
+  hasil.hidden = true;
+  form.append(kirim, hasil);
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    kirim.disabled = true;
+    hasil.hidden = false;
+    hasil.classList.remove('is-error', 'is-pass');
+    hasil.textContent = 'Menilai jawaban...';
+    const answers = {};
+    material.quiz.questions.forEach((question) => {
+      answers[question.index] = form.elements[String(question.index)].value.trim();
+    });
+    try {
+      const response = await fetch(`/api/students/${encodeURIComponent(studentSelect.value)}/courses/${encodeURIComponent(course.id)}/materials/${encodeURIComponent(material.id)}/attempts`, {
+        method: 'POST',
+        headers: { ...headers(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Jawaban belum dapat dinilai.');
+      const attempt = result.attempt;
+      hasil.textContent = attempt.passed
+        ? `Lulus dengan nilai ${attempt.score}.`
+        : `Nilai ${attempt.score}, belum mencapai ${material.quiz.passingScore}. Percobaan ke-${attempt.attemptNumber}.`;
+      if (attempt.passed) hasil.classList.add('is-pass');
+      quizFeedback = { materialId: material.id, text: hasil.textContent, pass: attempt.passed };
+      if (result.course) {
+        renderCourse(result.course, material.id);
+        await loadCourses().catch(() => {});
+      }
+    } catch (error) {
+      hasil.textContent = error.message || 'Jawaban belum dapat dinilai.';
+      hasil.classList.add('is-error');
+      kirim.disabled = false;
+    }
+  });
+
+  wrap.append(form);
+  return wrap;
+}
+
+// Tugas dikirim sekali, lalu menunggu penilaian guru.
+function buildAssignmentForm(course, material) {
+  const wrap = document.createElement('div');
+  wrap.className = 'lms-task';
+  const submission = material.submission;
+
+  if (submission) {
+    const status = document.createElement('p');
+    const dinilai = submission.status === 'reviewed';
+    status.className = dinilai ? 'lms-task__result is-pass' : 'lms-task__result';
+    status.textContent = dinilai
+      ? `Sudah dinilai: ${submission.score}. Catatan pengajar: ${submission.reviewerNote || 'tidak ada catatan.'}`
+      : 'Tugas sudah dikirim dan menunggu penilaian pengajar.';
+    wrap.append(status);
+    return wrap;
+  }
+
+  const form = document.createElement('form');
+  form.className = 'lms-task__form';
+  const field = document.createElement('div');
+  field.className = 'lms-task__field';
+  const label = document.createElement('label');
+  label.setAttribute('for', `assignment-${material.id}`);
+  label.textContent = 'Jawaban tugas';
+  const area = document.createElement('textarea');
+  area.id = `assignment-${material.id}`;
+  area.rows = 5;
+  area.required = true;
+  area.placeholder = 'Tulis jawaban Anda di sini.';
+  field.append(label, area);
+
+  const kirim = document.createElement('button');
+  kirim.type = 'submit';
+  kirim.className = 'button button--primary';
+  kirim.textContent = 'Kirim tugas';
+  const hasil = document.createElement('p');
+  hasil.className = 'lms-task__result';
+  hasil.hidden = true;
+  form.append(field, kirim, hasil);
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    kirim.disabled = true;
+    hasil.hidden = false;
+    hasil.classList.remove('is-error');
+    hasil.textContent = 'Mengirim tugas...';
+    try {
+      const response = await fetch(`/api/students/${encodeURIComponent(studentSelect.value)}/courses/${encodeURIComponent(course.id)}/materials/${encodeURIComponent(material.id)}/submission`, {
+        method: 'POST',
+        headers: { ...headers(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: area.value })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Tugas belum dapat dikirim.');
+      hasil.textContent = 'Tugas terkirim dan menunggu penilaian pengajar.';
+      await loadCourses().catch(() => {});
+    } catch (error) {
+      hasil.textContent = error.message || 'Tugas belum dapat dikirim.';
+      hasil.classList.add('is-error');
+      kirim.disabled = false;
+    }
+  });
+
+  wrap.append(form);
+  return wrap;
+}
+
 async function completeMaterial(courseId, materialId) {
   const response = await fetch(`/api/students/${encodeURIComponent(studentSelect.value)}/courses/${encodeURIComponent(courseId)}/materials/${encodeURIComponent(materialId)}/complete`, { method: 'POST', headers: headers() });
   const result = await response.json();
@@ -566,6 +759,7 @@ function renderStaffCourses(courses) {
   staffCourses.forEach((course) => [materialCourse, enrollmentCourse].forEach((select) => select.add(new Option(course.title, course.id))));
   if (terpilih && staffCourses.some((course) => course.id === terpilih)) materialCourse.value = terpilih;
   renderStaffMaterials();
+  loadSubmissions().catch(() => {});
 }
 
 // Daftar materi maddah terpilih. Materi yang sudah diarsipkan tetap ditampilkan
@@ -612,6 +806,117 @@ function renderStaffMaterials() {
   });
 }
 
+// GET /api/courses/:id/submissions lalu PATCH /api/lms/submissions/:id/review
+async function loadSubmissions() {
+  if (!submissionList || !materialCourse.value) {
+    if (submissionList) submissionList.replaceChildren();
+    if (submissionStatus) submissionStatus.textContent = 'Pilih maddah untuk melihat kiriman tugas.';
+    return;
+  }
+  submissionStatus.classList.remove('is-error');
+  submissionStatus.textContent = 'Memuat kiriman...';
+  try {
+    const response = await fetch(`/api/courses/${encodeURIComponent(materialCourse.value)}/submissions`, { headers: headers() });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Kiriman belum dapat dimuat.');
+    renderSubmissions(result.items || []);
+  } catch (error) {
+    submissionList.replaceChildren();
+    submissionStatus.textContent = error.message || 'Kiriman belum dapat dimuat.';
+    submissionStatus.classList.add('is-error');
+  }
+}
+
+function renderSubmissions(items) {
+  submissionList.replaceChildren();
+  const menunggu = items.filter((item) => item.status !== 'reviewed');
+  submissionStatus.textContent = items.length
+    ? `${menunggu.length} menunggu penilaian dari ${items.length} kiriman.`
+    : 'Belum ada kiriman tugas pada maddah ini.';
+
+  items.forEach((item) => {
+    const card = document.createElement('div');
+    card.className = item.status === 'reviewed' ? 'lms-submission is-reviewed' : 'lms-submission';
+
+    const head = document.createElement('div');
+    head.className = 'lms-submission__head';
+    const who = document.createElement('strong');
+    who.textContent = item.studentName || item.studentId;
+    const meta = document.createElement('span');
+    meta.textContent = item.materialTitle;
+    head.append(who, meta);
+
+    const body = document.createElement('p');
+    body.className = 'lms-submission__body';
+    body.textContent = item.body;
+
+    card.append(head, body);
+
+    if (item.status === 'reviewed') {
+      const nilai = document.createElement('p');
+      nilai.className = 'lms-submission__verdict';
+      nilai.textContent = `Nilai ${item.score}. ${item.reviewerNote || ''}`.trim();
+      card.append(nilai);
+    } else {
+      const form = document.createElement('form');
+      form.className = 'lms-submission__form';
+
+      const nilaiField = document.createElement('div');
+      const nilaiLabel = document.createElement('label');
+      nilaiLabel.setAttribute('for', `nilai-${item.id}`);
+      nilaiLabel.textContent = 'Nilai (0-100)';
+      const nilaiInput = document.createElement('input');
+      nilaiInput.type = 'number';
+      nilaiInput.id = `nilai-${item.id}`;
+      nilaiInput.min = '0';
+      nilaiInput.max = '100';
+      nilaiInput.required = true;
+      nilaiField.append(nilaiLabel, nilaiInput);
+
+      const catatanField = document.createElement('div');
+      const catatanLabel = document.createElement('label');
+      catatanLabel.setAttribute('for', `catatan-${item.id}`);
+      catatanLabel.textContent = 'Catatan untuk santri';
+      const catatanInput = document.createElement('input');
+      catatanInput.type = 'text';
+      catatanInput.id = `catatan-${item.id}`;
+      catatanInput.required = true;
+      catatanInput.placeholder = 'Minimal tiga huruf';
+      catatanField.append(catatanLabel, catatanInput);
+
+      const simpan = document.createElement('button');
+      simpan.type = 'submit';
+      simpan.className = 'button button--primary';
+      simpan.textContent = 'Simpan penilaian';
+
+      form.append(nilaiField, catatanField, simpan);
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        simpan.disabled = true;
+        submissionStatus.classList.remove('is-error');
+        try {
+          const response = await fetch(`/api/lms/submissions/${encodeURIComponent(item.id)}/review`, {
+            method: 'PATCH',
+            headers: { ...headers(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ score: Number(nilaiInput.value), note: catatanInput.value })
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || 'Penilaian belum dapat disimpan.');
+          await loadSubmissions();
+          submissionStatus.textContent = `Penilaian untuk ${item.studentName || item.studentId} tersimpan.`;
+        } catch (error) {
+          submissionStatus.textContent = error.message || 'Penilaian belum dapat disimpan.';
+          submissionStatus.classList.add('is-error');
+          simpan.disabled = false;
+        }
+      });
+      card.append(form);
+    }
+
+    submissionList.append(card);
+  });
+}
+
 // PATCH /api/courses/:id/materials/:id/archive
 async function archiveMaterial(courseId, material, button) {
   if (!window.confirm(`Arsipkan materi "${material.title}"? Materi ini tidak lagi muncul untuk santri.`)) return;
@@ -648,16 +953,85 @@ async function loadStudents() {
   if (page && page.total === 1 && page.items.length === 1) { studentSelect.value = page.items[0].id; await loadCourses(); }
 }
 
-materialCourse.addEventListener('change', () => renderStaffMaterials());
+materialCourse.addEventListener('change', () => {
+  renderStaffMaterials();
+  loadSubmissions().catch(() => {});
+});
 studentSelect.addEventListener('change', () => loadCourses().catch((error) => setStatus(status, error.message, true)));
 courseForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   try { const response = await fetch('/api/courses', { method: 'POST', headers: { ...headers(), 'Content-Type': 'application/json' }, body: JSON.stringify({ title: document.querySelector('#course-title').value, description: document.querySelector('#course-description').value }) }); const result = await response.json(); if (!response.ok) throw new Error(result.error); courseForm.reset(); setStatus(courseStatus, `Maddah ${result.course.title} berhasil dibuat.`); await loadStaffCourses(); } catch (error) { setStatus(courseStatus, error.message || 'Maddah belum dapat dibuat.', true); }
 });
+// Penyusun pertanyaan kuis. Isinya disimpan sebagai JSON pada kolom content,
+// bentuk yang sama dengan yang dibaca submitQuiz di server.
+function addQuizQuestion(prompt, answer) {
+  const row = document.createElement('div');
+  row.className = 'lms-quiz-question';
+  const nomor = quizQuestionList.children.length + 1;
+
+  const soal = document.createElement('div');
+  const soalLabel = document.createElement('label');
+  soalLabel.textContent = `Pertanyaan ${nomor}`;
+  const soalInput = document.createElement('input');
+  soalInput.type = 'text';
+  soalInput.className = 'js-quiz-prompt';
+  soalInput.value = prompt || '';
+  soalInput.placeholder = 'Contoh: Apa pokok kalimat dalam jumlah ismiyyah?';
+  soal.append(soalLabel, soalInput);
+
+  const kunci = document.createElement('div');
+  const kunciLabel = document.createElement('label');
+  kunciLabel.textContent = 'Kunci jawaban';
+  const kunciInput = document.createElement('input');
+  kunciInput.type = 'text';
+  kunciInput.className = 'js-quiz-answer';
+  kunciInput.value = answer || '';
+  kunciInput.placeholder = 'Contoh: mubtada';
+  kunci.append(kunciLabel, kunciInput);
+
+  const hapus = document.createElement('button');
+  hapus.type = 'button';
+  hapus.className = 'button button--secondary lms-quiz-question__remove';
+  hapus.textContent = 'Hapus';
+  hapus.addEventListener('click', () => {
+    row.remove();
+    [...quizQuestionList.children].forEach((child, index) => {
+      const label = child.querySelector('label');
+      if (label) label.textContent = `Pertanyaan ${index + 1}`;
+    });
+  });
+
+  row.append(soal, kunci, hapus);
+  quizQuestionList.append(row);
+}
+
+function bacaPertanyaanKuis() {
+  return [...quizQuestionList.querySelectorAll('.lms-quiz-question')]
+    .map((row) => ({
+      prompt: row.querySelector('.js-quiz-prompt').value.trim(),
+      answer: row.querySelector('.js-quiz-answer').value.trim()
+    }))
+    .filter((question) => question.prompt && question.answer);
+}
+
+function perbaruiFormMateri() {
+  const kuis = materialType.value === 'quiz';
+  quizBuilder.hidden = !kuis;
+  materialContentField.required = !kuis;
+  materialContentField.closest('div').hidden = kuis;
+  if (kuis && !quizQuestionList.children.length) addQuizQuestion('', '');
+}
+
+if (materialType) {
+  materialType.addEventListener('change', perbaruiFormMateri);
+  perbaruiFormMateri();
+}
+if (quizAddQuestion) quizAddQuestion.addEventListener('click', () => addQuizQuestion('', ''));
+
 materialForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const guideQuestion = document.querySelector('#guide-question').value.trim(); const guideAnswer = document.querySelector('#guide-answer').value.trim();
-  try { const response = await fetch(`/api/courses/${encodeURIComponent(materialCourse.value)}/materials`, { method: 'POST', headers: { ...headers(), 'Content-Type': 'application/json' }, body: JSON.stringify({ type: document.querySelector('#material-type').value, title: document.querySelector('#material-title').value, content: document.querySelector('#material-content').value, summary: document.querySelector('#material-summary').value, keyPoints: document.querySelector('#material-points').value.split(',').map((entry) => entry.trim()).filter(Boolean), studyGuide: guideQuestion && guideAnswer ? [{ question: guideQuestion, answer: guideAnswer }] : [] }) }); const result = await response.json(); if (!response.ok) throw new Error(result.error); materialForm.reset(); setStatus(materialStatus, `Materi ${result.material.title} berhasil ditambahkan.`); if (studentSelect.value) await loadCourses(); } catch (error) { setStatus(materialStatus, error.message || 'Materi belum dapat ditambahkan.', true); }
+  try { const response = await fetch(`/api/courses/${encodeURIComponent(materialCourse.value)}/materials`, { method: 'POST', headers: { ...headers(), 'Content-Type': 'application/json' }, body: JSON.stringify({ type: document.querySelector('#material-type').value, title: document.querySelector('#material-title').value, content: materialType.value === 'quiz' ? JSON.stringify({ questions: bacaPertanyaanKuis() }) : document.querySelector('#material-content').value, summary: document.querySelector('#material-summary').value, keyPoints: document.querySelector('#material-points').value.split(',').map((entry) => entry.trim()).filter(Boolean), studyGuide: guideQuestion && guideAnswer ? [{ question: guideQuestion, answer: guideAnswer }] : [] }) }); const result = await response.json(); if (!response.ok) throw new Error(result.error); materialForm.reset(); quizQuestionList.replaceChildren(); perbaruiFormMateri(); loadStaffCourses().catch(() => {}); setStatus(materialStatus, `Materi ${result.material.title} berhasil ditambahkan.`); if (studentSelect.value) await loadCourses(); } catch (error) { setStatus(materialStatus, error.message || 'Materi belum dapat ditambahkan.', true); }
 });
 enrollmentForm.addEventListener('submit', async (event) => {
   event.preventDefault(); if (!studentSelect.value) { setStatus(enrollmentStatus, 'Pilih santri terlebih dahulu.', true); return; }
