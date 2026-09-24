@@ -41,7 +41,7 @@ Diatur di Vercel: Project Settings, Environment Variables. **Jangan** simpan nil
 | `SUPABASE_SERVICE_ROLE_KEY` | ya | Dari dashboard Supabase. Melewati RLS: hanya di server. |
 | `TRUST_PROXY` | ya | `true` |
 | `HAMASAH_BOOTSTRAP_KEY` | sementara | Hanya sampai admin pertama dibuat (bagian 5), lalu **hapus**. |
-| `HEALTH_RECORDS_ENABLED` | tidak | Biarkan kosong (mati) sampai kebijakan privasi memuat data kesehatan. |
+| `HEALTH_RECORDS_ENABLED` | tidak | Pengurus menyetujui (C6). Isi `true` bersamaan dengan pemasangan kebijakan privasi resmi yang memuat data kesehatan. |
 | `DATABASE_POOL_MAX` | tidak | Bawaan 5. |
 | `RESEND_API_KEY`, `EMAIL_DRIVER`, `EMAIL_FROM` | **jangan diisi** | Selama pemberitahuan masih manual lewat WhatsApp. |
 
@@ -203,6 +203,6 @@ Kalau ada akun yang dicurigai bocor, nonaktifkan dari konsol admin; sesinya ikut
 
 ## 11. Yang masih menunggu keputusan pengurus
 
-Daftar lengkap dan tempat dampaknya di kode: `docs/KEPUTUSAN_PEMILIK_2026-09-23.md`. Enam butir
-(A1-A6: kebijakan privasi, nomor WhatsApp resmi, alamat kantor, jatah makan, tulisan asli,
-penanggung jawab data) menahan situs dibuka untuk umum.
+Daftar lengkap, jawaban pengurus 24 September 2026, dan statusnya:
+`docs/KEPUTUSAN_PEMILIK_2026-09-23.md`. Yang masih menahan situs dibuka untuk umum: dokumen
+kebijakan privasi resmi (A1), kontak penanggung jawab data (A6), dan artikel asli (A5).

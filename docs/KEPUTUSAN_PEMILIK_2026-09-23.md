@@ -18,6 +18,37 @@ Cara menjawab: cukup sebutkan nomor butir dan jawaban singkat, misalnya `A2: 081
 
 ---
 
+## Jawaban pengurus (diterima 24 September 2026)
+
+| Butir | Jawaban | Status di sistem |
+|---|---|---|
+| A1 Kebijakan privasi | Sudah punya dokumen resmi. Santri dan wali hanya melihat dasbor masing-masing. | **Menunggu dokumennya dikirim.** Aturan akses sudah sesuai: wali dan santri hanya bisa membuka santri yang terhubung dengan akunnya (`server/access-matrix.test.js`). |
+| A2 WhatsApp resmi | +62 878-9759-1978, satu admin untuk Indonesia dan Mesir | **Diterapkan**: `website/kontak.js`, kartu kantor di `kontak.html`. |
+| A3 Alamat | Indonesia: Jl. Karakal RT 003/RW 003, Desa Banjar Sari, Kec. Ciawi, Kab. Bogor, Jawa Barat. Mesir: 32 Sheikh Taha Dinary, 1,3, Hay Sabi, Nasr City | **Diterapkan** di `kontak.html`. "Hay Asyir" diganti "Nasr City" di biaya dan cek status. Perlu dipastikan: arti "1,3" dan apakah asrama berada di alamat yang sama. |
+| A4 Makan | Asrama Mesir 2 kali sehari, asrama Indonesia 3 kali | **Diterapkan**: `biaya.html` menulis 2x untuk asrama Kairo. Situs belum menyebut asrama Indonesia sama sekali. |
+| A5 Artikel | Akan dikirim pengurus | Menunggu kiriman. |
+| A6 Penanggung jawab data | Ust. Aji, Direktur Hamasah International Regional Mesir | Menunggu satu kanal kontak (email atau WA) untuk bagian keenam kebijakan privasi. |
+| B2 Domain | Pengurus akan memberi kontak pembuat domain atau developer lama | Menunggu kontak. |
+| B4 Email noreply | Boleh | Menunggu akses DNS (B2). Setelah itu: `EMAIL_DRIVER=resend` sesuai `RUNBOOK.md`. |
+| C1 Biaya | Ditampilkan langsung; brosur terbaru dikirim dalam beberapa hari | Menunggu brosur. Angka lama tidak dipasang. |
+| C2 "Ratusan pelajar" | Tidak perlu disebutkan | **Diterapkan**: kalimat di beranda tanpa angka. |
+| C3 Testimoni | Testimoni situs lama karangan developer lama; pengurus akan mengumpulkan yang asli | Tetap tidak ditampilkan sampai ada testimoni asli beserta izin. |
+| C4 Profil pengurus | Ditampilkan; data dikirim pengurus | Menunggu nama, jabatan, dan foto. |
+| C5 Petugas pendaftaran | Utama Rika Dwi, cadangan Rafah; admin di Mesir dan Indonesia sehingga hampir 24 jam | Dicatat. Kontak menulis "dapat dibalas hampir sepanjang hari". Akun keduanya dibuat bersama D1. |
+| C6 Kesehatan | Tampilkan di dasbor pribadi | Disetujui. Nyalakan `HEALTH_RECORDS_ENABLED=true` bersamaan dengan kebijakan privasi resmi yang memuat data kesehatan (A1). |
+| C7 AI | "Dikondisikan yang terbaik": cerdas, sesuai materi, tidak melebar | Perlu usulan teknis dan biaya ke pengurus; lihat catatan di bawah. |
+| D1 Akun | Akan dikirim | Menunggu daftar. |
+| D2 Pengujian | Ust. Aji Nugroho dan Ust. Fauzan Afghani | Dicatat sebagai pemberi persetujuan akhir. Penguji per peran masih perlu ditunjuk. |
+| D3 Data pendaftar tidak lanjut | Dihapus setelah jangka waktu tertentu | Menunggu lamanya (misalnya 12 bulan). |
+| D4 Periode penerimaan | 2026/2027 benar; diperbarui tiap tahun oleh Ust. Ifdoni | Dicatat. Tidak ada perubahan. |
+
+**Catatan C7.** Arah yang sesuai jawaban pengurus: AI berbayar yang hanya boleh menjawab dari materi
+pengajar pada maddah tersebut, menolak pertanyaan di luar materi, dan kembali ke jawaban lokal bila
+kuota habis atau layanan gagal. Konsekuensinya perlu disetujui dulu: biaya per pertanyaan, dan
+kebijakan privasi (A1) harus menyebut bahwa pertanyaan santri diproses penyedia AI di luar negeri.
+
+---
+
 ## A. Menahan pembukaan ke publik
 
 ### A1. Isi kebijakan privasi

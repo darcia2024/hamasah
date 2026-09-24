@@ -14,11 +14,10 @@
 // tanda plus dan tanpa spasi, contoh: '6281234567890'. Selama masih kosong,
 // tombol WhatsApp tidak ditampilkan sama sekali.
 //
-// Biarkan kosong sampai nomor resmi dikonfirmasi pemilik proses. Tahap 2 sudah
-// menghapus seluruh nomor yang belum terkonfirmasi dari konten publik; jangan
-// mengisi ini dengan nomor contoh.
+// Dikonfirmasi pengurus 24 September 2026 (butir A2): satu admin untuk Indonesia
+// dan Mesir. Nomor yang sama tertulis di kartu kantor pada kontak.html.
 // ---------------------------------------------------------------------------
-const WHATSAPP_NUMBER = '';
+const WHATSAPP_NUMBER = '6287897591978';
 
 function whatsappUrl() {
   const nomor = String(WHATSAPP_NUMBER || '').replace(/\D/g, '');
