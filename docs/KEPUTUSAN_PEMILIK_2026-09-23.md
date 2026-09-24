@@ -42,6 +42,23 @@ Cara menjawab: cukup sebutkan nomor butir dan jawaban singkat, misalnya `A2: 081
 | D3 Data pendaftar tidak lanjut | Dihapus setelah jangka waktu tertentu | Menunggu lamanya (misalnya 12 bulan). |
 | D4 Periode penerimaan | 2026/2027 benar; diperbarui tiap tahun oleh Ust. Ifdoni | Dicatat. Tidak ada perubahan. |
 
+## Kiriman yang ditunggu dari pengurus (dicatat 24 September 2026)
+
+| No | Kiriman | Butir | Format yang dibutuhkan sistem |
+|---|---|---|---|
+| 1 | 6 artikel Pena Hamasah | A5 | Per artikel: judul (8-140 karakter), ringkasan 1-2 kalimat, isi, kategori (misalnya Al-Azhar, Panduan Hidup, Kegiatan), **nama penulis**, dan foto sampul opsional beserta keterangan singkat isi fotonya. Lihat catatan penulis di bawah. |
+| 2 | Nomor developer company profile (pemegang domain) | B2 | Nama dan nomor kontak. Dibutuhkan untuk subdomain aplikasi (`APP_BASE_URL`) dan catatan DNS email noreply (B4). |
+| 3 | Brosur terbaru | C1 | Nominal per program (Kuliah, Ma'had, Hamasah Courses) dan komponen yang sudah termasuk, beserta tanggal berlakunya. |
+| 4 | Testimoni wali santri (bila dibutuhkan) | C3 | Nama (atau inisial), hubungan dengan santri, isi testimoni, foto opsional, dan **izin tertulis** untuk dipublikasikan. |
+| 5 | Profil pengurus | C4 | Nama, jabatan, foto (tegak, latar polos), dan izin tampil di situs. |
+| 6 | Daftar pengelola sistem | D1 | Per orang: nama, email, jabatan, dan peran sistem: admin, petugas pendaftaran, keuangan, musyrif asrama, atau guru. Musyrif juga perlu nama asrama yang dipegang. Rika Dwi dan Rafah (C5) masuk sebagai petugas pendaftaran. |
+
+**Catatan penulis artikel.** Saat ini nama penulis yang tampil di artikel diambil dari akun yang
+menyimpan artikel itu di CMS (`server/postgres-article-store.js`), bukan dari isian terpisah. Kalau
+keenam artikel diinput oleh satu admin, semuanya akan tertulis atas nama admin tersebut. Sebelum
+artikel diinput, tambahkan isian "Nama penulis" di CMS (perlu satu migrasi kecil), atau buatkan
+akun untuk setiap penulis.
+
 **Catatan C7.** Arah yang sesuai jawaban pengurus: AI berbayar yang hanya boleh menjawab dari materi
 pengajar pada maddah tersebut, menolak pertanyaan di luar materi, dan kembali ke jawaban lokal bila
 kuota habis atau layanan gagal. Konsekuensinya perlu disetujui dulu: biaya per pertanyaan, dan
