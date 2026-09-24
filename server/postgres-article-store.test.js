@@ -26,7 +26,8 @@ async function run() {
       coverUrl: null,
       coverAltText: null,
       updatedAt: PUBLISHED_AT,
-      authorName: null
+      authorName: null,
+      authorDisplayName: null
     });
 
     const katalog = await store.list();
@@ -56,6 +57,18 @@ async function run() {
     assert.equal((await store.create({ title: 'Artikel Dengan Cover', excerpt: 'Ringkasan.', body: 'Isi.', coverUrl: 'http://example.test/image.jpg', coverAltText: 'Cover' }, PUBLISHED_AT)).ok, false);
     assert.equal((await store.create({ title: 'Artikel Tanpa Alt', excerpt: 'Ringkasan.', body: 'Isi.', coverUrl: 'https://example.test/image.jpg' }, PUBLISHED_AT)).ok, false);
     assert.equal((await store.list()).items.length, 1);
+
+    // Nama penulis dari isian CMS (migrasi 042): dirapikan, dipotong 120 karakter, dan
+    // tidak hilang saat artikel disunting tanpa menyebut isian itu.
+    const berpenulis = await store.create({ title: 'Artikel Tulisan Pengurus', excerpt: 'Ringkasan.', body: 'Isi.', authorDisplayName: '  Ust.   Aji  Nugroho ' }, PUBLISHED_AT);
+    assert.equal(berpenulis.value.authorName, 'Ust. Aji Nugroho');
+    assert.equal(berpenulis.value.authorDisplayName, 'Ust. Aji Nugroho');
+    assert.equal((await store.update(berpenulis.value.slug, { title: 'Artikel Tulisan Pengurus Hamasah' })).value.authorName, 'Ust. Aji Nugroho');
+    assert.equal((await store.update(berpenulis.value.slug, { authorDisplayName: 'x'.repeat(300) })).value.authorName.length, 120);
+    const dikosongkan = await store.update(berpenulis.value.slug, { authorDisplayName: '   ' });
+    assert.equal(dikosongkan.value.authorDisplayName, null);
+    assert.equal(dikosongkan.value.authorName, null, 'Tanpa isian dan tanpa akun pembuat, penulis kosong.');
+    await store.update(berpenulis.value.slug, { status: 'archived' });
 
     // Pagination, kategori, dan pencarian berjalan di SQL.
     for (let n = 1; n <= 25; n += 1) {

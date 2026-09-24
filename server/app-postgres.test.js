@@ -263,6 +263,17 @@ async function run() {
     assert.equal(article.body.item.authorName, 'Admin Uji');
     assert.equal((await request(baseUrl, `/api/articles/${article.body.item.slug}`)).body.item.authorName, article.body.item.authorName);
     assert.equal((await request(baseUrl, '/api/articles')).body.items[0].authorName, 'Admin Uji', 'Kartu katalog memakai penulis sebenarnya.');
+    // Artikel yang ditulis orang lain dan diinput admin memakai isian "Nama penulis" (migrasi 042).
+    const penulisLain = await request(baseUrl, `/api/articles/${article.body.item.slug}`, {
+      method: 'PATCH', headers: adminHeaders, body: JSON.stringify({ authorDisplayName: 'Ust. Fauzan Afghani' })
+    });
+    assert.equal(penulisLain.status, 200);
+    assert.equal((await request(baseUrl, `/api/articles/${article.body.item.slug}`)).body.item.authorName, 'Ust. Fauzan Afghani');
+    assert.equal((await request(baseUrl, '/api/articles')).body.items[0].authorName, 'Ust. Fauzan Afghani');
+    const kembaliKeAkun = await request(baseUrl, `/api/articles/${article.body.item.slug}`, {
+      method: 'PATCH', headers: adminHeaders, body: JSON.stringify({ authorDisplayName: '' })
+    });
+    assert.equal(kembaliKeAkun.body.item.authorName, 'Admin Uji', 'Isian dikosongkan kembali ke akun pembuat.');
     const articles = await request(baseUrl, '/api/articles');
     assert.equal(articles.body.items.length, 1);
 

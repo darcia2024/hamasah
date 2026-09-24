@@ -1,7 +1,7 @@
 # Status Implementasi
 
 > **Status terkini (24 September 2026).** Hosting: Vercel (K2). Migrasi 001-041 sudah diterapkan
-> ke production pada 23 September 2026, jadi catatan "belum diterapkan" di bagian-bagian lama di
+> ke production pada 23 September 2026 (042, nama penulis artikel, belum), jadi catatan "belum diterapkan" di bagian-bagian lama di
 > bawah sudah tidak berlaku. CI berjalan di setiap pull request (Node 22 dan 24). Email tidak
 > dipakai; pemberitahuan dikirim manual lewat WhatsApp dari konsol petugas. Cara menjalankan
 > production ada di `RUNBOOK.md`. Bagian di bawah adalah riwayat per phase.

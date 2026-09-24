@@ -13,7 +13,7 @@ Terakhir diperbarui: 24 September 2026.
 | Bagian | Dipakai | Catatan |
 |---|---|---|
 | Aplikasi | Vercel, satu fungsi `api/index.js` | Semua permintaan diarahkan ke fungsi ini (`vercel.json`). Node 22. |
-| Database | Supabase PostgreSQL | Migrasi `database/001` sampai `041` sudah diterapkan ke production (23 September 2026). |
+| Database | Supabase PostgreSQL | Migrasi `001` sampai `041` sudah diterapkan ke production (23 September 2026). **`042` (nama penulis artikel) belum**: terapkan sebelum merge (bagian 4). |
 | Berkas pendaftar | Supabase Storage, bucket privat | Peramban mengunggah langsung ke Supabase, server memeriksa hasilnya. |
 | Tugas berkala | Cron Vercel harian 20.00 UTC (03.00 WIB) ke `/api/tasks/maintenance` | Membersihkan sesi kedaluwarsa, catatan audit lama, unggahan tertunda, dan baris pembatas laju. |
 | Pemantau | GitHub Actions `Uptime`, setiap 30 menit | Lihat bagian 6. |

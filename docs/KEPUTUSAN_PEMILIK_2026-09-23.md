@@ -53,11 +53,9 @@ Cara menjawab: cukup sebutkan nomor butir dan jawaban singkat, misalnya `A2: 081
 | 5 | Profil pengurus | C4 | Nama, jabatan, foto (tegak, latar polos), dan izin tampil di situs. |
 | 6 | Daftar pengelola sistem | D1 | Per orang: nama, email, jabatan, dan peran sistem: admin, petugas pendaftaran, keuangan, musyrif asrama, atau guru. Musyrif juga perlu nama asrama yang dipegang. Rika Dwi dan Rafah (C5) masuk sebagai petugas pendaftaran. |
 
-**Catatan penulis artikel.** Saat ini nama penulis yang tampil di artikel diambil dari akun yang
-menyimpan artikel itu di CMS (`server/postgres-article-store.js`), bukan dari isian terpisah. Kalau
-keenam artikel diinput oleh satu admin, semuanya akan tertulis atas nama admin tersebut. Sebelum
-artikel diinput, tambahkan isian "Nama penulis" di CMS (perlu satu migrasi kecil), atau buatkan
-akun untuk setiap penulis.
+**Catatan penulis artikel.** CMS kini punya isian "Nama penulis (opsional)" (migrasi 042). Admin
+dapat menginput keenam artikel sendiri dan menuliskan nama penulis aslinya; bila dikosongkan,
+yang tampil nama akun penginput. Migrasi 042 harus diterapkan ke production sebelum dipakai.
 
 **Catatan C7.** Arah yang sesuai jawaban pengurus: AI berbayar yang hanya boleh menjawab dari materi
 pengajar pada maddah tersebut, menolak pertanyaan di luar materi, dan kembali ke jawaban lokal bila

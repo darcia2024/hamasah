@@ -16,6 +16,7 @@ const articlePreviewButton = document.querySelector('#article-preview');
 const articlePreviewPanel = document.querySelector('#article-preview-panel');
 const articleCoverUrl = document.querySelector('#article-cover-url');
 const articleCoverAlt = document.querySelector('#article-cover-alt');
+const articleAuthor = document.querySelector('#article-author');
 const articleCoverError = document.querySelector('#article-cover-error');
 const articleCoverPreview = document.querySelector('#article-cover-preview');
 const articleManageList = document.querySelector('#article-manage-list');
@@ -74,7 +75,7 @@ async function loadArticles({ append = false } = {}) {
       const detail = document.createElement('div');
       detail.className = 'staff-registration__content';
       const title = document.createElement('strong'); title.textContent = article.title;
-      const meta = document.createElement('small'); meta.textContent = (ARTICLE_STATUS_LABELS[article.status] || 'Status belum dikenali') + ' · ' + article.category;
+      const meta = document.createElement('small'); meta.textContent = [ARTICLE_STATUS_LABELS[article.status] || 'Status belum dikenali', article.category, article.authorName ? `Penulis: ${article.authorName}` : ''].filter(Boolean).join(' · ');
       const badge = document.createElement('span'); badge.className = 'article-status-badge article-status-badge--' + article.status; badge.textContent = ARTICLE_STATUS_LABELS[article.status] || 'Status belum dikenali';
      detail.append(title, meta);
      detail.prepend(badge);
@@ -115,6 +116,7 @@ async function loadArticles({ append = false } = {}) {
         document.querySelector('#article-body').value = article.body;
         articleCoverUrl.value = article.coverUrl || '';
         articleCoverAlt.value = article.coverAltText || '';
+        articleAuthor.value = article.authorDisplayName || '';
        articleStatus.value = article.status === 'archived' ? 'draft' : article.status;
         updateArticleSubmitLabel();
         renderCoverPreview();
@@ -995,7 +997,9 @@ async function renderArticlePreview() {
   articlePreviewPanel.replaceChildren();
   const heading = document.createElement('p'); heading.className = 'eyebrow'; heading.textContent = 'PRATINJAU ARTIKEL';
   const title = document.createElement('h3'); title.textContent = document.querySelector('#article-title')?.value.trim() || 'Judul belum diisi';
-  const meta = document.createElement('small'); meta.textContent = (document.querySelector('#article-category')?.value.trim() || 'Kegiatan') + ' · ' + (articleStatus?.value === 'published' ? 'Terbit' : 'Draf');
+  // Tanpa isian, penulis yang tampil adalah akun pembuat artikel; itu diketahui server, jadi tidak ditebak di sini.
+  const penulis = articleAuthor?.value.trim() || '';
+  const meta = document.createElement('small'); meta.textContent = [document.querySelector('#article-category')?.value.trim() || 'Kegiatan', articleStatus?.value === 'published' ? 'Terbit' : 'Draf', penulis ? `Penulis: ${penulis}` : ''].filter(Boolean).join(' · ');
   const excerpt = document.createElement('p'); excerpt.className = 'article-preview-excerpt'; excerpt.textContent = document.querySelector('#article-excerpt')?.value.trim() || 'Ringkasan belum diisi.';
   // Isi dirender server dengan renderer yang sama dengan halaman publik (Task R7.5), supaya
   // pratinjau tidak menyimpang dari hasil terbit.
@@ -1053,6 +1057,7 @@ articleForm.addEventListener('submit', async (event) => {
         body: document.querySelector('#article-body').value,
         coverUrl,
         coverAltText,
+        authorDisplayName: articleAuthor.value.trim(),
         status: articleStatus.value,
         ...(editing ? {} : { slug: articleSlug.value.trim() || undefined })
       })
