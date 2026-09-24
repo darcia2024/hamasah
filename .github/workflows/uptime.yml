@@ -1,0 +1,100 @@
+name: Uptime
+
+# Memeriksa situs yang sudah online setiap 30 menit. Kalau mati, workflow ini gagal
+# (GitHub mengirim email ke pemilik repo) dan membuka satu issue berlabel "uptime".
+# Begitu situs pulih, issue itu ditutup otomatis.
+#
+# Cara menyalakan: Settings -> Secrets and variables -> Actions -> tab Variables,
+# buat variabel UPTIME_URL berisi alamat situs tanpa garis miring di akhir,
+# misalnya https://app.hamasahinternational.com. Selama variabel itu kosong,
+# workflow hanya mencetak pemberitahuan dan tidak gagal.
+#
+# Kenapa 30 menit: di repo privat, setiap run dihitung minimal satu menit dari
+# jatah gratis GitHub Actions (2.000 menit per bulan). Setiap 30 menit memakai
+# sekitar 1.440 menit per bulan; lebih sering dari itu menghabiskan jatah CI.
+# Catatan GitHub: jadwal bisa terlambat beberapa menit, dan hanya berjalan dari
+# branch utama.
+#
+# Efek samping yang disengaja: /api/ready menyentuh database, sehingga project
+# Supabase paket gratis tidak dianggap menganggur dan tidak dijeda.
+
+on:
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      UPTIME_URL: ${{ vars.UPTIME_URL }}
+    steps:
+      - name: Periksa /api/health dan /api/ready
+        id: probe
+        run: |
+          if [ -z "$UPTIME_URL" ]; then
+            echo "::notice::Variabel UPTIME_URL belum diisi. Pemeriksaan dilewati."
+            echo "status=skipped" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Tiga kali percobaan berjarak 20 detik, supaya gangguan sesaat (cold start
+          # Vercel, jaringan) tidak langsung dianggap mati.
+          periksa() {
+            local path="$1" percobaan=1 kode=""
+            while [ "$percobaan" -le 3 ]; do
+              kode=$(curl -s -o /tmp/body -w '%{http_code}' --max-time 20 "$UPTIME_URL$path" || echo "000")
+              if [ "$kode" = "200" ]; then
+                echo "$path -> 200"
+                return 0
+              fi
+              echo "$path -> $kode (percobaan $percobaan)"
+              percobaan=$((percobaan + 1))
+              [ "$percobaan" -le 3 ] && sleep 20
+            done
+            echo "detail=$path menjawab $kode: $(head -c 300 /tmp/body 2>/dev/null | tr -d '\n')" >> "$GITHUB_OUTPUT"
+            return 1
+          }
+
+          if periksa /api/health && periksa /api/ready; then
+            echo "status=up" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=down" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Buka atau tutup issue uptime
+        if: steps.probe.outputs.status == 'up' || steps.probe.outputs.status == 'down'
+        uses: actions/github-script@v7
+        env:
+          STATUS: ${{ steps.probe.outputs.status }}
+          DETAIL: ${{ steps.probe.outputs.detail }}
+        with:
+          script: |
+            const label = 'uptime';
+            const { owner, repo } = context.repo;
+            const run = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            const waktu = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+            const terbuka = await github.rest.issues.listForRepo({ owner, repo, labels: label, state: 'open', per_page: 1 });
+            const issue = terbuka.data[0];
+
+            if (process.env.STATUS === 'down') {
+              const isi = `Situs tidak menjawab pada ${waktu} WIB.\n\n${process.env.DETAIL}\n\nRun: ${run}\n\nLangkah pertama ada di RUNBOOK.md bagian "Situs mati".`;
+              if (issue) {
+                await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: `Masih mati. ${isi}` });
+              } else {
+                await github.rest.issues.create({ owner, repo, title: 'Situs tidak dapat diakses', labels: [label], body: isi });
+              }
+              core.setFailed(`Situs tidak menjawab: ${process.env.DETAIL}`);
+            } else if (issue) {
+              await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: `Situs pulih pada ${waktu} WIB. Run: ${run}` });
+              await github.rest.issues.update({ owner, repo, issue_number: issue.number, state: 'closed', state_reason: 'completed' });
+            }
