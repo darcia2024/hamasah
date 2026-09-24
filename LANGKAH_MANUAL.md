@@ -172,7 +172,7 @@ Begitu commit terdorong, GitHub akan menjalankan workflow `Test` secara otomatis
 
 1. Buka **Settings > Branches > Add branch protection rule** pada repo.
 2. Branch name pattern: `main`.
-3. Centang **Require status checks to pass before merging**, lalu pilih check `Node 20.x` dan `Node 24.x`.
+3. Centang **Require status checks to pass before merging**, lalu pilih check `Node 22.x` dan `Node 24.x` (dulu `Node 20.x`; ganti kalau aturan lama masih memakainya).
 4. Centang juga **Require a pull request before merging** kalau nanti ada lebih dari satu orang yang menulis kode.
 
 Badge status di README akan menampilkan hasil run terakhir di `main`. Selama belum pernah ada push, badge itu tampil sebagai "no status" dan itu wajar.

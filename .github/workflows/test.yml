@@ -24,10 +24,11 @@ jobs:
       # masalahnya khusus satu versi atau bukan.
       fail-fast: false
       matrix:
-        # 20 adalah versi yang dipakai image production (Dockerfile), 24 adalah versi
-        # yang dipakai di laptop pengembang. Keduanya diuji supaya perbedaan versi
-        # ketahuan di CI, bukan saat deploy.
-        node: ['20.x', '24.x']
+        # 22 adalah versi production: Vercel memilihnya dari "engines" di package.json,
+        # dan Dockerfile memakai node:22-alpine. 24 adalah versi yang dipakai di laptop
+        # pengembang. Keduanya diuji supaya perbedaan versi ketahuan di CI, bukan saat
+        # deploy. Node 20 sudah tidak didukung (EOL April 2026).
+        node: ['22.x', '24.x']
 
     name: Node ${{ matrix.node }}
 

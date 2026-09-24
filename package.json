@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "description": "Website publik dan portal operasional Hamasah International.",
   "engines": {
-    "node": ">=20"
+    "node": "22.x"
   },
   "scripts": {
     "start": "node server.js",
