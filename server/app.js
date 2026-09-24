@@ -50,6 +50,7 @@ const { TOO_MANY_REQUESTS, createHybridRateLimiter, createRateLimiter, longestWi
 const { createPostgresRateLimitStore } = require('./postgres-rate-limit-store.js');
 const { clientIp } = require('./http/client-ip.js');
 const { applyHeaders, createSecurityHeaders } = require('./http/security-headers.js');
+const { createRequestId, errorFields, logEvent } = require('./http/request-log.js');
 const { readAppEnvironment } = require('./environment.js');
 
 // Urutan berpengaruh: route pertama yang cocok yang dipakai.
@@ -371,8 +372,10 @@ function createHamasahApp(options) {
   async function requestListener(request, response) {
     const url = new URL(request.url, 'http://localhost');
     const isApi = url.pathname.startsWith('/api/');
+    const requestId = createRequestId();
     // Dipasang lebih dulu supaya berlaku juga untuk 404 dan 500.
     applyHeaders(response, isApi ? securityHeaders.forApi() : securityHeaders.forDocument());
+    response.setHeader('X-Request-Id', requestId);
     try {
       if (isApi) {
         const handled = await handleApi(request, response, url);
@@ -414,8 +417,21 @@ function createHamasahApp(options) {
         json(response, error.status, { error: error.message });
         return;
       }
-      console.error(`[server] Permintaan ${request.method} ${request.url} gagal diproses: ${error.stack || error.message}`);
-      json(response, 500, { error: 'Terjadi kendala pada layanan.' });
+      logEvent('error', 'request_failed', {
+        requestId,
+        method: request.method,
+        path: url.pathname,
+        // Nomor permintaan dari Vercel, kalau ada, supaya bisa dicocokkan dengan log platform.
+        platformId: request.headers['x-vercel-id'] || undefined,
+        ...errorFields(error)
+      }, config.logger || console);
+      // Kalau respons sudah mulai terkirim (misalnya PDF gagal di tengah), balasan
+      // JSON tidak bisa ditulis lagi. Koneksi diputus supaya klien tahu gagal.
+      if (response.headersSent) {
+        response.destroy(error);
+        return;
+      }
+      json(response, 500, { error: `Terjadi kendala pada layanan. Sebutkan kode ${requestId} saat melapor ke petugas.`, requestId });
     }
   }
 

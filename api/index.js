@@ -17,6 +17,7 @@
 const path = require('node:path');
 const { createHamasahApp } = require('../server/app.js');
 const { appOptionsFromConfig, readProductionConfig } = require('../server/production-config.js');
+const { createRequestId, errorFields, logEvent } = require('../server/http/request-log.js');
 
 let handlerPromise = null;
 
@@ -41,6 +42,21 @@ module.exports = async function handler(request, response) {
       throw error;
     });
   }
-  const listener = await handlerPromise;
+  let listener;
+  try {
+    listener = await handlerPromise;
+  } catch (error) {
+    // Konfigurasi salah atau kurang. Pesannya aman dicatat: readProductionConfig
+    // tidak pernah memasukkan nilai rahasia ke pesan error.
+    const requestId = createRequestId();
+    logEvent('error', 'startup_failed', { requestId, ...errorFields(error) });
+    response.writeHead(503, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store',
+      'X-Request-Id': requestId
+    });
+    response.end(JSON.stringify({ error: `Layanan belum siap. Sebutkan kode ${requestId} saat melapor ke petugas.`, requestId }));
+    return;
+  }
   return listener(request, response);
 };
