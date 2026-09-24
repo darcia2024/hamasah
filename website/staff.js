@@ -355,6 +355,7 @@ function renderRegistrations(items) {
       }
     });
     controls.append(select, update);
+    controls.append(createWhatsappControl(registration));
     const noteBox = document.createElement('div'); noteBox.className = 'staff-note-box staff-note-box--secondary';
     const noteInput = document.createElement('textarea'); noteInput.rows = 2; noteInput.placeholder = 'Catatan untuk pendaftar atau internal';
     const visibility = document.createElement('select');
@@ -421,6 +422,43 @@ function renderRegistrations(items) {
     card.append(content, controls);
     registrationList.append(card);
   });
+}
+
+// Pemberitahuan ke pendaftar dikirim manual lewat WhatsApp petugas. Tombol ini
+// membuka WhatsApp dengan pesan yang sudah disusun sesuai status TERSIMPAN dan
+// berkas yang ditolak; petugas masih bisa menyuntingnya sebelum menekan kirim.
+function createWhatsappControl(registration) {
+  const box = document.createElement('div');
+  box.className = 'staff-note-box staff-note-box--secondary staff-whatsapp';
+  const judul = document.createElement('strong');
+  judul.textContent = 'Kabari lewat WhatsApp';
+  const keterangan = document.createElement('small');
+  keterangan.textContent = 'Pesan mengikuti status yang sudah disimpan. Simpan status dulu bila baru diubah.';
+  box.append(judul, keterangan);
+  const statusUrl = `${window.location.origin}/website/cek-status.html`;
+  const tujuan = [
+    ['applicant', 'WA calon santri', registration.applicant.phone],
+    ['guardian', 'WA wali', registration.applicant.guardianPhone]
+  ];
+  for (const [recipient, label, phone] of tujuan) {
+    const pesan = window.HamasahWhatsappMessage.registrationMessage(registration, { recipient, statusUrl });
+    const url = window.HamasahWhatsappMessage.whatsappUrl(phone, pesan);
+    if (url) {
+      const link = document.createElement('a');
+      link.className = 'button button--secondary';
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = label;
+      box.append(link);
+    } else {
+      const kosong = document.createElement('span');
+      kosong.className = 'staff-whatsapp__missing';
+      kosong.textContent = `${label}: nomor belum diisi atau tidak valid`;
+      box.append(kosong);
+    }
+  }
+  return box;
 }
 
 // ---------------------------------------------------------------------------
