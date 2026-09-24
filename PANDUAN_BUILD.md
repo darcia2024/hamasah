@@ -1,5 +1,8 @@
 # Panduan Build Website Hamasah International
 
+> **Arsip.** Dokumen ini dicatat untuk riwayat dan tidak lagi menjadi pegangan kerja. Cara
+> menjalankan sistem yang berlaku ada di `RUNBOOK.md` di akar repo.
+
 > Pegangan kerja dari kondisi repo per **15 September 2026** sampai website beneran **go-live dan diserahterimakan**.
 > Dokumen ini punya dua pembaca: **tim manusia** (pengambil keputusan dan reviewer) dan **agen AI Sonnet** (pelaksana task).
 

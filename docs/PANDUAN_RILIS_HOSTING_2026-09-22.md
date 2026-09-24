@@ -1,5 +1,8 @@
 # Panduan rilis ke hosting (22 September 2026)
 
+> **Arsip.** Dokumen ini dicatat untuk riwayat dan tidak lagi menjadi pegangan kerja. Cara
+> menjalankan sistem yang berlaku ada di `RUNBOOK.md` di akar repo.
+
 Panduan langkah demi langkah dari repo sampai situs Hamasah International online: staging dulu, lalu production. Dokumen ini melengkapi, bukan menggantikan:
 
 - `PRODUCTION_DEPLOYMENT.md`: pengaman skrip database, Row Level Security, pembatas laju, header keamanan.

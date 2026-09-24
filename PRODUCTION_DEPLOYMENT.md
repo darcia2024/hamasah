@@ -1,5 +1,8 @@
 # Deployment production
 
+> **Arsip sebagian.** Cara menjalankan production yang berlaku ada di `RUNBOOK.md`. Dokumen ini
+> tetap berguna sebagai penjelasan aturan (RLS, pengaman skrip database, pembatas laju, header).
+
 > Langkah demi langkah dari nol sampai online (staging lalu production), termasuk daftar variabel lingkungan, worker, cron, dan daftar periksa: `docs/PANDUAN_RILIS_HOSTING_2026-09-22.md`. Dokumen ini berisi aturan pendukungnya.
 
 ## Prasyarat
@@ -62,22 +65,28 @@ Setiap migrasi berjalan dalam satu transaksi dan tercatat di tabel `schema_migra
 
 Seluruh data aplikasi berada di PostgreSQL. `server.js` menolak start jika `DATABASE_URL` kosong, bukan `postgresql://`, atau memakai `pglite:` di staging dan production, karena database sementara hilang begitu proses berhenti. Terapkan migrasi dengan `npm run migrate` lalu periksa dengan `npm run verify:database` sebelum aplikasi dijalankan.
 
-## Pembatas laju: asumsi satu instance
+## Pembatas laju
 
-Pembatas laju (`server/rate-limit.js`) menyimpan hitungannya di memori proses. Artinya:
+Sejak migrasi 041, hitungan pembatas laju untuk aturan yang melindungi kredensial dan formulir
+publik (`login`, `password-reset-request`, `registration-create`, `inquiry-create`,
+`applicant-login`, `applicant-recovery`, `token-redeem`, `upload`) disimpan di tabel
+`rate_limit_hits`, sehingga berlaku sama di semua instance serverless dan tidak hilang saat deploy.
+Barisnya dibersihkan cron perawatan harian.
 
-- **Jalankan satu instance aplikasi.** Kalau dijalankan dua instance atau lebih di belakang load balancer, setiap instance punya hitungan sendiri, sehingga batas efektifnya menjadi batas dikali jumlah instance. Batas login 5 kali per 15 menit akan menjadi 10 kali kalau ada dua instance.
-- **Hitungan hilang saat restart.** Deploy atau restart mengosongkan seluruh hitungan. Ini dapat diterima untuk skala lembaga ini, tetapi berarti pembatas bukan pengaman mutlak.
-- Kalau nanti perlu lebih dari satu instance, pembatas harus pindah ke penyimpanan bersama (Redis) atau ke lapisan proxy platform.
-- **Kuota AI per akun (`server/ai-service.js`) memakai pola yang sama**: hitungannya di memori proses, per instance, dan kembali ke nol setiap deploy. Batasan yang sama berlaku.
-- **Semua aturan tercakup**, termasuk `token-redeem` (10 percobaan per 15 menit per alamat IP untuk `POST /api/auth/invitations/accept` dan `POST /api/auth/password-reset`, ditambahkan di Task R6.6).
-- **Keputusan K2 (hosting) belum diambil, jadi state bersama sengaja belum dibangun.** Memindahkannya sekarang menambah dependensi (Redis) yang mungkin tidak dibutuhkan. Bila K2 memutuskan lebih dari satu instance, pekerjaan ini menjadi wajib sebelum go-live, bukan opsional.
+Yang **masih di memori proses** (per instance, kembali nol saat instance baru):
+
+- jaring pengaman `api-default` (300 permintaan per 5 menit per IP), sengaja, supaya setiap
+  permintaan API tidak menambah satu tulisan ke database dan `/api/health` tetap menjawab saat
+  database mati;
+- `faq-ask`, `ai-ask`, dan kuota AI per akun (`server/ai-service.js`). Selama penyedia AI berbayar
+  belum dipakai (keputusan C7), tidak ada biaya yang bisa jebol karenanya. Kalau penyedia berbayar
+  diaktifkan, pindahkan kuota ini ke database lebih dulu.
 
 ### `TRUST_PROXY`
 
 Secara bawaan alamat IP diambil dari `request.socket.remoteAddress`. Header `X-Forwarded-For` **diabaikan**, karena siapa pun bisa mengisinya, dan kalau dipercaya tanpa syarat penyerang cukup menggantinya setiap permintaan agar pembatas laju tidak berguna.
 
-Set `TRUST_PROXY=true` **hanya** kalau aplikasi benar-benar berjalan di belakang proxy platform (Railway, Render, Fly.io, Cloud Run) yang menulis header itu sendiri. Saat dipercaya, yang dibaca adalah alamat paling kanan pada header, yaitu yang ditambahkan proxy terdekat.
+Set `TRUST_PROXY=true` **hanya** kalau aplikasi benar-benar berjalan di belakang proxy platform (Vercel, Railway, Render, Fly.io, Cloud Run) yang menulis header itu sendiri. Titik masuk Vercel (`api/index.js`) selalu memercayainya. Saat dipercaya, yang dibaca adalah alamat paling kanan pada header, yaitu yang ditambahkan proxy terdekat.
 
 ## Header keamanan
 

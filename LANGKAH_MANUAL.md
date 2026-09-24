@@ -1,5 +1,8 @@
 # Langkah Manual Setelah Phase 7
 
+> **Arsip.** Dokumen ini dicatat untuk riwayat dan tidak lagi menjadi pegangan kerja. Cara
+> menjalankan sistem yang berlaku ada di `RUNBOOK.md` di akar repo.
+
 Daftar ini berisi semua pekerjaan yang **harus dikerjakan manusia**, bukan Sonnet, karena menyentuh kredensial, remote git, atau database staging dan production. Urutannya sudah disusun: kerjakan dari atas ke bawah.
 
 Perintah ditulis untuk PowerShell di Windows. Variabel lingkungan yang berisi kredensial hanya diset di terminal, **tidak pernah disimpan di file**.

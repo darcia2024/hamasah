@@ -1,5 +1,8 @@
 # Phase 2: Fondasi Pendaftaran Calon Santri
 
+> **Arsip.** Dokumen ini dicatat untuk riwayat dan tidak lagi menjadi pegangan kerja. Cara
+> menjalankan sistem yang berlaku ada di `RUNBOOK.md` di akar repo.
+
 ## Tujuan
 
 Membangun aturan proses pendaftaran yang dapat digunakan bersama oleh form publik, akun calon santri, dan dashboard petugas. Phase ini mengutamakan data dan logika, bukan tampilan baru.

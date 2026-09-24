@@ -1,5 +1,8 @@
 # Runbook rilis, backup, restore, dan insiden
 
+> **Arsip.** Dokumen ini dicatat untuk riwayat dan tidak lagi menjadi pegangan kerja. Cara
+> menjalankan sistem yang berlaku ada di `RUNBOOK.md` di akar repo.
+
 Dokumen ini menjadi urutan operasional untuk staging dan production. Semua langkah yang menulis database harus dijalankan dari terminal yang diberi label `APP_ENV` dengan koneksi yang sesuai. Jangan menjalankan migrasi production dari laptop yang masih memakai `.env` tanpa pemeriksaan URL.
 
 ## Gate sebelum rilis

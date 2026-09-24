@@ -1,71 +1,80 @@
-# Penawaran Rancangan Digital Ekosistem Hamasah International (by Dar Dev)
-### Disusun oleh: Dar Developer untuk Mendukung Visi Hamasah International
+# Hamasah International: website dan portal
 
-[![Test](https://github.com/darcia2024/penawaran-konsep-mediator/actions/workflows/test.yml/badge.svg)](https://github.com/darcia2024/penawaran-konsep-mediator/actions/workflows/test.yml)
+[![Test](https://github.com/darcia2024/hamasah/actions/workflows/test.yml/badge.svg)](https://github.com/darcia2024/hamasah/actions/workflows/test.yml)
 
-Rancangan 1 Website Terpadu dengan 2 Layanan Utama (**Publik & App Portal**) dari Dar Developer untuk menyederhanakan pendaftaran, akademik, operasional staff, otomatisasi invoice & kuitansi, serta transparansi wali santri di Mesir.
+Website publik dan portal internal Hamasah International (bimbingan studi Al-Azhar, Kairo):
+pendaftaran calon santri, konsol petugas, portal wali dan santri, LMS, serta operasional
+(tagihan, visa, asrama).
 
----
+- **Menjalankan sistem di production:** [`RUNBOOK.md`](RUNBOOK.md)
+- **Keputusan yang masih ditunggu dari pengurus:** [`docs/KEPUTUSAN_PEMILIK_2026-09-23.md`](docs/KEPUTUSAN_PEMILIK_2026-09-23.md)
+- **Riwayat fitur per phase:** [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md)
 
-## Struktur Arsitektur Resmi : 1 Website Terpadu (2 Layanan Utama)
+## Isi
 
-### LAYANAN 1 : PUBLIK & PENDAFTARAN (Hamasah International)
-**Layanan publik terdepan untuk masyarakat luas, calon santri, dan calon wali:**
-- **Profil Lembaga:** Visi misi pimpinan lembaga dan galeri Kairo.
-- **Informasi Program:** Brosur digital lengkap program bimbingan studi Al-Azhar.
-- **Alur Pendaftaran & Persiapan Keberangkatan:** Panduan tahapan pendaftaran dari awal hingga keberangkatan.
-- **Akun Registrasi Keberangkatan Calon Santri:** Akses calon santri untuk cek progres dokumen, visa, jadwal terbang, dan panduan Kairo (Pasti Berangkat).
-- **Pusat Informasi & AI Konsultan:** Tanya jawab cerdas 24 jam serta kontak WhatsApp resmi.
-- **Artikel Berita Kegiatan Mesir:** Dokumentasi kegiatan santri di Kairo yang dapat ditulis langsung oleh pengurus (CMS Mandiri).
+| Bagian | Untuk siapa | Halaman |
+|---|---|---|
+| Situs publik | Calon santri dan wali | Beranda, program, biaya, artikel (Pena Hamasah), kontak, formulir pendaftaran |
+| Cek status pendaftaran | Calon santri | Progres berkas, catatan petugas, unggah ulang berkas, kloter keberangkatan |
+| Konsol pendaftaran dan CMS | Petugas pendaftaran, admin | Pipeline pendaftar, pemeriksaan berkas, pesan WhatsApp siap kirim, artikel, pesan konsultasi |
+| Portal wali dan santri | Wali, santri | Rekam pembinaan, sholat, hafalan, rapor PDF, tagihan dan kuitansi PDF |
+| Monitoring | Musyrif, admin | Profil santri, presensi, evaluasi, catatan disiplin, export CSV |
+| LMS | Guru, santri | Maddah, materi video/PDF/teks, tugas dan kuis dengan penilaian |
+| Operasional | Admin, keuangan | Tagihan (`INV/HI/YYYY/NNNNN`), kuitansi, berkas visa, inventaris asrama, impor CSV |
+| Audit | Admin | Catatan aktivitas petugas dan perubahan data penting |
 
-### LAYANAN 2 : APP PORTAL TERINTEGRASI (App Portal Hamasah International)
-**Layanan aplikasi internal terproteksi login enkripsi berbasis peran (Role-Based Access):**
+Peran: admin, petugas pendaftaran, keuangan, musyrif, guru, wali, santri. Hak akses per peran ada
+di `server/access-policy.js` dan diuji di `server/access-matrix.test.js`.
 
-1. **Portal Keluarga Hamasah (Wali Santri / Portal Keluarga):**
-   - Monitoring absensi harian (Sholat Subuh berjamaah 98%).
-   - Capaian tahfidz & perkembangan belajar (Rata-rata Mumtaz 94, Hafalan 7 Juz Mutqin).
-   - Catatan evaluasi adab oleh ustaz pembina asrama Hay Asyir.
-   - Unduh dokumen rapor resmi semester Al-Azhar format PDF.
-   - Foto dan update kegiatan harian santri di Kairo.
-   - Unduh invoice & kuitansi sah pembayaran berstempel format PDF.
+## Teknologi
 
-2. **Portal Akademik Hamasah (Santri, Pembina & Pengawas / Portal Akademik):**
-   - **LMS Video Talaqqi Santri:** Video pembelajaran talaqqi yang dirancang khusus Hamasah International dengan kontrol interaktif, modul materi kitab PDF, silabus kurikulum terstruktur, dan AI Study Partner 24 jam untuk rangkum materi dan konsultasi istilah keilmuan Islam.
-   - **Dashboard Rekam Jejak Belajar:** Pemantauan kurikulum talaqqi dan roadmap akademik santri dari awal bergabung (Dauroh Ta'hili) hingga target wisuda sarjana Al-Azhar Kairo (2030).
-   - **Laporan Kegiatan Santri di Mesir:** Log aktivitas harian (Subuh berjamaah, Markaz Lughoh, talaqqi Rawaq Al-Azhar, katering asrama, dan mudzakarah malam).
-   - **Pencapaian & Achievement:** Portofolio piagam digital, syahadah tahfidz bersanad, dan penghargaan keteladanan asrama.
-   - **Disiplin, Presensi & Evaluasi Pengawas:** Rekap kehadiran sholat berjamaah (98.4%), catatan pelanggaran (0 kasus / bersih), dan lembar evaluasi jangka panjang musyrif asrama.
-   - **Fitur Pembina:** Kelola materi video talaqqi, bagikan modul kitab klasik, evaluasi tugas berkala, serta susun catatan bimbingan adab santri.
+- Node.js 22, tanpa framework dan tanpa langkah build. Satu dependency production: `pg`.
+- PostgreSQL (Supabase di production). Migrasi berurutan di `database/`, dijalankan `npm run migrate`.
+- Berkas pendaftar di Supabase Storage (bucket privat, tautan bertanda tangan).
+- Frontend HTML, CSS, dan JavaScript biasa di `website/`, disajikan server yang sama.
+- Deploy ke Vercel lewat `api/index.js`; `server.js` dan `Dockerfile` untuk server biasa.
 
-3. **Portal Operasional Hamasah (Staff & Admin / Portal Operasional):**
-   - **Auto Financial Generator:** Pembuatan otomatis invoice SPP (INV/HI/2026/XXXX) dan kuitansi sah digital PDF (KWT/HI/2026/XXXX).
-   - **Auto-Sync Portal & WA:** Bukti pembayaran langsung tampil di dashboard wali (Portal Keluarga) dan terkirim ke WhatsApp resmi wali.
-   - **Berkas Visa Santri:** Tracking paspor, legalisasi 4 kementerian di Jakarta, dan masa berlaku visa pelajar Mesir.
-   - **Generate Akun Keberangkatan:** Pembuatan instan akun calon santri untuk akses registrasi keberangkatan di Layanan Publik.
-   - **Logistik Asrama Kairo:** Inventaris fasilitas kamar santri ber-AC dan katering harian di Hay Asyir.
+## Struktur
 
----
+```
+api/index.js        Titik masuk Vercel
+server.js           Titik masuk server biasa (dev, Docker)
+server/             Aplikasi: route, service, store PostgreSQL, keamanan HTTP
+database/           Migrasi SQL dan skrip migrate/verify
+website/            Halaman dan skrip peramban
+assets/             Gambar
+scripts/            Dev server, seed, pemeriksaan rilis, worker
+docs/               Catatan keputusan dan arsip (lihat docs/README.md)
+```
 
-## Matriks Akses Berbasis Peran (Role-Based Access)
-- **Calon Wali & Calon Santri:** Layanan 1 (Publik & Pendaftaran)
-- **Wali Santri:** Layanan 2 (Portal Keluarga)
-- **Santri:** Layanan 2 (Portal Akademik)
-- **Pembina & Musyrif:** Layanan 2 (Portal Akademik)
-- **Staff & Admin Operasional:** Layanan 2 (Portal Operasional)
+## Menjalankan di laptop
 
----
+Tidak butuh database luar maupun file `.env`:
 
-## Roadmap Pengembangan 1 Bulan (4 Pekan Intensif)
-- **PEKAN 1 (Hari 1 - 7):** Layanan 1 (Publik, Profil Lembaga, Berita Kegiatan Mesir & Akun Keberangkatan)
-- **PEKAN 2 (Hari 8 - 14):** Layanan 2 (Portal Operasional: Staff, Logistik Asrama & Auto Invoice/Kuitansi PDF)
-- **PEKAN 3 (Hari 15 - 21):** Layanan 2 (Portal Keluarga: Monitoring Wali Santri Hay Asyir & Kuitansi Sah)
-- **PEKAN 4 AWAL (Hari 22 - 26):** Layanan 2 (Portal Akademik: Santri, Musyrif & LMS AI Study Partner)
-- **PEKAN 4 AKHIR (Hari 27 - 30):** Integrasi Database Terpadu, Single SSO, Pengujian & Go-Live
+```bash
+npm install
+npm run dev
+```
 
----
+`npm run dev` memakai PostgreSQL in-process (PGlite) di `data/dev-db`, menerapkan migrasi, dan
+membuat akun contoh untuk setiap peran; kata sandinya dicetak di terminal. Buka alamat yang dicetak.
+`npm run dev:reset` untuk mulai dari database kosong.
 
-## Cara Mencoba Aplikasi
-Prototipe proposal lama (landing di root, `/proposal`, `/hamasah`) sudah dihapus (keputusan KR6, 22 September 2026). Aplikasi yang sebenarnya ada di `website/` dan dijalankan server Node:
+## Test
 
-1. `npm run dev` (database lokal berisi data contoh), lalu buka alamat yang dicetak di terminal.
-2. Lihat `IMPLEMENTATION_STATUS.md` bagian "Menjalankan secara lokal" untuk akun dev dan perintah lain.
+```bash
+npm test
+```
+
+Seluruh test memakai PGlite, jadi tidak butuh database sungguhan atau secret. CI menjalankannya di
+Node 22 dan 24 pada setiap pull request (`.github/workflows/test.yml`).
+
+Setelah mengubah CSS atau JS di `website/`, jalankan `npm run stamp:assets` supaya versi aset di
+HTML ikut berubah; test akan gagal kalau lupa.
+
+## Konvensi
+
+- Teks antarmuka, komentar, dan pesan commit dalam bahasa Indonesia.
+- Tidak ada rahasia di repo. `.env` hanya untuk laptop dan tidak pernah di-commit.
+- Skrip yang menulis ke database menolak production tanpa `ALLOW_PRODUCTION_WRITE=I_UNDERSTAND`
+  yang diset di terminal.

@@ -1,5 +1,11 @@
 # Status Implementasi
 
+> **Status terkini (24 September 2026).** Hosting: Vercel (K2). Migrasi 001-041 sudah diterapkan
+> ke production pada 23 September 2026, jadi catatan "belum diterapkan" di bagian-bagian lama di
+> bawah sudah tidak berlaku. CI berjalan di setiap pull request (Node 22 dan 24). Email tidak
+> dipakai; pemberitahuan dikirim manual lewat WhatsApp dari konsol petugas. Cara menjalankan
+> production ada di `RUNBOOK.md`. Bagian di bawah adalah riwayat per phase.
+
 ## Phase 2: Website publik, CMS, dan pendaftaran
 
 Pendaftaran dan konten artikel memakai PostgreSQL production saat `DATABASE_URL` tersedia. Repository pendaftaran menyimpan data calon, riwayat perubahan status, dan metadata dokumen dalam transaksi.
@@ -47,7 +53,7 @@ Selesai sebagai API pembelajaran inti.
 - Invoice memakai nomor `INV/HI/YYYY/NNNNN`; pembayaran membuat nomor kuitansi `KWT/HI/YYYY/NNNNN`.
 - Status visa, catatan persiapan berkas, serta inventaris asrama tersimpan pada modul operasional.
 - `website/operations.html` menyediakan konsol admin untuk tiga alur tersebut.
-- **Notifikasi peristiwa (R8.3, K10: email sekarang, WhatsApp di Phase 16).** Perubahan status pendaftaran dan berkas ditolak mengantrekan email ke pendaftar dan wali pada formulir (bukan untuk pendaftaran yang dibatalkan); tagihan yang baru lunas mengantrekan email ke wali aktif santri. Semua lewat `notification_outbox` (migrasi 036, belum diterapkan ke Supabase) dan baru terkirim bila `npm run worker:notifications` berjalan di hosting. Belum ada preferensi penerima.
+- **Notifikasi peristiwa (R8.3, K10: email sekarang, WhatsApp di Phase 16).** Perubahan status pendaftaran dan berkas ditolak mengantrekan email ke pendaftar dan wali pada formulir (bukan untuk pendaftaran yang dibatalkan); tagihan yang baru lunas mengantrekan email ke wali aktif santri. Semua lewat `notification_outbox` (migrasi 036, sudah diterapkan) dan baru terkirim bila `npm run worker:notifications` berjalan. Di Vercel worker ini tidak berjalan dan email tidak dipakai (lihat `RUNBOOK.md`). Belum ada preferensi penerima.
 - **Batasan satu mata uang (KR7, diputuskan 22 September 2026: opsi a).** Tagihan dan koreksinya hanya dalam rupiah (`invoices.amount_rupiah`, `invoice_corrections.corrected_amount_rupiah`); tidak ada kolom mata uang maupun kurs. Biaya yang dibayar dalam EGP di Mesir harus dicatat dalam rupiah secara manual. Ditinjau ulang begitu ada transaksi EGP nyata yang harus dicatat apa adanya; saat itu bagian keuangan perlu memutuskan kapan kurs dikunci (saat tagihan dibuat atau saat dibayar).
 
 ## Menjalankan secara lokal
@@ -136,7 +142,7 @@ Alat uji yang jujur. `test:browser-contract` membuka 17 halaman x 5 lebar di bro
 
 ## Remediasi Phase R6 (21 September 2026)
 
-Skalabilitas. Daftar pendaftar 1.003 query -> 8 (tidak tumbuh); pagination untuk pendaftaran, artikel (tanpa body), santri (cakupan akses di SQL, diuji setara canView), dan tagihan (dengan nama santri); ETag/Cache-Control/304/brotli untuk aset statis dengan versi dari sidik isi (`npm run stamp:assets` wajib setelah mengubah CSS/JS); `website.css` dipecah jadi core (internal) dan public; portal 304 KB -> 45,6 KB di jaringan; rate limit token undangan/reset. **Migrasi 034 (index) perlu diterapkan ke staging lalu production bersama 017-033.** Akun, visa, inventaris, maddah belum berpaginasi (keputusan cakupan). Rincian: `docs/REMEDIASI_R6_HASIL_2026-09-21.md`.
+Skalabilitas. Daftar pendaftar 1.003 query -> 8 (tidak tumbuh); pagination untuk pendaftaran, artikel (tanpa body), santri (cakupan akses di SQL, diuji setara canView), dan tagihan (dengan nama santri); ETag/Cache-Control/304/brotli untuk aset statis dengan versi dari sidik isi (`npm run stamp:assets` wajib setelah mengubah CSS/JS); `website.css` dipecah jadi core (internal) dan public; portal 304 KB -> 45,6 KB di jaringan; rate limit token undangan/reset. Migrasi 034 (index) sudah diterapkan ke production. Akun, visa, inventaris, maddah belum berpaginasi (keputusan cakupan). Rincian: `docs/REMEDIASI_R6_HASIL_2026-09-21.md`.
 
 ## Remediasi Phase R7 (22 September 2026)
 
@@ -144,7 +150,7 @@ Distribusi dan konten. Tag Open Graph/Twitter disisipkan server untuk halaman pu
 
 ## Remediasi Phase R8 (22 September 2026)
 
-Pengerasan. Prototipe lama dan rute `/proposal`, `/hamasah` dihapus (KR6 a); `.vercelignore` tolak-semua, **deployment Vercel lama akan kosong setelah push**. Worker pengingat visa tersambung (migrasi 035). Notifikasi email untuk status pendaftaran, berkas perlu diperbaiki, dan pembayaran diterima (migrasi 036). scrypt N=2^16 r=8 p=2 (~225 ms), hash lama tetap sah. 404 dengan CTA dan base href. Mata uang tetap rupiah (KR7 a). **R8.7 (audit per role) menunggu pemilik proyek.** **Migrasi 035 dan 036 perlu diterapkan ke staging lalu production bersama 017-034.** Rincian: `docs/REMEDIASI_R8_HASIL_2026-09-22.md`.
+Pengerasan. Prototipe lama dan rute `/proposal`, `/hamasah` dihapus (KR6 a); `.vercelignore` tolak-semua, **deployment Vercel lama akan kosong setelah push**. Worker pengingat visa tersambung (migrasi 035). Notifikasi email untuk status pendaftaran, berkas perlu diperbaiki, dan pembayaran diterima (migrasi 036). scrypt N=2^16 r=8 p=2 (~225 ms), hash lama tetap sah. 404 dengan CTA dan base href. Mata uang tetap rupiah (KR7 a). **R8.7 (audit per role) menunggu pemilik proyek.** Migrasi 035 dan 036 sudah diterapkan ke production. Rincian: `docs/REMEDIASI_R8_HASIL_2026-09-22.md`.
 
 ## Rapor digital PDF untuk wali (22 September 2026)
 
@@ -156,7 +162,7 @@ Tab "Tagihan & Kuitansi" di portal (wali dan admin). `GET /api/students/:id/invo
 
 ## Jadwal keberangkatan per kloter (22 September 2026)
 
-Petugas pendaftaran dan admin (izin baru `departures.manage`) membuat kloter di konsol pendaftaran (nama, tanggal rencana, kota/bandara asal, status, catatan untuk pendaftar) dan menugaskan pendaftar dari kartunya. Halaman cek status menampilkan kloter pendaftar; tanpa kloter atau tanpa tanggal tertulis "belum ditetapkan". Kloter dibatalkan tidak menerima pendaftar baru. Perubahan diaudit. **Migrasi 037 perlu diterapkan ke Supabase** bersama 017-036. Email ke pendaftar dan wali saat kloter ditetapkan atau dipindah (tipe outbox `departure-assigned`, migrasi 038); tidak dikirim saat kloter yang sama disimpan ulang, saat dilepas, atau untuk pendaftaran dibatalkan. Perubahan tanggal, asal, atau status kloter mengirim email ke setiap anggota (tipe `departure-updated`, migrasi 039) berisi nilai lama dan baru; mengubah nama atau catatan saja tidak mengirim email. Konsol menampilkan jumlah email yang diantrekan.
+Petugas pendaftaran dan admin (izin baru `departures.manage`) membuat kloter di konsol pendaftaran (nama, tanggal rencana, kota/bandara asal, status, catatan untuk pendaftar) dan menugaskan pendaftar dari kartunya. Halaman cek status menampilkan kloter pendaftar; tanpa kloter atau tanpa tanggal tertulis "belum ditetapkan". Kloter dibatalkan tidak menerima pendaftar baru. Perubahan diaudit. Migrasi 037 sudah diterapkan ke production. Email ke pendaftar dan wali saat kloter ditetapkan atau dipindah (tipe outbox `departure-assigned`, migrasi 038); tidak dikirim saat kloter yang sama disimpan ulang, saat dilepas, atau untuk pendaftaran dibatalkan. Perubahan tanggal, asal, atau status kloter mengirim email ke setiap anggota (tipe `departure-updated`, migrasi 039) berisi nilai lama dan baru; mengubah nama atau catatan saja tidak mengirim email. Konsol menampilkan jumlah email yang diantrekan.
 
 ## Ibadah dan kesehatan terstruktur (22 September 2026)
 
@@ -166,7 +172,7 @@ Migrasi 040. Musyrif/admin mencatat di halaman monitoring: presensi sholat 5 wak
 
 - **Gerbang 1 (boleh dilihat orang luar): tertahan.** R1 dan R2 selesai (kecuali R1.0 putar kredensial, tugas manusia). R8.7 belum dilakukan. Konten publik juga masih menunggu klien: alamat Hay Asyir/Madinat Nasr (K16), teks kebijakan privasi, nomor WhatsApp resmi.
 - **Gerbang 2 (boleh dipakai staf): tertahan pada Gerbang 1.** R3 dan R5 selesai.
-- **Gerbang 3 (trafik nyata): tertahan.** R4 dan R6 selesai, angka performa R6 tercatat; R7 selesai kecuali R7.6 (artikel nyata dari klien). Di luar rencana: hosting (K2), penerapan migrasi 017-036 ke Supabase, scheduler untuk `worker:notifications` dan `worker:visa-reminders`, dan belum ada CI.
+- **Gerbang 3 (trafik nyata): tertahan.** R4 dan R6 selesai, angka performa R6 tercatat; R7 selesai kecuali R7.6 (artikel nyata dari klien). Di luar rencana saat itu: hosting (K2), penerapan migrasi ke Supabase, scheduler worker, dan CI. Per 23-24 September: K2 Vercel, migrasi 001-041 diterapkan, CI dan pemantau uptime ada; worker email tidak dipakai.
 
 ## LMS: tugas dan kuis (23 September 2026)
 
@@ -195,16 +201,16 @@ materi `assignment` dan `quiz` dapat dipilih kembali saat guru membuat materi.
 
 ## Sebelum go-live penuh
 
-- Runbook rilis, backup/restore, rollback, insiden, monitoring, retensi, dan rotasi akses tersedia di `docs/RUNBOOK_RELEASE_DAN_RESTORE_2026-09-20.md`. `npm run release:check` memeriksa env staging/production dan artefak rilis tanpa menulis database.
+- Runbook yang berlaku: `RUNBOOK.md` (menggantikan `docs/RUNBOOK_RELEASE_DAN_RESTORE_2026-09-20.md`). `npm run release:check` memeriksa env staging/production dan artefak rilis tanpa menulis database.
 - Panduan role dan lembar UAT tersedia di `docs/PANDUAN_ROLE_DAN_UAT_2026-09-20.md`; pengisian serta sign-off pemilik proses tetap dilakukan manual pada environment staging.
-- Worker pengingat visa (`npm run worker:visa-reminders`, dijalankan scheduler sekali sehari) tersambung sejak R8.2: memindai dokumen, mengirim ringkasan ke admin aktif, state di `visa_reminder_log` (migrasi 035, belum diterapkan ke Supabase); tanpa pengirim email ia gagal, bukan pura-pura terkirim. Belum ada scheduler terpasang di hosting (menunggu K2).
+- Worker pengingat visa (`npm run worker:visa-reminders`, dijalankan scheduler sekali sehari) tersambung sejak R8.2: memindai dokumen, mengirim ringkasan ke admin aktif, state di `visa_reminder_log` (migrasi 035, sudah diterapkan); tanpa pengirim email ia gagal, bukan pura-pura terkirim. Di Vercel tidak dijadwalkan karena email tidak dipakai; daftar kedaluwarsa 30 hari dipantau manual di konsol Operasional.
 - PDF kuitansi teks, export laporan operasional CSV, archive materi LMS, cover media artikel, kontrak browser publik, performance smoke, dan harness evaluasi AI tersedia untuk validasi lokal.
 
 - Container Node tersedia melalui `Dockerfile` dan sudah diperiksa dengan `npm run check:docker`: dependency production terpasang, seluruh modul lengkap, server start, dan proses berhenti rapi saat menerima SIGTERM.
 - Pemeriksaan kesehatan dipisah: `GET /api/health` untuk liveness (tanpa database) dan `GET /api/ready` untuk readiness (memeriksa database, batas waktu 2 detik). Platform hosting sebaiknya memakai `/api/health` sebagai health check container.
 - Validasi environment tersedia: `DATABASE_URL` selalu wajib, bucket privat wajib saat `APP_ENV=production`, dan bootstrap key diperiksa panjangnya jika diisi.
 - Skrip yang menulis ke database (migrate, seed artikel, auth-live-check) menolak `APP_ENV` kosong, dan menolak production tanpa konfirmasi `ALLOW_PRODUCTION_WRITE=I_UNDERSTAND` di terminal. Lihat `PRODUCTION_DEPLOYMENT.md`.
-- Pindahkan penyimpanan dokumen (paspor, ijazah, surat kesehatan) ke object storage privat dengan tautan bertanda tangan.
+- ~~Pindahkan penyimpanan dokumen ke object storage privat dengan tautan bertanda tangan.~~ Selesai: Supabase Storage, bucket privat, unggah langsung dari peramban.
 - Hubungkan reset password ke email atau WhatsApp resmi.
 - Simpan rahasia pada environment deployment, bukan file `.env` di repositori.
 - Jika ingin jawaban generatif, pilih provider/model, biaya, retensi data, dan sumber FAQ; lalu pasang adapter provider melalui `config.aiProvider`/secret deployment dan jalankan evaluasi pengajar. Adapter backend sudah siap dan tetap fallback lokal saat provider tidak tersedia.

@@ -1,5 +1,8 @@
 # Keputusan UI Phase 1
 
+> **Arsip.** Dokumen ini dicatat untuk riwayat dan tidak lagi menjadi pegangan kerja. Cara
+> menjalankan sistem yang berlaku ada di `RUNBOOK.md` di akar repo.
+
 Status: prototype UI untuk review. Semua data yang tampak di layar adalah data contoh sampai Hamasah menyetujui sumber dan aturan datanya.
 
 - Palet putih, arang, dan emas mengikuti identitas Hamasah dalam `DESIGN.md`, agar proposal terasa tenang, formal, dan mudah dibaca.

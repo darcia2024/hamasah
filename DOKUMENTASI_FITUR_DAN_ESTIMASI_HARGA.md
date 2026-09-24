@@ -1,4 +1,8 @@
 # DOKUMENTASI LENGKAP FITUR & ESTIMASI HARGA PEMBUATAN WEBSITE
+
+> **Arsip.** Dokumen ini dicatat untuk riwayat dan tidak lagi menjadi pegangan kerja. Cara
+> menjalankan sistem yang berlaku ada di `RUNBOOK.md` di akar repo.
+
 ## Digital Ekosistem Terpadu: Hamasah International Kairo (By Dar Developer)
 
 ---

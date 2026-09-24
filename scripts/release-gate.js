@@ -5,7 +5,7 @@ const path = require('node:path');
 const { readAppEnvironment } = require('../server/environment.js');
 
 const REQUIRED_FILES = Object.freeze([
-  'Dockerfile', 'PRODUCTION_DEPLOYMENT.md', 'docs/RUNBOOK_RELEASE_DAN_RESTORE_2026-09-20.md',
+  'Dockerfile', 'PRODUCTION_DEPLOYMENT.md', 'RUNBOOK.md',
   'server/http/security-headers.js', 'scripts/notification-worker.js'
 ]);
 
