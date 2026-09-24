@@ -16,7 +16,7 @@
 
 const path = require('node:path');
 const { createHamasahApp } = require('../server/app.js');
-const { readProductionConfig } = require('../server/production-config.js');
+const { appOptionsFromConfig, readProductionConfig } = require('../server/production-config.js');
 
 let handlerPromise = null;
 
@@ -24,14 +24,8 @@ function buatHandler() {
   const config = readProductionConfig(process.env);
   const app = createHamasahApp({
     rootDirectory: path.resolve(__dirname, '..'),
-    databaseUrl: config.databaseUrl,
-    appEnvironment: config.appEnvironment,
-    ipHashSecret: config.ipHashSecret,
-    bootstrapKey: config.bootstrapKey,
-    storageBucket: config.storageBucket,
-    storagePublicBucket: config.storagePublicBucket,
-    storageDriver: config.storageDriver,
-    appBaseUrl: config.appBaseUrl,
+    // Opsi yang sama persis dengan server.js, termasuk penyimpanan Supabase dan email.
+    ...appOptionsFromConfig(config),
     trustProxy: true,
     // Timer tidak berguna di serverless: instance mati sebelum jadwal berikutnya.
     // Pekerjaannya dipanggil cron lewat POST /api/tasks/maintenance.

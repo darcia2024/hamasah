@@ -141,4 +141,26 @@ function readProductionConfig(environment) {
   });
 }
 
-module.exports = { PGLITE_ENVIRONMENTS, assertDatabaseUrl, readEmailConfig, readProductionConfig, resolveDatabaseUrl };
+// Mengubah hasil readProductionConfig menjadi opsi createHamasahApp.
+//
+// Dipakai bersama oleh server.js (server biasa) dan api/index.js (Vercel). Dulu
+// masing-masing menyusun opsinya sendiri, dan api/index.js lupa mengoper
+// supabaseUrl, supabaseServiceRoleKey, dan email, sehingga setiap permintaan di
+// production gagal 500. Dengan satu sumber, kedua titik masuk tidak bisa berbeda.
+function appOptionsFromConfig(config) {
+  return {
+    databaseUrl: config.databaseUrl,
+    appEnvironment: config.appEnvironment,
+    ipHashSecret: config.ipHashSecret,
+    bootstrapKey: config.bootstrapKey,
+    storageDriver: config.storageDriver,
+    storageBucket: config.storageBucket,
+    storagePublicBucket: config.storagePublicBucket,
+    supabaseUrl: config.supabaseUrl,
+    supabaseServiceRoleKey: config.supabaseServiceRoleKey,
+    email: config.email,
+    appBaseUrl: config.email.appBaseUrl
+  };
+}
+
+module.exports = { PGLITE_ENVIRONMENTS, appOptionsFromConfig, assertDatabaseUrl, readEmailConfig, readProductionConfig, resolveDatabaseUrl };

@@ -2,7 +2,7 @@ const path = require('node:path');
 const { createHamasahApp } = require('./server/app.js');
 const { createShutdownHandler } = require('./server/shutdown.js');
 const { loadEnvironmentFile } = require('./database/migrate.js');
-const { readProductionConfig } = require('./server/production-config.js');
+const { appOptionsFromConfig, readProductionConfig } = require('./server/production-config.js');
 
 loadEnvironmentFile(path.join(__dirname, '.env'), process.env);
 
@@ -20,15 +20,7 @@ try {
 const port = Number(process.env.PORT || 4273);
 const app = createHamasahApp({
   rootDirectory: path.resolve(__dirname),
-  databaseUrl: config.databaseUrl,
-  appEnvironment: config.appEnvironment,
-  ipHashSecret: config.ipHashSecret,
-  storageDriver: config.storageDriver,
-  storageBucket: config.storageBucket,
-  storagePublicBucket: config.storagePublicBucket,
-  supabaseUrl: config.supabaseUrl,
-  supabaseServiceRoleKey: config.supabaseServiceRoleKey,
-  email: config.email
+  ...appOptionsFromConfig(config)
 });
 
 const server = app.createServer();
