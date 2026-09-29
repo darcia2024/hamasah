@@ -367,7 +367,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-weight: 600 !important;
+  font-weight: 400 !important;
 }
 
 .button,
@@ -480,4 +480,29 @@ h4 {
   white-space: nowrap;
   clip: rect(0 0 0 0);
   clip-path: inset(50%);
+}
+
+/* Satu ketebalan: Plus Jakarta Sans regular (400) untuk seluruh teks, termasuk judul,
+   label, dan tombol. Hierarki dibawa oleh ukuran dan warna, bukan ketebalan. Hanya
+   bobot 400 yang dimuat dari Google Fonts, jadi aturan ini juga mencegah browser
+   menebalkan huruf secara sintetis. */
+*,
+*::before,
+*::after {
+  font-weight: 400 !important;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* Jarak huruf negatif yang dulu menyeimbangkan judul tebal membuat judul regular
+   terlihat berdempet; kata-katanya nyaris menyatu. */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.01em !important;
 }

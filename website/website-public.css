@@ -129,7 +129,7 @@
 .nav-cta {
   background-color: var(--md-sys-color-primary) !important;
   color: var(--md-sys-color-on-primary) !important;
-  font-weight: 700 !important;
+  font-weight: 400 !important;
   box-shadow: var(--md-sys-elevation-1) !important;
 }
 
@@ -4100,7 +4100,7 @@ main .eyebrow + h2,
 main .reg-kicker + h2 {
   font-size: clamp(28px, 3vw, 38px);
   line-height: 1.15;
-  font-weight: 700 !important;
+  font-weight: 400 !important;
   letter-spacing: -0.02em;
   margin: 0 0 16px;
   text-wrap: balance;
@@ -4197,7 +4197,7 @@ main .eyebrow + h1 {
   font-size: clamp(32px, 4vw, 46px);
   line-height: 1.12;
   letter-spacing: -0.025em;
-  font-weight: 700 !important;
+  font-weight: 400 !important;
   margin: 0 0 16px;
   text-wrap: balance;
 }

@@ -47,3 +47,20 @@ button:hover { background: #d4a20b; }
 /* Keadaan galat dan sukses tetap berwarna setelah penyeragaman di atas. */
 .token-state[data-token-state="invalid"], .token-state[data-token-state="expired"], .token-state[data-token-state="used"] { border: 1px solid #e5b6b6; background: #fff7f7; }
 .token-state[data-token-state="success"] { border: 1px solid #abd8bb; background: #f2fbf5; }
+
+/* Satu ketebalan: Plus Jakarta Sans regular (400) untuk seluruh teks, termasuk judul,
+   label, dan tombol. Hierarki dibawa oleh ukuran dan warna, bukan ketebalan. Hanya
+   bobot 400 yang dimuat dari Google Fonts, jadi aturan ini juga mencegah browser
+   menebalkan huruf secara sintetis. */
+*,
+*::before,
+*::after {
+  font-weight: 400 !important;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}

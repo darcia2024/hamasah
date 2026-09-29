@@ -7,12 +7,12 @@ ENERGY 3 / RHYTHM 3 / MOTION 2.
 - Kuning tua (emas #e7b10c) dan hitam arang (#363638) dari logo menjadi warna utama; putih untuk background. Hijau khusus status berhasil, merah khusus peringatan.
 - Panorama Kairo menempatkan tujuan pendidikan dalam konteks lokasi; foto ini bukan dokumentasi santri atau foto kampus Al-Azhar.
 - Navbar putih bersih (tanpa top bar pengumuman), wordmark emblem kiri, kapsul nav di tengah, CTA pil emas kanan.
-- Hero home: eyebrow kecil ber-ikon, judul display tebal (800) dengan sebagian kata di-abu-abukan untuk hierarki, kotak-ikon emas inline sebagai aksen, sub-teks sempit terpusat, lalu CTA emas + outline. Referensi gaya: template "aelixa".
-- Kicker/eyebrow di atas judul: teks kecil uppercase tracked warna emas tua + titik kecil, tanpa pill/band. Judul section tebal (700).
+- Hero home: eyebrow kecil ber-ikon, judul display regular (400) dengan sebagian kata di-abu-abukan untuk hierarki, kotak-ikon emas inline sebagai aksen, sub-teks sempit terpusat, lalu CTA emas + outline. Referensi gaya: template "aelixa".
+- Kicker/eyebrow di atas judul: teks kecil uppercase tracked warna emas tua + titik kecil, tanpa pill/band. Judul section regular (400).
 - Tone copy: ringkas, aktif, mudah dipahami, tidak kaku. Tanpa em dash.
 - Foto profil di semua simulasi (santri, musyrif, wali, penulis berita, avatar) memakai `assets/avatar-hamasah.png` (emblem Hamasah putih di latar emas), bukan foto stok. Foto konten (arsitektur Kairo, galeri, cover artikel) tetap foto asli.
 - Asisten AI Hamasah: section `#asisten-ai` di landing (chat simulasi + chip pertanyaan, basis pengetahuan di `HAMASAH_AI_KB` app.js) untuk FAQ calon santri/wali. AI Study Partner di LMS (`#udemy-tab-ai-partner`) untuk bantu santri paham materi kelas (jawaban di `udemyAiAnswer`). Keduanya simulasi keyword-match, siap diganti backend live.
-- Plus Jakarta Sans dipertahankan sebagai tipografi proyek.
+- Plus Jakarta Sans **regular (400) saja** di semua halaman, termasuk judul, label, dan tombol. Hierarki dibawa ukuran dan warna. Google Fonts hanya memuat bobot 400 (aturan global di akhir `website-core.css` dan `auth-pages.css`). Judul memakai letter-spacing -0.01em.
 - Program utama mendapat satu bidang foto besar; dua jalur pendamping berbagi baris pada desktop untuk membedakan hierarki.
 - Keunggulan berupa daftar editorial, bukan kumpulan kartu putih; garis tipis memisahkan informasi tanpa dekorasi tambahan.
 - Portal dan dialog memakai palet terang tersendiri agar formulir dan data simulasi mudah dibaca.

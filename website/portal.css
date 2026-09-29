@@ -213,7 +213,7 @@
   color: var(--md-sys-color-on-surface) !important;
   font-family: inherit;
   font-size: 14px !important;
-  font-weight: 500 !important;
+  font-weight: 400 !important;
   min-height: 46px !important;
   height: auto !important;
   padding: 0 14px !important;
@@ -820,7 +820,7 @@ body.in-crm #portal-students-status,
 .crm-nav-link.is-active {
   background: #FEF3C7 !important;
   color: var(--md-sys-color-on-primary-container) !important;
-  font-weight: 700 !important;
+  font-weight: 400 !important;
   box-shadow: none !important;
 }
 
@@ -2867,7 +2867,7 @@ body.in-crm #portal-students-status,
   height: 44px !important;
   padding: 0 24px !important;
   font-size: 14px !important;
-  font-weight: 600 !important;
+  font-weight: 400 !important;
   letter-spacing: -0.01em !important;
   box-shadow: var(--md-sys-elevation-1) !important;
   transition: background 0.2s cubic-bezier(0.2, 0, 0, 1), transform 0.15s ease, box-shadow 0.2s ease !important;
@@ -2889,7 +2889,7 @@ body.in-crm #portal-students-status,
   height: 42px !important;
   padding: 0 20px !important;
   font-size: 13px !important;
-  font-weight: 600 !important;
+  font-weight: 400 !important;
   letter-spacing: -0.01em !important;
   transition: background 0.2s ease, transform 0.15s ease !important;
 }
@@ -2929,7 +2929,7 @@ body.in-crm #portal-students-status,
 
 .crm-canvas .staff-registration h2 {
   font-size: 17px !important;
-  font-weight: 700 !important;
+  font-weight: 400 !important;
   color: var(--md-sys-color-on-surface, #1E1B16) !important;
   letter-spacing: -0.015em !important;
   margin: 0 0 4px !important;
