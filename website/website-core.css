@@ -367,7 +367,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-weight: 600 !important;
+  font-weight: 800 !important;
 }
 
 .button,
@@ -480,4 +480,67 @@ h4 {
   white-space: nowrap;
   clip: rect(0 0 0 0);
   clip-path: inset(50%);
+}
+
+/* Plus Jakarta Sans regular (400) untuk teks, label, dan tombol. Hanya judul yang
+   tebal (lihat di bawah). */
+*,
+*::before,
+*::after {
+  font-weight: 400 !important;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* Jarak huruf judul: cukup rapat untuk huruf tebal, tidak sampai berdempet. */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.01em !important;
+}
+
+/* Judul tebal (700), teks lain tetap regular. Google Fonts memuat bobot 400 dan 700.
+   Selektor elemen berspesifisitas lebih tinggi dari "*", jadi menang atas aturan 400. */
+/* Judul kartu dan daftar di situs ini banyak memakai <strong>, <dt>, atau kelas
+   ...title, bukan tag h1-h3, jadi ikut ditebalkan. */
+h1,
+h2,
+h3,
+h4,
+strong,
+b,
+dt,
+.lp-path__title,
+.article-card-title,
+.coursue-hero-title,
+.coursue-section-title,
+.crm-summary-title,
+.portal-list-title,
+.lms-course-title,
+.lms-module-title,
+.lms-course-item__title,
+.file-preview__title,
+.res-title,
+.coursue-stat-count,
+:is(h1, h2, h3, h4, strong, b, dt) * {
+  font-weight: 700 !important;
+}
+
+/* Judul utama satu tingkat lebih tebal (800); judul kartu dan <strong> tetap 700. */
+h1,
+h2,
+h3,
+:is(h1, h2, h3) * {
+  font-weight: 800 !important;
+}
+
+h1,
+h2 {
+  letter-spacing: -0.012em !important;
+  word-spacing: 0.06em;
 }

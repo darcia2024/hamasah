@@ -213,7 +213,7 @@
   color: var(--md-sys-color-on-surface) !important;
   font-family: inherit;
   font-size: 14px !important;
-  font-weight: 500 !important;
+  font-weight: 400 !important;
   min-height: 46px !important;
   height: auto !important;
   padding: 0 14px !important;
@@ -820,7 +820,7 @@ body.in-crm #portal-students-status,
 .crm-nav-link.is-active {
   background: #FEF3C7 !important;
   color: var(--md-sys-color-on-primary-container) !important;
-  font-weight: 700 !important;
+  font-weight: 400 !important;
   box-shadow: none !important;
 }
 
@@ -2867,7 +2867,7 @@ body.in-crm #portal-students-status,
   height: 44px !important;
   padding: 0 24px !important;
   font-size: 14px !important;
-  font-weight: 600 !important;
+  font-weight: 400 !important;
   letter-spacing: -0.01em !important;
   box-shadow: var(--md-sys-elevation-1) !important;
   transition: background 0.2s cubic-bezier(0.2, 0, 0, 1), transform 0.15s ease, box-shadow 0.2s ease !important;
@@ -2889,7 +2889,7 @@ body.in-crm #portal-students-status,
   height: 42px !important;
   padding: 0 20px !important;
   font-size: 13px !important;
-  font-weight: 600 !important;
+  font-weight: 400 !important;
   letter-spacing: -0.01em !important;
   transition: background 0.2s ease, transform 0.15s ease !important;
 }
@@ -2929,7 +2929,7 @@ body.in-crm #portal-students-status,
 
 .crm-canvas .staff-registration h2 {
   font-size: 17px !important;
-  font-weight: 700 !important;
+  font-weight: 800 !important;
   color: var(--md-sys-color-on-surface, #1E1B16) !important;
   letter-spacing: -0.015em !important;
   margin: 0 0 4px !important;
@@ -5001,5 +5001,158 @@ table,
   .lms-quiz-question,
   .lms-submission__form {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================================
+   Mobile pass kedua (29 September 2026)
+   ========================================================================== */
+
+@media (max-width: 800px) {
+  /* Laci menu tertutup tidak boleh meninggalkan bayangan di tepi kiri layar;
+     translateX(-105%) tidak cukup jauh untuk bayangan 12px + blur 32px. */
+  .crm-sidebar {
+    box-shadow: none;
+    visibility: hidden;
+    transition: transform 0.24s cubic-bezier(0.2, 0, 0, 1), visibility 0s linear 0.24s;
+  }
+
+  .crm-shell.is-drawer-open .crm-sidebar {
+    box-shadow: 12px 0 32px rgba(30, 27, 22, 0.16);
+    visibility: visible;
+    transition: transform 0.24s cubic-bezier(0.2, 0, 0, 1), visibility 0s;
+  }
+
+  .crm-drawer-toggle {
+    gap: 8px;
+    padding-inline: 12px;
+  }
+}
+
+/* Dasbor di dalam konsol tidak lagi berpanel (dekorasi ::before-nya disembunyikan),
+   tetapi overflow hidden warisan panel gelap lama memotong sisi kiri huruf pertama
+   eyebrow ("PORTAL KELUARGA"). Kanvas konsol sendiri sudah memotong luapan. */
+.coursue-hero-banner,
+.crm-canvas .portal-dashboard {
+  overflow: visible;
+}
+
+/* Jejak audit: baris punya dua span, sedangkan grid .portal-account menaruh semua
+   span di area "copy" yang sama sehingga keduanya bertumpuk (di semua lebar layar).
+   Tiga baris teks disusun berurutan; ID panjang boleh patah. */
+#audit-list .portal-account {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+#audit-list .portal-account span {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  #audit-list .portal-account {
+    padding: 14px 16px;
+  }
+
+  /* Periode rekam jejak: dua tanggal berdampingan, tombol selebar baris. */
+  .crm-toolbar-filters:has(#record-period-from) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .crm-toolbar-filters:has(#record-period-from) > .crm-pill-btn {
+    grid-column: 1 / -1;
+  }
+
+  .coursue-stat-row--single {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Ringkasan jumlah santri: garis rambut, bukan bingkai gelap. */
+  .coursue-stat-pill {
+    border-color: var(--md-sys-color-outline-variant) !important;
+    background: var(--md-sys-color-surface-container-lowest, #fff) !important;
+  }
+
+  /* Kepala halaman masuk: muat di 360px tanpa geser horizontal. */
+  .staff-header--shell {
+    gap: 10px;
+  }
+
+  .staff-header--shell .staff-brand {
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .staff-header--shell .staff-brand .staff-brand__name {
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .staff-header--shell .staff-header-actions {
+    flex: none;
+  }
+
+  .staff-header--shell .button {
+    min-height: 40px;
+    padding-inline: 12px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  /* Tombol beranda cukup ikon; aria-label sudah menyebut tujuannya. */
+  .staff-header--shell .button[aria-label] span {
+    display: none;
+  }
+}
+
+@media (max-width: 400px) {
+  .staff-header--shell {
+    gap: 8px;
+    padding-inline: 10px;
+  }
+
+  .staff-header--shell .staff-brand .staff-brand__name {
+    font-size: 13px;
+  }
+
+  .staff-header--shell .staff-brand .brand-logo-icon {
+    width: 26px;
+  }
+
+  .staff-header--shell .button {
+    padding-inline: 10px;
+  }
+
+  /* Tombol berteks (mis. "Portal akun") butuh ruang; nama lembaga sudah tampil
+     di kartu masuk tepat di bawahnya, jadi kepala cukup memakai emblem. */
+  .staff-header--shell:has(.button:not([aria-label])) .staff-brand__name {
+    display: none;
+  }
+}
+
+/* Kartu masuk portal muncul halus saat halaman dibuka. Dasbor sudah memakai
+   .crm-view-enter. */
+@keyframes hmLoginIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .staff-header--shell {
+    animation: hmLoginIn 500ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .staff-login__card {
+    animation: hmLoginIn 650ms cubic-bezier(0.2, 0.7, 0.2, 1) 120ms both;
   }
 }

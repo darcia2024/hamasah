@@ -7,16 +7,20 @@ ENERGY 3 / RHYTHM 3 / MOTION 2.
 - Kuning tua (emas #e7b10c) dan hitam arang (#363638) dari logo menjadi warna utama; putih untuk background. Hijau khusus status berhasil, merah khusus peringatan.
 - Panorama Kairo menempatkan tujuan pendidikan dalam konteks lokasi; foto ini bukan dokumentasi santri atau foto kampus Al-Azhar.
 - Navbar putih bersih (tanpa top bar pengumuman), wordmark emblem kiri, kapsul nav di tengah, CTA pil emas kanan.
-- Hero home: eyebrow kecil ber-ikon, judul display tebal (800) dengan sebagian kata di-abu-abukan untuk hierarki, kotak-ikon emas inline sebagai aksen, sub-teks sempit terpusat, lalu CTA emas + outline. Referensi gaya: template "aelixa".
-- Kicker/eyebrow di atas judul: teks kecil uppercase tracked warna emas tua + titik kecil, tanpa pill/band. Judul section tebal (700).
+- Hero home: eyebrow kecil ber-ikon, judul display ExtraBold (800) dengan sebagian kata di-abu-abukan untuk hierarki, kotak-ikon emas inline sebagai aksen, sub-teks sempit terpusat, lalu CTA emas + outline. Referensi gaya: template "aelixa".
+- Kicker/eyebrow di atas judul: teks kecil uppercase tracked warna emas tua + titik kecil, tanpa pill/band. Judul section ExtraBold (800).
 - Tone copy: ringkas, aktif, mudah dipahami, tidak kaku. Tanpa em dash.
 - Foto profil di semua simulasi (santri, musyrif, wali, penulis berita, avatar) memakai `assets/avatar-hamasah.png` (emblem Hamasah putih di latar emas), bukan foto stok. Foto konten (arsitektur Kairo, galeri, cover artikel) tetap foto asli.
 - Asisten AI Hamasah: section `#asisten-ai` di landing (chat simulasi + chip pertanyaan, basis pengetahuan di `HAMASAH_AI_KB` app.js) untuk FAQ calon santri/wali. AI Study Partner di LMS (`#udemy-tab-ai-partner`) untuk bantu santri paham materi kelas (jawaban di `udemyAiAnswer`). Keduanya simulasi keyword-match, siap diganti backend live.
-- Plus Jakarta Sans dipertahankan sebagai tipografi proyek.
+- Plus Jakarta Sans: **judul h1-h3 ExtraBold (800)**, judul kartu (h4, `<strong>`, `<b>`, `<dt>`, `.lp-path__title`, `.article-card-title`, dst.) Bold (700), teks lain regular (400). Google Fonts memuat bobot 400, 700, dan 800 saja. Aturannya di akhir `website-core.css` dan `auth-pages.css`. h1-h2 memakai letter-spacing -0.012em + word-spacing 0.06em supaya kata tidak berdempet.
+- **Hero beranda:** judul di kiri, foto serambi Kairo menjadi latar di kanan yang melebar sampai tepi layar dan memudar dari putih (ke arah judul) serta ke bawah. Mask dipasang di `<img>` agar kartu lokasi tidak ikut pudar. Di ponsel foto mengisi ~78% kanan dengan teks diberi pendar putih; kartu lokasi disembunyikan karena menutupi tombol.
+- Tablet 769-1024px: kepala situs cukup emblem, tautan menu satu baris 13px.
 - Program utama mendapat satu bidang foto besar; dua jalur pendamping berbagi baris pada desktop untuk membedakan hierarki.
 - Keunggulan berupa daftar editorial, bukan kumpulan kartu putih; garis tipis memisahkan informasi tanpa dekorasi tambahan.
 - Portal dan dialog memakai palet terang tersendiri agar formulir dan data simulasi mudah dibaca.
 - Lapisan gelap pada foto menjaga kontras teks; gerakan masuk singkat menandai pergantian bagian dan menghormati reduced motion.
+- **Animasi buka halaman:** kepala situs turun, lalu eyebrow, judul, pengantar, dan tombol bagian pertama naik bergiliran (CSS, `hmFadeUp`, di akhir `website-public.css`). Kartu masuk portal dan halaman akun juga muncul halus.
+- **Animasi scroll:** `public-header.js` memberi `.reveal` pada blok di bawah layar pertama; blok naik 28px dan muncul saat masuk layar. Isi grid/daftar muncul bergiliran (jeda 90ms, maks 450ms). Setelah selesai, kelas dilepas agar hover kartu bekerja. Tanpa JavaScript atau dengan reduced motion, semua langsung tampil.
 - Menu lengkap menyediakan semua tujuan navigasi pada desktop dan mobile. Escape menutup menu dan dialog.
 - Mobile pass (blok `@media (max-width: 700px)` + `430px` di akhir `styles.css`): hanya **tile angka pendek** yang 2 kolom/baris (op-kpi, statistik santri, galeri, langkah roadmap, kartu contoh AI landing). Semua kartu berisi eyebrow/judul + badge + deskripsi → **1 kolom** (family-stats-row, nilai maddah, achievement, fase roadmap, kpi ROI, stakeholder, reassurance).
 - Pola universal di mobile: setiap baris flex "judul/eyebrow + pill mengambang" (`.family-stat-head`, `.kabar-title-row`, `.kabar-header-card`, `.op-topbar-meta`, `.santri-activity-head`, header kendala) di-stack `flex-direction: column`, pill `white-space: normal; align-self: flex-start`. Header kartu kendala di-rebuild jadi grid `30px 1fr` (nomor · eyebrow · judul · pill status tiap baris sendiri).
@@ -58,3 +62,18 @@ Lapisan penyeragamannya ditulis di akhir `website-public.css` (publik), `website
   hanya dipakai untuk aksi keluar dari semua perangkat.
 - **Gaya di JavaScript:** dilarang. Semua tampilan lewat kelas CSS, kecuali nilai yang memang
   dinamis seperti lebar bilah progres.
+
+## Mobile pass kedua (29 September 2026)
+
+Diukur di 360 dan 375px. Blok "Mobile pass kedua" ada di akhir `website-public.css`, `landing.css`, dan `portal.css`.
+
+- **Kepala situs:** nama lembaga satu baris (15px, bilah 60px). Di 360px label "Menu" disembunyikan, ikon tetap.
+- **Menu ponsel:** daftar rata kiri bergaris tipis, baris 52px, halaman aktif ditandai titik emas, CTA pil selebar menu. Ikon garis berubah jadi silang saat terbuka.
+- **Irama:** bagian 56px atas-bawah di ponsel, kepala halaman 32/44px. h1 halaman 31px, h2 bagian 27px.
+- **Daftar istilah** (`.lp-stages`: fakultas, penempatan kelas) bertumpuk istilah di atas penjelasan, tidak dua kolom.
+- **Tingkat bahasa** (`.lp-levels`) jadi jalur tiga kolom tanpa panah, warna emas makin pekat menandai urutan.
+- **Kartu dan formulir:** padding 20-24px. Tombol dua baris memakai line-height 1.3. Aksi CTA bertumpuk selebar kartu.
+- **Kategori artikel:** strip geser satu baris.
+- **Nama diri bertanda hubung** di judul dibungkus `.lp-nb` supaya tidak terpenggal "Al-" / "Azhar".
+- **Konsol:** laci menu tertutup tidak meninggalkan bayangan di tepi kiri. Periode rekam jejak memakai dua tanggal berdampingan. Kepala halaman masuk muat di 360px.
+- Perbaikan yang juga berlaku di desktop: `.divisions-box` bukan kartu lagi (dulu bayangan kartu tanpa padding), baris jejak audit tidak lagi bertumpuk (dua span berbagi satu area grid), dan eyebrow dasbor tidak terpotong.
