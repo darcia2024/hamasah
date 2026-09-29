@@ -87,6 +87,27 @@ async function run() {
     assert.equal((await store.list({ search: '100%' })).total, 1);
     assert.equal((await store.list({ search: '%' })).total, 1, '% dari pengguna adalah huruf biasa.');
 
+    // Kode boleh online sebelum migrasi 042. Tanpa kolom author_display_name, artikel tetap
+    // terbaca dan tersimpan; hanya isian nama penulis yang ditolak dengan pesan jelas.
+    await database.query('ALTER TABLE articles DROP COLUMN author_display_name');
+    const tanpaKolom = createPostgresArticleStore({ database, columnRecheckMs: 0 });
+    assert.equal((await tanpaKolom.list()).total, 26);
+    const lama = await tanpaKolom.get('kegiatan-santri-hamasah');
+    assert.equal(lama.title, 'Kegiatan Santri Hamasah');
+    assert.equal(lama.authorDisplayName, null);
+    assert.equal((await tanpaKolom.create({ title: 'Artikel Sebelum Migrasi', excerpt: 'Ringkasan.', body: 'Isi.' }, PUBLISHED_AT)).ok, true);
+    assert.equal((await tanpaKolom.update('artikel-sebelum-migrasi', { title: 'Artikel Sebelum Migrasi 042' })).ok, true);
+    const ditolak = await tanpaKolom.create({ title: 'Artikel Dengan Penulis', excerpt: 'Ringkasan.', body: 'Isi.', authorDisplayName: 'Ust. Aji' }, PUBLISHED_AT);
+    assert.equal(ditolak.ok, false);
+    assert.match(ditolak.error, /migrasi 042/);
+    assert.match((await tanpaKolom.update('artikel-sebelum-migrasi', { authorDisplayName: 'Ust. Aji' })).error, /migrasi 042/);
+
+    // Setelah migrasi diterapkan, fitur aktif tanpa membuat store baru (tanpa deploy ulang).
+    await database.query('ALTER TABLE articles ADD COLUMN author_display_name TEXT');
+    const aktif = await tanpaKolom.update('artikel-sebelum-migrasi', { authorDisplayName: 'Ust. Aji' });
+    assert.equal(aktif.ok, true);
+    assert.equal(aktif.value.authorName, 'Ust. Aji');
+
     console.log('postgres article store tests passed');
   } finally {
     await database.close();

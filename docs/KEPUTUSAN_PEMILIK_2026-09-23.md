@@ -55,7 +55,7 @@ Cara menjawab: cukup sebutkan nomor butir dan jawaban singkat, misalnya `A2: 081
 
 **Catatan penulis artikel.** CMS kini punya isian "Nama penulis (opsional)" (migrasi 042). Admin
 dapat menginput keenam artikel sendiri dan menuliskan nama penulis aslinya; bila dikosongkan,
-yang tampil nama akun penginput. Migrasi 042 harus diterapkan ke production sebelum dipakai.
+yang tampil nama akun penginput. Kode boleh online sebelum migrasi 042; isian penulis baru bisa dipakai setelah 042 diterapkan ke production, dan aktif tanpa deploy ulang.
 
 **Catatan C7.** Arah yang sesuai jawaban pengurus: AI berbayar yang hanya boleh menjawab dari materi
 pengajar pada maddah tersebut, menolak pertanyaan di luar materi, dan kembali ke jawaban lokal bila

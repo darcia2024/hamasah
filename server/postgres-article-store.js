@@ -29,9 +29,34 @@ function cleanAuthorName(value) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, 120) || null;
 }
 
-function createPostgresArticleStore({ database } = {}) {
+const PENULIS_BELUM_AKTIF = 'Isian nama penulis belum aktif karena migrasi 042 belum diterapkan ke database. Kosongkan isian itu, atau jalankan migrasinya lebih dulu.';
+
+// columnRecheckMs: selama kolom author_display_name belum ada, keberadaannya diperiksa
+// ulang paling sering sekali per jeda ini.
+function createPostgresArticleStore({ database, columnRecheckMs = 60 * 1000 } = {}) {
   if (!database) {
     throw new Error('createPostgresArticleStore membutuhkan database.');
+  }
+
+  // Kolom author_display_name datang dari migrasi 042. Kode ini boleh online lebih dulu
+  // daripada migrasinya: selama kolom belum ada, artikel tetap tersaji dengan nama akun
+  // pembuat, dan isian "Nama penulis" ditolak dengan pesan yang jelas. Begitu migrasi
+  // diterapkan, fitur itu aktif sendiri tanpa deploy ulang.
+  let adaKolomPenulis = null;
+  let terakhirDiperiksa = 0;
+  async function kolomPenulisTersedia() {
+    if (adaKolomPenulis === true) return true;
+    if (adaKolomPenulis === false && Date.now() - terakhirDiperiksa < columnRecheckMs) return false;
+    const { rows } = await database.query(
+      `SELECT 1 FROM information_schema.columns
+       WHERE table_schema = current_schema() AND table_name = 'articles' AND column_name = 'author_display_name'`
+    );
+    adaKolomPenulis = rows.length > 0;
+    terakhirDiperiksa = Date.now();
+    return adaKolomPenulis;
+  }
+  async function kolomPenulisUntuk(alias = '') {
+    return (await kolomPenulisTersedia()) ? `${alias}author_display_name` : 'NULL::text AS author_display_name';
   }
 
   return {
@@ -48,9 +73,10 @@ function createPostgresArticleStore({ database } = {}) {
       }
       const where = kondisi.length ? `WHERE ${kondisi.join(' AND ')}` : '';
       const page = normalizePage({ limit, offset }, { defaultLimit: 12 });
+      const kolomPenulis = await kolomPenulisUntuk();
       const total = await database.query(`SELECT count(*)::int AS jumlah FROM articles ${where}`, nilai);
       const { rows } = await database.query(
-        `SELECT slug, title, excerpt, category, published_at, status, archived_at, updated_at, cover_url, cover_alt_text, author_display_name,
+        `SELECT slug, title, excerpt, category, published_at, status, archived_at, updated_at, cover_url, cover_alt_text, ${kolomPenulis},
                 (SELECT name FROM accounts WHERE accounts.id = articles.author_account_id) AS author_name
          FROM articles ${where} ORDER BY published_at DESC NULLS LAST, updated_at DESC, slug
          LIMIT $${nilai.length + 1} OFFSET $${nilai.length + 2}`,
@@ -73,9 +99,10 @@ function createPostgresArticleStore({ database } = {}) {
     },
     async get(slug, { publicOnly = true } = {}) {
       const filter = publicOnly ? "AND status = 'published'" : '';
+      const kolomPenulis = await kolomPenulisUntuk('a.');
       const { rows } = await database.query(
         `SELECT a.slug, a.title, a.excerpt, a.body, a.category, a.published_at, a.status, a.archived_at, a.updated_at,
-                a.cover_url, a.cover_alt_text, a.author_display_name, penulis.name AS author_name
+                a.cover_url, a.cover_alt_text, ${kolomPenulis}, penulis.name AS author_name
          FROM articles a LEFT JOIN accounts penulis ON penulis.id = a.author_account_id
          WHERE a.slug = $1 ${filter.replace('status', 'a.status')}`,
         [slug]
@@ -98,11 +125,15 @@ function createPostgresArticleStore({ database } = {}) {
       if (title.length < 8 || title.length > 140 || !excerpt || !body || !slug || !['draft', 'published'].includes(status)) {
         return { ok: false, error: 'Judul, ringkasan, dan isi artikel belum valid.' };
       }
+      const simpanPenulis = await kolomPenulisTersedia();
+      if (authorDisplayName && !simpanPenulis) return { ok: false, error: PENULIS_BELUM_AKTIF };
+      const kolom = ['id', 'slug', 'title', 'excerpt', 'body', 'category', 'published_at', 'status', 'updated_at', 'cover_url', 'cover_alt_text', 'author_account_id'];
+      const nilai = [crypto.randomUUID(), slug, title, excerpt, body, category, status === 'published' ? createdAt : null, status, createdAt, coverUrl, coverAltText, authorAccountId];
+      if (simpanPenulis) { kolom.push('author_display_name'); nilai.push(authorDisplayName); }
       try {
         await database.query(
-          `INSERT INTO articles (id, slug, title, excerpt, body, category, published_at, status, updated_at, cover_url, cover_alt_text, author_account_id, author_display_name)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
-          [crypto.randomUUID(), slug, title, excerpt, body, category, status === 'published' ? createdAt : null, status, createdAt, coverUrl, coverAltText, authorAccountId, authorDisplayName]
+          `INSERT INTO articles (${kolom.join(', ')}) VALUES (${nilai.map((_, i) => `$${i + 1}`).join(', ')})`,
+          nilai
         );
         return { ok: true, value: await this.get(slug, { publicOnly: false }) };
       } catch (error) {
@@ -130,15 +161,17 @@ function createPostgresArticleStore({ database } = {}) {
       if (title.length < 8 || title.length > 140 || !excerpt || !body || !category || !['draft', 'published', 'archived'].includes(status)) {
         return { ok: false, error: 'Judul, ringkasan, isi, kategori, atau status artikel belum valid.' };
       }
+      const simpanPenulis = await kolomPenulisTersedia();
+      if (authorDisplayName && !simpanPenulis) return { ok: false, error: PENULIS_BELUM_AKTIF };
       const changedAt = updatedAt || new Date().toISOString();
       const publishedAt = status === 'published' ? (current.publishedAt || changedAt) : null;
       const archivedAt = status === 'archived' ? (current.archivedAt || changedAt) : null;
       await database.query(
         `UPDATE articles SET title = $2, excerpt = $3, body = $4, category = $5,
-           status = $6, published_at = $7, archived_at = $8, updated_at = $9, cover_url = $10, cover_alt_text = $11,
-           author_display_name = $12
+           status = $6, published_at = $7, archived_at = $8, updated_at = $9, cover_url = $10, cover_alt_text = $11
+           ${simpanPenulis ? ', author_display_name = $12' : ''}
          WHERE slug = $1`,
-        [slug, title, excerpt, body, category, status, publishedAt, archivedAt, changedAt, coverUrl, coverAltText, authorDisplayName]
+        [slug, title, excerpt, body, category, status, publishedAt, archivedAt, changedAt, coverUrl, coverAltText, ...(simpanPenulis ? [authorDisplayName] : [])]
       );
       return { ok: true, value: await this.get(slug, { publicOnly: false }) };
     }
