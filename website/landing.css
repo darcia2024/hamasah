@@ -1227,3 +1227,90 @@ main .lp-after-title {
     border-radius: 20px;
   }
 }
+
+/* ---------- Hero: judul di samping foto yang memudar dari putih (29 September 2026) ----------
+   Foto bukan lagi kartu terpisah. Ia menjadi latar di sisi kanan hero, melebar sampai
+   tepi layar, dan memudar ke putih ke arah judul (kiri) serta ke arah bawah. Mask
+   dipasang di <img>, bukan di <figure>, supaya kartu lokasi tidak ikut pudar. */
+
+.lp-hero__grid {
+  position: relative;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.lp-hero__copy {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+}
+
+.lp-hero__media {
+  position: absolute;
+  z-index: 0;
+  top: calc(-1 * clamp(40px, 6vw, 72px));
+  bottom: 0;
+  right: calc((100% - 100vw) / 2);
+  width: 62%;
+  max-height: none;
+  aspect-ratio: auto;
+  border-radius: 0;
+  overflow: visible;
+  box-shadow: none;
+}
+
+.lp-hero__media img {
+  object-position: 40% 50%;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.12) 14%, rgba(0, 0, 0, 0.4) 30%, rgba(0, 0, 0, 0.78) 48%, #000 66%),
+    linear-gradient(to bottom, #000 62%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.12) 14%, rgba(0, 0, 0, 0.4) 30%, rgba(0, 0, 0, 0.78) 48%, #000 66%),
+    linear-gradient(to bottom, #000 62%, transparent 100%);
+  mask-composite: intersect;
+}
+
+.lp-hero__caption {
+  left: auto;
+  right: max(24px, calc((100vw - var(--shell, 1200px)) / 2));
+  bottom: 32px;
+}
+
+@media (max-width: 900px) {
+  .lp-hero__grid {
+    min-height: 0;
+  }
+
+  .lp-hero__copy {
+    max-width: none;
+    padding-bottom: 8px;
+  }
+
+  .lp-hero__media {
+    width: 78%;
+    aspect-ratio: auto;
+  }
+
+  .lp-hero__media img {
+    -webkit-mask-image:
+      linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.35) 35%, rgba(0, 0, 0, 0.8) 70%, #000 100%),
+      linear-gradient(to bottom, #000 45%, transparent 100%);
+    mask-image:
+      linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.35) 35%, rgba(0, 0, 0, 0.8) 70%, #000 100%),
+      linear-gradient(to bottom, #000 45%, transparent 100%);
+  }
+
+  /* Teks di atas bagian foto yang tersisa tetap terbaca. */
+  .lp-hero__copy > * {
+    text-shadow: 0 0 18px rgba(255, 255, 255, 0.9), 0 0 2px rgba(255, 255, 255, 0.9);
+  }
+
+  .lp-hero__copy .button {
+    text-shadow: none;
+  }
+
+  /* Kartu lokasi menutupi tombol di layar sempit; lokasi kantor sudah ada di Kontak. */
+  .lp-hero__caption {
+    display: none;
+  }
+}

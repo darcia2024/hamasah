@@ -4874,3 +4874,21 @@ main .eyebrow + h1 {
     transform: none;
   }
 }
+
+/* Tablet (769-1024px): menu desktop tidak muat bersama nama lembaga, sehingga nama
+   dan tautan patah dua baris. Cukup emblem, tautan satu baris dan lebih rapat. */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .brand-text {
+    display: none;
+  }
+
+  .site-nav {
+    gap: 2px;
+  }
+
+  .site-nav a {
+    padding: 0 10px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+}
