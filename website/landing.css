@@ -1155,3 +1155,75 @@ main .lp-after-title {
     justify-items: start;
   }
 }
+
+/* ---------- Mobile pass kedua (29 September 2026) ---------- */
+
+@media (max-width: 640px) {
+  .lp-section {
+    padding: 56px 0;
+  }
+
+  .lp-page-hero {
+    padding-block: 32px 48px;
+  }
+
+  /* Istilah dan penjelasan bertumpuk: kolom 96px membuat nama fakultas
+     bertabrakan dengan keterangannya. */
+  .lp-stages div,
+  .lp-panel .lp-stages div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding-block: 14px;
+  }
+
+  .lp-stages dt {
+    font-size: 16px;
+    line-height: 1.35;
+  }
+
+  .lp-stages dd {
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+
+  /* Tiga tingkat bahasa jadi satu jalur bertahap, warna emas makin pekat
+     menandai urutan. Panah dihapus supaya tidak ada yang tersisa sendirian. */
+  .lp-levels {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .lp-levels li {
+    padding: 10px 2px;
+    border-radius: 12px;
+    font-size: 12.5px;
+    letter-spacing: -0.01em;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .lp-levels li + li::before {
+    content: none;
+  }
+
+  .lp-levels li:nth-child(2) {
+    border-color: transparent;
+    background: var(--md-sys-color-primary-container);
+  }
+
+  .lp-levels li:nth-child(3) {
+    border-color: transparent;
+    background: var(--gold, #e7b10c);
+    color: #363638;
+  }
+
+  .lp-panel__row {
+    padding-block: 24px;
+  }
+
+  .lp-photo {
+    aspect-ratio: 4 / 3;
+    border-radius: 20px;
+  }
+}

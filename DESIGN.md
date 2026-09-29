@@ -58,3 +58,18 @@ Lapisan penyeragamannya ditulis di akhir `website-public.css` (publik), `website
   hanya dipakai untuk aksi keluar dari semua perangkat.
 - **Gaya di JavaScript:** dilarang. Semua tampilan lewat kelas CSS, kecuali nilai yang memang
   dinamis seperti lebar bilah progres.
+
+## Mobile pass kedua (29 September 2026)
+
+Diukur di 360 dan 375px. Blok "Mobile pass kedua" ada di akhir `website-public.css`, `landing.css`, dan `portal.css`.
+
+- **Kepala situs:** nama lembaga satu baris (15px, bilah 60px). Di 360px label "Menu" disembunyikan, ikon tetap.
+- **Menu ponsel:** daftar rata kiri bergaris tipis, baris 52px, halaman aktif ditandai titik emas, CTA pil selebar menu. Ikon garis berubah jadi silang saat terbuka.
+- **Irama:** bagian 56px atas-bawah di ponsel, kepala halaman 32/44px. h1 halaman 31px, h2 bagian 27px.
+- **Daftar istilah** (`.lp-stages`: fakultas, penempatan kelas) bertumpuk istilah di atas penjelasan, tidak dua kolom.
+- **Tingkat bahasa** (`.lp-levels`) jadi jalur tiga kolom tanpa panah, warna emas makin pekat menandai urutan.
+- **Kartu dan formulir:** padding 20-24px. Tombol dua baris memakai line-height 1.3. Aksi CTA bertumpuk selebar kartu.
+- **Kategori artikel:** strip geser satu baris.
+- **Nama diri bertanda hubung** di judul dibungkus `.lp-nb` supaya tidak terpenggal "Al-" / "Azhar".
+- **Konsol:** laci menu tertutup tidak meninggalkan bayangan di tepi kiri. Periode rekam jejak memakai dua tanggal berdampingan. Kepala halaman masuk muat di 360px.
+- Perbaikan yang juga berlaku di desktop: `.divisions-box` bukan kartu lagi (dulu bayangan kartu tanpa padding), baris jejak audit tidak lagi bertumpuk (dua span berbagi satu area grid), dan eyebrow dasbor tidak terpotong.

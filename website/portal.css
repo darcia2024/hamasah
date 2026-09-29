@@ -5003,3 +5003,132 @@ table,
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ==========================================================================
+   Mobile pass kedua (29 September 2026)
+   ========================================================================== */
+
+@media (max-width: 800px) {
+  /* Laci menu tertutup tidak boleh meninggalkan bayangan di tepi kiri layar;
+     translateX(-105%) tidak cukup jauh untuk bayangan 12px + blur 32px. */
+  .crm-sidebar {
+    box-shadow: none;
+    visibility: hidden;
+    transition: transform 0.24s cubic-bezier(0.2, 0, 0, 1), visibility 0s linear 0.24s;
+  }
+
+  .crm-shell.is-drawer-open .crm-sidebar {
+    box-shadow: 12px 0 32px rgba(30, 27, 22, 0.16);
+    visibility: visible;
+    transition: transform 0.24s cubic-bezier(0.2, 0, 0, 1), visibility 0s;
+  }
+
+  .crm-drawer-toggle {
+    gap: 8px;
+    padding-inline: 12px;
+  }
+}
+
+/* Dasbor di dalam konsol tidak lagi berpanel (dekorasi ::before-nya disembunyikan),
+   tetapi overflow hidden warisan panel gelap lama memotong sisi kiri huruf pertama
+   eyebrow ("PORTAL KELUARGA"). Kanvas konsol sendiri sudah memotong luapan. */
+.coursue-hero-banner,
+.crm-canvas .portal-dashboard {
+  overflow: visible;
+}
+
+/* Jejak audit: baris punya dua span, sedangkan grid .portal-account menaruh semua
+   span di area "copy" yang sama sehingga keduanya bertumpuk (di semua lebar layar).
+   Tiga baris teks disusun berurutan; ID panjang boleh patah. */
+#audit-list .portal-account {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+#audit-list .portal-account span {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  #audit-list .portal-account {
+    padding: 14px 16px;
+  }
+
+  /* Periode rekam jejak: dua tanggal berdampingan, tombol selebar baris. */
+  .crm-toolbar-filters:has(#record-period-from) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .crm-toolbar-filters:has(#record-period-from) > .crm-pill-btn {
+    grid-column: 1 / -1;
+  }
+
+  .coursue-stat-row--single {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Ringkasan jumlah santri: garis rambut, bukan bingkai gelap. */
+  .coursue-stat-pill {
+    border-color: var(--md-sys-color-outline-variant) !important;
+    background: var(--md-sys-color-surface-container-lowest, #fff) !important;
+  }
+
+  /* Kepala halaman masuk: muat di 360px tanpa geser horizontal. */
+  .staff-header--shell {
+    gap: 10px;
+  }
+
+  .staff-header--shell .staff-brand {
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .staff-header--shell .staff-brand .staff-brand__name {
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .staff-header--shell .staff-header-actions {
+    flex: none;
+  }
+
+  .staff-header--shell .button {
+    min-height: 40px;
+    padding-inline: 12px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  /* Tombol beranda cukup ikon; aria-label sudah menyebut tujuannya. */
+  .staff-header--shell .button[aria-label] span {
+    display: none;
+  }
+}
+
+@media (max-width: 400px) {
+  .staff-header--shell {
+    gap: 8px;
+    padding-inline: 10px;
+  }
+
+  .staff-header--shell .staff-brand .staff-brand__name {
+    font-size: 13px;
+  }
+
+  .staff-header--shell .staff-brand .brand-logo-icon {
+    width: 26px;
+  }
+
+  .staff-header--shell .button {
+    padding-inline: 10px;
+  }
+
+  /* Tombol berteks (mis. "Portal akun") butuh ruang; nama lembaga sudah tampil
+     di kartu masuk tepat di bawahnya, jadi kepala cukup memakai emblem. */
+  .staff-header--shell:has(.button:not([aria-label])) .staff-brand__name {
+    display: none;
+  }
+}
