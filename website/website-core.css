@@ -367,7 +367,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-weight: 400 !important;
+  font-weight: 700 !important;
 }
 
 .button,
@@ -482,10 +482,8 @@ h4 {
   clip-path: inset(50%);
 }
 
-/* Satu ketebalan: Plus Jakarta Sans regular (400) untuk seluruh teks, termasuk judul,
-   label, dan tombol. Hierarki dibawa oleh ukuran dan warna, bukan ketebalan. Hanya
-   bobot 400 yang dimuat dari Google Fonts, jadi aturan ini juga mencegah browser
-   menebalkan huruf secara sintetis. */
+/* Plus Jakarta Sans regular (400) untuk teks, label, dan tombol. Hanya judul yang
+   tebal (lihat di bawah). */
 *,
 *::before,
 *::after {
@@ -499,10 +497,42 @@ textarea {
   font-family: inherit;
 }
 
-/* Jarak huruf negatif yang dulu menyeimbangkan judul tebal membuat judul regular
-   terlihat berdempet; kata-katanya nyaris menyatu. */
+/* Jarak huruf judul: cukup rapat untuk huruf tebal, tidak sampai berdempet. */
 h1,
 h2,
 h3 {
   letter-spacing: -0.01em !important;
+}
+
+/* Judul tebal (700), teks lain tetap regular. Google Fonts memuat bobot 400 dan 700.
+   Selektor elemen berspesifisitas lebih tinggi dari "*", jadi menang atas aturan 400. */
+/* Judul kartu dan daftar di situs ini banyak memakai <strong>, <dt>, atau kelas
+   ...title, bukan tag h1-h3, jadi ikut ditebalkan. */
+h1,
+h2,
+h3,
+h4,
+strong,
+b,
+dt,
+.lp-path__title,
+.article-card-title,
+.coursue-hero-title,
+.coursue-section-title,
+.crm-summary-title,
+.portal-list-title,
+.lms-course-title,
+.lms-module-title,
+.lms-course-item__title,
+.file-preview__title,
+.res-title,
+.coursue-stat-count,
+:is(h1, h2, h3, h4, strong, b, dt) * {
+  font-weight: 700 !important;
+}
+
+h1,
+h2 {
+  letter-spacing: -0.012em !important;
+  word-spacing: 0.06em;
 }

@@ -4100,7 +4100,7 @@ main .eyebrow + h2,
 main .reg-kicker + h2 {
   font-size: clamp(28px, 3vw, 38px);
   line-height: 1.15;
-  font-weight: 400 !important;
+  font-weight: 700 !important;
   letter-spacing: -0.02em;
   margin: 0 0 16px;
   text-wrap: balance;
@@ -4197,7 +4197,7 @@ main .eyebrow + h1 {
   font-size: clamp(32px, 4vw, 46px);
   line-height: 1.12;
   letter-spacing: -0.025em;
-  font-weight: 400 !important;
+  font-weight: 700 !important;
   margin: 0 0 16px;
   text-wrap: balance;
 }
@@ -4792,5 +4792,85 @@ main .eyebrow + h1 {
 @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
   .menu-toggle__lines i {
     transition: none;
+  }
+}
+
+/* ==========================================================================
+   Animasi buka halaman dan scroll (29 September 2026)
+   Buka halaman: kepala situs dan bagian pertama masuk bertahap lewat CSS, jadi
+   tidak ada kedip meski JavaScript belum jalan. Scroll: public-header.js memberi
+   .reveal pada blok di bawah layar pertama, lalu .is-revealed saat blok masuk
+   layar. Tanpa JavaScript atau dengan reduced motion, semua langsung tampil.
+   ========================================================================== */
+
+@keyframes hmFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hmFadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .site-header {
+    animation: hmFadeDown 500ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  /* Teks bagian pertama: eyebrow, judul, pengantar, tombol, satu per satu. */
+  main > section:first-child :is(.lp-hero__copy, .section-intro, .section-heading) > *,
+  main > section.lp-page-hero:first-child > .shell > * {
+    animation: hmFadeUp 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: 120ms;
+  }
+
+  main > section:first-child :is(.lp-hero__copy, .section-intro, .section-heading) > :nth-child(2),
+  main > section.lp-page-hero:first-child > .shell > :nth-child(2) {
+    animation-delay: 200ms;
+  }
+
+  main > section:first-child :is(.lp-hero__copy, .section-intro, .section-heading) > :nth-child(3),
+  main > section.lp-page-hero:first-child > .shell > :nth-child(3) {
+    animation-delay: 280ms;
+  }
+
+  main > section:first-child :is(.lp-hero__copy, .section-intro, .section-heading) > :nth-child(n + 4),
+  main > section.lp-page-hero:first-child > .shell > :nth-child(n + 4) {
+    animation-delay: 360ms;
+  }
+
+  /* Foto, kartu, atau formulir pendamping di bagian pertama menyusul. */
+  main > section:first-child :is(.lp-hero__media, .biaya-trust-grid, .offices-cards-grid, .lookup-card-wrap, .articles-controls-wrap, .article-reader-card) {
+    animation: hmFadeUp 800ms cubic-bezier(0.2, 0.7, 0.2, 1) 440ms both;
+  }
+
+  /* Muncul saat scroll. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 650ms cubic-bezier(0.2, 0.7, 0.2, 1),
+      transform 750ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+
+  .reveal.is-revealed {
+    opacity: 1;
+    transform: none;
   }
 }

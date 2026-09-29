@@ -48,10 +48,8 @@ button:hover { background: #d4a20b; }
 .token-state[data-token-state="invalid"], .token-state[data-token-state="expired"], .token-state[data-token-state="used"] { border: 1px solid #e5b6b6; background: #fff7f7; }
 .token-state[data-token-state="success"] { border: 1px solid #abd8bb; background: #f2fbf5; }
 
-/* Satu ketebalan: Plus Jakarta Sans regular (400) untuk seluruh teks, termasuk judul,
-   label, dan tombol. Hierarki dibawa oleh ukuran dan warna, bukan ketebalan. Hanya
-   bobot 400 yang dimuat dari Google Fonts, jadi aturan ini juga mencegah browser
-   menebalkan huruf secara sintetis. */
+/* Plus Jakarta Sans regular (400) untuk teks, label, dan tombol. Hanya judul yang
+   tebal (lihat di bawah). */
 *,
 *::before,
 *::after {
@@ -63,4 +61,56 @@ input,
 select,
 textarea {
   font-family: inherit;
+}
+
+/* Judul tebal (700), teks lain tetap regular. Google Fonts memuat bobot 400 dan 700.
+   Selektor elemen berspesifisitas lebih tinggi dari "*", jadi menang atas aturan 400. */
+/* Judul kartu dan daftar di situs ini banyak memakai <strong>, <dt>, atau kelas
+   ...title, bukan tag h1-h3, jadi ikut ditebalkan. */
+h1,
+h2,
+h3,
+h4,
+strong,
+b,
+dt,
+.lp-path__title,
+.article-card-title,
+.coursue-hero-title,
+.coursue-section-title,
+.crm-summary-title,
+.portal-list-title,
+.lms-course-title,
+.lms-module-title,
+.lms-course-item__title,
+.file-preview__title,
+.res-title,
+.coursue-stat-count,
+:is(h1, h2, h3, h4, strong, b, dt) * {
+  font-weight: 700 !important;
+}
+
+h1,
+h2 {
+  letter-spacing: -0.012em !important;
+  word-spacing: 0.06em;
+}
+
+/* Kartu halaman akun muncul halus saat dibuka. */
+@media (prefers-reduced-motion: no-preference) {
+  main {
+    animation: hmPageIn 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+}
+
+@keyframes hmPageIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
