@@ -6,14 +6,14 @@ ENERGY 3 / RHYTHM 3 / MOTION 2.
 
 - Kuning tua (emas #e7b10c) dan hitam arang (#363638) dari logo menjadi warna utama; putih untuk background. Hijau khusus status berhasil, merah khusus peringatan.
 - Panorama Kairo menempatkan tujuan pendidikan dalam konteks lokasi; foto ini bukan dokumentasi santri atau foto kampus Al-Azhar.
-- Navbar putih bersih (tanpa top bar pengumuman), wordmark emblem kiri, kapsul nav di tengah, CTA pil emas kanan.
-- Hero home: eyebrow kecil ber-ikon, judul display ExtraBold (800) dengan sebagian kata di-abu-abukan untuk hierarki, kotak-ikon emas inline sebagai aksen, sub-teks sempit terpusat, lalu CTA emas + outline. Referensi gaya: template "aelixa".
-- Kicker/eyebrow di atas judul: teks kecil uppercase tracked warna emas tua + titik kecil, tanpa pill/band. Judul section ExtraBold (800).
+- Navbar krem transparan tanpa garis bawah: wordmark emblem kiri, menu teks di tengah (Program, Tentang, Biaya, Pena Hamasah, Cek status, Kontak), "Masuk portal" teks biasa dan CTA pil emas bergaris arang di kanan. 1025-1279px: nama lembaga disembunyikan dan tautan dirapatkan agar tetap satu baris.
+- Istilah: "Portal santri & wali" untuk portal (bukan "CRM"); tombol menu "Masuk portal".
+- Hero home: semua terpusat. Badge pil ber-ikon, judul display SemiBold (600) dengan kata "Al-Azhar" berwarna emas, satu kalimat pengantar, CTA pil emas. Di bawahnya lima kartu (Ma'had, Courses, Kuliah di tengah, Keseharian santri, Biaya) digantung di tali melengkung dengan jepitan emas, berayun sekali saat halaman dibuka. Di ponsel tiga kartu tengah saja. Referensi gaya: template "Astro kids browser".
+- Kicker/eyebrow di atas judul: teks kecil uppercase tracked warna emas tua + titik kecil, tanpa pill/band. Judul section SemiBold (600).
 - Tone copy: ringkas, aktif, mudah dipahami, tidak kaku. Tanpa em dash.
 - Foto profil di semua simulasi (santri, musyrif, wali, penulis berita, avatar) memakai `assets/avatar-hamasah.png` (emblem Hamasah putih di latar emas), bukan foto stok. Foto konten (arsitektur Kairo, galeri, cover artikel) tetap foto asli.
 - Asisten AI Hamasah: section `#asisten-ai` di landing (chat simulasi + chip pertanyaan, basis pengetahuan di `HAMASAH_AI_KB` app.js) untuk FAQ calon santri/wali. AI Study Partner di LMS (`#udemy-tab-ai-partner`) untuk bantu santri paham materi kelas (jawaban di `udemyAiAnswer`). Keduanya simulasi keyword-match, siap diganti backend live.
-- Plus Jakarta Sans: **judul h1-h3 ExtraBold (800)**, judul kartu (h4, `<strong>`, `<b>`, `<dt>`, `.lp-path__title`, `.article-card-title`, dst.) Bold (700), teks lain regular (400). Google Fonts memuat bobot 400, 700, dan 800 saja. Aturannya di akhir `website-core.css` dan `auth-pages.css`. h1-h2 memakai letter-spacing -0.012em + word-spacing 0.06em supaya kata tidak berdempet.
-- **Hero beranda:** judul di kiri, foto serambi Kairo menjadi latar di kanan yang melebar sampai tepi layar dan memudar dari putih (ke arah judul) serta ke bawah. Mask dipasang di `<img>` agar kartu lokasi tidak ikut pudar. Di ponsel foto mengisi ~78% kanan dengan teks diberi pendar putih; kartu lokasi disembunyikan karena menutupi tombol.
+- Plus Jakarta Sans: **semua judul SemiBold (600)** (h1-h4, `<strong>`, `<b>`, `<dt>`, kelas judul kartu), teks lain regular (400). Google Fonts memuat bobot 400 dan 600 saja; tidak ada lagi 700/800 di CSS. Aturannya di akhir `website-core.css` dan `auth-pages.css`. h1-h2 memakai letter-spacing -0.012em + word-spacing 0.06em supaya kata tidak berdempet.
 - Tablet 769-1024px: kepala situs cukup emblem, tautan menu satu baris 13px.
 - Program utama mendapat satu bidang foto besar; dua jalur pendamping berbagi baris pada desktop untuk membedakan hierarki.
 - Keunggulan berupa daftar editorial, bukan kumpulan kartu putih; garis tipis memisahkan informasi tanpa dekorasi tambahan.

@@ -4,21 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Portal Hamasah International." />
-    <title>Portal CRM | Hamasah International</title>
+    <title>Portal Santri &amp; Wali | Hamasah International</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="icon" href="../assets/favicon.png" />
-    <link rel="stylesheet" href="website-core.css?v=b5388db8c9" />
-    <link rel="stylesheet" href="staff.css?v=b8e4c84e4c" />
-    <link rel="stylesheet" href="portal.css?v=8bacd00569" />
+    <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
+    <link rel="stylesheet" href="staff.css?v=dc8ceb17ce" />
+    <link rel="stylesheet" href="portal.css?v=95993599af" />
   </head>
   <body class="staff-page">
     <!-- Header saat Belum Login -->
     <header class="staff-header staff-header--shell" id="public-header">
       <a href="index.html" class="staff-brand">
         <img class="brand-logo-icon" src="../assets/logo-emblem-gold.png" alt="" width="30" height="33" />
-        <span class="staff-brand__name">Hamasah International</span> <span>Portal CRM</span>
+        <span class="staff-brand__name">Hamasah International</span> <span>Portal</span>
       </a>
       <div class="staff-header-actions">
         <a href="index.html" class="button button--secondary" aria-label="Kembali ke beranda">
@@ -34,31 +34,32 @@
         <div class="staff-login__brand">
           <img class="staff-login__brand-logo" src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" width="44" height="44" />
           <div>
-            <span class="eyebrow u-m-0">Portal CRM Terpadu</span>
+            <span class="eyebrow u-m-0">Portal santri, wali, dan staf</span>
             <div class="staff-login__brand-name">Hamasah International</div>
           </div>
         </div>
 
-        <h1 class="u-mb-8" id="portal-login-title">Masuk ke konsol CRM</h1>
+        <h1 class="u-mb-8" id="portal-login-title">Masuk ke portal</h1>
         <p class="staff-login__copy">
-          Akses modul terisolasi khusus santri, pantau ananda untuk wali santri, konsol pembinaan musyrif asrama, dan manajemen operasional.
+          Santri melihat kelas dan nilainya, wali memantau presensi, hafalan, rapor, dan kuitansi ananda. Petugas Hamasah juga masuk dari sini. Akun dibuatkan oleh tim Hamasah.
         </p>
         <p id="activation-notice" class="form-status" role="status" aria-live="polite" hidden></p>
 
-        <form id="portal-login-form" class="staff-form u-mt-20">
+        <form method="post" id="portal-login-form" class="staff-form u-mt-20">
           <div>
             <label for="portal-email">Alamat email terdaftar</label>
-            <input id="portal-email" type="email" autocomplete="email" placeholder="nama@hamasah.test" required />
+            <input id="portal-email" type="email" autocomplete="email" placeholder="nama@email.com" required />
           </div>
           <div>
             <label for="portal-password">Kata sandi akun</label>
             <input id="portal-password" type="password" autocomplete="current-password" placeholder="••••••••••••" required />
           </div>
           <button class="button button--primary staff-login__cta staff-login__cta--flush" type="submit">
-            <span>Masuk ke CRM</span>
+            <span>Masuk</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </button>
           <p id="portal-login-status" class="form-status" role="status" aria-live="polite"></p>
+          <p class="staff-login__help"><a href="lupa-password.html">Lupa kata sandi?</a></p>
         </form>
 
       </div>
@@ -72,7 +73,7 @@
           <a href="portal.html" class="crm-brand">
             <img src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" class="crm-brand-logo" width="34" height="34" />
             <div class="crm-brand-text">
-              <span class="crm-brand-title">Hamasah <strong>CRM</strong></span>
+              <span class="crm-brand-title">Hamasah <strong>Portal</strong></span>
               <span class="crm-brand-sub">Al-Azhar Kairo</span>
             </div>
           </a>
@@ -144,12 +145,12 @@
           <section class="portal-admin u-mt-36" id="portal-admin" hidden aria-labelledby="portal-admin-title">
             <div class="u-mb-20">
               <p class="eyebrow">Manajemen Akses &amp; Pengguna</p>
-              <h2 id="portal-admin-title">Kelola akun internal CRM</h2>
+              <h2 id="portal-admin-title">Kelola akun portal</h2>
               <p class="u-text-secondary">Buat akun baru untuk staf kantor, musyrif asrama Kairo, guru pengajar, serta akses portal wali santri.</p>
             </div>
 
             <div class="portal-admin-grid">
-              <form id="account-form" class="staff-form">
+              <form method="post" id="account-form" class="staff-form">
                 <div class="form-title-group">
                   <div class="form-title-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
@@ -187,7 +188,7 @@
                 <p id="account-form-status" class="form-status" role="status" aria-live="polite"></p>
               </form>
 
-              <form id="invite-form" class="staff-form">
+              <form method="post" id="invite-form" class="staff-form">
                 <div class="form-title-group">
                   <div class="form-title-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4z"/><polyline points="4 6 12 13 20 6"/></svg>

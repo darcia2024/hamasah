@@ -52,7 +52,7 @@
   gap: 8px;
   color: var(--md-sys-color-on-surface, var(--md-sys-color-on-surface));
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.02em;
   text-decoration: none;
   flex-shrink: 0;
@@ -66,7 +66,7 @@
   background: #FDC537;
   color: #181F25;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -105,7 +105,7 @@
 .staff-nav a[aria-current="page"] {
   background: #FDC537;
   color: #181F25;
-  font-weight: 700;
+  font-weight: 600;
   box-shadow: 0 2px 8px rgba(253, 197, 55, 0.35);
 }
 
@@ -130,7 +130,7 @@
 .staff-login .eyebrow {
   display: inline-block;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--gold-dark);
@@ -140,7 +140,7 @@
 .staff-login h1 {
   margin: 0 0 12px;
   font-size: 26px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.03em;
   color: var(--md-sys-color-on-surface, var(--md-sys-color-on-surface));
   line-height: 1.2;
@@ -177,7 +177,7 @@
 .staff-form h2, .staff-form h3 {
   margin: 0 0 4px;
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface, var(--md-sys-color-on-surface));
   letter-spacing: -0.02em;
 }
@@ -185,7 +185,7 @@
 .staff-form label {
   display: block;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface-variant, var(--md-sys-color-on-surface-variant));
   margin-bottom: 8px;
   line-height: 1.4;
@@ -232,7 +232,7 @@
   min-height: 44px;
   height: auto;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   justify-content: center;
 }
 
@@ -295,7 +295,7 @@
 .staff-intro .eyebrow {
   display: inline-block;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--gold-dark);
@@ -305,7 +305,7 @@
 .staff-intro h1 {
   margin: 0;
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.035em;
   color: var(--md-sys-color-on-surface, var(--md-sys-color-on-surface));
 }
@@ -342,7 +342,7 @@
 .staff-registration h2 {
   margin: 0 0 6px;
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.025em;
   color: var(--md-sys-color-on-surface, var(--md-sys-color-on-surface));
 }
@@ -415,13 +415,13 @@
 .conversion-result__accounts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 16px 0; }
 .conversion-result__account { display: grid; gap: 3px; padding: 12px; border-radius: 12px; background: rgba(255,255,255,.8); }
 .conversion-result__account span { font-size: 12px; color: var(--md-sys-color-on-surface-variant, var(--md-sys-color-on-surface-variant)); }
-.conversion-result__status { color: var(--md-sys-color-primary, #8a5a00) !important; font-weight: 700; }
+.conversion-result__status { color: var(--md-sys-color-primary, #8a5a00) !important; font-weight: 600; }
 .conversion-result__next { padding-top: 12px; border-top: 1px solid rgba(154,103,0,.18); }
 
 .operation-import-result { margin-top: 22px; padding: 18px; border: 1px solid var(--md-sys-color-outline-variant, var(--md-sys-color-outline-variant)); border-radius: 16px; background: #fffdf8; }
 .operation-import-result h4 { margin: 0 0 8px; }
 .operation-import-summary { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
-.operation-import-chip { padding: 6px 10px; border-radius: 999px; background: #f3ead1; font-size: 12px; font-weight: 700; }
+.operation-import-chip { padding: 6px 10px; border-radius: 999px; background: #f3ead1; font-size: 12px; font-weight: 600; }
 .operation-import-errors { display: grid; gap: 6px; margin: 0 0 16px; padding-left: 18px; color: #b42318; font-size: 13px; }
 .operation-import-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .operation-import-filters { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
@@ -442,7 +442,7 @@
 .staff-article-section h2 {
   margin: 8px 0 12px;
   font-size: 26px;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.03em;
   color: var(--md-sys-color-on-surface, var(--md-sys-color-on-surface));
@@ -577,7 +577,7 @@
 .article-editorial-row .staff-registration__content { display: grid; gap: 7px; min-width: 0; }
 .article-editorial-row .staff-registration__content > strong { font-size: 16px; }
 .article-editorial-row .staff-registration__content > small { color: var(--md-sys-color-on-surface-variant, var(--md-sys-color-on-surface-variant)); }
-.article-status-badge { width: fit-content; padding: 4px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+.article-status-badge { width: fit-content; padding: 4px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; }
 .article-status-badge--draft { color: #74500A; background: #FFF1C2; }
 .article-status-badge--published { color: #17633A; background: #DDF6E7; }
 .article-status-badge--archived { color: #5E6470; background: #E9EDF2; }
@@ -631,7 +631,7 @@
 
 .staff-login__brand-name {
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--gold-dark);
 }
 
@@ -808,19 +808,19 @@
 .js-text-meta { font-size: 13px; font-weight: 600; color: var(--crm-text-secondary, var(--md-sys-color-outline)); }
 .js-text-soft { font-size: 12px; opacity: 0.8; }
 .js-text-lg { font-size: 16px; }
-.js-text-ok { color: var(--crm-status-online, var(--success)); font-weight: 700; }
+.js-text-ok { color: var(--crm-status-online, var(--success)); font-weight: 600; }
 .js-text-ok-sm { color: var(--crm-status-online, var(--success)); font-weight: 600; }
 
 /* Penanda status kecil */
 .js-tag-ok {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--crm-status-online, var(--success));
   text-transform: uppercase;
 }
 .js-tag-pending {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--gold-dark);
   text-transform: uppercase;
 }
@@ -830,7 +830,7 @@
 }
 .js-chip-active {
   background: #FFFFFF;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--crm-text-primary, var(--md-sys-color-on-surface));
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
@@ -921,7 +921,7 @@
 
 .record-trail__kind {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--crm-on-gold-container);
@@ -987,7 +987,7 @@
 .op-row__main strong {
   display: block;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--crm-text-primary);
   margin-bottom: 2px;
 }
@@ -1015,7 +1015,7 @@
    sini karena invoice yang belum dibayar bukan kesalahan. */
 .op-status {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 4px 11px;
   border-radius: 999px;
   white-space: nowrap;
@@ -1197,7 +1197,7 @@ html.is-session-ended .crm-shell {
 
 .departure-manager summary {
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface);
   display: flex;
   align-items: center;
@@ -1299,4 +1299,10 @@ html.is-session-ended .crm-shell {
   font-size: 13px;
   line-height: 1.5;
   color: var(--md-sys-color-on-surface-variant);
+}
+
+.staff-login__help {
+  margin: 14px 0 0;
+  font-size: 14px;
+  text-align: center;
 }

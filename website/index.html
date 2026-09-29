@@ -9,10 +9,10 @@
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="website-core.css?v=b5388db8c9" />
-    <link rel="stylesheet" href="website-public.css?v=84955c5d7a" />
-    <link rel="stylesheet" href="landing.css?v=d1f136c952" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
+    <link rel="stylesheet" href="website-public.css?v=fd0701aec8" />
+    <link rel="stylesheet" href="landing.css?v=0762380d21" />
   </head>
   <body>
     <a class="skip-link" href="#konten">Lewati ke konten utama</a>
@@ -33,11 +33,12 @@
 
         <nav class="site-nav" id="site-nav" aria-label="Navigasi utama">
           <a href="#program">Program</a>
+          <a href="#tentang">Tentang</a>
           <a href="biaya.html">Biaya &amp; fasilitas</a>
           <a href="articles.html">Pena Hamasah</a>
           <a href="cek-status.html">Cek status</a>
           <a href="kontak.html">Kontak</a>
-          <a href="portal.html" class="nav-portal">Portal santri</a>
+          <a href="portal.html" class="nav-portal">Masuk portal</a>
           <a class="nav-cta" href="#pendaftaran">Daftar konsultasi</a>
         </nav>
       </div>
@@ -45,28 +46,70 @@
 
     <main id="konten" class="lp">
       <section class="lp-hero" id="beranda" aria-labelledby="hero-title">
-        <div class="shell lp-hero__grid">
+        <div class="shell">
           <div class="lp-hero__copy">
-            <p class="lp-hero__kicker">Pendampingan studi <span class="lp-nb">Al-Azhar</span>, dari Indonesia ke Kairo</p>
-            <h1 id="hero-title">Belajar ke <span class="lp-nb">Al-Azhar,</span> <em>didampingi sejak awal.</em></h1>
-            <p class="lp-hero__lede">Kami membantu pelajar Indonesia memilih jalur, menyiapkan bahasa Arab dan berkas, hingga tiba dan tinggal di Kairo.</p>
+            <p class="lp-hero__badge">
+              <svg class="m3-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 1.5 8.5 12 14l8.5-4.45V16h2V8.5L12 3zm-6.5 9.2V16c0 1.9 2.9 3.5 6.5 3.5s6.5-1.6 6.5-3.5v-3.8L12 15.6l-6.5-3.4z"/></svg>
+              <span>Pendampingan studi ke <span class="lp-nb">Al-Azhar</span> Kairo</span>
+            </p>
+            <h1 id="hero-title">Belajar ke <em class="lp-nb">Al-Azhar</em>, didampingi sejak awal</h1>
+            <p class="lp-hero__lede">Memilih jalur, bahasa Arab, dan berkas, sampai tiba di Kairo.</p>
             <div class="lp-hero__actions">
               <a class="button button--primary lp-cta" href="#pendaftaran">
                 <span>Daftar konsultasi</span>
                 <span class="btn-arrow" aria-hidden="true"></span>
               </a>
-              <a class="lp-link" href="#program">Lihat tiga program</a>
             </div>
           </div>
-
-          <figure class="lp-hero__media">
-            <img src="../assets/cairo-arches.jpg" alt="Serambi berpilar dan kubah masjid bersejarah di Kairo" width="2000" height="1333" fetchpriority="high" decoding="async" />
-            <figcaption class="lp-hero__caption">
-              <span class="lp-hero__pin" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg></span>
-              <span><strong>Nasr City, Kairo</strong><small>Kantor Hamasah International di Mesir</small></span>
-            </figcaption>
-          </figure>
         </div>
+
+        <nav class="lp-line" aria-label="Program dan informasi utama">
+          <svg class="lp-line__string" viewBox="0 0 1000 200" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <path d="M0 20 Q500 180 1000 20" />
+          </svg>
+          <ul class="lp-line__cards">
+            <li class="lp-card">
+              <a href="program-mahad.html">
+                <span class="lp-card__pin" aria-hidden="true"></span>
+                <img src="../assets/cairo-arches.jpg" alt="" width="2000" height="1333" decoding="async" />
+                <span class="lp-card__title">Ma'had <span class="lp-nb">Al-Azhar</span></span>
+                <span class="lp-card__text">Setingkat SMP dan SMA di Kairo</span>
+              </a>
+            </li>
+            <li class="lp-card">
+              <a href="program-courses.html">
+                <span class="lp-card__pin" aria-hidden="true"></span>
+                <img src="../assets/hero-student.jpg" alt="" width="1200" height="800" decoding="async" />
+                <span class="lp-card__title">Hamasah Courses</span>
+                <span class="lp-card__text">Nahwu, sharaf, adab, balaghah</span>
+              </a>
+            </li>
+            <li class="lp-card">
+              <a href="program-kuliah.html">
+                <span class="lp-card__pin" aria-hidden="true"></span>
+                <img src="../assets/cairo-skyline.jpg" alt="" width="2200" height="1469" fetchpriority="high" decoding="async" />
+                <span class="lp-card__title">Kuliah S1 <span class="lp-nb">Al-Azhar</span></span>
+                <span class="lp-card__text">Dari berkas sampai resmi terdaftar</span>
+              </a>
+            </li>
+            <li class="lp-card">
+              <a href="#kegiatan">
+                <span class="lp-card__pin" aria-hidden="true"></span>
+                <img src="../assets/subcard-student.jpg" alt="" width="500" height="333" decoding="async" />
+                <span class="lp-card__title">Keseharian santri</span>
+                <span class="lp-card__text">Talaqqi, ibadah, dan asrama</span>
+              </a>
+            </li>
+            <li class="lp-card">
+              <a href="biaya.html">
+                <span class="lp-card__pin" aria-hidden="true"></span>
+                <img src="../assets/avatar-hamasah.png" alt="" width="512" height="512" decoding="async" />
+                <span class="lp-card__title">Biaya &amp; fasilitas</span>
+                <span class="lp-card__text">Komponen tiap program</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
 
         <div class="shell">
           <ul class="lp-assure" aria-label="Yang Anda dapatkan bersama Hamasah">
@@ -80,7 +123,7 @@
             </li>
             <li>
               <strong>Wali ikut memantau</strong>
-              <span>Presensi, hafalan, rapor, dan kuitansi tersedia di portal wali.</span>
+              <span>Presensi, hafalan, rapor, dan kuitansi tersedia di portal santri &amp; wali.</span>
             </li>
           </ul>
         </div>
@@ -213,7 +256,7 @@
           <header class="lp-head">
             <p class="eyebrow">Alur pendaftaran</p>
             <h2 class="lp-h2" id="proses-title">Lima tahap dari formulir sampai resmi kuliah.</h2>
-            <p class="lp-lede">Ini alur jalur kuliah bagi pelajar di Indonesia. Setiap tahap tercatat, sehingga Anda dan keluarga selalu tahu posisi pendaftaran.</p>
+            <p class="lp-lede">Ini alur jalur kuliah bagi pelajar di Indonesia. Setiap tahap tercatat, sehingga Anda dan keluarga selalu tahu posisi pendaftaran. Alur <a href="program-mahad.html#alur">Ma'had</a> dan <a href="program-courses.html">kelas daring</a> berbeda, lihat di halaman masing-masing.</p>
           </header>
 
           <ol class="lp-steps">
@@ -247,7 +290,7 @@
           <aside class="lp-docs" aria-labelledby="dokumen-title">
             <div>
               <h3 id="dokumen-title">Dokumen yang perlu disiapkan</h3>
-              <p>Daftar lengkapnya kami pandu satu per satu setelah data awal diterima.</p>
+              <p>Untuk jalur kuliah. Daftar lengkapnya ada di <a href="program-kuliah.html#dokumen">halaman Kuliah</a>, dan kami pandu satu per satu setelah data awal diterima.</p>
             </div>
             <ul class="lp-checks lp-checks--two">
               <li>Paspor aktif</li>
@@ -256,6 +299,8 @@
               <li>Surat rekomendasi Kemenag daerah</li>
               <li>Surat pernyataan orang tua atau wali</li>
               <li>Pasfoto 4x6 latar putih</li>
+              <li>Surat keterangan sehat</li>
+              <li>Kartu keluarga dan KTP bila ada</li>
             </ul>
           </aside>
         </div>
@@ -356,17 +401,17 @@
 
           <div class="faq-panel">
             <div class="faq-questions" aria-label="Daftar topik pertanyaan umum">
-              <button class="faq-question is-active" type="button" data-answer="program" aria-pressed="true">Apa itu Hamasah International?</button>
-              <button class="faq-question" type="button" data-answer="registration" aria-pressed="false">Apakah harus mahir bahasa Arab untuk daftar?</button>
+              <button class="faq-question is-active" type="button" data-answer="registration" aria-pressed="true">Apakah harus mahir bahasa Arab untuk daftar?</button>
               <button class="faq-question" type="button" data-answer="mahad" aria-pressed="false">Apa saja yang dipelajari di Program Ma'had?</button>
               <button class="faq-question" type="button" data-answer="parent" aria-pressed="false">Bagaimana alur pendaftaran melalui Hamasah?</button>
               <button class="faq-question" type="button" data-answer="documents" aria-pressed="false">Dokumen awal apa yang perlu dipersiapkan?</button>
+              <button class="faq-question" type="button" data-answer="cost" aria-pressed="false">Berapa biayanya?</button>
             </div>
 
             <div class="faq-answer" id="faq-answer" aria-live="polite">
-              <p class="faq-answer__topic">Tentang Hamasah</p>
-              <h3>Pendamping pendidikan bagi pelajar Indonesia menuju <span class="lp-nb">Al-Azhar</span>, Mesir.</h3>
-              <p>Hamasah International adalah lembaga konsultan pendidikan luar negeri yang mendampingi pelajar Indonesia dari awal pendaftaran hingga tiba dan resmi menjadi mahasiswa Universitas <span class="lp-nb">Al-Azhar</span> atau pelajar Ma'had <span class="lp-nb">Al-Azhar</span> di Kairo.</p>
+              <p class="faq-answer__topic">Tentang persiapan bahasa</p>
+              <h3>Calon mahasiswa tidak harus sudah mahir bahasa Arab untuk memulai proses.</h3>
+              <p>Semua calon mahasiswa mengikuti Ujian Tahdid Mustawa untuk penempatan level bahasa Arab, lalu karantina bahasa (Dauroh Ta’hili) sebelum ujian seleksi. Bila level awal belum mencukupi, ada kelas bahasa terlebih dahulu.</p>
             </div>
 
             <form class="faq-form" id="faq-form">
@@ -390,7 +435,7 @@
 
             <h3 class="lp-after-title">Setelah Anda mengirim</h3>
             <ol class="lp-after">
-              <li><strong>Nomor registrasi langsung muncul.</strong> Simpan nomor ini untuk memantau status.</li>
+              <li><strong>Nomor registrasi dan Kode Akses langsung muncul.</strong> Simpan keduanya untuk membuka halaman Cek status.</li>
               <li><strong>Tim menghubungi Anda.</strong> Lewat WhatsApp atau email yang Anda isi.</li>
               <li><strong>Unggah berkas bertahap.</strong> Lewat halaman <a href="cek-status.html">Cek status</a>, tanpa perlu datang.</li>
             </ol>
@@ -398,7 +443,7 @@
           </div>
 
           <div class="registration-form-wrap">
-            <form class="registration-form" id="registration-form" novalidate>
+            <form method="post" class="registration-form" id="registration-form" novalidate>
               <div class="form-heading">
                 <h3>Formulir konsultasi</h3>
                 <p>Kolom bertanda <span aria-hidden="true">*</span> wajib diisi. Butuh sekitar 3 menit.</p>
@@ -528,6 +573,26 @@
 
               <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
 
+              <div class="registration-receipt" id="registration-receipt" tabindex="-1" hidden>
+                <p class="card-label">Simpan dua data ini sekarang</p>
+                <dl class="registration-receipt__data">
+                  <div>
+                    <dt>Nomor registrasi</dt>
+                    <dd id="receipt-registration-id"></dd>
+                  </div>
+                  <div>
+                    <dt>Kode Akses</dt>
+                    <dd id="receipt-access-code"></dd>
+                  </div>
+                </dl>
+                <p class="registration-receipt__note">Keduanya dipakai untuk membuka halaman Cek status dan mengunggah berkas. <strong>Kode Akses hanya ditampilkan sekali ini.</strong></p>
+                <div class="tracker-actions">
+                  <button class="button button--secondary" id="receipt-copy" type="button">Salin keduanya</button>
+                  <a class="button button--primary" id="receipt-whatsapp" href="#" target="_blank" rel="noopener">Kirim ke WhatsApp saya</a>
+                </div>
+                <p class="form-status" id="receipt-copy-status" role="status" aria-live="polite"></p>
+              </div>
+
               <div class="registration-tracker" id="registration-tracker" hidden>
                 <div class="tracker-header">
                   <span class="tracker-icon" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M22 12h-4M6 12H2M12 6V2M12 22v-4"/><circle cx="12" cy="12" r="3"/></svg></span>
@@ -575,6 +640,7 @@
             <ul class="footer-links">
               <li><a href="cek-status.html">Cek status pendaftaran</a></li>
               <li><a href="articles.html">Pena Hamasah</a></li>
+              <li><a href="#bantuan">Tanya jawab</a></li>
               <li><a href="kontak.html">Kontak &amp; lokasi</a></li>
             </ul>
           </div>
@@ -599,6 +665,6 @@
 
     <script src="public-header.js?v=af5a025609"></script>
     <script src="registration-domain.js?v=b3640ec58b"></script>
-    <script src="website.js?v=fb53a6210d"></script>
+    <script src="website.js?v=1a4720bbf0"></script>
   </body>
 </html>

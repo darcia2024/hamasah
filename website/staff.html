@@ -7,11 +7,11 @@
     <title>Pendaftaran | Hamasah International</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="icon" href="../assets/favicon.png" />
-    <link rel="stylesheet" href="website-core.css?v=b5388db8c9" />
-    <link rel="stylesheet" href="staff.css?v=b8e4c84e4c" />
-    <link rel="stylesheet" href="portal.css?v=8bacd00569" />
+    <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
+    <link rel="stylesheet" href="staff.css?v=dc8ceb17ce" />
+    <link rel="stylesheet" href="portal.css?v=95993599af" />
   </head>
   <body class="staff-page">
     <!-- Header saat Belum Login -->
@@ -40,7 +40,7 @@
         <p class="staff-login__copy">
           Akses khusus verifikasi kelayakan calon santri, evaluasi berkas paspor/ijazah, dan penerbitan kabar resmi Pena Hamasah.
         </p>
-        <form id="staff-login-form" class="staff-form u-mt-20">
+        <form method="post" id="staff-login-form" class="staff-form u-mt-20">
           <div>
             <label for="staff-email">Alamat email petugas</label>
             <input id="staff-email" type="email" autocomplete="email" placeholder="petugas@hamasah.test" required />
@@ -151,7 +151,7 @@
             <!-- Kloter keberangkatan: dibuat di sini, ditugaskan dari kartu pendaftar. -->
             <details id="departure-manager" class="departure-manager">
               <summary>Kloter keberangkatan <span id="departure-count" class="crm-pill-count">0</span></summary>
-              <form id="departure-form" class="departure-form">
+              <form method="post" id="departure-form" class="departure-form">
                 <input type="hidden" id="departure-id">
                 <label>Nama kloter <input id="departure-name" required minlength="3" maxlength="80" placeholder="Contoh: Kloter 1 Jakarta"></label>
                 <label>Rencana berangkat <input id="departure-date" type="date"></label>
@@ -189,7 +189,7 @@
                 <p>Artikel yang diterbitkan di sini akan langsung tampil pada katalog publik <strong>Pena Hamasah</strong> untuk dibaca oleh calon santri dan wali.</p>
               </div>
             </div>
-            <form id="article-form" class="staff-form staff-form--article">
+            <form method="post" id="article-form" class="staff-form staff-form--article">
               <div class="form-grid-2-1 form-grid-2--gap16">
                 <div>
                   <label for="article-title">Judul artikel</label>
@@ -297,7 +297,7 @@
             <div class="crm-white-card-header">
               <div><h3>Import data operasional</h3><p>Validasi dulu, tinjau error per baris, lalu commit setelah datanya benar.</p></div>
             </div>
-            <form id="operation-import-form" class="staff-form">
+            <form method="post" id="operation-import-form" class="staff-form">
               <div>
                 <label for="operation-import-entity">Jenis data</label>
                 <select id="operation-import-entity"><option value="inventory">Inventaris</option><option value="visa">Visa santri</option></select>

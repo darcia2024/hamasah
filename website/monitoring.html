@@ -6,11 +6,11 @@
     <title>Monitoring Santri | Hamasah International</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="icon" href="../assets/favicon.png" />
-    <link rel="stylesheet" href="website-core.css?v=b5388db8c9" />
-    <link rel="stylesheet" href="staff.css?v=b8e4c84e4c" />
-    <link rel="stylesheet" href="portal.css?v=8bacd00569" />
+    <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
+    <link rel="stylesheet" href="staff.css?v=dc8ceb17ce" />
+    <link rel="stylesheet" href="portal.css?v=95993599af" />
   </head>
   <body class="staff-page">
     <!-- Header saat Belum Login -->
@@ -170,7 +170,7 @@
                   <p>Catat kegiatan, halaqah talaqqi, kehadiran kegiatan, evaluasi akhlak, prestasi, atau pelanggaran. Sholat dan hafalan dicatat di bagian Ibadah di bawah.</p>
                 </div>
               </div>
-              <form id="record-form" class="staff-form record-form">
+              <form method="post" id="record-form" class="staff-form record-form">
                 <div class="form-grid-2">
                   <div>
                     <label for="record-kind">Jenis catatan mutaba'ah</label>
@@ -221,7 +221,7 @@
                 </div>
               </div>
 
-              <form id="prayer-form" class="staff-form care-form">
+              <form method="post" id="prayer-form" class="staff-form care-form">
                 <h4>Presensi sholat berjamaah</h4>
                 <label>Tanggal <input id="prayer-date" type="date" required /></label>
                 <div class="care-prayer-grid">
@@ -275,7 +275,7 @@
                 <p id="prayer-form-status" class="form-status" role="status" aria-live="polite"></p>
               </form>
 
-              <form id="memorization-form" class="staff-form care-form">
+              <form method="post" id="memorization-form" class="staff-form care-form">
                 <h4>Setoran hafalan</h4>
                 <div class="form-grid-2">
                   <label>Tanggal <input id="memorization-date" type="date" required /></label>
@@ -299,7 +299,7 @@
                 <p id="memorization-form-status" class="form-status" role="status" aria-live="polite"></p>
               </form>
 
-              <form id="health-form" class="staff-form care-form" hidden>
+              <form method="post" id="health-form" class="staff-form care-form" hidden>
                 <h4>Catatan kesehatan</h4>
                 <p class="care-privacy-note">Data kesehatan bersifat sensitif. Wali hanya melihat kondisi dan "catatan untuk wali"; keluhan dan tindakan hanya terlihat oleh petugas.</p>
                 <div class="form-grid-2">
@@ -340,7 +340,7 @@
                 <p>Tambahkan profil santri binaan baru yang tiba di Kairo untuk mulai dipantau rekam jejak dan penempatan asramanya.</p>
               </div>
             </div>
-            <form id="student-form" class="staff-form">
+            <form method="post" id="student-form" class="staff-form">
               <div>
                 <label for="student-name">Nama lengkap santri</label>
                 <input id="student-name" type="text" placeholder="Nama sesuai paspor/ijazah" required />
@@ -392,7 +392,7 @@
               </div>
             </div>
             <section id="placement-section">
-              <form id="placement-form" class="staff-form record-form">
+              <form method="post" id="placement-form" class="staff-form record-form">
                 <div class="form-grid-2">
                   <div>
                     <label for="placement-gender">Jenis santri</label>
@@ -429,7 +429,7 @@
                       <p>Daftarkan gedung asrama baru beserta kawasannya.</p>
                     </div>
                   </div>
-                  <form id="dormitory-form" class="staff-form">
+                  <form method="post" id="dormitory-form" class="staff-form">
                     <div>
                       <label for="dormitory-name">Nama asrama</label>
                       <input id="dormitory-name" type="text" placeholder="Nama gedung asrama" required />
@@ -459,7 +459,7 @@
                       <p>Tautkan akun musyrif ke gedung asrama yang menjadi tanggung jawabnya.</p>
                     </div>
                   </div>
-                  <form id="assignment-form" class="staff-form">
+                  <form method="post" id="assignment-form" class="staff-form">
                     <div>
                       <label for="assignment-account">Pilih akun musyrif</label>
                       <select id="assignment-account"></select>
@@ -497,7 +497,7 @@
               </div>
             </div>
             <section id="account-link-section">
-              <form id="account-link-form" class="staff-form record-form">
+              <form method="post" id="account-link-form" class="staff-form record-form">
                 <div>
                   <label for="linked-student-account">Pilih akun santri</label>
                   <select id="linked-student-account">

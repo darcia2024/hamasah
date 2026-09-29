@@ -77,6 +77,47 @@ document.addEventListener('DOMContentLoaded', () => {
     'other': 'Dokumen Tambahan'
   };
 
+  // Label tahapan mengikuti program. Urutan dan ambang progresnya sama untuk semua
+  // program (status di server tidak berubah); yang berbeda hanya apa arti tiap tahap.
+  const STEP_LABELS = {
+    'kuliah-al-azhar': [
+      ['Pendaftaran Masuk', 'Data formulir tersimpan'],
+      ['Pemeriksaan Berkas', 'Validasi ijazah & paspor'],
+      ['Persiapan Bahasa', 'Tahdid Mustawa / Dauroh'],
+      ['Visa & Tiket', 'Legalisasi & kloter terbang'],
+      ['Tiba di Kairo', 'Asrama Hamasah, Nasr City']
+    ],
+    'mahad-al-azhar': [
+      ['Pendaftaran Masuk', 'Data formulir tersimpan'],
+      ['Pemeriksaan Berkas', 'KK, akta, rekomendasi Kemenag'],
+      ['Persiapan Berangkat', 'Paspor & jadwal rombongan'],
+      ['Visa & Tiket', 'Legalisasi & kloter terbang'],
+      ['Tiba di Kairo', "Pendaftaran ma'had & tes bahasa"]
+    ],
+    'hamasah-courses': [
+      ['Pendaftaran Masuk', 'Data formulir tersimpan'],
+      ['Konfirmasi Tim', 'Kelas dan paket yang dipilih'],
+      ['Penempatan Kelas', 'Jadwal dan tingkat materi'],
+      ['Akun Belajar', 'Akses portal santri disiapkan'],
+      ['Mulai Belajar', 'Kelas daring aktif']
+    ]
+  };
+
+  function applyProgramSteps(program) {
+    const labels = STEP_LABELS[program] || STEP_LABELS['kuliah-al-azhar'];
+    ['#step-submitted', '#step-review', '#step-academic', '#step-departure', '#step-completed'].forEach((id, index) => {
+      const item = document.querySelector(id);
+      if (!item) return;
+      item.querySelector('.step-desc strong').textContent = labels[index][0];
+      item.querySelector('.step-desc small').textContent = labels[index][1];
+    });
+    const stepper = document.querySelector('.departure-stepper');
+    if (stepper) stepper.setAttribute('aria-label', program === 'hamasah-courses' ? 'Tahapan pendaftaran kelas daring' : 'Tahapan pendaftaran hingga keberangkatan');
+    // Kelas daring tidak berangkat ke Kairo, jadi jadwal kloter tidak ditampilkan.
+    const departureSection = document.querySelector('.departure-schedule');
+    if (departureSection) departureSection.hidden = program === 'hamasah-courses';
+  }
+
   function updateStepper(status, progress) {
     const steps = [
       { id: '#step-submitted', threshold: 15 },
@@ -299,6 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
       resProgressPct.textContent = `${progress}%`;
       resProgressFill.style.width = `${progress}%`;
 
+      applyProgramSteps(reg.program);
       updateStepper(reg.status, progress);
       renderDocuments(reg.documentSummary);
       renderDeparture(reg.departure || null);
@@ -514,13 +556,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Auto-fill from URL params ?id=...&token=...
+  // Datang dari beranda setelah mendaftar: ?id=... saja. Token sesi dibaca dari
+  // sessionStorage yang ditulis beranda, tidak lewat URL. Tautan lama yang masih
+  // membawa ?token= tetap dilayani, lalu token dihapus dari alamat halaman.
   const urlParams = new URLSearchParams(window.location.search);
   const paramId = urlParams.get('id');
-  const paramToken = urlParams.get('token');
-  if (paramId && paramToken) {
-    regIdInput.value = paramId;
-    tokenInput.value = paramToken;
-    fetchRegistration(paramId, paramToken);
+  let savedSession = null;
+  try {
+    savedSession = JSON.parse(sessionStorage.getItem('hamasahRegistration') || 'null');
+  } catch {
+    savedSession = null;
+  }
+  const sessionToken = urlParams.get('token')
+    || (savedSession && savedSession.registrationId === paramId ? savedSession.accessToken : '');
+  if (urlParams.has('token')) {
+    urlParams.delete('token');
+    const query = urlParams.toString();
+    history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`);
+  }
+  if (paramId) regIdInput.value = paramId;
+  if (paramId && sessionToken) {
+    fetchRegistration(paramId, sessionToken);
+  } else if (paramId) {
+    tokenInput.focus();
   }
 });

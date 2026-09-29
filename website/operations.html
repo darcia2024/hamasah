@@ -6,11 +6,11 @@
     <title>Operasional &amp; Keuangan | Hamasah International</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="icon" href="../assets/favicon.png" />
-    <link rel="stylesheet" href="website-core.css?v=b5388db8c9" />
-    <link rel="stylesheet" href="staff.css?v=b8e4c84e4c" />
-    <link rel="stylesheet" href="portal.css?v=8bacd00569" />
+    <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
+    <link rel="stylesheet" href="staff.css?v=dc8ceb17ce" />
+    <link rel="stylesheet" href="portal.css?v=95993599af" />
   </head>
   <body class="staff-page">
     <!-- Header saat Belum Login -->
@@ -143,7 +143,7 @@
                 <p>Terbitkan tagihan SPP bulanan atau biaya program persiapan studi kepada santri dan wali.</p>
               </div>
             </div>
-            <form id="invoice-form" class="staff-form">
+            <form method="post" id="invoice-form" class="staff-form">
               <div>
                 <label for="invoice-student">Pilih santri sasaran</label>
                 <select id="invoice-student" class="monitoring-select"></select>
@@ -173,7 +173,7 @@
             <p id="invoice-list-status" class="form-status" role="status" aria-live="polite"></p>
 
             <dialog id="invoice-action-dialog" class="op-dialog" aria-labelledby="invoice-action-title">
-              <form id="invoice-action-form" class="staff-form op-dialog__form">
+              <form method="post" id="invoice-action-form" class="staff-form op-dialog__form">
                 <h3 id="invoice-action-title">Koreksi invoice</h3>
                 <p id="invoice-action-summary" class="op-dialog__summary"></p>
                 <div id="invoice-action-fields">
@@ -215,7 +215,7 @@
                 <p>Catat status dan progres pengurusan visa pelajar Republik Arab Mesir untuk santri binaan.</p>
               </div>
             </div>
-            <form id="visa-form" class="staff-form">
+            <form method="post" id="visa-form" class="staff-form">
               <div>
                 <label for="visa-student">Pilih santri</label>
                 <select id="visa-student" class="monitoring-select"></select>
@@ -258,7 +258,7 @@
                 <p>Unggah pindaian paspor, visa, atau izin tinggal. Berkas hanya dapat dibuka oleh peran operasional.</p>
               </div>
             </div>
-            <form id="visa-document-form" class="staff-form">
+            <form method="post" id="visa-document-form" class="staff-form">
               <div class="form-grid-2">
                 <div>
                   <label for="visa-document-type">Jenis berkas</label>
@@ -299,7 +299,7 @@
                 <p>Pencatatan aset sarana prasarana asrama santri di Kairo maupun fasilitas penunjang di Indonesia.</p>
               </div>
             </div>
-            <form id="inventory-form" class="staff-form">
+            <form method="post" id="inventory-form" class="staff-form">
               <div class="form-grid-auto">
                 <div>
                   <label for="inventory-name">Nama barang / fasilitas</label>
@@ -331,7 +331,7 @@
             <p id="inventory-list-status" class="form-status" role="status" aria-live="polite"></p>
 
             <dialog id="movement-dialog" class="op-dialog" aria-labelledby="movement-title">
-              <form id="movement-form" class="staff-form op-dialog__form">
+              <form method="post" id="movement-form" class="staff-form op-dialog__form">
                 <h3 id="movement-title">Catat pergerakan stok</h3>
                 <p id="movement-summary" class="op-dialog__summary"></p>
                 <div class="form-grid-2">

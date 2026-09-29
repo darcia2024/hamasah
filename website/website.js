@@ -19,6 +19,11 @@ const answers = {
     title: 'Pendaftaran dimulai dengan formulir dan verifikasi berkas.',
     text: 'Alurnya: isi formulir, verifikasi berkas, Ujian Tahdid Mustawa, karantina daring (Dauroh Ta’hili), ujian muadalah, lalu pemberkasan dan keberangkatan sampai resmi kuliah di Al-Azhar.'
   },
+  cost: {
+    topic: 'Tentang biaya',
+    title: 'Rincian biaya disampaikan saat konsultasi, sesuai program dan periode keberangkatan.',
+    text: 'Komponen yang tercakup (asrama, makan, pendampingan, berkas) ada di halaman Biaya & fasilitas. Nominal terbaru dikonfirmasi tim kami saat konsultasi, dan konsultasinya tanpa biaya.'
+  },
   documents: {
     topic: 'Tentang dokumen awal',
     title: 'Mulai dengan paspor, dokumen pendidikan, dan bukti pendukung yang diminta.',
@@ -67,7 +72,17 @@ faqForm.addEventListener('submit', async (event) => {
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Pertanyaan belum dapat diproses.');
-    renderAnswer(result.topic || 'Perlu konfirmasi', 'Jawaban informasi awal', result.answer);
+    renderAnswer(result.label || 'Perlu konfirmasi', result.matched ? 'Jawaban otomatis' : 'Belum bisa dijawab otomatis', result.answer);
+    // Jawaban kata kunci bisa meleset, jadi selalu ada jalan ke admin.
+    const followUp = document.createElement('p');
+    followUp.className = 'faq-answer__handoff';
+    const link = document.createElement('a');
+    link.href = 'https://wa.me/6287897591978';
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = 'Tanya admin lewat WhatsApp';
+    followUp.append('Jawaban ini dipilih otomatis dari informasi umum. Kurang pas? ', link);
+    answerPanel.append(followUp);
   } catch (error) {
     faqFormStatus.textContent = error.message || 'Layanan pertanyaan belum dapat dihubungi.';
   }
@@ -115,6 +130,7 @@ const submitButton = form.querySelector('.submit-button');
 const registrationTracker = document.querySelector('#registration-tracker');
 const registrationTrackerCopy = document.querySelector('#registration-tracker-copy');
 const checkRegistrationStatus = document.querySelector('#check-registration-status');
+const registrationReceipt = document.querySelector('#registration-receipt');
 const fields = {
   fullName: form.querySelector('#full-name'),
   phone: form.querySelector('#phone'),
@@ -222,7 +238,9 @@ async function refreshRegistrationStatus() {
   registrationTracker.hidden = false;
   const openFullTracker = document.querySelector('#open-full-tracker');
   if (openFullTracker) {
-    openFullTracker.href = `cek-status.html?id=${encodeURIComponent(saved.registrationId)}&token=${encodeURIComponent(saved.accessToken)}`;
+    // Token sesi tidak ditaruh di URL (bisa bocor lewat riwayat browser, tangkapan layar,
+    // atau tautan yang dibagikan). cek-status.js membacanya dari sessionStorage yang sama.
+    openFullTracker.href = `cek-status.html?id=${encodeURIComponent(saved.registrationId)}`;
   }
   registrationTrackerCopy.textContent = `Memeriksa status ${saved.registrationId}...`;
   try {
@@ -250,7 +268,44 @@ Object.values(fields).forEach((field) => {
 });
 
 fields.program.addEventListener('change', syncProgramFields);
+// Tombol daftar di halaman program membawa ?program=..., jadi pilihan program sudah terisi.
+(function preselectProgram() {
+  const requested = new URLSearchParams(window.location.search).get('program');
+  if (requested && Object.values(registrationDomain.PROGRAMS).includes(requested)) {
+    fields.program.value = requested;
+  }
+})();
 syncProgramFields();
+
+// Kode Akses hanya dikirim server sekali, saat pendaftaran dibuat (yang disimpan hanya
+// hash-nya). Tanpa kode ini pendaftar tidak bisa membuka Cek status di perangkat lain atau
+// setelah tab ditutup, jadi kode ditampilkan jelas dan bisa disalin atau dikirim ke WA sendiri.
+function showRegistrationReceipt(registrationId, accessCode) {
+  if (!registrationReceipt || !accessCode) return;
+  const lines = [
+    'Pendaftaran Hamasah International',
+    `Nomor registrasi: ${registrationId}`,
+    `Kode Akses: ${accessCode}`,
+    `Cek status: ${new URL('cek-status.html', window.location.href).href}`
+  ].join('\n');
+  registrationReceipt.querySelector('#receipt-registration-id').textContent = registrationId;
+  registrationReceipt.querySelector('#receipt-access-code').textContent = accessCode;
+  registrationReceipt.querySelector('#receipt-whatsapp').href = `https://wa.me/?text=${encodeURIComponent(lines)}`;
+  const copyButton = registrationReceipt.querySelector('#receipt-copy');
+  const copyStatus = registrationReceipt.querySelector('#receipt-copy-status');
+  copyStatus.textContent = '';
+  copyButton.onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(lines);
+      copyStatus.textContent = 'Tersalin. Tempel di catatan atau pesan untuk diri sendiri.';
+    } catch {
+      copyStatus.textContent = 'Tidak bisa menyalin otomatis. Catat nomor dan kode di atas secara manual.';
+    }
+  };
+  registrationReceipt.hidden = false;
+  registrationReceipt.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  registrationReceipt.focus({ preventScroll: true });
+}
 
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -281,8 +336,9 @@ form.addEventListener('submit', async (event) => {
       registrationId: result.registration.registrationId,
       accessToken: result.accessToken
     }));
-    status.textContent = `Pendaftaran awal berhasil dibuat. Nomor registrasi Anda: ${result.registration.registrationId}. Simpan nomor ini untuk tindak lanjut bersama tim Hamasah.`;
+    status.textContent = 'Pendaftaran awal berhasil dibuat. Tim kami akan menghubungi Anda lewat WhatsApp.';
     form.reset();
+    showRegistrationReceipt(result.registration.registrationId, result.accessCode);
     refreshRegistrationStatus();
   } catch (error) {
     status.textContent = error.message || 'Layanan formulir belum dapat dihubungi.';

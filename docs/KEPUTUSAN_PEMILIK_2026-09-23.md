@@ -199,3 +199,23 @@ memperbaruinya tiap tahun.
   atau production, karena kredensialnya pernah tersaji publik di halaman portal.
 - Menjalankan `ALLOW_PRODUCTION_WRITE=I_UNDERSTAND npm run migrate` setiap ada migrasi baru.
   Migrasi 001-041 sudah diterapkan ke production pada 23 September 2026.
+
+---
+
+## Konfirmasi baru dari audit alur dan isi (29 September 2026)
+
+Audit situs publik menemukan beberapa klaim yang tidak bisa dipastikan dari sisi pengembang.
+Sampai dijawab, situs memakai kalimat yang aman (lebih umum). Bila jawabannya "ya", kalimat
+lama bisa dipasang kembali.
+
+| No | Pertanyaan | Tampil sekarang | Tempat |
+|---|---|---|---|
+| E1 | Apakah usia Ma'had memang **13 sampai 30 tahun** untuk jenjang setingkat SMP–SMA? | Tetap "13 sampai 30 tahun" (tidak diubah) | `program-mahad.html`, beranda, jawaban FAQ |
+| E2 | Apakah pembayaran memakai **3 termin** (pendaftaran & legalisir, visa & bahasa, pelunasan tiket)? | "Bisa bertahap, jumlah dan jadwal disepakati saat konsultasi" | FAQ `biaya.html` |
+| E3 | Apakah uang saku dikirim lewat **rekening penampungan Hamasah** lalu diserahkan tunai dalam EGP? | "Cara kirim dijelaskan saat konsultasi" + peringatan hanya transfer ke rekening yang dikonfirmasi admin | FAQ `biaya.html` |
+| E4 | Apakah ada **MoU** dengan pengembalian dana proporsional? | "Ketentuan pembatalan ada di kesepakatan tertulis sebelum pembayaran pertama" | FAQ `biaya.html` |
+| E5 | Kelas daring: apakah ada **video bersanad, modul PDF, sertifikat, akses seumur hidup**? | Hanya yang tertulis di `program-courses.html` | Kartu Courses di `biaya.html` |
+| E6 | Apakah ada **halaqah talaqqi bersama masyayikh** sebagai fasilitas program, atau kajian bersama musyrif? | "Setoran hafalan dan kajian harian bersama musyrif" | `biaya.html` |
+| E7 | Apakah laporan adab ke orang tua **mingguan**? | "Laporan perkembangan berkala" | `biaya.html` |
+| E8 | Apakah paspor wajib berlaku **minimal 18 bulan**? | "Paspor aktif"; pilihan unggah "Paspor (halaman identitas)" | `cek-status.html`, daftar dokumen |
+| E9 | Apakah **surat keterangan sehat** juga diminta untuk jalur Ma'had? | Tercantum untuk jalur kuliah saja | `program-kuliah.html`, beranda |

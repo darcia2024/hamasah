@@ -1,23 +1,62 @@
+// Jawaban otomatis kotak "Tanyakan" di beranda. Isinya harus sama dengan yang tertulis di
+// halaman program; bila ragu, lebih baik tidak cocok lalu diarahkan ke admin daripada
+// menjawab keliru. "al-azhar" sengaja bukan kata kunci karena muncul di hampir semua
+// pertanyaan dan membuat jawaban meleset. Bila skor seri, entri yang lebih atas menang,
+// jadi topik lintas program (biaya, status, bahasa) ditaruh sebelum topik program.
 const KNOWLEDGE_BASE = Object.freeze([
   {
+    id: 'pendaftaran',
+    label: 'Tentang pendaftaran',
+    keywords: ['daftar', 'pendaftaran', 'dokumen', 'berkas', 'syarat', 'paspor', 'ijazah'],
+    answer: 'Isi formulir pendaftaran di beranda. Setelah terkirim, Anda langsung menerima nomor registrasi dan Kode Akses, lalu tim kami menghubungi lewat WhatsApp dan memandu berkas satu per satu. Berkas diunggah lewat halaman Cek status.'
+  },
+  {
+    id: 'biaya',
+    label: 'Tentang biaya',
+    keywords: ['biaya', 'harga', 'bayar', 'spp', 'cicil', 'angsur', 'uang', 'mahal'],
+    answer: 'Nominal biaya disampaikan saat konsultasi karena mengikuti program dan periode keberangkatan. Komponen dan fasilitasnya ada di halaman Biaya & fasilitas. Konsultasinya tanpa biaya.'
+  },
+  {
+    id: 'status',
+    label: 'Tentang cek status',
+    keywords: ['status', 'kode akses', 'nomor registrasi', 'lacak', 'unggah'],
+    answer: 'Buka halaman Cek status, lalu masukkan nomor registrasi dan Kode Akses yang muncul setelah Anda mendaftar. Bila kodenya hilang, hubungi admin lewat WhatsApp dan sebutkan nomor registrasi Anda.'
+  },
+  {
+    id: 'bahasa',
+    label: 'Tentang bahasa Arab',
+    keywords: ['bahasa arab', 'tahdid', 'mustawa', 'dauroh', 'mahir', 'belum bisa'],
+    answer: 'Tidak harus sudah mahir. Calon mahasiswa mengikuti Tahdid Mustawa untuk penempatan level bahasa Arab. Bila levelnya belum cukup, ada kelas bahasa dulu sebelum Dauroh Ta\'hili.'
+  },
+  {
     id: 'program-kuliah',
-    keywords: ['kuliah', 'al-azhar', 'universitas', 'fakultas'],
-    answer: 'Program Kuliah mendampingi persiapan studi menuju Al-Azhar Kairo. Persyaratan akhir, jadwal, dan proses akademik selalu dikonfirmasi kembali oleh tim Hamasah sesuai ketentuan yang berlaku.'
+    label: 'Tentang jalur kuliah',
+    keywords: ['kuliah', 'universitas', 'fakultas', 's1', 'jurusan', 'muadalah', 'mahasiswa'],
+    answer: "Jalur Kuliah S1 untuk lulusan SMA, MA, atau pesantren, putra maupun putri. Alurnya: formulir, verifikasi berkas, Tahdid Mustawa, Dauroh Ta'hili dan ujian muadalah, lalu keberangkatan dan daftar ulang di fakultas."
   },
   {
     id: 'program-mahad',
-    keywords: ['mahad', "ma'had", 'bahasa', 'persiapan'],
-    answer: "Program Ma'had berfokus pada penguatan bahasa Arab dan persiapan akademik sebelum tahapan studi berikutnya. Tim Hamasah membantu calon santri memahami jalur yang paling sesuai."
+    label: "Tentang Ma'had",
+    keywords: ['mahad', "ma'had", 'smp', 'sma', "i'dadi", 'idadi', 'tsanawi', 'sekolah'],
+    answer: "Ma'had Al-Azhar adalah sekolah resmi Al-Azhar di Kairo setingkat SMP (I'dadi) dan SMA (Tsanawi), dengan asrama dan musyrif. Penempatan kelas ditentukan lewat tes bahasa dan tes qobul di Kairo, bukan dari ijazah Indonesia."
   },
   {
-    id: 'pendaftaran',
-    keywords: ['daftar', 'pendaftaran', 'dokumen', 'berkas', 'syarat', 'paspor'],
-    answer: 'Pendaftaran diawali dengan pengisian data dasar. Setelah itu petugas akan memeriksa kebutuhan berkas dan memberi catatan bila ada yang perlu dilengkapi. Gunakan nomor registrasi untuk memantau proses Anda.'
+    id: 'courses',
+    label: 'Tentang kelas daring',
+    keywords: ['courses', 'daring', 'online', 'nahwu', 'sharaf', 'balaghah', 'kelas'],
+    answer: "Hamasah Courses adalah kelas daring berbasis kitab: nahwu dasar (Jurumiyah), sharaf dasar, Ta'lim Muta'allim, dan balaghah dasar. Materinya bisa diulang kapan saja. Jadwal dan cara bergabung dijelaskan setelah Anda mendaftar."
   },
   {
     id: 'kairo',
-    keywords: ['mesir', 'kairo', 'keberangkatan', 'visa', 'asrama'],
-    answer: 'Hamasah mendampingi persiapan keberangkatan, penyesuaian awal di Kairo, dan informasi kegiatan santri. Jadwal perjalanan serta kebutuhan visa dikonfirmasi per pendaftar oleh tim resmi.'
+    label: 'Tentang keberangkatan dan asrama',
+    keywords: ['mesir', 'kairo', 'keberangkatan', 'berangkat', 'visa', 'asrama', 'makan'],
+    answer: 'Tim Hamasah mengurus visa pelajar, penjemputan di bandara Kairo, dan asrama di Nasr City dengan makan dua kali sehari. Jadwal keberangkatan dikonfirmasi per pendaftar dan tampil di halaman Cek status.'
+  },
+  {
+    id: 'wali',
+    label: 'Tentang portal wali',
+    keywords: ['wali', 'orang tua', 'portal', 'rapor', 'presensi', 'hafalan'],
+    answer: 'Wali memantau presensi sholat, setoran hafalan, rapor, dan kuitansi ananda lewat portal santri & wali. Akunnya dibuatkan tim Hamasah setelah santri terdaftar.'
   }
 ]);
 
@@ -50,7 +89,7 @@ function answerQuestion(question) {
       matched: false,
       handoff: true,
       source: 'faq-handoff',
-      answer: 'Pertanyaan ini perlu dikonfirmasi oleh tim Hamasah. Silakan gunakan konsultasi pendaftaran agar informasi yang diberikan sesuai kondisi terbaru.'
+      answer: 'Pertanyaan ini belum ada di jawaban otomatis kami. Tanyakan langsung ke admin lewat WhatsApp agar jawabannya sesuai kondisi terbaru.'
     };
   }
 
@@ -58,6 +97,7 @@ function answerQuestion(question) {
     matched: true,
     source: 'faq-approved',
     topic: ranked[0].entry.id,
+    label: ranked[0].entry.label,
     answer: ranked[0].entry.answer
   };
 }

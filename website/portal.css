@@ -14,7 +14,7 @@
 .portal-admin h2 {
   margin: 0 0 8px;
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.03em;
   color: var(--md-sys-color-on-surface, #1E1B16);
 }
@@ -28,7 +28,7 @@
 .portal-list-title {
   margin: 0 0 16px;
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--md-sys-color-on-surface, #1E1B16);
 }
@@ -67,7 +67,7 @@
 .portal-student-card h3 {
   margin: 0;
   font-size: 17px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface, #1E1B16);
   letter-spacing: -0.02em;
 }
@@ -152,7 +152,7 @@
   display: block;
   color: #FFE086;
   font-size: 26px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.1;
 }
@@ -194,7 +194,7 @@
 #account-form label {
   display: block;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface-variant);
   margin: 12px 0 6px;
   text-transform: uppercase;
@@ -239,7 +239,7 @@
   border: none;
   border-radius: 10px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -280,7 +280,7 @@
 .portal-account strong {
   display: block;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface);
   margin-bottom: 2px;
 }
@@ -644,7 +644,7 @@ body.in-crm #portal-students-status,
 
 .crm-brand-title strong {
   color: var(--gold-dark);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .crm-brand-sub {
@@ -723,7 +723,7 @@ body.in-crm #portal-students-status,
   padding: 2px 8px;
   border-radius: 9999px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   background: #FEF3C7;
@@ -751,7 +751,7 @@ body.in-crm #portal-students-status,
   justify-content: space-between;
   padding: 8px 12px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--md-sys-color-outline);
@@ -832,7 +832,7 @@ body.in-crm #portal-students-status,
 /* Sidebar Badges */
 .crm-badge-counter {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 2px 7px;
   border-radius: 9999px;
   line-height: 1.3;
@@ -889,7 +889,7 @@ body.in-crm #portal-students-status,
   border-radius: 12px;
   color: var(--md-sys-color-error);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   font-family: var(--apple-font-stack);
   transition: background 0.15s ease;
@@ -952,7 +952,7 @@ body.in-crm #portal-students-status,
 
 .crm-breadcrumbs .crumb-active {
   color: var(--md-sys-color-on-surface);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .crm-topbar-actions {
@@ -1008,13 +1008,13 @@ body.in-crm #portal-students-status,
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 13px;
 }
 
 .crm-profile-pill-name {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface);
   font-family: var(--apple-font-stack);
 }
@@ -1023,7 +1023,7 @@ body.in-crm #portal-students-status,
   padding: 3px 10px;
   border-radius: 9999px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   background: #FEF3C7;
   color: var(--gold-dark);
   font-family: var(--apple-font-stack);
@@ -1359,7 +1359,7 @@ body.in-crm #portal-students-status,
 
 .coursue-card-title {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface);
   line-height: 1.4;
   margin: 0 0 12px;
@@ -1383,7 +1383,7 @@ body.in-crm #portal-students-status,
   align-items: center;
   justify-content: center;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--gold-dark);
 }
 
@@ -1413,7 +1413,7 @@ body.in-crm #portal-students-status,
 
 .coursue-table-header h3 {
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface);
   margin: 0;
   letter-spacing: -0.02em;
@@ -1421,7 +1421,7 @@ body.in-crm #portal-students-status,
 
 .coursue-table-seeall {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--gold-dark);
   text-decoration: none;
 }
@@ -1438,7 +1438,7 @@ body.in-crm #portal-students-status,
 .coursue-table th {
   text-align: left;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--md-sys-color-outline);
@@ -1662,7 +1662,7 @@ body.in-crm #portal-students-status,
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   flex-shrink: 0;
   border: 1px solid rgba(231, 177, 12, 0.2);
 }
@@ -1674,7 +1674,7 @@ body.in-crm #portal-students-status,
 
 .coursue-mentor-title {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface);
   margin: 0;
   white-space: nowrap;
@@ -1692,7 +1692,7 @@ body.in-crm #portal-students-status,
   padding: 5px 14px;
   border-radius: 9999px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   background: #FEF3C7;
   color: var(--gold-dark);
   border: 1px solid rgba(231, 177, 12, 0.2);
@@ -1717,7 +1717,7 @@ body.in-crm #portal-students-status,
   border: 1px solid rgba(226, 222, 214, 0.85);
   color: var(--md-sys-color-outline);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -1794,7 +1794,7 @@ body.in-crm #portal-students-status,
 
 .crm-field-label {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--md-sys-color-outline);
@@ -1817,7 +1817,7 @@ body.in-crm #portal-students-status,
 
 .crm-balance-value {
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--success);
   display: flex;
   align-items: center;
@@ -1848,7 +1848,7 @@ body.in-crm #portal-students-status,
   background: #FEF3C7;
   color: var(--gold-dark);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1881,7 +1881,7 @@ body.in-crm #portal-students-status,
   margin-top: 5px;
   color: var(--gold-dark);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
   cursor: pointer;
   font-family: var(--apple-font-stack);
@@ -1937,7 +1937,7 @@ body.in-crm #portal-students-status,
   background: var(--charcoal-soft) !important;
   color: #FFFFFF !important;
   border-color: var(--charcoal-soft) !important;
-  font-weight: 700;
+  font-weight: 600;
   box-shadow: 0 2px 8px rgba(30, 27, 22, 0.25);
 }
 
@@ -1947,7 +1947,7 @@ body.in-crm #portal-students-status,
 
 .crm-pill-count {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 2px 8px;
   border-radius: 9999px;
   background: var(--md-sys-color-surface-container);
@@ -2047,7 +2047,7 @@ body.in-crm #portal-students-status,
   background: #FDC537;
   color: var(--md-sys-color-on-surface);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 0 18px;
   height: 38px;
   border-radius: 9999px;
@@ -2126,7 +2126,7 @@ body.in-crm #portal-students-status,
   justify-content: center;
   flex-shrink: 0;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 600;
   box-shadow: var(--crm-shadow-sm);
 }
 
@@ -2156,7 +2156,7 @@ body.in-crm #portal-students-status,
 
 .crm-activity-card__name {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface);
   margin: 0;
   line-height: 1.4;
@@ -2197,7 +2197,7 @@ body.in-crm #portal-students-status,
 .crm-col-block label {
   display: block;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--md-sys-color-outline);
@@ -2267,7 +2267,7 @@ body.in-crm #portal-students-status,
 
 .crm-meta-item label {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--md-sys-color-outline);
@@ -2325,7 +2325,7 @@ body.in-crm #portal-students-status,
   background: #FEF3C7;
   color: var(--gold-dark);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   border-radius: 9999px;
   border: 1px solid rgba(231, 177, 12, 0.2);
   cursor: pointer;
@@ -2389,7 +2389,7 @@ body.in-crm #portal-students-status,
 .crm-popover-header {
   padding: 6px 14px 2px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--md-sys-color-outline);
@@ -2503,7 +2503,7 @@ body.in-crm #portal-students-status,
 
 .crm-meta-dot {
   color: #D9D5CD;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .crm-student-compact-pill {
@@ -2623,7 +2623,7 @@ body.in-crm #portal-students-status,
 .crm-white-card-header h3 {
   margin: 0;
   font-size: 17px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface);
   letter-spacing: -0.015em;
   font-family: var(--apple-font-stack);
@@ -2669,7 +2669,7 @@ body.in-crm #portal-students-status,
 .crm-feature-box strong {
   display: block;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface);
   font-family: var(--apple-font-stack);
 }
@@ -2754,7 +2754,7 @@ body.in-crm #portal-students-status,
 
   .crm-drawer-toggle-label {
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
   }
 
   .crm-topbar {
@@ -2929,7 +2929,7 @@ body.in-crm #portal-students-status,
 
 .crm-canvas .staff-registration h2 {
   font-size: 17px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   color: var(--md-sys-color-on-surface, #1E1B16) !important;
   letter-spacing: -0.015em !important;
   margin: 0 0 4px !important;
@@ -3599,7 +3599,7 @@ body.crm-page-exiting .lms-page {
 .lms-author-header h4 {
   margin: 0;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--md-sys-color-outline);
@@ -3617,7 +3617,7 @@ body.crm-page-exiting .lms-page {
   border-radius: 9999px;
   background: #FEF3C7;
   color: var(--gold-dark);
-  font-weight: 700;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3749,7 +3749,7 @@ body.crm-page-exiting .lms-page {
 .crm-empty-state strong {
   color: var(--md-sys-color-on-surface, #1E1B16);
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .crm-empty-state span,
@@ -3984,12 +3984,12 @@ body.crm-page-exiting .lms-page {
 }
 
 .prayer-recap__table thead th {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface-variant);
 }
 
-.prayer-recap__cell--berjamaah { font-weight: 700; color: #1E6B3A; }
-.prayer-recap__cell--tidak { font-weight: 700; color: #A3261E; }
+.prayer-recap__cell--berjamaah { font-weight: 600; color: #1E6B3A; }
+.prayer-recap__cell--tidak { font-weight: 600; color: #A3261E; }
 
 /* Caption tabel untuk pembaca layar, tidak tampil di layar. */
 .prayer-recap__caption {
@@ -4143,7 +4143,7 @@ table,
 .crm-page-header .crm-summary-title {
   margin: 0;
   font-size: clamp(22px, 2.2vw, 28px);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.2;
   color: var(--md-sys-color-on-surface);
 }
@@ -4174,7 +4174,7 @@ table,
 .portal-greeting h3 {
   margin: 0;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface);
 }
 
@@ -4196,7 +4196,7 @@ table,
   padding-top: 14px;
   border-top: 1px solid var(--md-sys-color-outline-variant);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--md-sys-color-on-surface-variant);
@@ -4253,7 +4253,7 @@ table,
   background: none;
   color: var(--md-sys-color-on-surface);
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: none;
   letter-spacing: -0.01em;
 }
@@ -4423,7 +4423,7 @@ table,
   min-height: 46px;
   height: auto;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 @media (min-width: 861px) {
@@ -4473,14 +4473,14 @@ table,
   padding: 0;
   color: var(--gold-dark);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.08em;
   margin-bottom: 10px;
 }
 
 .coursue-hero-banner .coursue-hero-title {
   font-size: 30px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--md-sys-color-on-surface);
   margin-bottom: 10px;
@@ -4496,7 +4496,7 @@ table,
   min-height: 46px;
   padding: 0 24px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* Tombol pada kartu maddah: satu baris penuh di dalam kartu, teks di tengah. */
@@ -4550,7 +4550,7 @@ table,
 .lms-subheading {
   margin: 4px 0 0;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface);
 }
 
@@ -4595,7 +4595,7 @@ table,
 .lms-course-item__title {
   margin: 0;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface);
 }
 
@@ -4615,7 +4615,7 @@ table,
 }
 
 .lms-progress-text {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--gold-dark);
 }
 
@@ -4684,7 +4684,7 @@ table,
   background: var(--md-sys-color-surface-container-high);
   color: var(--md-sys-color-on-surface-variant);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.02em;
 }
 
@@ -4725,7 +4725,7 @@ table,
 .lms-material-manager h4 {
   margin: 0 0 12px;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .lms-material-list {
@@ -4746,7 +4746,7 @@ table,
 .lms-material-row strong {
   display: block;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .lms-material-row span {
@@ -4815,7 +4815,7 @@ table,
 .lms-quiz-builder__head h4 {
   margin: 0;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .lms-quiz-builder__head .button {
@@ -4917,7 +4917,7 @@ table,
 .lms-review-manager h4 {
   margin: 0 0 12px;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .lms-submission-list {
@@ -4946,7 +4946,7 @@ table,
 
 .lms-submission__head strong {
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .lms-submission__head span {

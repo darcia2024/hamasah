@@ -41,7 +41,7 @@ main h2.lp-h2 {
   font-size: clamp(30px, 3.4vw, 44px);
   line-height: 1.12;
   letter-spacing: -0.028em;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   margin: 0 0 18px;
   max-width: 20ch;
   text-wrap: balance;
@@ -69,7 +69,7 @@ main .eyebrow + h2 + p.lp-lede {
 .lp-index {
   margin: 0 0 14px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--gold-dark);
 }
@@ -83,7 +83,7 @@ main .eyebrow + h2 + p.lp-lede {
   display: block;
   margin: 0 0 6px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--gold-dark);
@@ -111,7 +111,7 @@ main .eyebrow + h2 + p.lp-lede {
   gap: 8px;
   min-height: 44px;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--gold-dark);
   text-decoration: none;
   white-space: nowrap;
@@ -167,17 +167,8 @@ main .eyebrow + h2 + p.lp-lede {
   transform: rotate(-45deg);
 }
 
-/* ---------- Hero ---------- */
+/* ---------- Hero: judul di tengah, kartu layanan digantung di tali ---------- */
 
-/* Cahaya emas tipis di pojok ada di lapisan hias, jadi latar teks tetap putih solid. */
-.lp-hero {
-  position: relative;
-  isolation: isolate;
-  padding: clamp(40px, 6vw, 72px) 0 0;
-  background: var(--md-sys-color-surface);
-}
-
-.lp-hero::before,
 .lp-register::before {
   content: "";
   position: absolute;
@@ -186,55 +177,74 @@ main .eyebrow + h2 + p.lp-lede {
   pointer-events: none;
 }
 
-.lp-hero::before {
-  background: radial-gradient(60% 50% at 88% 0%, rgba(231, 177, 12, 0.10), transparent 70%);
+/* Latar krem yang pelan-pelan menghangat ke emas pucat di bawah. */
+.lp-hero {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(40px, 6vw, 72px) 0 0;
+  background:
+    radial-gradient(70% 55% at 50% 100%, rgba(231, 177, 12, 0.12), transparent 70%),
+    linear-gradient(180deg, #fbfaf6 0%, #ffffff 45%, #fdf8ea 100%);
+  text-align: center;
 }
 
-.lp-hero__grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-  gap: clamp(32px, 5vw, 72px);
+.lp-hero__copy {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  min-height: min(620px, calc(100dvh - 180px));
 }
 
-.lp-hero__kicker {
-  margin: 0 0 20px;
+.lp-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 24px;
+  padding: 7px 16px 7px 10px;
+  border: 1px solid var(--lp-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.8);
   font-size: 14px;
-  font-weight: 600;
-  color: var(--gold-dark);
+  color: var(--lp-ink);
+  text-align: left;
+}
+
+.lp-hero__badge .m3-icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  fill: var(--gold-large);
 }
 
 .lp-hero h1 {
-  margin: 0 0 22px;
-  font-size: clamp(36px, 4.7vw, 58px);
+  margin: 0 0 20px;
+  max-width: 15em;
+  font-size: clamp(36px, 5.6vw, 68px);
   line-height: 1.06;
-  letter-spacing: -0.035em;
-  font-weight: 800 !important;
-  max-width: 13em;
+  letter-spacing: -0.03em;
+  font-weight: 600 !important;
   text-wrap: balance;
 }
 
 .lp-hero h1 em {
-  white-space: normal;
   font-style: normal;
   color: var(--gold-large);
 }
 
 .lp-hero__lede {
   margin: 0;
-  max-width: 46ch;
+  max-width: 44ch;
   font-size: 18px;
-  line-height: 1.65;
+  line-height: 1.6;
   color: var(--lp-soft);
 }
 
 .lp-hero__actions {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
   gap: 12px 28px;
-  margin-top: 36px;
+  margin-top: 32px;
 }
 
 .lp-cta {
@@ -243,66 +253,194 @@ main .eyebrow + h2 + p.lp-lede {
   font-size: 15px;
 }
 
-.lp-hero__media {
+/* Tali: kurva kuadrat dari (0,20) ke (1000,20) dengan titik kendali (500,180).
+   --y tiap kartu adalah ketinggian kurva di posisi --x (skala viewBox 0-200),
+   --r mengikuti kemiringan tali di titik itu. */
+.lp-line {
+  --line-h: clamp(110px, 12vw, 170px);
+  --card-w: clamp(180px, 17vw, 232px);
   position: relative;
-  margin: 0;
-  border-radius: 28px;
-  overflow: hidden;
-  aspect-ratio: 5 / 6;
-  max-height: 600px;
-  box-shadow: 0 30px 60px -30px rgba(54, 54, 56, 0.35);
+  height: calc(var(--line-h) * 0.5 + var(--card-w) * 1.18 + 40px);
+  margin-top: clamp(28px, 4vw, 48px);
 }
 
-.lp-hero__media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 42% 50%;
-  display: block;
-}
-
-.lp-hero__caption {
+.lp-line__string {
   position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  max-width: 320px;
-  padding: 12px 16px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 8px 24px -12px rgba(54, 54, 56, 0.35);
+  inset: 0 0 auto;
+  width: 100%;
+  height: var(--line-h);
+  overflow: visible;
 }
 
-.lp-hero__caption strong {
-  display: block;
-  font-size: 14px;
-  font-weight: 700;
+.lp-line__string path {
+  fill: none;
+  stroke: #b3ac9c;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.lp-line__cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lp-card {
+  --x: 50;
+  --y: 100;
+  --r: 0deg;
+  position: absolute;
+  top: calc(var(--y) / 200 * var(--line-h) - 14px);
+  left: calc(var(--x) * 1%);
+  width: var(--card-w);
+  transform: translateX(-50%) rotate(var(--r));
+  transform-origin: 50% 14px;
+}
+
+.lp-card:nth-child(1) { --x: 6; --y: 35; --r: 11deg; }
+.lp-card:nth-child(2) { --x: 28; --y: 84; --r: 5deg; }
+.lp-card:nth-child(3) { --x: 50; --y: 100; --r: 0deg; z-index: 1; }
+.lp-card:nth-child(4) { --x: 72; --y: 84; --r: -5deg; }
+.lp-card:nth-child(5) { --x: 94; --y: 35; --r: -11deg; }
+
+.lp-card a {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: 10px 10px 16px;
+  border: 1px solid rgba(54, 54, 56, 0.08);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(54, 54, 56, 0.04), 0 24px 40px -24px rgba(54, 54, 56, 0.35);
   color: var(--lp-ink);
+  text-align: left;
+  text-decoration: none;
+  transition: transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 300ms ease;
 }
 
-.lp-hero__caption small {
+.lp-card a:hover,
+.lp-card a:focus-visible {
+  transform: translateY(-6px);
+  box-shadow: 0 2px 4px rgba(54, 54, 56, 0.05), 0 32px 48px -24px rgba(54, 54, 56, 0.42);
+}
+
+/* Jepitan emas yang menahan kartu di tali. */
+.lp-card__pin {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  z-index: 1;
+  width: 18px;
+  height: 28px;
+  margin-left: -9px;
+  border-radius: 5px;
+  background: var(--gold);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.12), 0 2px 4px rgba(54, 54, 56, 0.2);
+}
+
+.lp-card__pin::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.lp-card img {
   display: block;
+  width: 100%;
+  aspect-ratio: 5 / 4;
+  margin-bottom: 10px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+.lp-card__title {
+  padding-inline: 6px;
+  font-size: 16px;
+  font-weight: 600 !important;
+  line-height: 1.3;
+}
+
+.lp-card__title * {
+  font-weight: inherit !important;
+}
+
+.lp-card__text {
+  padding-inline: 6px;
   font-size: 13px;
+  line-height: 1.4;
   color: var(--lp-soft);
 }
 
-.lp-hero__pin {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  background: var(--md-sys-color-primary-container);
-  color: var(--md-sys-color-on-primary-container);
+.lp-hero .lp-assure {
+  margin-top: 0;
+  text-align: left;
 }
 
-.lp-hero__pin .m3-icon {
-  width: 18px;
-  height: 18px;
+@media (prefers-reduced-motion: no-preference) {
+  /* Kartu berayun sebentar saat halaman dibuka, lalu diam di sudutnya. */
+  .lp-card {
+    animation: lpSwing 1400ms cubic-bezier(0.3, 0.6, 0.3, 1) both;
+    animation-delay: calc(420ms + var(--x) * 4ms);
+  }
+}
+
+@keyframes lpSwing {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-24px) rotate(calc(var(--r) + 8deg));
+  }
+
+  35% {
+    opacity: 1;
+    transform: translateX(-50%) rotate(calc(var(--r) - 4deg));
+  }
+
+  65% {
+    transform: translateX(-50%) rotate(calc(var(--r) + 1.5deg));
+  }
+
+  100% {
+    transform: translateX(-50%) rotate(var(--r));
+  }
+}
+
+/* Ponsel dan tablet kecil: tiga kartu tengah saja, lebih kecil. */
+@media (max-width: 768px) {
+  .lp-line {
+    --line-h: 90px;
+    --card-w: 150px;
+  }
+
+  .lp-card:nth-child(1),
+  .lp-card:nth-child(5) {
+    display: none;
+  }
+
+  .lp-card:nth-child(2) { --x: 14; --y: 57; --r: 9deg; }
+  .lp-card:nth-child(4) { --x: 86; --y: 57; --r: -9deg; }
+
+  .lp-card a {
+    padding: 7px 7px 12px;
+    border-radius: 18px;
+  }
+
+  .lp-card img {
+    border-radius: 12px;
+  }
+
+  .lp-card__title {
+    font-size: 14px;
+  }
+
+  .lp-card__text {
+    font-size: 12px;
+  }
 }
 
 .lp-assure {
@@ -328,7 +466,7 @@ main .eyebrow + h2 + p.lp-lede {
 
 .lp-assure strong {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .lp-assure span {
@@ -394,7 +532,7 @@ main .eyebrow + h2 + p.lp-lede {
 
 .lp-path__title {
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.015em;
   line-height: 1.25;
 }
@@ -414,7 +552,7 @@ main .eyebrow + h2 + p.lp-lede {
   margin-top: auto;
   padding-top: 12px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--gold-dark);
 }
 
@@ -452,7 +590,7 @@ main .eyebrow + h2 + p.lp-lede {
 main .lp-panel h3 {
   margin: 0 0 16px;
   font-size: 18px;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
 }
 
 .lp-faculties {
@@ -516,7 +654,7 @@ main .lp-panel h3 {
 
 .lp-stages dt {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .lp-stages dd {
@@ -565,7 +703,7 @@ main .lp-panel h3 {
 
 .lp-courses strong {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .lp-courses span {
@@ -607,14 +745,14 @@ main .lp-panel h3 {
   background: var(--md-sys-color-primary-container);
   color: var(--md-sys-color-on-primary-container);
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   box-shadow: 0 0 0 6px var(--md-sys-color-surface);
 }
 
 main .lp-steps h3 {
   margin: 8px 0 8px;
   font-size: 18px;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
 }
 
 .lp-steps p {
@@ -638,7 +776,7 @@ main .lp-steps h3 {
 main .lp-docs h3 {
   margin: 0 0 8px;
   font-size: 20px;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
 }
 
 .lp-docs p {
@@ -770,7 +908,7 @@ main .lp-docs h3 {
 
 .lp-portal__list strong {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .lp-portal__list span {
@@ -823,7 +961,7 @@ main .lp-docs h3 {
 .lp-mission li::before {
   content: "0" counter(misi);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--gold-dark);
   padding-top: 2px;
 }
@@ -880,7 +1018,7 @@ main .lp-docs h3 {
 
 .lp-faq .faq-question.is-active {
   color: var(--lp-ink);
-  font-weight: 700;
+  font-weight: 600;
   background: var(--md-sys-color-surface);
   box-shadow: inset 3px 0 0 var(--md-sys-color-primary);
 }
@@ -925,7 +1063,7 @@ main .lp-docs h3 {
 main .lp-after-title {
   margin: 36px 0 16px;
   font-size: 16px;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
 }
 
 .lp-after {
@@ -964,7 +1102,7 @@ main .lp-after-title {
   border: 1px solid var(--gold-border);
   color: var(--gold-dark);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .lp-register .lp-note {
@@ -994,7 +1132,6 @@ main .lp-after-title {
 }
 
 @media (max-width: 900px) {
-  .lp-hero__grid,
   .lp-split,
   .lp-media-split,
   .lp-portal,
@@ -1002,14 +1139,6 @@ main .lp-after-title {
   .lp-register__grid,
   .lp-paths {
     grid-template-columns: 1fr;
-  }
-
-  .lp-hero__grid {
-    min-height: 0;
-  }
-
-  .lp-hero__media {
-    aspect-ratio: 4 / 3;
   }
 
   .lp-split--reverse .lp-split__copy {
@@ -1228,89 +1357,3 @@ main .lp-after-title {
   }
 }
 
-/* ---------- Hero: judul di samping foto yang memudar dari putih (29 September 2026) ----------
-   Foto bukan lagi kartu terpisah. Ia menjadi latar di sisi kanan hero, melebar sampai
-   tepi layar, dan memudar ke putih ke arah judul (kiri) serta ke arah bawah. Mask
-   dipasang di <img>, bukan di <figure>, supaya kartu lokasi tidak ikut pudar. */
-
-.lp-hero__grid {
-  position: relative;
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.lp-hero__copy {
-  position: relative;
-  z-index: 1;
-  max-width: 640px;
-}
-
-.lp-hero__media {
-  position: absolute;
-  z-index: 0;
-  top: calc(-1 * clamp(40px, 6vw, 72px));
-  bottom: 0;
-  right: calc((100% - 100vw) / 2);
-  width: 62%;
-  max-height: none;
-  aspect-ratio: auto;
-  border-radius: 0;
-  overflow: visible;
-  box-shadow: none;
-}
-
-.lp-hero__media img {
-  object-position: 40% 50%;
-  -webkit-mask-image:
-    linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.12) 14%, rgba(0, 0, 0, 0.4) 30%, rgba(0, 0, 0, 0.78) 48%, #000 66%),
-    linear-gradient(to bottom, #000 62%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.12) 14%, rgba(0, 0, 0, 0.4) 30%, rgba(0, 0, 0, 0.78) 48%, #000 66%),
-    linear-gradient(to bottom, #000 62%, transparent 100%);
-  mask-composite: intersect;
-}
-
-.lp-hero__caption {
-  left: auto;
-  right: max(24px, calc((100vw - var(--shell, 1200px)) / 2));
-  bottom: 32px;
-}
-
-@media (max-width: 900px) {
-  .lp-hero__grid {
-    min-height: 0;
-  }
-
-  .lp-hero__copy {
-    max-width: none;
-    padding-bottom: 8px;
-  }
-
-  .lp-hero__media {
-    width: 78%;
-    aspect-ratio: auto;
-  }
-
-  .lp-hero__media img {
-    -webkit-mask-image:
-      linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.35) 35%, rgba(0, 0, 0, 0.8) 70%, #000 100%),
-      linear-gradient(to bottom, #000 45%, transparent 100%);
-    mask-image:
-      linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.35) 35%, rgba(0, 0, 0, 0.8) 70%, #000 100%),
-      linear-gradient(to bottom, #000 45%, transparent 100%);
-  }
-
-  /* Teks di atas bagian foto yang tersisa tetap terbaca. */
-  .lp-hero__copy > * {
-    text-shadow: 0 0 18px rgba(255, 255, 255, 0.9), 0 0 2px rgba(255, 255, 255, 0.9);
-  }
-
-  .lp-hero__copy .button {
-    text-shadow: none;
-  }
-
-  /* Kartu lokasi menutupi tombol di layar sempit; lokasi kantor sudah ada di Kontak. */
-  .lp-hero__caption {
-    display: none;
-  }
-}

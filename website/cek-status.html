@@ -8,9 +8,9 @@
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="website-core.css?v=b5388db8c9" />
-    <link rel="stylesheet" href="website-public.css?v=84955c5d7a" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
+    <link rel="stylesheet" href="website-public.css?v=fd0701aec8" />
   </head>
   <body>
     <a class="skip-link" href="#status-content">Lewati ke konten utama</a>
@@ -33,11 +33,12 @@
 
         <nav class="site-nav" id="site-nav" aria-label="Navigasi utama">
           <a href="index.html#program">Program</a>
+          <a href="index.html#tentang">Tentang</a>
           <a href="biaya.html">Biaya &amp; fasilitas</a>
           <a href="articles.html">Pena Hamasah</a>
           <a href="cek-status.html" class="is-active">Cek status</a>
           <a href="kontak.html">Kontak</a>
-          <a href="portal.html" class="nav-portal">Portal santri</a>
+          <a href="portal.html" class="nav-portal">Masuk portal</a>
           <a class="nav-cta" href="index.html#pendaftaran">Daftar konsultasi</a>
         </nav>
       </div>
@@ -54,7 +55,7 @@
 
           <!-- Lookup Card -->
           <div class="lookup-card-wrap">
-            <form id="lookup-form" class="lookup-card">
+            <form method="post" id="lookup-form" class="lookup-card">
               <div class="lookup-grid">
                 <div class="field-group">
                   <label for="reg-id">Nomor Registrasi <span aria-hidden="true">*</span></label>
@@ -75,7 +76,7 @@
               <p id="lookup-status-msg" class="form-status" role="status" aria-live="polite"></p>
               <a id="lookup-recovery-cta" class="lookup-recovery-cta" href="#recovery-form" hidden>Minta Kode Akses baru</a>
             </form>
-            <form id="recovery-form" class="recovery-card">
+            <form method="post" id="recovery-form" class="recovery-card">
               <div>
                 <span class="card-label">Kode akses hilang?</span>
                 <h3>Minta kode akses baru</h3>
@@ -170,7 +171,7 @@
               <div class="detail-card applicant-edit-card" id="applicant-edit-card" hidden>
                 <div class="card-heading-row"><span class="card-label">Perbarui Data</span><h3>Edit data pendaftaran</h3></div>
                 <p class="form-subnote">Perbarui data yang masih diperbolehkan selama pendaftaran belum dikunci.</p>
-                <form id="applicant-edit-form" class="applicant-edit-form">
+                <form method="post" id="applicant-edit-form" class="applicant-edit-form">
                   <div class="edit-grid">
                     <label>Nama lengkap<input name="applicantName" required></label><label>Nomor WhatsApp<input name="phone" required></label>
                     <label>Nama wali<input name="guardianName"></label><label>WhatsApp wali<input name="guardianPhone"></label>
@@ -196,7 +197,7 @@
                   <p class="empty-docs-note">Belum ada dokumen yang diunggah.</p>
                 </div>
 
-                <form id="doc-upload-form" class="doc-upload-box">
+                <form method="post" id="doc-upload-form" class="doc-upload-box">
                   <h4>Unggah berkas susulan</h4>
                   <p class="form-subnote">Pilih jenis dokumen lalu unggah berkas PDF atau gambar. Berkas diperiksa sebelum ditautkan ke pendaftaran.</p>
                   
@@ -204,12 +205,12 @@
                     <label for="doc-type-select">Jenis Berkas</label>
                     <div class="select-wrapper">
                       <select id="doc-type-select" required>
-                        <option value="passport">Paspor Asli (Masa Berlaku ≥ 18 Bulan)</option>
-                        <option value="diploma">Ijazah Terjemah / Legalisir Resmi</option>
-                        <option value="transcript">Transkrip Nilai Legalisir</option>
-                        <option value="health-certificate">Surat Keterangan Sehat & Bebas Penyakit</option>
-                        <option value="photo">Pasfoto Resmi Latar Putih 4x6</option>
-                        <option value="other">Dokumen Pendukung Lainnya</option>
+                        <option value="passport">Paspor (halaman identitas)</option>
+                        <option value="diploma">Ijazah (asli, terjemah, atau legalisir)</option>
+                        <option value="transcript">Transkrip nilai</option>
+                        <option value="health-certificate">Surat keterangan sehat</option>
+                        <option value="photo">Pasfoto 4x6 latar putih</option>
+                        <option value="other">Dokumen lain: akta, KK, rekomendasi Kemenag, surat pernyataan wali</option>
                       </select>
                     </div>
                   </div>
@@ -241,10 +242,10 @@
                 <div class="help-box-callout">
                   <div class="callout-icon" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg></div>
                   <div>
-                    <strong>Perlu Bantuan atau Konfirmasi Cepat?</strong>
-                    <p>Tim administrasi pemberkasan akan membantu melalui kanal resmi yang tersedia setelah pesan Anda ditinjau.</p>
-                    <a class="button button--primary" href="kontak.html#contact-inquiry-form">
-                      Gunakan formulir konsultasi ↓
+                    <strong>Ada yang ingin ditanyakan soal berkas?</strong>
+                    <p>Hubungi admin lewat WhatsApp dan sebutkan nomor registrasi Anda.</p>
+                    <a class="button button--primary" href="https://wa.me/6287897591978" target="_blank" rel="noopener">
+                      Chat WhatsApp admin
                     </a>
                   </div>
                 </div>
@@ -287,6 +288,7 @@
             <ul class="footer-links">
               <li><a href="cek-status.html">Cek status pendaftaran</a></li>
               <li><a href="articles.html">Pena Hamasah</a></li>
+              <li><a href="index.html#bantuan">Tanya jawab</a></li>
               <li><a href="kontak.html">Kontak &amp; lokasi</a></li>
             </ul>
           </div>
@@ -311,6 +313,6 @@
 
     <script src="public-header.js?v=af5a025609"></script>
     <script src="file-open.js?v=23834ad36d"></script>
-    <script src="cek-status.js?v=f7897991ff"></script>
+    <script src="cek-status.js?v=d1ec0d89e7"></script>
   </body>
 </html>

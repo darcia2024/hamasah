@@ -83,11 +83,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (submitLabel) submitLabel.textContent = busy ? 'Mengirim...' : labelAwal;
   }
 
+  // Tautan dari halaman lain boleh membawa ?topic=biaya dan sejenisnya.
+  const requestedTopic = new URLSearchParams(window.location.search).get('topic');
+  if (fields.topic && requestedTopic && [...fields.topic.options].some((option) => option.value === requestedTopic)) {
+    fields.topic.value = requestedTopic;
+  }
+
+  // Pintasan topik di kiri formulir langsung memilih topik yang sesuai.
+  document.querySelectorAll('[data-topic]').forEach((shortcut) => {
+    shortcut.addEventListener('click', () => {
+      if (fields.topic) fields.topic.value = shortcut.dataset.topic;
+      if (fields.message) window.setTimeout(() => fields.message.focus({ preventScroll: true }), 0);
+    });
+  });
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     clearFieldErrors();
     setBusy(true);
-    setStatus('Mengirim pesan konsultasi...', null);
+    setStatus('Mengirim pertanyaan...', null);
 
     let response;
     let result;
@@ -124,6 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     form.reset();
-    setStatus('Pesan konsultasi sudah kami terima. Tim Hamasah akan menghubungi Anda melalui nomor WhatsApp yang Anda tuliskan.', 'success');
+    setStatus('Pertanyaan Anda sudah kami terima. Admin Hamasah akan menjawab lewat nomor WhatsApp yang Anda tuliskan.', 'success');
   });
 });

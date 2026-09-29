@@ -196,7 +196,7 @@ button, input, select, textarea {
 .eyebrow {
   display: inline-block;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--gold-dark);
@@ -224,7 +224,7 @@ h1, h2, h3, h4 {
   padding: 0 24px;
   border-radius: var(--md-shape-corner-full);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.1px;
   line-height: 1;
   text-decoration: none;
@@ -367,7 +367,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-weight: 800 !important;
+  font-weight: 600 !important;
 }
 
 .button,
@@ -504,7 +504,7 @@ h3 {
   letter-spacing: -0.01em !important;
 }
 
-/* Judul tebal (700), teks lain tetap regular. Google Fonts memuat bobot 400 dan 700.
+/* Judul SemiBold (600), teks lain tetap regular. Google Fonts memuat bobot 400 dan 600.
    Selektor elemen berspesifisitas lebih tinggi dari "*", jadi menang atas aturan 400. */
 /* Judul kartu dan daftar di situs ini banyak memakai <strong>, <dt>, atau kelas
    ...title, bukan tag h1-h3, jadi ikut ditebalkan. */
@@ -528,15 +528,7 @@ dt,
 .res-title,
 .coursue-stat-count,
 :is(h1, h2, h3, h4, strong, b, dt) * {
-  font-weight: 700 !important;
-}
-
-/* Judul utama satu tingkat lebih tebal (800); judul kartu dan <strong> tetap 700. */
-h1,
-h2,
-h3,
-:is(h1, h2, h3) * {
-  font-weight: 800 !important;
+  font-weight: 600 !important;
 }
 
 h1,
