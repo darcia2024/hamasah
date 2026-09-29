@@ -7,12 +7,12 @@ ENERGY 3 / RHYTHM 3 / MOTION 2.
 - Kuning tua (emas #e7b10c) dan hitam arang (#363638) dari logo menjadi warna utama; putih untuk background. Hijau khusus status berhasil, merah khusus peringatan.
 - Panorama Kairo menempatkan tujuan pendidikan dalam konteks lokasi; foto ini bukan dokumentasi santri atau foto kampus Al-Azhar.
 - Navbar putih bersih (tanpa top bar pengumuman), wordmark emblem kiri, kapsul nav di tengah, CTA pil emas kanan.
-- Hero home: eyebrow kecil ber-ikon, judul display tebal (700) dengan sebagian kata di-abu-abukan untuk hierarki, kotak-ikon emas inline sebagai aksen, sub-teks sempit terpusat, lalu CTA emas + outline. Referensi gaya: template "aelixa".
-- Kicker/eyebrow di atas judul: teks kecil uppercase tracked warna emas tua + titik kecil, tanpa pill/band. Judul section tebal (700).
+- Hero home: eyebrow kecil ber-ikon, judul display ExtraBold (800) dengan sebagian kata di-abu-abukan untuk hierarki, kotak-ikon emas inline sebagai aksen, sub-teks sempit terpusat, lalu CTA emas + outline. Referensi gaya: template "aelixa".
+- Kicker/eyebrow di atas judul: teks kecil uppercase tracked warna emas tua + titik kecil, tanpa pill/band. Judul section ExtraBold (800).
 - Tone copy: ringkas, aktif, mudah dipahami, tidak kaku. Tanpa em dash.
 - Foto profil di semua simulasi (santri, musyrif, wali, penulis berita, avatar) memakai `assets/avatar-hamasah.png` (emblem Hamasah putih di latar emas), bukan foto stok. Foto konten (arsitektur Kairo, galeri, cover artikel) tetap foto asli.
 - Asisten AI Hamasah: section `#asisten-ai` di landing (chat simulasi + chip pertanyaan, basis pengetahuan di `HAMASAH_AI_KB` app.js) untuk FAQ calon santri/wali. AI Study Partner di LMS (`#udemy-tab-ai-partner`) untuk bantu santri paham materi kelas (jawaban di `udemyAiAnswer`). Keduanya simulasi keyword-match, siap diganti backend live.
-- Plus Jakarta Sans: **judul tebal (700)**, teks lain regular (400). Yang dihitung judul: h1-h4, `<strong>`, `<b>`, `<dt>`, dan kelas judul kartu (`.lp-path__title`, `.article-card-title`, dst.). Google Fonts memuat bobot 400 dan 700 saja. Aturannya di akhir `website-core.css` dan `auth-pages.css`. h1-h2 memakai letter-spacing -0.012em + word-spacing 0.06em supaya kata tidak berdempet.
+- Plus Jakarta Sans: **judul h1-h3 ExtraBold (800)**, judul kartu (h4, `<strong>`, `<b>`, `<dt>`, `.lp-path__title`, `.article-card-title`, dst.) Bold (700), teks lain regular (400). Google Fonts memuat bobot 400, 700, dan 800 saja. Aturannya di akhir `website-core.css` dan `auth-pages.css`. h1-h2 memakai letter-spacing -0.012em + word-spacing 0.06em supaya kata tidak berdempet.
 - **Hero beranda:** judul di kiri, foto serambi Kairo menjadi latar di kanan yang melebar sampai tepi layar dan memudar dari putih (ke arah judul) serta ke bawah. Mask dipasang di `<img>` agar kartu lokasi tidak ikut pudar. Di ponsel foto mengisi ~78% kanan dengan teks diberi pendar putih; kartu lokasi disembunyikan karena menutupi tombol.
 - Tablet 769-1024px: kepala situs cukup emblem, tautan menu satu baris 13px.
 - Program utama mendapat satu bidang foto besar; dua jalur pendamping berbagi baris pada desktop untuk membedakan hierarki.

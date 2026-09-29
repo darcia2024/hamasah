@@ -41,7 +41,7 @@ main h2.lp-h2 {
   font-size: clamp(30px, 3.4vw, 44px);
   line-height: 1.12;
   letter-spacing: -0.028em;
-  font-weight: 700 !important;
+  font-weight: 800 !important;
   margin: 0 0 18px;
   max-width: 20ch;
   text-wrap: balance;
@@ -210,7 +210,7 @@ main .eyebrow + h2 + p.lp-lede {
   font-size: clamp(36px, 4.7vw, 58px);
   line-height: 1.06;
   letter-spacing: -0.035em;
-  font-weight: 700 !important;
+  font-weight: 800 !important;
   max-width: 13em;
   text-wrap: balance;
 }
@@ -452,7 +452,7 @@ main .eyebrow + h2 + p.lp-lede {
 main .lp-panel h3 {
   margin: 0 0 16px;
   font-size: 18px;
-  font-weight: 700 !important;
+  font-weight: 800 !important;
 }
 
 .lp-faculties {
@@ -614,7 +614,7 @@ main .lp-panel h3 {
 main .lp-steps h3 {
   margin: 8px 0 8px;
   font-size: 18px;
-  font-weight: 700 !important;
+  font-weight: 800 !important;
 }
 
 .lp-steps p {
@@ -638,7 +638,7 @@ main .lp-steps h3 {
 main .lp-docs h3 {
   margin: 0 0 8px;
   font-size: 20px;
-  font-weight: 700 !important;
+  font-weight: 800 !important;
 }
 
 .lp-docs p {
@@ -925,7 +925,7 @@ main .lp-docs h3 {
 main .lp-after-title {
   margin: 36px 0 16px;
   font-size: 16px;
-  font-weight: 700 !important;
+  font-weight: 800 !important;
 }
 
 .lp-after {

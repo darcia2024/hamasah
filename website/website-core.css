@@ -367,7 +367,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-weight: 700 !important;
+  font-weight: 800 !important;
 }
 
 .button,
@@ -529,6 +529,14 @@ dt,
 .coursue-stat-count,
 :is(h1, h2, h3, h4, strong, b, dt) * {
   font-weight: 700 !important;
+}
+
+/* Judul utama satu tingkat lebih tebal (800); judul kartu dan <strong> tetap 700. */
+h1,
+h2,
+h3,
+:is(h1, h2, h3) * {
+  font-weight: 800 !important;
 }
 
 h1,
