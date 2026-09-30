@@ -5040,3 +5040,15 @@ main .eyebrow + h1 {
     font-size: 14px;
   }
 }
+
+/* Penanda butir kebijakan yang belum diputuskan pengurus. */
+.policy-todo {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #fdecc8;
+  color: #6b4a00;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
