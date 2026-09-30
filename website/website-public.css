@@ -5052,3 +5052,14 @@ main .eyebrow + h1 {
   font-size: 12.5px;
   white-space: nowrap;
 }
+
+/* Nama lembaga di kepala situs tidak boleh terlipat dua baris saat menu penuh. */
+@media (min-width: 1280px) {
+  .nav-wrap > .brand {
+    flex: none;
+  }
+
+  .brand-name {
+    white-space: nowrap;
+  }
+}

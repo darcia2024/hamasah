@@ -258,3 +258,17 @@ Tambahan 30 September 2026 (keputusan nomor 14 dan 21):
 |---|---|---|
 | 14 (A1, D3) | Lama simpan: data santri 5 tahun setelah selesai, catatan kesehatan 1 tahun, log sistem 1 tahun | **Diterapkan** di draf `kebijakan-privasi.html`; halaman masih draf dan `noindex` sampai seluruh teks disahkan |
 | 21 (C7) | Ikut saran (tanpa AI berbayar), tetapi dibuat lebih pintar | **Diterapkan**: `server/study-retriever.js` mencari jawaban di tanya-jawab panduan, poin penting, ringkasan, dan isi materi teks (skor BM25, imbuhan dipotong, ejaan transliterasi disamakan, jenis pertanyaan dikenali), lalu materi lain di maddah yang sama. Pertanyaan di luar materi dijawab terus terang. Tidak ada data yang keluar dari server |
+
+Testimoni pertama (C3, 30 September 2026): wali dari Ghazalba Fauzan Luqman Natawijaya, santri
+Ma'had Al-Azhar, beserta foto keluarga. Dipasang di beranda (`#testimoni`,
+`assets/testimoni-wali-ghazalba.webp`). Teks dirapikan ejaannya saja ("yg" menjadi "yang",
+"Mahad" menjadi "Ma'had"). **Syarat tayang: izin tertulis wali untuk nama dan foto**, sesuai C3.
+
+Testimoni kedua dan ketiga (30 September 2026): ayah dan ibu dari Aruna Hassya Javas Reswara
+(`assets/testimoni-wali-aruna.webp`), dan wali dari Khafidzah Khoirunnisa, santri Ma'had
+(foto belum diterima sebagai berkas; kartu memakai emblem sementara). Bagian `#testimoni`
+kini tiga kartu: foto, kutipan pendek dari kata-kata wali, teks lengkap di balik "Baca
+testimoni lengkap". Syarat tayang sama: izin tertulis wali untuk nama dan foto; foto yang
+memuat anak di bawah umur perlu izin wali secara khusus.
+
+Izin tertulis ketiga wali untuk nama dan foto sudah ada (dikonfirmasi 30 September 2026). Aruna Hassya Javas Reswara adalah santri Ma'had.
