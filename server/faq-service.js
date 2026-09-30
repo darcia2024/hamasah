@@ -19,7 +19,7 @@ const KNOWLEDGE_BASE = Object.freeze([
   {
     id: 'status',
     label: 'Tentang cek status',
-    keywords: ['status', 'kode akses', 'nomor registrasi', 'lacak', 'unggah'],
+    keywords: ['status', 'kode akses', 'nomor registrasi', 'lacak', 'unggah', 'hilang', 'lupa'],
     answer: 'Buka halaman Cek status, lalu masukkan nomor registrasi dan Kode Akses yang muncul setelah Anda mendaftar. Bila kodenya hilang, hubungi admin lewat WhatsApp dan sebutkan nomor registrasi Anda.'
   },
   {
@@ -31,20 +31,44 @@ const KNOWLEDGE_BASE = Object.freeze([
   {
     id: 'program-kuliah',
     label: 'Tentang jalur kuliah',
-    keywords: ['kuliah', 'universitas', 'fakultas', 's1', 'jurusan', 'muadalah', 'mahasiswa'],
+    keywords: ['kuliah', 'universitas', 's1', 'muadalah', 'mahasiswa'],
     answer: "Jalur Kuliah S1 untuk lulusan SMA, MA, atau pesantren, putra maupun putri. Alurnya: formulir, verifikasi berkas, Tahdid Mustawa, Dauroh Ta'hili dan ujian muadalah, lalu keberangkatan dan daftar ulang di fakultas."
   },
   {
     id: 'program-mahad',
     label: "Tentang Ma'had",
     keywords: ['mahad', "ma'had", 'smp', 'sma', "i'dadi", 'idadi', 'tsanawi', 'sekolah'],
-    answer: "Ma'had Al-Azhar adalah sekolah resmi Al-Azhar di Kairo setingkat SMP (I'dadi) dan SMA (Tsanawi), terbuka untuk lulusan SD, SMP, maupun SMA. Penempatan kelas ditentukan lewat tes bahasa dan tes qobul di Kairo, bukan dari ijazah Indonesia, dan pelajar berprestasi berpeluang akselerasi."
+    answer: "Ma'had Al-Azhar adalah sekolah resmi Al-Azhar di Kairo setingkat SMP (I'dadi) dan SMA (Tsanawi), untuk usia 13 sampai 30 tahun, lulusan SD, SMP, maupun SMA. Penempatan kelas ditentukan lewat tes bahasa dan tes qobul di Kairo, bukan dari ijazah Indonesia, dan pelajar berprestasi berpeluang akselerasi."
   },
   {
     id: 'courses',
     label: 'Tentang kelas daring',
     keywords: ['courses', 'daring', 'online', 'nahwu', 'sharaf', 'balaghah', 'kelas'],
     answer: "Hamasah Courses (e-learning Hamasah) memuat seluruh mata pelajaran Dirasah Khassah, Ma'had (I'dadi dan Tsanawi), dan kuliah tingkat 1, termasuk kelas dasar nahwu, sharaf, adab, dan balaghah. Materinya bisa diulang kapan saja. Jadwal dan cara bergabung dijelaskan setelah Anda mendaftar."
+  },
+  {
+    id: 'fakultas',
+    label: 'Fakultas dan jurusan',
+    keywords: ['fakultas', 'jurusan', 'prodi', 'ushuluddin', 'syariah', 'dirasat', 'dakwah', 'banin', 'banat'],
+    answer: 'Putra (banin): Ushuluddin, Syariah wal Qanun, Bahasa Arab, Dirasat Islamiyah wal Arabiyah, Dakwah Islamiyah, dan jurusan lain sesuai pembukaan tahun berjalan. Putri (banat): Dirasat Islamiyah wal Arabiyah, dengan jurusan Ushuluddin, Syariah Islamiyah, dan Bahasa Arab. Pilihan fakultas mengikuti ketentuan resmi Al-Azhar.'
+  },
+  {
+    id: 'pilih-program',
+    label: 'Memilih program',
+    keywords: ['kuliah', 'mahad', "ma'had", 'courses', 'pilih', 'cocok', 'program', 'jalur'],
+    answer: "Kuliah S1 untuk lulusan SMA, MA, atau pesantren yang ingin masuk Universitas Al-Azhar. Ma'had untuk usia 13 sampai 30 tahun, lulusan SD, SMP, atau SMA, belajar di sekolah Al-Azhar setingkat SMP dan SMA sebelum melanjutkan ke universitas. Hamasah Courses adalah kelas daring yang bisa diikuti dari rumah. Bila masih ragu, kami bantu menimbangnya saat konsultasi gratis."
+  },
+  {
+    id: 'kontak',
+    label: 'Alamat dan kontak',
+    keywords: ['alamat', 'kantor', 'lokasi', 'whatsapp', 'nomor', 'kontak', 'hubungi', 'admin', 'telepon', 'telpon'],
+    answer: 'WhatsApp admin: +62 878-9759-1978, satu admin untuk Indonesia dan Mesir. Kantor Indonesia: Jl. Karakal RT 003/RW 003, Desa Banjar Sari, Kec. Ciawi, Kab. Bogor, Jawa Barat. Kantor Mesir: Sheikh Taha Dinary, Imarah 32, Lantai 1, Syaqqah 3, Hay Sabi, Nasr City, Kairo.'
+  },
+  {
+    id: 'fasilitas',
+    label: 'Fasilitas asrama',
+    keywords: ['fasilitas', 'asrama', 'kamar', 'ac', 'wifi', 'cuci', 'katering', 'makan'],
+    answer: 'Asrama Hamasah di Nasr City berfasilitas AC, dengan kamar terawat, kasur, dan lemari pribadi. Tersedia katering masakan nusantara dua kali sehari, Wi-Fi, air minum galon, dan mesin cuci, dengan musyrif dan musyrifah yang mendampingi santri.'
   },
   {
     id: 'kairo',

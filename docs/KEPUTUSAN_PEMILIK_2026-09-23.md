@@ -290,3 +290,20 @@ seed:articles`, atau diketik admin lewat CMS. Nama penulis belum diberikan. Isi 
 diterapkan ke situs: syarat daftar kuliah cukup pindaian ijazah dan paspor/KTP (dokumen asli
 setelah lulus seleksi), pengumuman muadalah sekitar dua minggu, Ma'had terbuka untuk lulusan
 SD/SMP/SMA dengan penempatan sampai langsung Tsanawi dan contoh akselerasi.
+
+**Asisten mengambang di landing page (30 September 2026).** Tombol "Tanya Hamasah" di kanan
+bawah beranda (`website/assistant.js`, `POST /api/assistant/ask`, `server/site-assistant.js`).
+Mengikuti keputusan C7: tanpa AI berbayar, pertanyaan tidak keluar dari server. Basis
+pengetahuan dibaca langsung dari halaman publik (beranda, Kuliah, Ma'had, Courses, Biaya,
+Kontak), artikel di `data/articles.json`, dan jawaban FAQ, jadi perubahan teks situs ikut
+terbaca tanpa diketik ulang. Testimoni tidak dipakai sebagai sumber jawaban. Pertanyaan yang
+tidak ada di situs diarahkan ke WhatsApp admin. Batas 40 pertanyaan per 10 menit per IP.
+
+**Asisten landing page memakai AI (30 September 2026).** Model ChatGPT termurah di OpenRouter,
+`openai/gpt-5-nano` (masuk $0.05, keluar $0.40 per sejuta token; varian batch tidak dipakai
+karena tidak untuk chat langsung). Aktif bila `OPENROUTER_API_KEY` diisi; model hanya menjawab
+dari fakta FAQ dan potongan situs yang relevan, dibatasi `ASSISTANT_DAILY_LIMIT` (bawaan 1000
+jawaban per hari per instans) dan 40 pertanyaan per 10 menit per IP. Gagal, lambat, atau kuota
+habis: kembali ke jawaban lokal. **Perlu persetujuan pengurus: kebijakan privasi (berlaku
+2026-09-30) belum menyebut bahwa pertanyaan di asisten diproses OpenRouter/OpenAI di luar
+negeri; tambahan kalimat itu mengubah versi dokumen.**

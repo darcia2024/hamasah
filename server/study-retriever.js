@@ -24,16 +24,18 @@ const STOPWORDS = new Set([
   'tidak', 'bukan', 'tentang', 'sebagai', 'oleh', 'karena', 'jika', 'kalau', 'agar', 'supaya',
   'para', 'se', 'ustadz', 'ustadzah', 'kak', 'pak', 'bu', 'mohon', 'minta', 'contoh', 'contohnya',
   'cara', 'caranya', 'beda', 'bedanya', 'perbedaan', 'hubungan', 'fungsi', 'fungsinya', 'pengertian',
-  'boleh', 'mau', 'tanya', 'nanya', 'bertanya', 'paham', 'bingung', 'masih', 'soal', 'jawab', 'jawabannya'
+  'boleh', 'mau', 'tanya', 'nanya', 'bertanya', 'paham', 'bingung', 'masih', 'soal', 'jawab', 'jawabannya',
+  'ga', 'gak', 'nggak', 'enggak', 'kok', 'nih', 'deh', 'al', 'el', 'seperti', 'harus', 'wajib', 'aja', 'saja', 'gitu', 'kayak'
 ]);
 
 // Kata tanya yang tetap dipakai untuk menebak jenis pertanyaan, walau dibuang dari pencocokan.
 const QUESTION_KINDS = [
-  { kind: 'definition', pattern: /\b(apa itu|apa yang dimaksud|pengertian|definisi|arti|artinya|maksud)\b/, cues: /\b(adalah|ialah|yaitu|merupakan|disebut|artinya)\b/ },
+  { kind: 'definition', pattern: /\b(apa itu|apa yang dimaksud|pengertian|definisi|arti|artinya|maksud|seperti apa|itu apa)\b/, cues: /\b(adalah|ialah|yaitu|merupakan|disebut|artinya)\b/ },
   { kind: 'example', pattern: /\b(contoh|contohnya|misal|misalnya)\b/, cues: /\b(contoh|contohnya|misal|misalnya|seperti)\b/ },
   { kind: 'reason', pattern: /\b(kenapa|mengapa|alasan|sebab)\b/, cues: /\b(karena|sebab|sehingga|oleh karena|agar|supaya)\b/ },
   { kind: 'method', pattern: /\b(bagaimana|gimana|cara|caranya|langkah)\b/, cues: /\b(dengan|cara|langkah|pertama|kemudian|lalu)\b/ },
   { kind: 'difference', pattern: /\b(beda|bedanya|perbedaan|membedakan)\b/, cues: /\b(sedangkan|berbeda|bedanya|perbedaan|adapun)\b/ },
+  { kind: 'duration', pattern: /\b(berapa lama|lamanya|durasi|berapa hari|berapa bulan|berapa tahun)\b/, cues: /\b(hari|minggu|bulan|tahun|jam)\b/ },
   { kind: 'function', pattern: /\b(fungsi|fungsinya|kegunaan|guna)\b/, cues: /\b(fungsi|berfungsi|menyempurnakan|menjelaskan|menunjukkan|untuk)\b/ }
 ];
 
@@ -118,7 +120,7 @@ function passagesOf(material) {
       // ("Contohnya: Zaidun qaimun. Kata Zaidun adalah mubtada ...").
       if (index + 1 < sentences.length) {
         const pair = `${sentence} ${sentences[index + 1]}`;
-        items.push({ kind: 'content', material, text: pair, matchText: pair, span: [index, index + 1] });
+        items.push({ kind: 'content', material, text: pair, matchText: pair, span: [index, index + 1], parts: [sentence, sentences[index + 1]] });
       }
     });
   }
@@ -144,16 +146,23 @@ function scorePassages(items, question) {
     item.tokens.forEach((token) => counts.set(token, (counts.get(token) || 0) + 1));
     let score = 0;
     let matched = 0;
+    let idfMatched = 0;
+    let idfTotal = 0;
     queryTokens.forEach((token) => {
       const tf = counts.get(token) || 0;
-      if (!tf) return;
-      matched += 1;
       const df = documentFrequency.get(token) || 0;
       const idf = Math.log(1 + (docCount - df + 0.5) / (df + 0.5));
+      idfTotal += idf;
+      if (!tf) return;
+      matched += 1;
+      idfMatched += idf;
       score += idf * ((tf * (K1 + 1)) / (tf + K1 * (1 - B + (B * item.tokens.length) / avgLength)));
     });
-    if (!matched) return { item, score: 0, coverage: 0 };
+    if (!matched) return { item, score: 0, coverage: 0, weightedCoverage: 0 };
     const coverage = matched / queryTokens.length;
+    // Cakupan berbobot: kata yang jarang di materi (mis. "putri") lebih menentukan daripada
+    // kata yang ada di mana-mana (mis. "mesir").
+    const weightedCoverage = idfTotal ? idfMatched / idfTotal : coverage;
     queryPairs.forEach((pair) => { if (item.pairs.has(pair)) score += 0.4; });
     // Cakupan: potongan yang memuat lebih banyak kata pertanyaan lebih mungkin menjawabnya.
     score *= 0.6 + 0.4 * coverage;
@@ -167,7 +176,7 @@ function scorePassages(items, question) {
       if (guideCoverage < MIN_COVERAGE) return { item, score: 0, coverage: 0 };
       score *= 1.25;
     }
-    return { item, score, coverage };
+    return { item, score, coverage, weightedCoverage };
   }).filter((entry) => entry.score > 0).sort((a, b) => b.score - a.score);
 }
 
@@ -239,4 +248,6 @@ function findAnswer({ question, material, otherMaterials = [] }) {
   };
 }
 
-module.exports = { findAnswer, tokens, normalize, stem, questionKind };
+// passagesOf, scorePassages, dan composeFromPassages juga dipakai asisten landing page
+// (server/site-assistant.js) supaya kedua pencari berperilaku sama.
+module.exports = { findAnswer, passagesOf, scorePassages, composeFromPassages, tokens, normalize, stem, questionKind };

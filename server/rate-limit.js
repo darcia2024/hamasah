@@ -36,6 +36,8 @@ const RULES = Object.freeze({
   // ketik kata sandi), ketat untuk penyemprotan.
   'token-redeem': Object.freeze({ limit: 10, windowMs: 15 * MENIT }),
   'faq-ask': Object.freeze({ limit: 20, windowMs: 10 * MENIT }),
+  // Asisten mengambang di landing page: percakapan beberapa pertanyaan berturut-turut.
+  'assistant-ask': Object.freeze({ limit: 40, windowMs: 10 * MENIT }),
   // Dipakai mulai Phase 13, saat pertanyaan diteruskan ke model AI berbayar.
   'ai-ask': Object.freeze({ limit: 10, windowMs: 10 * MENIT }),
   // Dipakai mulai Task 8.10, saat unggahan berkas tersedia.

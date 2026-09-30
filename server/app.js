@@ -69,6 +69,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/articles.js'),
   ...require('./routes/inquiries.js'),
   ...require('./routes/faq.js'),
+  ...require('./routes/assistant.js'),
   ...require('./routes/departures.js'),
   ...require('./routes/registrations.js')
 ]);
