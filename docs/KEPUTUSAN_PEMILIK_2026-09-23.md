@@ -251,3 +251,10 @@ Tambahan 30 September 2026:
 | 4 (E6) | Talaqqi bersama masyayikh belum pasti | Tetap "kajian harian bersama musyrif" |
 
 Belum dijawab: 7 (E2 termin), 10 (C1 brosur), 15 (A5 artikel), 18 (B2 pemegang domain).
+
+Tambahan 30 September 2026 (keputusan nomor 14 dan 21):
+
+| No | Jawaban | Status di sistem |
+|---|---|---|
+| 14 (A1, D3) | Lama simpan: data santri 5 tahun setelah selesai, catatan kesehatan 1 tahun, log sistem 1 tahun | **Diterapkan** di draf `kebijakan-privasi.html`; halaman masih draf dan `noindex` sampai seluruh teks disahkan |
+| 21 (C7) | Ikut saran (tanpa AI berbayar), tetapi dibuat lebih pintar | **Diterapkan**: `server/study-retriever.js` mencari jawaban di tanya-jawab panduan, poin penting, ringkasan, dan isi materi teks (skor BM25, imbuhan dipotong, ejaan transliterasi disamakan, jenis pertanyaan dikenali), lalu materi lain di maddah yang sama. Pertanyaan di luar materi dijawab terus terang. Tidak ada data yang keluar dari server |

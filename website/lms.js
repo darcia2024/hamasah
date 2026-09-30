@@ -650,7 +650,7 @@ async function completeMaterial(courseId, materialId) {
 
 async function studyHelp(courseId, materialId, question, answer) {
   if (!question || !question.trim()) return;
-  answer.textContent = 'Memuat jawaban asatidzah...';
+  answer.textContent = 'Mencari jawaban di materi...';
   answer.classList.remove('is-error');
   try {
     const response = await fetch(`/api/students/${encodeURIComponent(studentSelect.value)}/courses/${encodeURIComponent(courseId)}/materials/${encodeURIComponent(materialId)}/study-help`, {
@@ -660,7 +660,8 @@ async function studyHelp(courseId, materialId, question, answer) {
     });
     const result = await response.json();
     if (response.ok) {
-      answer.textContent = `${result.help.answer} (${result.help.source})`;
+      // Jawaban diambil dari materi pengajar, jadi sumbernya selalu ditampilkan.
+      answer.textContent = `${result.help.answer} Sumber: ${result.help.source}.`;
     } else {
       answer.textContent = result.error || 'Jawaban belum tersedia.';
       answer.classList.add('is-error');

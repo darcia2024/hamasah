@@ -1,4 +1,5 @@
 const crypto = require('node:crypto');
+const { findAnswer } = require('./study-retriever.js');
 
 const MATERIAL_TYPES = Object.freeze(['video', 'pdf', 'text', 'assignment', 'quiz']);
 // Dipakai submitQuiz dan ditampilkan ke santri supaya aturannya tidak tersembunyi.
@@ -378,19 +379,17 @@ function createLmsService(options) {
     if (!material) {
       return { ok: false, error: 'Materi tidak ditemukan.' };
     }
-    const normalizedQuestion = clean(question).toLocaleLowerCase('id-ID');
-    const guide = material.studyGuide.find(function bestGuide(entry) {
-      return entry.question.toLocaleLowerCase('id-ID').split(/\s+/).some(function matchingWord(word) {
-        return word.length > 3 && normalizedQuestion.includes(word);
-      });
-    });
-    const fallbackAnswer = guide ? guide.answer : 'Pelajari rangkuman dan poin penting di atas. Jika pertanyaan belum terjawab, catat bagian yang membingungkan untuk didiskusikan bersama pembina.';
+    // Jawaban lokal dari materi pengajar (study-retriever.js). Materi lain yang masih aktif di
+    // maddah yang sama ikut dicari bila materi yang dibuka tidak membahasnya.
+    const otherMaterials = course.materials.filter(function activeMaterial(entry) { return entry.id !== material.id && !entry.archivedAt; });
+    const local = findAnswer({ question: clean(question), material, otherMaterials });
+    const fallbackAnswer = local.answer;
     if (aiService && typeof aiService.answer === 'function') {
       const aiResult = await aiService.answer({
         actor,
         question: clean(question),
         fallbackAnswer,
-        fallbackSource: guide ? 'panduan materi' : 'rangkuman materi',
+        fallbackSource: local.source,
         context: { title: material.title, summary: material.summary, keyPoints: material.keyPoints, studyGuide: material.studyGuide }
       });
       if (!aiResult.ok) return aiResult;
@@ -403,7 +402,7 @@ function createLmsService(options) {
         summary: material.summary,
         keyPoints: material.keyPoints,
         answer: fallbackAnswer,
-        source: guide ? 'panduan materi' : 'rangkuman materi'
+        source: local.source
       }
     };
   }
