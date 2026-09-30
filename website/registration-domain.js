@@ -40,7 +40,7 @@
   // dari pihak Hamasah. Ganti nilai di bawah menjadi versi dokumen yang benar-benar
   // berlaku (mis. '2026-10-01') pada commit yang sama dengan pengesahan teksnya, dan
   // jangan pernah mengubahnya tanpa mengubah dokumennya.
-  const PRIVACY_POLICY_VERSION = 'draft-2026-09-30';
+  const PRIVACY_POLICY_VERSION = '2026-09-30';
 
   // Kontrak profil yang dipakai saat pendaftaran baru dan saat calon menyimpan perubahan.
   // Data lama tetap bisa dibaca, tetapi tidak boleh membuat record baru dengan profil setengah.

@@ -319,7 +319,8 @@ async function run() {
       assert.ok(locs.includes(`https://app.hamasah.test/website/article.html?slug=${article.body.item.slug}`), 'Artikel terbit masuk sitemap.');
       assert.ok(!xml.includes(draftArticle.body.item.slug), 'Artikel arsip tidak masuk sitemap.');
       assert.ok(!xml.includes(draftOnly.body.item.slug), 'Artikel draf tidak masuk sitemap.');
-      assert.ok(!xml.includes('kebijakan-privasi'), 'Halaman ber-noindex tidak masuk sitemap.');
+      // Kebijakan privasi disahkan pengurus 30 September 2026: noindex dicabut, masuk sitemap.
+      assert.ok(locs.includes('https://app.hamasah.test/website/kebijakan-privasi.html'), 'Kebijakan privasi yang berlaku masuk sitemap.');
       assert.match(xml, /<lastmod>\d{4}-\d{2}-\d{2}T/);
     }
     // Halaman artikel dirender server dari URL lama (Task R7.3).

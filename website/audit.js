@@ -121,7 +121,7 @@ async function loadEvents() {
 
   const awal = total === 0 ? 0 : offset + 1;
   const akhir = Math.min(offset + result.items.length, total);
-  summary.textContent = total === 0 ? 'Belum ada kejadian tercatat.' : `Menampilkan ${awal}–${akhir} dari ${total} kejadian.`;
+  summary.textContent = total === 0 ? 'Belum ada kejadian tercatat.' : `Menampilkan ${awal} sampai ${akhir} dari ${total} kejadian.`;
   prevButton.disabled = offset === 0;
   nextButton.disabled = offset + PAGE_SIZE >= total;
 

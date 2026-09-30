@@ -77,3 +77,4 @@ Diukur di 360 dan 375px. Blok "Mobile pass kedua" ada di akhir `website-public.c
 - **Nama diri bertanda hubung** di judul dibungkus `.lp-nb` supaya tidak terpenggal "Al-" / "Azhar".
 - **Konsol:** laci menu tertutup tidak meninggalkan bayangan di tepi kiri. Periode rekam jejak memakai dua tanggal berdampingan. Kepala halaman masuk muat di 360px.
 - Perbaikan yang juga berlaku di desktop: `.divisions-box` bukan kartu lagi (dulu bayangan kartu tanpa padding), baris jejak audit tidak lagi bertumpuk (dua span berbagi satu area grid), dan eyebrow dasbor tidak terpotong.
+- Gaya garis (outline) di seluruh situs: tanpa badge atau pil dekoratif, tanpa emoji dan simbol teks (panah, segitiga, garis menu), tanpa em dash. Panah dan caret digambar dengan border 1,5px yang diputar; ikon memakai SVG `stroke` tanpa `fill`. Jepitan kartu hero bergaris emas di atas putih.

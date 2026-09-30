@@ -1538,14 +1538,18 @@
 }
 
 .select-wrapper::after {
-  content: '▾';
+  content: '';
+  width: 7px;
+  height: 7px;
+  margin-top: -2px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
   position: absolute;
   right: 16px;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-50%) rotate(45deg);
   color: var(--md-sys-color-outline);
   pointer-events: none;
-  font-size: 13px;
 }
 
 .field-group.has-error input, .field-group.has-error select {
@@ -2640,6 +2644,10 @@
 
 .btn-arrow--back::before {
   transform: rotate(-135deg);
+}
+
+.btn-arrow--up::before {
+  transform: translateY(2px) rotate(-45deg);
 }
 
 .level-arrow {

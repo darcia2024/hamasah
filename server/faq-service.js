@@ -8,13 +8,13 @@ const KNOWLEDGE_BASE = Object.freeze([
     id: 'pendaftaran',
     label: 'Tentang pendaftaran',
     keywords: ['daftar', 'pendaftaran', 'dokumen', 'berkas', 'syarat', 'paspor', 'ijazah'],
-    answer: 'Isi formulir pendaftaran di beranda. Setelah terkirim, Anda langsung menerima nomor registrasi dan Kode Akses, lalu tim kami menghubungi lewat WhatsApp dan memandu berkas satu per satu. Berkas diunggah lewat halaman Cek status.'
+    answer: 'Isi formulir pendaftaran di beranda. Setelah terkirim, Anda langsung menerima nomor registrasi dan Kode Akses, lalu tim kami menghubungi lewat WhatsApp. Untuk mendaftar cukup pindaian ijazah dan paspor atau KTP; dokumen asli baru dibutuhkan setelah lulus seleksi. Berkas diunggah lewat halaman Cek status.'
   },
   {
     id: 'biaya',
     label: 'Tentang biaya',
     keywords: ['biaya', 'harga', 'bayar', 'spp', 'cicil', 'angsur', 'uang', 'mahal'],
-    answer: 'Nominal biaya disampaikan saat konsultasi karena mengikuti program dan periode keberangkatan. Komponen dan fasilitasnya ada di halaman Biaya & fasilitas. Konsultasinya tanpa biaya.'
+    answer: "Nominal biaya disampaikan saat konsultasi karena mengikuti program dan periode keberangkatan. Pembayaran bisa dicicil: untuk Ma'had DP Rp 5 juta lalu dilunasi sebelum berangkat, untuk Kuliah dicicil selama rangkaian tes. Komponen dan fasilitasnya ada di halaman Biaya & fasilitas. Konsultasinya tanpa biaya."
   },
   {
     id: 'status',
@@ -26,7 +26,7 @@ const KNOWLEDGE_BASE = Object.freeze([
     id: 'bahasa',
     label: 'Tentang bahasa Arab',
     keywords: ['bahasa arab', 'tahdid', 'mustawa', 'dauroh', 'mahir', 'belum bisa'],
-    answer: 'Tidak harus sudah mahir. Calon mahasiswa mengikuti Tahdid Mustawa untuk penempatan level bahasa Arab. Bila levelnya belum cukup, ada kelas bahasa dulu sebelum Dauroh Ta\'hili.'
+    answer: 'Tidak harus sudah mahir. Calon mahasiswa mengikuti Tahdid Mustawa untuk penempatan level bahasa Arab. Bila levelnya belum cukup, ada kelas bahasa dulu sebelum Dauroh Ta\'hili. Persiapan terbaik: perkuat bahasa Arab dan Al-Qur\'an, lihat artikel Tips lulus tes Universitas Al-Azhar Kairo di Pena Hamasah.'
   },
   {
     id: 'program-kuliah',
@@ -38,7 +38,7 @@ const KNOWLEDGE_BASE = Object.freeze([
     id: 'program-mahad',
     label: "Tentang Ma'had",
     keywords: ['mahad', "ma'had", 'smp', 'sma', "i'dadi", 'idadi', 'tsanawi', 'sekolah'],
-    answer: "Ma'had Al-Azhar adalah sekolah resmi Al-Azhar di Kairo setingkat SMP (I'dadi) dan SMA (Tsanawi), dengan asrama dan musyrif. Penempatan kelas ditentukan lewat tes bahasa dan tes qobul di Kairo, bukan dari ijazah Indonesia."
+    answer: "Ma'had Al-Azhar adalah sekolah resmi Al-Azhar di Kairo setingkat SMP (I'dadi) dan SMA (Tsanawi), terbuka untuk lulusan SD, SMP, maupun SMA. Penempatan kelas ditentukan lewat tes bahasa dan tes qobul di Kairo, bukan dari ijazah Indonesia, dan pelajar berprestasi berpeluang akselerasi."
   },
   {
     id: 'courses',

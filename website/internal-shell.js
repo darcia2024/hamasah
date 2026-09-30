@@ -135,7 +135,7 @@
   toggle.setAttribute('aria-controls', 'crm-sidebar');
   toggle.setAttribute('aria-expanded', 'false');
   toggle.setAttribute('aria-label', 'Buka navigasi samping');
-  toggle.innerHTML = '<span aria-hidden="true">☰</span><span class="crm-drawer-toggle-label">Menu</span>';
+  toggle.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span class="crm-drawer-toggle-label">Menu</span>';
   topbar.prepend(toggle);
 
   const backdrop = document.createElement('button');

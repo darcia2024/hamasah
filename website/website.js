@@ -12,7 +12,7 @@ const answers = {
   mahad: {
     topic: 'Tentang Program Ma\'had',
     title: 'Ma\'had Al-Azhar memadukan ilmu syar’i, bahasa Arab, dan pelajaran umum.',
-    text: 'Program ini untuk usia 13 sampai 30 tahun. Setibanya di Kairo, calon santri mengikuti tes bahasa Arab, kelas bahasa, lalu tes qobul untuk penempatan di kelas I\'dadi (setingkat SMP) atau Tsanawi (setingkat SMA).'
+    text: 'Program ini untuk usia 13 sampai 30 tahun, lulusan SD, SMP, maupun SMA. Setibanya di Kairo, calon santri mengikuti tes bahasa Arab, kelas bahasa, lalu tes qobul untuk penempatan di kelas I\'dadi (setingkat SMP) atau langsung Tsanawi (setingkat SMA). Pelajar berprestasi berpeluang akselerasi.'
   },
   parent: {
     topic: 'Tentang pendaftaran',
@@ -22,12 +22,12 @@ const answers = {
   cost: {
     topic: 'Tentang biaya',
     title: 'Rincian biaya disampaikan saat konsultasi, sesuai program dan periode keberangkatan.',
-    text: 'Komponen yang tercakup (asrama, makan, pendampingan, berkas) ada di halaman Biaya & fasilitas. Nominal terbaru dikonfirmasi tim kami saat konsultasi, dan konsultasinya tanpa biaya.'
+    text: 'Pembayaran bisa dicicil. Ma\'had: DP Rp 5 juta, sisanya dilunasi sebelum berangkat. Kuliah: dicicil selama rangkaian tes. Komponen yang tercakup ada di halaman Biaya & fasilitas, dan nominal terbaru dikonfirmasi saat konsultasi.'
   },
   documents: {
     topic: 'Tentang dokumen awal',
-    title: 'Mulai dengan paspor, dokumen pendidikan, dan bukti pendukung yang diminta.',
-    text: 'Untuk pendaftaran dari luar Mesir, Al-Azhar mencantumkan paspor yang berlaku minimal 18 bulan, surat keterangan sehat berupa hasil tes darah (tahlil dam), dokumen pendidikan, serta bukti pendaftaran elektronik atau nomor registrasi. Periksa kembali daftar aktif sebelum mengirim berkas.'
+    title: 'Untuk mendaftar, cukup pindaian ijazah dan paspor atau KTP.',
+    text: 'Dokumen asli baru dibutuhkan setelah lulus seleksi: ijazah, akta kelahiran, paspor yang berlaku minimal 18 bulan, surat izin orang tua bermeterai, pasfoto 4x6, rekomendasi Kemenag daerah, dan surat keterangan sehat berupa hasil tes darah (tahlil dam). Kami pandu satu per satu.'
   }
 };
 

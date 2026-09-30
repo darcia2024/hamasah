@@ -118,7 +118,14 @@ main .eyebrow + h2 + p.lp-lede {
 }
 
 .lp-link::after {
-  content: "\2192";
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 2px;
+  border-top: 1.5px solid currentColor;
+  border-right: 1.5px solid currentColor;
+  transform: rotate(45deg);
   transition: transform 200ms ease;
 }
 
@@ -128,7 +135,7 @@ main .eyebrow + h2 + p.lp-lede {
 }
 
 .lp-link:hover::after {
-  transform: translateX(3px);
+  transform: translateX(3px) rotate(45deg);
 }
 
 .lp-split__copy .lp-link {
@@ -194,25 +201,22 @@ main .eyebrow + h2 + p.lp-lede {
   align-items: center;
 }
 
+/* Baris pembuka di atas judul: teks dan ikon garis, tanpa pil. */
 .lp-hero__badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin: 0 0 24px;
-  padding: 7px 16px 7px 10px;
-  border: 1px solid var(--lp-line);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.8);
+  margin: 0 0 20px;
   font-size: 14px;
-  color: var(--lp-ink);
+  color: var(--gold-dark);
   text-align: left;
 }
 
 .lp-hero__badge .m3-icon {
   flex: none;
-  width: 18px;
-  height: 18px;
-  fill: var(--gold-large);
+  width: 20px;
+  height: 20px;
+  stroke: var(--gold-dark);
 }
 
 .lp-hero h1 {
@@ -333,9 +337,9 @@ main .eyebrow + h2 + p.lp-lede {
   width: 18px;
   height: 28px;
   margin-left: -9px;
+  border: 2px solid var(--gold);
   border-radius: 5px;
-  background: var(--gold);
-  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.12), 0 2px 4px rgba(54, 54, 56, 0.2);
+  background: #fff;
 }
 
 .lp-card__pin::after {
@@ -346,8 +350,9 @@ main .eyebrow + h2 + p.lp-lede {
   width: 6px;
   height: 6px;
   margin-left: -3px;
+  border: 1.5px solid var(--gold);
   border-radius: 50%;
-  background: #fff;
+  box-sizing: border-box;
 }
 
 .lp-card img {
@@ -557,7 +562,15 @@ main .eyebrow + h2 + p.lp-lede {
 }
 
 .lp-path__more::after {
-  content: " \2192";
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 8px;
+  border-top: 1.5px solid currentColor;
+  border-right: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  vertical-align: 1px;
 }
 
 /* ---------- Detail jalur: teks dan panel berdampingan ---------- */
@@ -626,12 +639,15 @@ main .lp-panel h3 {
 }
 
 .lp-levels li + li::before {
-  content: "\2192";
+  content: "";
   position: absolute;
-  left: -21px;
+  left: -17px;
   top: 50%;
-  transform: translateY(-50%);
-  color: var(--lp-soft);
+  width: 7px;
+  height: 7px;
+  border-top: 1.5px solid var(--lp-soft);
+  border-right: 1.5px solid var(--lp-soft);
+  transform: translateY(-50%) rotate(45deg);
 }
 
 .lp-stages {
@@ -1241,11 +1257,15 @@ main .lp-after-title {
 
 @media (prefers-reduced-motion: reduce) {
   .lp-path,
-  .lp-path:hover,
+  .lp-path:hover {
+    transition: none;
+    transform: none;
+  }
+
   .lp-link::after,
   .lp-link:hover::after {
     transition: none;
-    transform: none;
+    transform: rotate(45deg);
   }
 }
 
@@ -1337,14 +1357,12 @@ main .lp-after-title {
   }
 
   .lp-levels li:nth-child(2) {
-    border-color: transparent;
-    background: var(--md-sys-color-primary-container);
+    border-color: var(--gold-border);
   }
 
   .lp-levels li:nth-child(3) {
-    border-color: transparent;
-    background: var(--gold, #e7b10c);
-    color: #363638;
+    border-color: var(--gold, #e7b10c);
+    color: var(--gold-dark);
   }
 
   .lp-panel__row {
@@ -1468,4 +1486,28 @@ main .lp-after-title {
   .lp-testimonials {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+
+/* Dokumen kuliah dibagi dua tahap: pindaian untuk mendaftar, asli setelah lulus seleksi. */
+.lp-doc-groups {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 20px 40px;
+}
+
+main .lp-doc-groups h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+@media (max-width: 720px) {
+  .lp-doc-groups {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.lp-docs > .lp-note {
+  grid-column: 1 / -1;
+  margin: 0;
 }

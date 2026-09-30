@@ -272,3 +272,21 @@ testimoni lengkap". Syarat tayang sama: izin tertulis wali untuk nama dan foto; 
 memuat anak di bawah umur perlu izin wali secara khusus.
 
 Izin tertulis ketiga wali untuk nama dan foto sudah ada (dikonfirmasi 30 September 2026). Aruna Hassya Javas Reswara adalah santri Ma'had.
+
+**Kebijakan privasi disahkan pengurus (30 September 2026).** Blok draf dan `noindex` dicabut, halaman masuk sitemap, `PRIVACY_POLICY_VERSION` = `2026-09-30`. Butir A1 selesai; tidak ada lagi yang menahan pembukaan situs untuk umum dari sisi kebijakan privasi. `HEALTH_RECORDS_ENABLED` boleh dinyalakan (C6) karena kebijakan sudah memuat catatan kesehatan.
+
+Tambahan 30 September 2026 (daftar konfirmasi kedua):
+
+| No | Jawaban | Status di sistem |
+|---|---|---|
+| Cicilan (E2) | Bisa dicicil. Ma'had: DP Rp 5 juta, sisa dilunasi sebelum berangkat. Kuliah: ikut rangkaian tes dulu, pembayaran dicicil | **Diterapkan**: FAQ `biaya.html`, jawaban FAQ beranda dan jawaban otomatis |
+| Brosur (C1) | Sedang diperbaiki untuk tahun ajaran baru | Menunggu; nominal tetap "dikonfirmasi saat konsultasi" |
+| Talaqqi (E6) | Tetap "kajian harian bersama musyrif" | Tidak ada perubahan |
+
+**Artikel Pena Hamasah (A5, 30 September 2026): 5 dari 6 diterima.** Tahapan seleksi S1, Tips lulus tes Al-Azhar, Mengenal
+Ma'had Al-Azhar, Sekilas tentang Al-Azhar, Sekilas tentang Mesir. Masuk `data/articles.json`
+(markdown artikel). Di production dimasukkan dengan `ALLOW_PRODUCTION_WRITE=I_UNDERSTAND npm run
+seed:articles`, atau diketik admin lewat CMS. Nama penulis belum diberikan. Isi yang ikut
+diterapkan ke situs: syarat daftar kuliah cukup pindaian ijazah dan paspor/KTP (dokumen asli
+setelah lulus seleksi), pengumuman muadalah sekitar dua minggu, Ma'had terbuka untuk lulusan
+SD/SMP/SMA dengan penempatan sampai langsung Tsanawi dan contoh akselerasi.
