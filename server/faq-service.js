@@ -44,7 +44,7 @@ const KNOWLEDGE_BASE = Object.freeze([
     id: 'courses',
     label: 'Tentang kelas daring',
     keywords: ['courses', 'daring', 'online', 'nahwu', 'sharaf', 'balaghah', 'kelas'],
-    answer: "Hamasah Courses adalah kelas daring berbasis kitab: nahwu dasar (Jurumiyah), sharaf dasar, Ta'lim Muta'allim, dan balaghah dasar. Materinya bisa diulang kapan saja. Jadwal dan cara bergabung dijelaskan setelah Anda mendaftar."
+    answer: "Hamasah Courses (e-learning Hamasah) memuat seluruh mata pelajaran Dirasah Khassah, Ma'had (I'dadi dan Tsanawi), dan kuliah tingkat 1, termasuk kelas dasar nahwu, sharaf, adab, dan balaghah. Materinya bisa diulang kapan saja. Jadwal dan cara bergabung dijelaskan setelah Anda mendaftar."
   },
   {
     id: 'kairo',
@@ -55,8 +55,8 @@ const KNOWLEDGE_BASE = Object.freeze([
   {
     id: 'wali',
     label: 'Tentang portal wali',
-    keywords: ['wali', 'orang tua', 'portal', 'rapor', 'presensi', 'hafalan'],
-    answer: 'Wali memantau presensi sholat, setoran hafalan, rapor, dan kuitansi ananda lewat portal santri & wali. Akunnya dibuatkan tim Hamasah setelah santri terdaftar.'
+    keywords: ['wali', 'orang tua', 'portal', 'rapor', 'presensi', 'hafalan', 'laporan'],
+    answer: 'Musyrif/ah asrama menyampaikan laporan santri setiap tanggal 1 tiap bulan lewat rapat daring. Di luar itu, wali bisa memantau presensi sholat, setoran hafalan, rapor, dan kuitansi lewat portal santri & wali.'
   }
 ]);
 

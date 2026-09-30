@@ -219,3 +219,35 @@ lama bisa dipasang kembali.
 | E7 | Apakah laporan adab ke orang tua **mingguan**? | "Laporan perkembangan berkala" | `biaya.html` |
 | E8 | Apakah paspor wajib berlaku **minimal 18 bulan**? | "Paspor aktif"; pilihan unggah "Paspor (halaman identitas)" | `cek-status.html`, daftar dokumen |
 | E9 | Apakah **surat keterangan sehat** juga diminta untuk jalur Ma'had? | Tercantum untuk jalur kuliah saja | `program-kuliah.html`, beranda |
+
+## Jawaban pengurus atas daftar konfirmasi (diterima 30 September 2026)
+
+Nomor mengikuti dokumen "Konfirmasi untuk Pengurus Hamasah" (22 pertanyaan; pertanyaan hosting
+dihapus pengurus dari dokumen, sehingga nomor 20-22 di dokumen asli bergeser menjadi 19-21).
+
+| No | Jawaban | Status di sistem |
+|---|---|---|
+| 5 (E7) | Laporan santri disampaikan musyrif/ah asrama setiap tanggal 1 tiap bulan lewat rapat daring | **Diterapkan**: `biaya.html`, `program-mahad.html`, beranda, jawaban FAQ wali |
+| 6 (E5) | E-learning memuat seluruh mata pelajaran Dirasah Khassah, Ma'had (I'dadi & Tsanawi), dan kuliah tingkat 1 | **Diterapkan**: kartu Courses di `biaya.html`, `program-courses.html`, beranda, jawaban FAQ. Video/sertifikat/akses seumur hidup tidak dijawab, tetap tidak ditampilkan |
+| 8 (E3) | Uang saku dikirim ke rekening santri masing-masing | **Diterapkan**: FAQ `biaya.html`; pintasan Keuangan di `kontak.html` |
+| 9 (E4) | DP tidak dikembalikan (Ma'had Rp 5 juta, Kuliah Rp 4,5 juta); kelebihan di atas DP dikembalikan | **Diterapkan**: FAQ `biaya.html` |
+| 11 (A3) | Kantor Kairo: Imarah 32, lantai 1, syaqqah 3 | **Diterapkan**: `kontak.html` |
+| 12 (A3) | Asrama berbeda alamat dengan kantor | Dicatat; situs tidak menyebut alamat asrama |
+| 13 (A6) | Kontak penanggung jawab data: WA admin +62 878-9759-1978 | Dicatat untuk bagian 6 kebijakan privasi |
+| 14 (A1) | Pengurus minta penjelasan | Penjelasan tujuh isi kebijakan privasi ditulis di dokumen konfirmasi; menunggu file resmi atau persetujuan untuk disusunkan draf |
+| 16 (C4) | Profil pengurus sedang disiapkan, rencana dikirim besok | Menunggu |
+| 17 (C3) | Testimoni sedang disiapkan | Menunggu |
+| 19 (D1) | Daftar akun dikirim bersama database staf, rencana besok | Menunggu |
+| 20 (D3) | Data pendaftar yang tidak melanjutkan disimpan 12 bulan | Dicatat untuk bagian 3 kebijakan privasi |
+| 21 (C7) | Pengurus minta penjelasan | Perbandingan dua pilihan ditulis di dokumen konfirmasi; saran mulai dari jawaban materi guru |
+
+Tambahan 30 September 2026:
+
+| No | Jawaban | Status di sistem |
+|---|---|---|
+| 1 (E1) | Usia Ma'had 13 sampai 30 tahun benar | Tidak ada perubahan |
+| 2 (E9) | Surat keterangan sehat berupa hasil tes darah (tahlil dam), untuk Ma'had dan Kuliah | **Diterapkan**: daftar dokumen beranda, Kuliah, Ma'had; pilihan unggah Cek status; jawaban FAQ dokumen |
+| 3 (E8) | Paspor wajib berlaku minimal 18 bulan | **Diterapkan**: syarat dan daftar dokumen Kuliah dan Ma'had, beranda, pilihan unggah Cek status, jawaban FAQ |
+| 4 (E6) | Talaqqi bersama masyayikh belum pasti | Tetap "kajian harian bersama musyrif" |
+
+Belum dijawab: 7 (E2 termin), 10 (C1 brosur), 15 (A5 artikel), 18 (B2 pemegang domain).

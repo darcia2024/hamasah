@@ -27,7 +27,7 @@ const answers = {
   documents: {
     topic: 'Tentang dokumen awal',
     title: 'Mulai dengan paspor, dokumen pendidikan, dan bukti pendukung yang diminta.',
-    text: 'Untuk pendaftaran dari luar Mesir, Al-Azhar mencantumkan paspor berlaku, sertifikat kesehatan, dokumen pendidikan, serta bukti pendaftaran elektronik atau nomor registrasi. Periksa kembali daftar aktif sebelum mengirim berkas.'
+    text: 'Untuk pendaftaran dari luar Mesir, Al-Azhar mencantumkan paspor yang berlaku minimal 18 bulan, surat keterangan sehat berupa hasil tes darah (tahlil dam), dokumen pendidikan, serta bukti pendaftaran elektronik atau nomor registrasi. Periksa kembali daftar aktif sebelum mengirim berkas.'
   }
 };
 
