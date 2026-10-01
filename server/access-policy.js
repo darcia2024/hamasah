@@ -27,6 +27,8 @@ const PERMISSIONS = Object.freeze({
   'audit.read': Object.freeze([ROLES.ADMIN]),
   // Ringkasan seluruh santri, asrama, dan musyrif di dashboard super admin.
   'overview.read': Object.freeze([ROLES.ADMIN]),
+  // Mengisi, mengganti kata sandi, dan menghapus data demo dari dashboard.
+  'demo.manage': Object.freeze([ROLES.ADMIN]),
 
   'registrations.read': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
   'registrations.update-status': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),

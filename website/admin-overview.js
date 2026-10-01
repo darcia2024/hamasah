@@ -336,5 +336,216 @@
     return wadah;
   }
 
-  window.HamasahAdminOverview = Object.freeze({ muat, kpi, perhatian, panelSantri, panelAsrama, panelMusyrif });
+  // ---------------------------------------------------------------------------
+  // Data demo: isi, kata sandi baru, dan hapus langsung dari dashboard.
+  // Pengisian berjalan per langkah (satu permintaan per langkah) supaya tidak ada yang
+  // terkena batas waktu server. Bila terhenti, tombol yang sama melanjutkannya.
+
+  const LABEL_STATUS_PENDAFTAR = Object.freeze({
+    submitted: 'Baru masuk',
+    'document-review': 'Pemeriksaan berkas',
+    'needs-revision': 'Perlu perbaikan',
+    'academic-preparation': 'Persiapan akademik',
+    'ready-for-departure': 'Siap berangkat',
+    completed: 'Selesai',
+    cancelled: 'Dibatalkan'
+  });
+
+  async function mintaJson(url, headers, opsi = {}) {
+    const response = await fetch(url, {
+      ...opsi,
+      headers: { ...headers, ...(opsi.body ? { 'Content-Type': 'application/json' } : {}) }
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || 'Permintaan belum berhasil. Coba lagi.');
+    return body;
+  }
+
+  function tombol(teks, kelas, aksi) {
+    const button = el('button', `button ${kelas}`, teks);
+    button.type = 'button';
+    button.addEventListener('click', aksi);
+    return button;
+  }
+
+  function teksUntukDisalin({ kataSandi, akunDemo, pendaftar }) {
+    const baris = [];
+    if (kataSandi) {
+      baris.push(`Kata sandi semua akun demo: ${kataSandi}`, '', 'Akun demo (masuk lewat /portal.html):');
+      akunDemo.forEach((akun) => baris.push(`${akun.email}  ${akun.peran}`));
+    }
+    if (pendaftar.length) {
+      baris.push('', 'Kode akses pendaftar (cek status di /cek-status.html):');
+      pendaftar.forEach((p) => baris.push(`${p.nomor}  ${p.kode}  ${p.nama}`));
+    }
+    return baris.join('\n');
+  }
+
+  // Kata sandi dan kode akses hanya ada di jawaban server saat itu, jadi ditampilkan
+  // di dialog yang tetap terbuka sampai admin menutupnya sendiri.
+  function dialogHasil({ judul, kataSandi = null, akunDemo = [], pendaftar = [], catatan = '', onTutup }) {
+    const dialog = el('dialog', 'op-dialog admin-demo-dialog');
+    dialog.setAttribute('aria-labelledby', 'admin-demo-judul');
+    const isi = el('div', 'op-dialog__form admin-demo-result');
+    const kepala = el('h3', '', judul);
+    kepala.id = 'admin-demo-judul';
+    isi.append(kepala);
+
+    if (kataSandi || pendaftar.length) {
+      isi.append(el('p', 'op-dialog__summary', 'Kata sandi dan kode akses di bawah hanya ditampilkan sekali. Salin dan simpan sekarang.'));
+    }
+    if (kataSandi) {
+      isi.append(el('p', 'admin-card__label', 'Kata sandi semua akun demo'), el('code', 'admin-demo-code', kataSandi));
+      const daftar = el('ul', 'admin-demo-list');
+      akunDemo.forEach((akun) => {
+        const item = el('li');
+        item.append(el('span', 'admin-cell-main', akun.email), el('span', 'admin-cell-sub', `${akun.peran}, ${akun.nama}`));
+        daftar.append(item);
+      });
+      isi.append(el('p', 'admin-card__label', 'Akun demo, masuk lewat Portal'), daftar);
+    }
+    if (pendaftar.length) {
+      const daftar = el('ul', 'admin-demo-list');
+      pendaftar.forEach((p) => {
+        const item = el('li');
+        item.append(el('span', 'admin-cell-main', `${p.nomor}  ${p.kode}`), el('span', 'admin-cell-sub', `${p.nama}, ${LABEL_STATUS_PENDAFTAR[p.status] || p.status}`));
+        daftar.append(item);
+      });
+      isi.append(el('p', 'admin-card__label', 'Kode akses pendaftar, untuk halaman Cek status'), daftar);
+    }
+    if (catatan) isi.append(el('p', 'admin-card__meta', catatan));
+
+    const pesan = el('p', 'admin-card__meta');
+    pesan.setAttribute('role', 'status');
+    const aksi = el('div', 'op-dialog__actions');
+    if (kataSandi || pendaftar.length) {
+      aksi.append(tombol('Salin semua', 'button--secondary', async () => {
+        try {
+          await navigator.clipboard.writeText(teksUntukDisalin({ kataSandi, akunDemo, pendaftar }));
+          pesan.textContent = 'Tersalin. Tempel ke catatan yang aman.';
+        } catch {
+          pesan.textContent = 'Browser menolak menyalin. Blok teksnya lalu salin manual.';
+        }
+      }));
+    }
+    aksi.append(tombol('Selesai', 'button--primary', () => dialog.close()));
+    isi.append(pesan, aksi);
+    dialog.append(isi);
+    dialog.addEventListener('close', () => {
+      dialog.remove();
+      if (onTutup) onTutup();
+    });
+    document.body.append(dialog);
+    dialog.showModal();
+  }
+
+  function kartuDemo({ headers, onSelesai }) {
+    const kartu = el('section', 'admin-card admin-demo');
+    kartu.append(el('h4', 'admin-card__title', 'Data demo'));
+    const badan = el('div', 'admin-demo__body');
+    badan.append(el('p', 'admin-card__meta', 'Memeriksa data demo...'));
+    kartu.append(badan);
+
+    async function muatStatus() {
+      try {
+        gambar(await mintaJson('/api/admin/demo-data', headers()));
+      } catch (error) {
+        badan.replaceChildren(el('p', 'admin-card__meta', error.message));
+      }
+    }
+
+    function gambar(status) {
+      badan.replaceChildren();
+      const j = status.jumlah;
+      badan.append(el('p', 'admin-card__meta', status.ada
+        ? `Aktif: ${j.akun} akun, ${j.santri} santri, ${j.pendaftar} pendaftar, ${j.tagihan} tagihan.${status.lengkap ? '' : ' Pengisian belum selesai.'}`
+        : 'Belum ada data demo. Isi untuk mencoba aplikasi dari sisi setiap peran: petugas, musyrif, guru, keuangan, wali, dan santri.'));
+      if (status.latensiMs > 60) {
+        badan.append(el('p', 'admin-card__line is-warn', `Database berjarak ${status.latensiMs} ms dari server, jadi pengisian bisa lambat. Bila berhenti di tengah, tekan tombolnya lagi untuk melanjutkan.`));
+      }
+      const aksi = el('div', 'admin-demo__actions');
+      if (!status.ada || !status.lengkap) {
+        aksi.append(tombol(status.ada ? 'Lanjutkan pengisian' : 'Isi data demo', 'button--primary', () => isiData(status)));
+      }
+      if (status.ada) {
+        aksi.append(tombol('Kata sandi baru', 'button--secondary', () => sandiBaru(status)));
+        aksi.append(tombol('Hapus data demo', 'button--secondary', hapusData));
+      }
+      badan.append(aksi, el('p', 'admin-card__meta', 'Akun demo adalah akun sungguhan sesuai perannya. Hapus data demo sebelum aplikasi dipakai untuk data asli.'));
+    }
+
+    async function isiData(status) {
+      if (!window.confirm('Isi data demo sekarang? Akun demo (petugas, musyrif, guru, keuangan, wali, santri) adalah akun sungguhan dengan hak sesuai perannya.')) return;
+      const progres = el('p', 'admin-card__meta');
+      progres.setAttribute('role', 'status');
+      const bar = el('div', 'admin-occupancy__bar');
+      const isiBar = el('div', 'admin-occupancy__fill');
+      isiBar.style.width = '0%';
+      bar.append(isiBar);
+      badan.replaceChildren(progres, bar);
+
+      let kataSandi = null;
+      const pendaftar = [];
+      const total = status.langkah.length;
+      for (const [indeks, langkah] of status.langkah.entries()) {
+        progres.textContent = `Langkah ${indeks + 1} dari ${total}: ${langkah.label}`;
+        isiBar.style.width = `${Math.round((indeks / total) * 100)}%`;
+        try {
+          const hasil = await mintaJson('/api/admin/demo-data/langkah', headers(), { method: 'POST', body: JSON.stringify({ langkah: langkah.id }) });
+          if (hasil.kataSandi) kataSandi = hasil.kataSandi;
+          (hasil.pendaftar || []).forEach((p) => pendaftar.push(p));
+        } catch (error) {
+          progres.textContent = `Berhenti di langkah ${indeks + 1} (${langkah.label}): ${error.message}`;
+          badan.append(tombol('Lanjutkan pengisian', 'button--primary', () => isiData(status)));
+          if (kataSandi || pendaftar.length) {
+            dialogHasil({
+              judul: 'Pengisian berhenti di tengah',
+              kataSandi, akunDemo: status.akunDemo, pendaftar,
+              catatan: 'Simpan dulu kata sandi dan kode di atas, lalu tekan Lanjutkan pengisian. Langkah yang sudah selesai tidak diulang.'
+            });
+          }
+          return;
+        }
+      }
+      isiBar.style.width = '100%';
+      progres.textContent = 'Data demo siap.';
+      dialogHasil({
+        judul: 'Data demo siap',
+        kataSandi, akunDemo: status.akunDemo, pendaftar,
+        catatan: kataSandi ? '' : 'Akun demo sudah ada dari pengisian sebelumnya, jadi kata sandinya tidak berubah. Pakai tombol Kata sandi baru bila lupa.',
+        onTutup: onSelesai
+      });
+    }
+
+    async function sandiBaru(status) {
+      if (!window.confirm('Buat kata sandi baru untuk semua akun demo? Kata sandi lama dan sesi yang sedang masuk langsung tidak berlaku.')) return;
+      try {
+        const hasil = await mintaJson('/api/admin/demo-data/sandi', headers(), { method: 'POST' });
+        dialogHasil({ judul: 'Kata sandi baru akun demo', kataSandi: hasil.kataSandi, akunDemo: status.akunDemo, pendaftar: hasil.pendaftar });
+      } catch (error) {
+        window.alert(error.message);
+      }
+    }
+
+    async function hapusData() {
+      const ketik = window.prompt('Semua akun, santri, pendaftar, tagihan, dan catatan demo akan dihapus permanen. Akun admin dan data asli tidak disentuh. Ketik HAPUS untuk melanjutkan.');
+      if (ketik === null) return;
+      try {
+        const hasil = await mintaJson('/api/admin/demo-data/hapus', headers(), { method: 'POST', body: JSON.stringify({ konfirmasi: ketik.trim().toUpperCase() }) });
+        const d = hasil.dihapus;
+        dialogHasil({
+          judul: 'Data demo dihapus',
+          catatan: `${d.akun} akun, ${d.santri} santri, ${d.pendaftar} pendaftar, dan ${d.tagihan} tagihan demo sudah dihapus.${hasil.dilewati.length ? ` Dilewati: ${hasil.dilewati.join(' ')}` : ''}`,
+          onTutup: onSelesai
+        });
+      } catch (error) {
+        window.alert(error.message);
+      }
+    }
+
+    muatStatus();
+    return kartu;
+  }
+
+  window.HamasahAdminOverview = Object.freeze({ muat, kpi, perhatian, panelSantri, panelAsrama, panelMusyrif, kartuDemo });
 }());

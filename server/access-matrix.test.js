@@ -151,6 +151,12 @@ async function run() {
 
       { permission: 'audit.read', method: 'GET', path: '/api/audit?limit=5' },
       { permission: 'overview.read', method: 'GET', path: '/api/admin/overview' },
+      { permission: 'demo.manage', method: 'GET', path: '/api/admin/demo-data' },
+      // Langkah yang tidak dikenal dan konfirmasi yang salah: admin mendapat 422, bukan
+      // data demo sungguhan di database uji matriks.
+      { permission: 'demo.manage', method: 'POST', path: '/api/admin/demo-data/langkah', body: () => ({ langkah: 'tidak-ada' }) },
+      { permission: 'demo.manage', method: 'POST', path: '/api/admin/demo-data/hapus', body: () => ({ konfirmasi: 'bukan' }) },
+      { permission: 'demo.manage', method: 'POST', path: '/api/admin/demo-data/sandi' },
 
       { permission: 'dormitories.manage', method: 'GET', path: '/api/dormitories' },
       {

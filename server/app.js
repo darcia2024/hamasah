@@ -44,6 +44,7 @@ const { createEventNotifier } = require('./event-notifications.js');
 const { createDepartureService } = require('./departure-service.js');
 const { createStudentCareService } = require('./student-care-service.js');
 const { createAdminOverviewService } = require('./admin-overview-service.js');
+const { createDemoDataService } = require('./demo-data-service.js');
 const { createPostgresStudentCareStore } = require('./postgres-student-care-store.js');
 const { createPostgresDepartureStore } = require('./postgres-departure-store.js');
 const { createRequestAuth, hashToken, safeEqual } = require('./http/auth.js');
@@ -63,6 +64,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/accounts.js'),
   ...require('./routes/audit.js'),
   ...require('./routes/admin-overview.js'),
+  ...require('./routes/admin-demo.js'),
   ...require('./routes/files.js'),
   ...require('./routes/operations.js'),
   ...require('./routes/dormitories.js'),
@@ -277,9 +279,12 @@ function createHamasahApp(options) {
     }
   };
 
+  const demoDataService = config.demoDataService || createDemoDataService({ database, storage });
+
   const services = Object.freeze({
     maintenanceService,
     adminOverviewService,
+    demoDataService,
     accountStore,
     departureService,
     studentCareService,

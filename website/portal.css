@@ -5532,3 +5532,47 @@ table,
     padding: 16px;
   }
 }
+
+/* Kartu "Data demo" di panel kanan dashboard super admin dan dialog hasilnya. */
+.admin-demo {
+  margin-top: 16px;
+}
+
+.admin-demo__body {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-demo__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-demo-result {
+  display: grid;
+  gap: 10px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+.admin-demo-code {
+  display: block;
+  padding: 10px 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 15px;
+  user-select: all;
+  overflow-wrap: anywhere;
+  background: var(--md-sys-color-surface-container-low);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 10px;
+}
+
+.admin-demo-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}

@@ -121,6 +121,24 @@ email) dan nomor WhatsApp `0800-0000-xxxx` (bukan nomor seluler).
 pendaftar, keuangan demo melihat semua tagihan. Hapus data demo sebelum aplikasi dipakai untuk
 data sungguhan.
 
+### Lewat dashboard (cara utama)
+
+Masuk sebagai admin di `/portal.html`. Kartu **Data demo** ada di kolom kanan dashboard:
+
+- **Isi data demo**: berjalan langkah demi langkah dengan penanda kemajuan. Di akhir, kata sandi
+  semua akun demo dan kode akses pendaftar (untuk `/cek-status.html`) tampil **sekali** di
+  dialog, lengkap dengan tombol Salin semua. Bila terhenti di tengah, tekan **Lanjutkan
+  pengisian**; langkah yang sudah selesai tidak diulang.
+- **Kata sandi baru**: membuat kata sandi dan kode akses baru. Sesi akun demo yang lama berakhir.
+- **Hapus data demo**: ketik `HAPUS` untuk mengonfirmasi. Kloter, asrama, dan inventaris yang
+  sudah dipakai data sungguhan dilewati. Penomoran pendaftaran, invoice, dan kuitansi
+  dikembalikan, sehingga data sungguhan pertama tetap mulai dari 00001.
+
+Ketiganya tercatat di jejak audit. Kartu memperingatkan bila database berjarak lebih dari 60 ms
+dari server, karena setiap langkah bisa melambat.
+
+### Lewat terminal
+
 Di laptop (hentikan preview dulu):
 
 ```bash

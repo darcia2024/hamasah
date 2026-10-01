@@ -1028,6 +1028,12 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
   }
 
   rightPanel.append(statCard);
+  if (isAdmin && window.HamasahAdminOverview) {
+    rightPanel.append(window.HamasahAdminOverview.kartuDemo({
+      headers: requestHeaders,
+      onSelesai: () => loadStudents(account).catch(() => {})
+    }));
+  }
 
   const heroBtn = heroBanner.querySelector('#btn-hero-action');
   if (heroBtn) {

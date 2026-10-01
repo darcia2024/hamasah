@@ -50,7 +50,10 @@ const LABEL = {
   'file.downloaded': 'Berkas diunduh',
   'invoice.created': 'Invoice dibuat',
   'invoice.paid': 'Invoice ditandai lunas',
-  'invoice.receipt-downloaded': 'Kuitansi diunduh'
+  'invoice.receipt-downloaded': 'Kuitansi diunduh',
+  'demo.data-started': 'Pengisian data demo dimulai',
+  'demo.password-reset': 'Kata sandi akun demo diganti',
+  'demo.data-deleted': 'Data demo dihapus'
 };
 
 function session() {

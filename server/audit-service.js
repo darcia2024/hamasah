@@ -65,6 +65,9 @@ const ACTIONS = Object.freeze({
   ,STUDENT_RECORD_CORRECTED: 'student.record-corrected'
   ,INQUIRY_RECEIVED: 'inquiry.received'
   ,INQUIRY_STATUS_CHANGED: 'inquiry.status-changed'
+  ,DEMO_DATA_STARTED: 'demo.data-started'
+  ,DEMO_DATA_PASSWORD_RESET: 'demo.password-reset'
+  ,DEMO_DATA_DELETED: 'demo.data-deleted'
 });
 
 const ACTION_VALUES = Object.freeze(Object.values(ACTIONS));
