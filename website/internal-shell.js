@@ -58,7 +58,7 @@
     ended = true;
     // Token yang sudah mati dibuang, dan konsol disembunyikan: menampilkan data
     // pengguna di balik dialog hanya membiarkan yang tidak berhak melihatnya.
-    try { sessionStorage.removeItem(SESSION_KEY); } catch { /* penyimpanan tidak tersedia */ }
+    forgetSession();
     document.documentElement.classList.add('is-session-ended');
     setStatus('Sesi berakhir', 'ended');
 
@@ -88,13 +88,67 @@
     button.focus();
   }
 
+  // Hasil /api/me diingat sebentar di tab ini. Tanpa ini setiap pindah halaman konsol
+  // menunggu satu perjalanan ke server dulu sebelum menampilkan apa pun. Jawaban yang
+  // diingat langsung dipakai, lalu diperiksa ulang di belakang: bila sesi ternyata sudah
+  // berakhir, dialog "Sesi berakhir" tetap muncul seperti biasa.
+  const ME_CACHE_KEY = 'hamasahMeCache';
+  const ME_CACHE_MS = 2 * 60 * 1000;
+
+  function readMeCache(token) {
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(ME_CACHE_KEY) || 'null');
+      return cached && token && cached.token === token && Date.now() - cached.at < ME_CACHE_MS ? cached : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function writeMeCache(token, body) {
+    try { sessionStorage.setItem(ME_CACHE_KEY, JSON.stringify({ token, at: Date.now(), body })); } catch { /* penyimpanan tidak tersedia */ }
+  }
+
+  function forgetSession() {
+    try {
+      sessionStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem(ME_CACHE_KEY);
+    } catch { /* penyimpanan tidak tersedia */ }
+    // session-hint.js menyembunyikan kartu masuk selama sesi tersimpan; tanpa sesi,
+    // kartu itu harus langsung terlihat lagi.
+    document.documentElement.classList.remove('has-portal-session');
+  }
+
+  function methodOf(input, init) {
+    return String((init && init.method) || (input && typeof input === 'object' && input.method) || 'GET').toUpperCase();
+  }
+
   const nativeFetch = window.fetch.bind(window);
   window.fetch = async function guardedFetch(input, init) {
-    const response = await nativeFetch(input, init);
-
     const bearer = authorizationOf(input, init);
-    const carriesSession = bearer && storedToken() && bearer === `Bearer ${storedToken()}`;
+    const token = storedToken();
+    const carriesSession = bearer && token && bearer === `Bearer ${token}`;
+    const isMe = carriesSession && pathOf(input) === '/api/me' && methodOf(input, init) === 'GET';
+
+    if (isMe) {
+      const cached = readMeCache(token);
+      if (cached) {
+        if (!established) {
+          established = true;
+          setStatus('Sesi aktif', 'active');
+        }
+        nativeFetch(input, init).then(async (fresh) => {
+          if (fresh.ok) writeMeCache(token, await fresh.json());
+          else if (fresh.status === 401) showEnded();
+        }).catch(() => { /* jaringan putus: jawaban yang diingat tetap dipakai */ });
+        return new Response(JSON.stringify(cached.body), { status: 200, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
+      }
+    }
+
+    const response = await nativeFetch(input, init);
     if (!carriesSession || LOGIN_PATHS.includes(pathOf(input))) return response;
+    if (isMe && response.ok) {
+      response.clone().json().then((body) => writeMeCache(token, body)).catch(() => {});
+    }
 
     if (response.ok) {
       if (!established) {
@@ -111,7 +165,7 @@
       // menampilkan form masuk; yang seragam di sini hanya pembuangan tokennya,
       // supaya tidak ada halaman yang menyimpan token mati (operations.js sebelumnya
       // membiarkannya).
-      try { sessionStorage.removeItem(SESSION_KEY); } catch { /* penyimpanan tidak tersedia */ }
+      forgetSession();
     }
     return response;
   };

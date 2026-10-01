@@ -1313,3 +1313,30 @@ html.is-session-ended .crm-shell {
 .op-dialog .field-error.is-success {
   color: var(--md-sys-color-tertiary, #1e6b3a);
 }
+
+/* Sesi tersimpan (session-hint.js): kartu "Memeriksa hak akses" dan form masuk tidak
+   dikedipkan selama pengecekan sesi. Bila pengecekan tertahan lebih dari 5 detik,
+   kartunya tetap muncul supaya pengguna tidak menatap layar kosong. */
+html.has-portal-session :is(#monitoring-guard, #operations-guard, #lms-guard, #audit-guard, #staff-login, #portal-login):not([hidden]) {
+  visibility: hidden;
+  animation: konsol-kartu-tampil 0s linear 5s forwards;
+}
+
+@keyframes konsol-kartu-tampil {
+  to { visibility: visible; }
+}
+
+html.has-portal-session body:has(:is(#monitoring-guard, #operations-guard, #lms-guard, #audit-guard, #staff-login, #portal-login):not([hidden]))::after {
+  content: "Memuat konsol...";
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  color: var(--crm-text-muted, #6b6b6b);
+  animation: konsol-memuat-hilang 0s linear 5s forwards;
+}
+
+@keyframes konsol-memuat-hilang {
+  to { visibility: hidden; }
+}
