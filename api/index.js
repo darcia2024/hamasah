@@ -34,6 +34,13 @@ function withQuery(pathname, searchParams) {
 
 function restoreOriginalUrl(rawUrl, headers = {}) {
   const url = new URL(rawUrl || '/', 'http://localhost');
+  // Bentuk lain yang mungkin: alamat asli ditempel di belakang titik masuk,
+  // mis. "/api/index.js/website/biaya.html".
+  const appended = url.pathname.match(/^\/api\/index(?:\.js)?(\/.+)$/);
+  if (appended) {
+    url.searchParams.delete(PATH_PARAM);
+    return withQuery(appended[1], url.searchParams);
+  }
   if (!ENTRY_PATH.test(url.pathname)) return rawUrl;
   if (url.searchParams.has(PATH_PARAM)) {
     const original = `/${String(url.searchParams.get(PATH_PARAM) || '').replace(/^\/+/, '')}`;
@@ -95,10 +102,16 @@ module.exports = async function handler(request, response) {
   }
   const receivedUrl = request.url;
   request.url = restoreOriginalUrl(receivedUrl, request.headers);
-  if (ENTRY_PATH.test(new URL(request.url, 'http://localhost').pathname)) {
-    // Alamat asli tidak bisa dikembalikan. Dicatat untuk diagnosis: alamat yang diterima
-    // dan NAMA header saja (tanpa nilai, supaya cookie atau token tidak ikut tercatat).
-    logEvent('warn', 'rewrite_path_missing', { receivedUrl, headerNames: Object.keys(request.headers || {}).sort().join(',') });
+  const received = new URL(receivedUrl || '/', 'http://localhost');
+  if (received.pathname.startsWith('/api/index')) {
+    // Diagnosis rewrite: path yang diterima dan hasilnya, NAMA parameter dan header saja
+    // (tanpa nilai, supaya kode akses, cookie, atau token tidak ikut tercatat).
+    logEvent('info', 'rewrite_path', {
+      receivedPath: received.pathname,
+      queryNames: [...received.searchParams.keys()].join(','),
+      restoredPath: new URL(request.url, 'http://localhost').pathname,
+      headerNames: Object.keys(request.headers || {}).sort().join(',')
+    });
   }
   return listener(request, response);
 };

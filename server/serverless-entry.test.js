@@ -108,4 +108,7 @@ test('alamat asli pengunjung dikembalikan dari parameter rewrite Vercel', () => 
   assert.equal(restoreOriginalUrl('/api/index.js?id=7', { 'x-now-route-matches': '1=website%2Fcek-status.html' }), '/website/cek-status.html?id=7');
   assert.equal(restoreOriginalUrl('/api/index.js', { 'x-forwarded-uri': '/website/kontak.html?topic=biaya' }), '/website/kontak.html?topic=biaya');
   assert.equal(restoreOriginalUrl('/api/index.js', {}), '/api/index.js');
+  // Alamat asli yang ditempel di belakang titik masuk.
+  assert.equal(restoreOriginalUrl('/api/index.js/website/biaya.html'), '/website/biaya.html');
+  assert.equal(restoreOriginalUrl('/api/index/api/ready?__path=api/ready'), '/api/ready');
 });
