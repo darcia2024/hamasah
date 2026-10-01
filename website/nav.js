@@ -41,15 +41,20 @@ const ROLE_NAV_LABELS = Object.freeze({
   }
 });
 
+// Satu-satunya daftar nama peran yang tampil ke pengguna: chip peran, daftar akun,
+// pilihan peran di formulir, dan filter Jejak Audit memakai nama dari sini.
 const ROLE_DISPLAY_NAMES = Object.freeze({
-  student: 'Santri Aktif',
+  student: 'Santri',
   parent: 'Wali Santri',
   supervisor: 'Musyrif Asrama',
   'registration-officer': 'Petugas Pendaftaran',
-  teacher: 'Tenaga Pengajar / Asatidz',
-  finance: 'Divisi Keuangan',
+  teacher: 'Guru / Asatidz',
+  finance: 'Keuangan',
   admin: 'Super Admin'
 });
+
+// Urutan peran di pilihan formulir dan filter: staf dulu, lalu keluarga, admin terakhir.
+const ROLE_ORDER = Object.freeze(['registration-officer', 'supervisor', 'teacher', 'finance', 'parent', 'student', 'admin']);
 
 const STAFF_NAV_LINKS = Object.freeze([
   {

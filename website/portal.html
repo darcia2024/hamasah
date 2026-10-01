@@ -11,7 +11,7 @@
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
     <link rel="stylesheet" href="staff.css?v=c57890b487" />
-    <link rel="stylesheet" href="portal.css?v=155ca716ef" />
+    <link rel="stylesheet" href="portal.css?v=808a25e8e0" />
     <link rel="stylesheet" href="fields.css?v=40377b19dc" />
     <script src="session-hint.js?v=b0562827f3"></script>
     <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
@@ -179,12 +179,12 @@
                 <label for="account-role">Tingkat hak akses (role)</label>
                 <select id="account-role" class="monitoring-select">
                   <option value="registration-officer">Petugas Pendaftaran</option>
-                  <option value="supervisor">Pengawas / Musyrif Asrama Kairo</option>
-                  <option value="teacher">Guru / Tenaga Pengajar</option>
-                  <option value="finance">Divisi Keuangan &amp; SPP</option>
+                  <option value="supervisor">Musyrif Asrama</option>
+                  <option value="teacher">Guru / Asatidz</option>
+                  <option value="finance">Keuangan</option>
                   <option value="parent">Wali Santri</option>
                   <option value="student">Santri</option>
-                  <option value="admin">Administrator Sistem</option>
+                  <option value="admin">Super Admin</option>
                 </select>
 
                 <label for="account-password">Kata sandi awal (minimal 12 karakter)</label>
@@ -217,12 +217,12 @@
                 <label for="invite-role">Tingkat hak akses (role)</label>
                 <select id="invite-role" class="monitoring-select">
                   <option value="registration-officer">Petugas Pendaftaran</option>
-                  <option value="supervisor">Pengawas / Musyrif Asrama Kairo</option>
-                  <option value="teacher">Guru / Tenaga Pengajar</option>
-                  <option value="finance">Divisi Keuangan &amp; SPP</option>
+                  <option value="supervisor">Musyrif Asrama</option>
+                  <option value="teacher">Guru / Asatidz</option>
+                  <option value="finance">Keuangan</option>
                   <option value="parent">Wali Santri</option>
                   <option value="student">Santri</option>
-                  <option value="admin">Administrator Sistem</option>
+                  <option value="admin">Super Admin</option>
                 </select>
 
                 <button class="button button--secondary" type="submit">Kirim undangan</button>
@@ -236,9 +236,22 @@
                   </div>
                   <div>
                     <h2 class="portal-list-title u-m-0">Daftar akun terdaftar</h2>
-                    <p class="monitoring-hint">Akun aktif internal Hamasah International.</p>
+                    <p class="monitoring-hint">Semua akun staf, wali, dan santri.</p>
                   </div>
                 </div>
+                <!-- Disaring di peramban: /api/accounts sudah mengirim semua akun. Lihat portal.js. -->
+                <div class="account-filter" role="search" aria-label="Saring daftar akun">
+                  <input id="account-search" type="search" placeholder="Cari nama atau email" aria-label="Cari nama atau email" />
+                  <select id="account-role-filter" class="monitoring-select" aria-label="Saring menurut peran">
+                    <option value="">Semua peran</option>
+                  </select>
+                  <select id="account-active-filter" class="monitoring-select" aria-label="Saring menurut status">
+                    <option value="">Semua status</option>
+                    <option value="aktif">Aktif saja</option>
+                    <option value="nonaktif">Nonaktif saja</option>
+                  </select>
+                </div>
+                <p id="account-list-summary" class="monitoring-hint" role="status" aria-live="polite"></p>
                 <div id="account-list" class="portal-account-list"></div>
               </div>
             </div>
@@ -248,9 +261,9 @@
     </section>
 
     <script src="internal-shell.js?v=7219343ccd"></script>
-    <script src="nav.js?v=4bef2fea1d"></script>
+    <script src="nav.js?v=6103df2e5d"></script>
     <script src="admin-overview.js?v=192c57a8c8"></script>
-    <script src="portal.js?v=616d9e4d73"></script>
+    <script src="portal.js?v=a94426460e"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>

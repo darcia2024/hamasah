@@ -1140,6 +1140,8 @@ if (logoutButton) {
       document.querySelectorAll('.staff-only-tab').forEach((el) => { el.hidden = false; });
       staffSection.hidden = false;
     }
+    // Admin datang ke LMS untuk mengelola maddah, bukan belajar: buka tab Kelola lebih dulu.
+    if (role === 'admin' && tabBtnManage) switchLmsTab(tabBtnManage);
     const muatData = () => Promise.all([
       loadStaffCourses(),
       role !== 'teacher' ? loadStudents() : null

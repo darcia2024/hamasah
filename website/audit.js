@@ -99,7 +99,7 @@ function renderEvents(items) {
     judul.textContent = LABEL[event.action] || event.action;
 
     const pelaku = document.createElement('span');
-    const nama = event.actorName || (event.actorRole ? `(akun dihapus, peran ${event.actorRole})` : 'Tanpa sesi');
+    const nama = event.actorName || (event.actorRole ? `(akun dihapus, peran ${ROLE_DISPLAY_NAMES[event.actorRole] || event.actorRole})` : 'Tanpa sesi');
     pelaku.textContent = `${waktu(event.occurredAt)} · ${nama}`;
 
     const rincian = document.createElement('span');
@@ -151,7 +151,7 @@ async function loadActors() {
   // tidak menggandakan daftar.
   const terpilih = filterActor.value;
   filterActor.replaceChildren(filterActor.options[0]);
-  result.items.forEach((account) => filterActor.add(new Option(`${account.name} · ${account.role}`, account.id)));
+  result.items.forEach((account) => filterActor.add(new Option(`${account.name} · ${ROLE_DISPLAY_NAMES[account.role] || account.role}`, account.id)));
   filterActor.value = terpilih;
 }
 

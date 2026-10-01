@@ -259,6 +259,24 @@
   gap: 10px;
 }
 
+/* Pencarian dan filter daftar akun. */
+.account-filter {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.account-filter input,
+.account-filter select {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .account-filter { grid-template-columns: 1fr; }
+}
+
 .portal-account {
   display: flex;
   align-items: center;
@@ -3869,6 +3887,22 @@ body.in-crm #portal-students-status,
   display: grid;
   gap: 6px;
   margin-bottom: 12px;
+}
+
+/* Cari dan saring status invoice di halaman Keuangan. */
+.invoice-filter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.invoice-filter-row select {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .invoice-filter-row { grid-template-columns: 1fr; }
 }
 
 .portal-student-search,

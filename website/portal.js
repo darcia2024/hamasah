@@ -24,15 +24,8 @@ function escapeHtml(value) {
   }[character]));
 }
 
-const roleLabels = {
-  admin: 'Portal Hamasah · Super Admin',
-  'registration-officer': 'Portal pendaftaran',
-  supervisor: 'Konsol musyrif asrama',
-  teacher: 'Portal tenaga pengajar',
-  finance: 'Konsol Keuangan & SPP',
-  parent: 'Portal wali santri',
-  student: 'Portal Santri'
-};
+// Nama peran dari nav.js (dimuat sebelum berkas ini), supaya sama di semua halaman.
+const roleLabels = ROLE_DISPLAY_NAMES;
 
 function getSession() {
   try { return JSON.parse(sessionStorage.getItem('hamasahPortalSession') || 'null'); } catch { return null; }
@@ -871,7 +864,7 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
   if (isAdmin) {
     tabDefs.push({
       id: 'accounts',
-      label: 'Kelola akun internal',
+      label: 'Kelola akun',
       icon: TAB_ICONS.lock,
       count: Array.isArray(accountsList) ? accountsList.length : undefined
     });
@@ -1217,7 +1210,50 @@ async function loadStudents(account) {
   }
 }
 
+// Pencarian dan filter daftar akun. /api/accounts mengirim semua akun sekaligus, jadi
+// penyaringan cukup di peramban; tetap ada setelah daftar dimuat ulang (misalnya
+// sesudah menonaktifkan akun).
+let semuaAkun = [];
+const accountSearch = document.querySelector('#account-search');
+const accountRoleFilter = document.querySelector('#account-role-filter');
+const accountActiveFilter = document.querySelector('#account-active-filter');
+const accountListSummary = document.querySelector('#account-list-summary');
+
+if (accountRoleFilter) {
+  ROLE_ORDER.forEach((role) => accountRoleFilter.add(new Option(ROLE_DISPLAY_NAMES[role], role)));
+}
+[accountSearch, accountRoleFilter, accountActiveFilter].forEach((kontrol) => {
+  if (kontrol) kontrol.addEventListener(kontrol === accountSearch ? 'input' : 'change', () => tampilkanAkun());
+});
+
 function renderAccounts(accounts) {
+  semuaAkun = Array.isArray(accounts) ? accounts : [];
+  tampilkanAkun();
+}
+
+function tampilkanAkun() {
+  const kata = accountSearch ? accountSearch.value.trim().toLocaleLowerCase('id-ID') : '';
+  const peran = accountRoleFilter ? accountRoleFilter.value : '';
+  const status = accountActiveFilter ? accountActiveFilter.value : '';
+  const cocok = semuaAkun.filter((account) => (!peran || account.role === peran)
+    && (!status || (status === 'aktif') === Boolean(account.active))
+    && (!kata || `${account.name} ${account.email}`.toLocaleLowerCase('id-ID').includes(kata)));
+  if (accountListSummary) {
+    accountListSummary.textContent = cocok.length === semuaAkun.length
+      ? `${semuaAkun.length} akun.`
+      : `Menampilkan ${cocok.length} dari ${semuaAkun.length} akun.`;
+  }
+  if (!cocok.length && semuaAkun.length) {
+    const kosong = document.createElement('p');
+    kosong.className = 'form-status';
+    kosong.textContent = 'Tidak ada akun yang cocok dengan pencarian atau filter ini.';
+    accountList.replaceChildren(kosong);
+    return;
+  }
+  gambarDaftarAkun(cocok);
+}
+
+function gambarDaftarAkun(accounts) {
   accountList.replaceChildren();
   accounts.forEach((account) => {
     const item = document.createElement('div');
@@ -1288,10 +1324,7 @@ function renderAccounts(accounts) {
 }
 
 // Peran untuk pilihan di formulir ubah akun.
-const PILIHAN_PERAN = Object.freeze([
-  ['admin', 'Super admin'], ['registration-officer', 'Petugas pendaftaran'], ['supervisor', 'Musyrif'],
-  ['teacher', 'Guru'], ['finance', 'Keuangan'], ['parent', 'Wali santri'], ['student', 'Santri']
-]);
+const PILIHAN_PERAN = Object.freeze(ROLE_ORDER.map((role) => [role, ROLE_DISPLAY_NAMES[role]]));
 
 async function kirimJsonPortal(url, method, body) {
   const response = await fetch(url, {

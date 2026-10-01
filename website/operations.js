@@ -713,6 +713,7 @@ function invoiceRow(invoice) {
 const INVOICE_PAGE_SIZE = 20;
 let invoiceShown = 0;
 let invoiceSearchText = '';
+let invoiceStatusFilter = '';
 let invoiceRequest = 0;
 const invoiceTools = document.createElement('div');
 invoiceTools.className = 'portal-student-tools';
@@ -721,10 +722,21 @@ invoiceSearch.type = 'search';
 invoiceSearch.className = 'portal-student-search';
 invoiceSearch.placeholder = 'Cari nomor, keterangan, atau nama santri...';
 invoiceSearch.setAttribute('aria-label', 'Cari invoice');
+invoiceSearch.id = 'invoice-search';
+// Saring menurut status: belum dibayar, lunas, atau dibatalkan (difilter di server).
+const invoiceStatus = document.createElement('select');
+invoiceStatus.id = 'invoice-status-filter';
+invoiceStatus.className = 'monitoring-select';
+invoiceStatus.setAttribute('aria-label', 'Saring invoice menurut status');
+invoiceStatus.add(new Option('Semua status', ''));
+Object.entries(INVOICE_STATUS_LABELS).forEach(([nilai, teks]) => invoiceStatus.add(new Option(teks, nilai)));
+const invoiceFilterRow = document.createElement('div');
+invoiceFilterRow.className = 'invoice-filter-row';
+invoiceFilterRow.append(invoiceSearch, invoiceStatus);
 const invoiceHint = document.createElement('p');
 invoiceHint.className = 'portal-student-hint';
 invoiceHint.setAttribute('role', 'status');
-invoiceTools.append(invoiceSearch, invoiceHint);
+invoiceTools.append(invoiceFilterRow, invoiceHint);
 invoiceList.before(invoiceTools);
 const invoiceMore = document.createElement('button');
 invoiceMore.type = 'button';
@@ -738,8 +750,8 @@ function renderInvoices(invoices, append) {
   if (!invoices.length && !append) {
     const kosong = document.createElement('p');
     kosong.className = 'form-status';
-    kosong.textContent = invoiceSearchText
-      ? 'Tidak ada invoice yang cocok dengan pencarian.'
+    kosong.textContent = invoiceSearchText || invoiceStatusFilter
+      ? 'Tidak ada invoice yang cocok dengan pencarian atau filter ini.'
       : 'Belum ada invoice. Terbitkan tagihan lewat formulir di atas.';
     invoiceList.append(kosong);
     return;
@@ -756,6 +768,7 @@ async function loadInvoices({ append = false } = {}) {
   params.set('limit', String(append ? INVOICE_PAGE_SIZE : Math.min(100, Math.max(INVOICE_PAGE_SIZE, invoiceShown))));
   params.set('offset', String(offset));
   if (invoiceSearchText) params.set('search', invoiceSearchText);
+  if (invoiceStatusFilter) params.set('status', invoiceStatusFilter);
   invoiceMore.disabled = true;
   try {
     const result = await jsonRequest(`/api/operations/invoices?${params}`, { headers: headers() });
@@ -763,7 +776,7 @@ async function loadInvoices({ append = false } = {}) {
     renderInvoices(result.items, append);
     invoiceShown = offset + result.items.length;
     invoiceMore.hidden = invoiceShown >= result.total;
-    invoiceHint.textContent = result.total > invoiceShown || invoiceSearchText
+    invoiceHint.textContent = result.total > invoiceShown || invoiceSearchText || invoiceStatusFilter
       ? `Menampilkan ${invoiceShown} dari ${result.total} invoice.`
       : '';
   } finally {
@@ -779,6 +792,11 @@ invoiceSearch.addEventListener('input', () => {
     invoiceShown = 0;
     loadInvoices().catch((error) => { invoiceHint.textContent = error.message; });
   }, 250);
+});
+invoiceStatus.addEventListener('change', () => {
+  invoiceStatusFilter = invoiceStatus.value;
+  invoiceShown = 0;
+  loadInvoices().catch((error) => { invoiceHint.textContent = error.message; });
 });
 invoiceMore.addEventListener('click', () => loadInvoices({ append: true }).catch((error) => { invoiceHint.textContent = error.message; }));
 
