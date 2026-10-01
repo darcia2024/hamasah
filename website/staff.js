@@ -817,6 +817,11 @@ function showConsole(account) {
     window.hamasahSaatDataSegar(muatData);
   }
   muatData();
+  // Datang dari ikon surat di topbar Portal (portal.html).
+  if (window.location.hash === '#pesan-konsultasi') {
+    const tabPesan = STAFF_TABS.find((tab) => tab.button === tabBtnInquiries);
+    if (tabPesan) openStaffTab(tabPesan);
+  }
 }
 
 let dataSegarTerpasang = false;

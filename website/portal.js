@@ -989,7 +989,15 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
   // "Musyrif & Asatidzah" yang tidak pernah terisi oleh kode mana pun.
   const userName = account && account.name ? account.name.split(' ')[0] : '';
   const PINTASAN = {
-    admin: [['staff.html', 'Pendaftaran calon santri'], ['monitoring.html', 'Monitoring santri & asrama'], ['operations.html', 'Keuangan, visa, dan inventaris'], ['audit.html', 'Jejak audit']],
+    // Urutannya sama dengan menu samping (nav.js).
+    admin: [
+      ['staff.html', 'Pendaftaran calon santri'],
+      ['monitoring.html', 'Monitoring santri & asrama'],
+      ['lms.html', 'LMS: maddah dan materi'],
+      ['operations.html', 'Keuangan, visa, dan inventaris'],
+      ['audit.html', 'Jejak audit'],
+      ['pengaturan.html', 'Pengaturan aplikasi']
+    ],
     'registration-officer': [['staff.html', 'Pendaftaran calon santri']],
     supervisor: [['monitoring.html', 'Catat kegiatan dan ibadah santri']],
     teacher: [['lms.html', 'Kelola maddah dan materi']],
@@ -1005,9 +1013,14 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
   peran.textContent = roleLabels[account && account.role] || '';
   const jumlah = document.createElement('p');
   jumlah.className = 'portal-greeting__count';
+  // Admin: angka yang sama dengan ringkasan di kiri (santri aktif), sisanya disebut
+  // terpisah supaya 13 dan 14 tidak tampak saling bertentangan.
+  const tidakAktif = ringkasan ? Math.max(0, allTotal - ringkasan.summary.activeStudents) : 0;
   jumlah.textContent = isParent
     ? `${allTotal} ananda terhubung dengan akun ini.`
-    : `${allTotal} santri dapat Anda akses.`;
+    : ringkasan
+      ? `${ringkasan.summary.activeStudents} santri aktif${tidakAktif ? `, ${tidakAktif} sudah lulus atau nonaktif` : ''}.`
+      : `${allTotal} santri dapat Anda akses.`;
   statCard.append(salam, peran, jumlah);
   const tautan = PINTASAN[account && account.role] || [];
   if (tautan.length) {
@@ -1173,6 +1186,7 @@ async function loadStudents(account) {
       ]);
       if (akun.status === 'fulfilled') accountsList = akun.value;
       adminOverview = ringkasan.status === 'fulfilled' ? ringkasan.value : null;
+      perbaruiAngkaPerhatian();
     }
 
     // Santri yang dituju lewat tautan belum tentu ada di halaman pertama. Server yang
@@ -1191,7 +1205,15 @@ async function loadStudents(account) {
         opened = false;
       }
     }
-    if (!opened) renderExecutiveDashboard(null, account, accountsList);
+    if (!opened) {
+      renderExecutiveDashboard(null, account, accountsList);
+      // Datang dari lonceng saat sedang membuka detail santri.
+      if (window.location.hash === '#perhatian') {
+        const daftar = document.querySelector('#admin-perhatian');
+        if (daftar) daftar.scrollIntoView({ block: 'start' });
+        try { history.replaceState(null, '', window.location.pathname); } catch {}
+      }
+    }
   }
 }
 
@@ -1344,6 +1366,10 @@ async function showPortal() {
   // Nama dan peran ditampilkan oleh shell CRM lewat renderStaffNav/updateCrmUserBadges,
   // jadi tidak ada heading sapaan terpisah di kanvas.
   renderStaffNav(staffNav, result.account.role, 'portal', result.account);
+  // Judul tab mengikuti nama menu peran ini (nav.js): Portal Utama, Pantau Ananda, dst.
+  const namaHalaman = (ROLE_NAV_LABELS[result.account.role] || {}).portal;
+  if (namaHalaman) document.title = `${namaHalaman} | Hamasah International`;
+  siapkanIkonTopbar(result.account);
   if (!dataSegarTerpasang) {
     dataSegarTerpasang = true;
     window.hamasahSaatDataSegar(() => loadStudents(currentAccount));
@@ -1352,6 +1378,60 @@ async function showPortal() {
 }
 
 let dataSegarTerpasang = false;
+
+// Ikon di topbar. Surat: pesan konsultasi baru dari formulir kontak (admin dan petugas
+// pendaftaran), membuka tab Pesan konsultasi di staff.html. Lonceng: jumlah "Perlu
+// perhatian" di dashboard admin, menggulir ke daftarnya.
+function isiAngkaIkon(id, jumlah) {
+  const badge = document.querySelector(id);
+  if (!badge) return;
+  badge.hidden = !(jumlah > 0);
+  badge.textContent = jumlah > 99 ? '99+' : String(jumlah || '');
+}
+
+function siapkanIkonTopbar(account) {
+  const role = account && account.role;
+  const pesan = document.querySelector('#topbar-inquiries');
+  const lonceng = document.querySelector('#topbar-attention');
+  if (pesan && ['admin', 'registration-officer'].includes(role)) {
+    pesan.hidden = false;
+    fetch('/api/inquiries?status=new&page=1&pageSize=1', { headers: requestHeaders() })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((hasil) => {
+        if (!hasil) return;
+        isiAngkaIkon('#topbar-inquiries-count', hasil.total);
+        pesan.setAttribute('aria-label', hasil.total ? `Pesan konsultasi, ${hasil.total} baru` : 'Pesan konsultasi');
+      })
+      .catch(() => {});
+  }
+  if (lonceng && role === 'admin' && !lonceng.dataset.siap) {
+    lonceng.dataset.siap = '1';
+    lonceng.hidden = false;
+    lonceng.addEventListener('click', () => {
+      const daftar = document.querySelector('#admin-perhatian');
+      if (daftar) {
+        // Fokus lebih dulu supaya tidak memotong animasi gulir.
+        daftar.focus({ preventScroll: true });
+        daftar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      // Sedang membuka detail santri: kembali ke dashboard lalu gulir ke daftarnya.
+      if (window.location.search) {
+        window.location.assign(`${window.location.pathname}#perhatian`);
+      } else {
+        window.location.hash = 'perhatian';
+        window.location.reload();
+      }
+    });
+  }
+}
+
+function perbaruiAngkaPerhatian() {
+  const jumlah = adminOverview && Array.isArray(adminOverview.alerts) ? adminOverview.alerts.length : 0;
+  isiAngkaIkon('#topbar-attention-count', jumlah);
+  const lonceng = document.querySelector('#topbar-attention');
+  if (lonceng) lonceng.setAttribute('aria-label', jumlah ? `Perlu perhatian, ${jumlah} hal` : 'Perlu perhatian');
+}
 
 portalLoginForm.addEventListener('submit', async (event) => {
   event.preventDefault();

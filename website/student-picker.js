@@ -11,11 +11,17 @@
 // `headers` adalah fungsi yang mengembalikan header Authorization terbaru.
 (function initStudentPicker() {
   const PAGE_SIZE = 20;
+  const STATUS_LABELS = Object.freeze({ graduated: 'Lulus', inactive: 'Nonaktif' });
 
   function attach(select, options = {}) {
     const headers = options.headers || (() => ({}));
     const placeholder = options.placeholder === undefined ? 'Pilih santri' : options.placeholder;
-    const formatLabel = options.formatLabel || ((student) => `${student.name} · ${student.program}`);
+    // Santri yang sudah lulus atau nonaktif tetap bisa dipilih (laporan, tagihan terakhir),
+    // tetapi diberi tanda supaya tidak tertukar dengan santri aktif.
+    const formatLabel = options.formatLabel || ((student) => {
+      const status = STATUS_LABELS[student.status];
+      return `${student.name} · ${student.program}${status ? ` (${status})` : ''}`;
+    });
 
     const search = document.createElement('input');
     search.type = 'search';
@@ -43,7 +49,8 @@
       if (mine !== token) return null;
 
       const current = select.value;
-      const items = result.items || [];
+      // Santri aktif lebih dulu; urutan nama dari server tetap dipertahankan di tiap kelompok.
+      const items = (result.items || []).slice().sort((kiri, kanan) => Number(kiri.status !== 'active') - Number(kanan.status !== 'active'));
       // Santri yang sedang dipilih tetap ada di daftar, walau tidak termasuk hasil pencarian.
       const keep = current && !items.some((student) => student.id === current) ? known.get(current) : null;
       known = new Map(items.map((student) => [student.id, student]));

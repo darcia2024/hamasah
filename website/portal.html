@@ -4,14 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Portal Hamasah International." />
-    <title>Portal Santri &amp; Wali | Hamasah International</title>
+    <title>Portal Hamasah | Hamasah International</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
     <link rel="stylesheet" href="staff.css?v=c57890b487" />
-    <link rel="stylesheet" href="portal.css?v=a446ad35e9" />
+    <link rel="stylesheet" href="portal.css?v=155ca716ef" />
     <link rel="stylesheet" href="fields.css?v=40377b19dc" />
     <script src="session-hint.js?v=b0562827f3"></script>
     <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
@@ -118,11 +118,15 @@
       <div class="crm-workspace">
         <header class="crm-topbar">
           <div class="crm-topbar-actions">
-            <button type="button" class="crm-icon-circle-btn" title="Pesan Broadcast" aria-label="Messages">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-            </button>
-            <button type="button" class="crm-icon-circle-btn" title="Notifikasi Sistem" aria-label="Notifications">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            <!-- Disembunyikan sampai portal.js tahu perannya: pesan konsultasi untuk admin dan
+                 petugas pendaftaran, "Perlu perhatian" hanya untuk admin. -->
+            <a href="staff.html#pesan-konsultasi" class="crm-icon-circle-btn" id="topbar-inquiries" title="Pesan konsultasi" aria-label="Pesan konsultasi" hidden>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              <span class="crm-icon-badge" id="topbar-inquiries-count" hidden></span>
+            </a>
+            <button type="button" class="crm-icon-circle-btn" id="topbar-attention" title="Perlu perhatian" aria-label="Perlu perhatian" hidden>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+              <span class="crm-icon-badge" id="topbar-attention-count" hidden></span>
             </button>
             <div class="crm-profile-pill" id="crm-topbar-profile">
               <div class="crm-profile-pill-avatar" id="crm-topbar-avatar">PG</div>
@@ -245,8 +249,8 @@
 
     <script src="internal-shell.js?v=7219343ccd"></script>
     <script src="nav.js?v=4bef2fea1d"></script>
-    <script src="admin-overview.js?v=657e10bfb7"></script>
-    <script src="portal.js?v=340836b156"></script>
+    <script src="admin-overview.js?v=192c57a8c8"></script>
+    <script src="portal.js?v=616d9e4d73"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>

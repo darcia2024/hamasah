@@ -91,6 +91,8 @@
 
   function perhatian(data, { onOpenStudent }) {
     const wadah = el('section', 'admin-alerts');
+    wadah.id = 'admin-perhatian';
+    wadah.tabIndex = -1;
     const kepala = el('div', 'admin-section-head');
     kepala.append(el('h3', 'admin-section-title', 'Perlu perhatian'),
       el('p', 'admin-section-note', `Diperbarui ${WAKTU.format(new Date(data.generatedAt))}`));
