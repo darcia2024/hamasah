@@ -14,3 +14,5 @@ data/dev-storage/
 coverage/
 .env.*
 !.env.example
+# Folder statis kosong yang dibuat saat build Vercel (lihat vercel.json).
+vercel-static/

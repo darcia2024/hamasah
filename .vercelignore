@@ -12,6 +12,7 @@
 .github
 node_modules
 data/dev-db
+data/dev-storage
 docs
 scripts/*.test.js
 server/**/*.test.js
