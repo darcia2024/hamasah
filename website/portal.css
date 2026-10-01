@@ -6156,3 +6156,27 @@ table,
 .admin-resident .admin-student-name {
   font-size: 14px;
 }
+
+/* Tombol aksi akun (Ubah, Nonaktifkan, Kata sandi sementara) berjajar di area aksi. */
+.portal-account__actions {
+  grid-area: action;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 600px) {
+  .portal-account__actions {
+    grid-area: auto;
+    justify-content: flex-start;
+  }
+}
+
+.lms-material-manager__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}

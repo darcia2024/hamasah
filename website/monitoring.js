@@ -35,6 +35,11 @@ const assignmentStatus = document.querySelector('#assignment-status');
 const assignmentAccount = document.querySelector('#assignment-account');
 const assignmentDormitory = document.querySelector('#assignment-dormitory');
 const assignmentList = document.querySelector('#assignment-list');
+const editStudentButton = document.querySelector('#edit-student');
+const dormitoryList = document.querySelector('#dormitory-list');
+const dormitoryListStatus = document.querySelector('#dormitory-list-status');
+// Data santri yang sedang dibuka, untuk mengisi formulir ubah data.
+let santriTerpilih = null;
 const studentGender = document.querySelector('#student-gender');
 const studentDormitory = document.querySelector('#student-dormitory');
 let currentRole = null;
@@ -251,6 +256,8 @@ async function loadDashboard() {
     recordSection.hidden = true;
     recordTrailSection.hidden = true;
     downloadReport.hidden = true;
+    editStudentButton.hidden = true;
+    santriTerpilih = null;
     placementSection.hidden = true;
     if (monitoringEmptyState) monitoringEmptyState.hidden = false;
     return;
@@ -260,6 +267,9 @@ async function loadDashboard() {
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Dashboard belum dapat dimuat.');
   renderDashboard(result.dashboard); recordSection.hidden = false; recordTrailSection.hidden = false; downloadReport.hidden = false;
+  santriTerpilih = result.dashboard.student;
+  // Mengubah data inti santri hanya untuk admin; musyrif tetap mencatat kegiatan saja.
+  editStudentButton.hidden = currentRole !== 'admin';
   await loadCare(studentId);
   placementSection.hidden = false;
   placementGender.value = result.dashboard.student.gender || '';
@@ -326,7 +336,119 @@ async function loadDormitories() {
   fillDormitorySelect(assignmentDormitory, '', 'Pilih asrama');
   fillDormitorySelect(placementDormitory, placementDormitory.value, 'Belum ditempatkan');
   renderAssignments(result.assignments);
+  renderDormitoryList();
 }
+
+// ---------------------------------------------------------------------------
+// Ubah data master: asrama (ubah, hapus) dan data inti santri. Hanya admin.
+
+async function kirimJson(url, method, body) {
+  const response = await fetch(url, {
+    method,
+    headers: { ...headers(), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  if (response.status === 204) return {};
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || 'Perubahan belum dapat disimpan.');
+  return result;
+}
+
+function renderDormitoryList() {
+  if (!dormitoryList) return;
+  if (!dormitories.length) {
+    dormitoryList.replaceChildren(Object.assign(document.createElement('p'), { className: 'form-status', textContent: 'Belum ada asrama.' }));
+    return;
+  }
+  dormitoryList.replaceChildren(...dormitories.map((asrama) => {
+    const baris = document.createElement('div');
+    baris.className = 'portal-account';
+    const nama = document.createElement('strong');
+    nama.textContent = asrama.name;
+    const info = document.createElement('span');
+    info.textContent = `${asrama.gender === 'putra' ? 'Putra' : 'Putri'} · ${asrama.area} · ${asrama.capacity ? `kapasitas ${asrama.capacity}` : 'kapasitas belum diisi'}`;
+    const aksi = document.createElement('div');
+    aksi.className = 'portal-account__actions';
+    const ubah = document.createElement('button');
+    ubah.type = 'button';
+    ubah.className = 'button button--secondary';
+    ubah.textContent = 'Ubah';
+    ubah.addEventListener('click', () => ubahAsrama(asrama));
+    const hapus = document.createElement('button');
+    hapus.type = 'button';
+    hapus.className = 'button button--secondary';
+    hapus.textContent = 'Hapus';
+    hapus.addEventListener('click', () => hapusAsrama(asrama, hapus));
+    aksi.append(ubah, hapus);
+    baris.append(nama, info, aksi);
+    return baris;
+  }));
+}
+
+async function ubahAsrama(asrama) {
+  const hasil = await window.HamasahDialog.formulir({
+    judul: `Ubah ${asrama.name}`,
+    bidang: [
+      { nama: 'name', label: 'Nama asrama', nilai: asrama.name, wajib: true },
+      { nama: 'area', label: 'Kawasan', nilai: asrama.area, wajib: true },
+      { nama: 'gender', label: 'Kategori penghuni', jenis: 'select', nilai: asrama.gender, pilihan: [['putra', 'Putra (Banin)'], ['putri', 'Putri (Banat)']], petunjuk: 'Kategori hanya bisa diubah bila asrama belum berpenghuni.' },
+      { nama: 'capacity', label: 'Kapasitas (jumlah tempat)', jenis: 'number', min: 0, nilai: asrama.capacity || '', petunjuk: 'Tidak boleh di bawah jumlah penghuni sekarang. Kosongkan bila belum ditentukan.' }
+    ],
+    kirim: (nilai) => kirimJson(`/api/dormitories/${encodeURIComponent(asrama.id)}`, 'PATCH', { ...nilai, capacity: Number(nilai.capacity || 0) })
+  });
+  if (!hasil) return;
+  dormitoryListStatus.classList.remove('is-error');
+  dormitoryListStatus.textContent = `${hasil.dormitory.name} diperbarui.`;
+  await loadDormitories();
+}
+
+async function hapusAsrama(asrama, tombol) {
+  if (!window.confirm(`Hapus ${asrama.name}? Penugasan musyrif di asrama ini ikut dicabut.`)) return;
+  tombol.disabled = true;
+  dormitoryListStatus.classList.remove('is-error');
+  try {
+    await kirimJson(`/api/dormitories/${encodeURIComponent(asrama.id)}`, 'DELETE');
+    dormitoryListStatus.textContent = `${asrama.name} dihapus.`;
+    await loadDormitories();
+  } catch (error) {
+    dormitoryListStatus.textContent = error.message;
+    dormitoryListStatus.classList.add('is-error');
+    tombol.disabled = false;
+  }
+}
+
+const LABEL_STATUS_SANTRI = Object.freeze([['active', 'Aktif'], ['inactive', 'Nonaktif (keluar atau berhenti)'], ['graduated', 'Lulus']]);
+
+async function ubahSantri() {
+  if (!santriTerpilih) return;
+  const s = santriTerpilih;
+  const hasil = await window.HamasahDialog.formulir({
+    judul: `Ubah data ${s.name}`,
+    keterangan: 'Santri yang ditandai nonaktif atau lulus otomatis dilepas dari asramanya. Catatan dan tagihannya tetap tersimpan.',
+    bidang: [
+      { nama: 'name', label: 'Nama lengkap', nilai: s.name, wajib: true },
+      { nama: 'program', label: 'Program studi', nilai: s.program, wajib: true },
+      { nama: 'city', label: 'Kota domisili', nilai: s.city, wajib: true },
+      { nama: 'joinDate', label: 'Tanggal bergabung', jenis: 'date', nilai: s.joinDate, wajib: true },
+      { nama: 'birthDate', label: 'Tanggal lahir', jenis: 'date', nilai: s.birthDate || '' },
+      { nama: 'gender', label: 'Jenis', jenis: 'select', nilai: s.gender || '', pilihan: [['', 'Belum diisi'], ['putra', 'Putra'], ['putri', 'Putri']] },
+      { nama: 'status', label: 'Status', jenis: 'select', nilai: s.status, pilihan: LABEL_STATUS_SANTRI }
+    ],
+    kirim: (nilai) => kirimJson(`/api/students/${encodeURIComponent(s.id)}`, 'PATCH', { ...nilai, birthDate: nilai.birthDate || null, gender: nilai.gender || null })
+  });
+  if (!hasil) return;
+  await loadStudents();
+  studentSelect.value = hasil.student.id;
+  await loadDashboard().catch(() => {});
+  if (hasil.releasedFromDormitory) {
+    await window.HamasahDialog.pesan({
+      judul: 'Data santri diperbarui',
+      isi: [`${hasil.student.name} ditandai ${hasil.student.status === 'graduated' ? 'lulus' : 'nonaktif'} dan sudah dilepas dari asramanya.`]
+    });
+  }
+}
+
+editStudentButton.addEventListener('click', () => ubahSantri().catch(() => {}));
 
 async function loadAssignableAccounts() {
   if (currentRole !== 'admin') return;
@@ -424,7 +546,8 @@ dormitoryForm.addEventListener('submit', async (event) => {
       body: JSON.stringify({
         name: document.querySelector('#dormitory-name').value,
         area: document.querySelector('#dormitory-area').value,
-        gender: document.querySelector('#dormitory-gender').value
+        gender: document.querySelector('#dormitory-gender').value,
+        capacity: Number(document.querySelector('#dormitory-capacity').value || 0)
       })
     });
     const result = await response.json();

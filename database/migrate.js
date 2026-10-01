@@ -212,4 +212,15 @@ if (require.main === module) {
     });
 }
 
-module.exports = { DEFAULT_ENV_FILE, LEDGER_SQL, loadEnvironmentFile, migrate, resolveMigrationUrl };
+module.exports = {
+  DEFAULT_ENV_FILE,
+  LEDGER_SQL,
+  // Dipakai juga oleh server/database-update-service.js (tombol pembaruan di halaman Pengaturan).
+  applyMigration,
+  assertLedgerMatchesFiles,
+  loadEnvironmentFile,
+  migrate,
+  readLedger,
+  resolveMigrationUrl,
+  tableExists
+};

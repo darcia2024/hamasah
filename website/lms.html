@@ -9,8 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
-    <link rel="stylesheet" href="staff.css?v=ad5ed10012" />
-    <link rel="stylesheet" href="portal.css?v=ee02f69ee8" />
+    <link rel="stylesheet" href="staff.css?v=648f55608b" />
+    <link rel="stylesheet" href="portal.css?v=a446ad35e9" />
     <link rel="stylesheet" href="fields.css?v=40377b19dc" />
     <script src="session-hint.js?v=b0562827f3"></script>
     <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
@@ -267,7 +267,10 @@
                   </div>
 
                   <div class="lms-material-manager">
-                    <h4 id="staff-material-title">Materi pada maddah terpilih</h4>
+                    <div class="lms-material-manager__head">
+                      <h4 id="staff-material-title">Materi pada maddah terpilih</h4>
+                      <button type="button" id="edit-course" class="button button--secondary">Ubah maddah</button>
+                    </div>
                     <div id="staff-material-list" class="lms-material-list" aria-live="polite"></div>
                     <p id="staff-material-status" class="form-status" role="status" aria-live="polite"></p>
                   </div>
@@ -303,10 +306,10 @@
       </div>
     </section>
 
-    <script src="internal-shell.js?v=80d564c4fb"></script>
+    <script src="internal-shell.js?v=7219343ccd"></script>
     <script src="nav.js?v=6b165f2d0d"></script>
     <script src="student-picker.js?v=cd591eea97"></script>
-    <script src="lms.js?v=b21b7aa4e5"></script>
+    <script src="lms.js?v=0668ccd635"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>

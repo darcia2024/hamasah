@@ -5,6 +5,7 @@ const STAFF_ROLES = Object.freeze(['admin', 'supervisor']);
 const VIEWER_ROLES = Object.freeze(['admin', 'supervisor', 'parent', 'student']);
 const ATTENDANCE_STATUSES = Object.freeze(['present', 'late', 'excused', 'absent']);
 const GENDERS = Object.freeze(['putra', 'putri']);
+const STUDENT_STATUSES = Object.freeze(['active', 'inactive', 'graduated']);
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -16,6 +17,14 @@ function clean(value) {
 
 function isDate(value) {
   return !Number.isNaN(Date.parse(value));
+}
+
+// Tanggal kalender YYYY-MM-DD yang benar-benar ada (kolom DATE di database).
+function tanggalKalender(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value || ''))) return false;
+  const [tahun, bulan, hari] = String(value).split('-').map(Number);
+  const tanggal = new Date(Date.UTC(tahun, bulan - 1, hari));
+  return tanggal.getUTCFullYear() === tahun && tanggal.getUTCMonth() === bulan - 1 && tanggal.getUTCDate() === hari;
 }
 
 function jakartaDate(value) {
@@ -316,6 +325,57 @@ function createStudentPortalService(options) {
     return { ok: true, value: saved };
   }
 
+  // Perubahan data inti santri oleh admin: identitas, program, dan status. Santri yang
+  // nonaktif atau lulus melepas tempatnya di asrama, dan pelepasan itu tercatat di riwayat
+  // penempatan seperti pemindahan biasa. Menghapus santri sengaja tidak disediakan:
+  // tagihan dan catatan pembinaannya harus tetap bisa ditelusuri.
+  async function updateStudent(studentId, input, actor) {
+    if (!actor || actor.role !== 'admin') {
+      return { ok: false, status: 403, error: 'Akses admin diperlukan.' };
+    }
+    const student = await store.getStudent(studentId);
+    if (!student) {
+      return { ok: false, status: 404, error: 'Santri tidak ditemukan.' };
+    }
+    const source = input || {};
+    const ambil = (key) => (source[key] === undefined ? student[key] : source[key]);
+    const name = clean(ambil('name'));
+    const program = clean(ambil('program'));
+    const city = clean(ambil('city'));
+    const joinDate = clean(ambil('joinDate'));
+    const birthDate = clean(ambil('birthDate')) || null;
+    const gender = clean(ambil('gender')) || null;
+    const status = clean(ambil('status'));
+    if (name.length < 2 || program.length < 2 || city.length < 2 || !tanggalKalender(joinDate)) {
+      return { ok: false, error: 'Data santri belum lengkap atau belum valid.' };
+    }
+    if (birthDate && !tanggalKalender(birthDate)) {
+      return { ok: false, error: 'Tanggal lahir belum valid.' };
+    }
+    if (gender && !GENDERS.includes(gender)) {
+      return { ok: false, error: 'Jenis santri tidak valid.' };
+    }
+    if (!STUDENT_STATUSES.includes(status)) {
+      return { ok: false, error: 'Status santri tidak dikenal.' };
+    }
+
+    const dormitoryId = status === 'active' ? student.dormitoryId : null;
+    if (dormitoryId && gender && gender !== student.gender) {
+      const asrama = await getDormitory(dormitoryId);
+      if (asrama && asrama.gender !== gender) {
+        return { ok: false, error: 'Jenis santri tidak sesuai dengan asramanya sekarang. Pindahkan dulu ke asrama yang sesuai.' };
+      }
+    }
+
+    const saved = await store.saveStudent({ ...student, name, program, city, joinDate, birthDate, gender, status, dormitoryId, updatedAt: now() });
+    if (typeof store.recordPlacement === 'function' && dormitoryId !== student.dormitoryId) {
+      await store.recordPlacement({ id: crypto.randomUUID(), studentId, dormitoryId, actorAccountId: actor.id || null, changedAt: now() });
+    }
+    const changed = ['name', 'program', 'city', 'joinDate', 'birthDate', 'gender', 'status']
+      .filter((key) => (student[key] || null) !== (saved[key] || null));
+    return { ok: true, value: saved, changed, releasedFromDormitory: Boolean(student.dormitoryId && !dormitoryId) };
+  }
+
   async function correctRecord(studentId, collection, recordId, input, actor) {
     if (!assertStaff(actor)) return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
     if (!['activities', 'achievements', 'attendance', 'evaluations', 'violations'].includes(collection)) return { ok: false, error: 'Jenis catatan tidak valid.' };
@@ -384,6 +444,7 @@ function createStudentPortalService(options) {
           program: student.program,
           city: student.city,
           joinDate: student.joinDate,
+          birthDate: student.birthDate || null,
           status: student.status,
           gender: student.gender || null,
           dormitoryId: student.dormitoryId || null,
@@ -503,8 +564,9 @@ function createStudentPortalService(options) {
     correctRecord,
     listForActor,
     listPageForActor,
-    linkAccounts
+    linkAccounts,
+    updateStudent
   });
 }
 
-module.exports = { ATTENDANCE_STATUSES, createMemoryStudentStore, createStudentPortalService };
+module.exports = { ATTENDANCE_STATUSES, STUDENT_STATUSES, createMemoryStudentStore, createStudentPortalService };

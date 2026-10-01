@@ -330,6 +330,164 @@
   });
 }());
 
+// Dialog formulir dan dialog pesan untuk halaman konsol (ubah data santri, asrama, akun,
+// maddah). Satu bentuk untuk semua halaman, dan semua isi dibangun lewat textContent.
+(function initDialogKonsol() {
+  let urutan = 0;
+
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined && text !== null) node.textContent = text;
+    return node;
+  }
+
+  // bidang: [{ nama, label, jenis: text|email|date|number|select|textarea, nilai, pilihan:
+  // [[nilai, teks]], wajib, petunjuk }]. kirim(nilai) menyimpan dan boleh melempar Error;
+  // pesannya ditampilkan di dialog. Hasil Promise: jawaban kirim, atau null bila dibatalkan.
+  function formulir({ judul, keterangan = '', bidang = [], labelSimpan = 'Simpan', kirim }) {
+    return new Promise((resolve) => {
+      urutan += 1;
+      const awalan = `dialog-konsol-${urutan}`;
+      const dialog = el('dialog', 'op-dialog');
+      dialog.setAttribute('aria-labelledby', `${awalan}-judul`);
+      const form = el('form', 'staff-form op-dialog__form');
+      form.method = 'post';
+      form.noValidate = true;
+      const kepala = el('h3', '', judul);
+      kepala.id = `${awalan}-judul`;
+      form.append(kepala);
+      if (keterangan) form.append(el('p', 'op-dialog__summary', keterangan));
+
+      const kontrol = {};
+      bidang.forEach((b) => {
+        const id = `${awalan}-${b.nama}`;
+        const wadah = el('div', 'op-dialog__field');
+        const label = el('label', '', b.label);
+        label.htmlFor = id;
+        let input;
+        if (b.jenis === 'select') {
+          input = el('select');
+          (b.pilihan || []).forEach(([nilai, teks]) => input.add(new Option(teks, nilai)));
+        } else if (b.jenis === 'textarea') {
+          input = el('textarea');
+          input.rows = 3;
+        } else {
+          input = el('input');
+          input.type = b.jenis || 'text';
+          if (b.min !== undefined) input.min = String(b.min);
+        }
+        input.id = id;
+        input.name = b.nama;
+        input.value = b.nilai === undefined || b.nilai === null ? '' : String(b.nilai);
+        if (b.wajib) input.required = true;
+        wadah.append(label, input);
+        if (b.petunjuk) {
+          const petunjuk = el('p', 'op-dialog__hint', b.petunjuk);
+          petunjuk.id = `${id}-petunjuk`;
+          input.setAttribute('aria-describedby', petunjuk.id);
+          wadah.append(petunjuk);
+        }
+        form.append(wadah);
+        kontrol[b.nama] = input;
+      });
+
+      const pesan = el('p', 'field-error');
+      pesan.setAttribute('role', 'alert');
+      const aksi = el('div', 'op-dialog__actions');
+      const batal = el('button', 'button button--secondary', 'Batal');
+      batal.type = 'button';
+      const simpan = el('button', 'button button--primary', labelSimpan);
+      simpan.type = 'submit';
+      aksi.append(batal, simpan);
+      form.append(pesan, aksi);
+      dialog.append(form);
+      document.body.append(dialog);
+
+      let hasil = null;
+      batal.addEventListener('click', () => dialog.close());
+      dialog.addEventListener('close', () => {
+        dialog.remove();
+        resolve(hasil);
+      });
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const nilai = Object.fromEntries(Object.entries(kontrol).map(([nama, input]) => [nama, input.value.trim()]));
+        const kosong = bidang.find((b) => b.wajib && !nilai[b.nama]);
+        if (kosong) {
+          pesan.textContent = `${kosong.label} wajib diisi.`;
+          kontrol[kosong.nama].focus();
+          return;
+        }
+        simpan.disabled = true;
+        simpan.textContent = 'Menyimpan...';
+        pesan.textContent = '';
+        try {
+          const jawaban = await kirim(nilai);
+          hasil = jawaban === undefined ? true : jawaban;
+          dialog.close();
+        } catch (error) {
+          pesan.textContent = error.message || 'Perubahan belum dapat disimpan.';
+          simpan.disabled = false;
+          simpan.textContent = labelSimpan;
+        }
+      });
+
+      dialog.showModal();
+      const pertama = Object.values(kontrol)[0];
+      if (pertama) pertama.focus();
+    });
+  }
+
+  // Dialog informasi. rahasia (misalnya kata sandi sementara) tampil sekali dengan tombol
+  // salin; dialog baru tertutup saat admin menekan Selesai.
+  function pesan({ judul, isi = [], rahasia = null, labelRahasia = '' }) {
+    return new Promise((resolve) => {
+      urutan += 1;
+      const dialog = el('dialog', 'op-dialog');
+      dialog.setAttribute('aria-labelledby', `dialog-konsol-${urutan}-judul`);
+      const badan = el('div', 'op-dialog__form');
+      const kepala = el('h3', '', judul);
+      kepala.id = `dialog-konsol-${urutan}-judul`;
+      badan.append(kepala);
+      isi.forEach((teks) => badan.append(el('p', 'op-dialog__text', teks)));
+      const status = el('p', 'op-dialog__hint');
+      status.setAttribute('role', 'status');
+      const aksi = el('div', 'op-dialog__actions');
+      if (rahasia) {
+        if (labelRahasia) badan.append(el('p', 'op-dialog__hint', labelRahasia));
+        badan.append(el('code', 'op-dialog__secret', rahasia));
+        const salin = el('button', 'button button--secondary', 'Salin');
+        salin.type = 'button';
+        salin.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(rahasia);
+            status.textContent = 'Tersalin.';
+          } catch {
+            status.textContent = 'Browser menolak menyalin. Blok teksnya lalu salin manual.';
+          }
+        });
+        aksi.append(salin);
+      }
+      const selesai = el('button', 'button button--primary', 'Selesai');
+      selesai.type = 'button';
+      selesai.addEventListener('click', () => dialog.close());
+      aksi.append(selesai);
+      badan.append(status, aksi);
+      dialog.append(badan);
+      dialog.addEventListener('close', () => {
+        dialog.remove();
+        resolve();
+      });
+      document.body.append(dialog);
+      dialog.showModal();
+      selesai.focus();
+    });
+  }
+
+  window.HamasahDialog = Object.freeze({ formulir, pesan });
+}());
+
 (function initInternalShell() {
   const shell = document.querySelector('.crm-shell');
   const sidebar = document.querySelector('#crm-sidebar');

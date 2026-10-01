@@ -954,6 +954,49 @@ async function loadStudents() {
   if (page && page.total === 1 && page.items.length === 1) { studentSelect.value = page.items[0].id; await loadCourses(); }
 }
 
+// Ubah judul dan deskripsi maddah terpilih. Admin juga bisa memindahkannya ke guru lain.
+const editCourseButton = document.querySelector('#edit-course');
+if (editCourseButton) {
+  editCourseButton.addEventListener('click', async () => {
+    const course = staffCourses.find((item) => item.id === materialCourse.value);
+    if (!course) {
+      staffMaterialStatus.textContent = 'Pilih maddah lebih dulu.';
+      return;
+    }
+    const bidang = [
+      { nama: 'title', label: 'Judul maddah', nilai: course.title, wajib: true },
+      { nama: 'description', label: 'Deskripsi', jenis: 'textarea', nilai: course.description, wajib: true }
+    ];
+    if (role === 'admin') {
+      const response = await fetch('/api/accounts', { headers: headers() });
+      const akun = response.ok ? (await response.json()).items || [] : [];
+      const guru = akun.filter((item) => item.role === 'teacher' && item.active);
+      bidang.push({
+        nama: 'ownerAccountId', label: 'Guru pengampu', jenis: 'select', nilai: course.ownerAccountId || '',
+        pilihan: [['', 'Belum ada guru (dikelola admin)'], ...guru.map((item) => [item.id, `${item.name} · ${item.email}`])],
+        petunjuk: 'Guru pengampu yang bisa mengelola materi dan menilai tugas maddah ini.'
+      });
+    }
+    const hasil = await window.HamasahDialog.formulir({
+      judul: `Ubah ${course.title}`,
+      bidang,
+      async kirim(nilai) {
+        const body = { title: nilai.title, description: nilai.description };
+        if (role === 'admin') body.ownerAccountId = nilai.ownerAccountId || null;
+        const response = await fetch(`/api/courses/${encodeURIComponent(course.id)}`, {
+          method: 'PATCH', headers: { ...headers(), 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || 'Maddah belum dapat diubah.');
+        return result;
+      }
+    });
+    if (!hasil) return;
+    await loadStaffCourses();
+    staffMaterialStatus.textContent = `${hasil.course.title} diperbarui.`;
+  });
+}
+
 materialCourse.addEventListener('change', () => {
   renderStaffMaterials();
   loadSubmissions().catch(() => {});

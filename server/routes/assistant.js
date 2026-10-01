@@ -8,7 +8,12 @@ module.exports = [
     method: 'POST',
     pattern: /^\/api\/assistant\/ask$/,
     rateLimit: { rule: 'assistant-ask', identity: ({ ip }) => ip },
-    async handler({ response, readBody }) {
+    async handler({ response, readBody, services }) {
+      // Saklar "Asisten di website" di halaman Pengaturan.
+      if (!(await services.settingsService.ambil('asisten.situs'))) {
+        json(response, 503, { error: 'Asisten sedang tidak aktif. Silakan hubungi admin lewat WhatsApp.', nonaktif: true });
+        return;
+      }
       const body = await readBody();
       // history: beberapa giliran terakhir, supaya pertanyaan lanjutan ("kalau yang putri?") dipahami.
       json(response, 200, await ask(body.question, { history: body.history }));

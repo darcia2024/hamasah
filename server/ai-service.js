@@ -19,7 +19,9 @@ function createAiService(options) {
   const config = options || {};
   const provider = config.provider || null;
   const now = config.now || (() => Date.now());
-  const maxRequests = Number.isInteger(config.maxRequests) && config.maxRequests > 0 ? config.maxRequests : DEFAULT_MAX_REQUESTS;
+  // maxRequests boleh angka tetap atau fungsi (async) yang membaca halaman Pengaturan.
+  const bacaBatas = typeof config.maxRequests === 'function' ? config.maxRequests : null;
+  let maxRequests = Number.isInteger(config.maxRequests) && config.maxRequests > 0 ? config.maxRequests : DEFAULT_MAX_REQUESTS;
   const windowMs = Number.isInteger(config.windowMs) && config.windowMs > 0 ? config.windowMs : DEFAULT_WINDOW_MS;
   const timeoutMs = Number.isInteger(config.timeoutMs) && config.timeoutMs > 0 ? config.timeoutMs : DEFAULT_TIMEOUT_MS;
   const logger = config.logger || null;
@@ -28,6 +30,17 @@ function createAiService(options) {
 
   function accountKey(actor) {
     return cleanText(actor && (actor.id || actor.accountId), 160) || 'anonymous';
+  }
+
+  async function perbaruiBatas() {
+    if (!bacaBatas) return;
+    try {
+      const batas = Number(await bacaBatas());
+      if (Number.isInteger(batas) && batas > 0) maxRequests = batas;
+    } catch (error) {
+      // Batas terakhir yang diketahui tetap dipakai bila pengaturan gagal dibaca.
+      if (logger && typeof logger.warn === 'function') logger.warn(`[ai] batas pertanyaan gagal dibaca: ${error.message}`);
+    }
   }
 
   function consume(actor) {
@@ -77,6 +90,7 @@ function createAiService(options) {
     const fallback = cleanText(source.fallbackAnswer, 4000) || 'Pelajari rangkuman dan poin penting di atas. Jika masih bingung, diskusikan bersama pembina.';
     counters.total += 1;
     if (!question) return { ok: false, error: 'Pertanyaan belum diisi.' };
+    await perbaruiBatas();
     const quota = consume(source.actor);
     if (!quota.allowed) return { ok: false, error: 'Batas pertanyaan AI sementara tercapai. Coba lagi setelah beberapa saat.', retryAfterMs: quota.retryAfterMs };
     if (isPromptInjection(question)) {

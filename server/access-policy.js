@@ -29,6 +29,8 @@ const PERMISSIONS = Object.freeze({
   'overview.read': Object.freeze([ROLES.ADMIN]),
   // Mengisi, mengganti kata sandi, dan menghapus data demo dari dashboard.
   'demo.manage': Object.freeze([ROLES.ADMIN]),
+  // Halaman Pengaturan: saklar fitur dan pembaruan database.
+  'settings.manage': Object.freeze([ROLES.ADMIN]),
 
   'registrations.read': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
   'registrations.update-status': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
@@ -45,6 +47,8 @@ const PERMISSIONS = Object.freeze({
 
   // Mencatat dan mengubah data santri. Wali dan santri tidak pernah menulis.
   'students.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
+  // Mengubah data inti santri (nama, program, status lulus atau keluar). Hanya admin.
+  'students.edit': Object.freeze([ROLES.ADMIN]),
   // Membaca data santri. Siapa yang boleh melihat santri yang mana tetap ditentukan
   // service: wali hanya anaknya, santri hanya dirinya sendiri.
   'students.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.PARENT, ROLES.STUDENT]),

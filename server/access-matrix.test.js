@@ -157,6 +157,10 @@ async function run() {
       { permission: 'demo.manage', method: 'POST', path: '/api/admin/demo-data/langkah', body: () => ({ langkah: 'tidak-ada' }) },
       { permission: 'demo.manage', method: 'POST', path: '/api/admin/demo-data/hapus', body: () => ({ konfirmasi: 'bukan' }) },
       { permission: 'demo.manage', method: 'POST', path: '/api/admin/demo-data/sandi' },
+      { permission: 'settings.manage', method: 'GET', path: '/api/admin/settings' },
+      // Tanpa perubahan dan database yang sudah lengkap: admin mendapat 200 tanpa mengubah apa pun.
+      { permission: 'settings.manage', method: 'PUT', path: '/api/admin/settings', body: () => ({ nilai: {} }) },
+      { permission: 'settings.manage', method: 'POST', path: '/api/admin/settings/database' },
 
       { permission: 'dormitories.manage', method: 'GET', path: '/api/dormitories' },
       {
@@ -166,6 +170,11 @@ async function run() {
       { permission: 'dormitories.manage', method: 'POST', path: () => `/api/dormitories/${dormitoryId}/staff/${akunId[R.SUPERVISOR]}` },
       { permission: 'dormitories.manage', method: 'DELETE', path: () => `/api/dormitories/${dormitoryId}/staff/${akunId[R.SUPERVISOR]}` },
 
+      { permission: 'students.edit', method: 'PATCH', path: () => `/api/students/${studentId}`, body: () => ({ city: 'Kairo' }) },
+      { permission: 'dormitories.manage', method: 'PATCH', path: () => `/api/dormitories/${dormitoryId}`, body: () => ({ area: 'Hay Asyir' }) },
+      { permission: 'accounts.manage', method: 'PATCH', path: () => `/api/accounts/${akunId[R.TEACHER]}`, body: () => ({ name: 'Akun teacher' }) },
+      { permission: 'accounts.manage', method: 'POST', path: () => `/api/accounts/00000000-0000-4000-8000-000000000000/password-reset` },
+      { permission: 'courses.manage', method: 'PATCH', path: () => `/api/courses/${courseId}`, body: () => ({ title: 'Nahwu Matriks' }) },
       { permission: 'students.read', method: 'GET', path: '/api/my-students' },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/dashboard` },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/report` },
@@ -337,6 +346,7 @@ async function run() {
     // Endpoint publik tetap terbuka tanpa sesi.
     assert.equal((await request(baseUrl, 'GET', '/api/health')).status, 200);
     assert.equal((await request(baseUrl, 'GET', '/api/articles')).status, 200);
+    assert.equal((await request(baseUrl, 'GET', '/api/settings/public')).status, 200);
     assert.equal((await request(baseUrl, 'POST', '/api/faq/ask', { body: { question: 'Bagaimana cara mendaftar?' } })).status, 200);
 
     console.log(`access matrix tests passed (${matriks.length} endpoint x ${SEMUA_ROLE.length} role = ${jumlahPemeriksaan} pemeriksaan)`);

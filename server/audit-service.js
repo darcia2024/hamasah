@@ -68,6 +68,14 @@ const ACTIONS = Object.freeze({
   ,DEMO_DATA_STARTED: 'demo.data-started'
   ,DEMO_DATA_PASSWORD_RESET: 'demo.password-reset'
   ,DEMO_DATA_DELETED: 'demo.data-deleted'
+  ,STUDENT_UPDATED: 'student.updated'
+  ,DORMITORY_UPDATED: 'dormitory.updated'
+  ,DORMITORY_DELETED: 'dormitory.deleted'
+  ,ACCOUNT_UPDATED: 'account.updated'
+  ,ACCOUNT_PASSWORD_RESET_BY_ADMIN: 'account.password-reset-by-admin'
+  ,COURSE_UPDATED: 'course.updated'
+  ,SETTINGS_UPDATED: 'settings.updated'
+  ,DATABASE_UPDATED: 'database.updated'
 });
 
 const ACTION_VALUES = Object.freeze(Object.values(ACTIONS));

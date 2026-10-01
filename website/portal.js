@@ -1242,9 +1242,89 @@ function renderAccounts(accounts) {
       }
     });
 
-    item.append(head, copy, action);
+    const ubah = document.createElement('button');
+    ubah.type = 'button';
+    ubah.className = 'button button--secondary portal-account__action';
+    ubah.textContent = 'Ubah';
+    ubah.addEventListener('click', () => ubahAkun(account));
+
+    const aksi = document.createElement('div');
+    aksi.className = 'portal-account__actions';
+    aksi.append(ubah, action);
+    if (!currentAccount || account.id !== currentAccount.id) {
+      const sandi = document.createElement('button');
+      sandi.type = 'button';
+      sandi.className = 'button button--secondary portal-account__action';
+      sandi.textContent = 'Kata sandi sementara';
+      sandi.addEventListener('click', () => buatSandiSementara(account, sandi));
+      aksi.append(sandi);
+    }
+
+    item.append(head, copy, aksi);
     accountList.append(item);
   });
+}
+
+// Peran untuk pilihan di formulir ubah akun.
+const PILIHAN_PERAN = Object.freeze([
+  ['admin', 'Super admin'], ['registration-officer', 'Petugas pendaftaran'], ['supervisor', 'Musyrif'],
+  ['teacher', 'Guru'], ['finance', 'Keuangan'], ['parent', 'Wali santri'], ['student', 'Santri']
+]);
+
+async function kirimJsonPortal(url, method, body) {
+  const response = await fetch(url, {
+    method,
+    headers: { ...requestHeaders(), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || 'Perubahan belum dapat disimpan.');
+  return result;
+}
+
+async function ubahAkun(account) {
+  const diriSendiri = currentAccount && account.id === currentAccount.id;
+  const hasil = await window.HamasahDialog.formulir({
+    judul: `Ubah akun ${account.name}`,
+    keterangan: 'Bila email atau peran diubah, akun ini keluar dari semua perangkat dan perlu masuk lagi.',
+    bidang: [
+      { nama: 'name', label: 'Nama', nilai: account.name, wajib: true },
+      { nama: 'email', label: 'Email', jenis: 'email', nilai: account.email, wajib: true },
+      {
+        nama: 'role', label: 'Peran', jenis: 'select', nilai: account.role, pilihan: PILIHAN_PERAN,
+        petunjuk: diriSendiri ? 'Peran akun yang sedang dipakai tidak dapat diubah sendiri.' : 'Musyrif yang diganti perannya otomatis dilepas dari asramanya.'
+      }
+    ],
+    kirim: (nilai) => kirimJsonPortal(`/api/accounts/${encodeURIComponent(account.id)}`, 'PATCH', nilai)
+  });
+  if (!hasil) return;
+  accountFormStatus.classList.remove('is-error');
+  accountFormStatus.textContent = hasil.changed && hasil.changed.length
+    ? `Akun ${hasil.account.name} diperbarui.${hasil.sessionsRevoked ? ` ${hasil.sessionsRevoked} sesi dicabut.` : ''}`
+    : 'Tidak ada yang berubah.';
+  await loadAccounts();
+}
+
+async function buatSandiSementara(account, tombol) {
+  if (!window.confirm(`Buat kata sandi sementara untuk ${account.name}? Kata sandi lamanya langsung tidak berlaku dan semua sesinya berakhir.`)) return;
+  tombol.disabled = true;
+  try {
+    const hasil = await kirimJsonPortal(`/api/accounts/${encodeURIComponent(account.id)}/password-reset`, 'POST');
+    await window.HamasahDialog.pesan({
+      judul: `Kata sandi sementara ${account.name}`,
+      isi: [
+        'Berikan kata sandi ini langsung ke pemilik akun, misalnya lewat WhatsApp pribadi. Kata sandi hanya ditampilkan sekali.',
+        'Setelah masuk, minta pemilik akun menggantinya lewat menu Ganti kata sandi.'
+      ],
+      labelRahasia: `Masuk dengan email ${account.email}`,
+      rahasia: hasil.temporaryPassword
+    });
+  } catch (error) {
+    accountFormStatus.textContent = error.message || 'Kata sandi sementara belum dapat dibuat.';
+    accountFormStatus.classList.add('is-error');
+  } finally {
+    tombol.disabled = false;
+  }
 }
 
 async function showPortal() {

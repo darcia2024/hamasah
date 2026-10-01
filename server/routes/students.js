@@ -119,6 +119,27 @@ module.exports = [
     }
   },
 
+  // Ubah data inti santri (nama, program, kota, tanggal, jenis, status). Hanya admin.
+  {
+    method: 'PATCH',
+    pattern: /^\/api\/students\/([\w-]+)$/,
+    permission: 'students.edit',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const hasil = await services.studentPortalService.updateStudent(params[0], await readBody(), await auth.actor());
+      if (hasil.ok && hasil.changed.length) {
+        // Hanya nama kolom dan status yang dicatat, bukan isi data pribadinya.
+        await services.auditService.record({
+          action: ACTIONS.STUDENT_UPDATED, actor: await auth.actor(), ip,
+          entityType: 'student', entityId: params[0],
+          metadata: { fields: hasil.changed.join(', '), status: hasil.value.status }
+        });
+      }
+      json(response, hasil.ok ? 200 : (hasil.status || 422), hasil.ok
+        ? { student: hasil.value, changed: hasil.changed, releasedFromDormitory: hasil.releasedFromDormitory }
+        : publicError(hasil));
+    }
+  },
+
   {
     method: 'GET',
     pattern: /^\/api\/students\/([\w-]+)\/dashboard$/,

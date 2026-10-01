@@ -53,7 +53,13 @@ const LABEL = {
   'invoice.receipt-downloaded': 'Kuitansi diunduh',
   'demo.data-started': 'Pengisian data demo dimulai',
   'demo.password-reset': 'Kata sandi akun demo diganti',
-  'demo.data-deleted': 'Data demo dihapus'
+  'demo.data-deleted': 'Data demo dihapus',
+  'student.updated': 'Data santri diubah',
+  'dormitory.updated': 'Asrama diubah',
+  'dormitory.deleted': 'Asrama dihapus',
+  'account.updated': 'Akun diubah',
+  'account.password-reset-by-admin': 'Kata sandi sementara dibuat admin',
+  'course.updated': 'Maddah diubah'
 };
 
 function session() {

@@ -48,6 +48,23 @@ function createPostgresDormitoryStore({ database } = {}) {
       return toDormitory(rows[0]);
     },
 
+    async updateDormitory(dormitory) {
+      const { rows } = await database.query(
+        `UPDATE dormitories SET name = $2, area = $3, gender = $4, capacity = $5, updated_at = $6
+         WHERE id = $1
+         RETURNING id, name, area, gender, capacity, created_at, updated_at`,
+        [dormitory.id, dormitory.name, dormitory.area, dormitory.gender, dormitory.capacity || 0, dormitory.updatedAt]
+      );
+      return rows[0] ? toDormitory(rows[0]) : null;
+    },
+
+    // Penugasan musyrif ikut terhapus (ON DELETE CASCADE); riwayat penempatan santri
+    // tetap ada dengan asrama kosong (ON DELETE SET NULL).
+    async deleteDormitory(id) {
+      const { rows } = await database.query('DELETE FROM dormitories WHERE id = $1 RETURNING id', [id]);
+      return rows.length > 0;
+    },
+
     // Id asrama yang ditugaskan kepada satu akun staf.
     async dormitoriesForStaff(accountId) {
       const { rows } = await database.query(

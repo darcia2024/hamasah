@@ -65,7 +65,7 @@ function petakan(rows, kunci = 'student_id') {
   return new Map(rows.map((row) => [row[kunci], row]));
 }
 
-function createAdminOverviewService({ database, healthEnabled = false, now = () => new Date() } = {}) {
+function createAdminOverviewService({ database, healthEnabled: kesehatanAktif = false, now = () => new Date() } = {}) {
   if (!database) throw new Error('createAdminOverviewService membutuhkan database.');
 
   async function ambil(sql, params = []) {
@@ -81,6 +81,8 @@ function createAdminOverviewService({ database, healthEnabled = false, now = () 
     const awal14 = geserHari(hariIni, -13);
     const awal30 = geserHari(hariIni, -29);
     const sejak7 = new Date(saatIni.getTime() - 7 * HARI_MS).toISOString();
+    // Nilai tetap atau fungsi yang membaca halaman Pengaturan.
+    const healthEnabled = Boolean(typeof kesehatanAktif === 'function' ? await kesehatanAktif() : kesehatanAktif);
 
     // Santri aktif beserta data dasarnya. Tanggal diambil sebagai teks supaya tidak
     // bergeser oleh zona waktu server.

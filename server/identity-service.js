@@ -49,6 +49,14 @@ function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+// Kata sandi sementara dari admin: mudah dibaca dan diketik ulang, tanpa huruf besar
+// dan tanpa karakter yang mirip (l, 1, o, 0, i). Panjangnya memenuhi validatePassword.
+const HURUF_SEMENTARA = 'abcdefghjkmnpqrstuvwxyz23456789';
+function kataSandiSementara() {
+  const kelompok = Array.from({ length: 3 }, () => Array.from({ length: 4 }, () => HURUF_SEMENTARA[crypto.randomInt(HURUF_SEMENTARA.length)]).join(''));
+  return `sementara-${kelompok.join('-')}`;
+}
+
 function normalizeEmail(value) {
   return String(value || '').trim().toLocaleLowerCase('en-US');
 }
@@ -242,6 +250,11 @@ function createIdentityService(options) {
   const accountStore = config.accountStore || createMemoryAccountStore();
   const sessionStore = config.sessionStore || createMemorySessionStore();
   const now = config.now || function currentTime() { return new Date(); };
+  // Hubungan akun dengan data santri ({ parent, student }: jumlah), untuk mencegah akun
+  // wali atau santri yang masih terhubung diganti perannya. Diisi app.js.
+  const accountLinks = config.accountLinks || async function tanpaRelasi() { return { parent: 0, student: 0 }; };
+  // Dipanggil setelah peran berubah, misalnya untuk mencabut penugasan asrama musyrif.
+  const onRoleChanged = config.onRoleChanged || async function tanpaTindakan() {};
   const consumedInvitationTokenHashes = new Set();
   const consumedResetTokenHashes = new Set();
 
@@ -363,6 +376,79 @@ function createIdentityService(options) {
     const disimpan = await accountStore.save({ ...account, active: Boolean(active), updatedAt: now().toISOString() });
     const dicabut = active ? 0 : await logoutAll(accountId);
     return { ok: true, value: { account: publicAccount(disimpan), sessionsRevoked: dicabut } };
+  }
+
+  // Admin mengubah nama, email, atau peran akun lain. Pengaman:
+  //   - peran akun sendiri tidak bisa diubah (supaya admin tidak mengunci dirinya),
+  //   - admin aktif terakhir tidak bisa diturunkan,
+  //   - akun wali atau santri yang masih terhubung ke data santri tidak bisa diganti
+  //     perannya; hubungannya harus dilepas dulu.
+  // Sesi akun itu dicabut bila email atau perannya berubah, supaya hak barunya langsung
+  // berlaku dan tidak ada sesi lama yang membawa peran lama.
+  async function updateAccount(accountId, input, actor) {
+    if (!actor || actor.role !== ROLES.ADMIN) {
+      return { ok: false, status: 403, error: 'Akses admin diperlukan.' };
+    }
+    const account = await accountStore.getById(accountId);
+    if (!account) {
+      return { ok: false, status: 404, error: 'Akun tidak ditemukan.' };
+    }
+    const source = input || {};
+    const name = String(source.name === undefined ? account.name : source.name).trim();
+    const email = normalizeEmail(source.email === undefined ? account.email : source.email);
+    const role = source.role === undefined ? account.role : source.role;
+    if (!/^\S+@\S+\.\S+$/.test(email) || name.length < 2 || !ROLE_VALUES.includes(role)) {
+      return { ok: false, error: 'Nama, email, atau peran belum valid.' };
+    }
+    if (email !== account.email && await accountStore.getByEmail(email)) {
+      return { ok: false, error: 'Email sudah digunakan akun lain.' };
+    }
+    if (role !== account.role) {
+      if (account.id === actor.id) {
+        return { ok: false, error: 'Peran akun yang sedang dipakai tidak dapat diubah sendiri.' };
+      }
+      if (account.role === ROLES.ADMIN && account.active) {
+        const adminAktif = (await accountStore.list()).filter((item) => item.role === ROLES.ADMIN && item.active).length;
+        if (adminAktif <= 1) {
+          return { ok: false, error: 'Minimal harus ada satu admin aktif.' };
+        }
+      }
+      const relasi = await accountLinks(accountId);
+      if ((account.role === ROLES.PARENT && relasi.parent > 0) || (account.role === ROLES.STUDENT && relasi.student > 0)) {
+        return { ok: false, error: 'Akun ini masih terhubung ke data santri. Lepaskan hubungannya dulu di halaman Monitoring.' };
+      }
+    }
+    const saved = await accountStore.save({ ...account, name, email, role, updatedAt: now().toISOString() });
+    if (role !== account.role) await onRoleChanged(accountId, account.role, role);
+    const changed = ['name', 'email', 'role'].filter((key) => account[key] !== saved[key]);
+    const sessionsRevoked = changed.includes('email') || changed.includes('role') ? await logoutAll(accountId) : 0;
+    return { ok: true, value: { account: publicAccount(saved), changed, previousRole: account.role, sessionsRevoked } };
+  }
+
+  // Admin membuatkan kata sandi sementara untuk akun lain, misalnya staf yang lupa
+  // kata sandi sementara email belum bisa dikirim. Kata sandi hanya dikembalikan sekali;
+  // sesi lama akun itu dicabut dan tautan reset yang masih berlaku dibatalkan.
+  async function resetPasswordByAdmin(accountId, actor) {
+    if (!actor || actor.role !== ROLES.ADMIN) {
+      return { ok: false, status: 403, error: 'Akses admin diperlukan.' };
+    }
+    const account = await accountStore.getById(accountId);
+    if (!account) {
+      return { ok: false, status: 404, error: 'Akun tidak ditemukan.' };
+    }
+    if (account.id === actor.id) {
+      return { ok: false, error: 'Untuk akun sendiri, pakai menu Ganti kata sandi.' };
+    }
+    const kataSandi = kataSandiSementara();
+    const saved = await accountStore.save({
+      ...account,
+      passwordHash: await hashPassword(kataSandi),
+      resetTokenHash: null,
+      resetExpiresAt: null,
+      updatedAt: now().toISOString()
+    });
+    const sessionsRevoked = await logoutAll(accountId);
+    return { ok: true, value: { account: publicAccount(saved), temporaryPassword: kataSandi, sessionsRevoked } };
   }
 
   // Dipanggil job harian.
@@ -533,7 +619,9 @@ function createIdentityService(options) {
     purgeExpiredSessions,
     resetPassword,
     renewInvitation,
-    setAccountActive
+    resetPasswordByAdmin,
+    setAccountActive,
+    updateAccount
   });
 }
 

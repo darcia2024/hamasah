@@ -45,6 +45,8 @@ const { createDepartureService } = require('./departure-service.js');
 const { createStudentCareService } = require('./student-care-service.js');
 const { createAdminOverviewService } = require('./admin-overview-service.js');
 const { createDemoDataService } = require('./demo-data-service.js');
+const { createSettingsService } = require('./settings-service.js');
+const { createDatabaseUpdateService } = require('./database-update-service.js');
 const { createPostgresStudentCareStore } = require('./postgres-student-care-store.js');
 const { createPostgresDepartureStore } = require('./postgres-departure-store.js');
 const { createRequestAuth, hashToken, safeEqual } = require('./http/auth.js');
@@ -65,6 +67,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/audit.js'),
   ...require('./routes/admin-overview.js'),
   ...require('./routes/admin-demo.js'),
+  ...require('./routes/settings.js'),
   ...require('./routes/files.js'),
   ...require('./routes/operations.js'),
   ...require('./routes/dormitories.js'),
@@ -124,7 +127,25 @@ function createHamasahApp(options) {
   const inquiryStore = config.inquiryStore || createPostgresInquiryStore({ database });
   const accountStore = config.accountStore || createPostgresAccountStore({ database });
   const sessionStore = config.sessionStore || createPostgresSessionStore({ database });
-  const identityService = config.identityService || identity.createIdentityService({ accountStore, sessionStore });
+  const identityService = config.identityService || identity.createIdentityService({
+    accountStore,
+    sessionStore,
+    // Akun wali atau santri yang masih terhubung ke data santri tidak boleh diganti perannya.
+    async accountLinks(accountId) {
+      const { rows } = await database.query(
+        `SELECT (SELECT count(*)::int FROM student_parent_accounts WHERE parent_account_id = $1) AS parent,
+                (SELECT count(*)::int FROM students WHERE student_account_id = $1) AS student`,
+        [accountId]
+      );
+      return rows[0];
+    },
+    // Musyrif yang berganti peran tidak lagi memegang asrama.
+    async onRoleChanged(accountId, previousRole) {
+      if (previousRole === identity.ROLES.SUPERVISOR) {
+        await database.query('DELETE FROM staff_dormitory_assignments WHERE account_id = $1', [accountId]);
+      }
+    }
+  });
   const notificationStore = config.notificationStore || createPostgresNotificationStore({ database });
   const email = config.email || { driver: ['development', 'test'].includes(appEnvironment) ? 'console' : 'disabled' };
   const emailSender = config.emailSender || createEmailSender({
@@ -139,13 +160,25 @@ function createHamasahApp(options) {
     notificationPayloadKey: config.notificationPayloadKey || process.env.NOTIFICATION_PAYLOAD_KEY || process.env.IP_HASH_SECRET || 'development-only-key'
   });
   // Catatan kesehatan (data pribadi spesifik) dikunci sampai kebijakan privasi memuatnya.
+  // Environment hanya menentukan nilai awal; super admin bisa mengubahnya di halaman Pengaturan.
   const healthRecordsEnabled = config.healthRecordsEnabled !== undefined ? Boolean(config.healthRecordsEnabled) : process.env.HEALTH_RECORDS_ENABLED === 'true';
+  const auditRetentionDays = Number(config.auditRetentionDays || process.env.AUDIT_RETENTION_DAYS || 365);
+  const settingsService = config.settingsService || createSettingsService({
+    database,
+    defaults: {
+      'kesehatan.aktif': healthRecordsEnabled,
+      'asisten.batasPerJam': Number(config.aiMaxRequests || process.env.AI_MAX_REQUESTS_PER_HOUR || 20),
+      'audit.masaSimpanHari': auditRetentionDays
+    }
+  });
+  const databaseUpdateService = config.databaseUpdateService || createDatabaseUpdateService({ database });
+  const kesehatanAktif = () => settingsService.ambil('kesehatan.aktif');
   const studentCareService = config.studentCareService || createStudentCareService({
     store: createPostgresStudentCareStore({ database }),
     accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor),
-    healthEnabled: healthRecordsEnabled
+    healthEnabled: kesehatanAktif
   });
-  const adminOverviewService = config.adminOverviewService || createAdminOverviewService({ database, healthEnabled: healthRecordsEnabled });
+  const adminOverviewService = config.adminOverviewService || createAdminOverviewService({ database, healthEnabled: kesehatanAktif });
   const departureService = config.departureService || createDepartureService({
     store: createPostgresDepartureStore({ database }),
     async registrationExists(registrationId) { return Boolean(await registrationStore.get(registrationId)); }
@@ -165,7 +198,6 @@ function createHamasahApp(options) {
     store: auditStore,
     ipHashSecret: config.ipHashSecret || process.env.IP_HASH_SECRET || DEV_IP_HASH_SECRET
   });
-  const auditRetentionDays = Number(config.auditRetentionDays || process.env.AUDIT_RETENTION_DAYS || 365);
 
   const fileStore = config.fileStore || createPostgresFileStore({ database });
   const storage = config.storage || (config.storageDriver === 'supabase'
@@ -175,7 +207,8 @@ function createHamasahApp(options) {
   const dormitoryStore = config.dormitoryStore || createPostgresDormitoryStore({ database });
   const dormitoryService = config.dormitoryService || createDormitoryService({
     store: dormitoryStore,
-    getAccount: (accountId) => accountStore.getById(accountId)
+    getAccount: (accountId) => accountStore.getById(accountId),
+    countResidents: (dormitoryId) => studentStore.countInDormitory(dormitoryId)
   });
   const studentStore = config.studentStore || createPostgresStudentStore({ database });
   const studentPortalService = config.studentPortalService || createStudentPortalService({
@@ -187,14 +220,16 @@ function createHamasahApp(options) {
   });
   const aiService = config.aiService || createAiService({
     provider: config.aiProvider || null,
-    maxRequests: Number(config.aiMaxRequests || process.env.AI_MAX_REQUESTS_PER_HOUR || 20),
+    maxRequests: () => settingsService.ambil('asisten.batasPerJam'),
     timeoutMs: Number(config.aiTimeoutMs || process.env.AI_TIMEOUT_MS || 8000),
     logger: config.logger || console
   });
   const lmsStore = config.lmsStore || createPostgresLmsStore({ database });
   const lmsService = config.lmsService || createLmsService({
     store: lmsStore,
+    getAccount: (accountId) => accountStore.getById(accountId),
     aiService,
+    studyHelpEnabled: () => settingsService.ambil('asisten.belajar'),
     async canAccessStudent(studentId, actor) {
       if (!actor || actor.role !== identity.ROLES.STUDENT) {
         return false;
@@ -285,6 +320,8 @@ function createHamasahApp(options) {
     maintenanceService,
     adminOverviewService,
     demoDataService,
+    settingsService,
+    databaseUpdateService,
     accountStore,
     departureService,
     studentCareService,
@@ -473,9 +510,10 @@ function createHamasahApp(options) {
   async function bersihkanAudit() {
     {
       try {
-        const dihapus = await auditService.purgeOlderThan(auditRetentionDays);
+        const masaSimpan = await settingsService.ambil('audit.masaSimpanHari');
+        const dihapus = await auditService.purgeOlderThan(masaSimpan);
         if (dihapus > 0) {
-          console.log(`[audit] ${dihapus} catatan lebih tua dari ${auditRetentionDays} hari dihapus.`);
+          console.log(`[audit] ${dihapus} catatan lebih tua dari ${masaSimpan} hari dihapus.`);
         }
         return dihapus;
       } catch (error) {

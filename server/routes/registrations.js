@@ -18,6 +18,11 @@ module.exports = [
     pattern: /^\/api\/registrations$/,
     rateLimit: { rule: 'registration-create', identity: ({ ip }) => ip },
     async handler({ response, services, readBody, ip }) {
+      // Saklar "Pendaftaran online" di halaman Pengaturan.
+      if (!(await services.settingsService.ambil('pendaftaran.dibuka'))) {
+        json(response, 409, { error: await services.settingsService.ambil('pendaftaran.pesanTutup'), code: 'registration-closed' });
+        return;
+      }
       const accessCode = services.applicantService.createAccessCode();
       const accessToken = createAccessToken();
       const created = await services.registrationService.create(await readBody(), {

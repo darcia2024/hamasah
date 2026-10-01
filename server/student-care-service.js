@@ -35,6 +35,10 @@ function shiftDays(date, days) {
 
 function createStudentCareService({ store, accessFor, healthEnabled = false, now = () => new Date().toISOString() } = {}) {
   if (!store || typeof accessFor !== 'function') throw new Error('createStudentCareService membutuhkan store dan accessFor.');
+  // healthEnabled boleh berupa nilai tetap atau fungsi (async) yang membaca halaman Pengaturan.
+  const kesehatanAktif = typeof healthEnabled === 'function'
+    ? async () => Boolean(await healthEnabled())
+    : async () => Boolean(healthEnabled);
 
   async function writable(studentId, actor) {
     const access = await accessFor(studentId, actor);
@@ -53,7 +57,7 @@ function createStudentCareService({ store, accessFor, healthEnabled = false, now
   }
 
   return Object.freeze({
-    healthEnabled,
+    isHealthEnabled: kesehatanAktif,
 
     // Presensi sholat satu tanggal: entries [{ prayer, status, note? }]. Mengganti nilai
     // yang sudah ada untuk waktu yang sama, jadi koreksi tidak membuat baris ganda.
@@ -96,7 +100,7 @@ function createStudentCareService({ store, accessFor, healthEnabled = false, now
     },
 
     async addHealth(studentId, input, actor) {
-      if (!healthEnabled) return { ok: false, status: 404, error: 'Catatan kesehatan belum diaktifkan.' };
+      if (!(await kesehatanAktif())) return { ok: false, status: 404, error: 'Catatan kesehatan belum diaktifkan.' };
       const izin = await writable(studentId, actor);
       if (!izin.ok) return izin;
       const source = input || {};
@@ -120,10 +124,11 @@ function createStudentCareService({ store, accessFor, healthEnabled = false, now
       if (!access.view) return { ok: false, status: 403, error: 'Akses santri ini tidak diizinkan.' };
       const period = range(options);
       if (!period.ok) return period;
+      const aktif = await kesehatanAktif();
       const [prayers, memorization, health] = await Promise.all([
         store.listPrayers(studentId, period.value),
         store.listMemorization(studentId, period.value),
-        healthEnabled ? store.listHealth(studentId, period.value) : Promise.resolve(null)
+        aktif ? store.listHealth(studentId, period.value) : Promise.resolve(null)
       ]);
       const totals = Object.fromEntries(PRAYER_STATUSES.map((status) => [status, prayers.filter((entry) => entry.status === status).length]));
       const berjamaahRate = prayers.length ? Math.round((totals.berjamaah / prayers.length) * 100) : null;

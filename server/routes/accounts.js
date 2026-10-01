@@ -113,6 +113,49 @@ module.exports = [
     }
   },
 
+  // Ubah nama, email, atau peran akun lain. Pengamannya ada di identity-service.
+  {
+    method: 'PATCH',
+    pattern: /^\/api\/accounts\/([\w-]+)$/,
+    permission: 'accounts.manage',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const actor = await auth.actor();
+      const hasil = await services.identityService.updateAccount(params[0], await readBody(), actor);
+      if (hasil.ok && hasil.value.changed.length) {
+        await services.auditService.record({
+          action: ACTIONS.ACCOUNT_UPDATED, actor, ip,
+          entityType: 'account', entityId: params[0],
+          metadata: {
+            fields: hasil.value.changed.join(', '),
+            role: hasil.value.account.role,
+            previousRole: hasil.value.previousRole,
+            sesiDicabut: hasil.value.sessionsRevoked
+          }
+        });
+      }
+      json(response, hasil.ok ? 200 : (hasil.status || 422), hasil.ok ? hasil.value : publicError(hasil));
+    }
+  },
+
+  // Kata sandi sementara untuk akun lain, ditampilkan sekali ke admin.
+  {
+    method: 'POST',
+    pattern: /^\/api\/accounts\/([\w-]+)\/password-reset$/,
+    permission: 'accounts.manage',
+    async handler({ response, services, auth, params, ip }) {
+      const actor = await auth.actor();
+      const hasil = await services.identityService.resetPasswordByAdmin(params[0], actor);
+      if (hasil.ok) {
+        await services.auditService.record({
+          action: ACTIONS.ACCOUNT_PASSWORD_RESET_BY_ADMIN, actor, ip,
+          entityType: 'account', entityId: params[0],
+          metadata: { sesiDicabut: hasil.value.sessionsRevoked }
+        });
+      }
+      json(response, hasil.ok ? 200 : (hasil.status || 422), hasil.ok ? hasil.value : publicError(hasil));
+    }
+  },
+
   {
     method: 'GET',
     pattern: /^\/api\/accounts$/,

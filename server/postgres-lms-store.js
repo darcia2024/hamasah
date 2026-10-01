@@ -75,6 +75,18 @@ function createPostgresLmsStore({ database } = {}) {
       return toCourse(rows[0], []);
     },
 
+    async updateCourse(course) {
+      const { rows } = await database.query(
+        `UPDATE courses SET title = $2, description = $3, owner_account_id = $4, updated_at = $5
+         WHERE id = $1
+         RETURNING id, title, description, owner_account_id, created_at, updated_at`,
+        [course.id, course.title, course.description, course.ownerAccountId || null, course.updatedAt]
+      );
+      if (!rows[0]) return null;
+      const materials = await materialsOf([course.id]);
+      return toCourse(rows[0], materials.get(course.id) || []);
+    },
+
     async getCourse(courseId) {
       const { rows } = await database.query(
         'SELECT id, title, description, owner_account_id, created_at, updated_at FROM courses WHERE id = $1',

@@ -1,4 +1,5 @@
 const { json, noContent, publicError } = require('../http/respond.js');
+const { ACTIONS } = require('../audit-service.js');
 
 module.exports = [
   {
@@ -17,6 +18,25 @@ module.exports = [
     async handler({ response, services, auth, readBody }) {
       const created = await services.lmsService.createCourse(await readBody(), await auth.actor());
       json(response, created.ok ? 201 : 422, created.ok ? { course: created.value } : publicError(created));
+    }
+  },
+
+  // Ubah judul dan deskripsi maddah; admin juga bisa memindahkannya ke guru lain.
+  {
+    method: 'PATCH',
+    pattern: /^\/api\/courses\/([\w-]+)$/,
+    permission: 'courses.manage',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const actor = await auth.actor();
+      const hasil = await services.lmsService.updateCourse(params[0], await readBody(), actor);
+      if (hasil.ok && hasil.changed.length) {
+        await services.auditService.record({
+          action: ACTIONS.COURSE_UPDATED, actor, ip,
+          entityType: 'course', entityId: params[0],
+          metadata: { fields: hasil.changed.join(', '), title: hasil.value.title }
+        });
+      }
+      json(response, hasil.ok ? 200 : (hasil.status || 422), hasil.ok ? { course: hasil.value } : publicError(hasil));
     }
   },
 

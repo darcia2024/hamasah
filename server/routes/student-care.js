@@ -13,7 +13,7 @@ module.exports = [
     permission: 'students.read',
     async handler({ response, services, auth, params, url }) {
       const result = await services.studentCareService.summary(params[0], await auth.actor(), range(url));
-      json(response, result.ok ? 200 : (result.status || 422), result.ok ? { care: result.value, healthEnabled: services.studentCareService.healthEnabled } : publicError(result));
+      json(response, result.ok ? 200 : (result.status || 422), result.ok ? { care: result.value, healthEnabled: await services.studentCareService.isHealthEnabled() } : publicError(result));
     }
   },
 

@@ -30,6 +30,11 @@ function createMemoryLmsStore() {
     async getCourse(courseId) {
       return database.courses[courseId] ? clone(database.courses[courseId]) : null;
     },
+    async updateCourse(course) {
+      if (!database.courses[course.id]) return null;
+      Object.assign(database.courses[course.id], { title: course.title, description: course.description, ownerAccountId: course.ownerAccountId, updatedAt: course.updatedAt });
+      return clone(database.courses[course.id]);
+    },
     async listCourses() {
       return Object.values(database.courses).map(clone).sort(function byTitle(left, right) {
         return left.title.localeCompare(right.title, 'id-ID');
@@ -81,9 +86,13 @@ function createLmsService(options) {
   // Wali hanya boleh melihat RINGKASAN progres santri yang terhubung dengannya, bukan isi materi.
   const canViewProgress = config.canViewProgress || async function noProgressAccess() { return false; };
   const aiService = config.aiService || null;
+  // Saklar "Asisten belajar LMS" di halaman Pengaturan. Tanpa saklar, asisten selalu aktif.
+  const studyHelpEnabled = config.studyHelpEnabled || async function alwaysOn() { return true; };
   // Guru tidak punya izin students.read, jadi nama santri pada daftar kiriman tugas
   // diambil di server lewat pencari ini, bukan dengan memanggil API santri dari peramban.
   const studentNameOf = config.studentNameOf || async function noName() { return null; };
+  // Dipakai saat admin memindahkan maddah ke guru lain.
+  const getAccount = config.getAccount || async function tanpaAkun() { return null; };
 
   function isStaff(actor) {
     return Boolean(actor && MANAGE_ROLES.includes(actor.role));
@@ -118,6 +127,40 @@ function createLmsService(options) {
       id: crypto.randomUUID(), title, description, ownerAccountId: actor.role === 'teacher' ? actor.id : null, createdAt: now(), updatedAt: now()
     });
     return { ok: true, value: course };
+  }
+
+  // Ubah judul dan deskripsi maddah (admin atau guru pemiliknya). Hanya admin yang boleh
+  // memindahkan maddah ke guru lain, dan tujuannya harus akun guru aktif.
+  async function updateCourse(courseId, input, actor) {
+    if (!isStaff(actor)) {
+      return { ok: false, status: 403, error: 'Akses guru atau admin diperlukan.' };
+    }
+    const course = await store.getCourse(courseId);
+    if (!course || !canManageCourse(course, actor)) {
+      return { ok: false, status: 404, error: 'Maddah tidak ditemukan.' };
+    }
+    const source = input || {};
+    const title = clean(source.title === undefined ? course.title : source.title);
+    const description = clean(source.description === undefined ? course.description : source.description);
+    if (title.length < 3 || description.length < 8) {
+      return { ok: false, error: 'Judul dan deskripsi maddah belum valid.' };
+    }
+    let ownerAccountId = course.ownerAccountId || null;
+    if (source.ownerAccountId !== undefined && (source.ownerAccountId || null) !== ownerAccountId) {
+      if (actor.role !== 'admin') {
+        return { ok: false, status: 403, error: 'Hanya admin yang dapat memindahkan maddah ke guru lain.' };
+      }
+      ownerAccountId = source.ownerAccountId || null;
+      if (ownerAccountId) {
+        const guru = await getAccount(ownerAccountId);
+        if (!guru || guru.role !== 'teacher' || !guru.active) {
+          return { ok: false, error: 'Pemilik maddah harus akun guru yang aktif.' };
+        }
+      }
+    }
+    const saved = await store.updateCourse({ ...course, title, description, ownerAccountId, updatedAt: now() });
+    const changed = ['title', 'description', 'ownerAccountId'].filter((key) => (course[key] || null) !== (saved[key] || null));
+    return { ok: true, value: saved, changed };
   }
 
   async function addMaterial(courseId, input, actor) {
@@ -370,6 +413,9 @@ function createLmsService(options) {
   }
 
   async function studyHelp(studentId, courseId, materialId, question, actor) {
+    if (!(await studyHelpEnabled())) {
+      return { ok: false, error: 'Asisten belajar sedang dinonaktifkan admin. Tanyakan bagian yang belum jelas langsung ke pengajar.' };
+    }
     const courseResult = await getStudentCourse(studentId, courseId, actor);
     if (!courseResult.ok) {
       return courseResult;
@@ -409,6 +455,7 @@ function createLmsService(options) {
 
   return Object.freeze({ progressSummary,
     addMaterial,
+    updateCourse,
     archiveMaterial,
     completeMaterial,
     createCourse,

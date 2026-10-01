@@ -9,8 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
-    <link rel="stylesheet" href="staff.css?v=ad5ed10012" />
-    <link rel="stylesheet" href="portal.css?v=ee02f69ee8" />
+    <link rel="stylesheet" href="staff.css?v=648f55608b" />
+    <link rel="stylesheet" href="portal.css?v=a446ad35e9" />
     <link rel="stylesheet" href="fields.css?v=40377b19dc" />
     <script src="session-hint.js?v=b0562827f3"></script>
     <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
@@ -155,6 +155,10 @@
                 <button id="download-report" class="button button--secondary monitoring-download control--h40" type="button" hidden>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
                   <span>Unduh Rekam Jejak (CSV)</span>
+                </button>
+                <button id="edit-student" class="button button--secondary monitoring-download control--h40" type="button" hidden>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                  <span>Ubah data santri</span>
                 </button>
               </div>
             </div>
@@ -444,6 +448,10 @@
                       <input id="dormitory-area" type="text" placeholder="Nama kawasan" required />
                     </div>
                     <div>
+                      <label for="dormitory-capacity">Kapasitas (jumlah tempat)</label>
+                      <input id="dormitory-capacity" type="number" min="0" step="1" placeholder="Kosongkan bila belum ditentukan" />
+                    </div>
+                    <div>
                       <label for="dormitory-gender">Kategori penghuni</label>
                       <select id="dormitory-gender" required>
                         <option value="putra">Putra (Banin)</option>
@@ -481,6 +489,16 @@
                 </div>
               </div>
 
+              <div class="crm-white-card u-mt-20">
+                <div class="crm-white-card-header">
+                  <div>
+                    <h3>Daftar asrama</h3>
+                    <p>Ubah nama, kawasan, atau kapasitas. Asrama hanya bisa dihapus bila sudah tidak berpenghuni.</p>
+                  </div>
+                </div>
+                <div id="dormitory-list" class="portal-account-list"></div>
+                <p id="dormitory-list-status" class="form-status" role="status" aria-live="polite"></p>
+              </div>
               <div class="crm-white-card u-mt-20">
                 <div class="crm-white-card-header">
                   <div>
@@ -526,10 +544,10 @@
       </div>
     </section>
 
-    <script src="internal-shell.js?v=80d564c4fb"></script>
+    <script src="internal-shell.js?v=7219343ccd"></script>
     <script src="nav.js?v=6b165f2d0d"></script>
     <script src="student-picker.js?v=cd591eea97"></script>
-    <script src="monitoring.js?v=17cff6c9f4"></script>
+    <script src="monitoring.js?v=7709f7400d"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>
