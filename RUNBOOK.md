@@ -43,6 +43,9 @@ Diatur di Vercel: Project Settings, Environment Variables. **Jangan** simpan nil
 | `HAMASAH_BOOTSTRAP_KEY` | sementara | Hanya sampai admin pertama dibuat (bagian 5), lalu **hapus**. |
 | `HEALTH_RECORDS_ENABLED` | tidak | Pengurus menyetujui (C6). Isi `true` bersamaan dengan pemasangan kebijakan privasi resmi yang memuat data kesehatan. |
 | `DATABASE_POOL_MAX` | tidak | Bawaan 5. |
+| `OPENROUTER_API_KEY` | tidak | Kunci OpenRouter untuk asisten landing page. Kosong: asisten memakai jawaban lokal. Disetujui pengurus; kebijakan privasi 2026-10-01 sudah memuatnya. |
+| `OPENROUTER_MODEL` | tidak | Bawaan `openai/gpt-5-nano` (ChatGPT termurah per 30 September 2026). |
+| `ASSISTANT_DAILY_LIMIT` | tidak | Batas jawaban AI per hari per instans. Bawaan 1000. |
 | `RESEND_API_KEY`, `EMAIL_DRIVER`, `EMAIL_FROM` | **jangan diisi** | Selama pemberitahuan masih manual lewat WhatsApp. |
 
 Kalau ada yang kurang atau salah, setiap permintaan dijawab 503 "Layanan belum siap" dengan kode

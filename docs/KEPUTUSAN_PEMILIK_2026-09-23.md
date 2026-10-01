@@ -307,3 +307,8 @@ jawaban per hari per instans) dan 40 pertanyaan per 10 menit per IP. Gagal, lamb
 habis: kembali ke jawaban lokal. **Perlu persetujuan pengurus: kebijakan privasi (berlaku
 2026-09-30) belum menyebut bahwa pertanyaan di asisten diproses OpenRouter/OpenAI di luar
 negeri; tambahan kalimat itu mengubah versi dokumen.**
+
+**Kebijakan privasi versi 2026-10-01 (disetujui pengurus 1 Oktober 2026).** Bagian 4 menambahkan:
+pertanyaan di asisten website diproses OpenRouter dan OpenAI di luar Indonesia, dan pengunjung
+diminta tidak menulis data pribadi. `PRIVACY_POLICY_VERSION` = `2026-10-01`. Syarat menyalakan
+`OPENROUTER_API_KEY` di production terpenuhi.
