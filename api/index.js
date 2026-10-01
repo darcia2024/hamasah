@@ -25,13 +25,33 @@ const { createRequestId, errorFields, logEvent } = require('../server/http/reque
 // dikembalikan sebelum aplikasi melihatnya. Query asli pengunjung tetap utuh.
 const PATH_PARAM = '__path';
 
-function restoreOriginalUrl(rawUrl) {
+const ENTRY_PATH = /^\/api\/index(\.js)?$/;
+
+function withQuery(pathname, searchParams) {
+  const query = searchParams.toString();
+  return `${pathname}${query ? `?${query}` : ''}`;
+}
+
+function restoreOriginalUrl(rawUrl, headers = {}) {
   const url = new URL(rawUrl || '/', 'http://localhost');
-  if (!/^\/api\/index(\.js)?$/.test(url.pathname) || !url.searchParams.has(PATH_PARAM)) return rawUrl;
-  const original = `/${String(url.searchParams.get(PATH_PARAM) || '').replace(/^\/+/, '')}`;
-  url.searchParams.delete(PATH_PARAM);
-  const query = url.searchParams.toString();
-  return `${original}${query ? `?${query}` : ''}`;
+  if (!ENTRY_PATH.test(url.pathname)) return rawUrl;
+  if (url.searchParams.has(PATH_PARAM)) {
+    const original = `/${String(url.searchParams.get(PATH_PARAM) || '').replace(/^\/+/, '')}`;
+    url.searchParams.delete(PATH_PARAM);
+    return withQuery(original, url.searchParams);
+  }
+  // Cadangan bila parameter rewrite tidak sampai: tangkapan "$1" yang dikirim Vercel
+  // lewat x-now-route-matches ("1=website%2Fbiaya.html"), atau alamat asli dari proxy.
+  const matches = headers['x-now-route-matches'];
+  if (matches) {
+    const captured = new URLSearchParams(String(matches)).get('1');
+    if (captured !== null) return withQuery(`/${captured.replace(/^\/+/, '')}`, url.searchParams);
+  }
+  for (const name of ['x-forwarded-uri', 'x-original-url']) {
+    const value = headers[name];
+    if (value && String(value).startsWith('/') && !ENTRY_PATH.test(new URL(String(value), 'http://localhost').pathname)) return String(value);
+  }
+  return rawUrl;
 }
 
 let handlerPromise = null;
@@ -73,7 +93,13 @@ module.exports = async function handler(request, response) {
     response.end(JSON.stringify({ error: `Layanan belum siap. Sebutkan kode ${requestId} saat melapor ke petugas.`, requestId }));
     return;
   }
-  request.url = restoreOriginalUrl(request.url);
+  const receivedUrl = request.url;
+  request.url = restoreOriginalUrl(receivedUrl, request.headers);
+  if (ENTRY_PATH.test(new URL(request.url, 'http://localhost').pathname)) {
+    // Alamat asli tidak bisa dikembalikan. Dicatat untuk diagnosis: alamat yang diterima
+    // dan NAMA header saja (tanpa nilai, supaya cookie atau token tidak ikut tercatat).
+    logEvent('warn', 'rewrite_path_missing', { receivedUrl, headerNames: Object.keys(request.headers || {}).sort().join(',') });
+  }
   return listener(request, response);
 };
 
