@@ -462,6 +462,38 @@ function createIdentityService(options) {
     return { ok: true, value: { account: account ? publicAccount(account) : null } };
   }
 
+  // Ganti kata sandi oleh pemilik akun sendiri dari konsol. Kata sandi saat ini wajib
+  // benar, supaya sesi yang tertinggal terbuka di komputer bersama tidak bisa dipakai
+  // mengambil alih akun. Semua sesi dicabut, lalu satu sesi baru dibuat untuk perangkat
+  // yang sedang dipakai sehingga pemiliknya tidak perlu masuk ulang.
+  async function changePassword(accountId, currentPassword, nextPassword) {
+    const account = await accountStore.getById(accountId);
+    if (!account || !account.active) {
+      return { ok: false, error: 'Akun tidak dapat digunakan.' };
+    }
+    if (!(await verifyPassword(String(currentPassword || ''), account.passwordHash))) {
+      return { ok: false, code: 'WRONG_PASSWORD', error: 'Kata sandi saat ini tidak tepat.' };
+    }
+    const passwordError = validatePassword(nextPassword);
+    if (passwordError) {
+      return { ok: false, error: passwordError };
+    }
+    if (await verifyPassword(String(nextPassword), account.passwordHash)) {
+      return { ok: false, error: 'Kata sandi baru harus berbeda dari kata sandi saat ini.' };
+    }
+    await accountStore.save({
+      ...account,
+      passwordHash: await hashPassword(nextPassword),
+      // Tautan reset yang masih berlaku ikut dibatalkan.
+      resetTokenHash: null,
+      resetExpiresAt: null,
+      updatedAt: now().toISOString()
+    });
+    const sessionsRevoked = await logoutAll(accountId);
+    const session = await createSession(account);
+    return { ok: true, value: { accessToken: session.accessToken, account: session.account, sessionsRevoked } };
+  }
+
   async function resetPassword(resetToken, nextPassword) {
     const passwordError = validatePassword(nextPassword);
     if (passwordError || typeof accountStore.consumeResetToken !== 'function') {
@@ -488,6 +520,7 @@ function createIdentityService(options) {
   return Object.freeze({
     authenticate,
     acceptInvitation,
+    changePassword,
     createAccount,
     createMemoryAccountStore,
     inviteAccount,

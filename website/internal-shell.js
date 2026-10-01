@@ -150,6 +150,8 @@
   // .crm-sidebar-footer yang sama.
   const sidebarFooter = sidebar.querySelector('.crm-sidebar-footer');
   if (sidebarFooter) {
+    sidebarFooter.append(buatTombolGantiKataSandi());
+
     const keluarSemua = document.createElement('button');
     keluarSemua.type = 'button';
     keluarSemua.id = 'logout-all-button';
@@ -200,6 +202,146 @@
     });
 
     sidebarFooter.append(keluarSemua);
+  }
+
+  // Ganti kata sandi sendiri, untuk semua peran. Memakai <dialog> bawaan browser supaya
+  // fokus terkurung dan Escape menutup tanpa kode tambahan (sama dengan dialog invoice).
+  function buatTombolGantiKataSandi() {
+    const tombol = document.createElement('button');
+    tombol.type = 'button';
+    tombol.id = 'change-password-button';
+    tombol.className = 'crm-logout-btn crm-logout-btn--all';
+    const tombolLabel = document.createElement('span');
+    tombolLabel.textContent = 'Ganti kata sandi';
+    tombol.append(tombolLabel);
+
+    const dialog = document.createElement('dialog');
+    dialog.className = 'op-dialog';
+    dialog.setAttribute('aria-labelledby', 'change-password-title');
+
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.className = 'staff-form op-dialog__form';
+    form.noValidate = true;
+
+    const judul = document.createElement('h3');
+    judul.id = 'change-password-title';
+    judul.textContent = 'Ganti kata sandi';
+    const ringkasan = document.createElement('p');
+    ringkasan.className = 'op-dialog__summary';
+    ringkasan.textContent = 'Setelah diganti, akun ini otomatis keluar dari perangkat lain. Perangkat ini tetap masuk.';
+
+    function bidang(id, label, autocomplete) {
+      const wadah = document.createElement('div');
+      const labelEl = document.createElement('label');
+      labelEl.htmlFor = id;
+      labelEl.textContent = label;
+      const input = document.createElement('input');
+      input.id = id;
+      input.type = 'password';
+      input.autocomplete = autocomplete;
+      input.required = true;
+      input.maxLength = 128;
+      input.setAttribute('aria-describedby', 'change-password-error');
+      wadah.append(labelEl, input);
+      return { wadah, input };
+    }
+
+    const sandiLama = bidang('change-password-current', 'Kata sandi saat ini', 'current-password');
+    const sandiBaru = bidang('change-password-new', 'Kata sandi baru (12 sampai 128 karakter)', 'new-password');
+    const sandiUlang = bidang('change-password-repeat', 'Ulangi kata sandi baru', 'new-password');
+
+    const pesan = document.createElement('p');
+    pesan.id = 'change-password-error';
+    pesan.className = 'field-error';
+    pesan.setAttribute('role', 'alert');
+
+    const aksi = document.createElement('div');
+    aksi.className = 'op-dialog__actions';
+    const batal = document.createElement('button');
+    batal.type = 'button';
+    batal.className = 'button button--secondary';
+    batal.textContent = 'Batal';
+    const simpan = document.createElement('button');
+    simpan.type = 'submit';
+    simpan.className = 'button button--primary';
+    simpan.textContent = 'Simpan kata sandi';
+    aksi.append(batal, simpan);
+
+    form.append(judul, ringkasan, sandiLama.wadah, sandiBaru.wadah, sandiUlang.wadah, pesan, aksi);
+    dialog.append(form);
+    document.body.append(dialog);
+
+    function tampilkanPesan(teks, berhasil = false) {
+      pesan.textContent = teks;
+      pesan.classList.toggle('is-success', berhasil);
+    }
+
+    tombol.addEventListener('click', () => {
+      form.reset();
+      tampilkanPesan('');
+      simpan.disabled = false;
+      simpan.textContent = 'Simpan kata sandi';
+      dialog.showModal();
+      sandiLama.input.focus();
+    });
+    batal.addEventListener('click', () => dialog.close());
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      let sesi = null;
+      try {
+        sesi = JSON.parse(sessionStorage.getItem('hamasahPortalSession') || 'null');
+      } catch {
+        sesi = null;
+      }
+      if (!sesi || !sesi.accessToken) {
+        tampilkanPesan('Sesi tidak ditemukan. Silakan masuk kembali.');
+        return;
+      }
+      if (!sandiLama.input.value) {
+        tampilkanPesan('Isi kata sandi saat ini.');
+        sandiLama.input.focus();
+        return;
+      }
+      if (sandiBaru.input.value.length < 12 || sandiBaru.input.value.length > 128) {
+        tampilkanPesan('Kata sandi baru harus terdiri dari 12 sampai 128 karakter.');
+        sandiBaru.input.focus();
+        return;
+      }
+      if (sandiBaru.input.value !== sandiUlang.input.value) {
+        tampilkanPesan('Kata sandi baru dan ulangannya tidak sama.');
+        sandiUlang.input.focus();
+        return;
+      }
+
+      simpan.disabled = true;
+      simpan.textContent = 'Menyimpan...';
+      tampilkanPesan('');
+      try {
+        const response = await fetch('/api/auth/password-change', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${sesi.accessToken}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ currentPassword: sandiLama.input.value, newPassword: sandiBaru.input.value })
+        });
+        const isi = await response.json().catch(() => ({}));
+        if (response.status === 429) throw new Error('Terlalu banyak percobaan. Coba lagi dalam beberapa menit.');
+        if (!response.ok || !isi.accessToken) throw new Error(isi.error || 'Kata sandi belum dapat diganti.');
+        // Server mencabut semua sesi lama, termasuk token perangkat ini, lalu memberi
+        // token baru. Token baru disimpan supaya konsol tetap bisa dipakai.
+        sessionStorage.setItem('hamasahPortalSession', JSON.stringify({ ...sesi, accessToken: isi.accessToken }));
+        form.reset();
+        simpan.textContent = 'Tersimpan';
+        tampilkanPesan('Kata sandi berhasil diganti. Gunakan kata sandi baru saat masuk berikutnya.', true);
+        window.setTimeout(() => dialog.close(), 2500);
+      } catch (error) {
+        simpan.disabled = false;
+        simpan.textContent = 'Simpan kata sandi';
+        tampilkanPesan(error.message || 'Kata sandi belum dapat diganti.');
+      }
+    });
+
+    return tombol;
   }
 
   const focusables = () => Array.from(sidebar.querySelectorAll('a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter((el) => !el.disabled && el.offsetParent !== null);

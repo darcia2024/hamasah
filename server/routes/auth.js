@@ -102,6 +102,36 @@ module.exports = [
     }
   },
 
+  // Ganti kata sandi sendiri. Sesi lain dicabut; perangkat ini menerima token baru.
+  {
+    method: 'POST',
+    pattern: /^\/api\/auth\/password-change$/,
+    session: true,
+    async handler({ response, services, auth, readBody, rateLimit, ip }) {
+      const actor = await auth.actor();
+      const jatah = await rateLimit.check('password-change', actor.id);
+      if (!jatah.allowed) {
+        tooManyRequests(response, jatah.retryAfterSeconds, TOO_MANY_REQUESTS);
+        return;
+      }
+      const body = await readBody();
+      const changed = await services.identityService.changePassword(actor.id, body.currentPassword, body.newPassword);
+      if (!changed.ok) {
+        if (changed.code === 'WRONG_PASSWORD') {
+          await services.auditService.record({ action: ACTIONS.PASSWORD_CHANGE_FAILED, actor, ip, entityType: 'account', entityId: actor.id });
+        }
+        json(response, 422, publicError(changed));
+        return;
+      }
+      await rateLimit.reset('password-change', actor.id);
+      await services.auditService.record({
+        action: ACTIONS.PASSWORD_CHANGED, actor, ip,
+        entityType: 'account', entityId: actor.id, metadata: { sesiDicabut: changed.value.sessionsRevoked }
+      });
+      json(response, 200, { accessToken: changed.value.accessToken, account: changed.value.account });
+    }
+  },
+
   {
     method: 'GET',
     pattern: /^\/api\/me$/,

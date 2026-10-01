@@ -1041,6 +1041,8 @@
    terkurung dan Escape berfungsi tanpa kode tambahan. */
 .op-dialog {
   width: min(520px, calc(100vw - 32px));
+  /* Reset global (margin: 0) menghapus posisi tengah bawaan <dialog>. */
+  margin: auto;
   padding: 0;
   border: 1px solid var(--crm-border);
   border-radius: 16px;
@@ -1305,4 +1307,9 @@ html.is-session-ended .crm-shell {
   margin: 14px 0 0;
   font-size: 14px;
   text-align: center;
+}
+
+/* Pesan berhasil di dialog ganti kata sandi (internal-shell.js). */
+.op-dialog .field-error.is-success {
+  color: var(--md-sys-color-tertiary, #1e6b3a);
 }

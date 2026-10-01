@@ -19,6 +19,9 @@ const JAM = 60 * MENIT;
 const RULES = Object.freeze({
   // Menebak kata sandi.
   login: Object.freeze({ limit: 5, windowMs: 15 * MENIT }),
+  // Ganti kata sandi dari konsol: kata sandi saat ini bisa ditebak lewat sesi yang
+  // tertinggal terbuka, jadi batasnya sama dengan login.
+  'password-change': Object.freeze({ limit: 5, windowMs: 15 * MENIT }),
   // Mengirimi orang lain email reset berkali-kali.
   'password-reset-request': Object.freeze({ limit: 3, windowMs: 1 * JAM }),
   // Membanjiri daftar pendaftar dengan data palsu.
@@ -141,6 +144,7 @@ function longestWindowMs(rules = RULES) {
 // `/api/health` harus tetap menjawab meski database sedang mati.
 const DATABASE_RULES = Object.freeze([
   'login',
+  'password-change',
   'password-reset-request',
   'registration-create',
   'inquiry-create',

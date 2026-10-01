@@ -23,6 +23,8 @@ const ACTIONS = Object.freeze({
   ACCOUNT_ACTIVE_CHANGED: 'account.active-changed',
   PASSWORD_RESET_REQUESTED: 'auth.password-reset.requested',
   PASSWORD_RESET_COMPLETED: 'auth.password-reset.completed',
+  PASSWORD_CHANGED: 'auth.password-changed',
+  PASSWORD_CHANGE_FAILED: 'auth.password-change.failed',
   ACCOUNT_CREATED: 'account.created',
   ACCOUNT_INVITED: 'account.invited',
   ACCOUNT_INVITATION_ACCEPTED: 'account.invitation-accepted',
