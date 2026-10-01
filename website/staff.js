@@ -632,11 +632,18 @@ function showConsole(account) {
   consoleSection.hidden = false;
   logoutButton.hidden = false;
   renderStaffNav(staffNav, role, 'staff', typeof account === 'object' ? account : null);
-  loadRegistrations().catch((error) => {
+  const muatData = () => loadRegistrations().catch((error) => {
     registrationListStatus.textContent = error.message || 'Data pendaftar belum dapat dimuat.';
     registrationListStatus.classList.add('is-error');
   });
+  if (!dataSegarTerpasang) {
+    dataSegarTerpasang = true;
+    window.hamasahSaatDataSegar(muatData);
+  }
+  muatData();
 }
+
+let dataSegarTerpasang = false;
 
 function notificationStatusLabel(status) {
   return ({ pending: 'Menunggu worker', processing: 'Sedang dikirim', sent: 'Terkirim', failed: 'Gagal dikirim' })[status] || status;
@@ -1109,9 +1116,9 @@ logoutButton.addEventListener('click', async () => {
   if (!getSession()) return;
   document.body.classList.add('in-crm');
   try {
-    const response = await fetch('/api/me', { headers: authHeaders() });
-    const result = await response.json();
-    if (!response.ok || !STAFF_ROLES.includes(result.account.role)) {
+    const me = await window.hamasahMintaAkun(authHeaders());
+    const result = me.body;
+    if (!me.ok || !STAFF_ROLES.includes(result.account.role)) {
       throw new Error('Halaman ini hanya dapat dibuka oleh admin atau petugas pendaftaran.');
     }
     showConsole(result.account);

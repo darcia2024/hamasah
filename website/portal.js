@@ -776,6 +776,8 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
 // mengikuti pencarian yang sedang aktif.
 const STUDENT_PAGE_SIZE = 20;
 let studentPage = { items: [], total: 0, allTotal: 0, search: '' };
+// Ringkasan dashboard super admin (/api/admin/overview), lihat admin-overview.js.
+let adminOverview = null;
 
 async function fetchStudentPage({ search = '', offset = 0 } = {}) {
   const params = new URLSearchParams({ limit: String(STUDENT_PAGE_SIZE), offset: String(offset) });
@@ -795,6 +797,8 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
   const isAdmin = account && account.role === 'admin';
   const isSupervisor = account && account.role === 'supervisor';
   const isParent = account && account.role === 'parent';
+  // Dashboard super admin memakai ringkasan gabungan bila tersedia.
+  const ringkasan = isAdmin && adminOverview && window.HamasahAdminOverview ? adminOverview : null;
 
   const coursueLayout = document.createElement('div');
   coursueLayout.className = 'coursue-layout';
@@ -812,7 +816,9 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
       ? 'Konsol pembinaan musyrif'
       : 'Pemantauan ananda';
   const subtitleText = isAdmin
-    ? `Super Admin · ${allTotal} santri terdaftar.`
+    ? (ringkasan
+      ? `Super Admin · ${ringkasan.summary.activeStudents} santri aktif, ${ringkasan.summary.dormitories} asrama, ${ringkasan.summary.supervisors} musyrif.`
+      : `Super Admin · ${allTotal} santri terdaftar.`)
     : isSupervisor
       ? `${allTotal} santri dalam pengawasan Anda.`
       : `${allTotal} ananda terhubung dengan akun ini.`;
@@ -853,9 +859,15 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
   // Dulu ada lima tab tambahan (Mutaba'ah, Sholat, Talaqqi, Asrama, LMS) berisi sekitar
   // 300 baris konten karangan, karena tidak ada sumber data agregat di tingkat ini.
   // Dihilangkan sampai ada datanya. Rekam jejak nyata per santri ada di detail santri.
-  const tabDefs = [
-    { id: 'students', label: isParent ? 'Daftar ananda' : 'Daftar santri', icon: TAB_ICONS.users, count: allTotal }
-  ];
+  const tabDefs = ringkasan
+    ? [
+      { id: 'students', label: 'Santri', icon: TAB_ICONS.users, count: ringkasan.students.length },
+      { id: 'dormitories', label: 'Asrama', icon: TAB_ICONS.home, count: ringkasan.dormitories.length },
+      { id: 'supervisors', label: 'Musyrif', icon: TAB_ICONS.award, count: ringkasan.supervisors.length }
+    ]
+    : [
+      { id: 'students', label: isParent ? 'Daftar ananda' : 'Daftar santri', icon: TAB_ICONS.users, count: allTotal }
+    ];
   if (isAdmin) {
     tabDefs.push({
       id: 'accounts',
@@ -897,7 +909,11 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
   studentTools.append(studentSearch, studentHint);
 
   function openStudent(student) {
-    loadDashboard(student.id, account, () => renderExecutiveDashboard(null, account, accountsList)).catch((err) => {
+    bukaSantri(student.id);
+  }
+
+  function bukaSantri(studentId) {
+    loadDashboard(studentId, account, () => renderExecutiveDashboard(null, account, accountsList)).catch((err) => {
       alert(err.message || 'Dashboard belum dapat dimuat.');
     });
   }
@@ -948,7 +964,14 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
   paintStudents();
   panelStudents.append(studentTools, studentCards, studentMore);
 
-  const panels = [panelStudents];
+  const panels = ringkasan
+    ? [
+      window.HamasahAdminOverview.panelSantri(ringkasan, { onOpenStudent: bukaSantri }),
+      window.HamasahAdminOverview.panelAsrama(ringkasan, { onOpenStudent: bukaSantri }),
+      window.HamasahAdminOverview.panelMusyrif(ringkasan)
+    ]
+    : [panelStudents];
+  panels.slice(1).forEach((panel) => { panel.hidden = true; });
   if (isAdmin) {
     const panelAccounts = document.createElement('div');
     panelAccounts.hidden = true;
@@ -1017,7 +1040,13 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
     });
   }
 
-  mainCol.append(heroBanner, statRow, featuredSection, subtabsRow, panelsContainer);
+  mainCol.append(
+    heroBanner,
+    ringkasan ? window.HamasahAdminOverview.kpi(ringkasan) : statRow,
+    ringkasan ? window.HamasahAdminOverview.perhatian(ringkasan, { onOpenStudent: bukaSantri }) : featuredSection,
+    subtabsRow,
+    panelsContainer
+  );
   coursueLayout.append(mainCol, rightPanel);
   coursueLayout.classList.add('crm-view-enter');
 
@@ -1130,9 +1159,14 @@ async function loadStudents(account) {
   } else {
     let accountsList = [];
     if (account && account.role === 'admin') {
-      try {
-        accountsList = await loadAccounts();
-      } catch {}
+      // Ringkasan santri, asrama, dan musyrif diambil bersamaan dengan daftar akun.
+      // Bila ringkasan gagal, dashboard tetap tampil dengan daftar santri biasa.
+      const [akun, ringkasan] = await Promise.allSettled([
+        loadAccounts(),
+        window.HamasahAdminOverview ? window.HamasahAdminOverview.muat(requestHeaders()) : Promise.reject(new Error('Modul ringkasan tidak dimuat.'))
+      ]);
+      if (akun.status === 'fulfilled') accountsList = akun.value;
+      adminOverview = ringkasan.status === 'fulfilled' ? ringkasan.value : null;
     }
 
     // Santri yang dituju lewat tautan belum tentu ada di halaman pertama. Server yang
@@ -1208,9 +1242,9 @@ function renderAccounts(accounts) {
 }
 
 async function showPortal() {
-  const response = await fetch('/api/me', { headers: requestHeaders() });
-  const result = await response.json();
-  if (!response.ok) throw new Error(result.error || 'Sesi sudah berakhir.');
+  const me = await window.hamasahMintaAkun(requestHeaders());
+  const result = me.body;
+  if (!me.ok) throw new Error(result.error || 'Sesi sudah berakhir.');
 
   currentAccount = result.account;
   document.body.classList.add('in-crm');
@@ -1224,8 +1258,14 @@ async function showPortal() {
   // Nama dan peran ditampilkan oleh shell CRM lewat renderStaffNav/updateCrmUserBadges,
   // jadi tidak ada heading sapaan terpisah di kanvas.
   renderStaffNav(staffNav, result.account.role, 'portal', result.account);
+  if (!dataSegarTerpasang) {
+    dataSegarTerpasang = true;
+    window.hamasahSaatDataSegar(() => loadStudents(currentAccount));
+  }
   await loadStudents(result.account);
 }
+
+let dataSegarTerpasang = false;
 
 portalLoginForm.addEventListener('submit', async (event) => {
   event.preventDefault();

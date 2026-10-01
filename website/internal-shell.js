@@ -108,11 +108,99 @@
     try { sessionStorage.setItem(ME_CACHE_KEY, JSON.stringify({ token, at: Date.now(), body })); } catch { /* penyimpanan tidak tersedia */ }
   }
 
+  // Data konsol (daftar pendaftar, santri, tagihan, dan seterusnya) juga diingat di tab
+  // ini. Membuka halaman yang pernah dibuka langsung menampilkan data terakhir tanpa
+  // menunggu server, lalu data diperbarui di belakang layar dan halaman memuat ulang
+  // tampilannya lewat peristiwa 'hamasah:data-segar' (lihat hamasahSaatDataSegar).
+  // Kuncinya terikat ke token: token lain atau token palsu tidak pernah membaca data ini,
+  // dan semuanya dibuang saat keluar, saat sesi berakhir, atau setelah ada perubahan.
+  const DATA_PREFIX = 'hamasahData:';
+  const DATA_SEGAR_MS = 15 * 1000;
+  const DATA_MAKS_MS = 10 * 60 * 1000;
+  const DATA_MAKS_KARAKTER = 750000;
+
+  function kunciOf(input) {
+    try {
+      const raw = typeof input === 'string' ? input : (input && input.url) || '';
+      const url = new URL(raw, window.location.origin);
+      return url.pathname + url.search;
+    } catch {
+      return '';
+    }
+  }
+
+  // Unduhan berkas dan laporan tidak diingat: isinya bukan JSON dan sering besar.
+  function bolehDiingat(path) {
+    return path.startsWith('/api/')
+      && path !== '/api/me'
+      && !LOGIN_PATHS.includes(path)
+      && !/^\/api\/(auth|files|assistant)\//.test(path)
+      && !/\.(pdf|csv)$/.test(path)
+      && !/\/report$/.test(path);
+  }
+
+  function bacaData(kunci, token) {
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(DATA_PREFIX + kunci) || 'null');
+      return cached && token && cached.token === token && Date.now() - cached.at < DATA_MAKS_MS ? cached : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function tulisData(kunci, token, teks, contentType) {
+    if (teks.length > DATA_MAKS_KARAKTER) return;
+    try {
+      sessionStorage.setItem(DATA_PREFIX + kunci, JSON.stringify({ token, at: Date.now(), teks, contentType }));
+    } catch {
+      // Penyimpanan penuh: data lama dibuang supaya sesi dan jawaban /api/me tetap muat.
+      hapusSemuaData();
+    }
+  }
+
+  function hapusSemuaData() {
+    try {
+      Object.keys(sessionStorage).filter((key) => key.startsWith(DATA_PREFIX)).forEach((key) => sessionStorage.removeItem(key));
+    } catch { /* penyimpanan tidak tersedia */ }
+  }
+
+  let segarkanTertunda = null;
+  const kunciSegar = new Set();
+  const sedangDisegarkan = new Set();
+
+  function umumkanDataSegar(kunci) {
+    kunciSegar.add(kunci);
+    clearTimeout(segarkanTertunda);
+    segarkanTertunda = setTimeout(() => {
+      const daftar = [...kunciSegar];
+      kunciSegar.clear();
+      window.dispatchEvent(new CustomEvent('hamasah:data-segar', { detail: { kunci: daftar } }));
+    }, 120);
+  }
+
+  function segarkanData(kunci, input, init, token, teksLama) {
+    if (sedangDisegarkan.has(kunci)) return;
+    sedangDisegarkan.add(kunci);
+    nativeFetch(input, init).then(async (fresh) => {
+      if (fresh.status === 401) {
+        showEnded();
+        return;
+      }
+      if (!fresh.ok) return;
+      const teks = await fresh.text();
+      if (storedToken() !== token) return;
+      tulisData(kunci, token, teks, fresh.headers.get('Content-Type'));
+      if (teks !== teksLama) umumkanDataSegar(kunci);
+    }).catch(() => { /* jaringan putus: data yang diingat tetap dipakai */ })
+      .finally(() => sedangDisegarkan.delete(kunci));
+  }
+
   function forgetSession() {
     try {
       sessionStorage.removeItem(SESSION_KEY);
       sessionStorage.removeItem(ME_CACHE_KEY);
     } catch { /* penyimpanan tidak tersedia */ }
+    hapusSemuaData();
     // session-hint.js menyembunyikan kartu masuk selama sesi tersimpan; tanpa sesi,
     // kartu itu harus langsung terlihat lagi.
     document.documentElement.classList.remove('has-portal-session');
@@ -122,20 +210,73 @@
     return String((init && init.method) || (input && typeof input === 'object' && input.method) || 'GET').toUpperCase();
   }
 
+  function tandaiSesiAktif() {
+    if (!established) {
+      established = true;
+      setStatus('Sesi aktif', 'active');
+    }
+  }
+
   const nativeFetch = window.fetch.bind(window);
+
+  // Jawaban /api/me yang diingat, diambil TANPA menunggu apa pun. Halaman konsol
+  // memakainya untuk menggambar menu dan kerangka sebelum layar pertama tampil, jadi
+  // pindah menu tidak lagi melewati layar kosong. Jawabannya tetap diperiksa ulang ke
+  // server sekali per halaman; sesi yang ternyata berakhir memunculkan dialog biasa.
+  let meDiperiksa = false;
+  function akunTersimpan() {
+    const token = storedToken();
+    const cached = readMeCache(token);
+    if (!cached) return null;
+    tandaiSesiAktif();
+    if (!meDiperiksa) {
+      meDiperiksa = true;
+      nativeFetch('/api/me', { headers: { Authorization: `Bearer ${token}` } }).then(async (fresh) => {
+        if (fresh.ok) writeMeCache(token, await fresh.json());
+        else if (fresh.status === 401) showEnded();
+      }).catch(() => { /* jaringan putus: jawaban yang diingat tetap dipakai */ });
+    }
+    return cached.body;
+  }
+
+  // Dipakai setiap halaman konsol saat dibuka: { ok, body } dari ingatan bila ada,
+  // selain itu dari /api/me. Bila dari ingatan, hasilnya bukan Promise sehingga halaman
+  // bisa langsung menggambar dirinya.
+  window.hamasahMintaAkun = function mintaAkun(headers) {
+    const body = akunTersimpan();
+    if (body) return { ok: true, body };
+    return fetch('/api/me', { headers }).then(async (response) => ({ ok: response.ok, body: await response.json() }));
+  };
+
+  // muatUlang dipanggil saat data yang tadi ditampilkan dari ingatan ternyata sudah
+  // berubah di server. Tidak dipanggil bila pengguna sudah mengetuk, mengetik, atau
+  // memilih sesuatu, supaya tampilan dan isian yang sedang dikerjakan tidak tertimpa;
+  // data terbaru tetap tersimpan dan tampil di pembukaan berikutnya.
+  window.hamasahSaatDataSegar = function saatDataSegar(muatUlang) {
+    let sudahBerinteraksi = false;
+    const tandai = () => { sudahBerinteraksi = true; };
+    ['pointerdown', 'keydown', 'input', 'change'].forEach((type) => document.addEventListener(type, tandai, { capture: true, once: true }));
+    window.addEventListener('hamasah:data-segar', (event) => {
+      if (sudahBerinteraksi) return;
+      Promise.resolve(muatUlang(event.detail.kunci)).catch(() => { /* tampilan lama tetap dipakai */ });
+    });
+  };
+
   window.fetch = async function guardedFetch(input, init) {
     const bearer = authorizationOf(input, init);
     const token = storedToken();
     const carriesSession = bearer && token && bearer === `Bearer ${token}`;
-    const isMe = carriesSession && pathOf(input) === '/api/me' && methodOf(input, init) === 'GET';
+    const method = methodOf(input, init);
+    const isMe = carriesSession && pathOf(input) === '/api/me' && method === 'GET';
+    const kunci = carriesSession && method === 'GET' && bolehDiingat(pathOf(input)) ? kunciOf(input) : '';
+
+    // Perubahan apa pun membuat data yang diingat tidak bisa dipercaya lagi.
+    if (carriesSession && method !== 'GET' && method !== 'HEAD') hapusSemuaData();
 
     if (isMe) {
       const cached = readMeCache(token);
       if (cached) {
-        if (!established) {
-          established = true;
-          setStatus('Sesi aktif', 'active');
-        }
+        tandaiSesiAktif();
         nativeFetch(input, init).then(async (fresh) => {
           if (fresh.ok) writeMeCache(token, await fresh.json());
           else if (fresh.status === 401) showEnded();
@@ -144,17 +285,29 @@
       }
     }
 
+    if (kunci) {
+      const cached = bacaData(kunci, token);
+      if (cached) {
+        tandaiSesiAktif();
+        if (Date.now() - cached.at > DATA_SEGAR_MS) segarkanData(kunci, input, init, token, cached.teks);
+        return new Response(cached.teks, { status: 200, headers: { 'Content-Type': cached.contentType || 'application/json; charset=utf-8' } });
+      }
+    }
+
     const response = await nativeFetch(input, init);
     if (!carriesSession || LOGIN_PATHS.includes(pathOf(input))) return response;
     if (isMe && response.ok) {
       response.clone().json().then((body) => writeMeCache(token, body)).catch(() => {});
     }
+    if (kunci && response.ok) {
+      response.clone().text().then((teks) => {
+        if (storedToken() === token) tulisData(kunci, token, teks, response.headers.get('Content-Type'));
+      }).catch(() => {});
+    }
+    if (carriesSession && method !== 'GET' && method !== 'HEAD') hapusSemuaData();
 
     if (response.ok) {
-      if (!established) {
-        established = true;
-        setStatus('Sesi aktif', 'active');
-      }
+      tandaiSesiAktif();
     } else if (response.status === 401 && established) {
       // Hanya bila konsol SUDAH terbuka. Pada saat halaman dimuat, 401 dari /api/me
       // ditangani guard masing-masing halaman (form masuk, pesan "Sesi tidak

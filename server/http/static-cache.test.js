@@ -56,6 +56,15 @@ async function run() {
     assert.equal(gambar.headers.Vary, undefined);
     assert.equal(gambar.bytes().length, 4096);
 
+    // CDN Vercel boleh menyimpan semuanya: aset berversi selamanya, HTML sebentar lalu
+    // diperbarui di belakang layar. Browser tetap memakai Cache-Control di atas.
+    assert.equal((await serve('/website/gaya.css', { search: '?v=abc123' })).headers['Vercel-CDN-Cache-Control'], 'max-age=31536000, immutable');
+    assert.equal(html.headers['Vercel-CDN-Cache-Control'], 'max-age=300, stale-while-revalidate=86400');
+    assert.equal(gambar.headers['Vercel-CDN-Cache-Control'], 'max-age=86400, stale-while-revalidate=604800');
+    const validasi = await serve('/website/index.html', { headers: { 'if-none-match': html.headers.ETag } });
+    assert.equal(validasi.status, 304);
+    assert.equal(validasi.headers['Vercel-CDN-Cache-Control'], 'max-age=300, stale-while-revalidate=86400', '304 tetap membawa izin CDN.');
+
     // Tanpa Accept-Encoding: berkas apa adanya, dengan Content-Length yang benar.
     const polos = await serve('/website/gaya.css');
     assert.equal(polos.headers['Content-Encoding'], undefined);

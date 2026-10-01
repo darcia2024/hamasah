@@ -3004,61 +3004,26 @@ body.in-crm #portal-students-status,
    Page Transition Animations (Smooth Navigation & Tab Switching)
    ========================================================================== */
 
-/* Modern CSS View Transitions API */
+/* Perpindahan antarhalaman konsol (View Transitions lintas dokumen). Browser menahan
+   halaman lama di layar sampai halaman baru siap digambar, dengan menu dan nama akun
+   sudah terisi (lihat <link rel="expect"> di tiap halaman konsol), lalu keduanya
+   dipudarkan bersamaan dengan singkat. Bagian yang sama di kedua halaman, seperti
+   menu samping, tidak terlihat berubah karena pudar silang menjaga piksel yang
+   identik. Dulu halaman lama dipudarkan sampai kosong dan halaman baru dimulai dari
+   transparan sambil bergeser, sehingga setiap pindah menu terasa seperti memuat. */
 @view-transition {
   navigation: auto;
 }
 
-::view-transition-old(root) {
-  animation: 160ms cubic-bezier(0.4, 0, 1, 1) both crmViewFadeOut;
-}
-
+::view-transition-old(root),
 ::view-transition-new(root) {
-  animation: 240ms cubic-bezier(0, 0, 0.2, 1) both crmViewFadeIn;
+  animation-duration: 140ms;
 }
 
-@keyframes crmViewFadeOut {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(-4px); }
-}
-
-@keyframes crmViewFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Cross-Browser Page Enter Animation */
-.crm-canvas,
-.staff-page,
-.monitoring-page,
-.operations-page,
-.audit-page,
-.lms-page {
-  animation: crmPageEnter 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes crmPageEnter {
-  0% {
-    opacity: 0;
-    transform: translateY(8px);
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
   }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Page Exit Animation Triggered on Link Click */
-body.crm-page-exiting .crm-canvas,
-body.crm-page-exiting .staff-page,
-body.crm-page-exiting .monitoring-page,
-body.crm-page-exiting .operations-page,
-body.crm-page-exiting .audit-page,
-body.crm-page-exiting .lms-page {
-  opacity: 0 !important;
-  transform: translateY(-8px) !important;
-  transition: opacity 0.18s cubic-bezier(0.4, 0, 1, 1), transform 0.18s cubic-bezier(0.4, 0, 1, 1) !important;
-  pointer-events: none !important;
 }
 
 /* In-Page Tab & View Enter Animations */
@@ -3094,15 +3059,8 @@ body.crm-page-exiting .lms-page {
 
 /* Respect Accessibility Reduced Motion Settings */
 @media (prefers-reduced-motion: reduce) {
-  .crm-canvas,
-  .staff-page,
-  .monitoring-page,
-  .operations-page,
-  .audit-page,
-  .lms-page,
   .crm-tab-enter,
-  .crm-view-enter,
-  body.crm-page-exiting .crm-canvas {
+  .crm-view-enter {
     animation: none !important;
     transition: none !important;
     opacity: 1 !important;
@@ -5154,5 +5112,423 @@ table,
 
   .staff-login__card {
     animation: hmLoginIn 650ms cubic-bezier(0.2, 0.7, 0.2, 1) 120ms both;
+  }
+}
+
+/* ==========================================================================
+   Dashboard super admin (admin-overview.js): angka utama, perlu perhatian,
+   tabel santri, kartu asrama, dan kartu musyrif. Gaya garis tanpa badge: tingkat
+   kepentingan ditandai garis tepi dan warna teks. Teks emas memakai --gold-dark
+   karena emas biasa terlalu pucat di atas putih.
+   ========================================================================== */
+.admin-kpi-section {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-kpi {
+  min-width: 0;
+  padding: 16px 18px;
+  background: #FFFFFF;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 16px;
+}
+
+.admin-kpi--warn {
+  border-color: var(--md-sys-color-primary);
+}
+
+.admin-kpi--danger {
+  border-color: var(--md-sys-color-error);
+}
+
+.admin-kpi__label,
+.admin-kpi__note,
+.admin-kpi-detail {
+  margin: 0;
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.admin-kpi__value {
+  margin: 4px 0 2px;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--md-sys-color-on-surface);
+  overflow-wrap: anywhere;
+}
+
+.admin-kpi--danger .admin-kpi__value {
+  color: var(--md-sys-color-error);
+}
+
+.admin-alerts,
+.admin-card {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+  padding: 18px 20px;
+  background: #FFFFFF;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 16px;
+}
+
+.admin-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.admin-section-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.admin-section-note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--md-sys-color-outline);
+}
+
+.admin-alert-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px 10px 14px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-left: 3px solid var(--md-sys-color-outline-variant);
+  border-radius: 10px;
+}
+
+.admin-alert--tinggi {
+  border-left-color: var(--md-sys-color-error);
+}
+
+.admin-alert--sedang {
+  border-left-color: var(--md-sys-color-primary);
+}
+
+.admin-alert__body {
+  min-width: 0;
+}
+
+.admin-alert__level {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-outline);
+}
+
+.admin-alert--tinggi .admin-alert__level {
+  color: var(--md-sys-color-error);
+}
+
+.admin-alert--sedang .admin-alert__level {
+  color: var(--gold-dark);
+}
+
+.admin-alert__title {
+  margin: 2px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-alert__detail {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.admin-link {
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface);
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.admin-link:hover,
+.admin-link:focus-visible {
+  color: var(--gold-dark);
+}
+
+.admin-alert .admin-link {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.admin-more {
+  justify-self: start;
+}
+
+.admin-empty {
+  margin: 0;
+  font-size: 14px;
+  color: var(--md-sys-color-outline);
+}
+
+.admin-panel {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px 12px;
+}
+
+.admin-toolbar .portal-student-search {
+  flex: 1 1 220px;
+}
+
+.admin-filter {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.admin-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  font-size: 13px;
+}
+
+.admin-table-info {
+  margin: 0;
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Hanya tabelnya yang bergulir ke samping di layar sempit (DESIGN.md). */
+.admin-table-scroll {
+  overflow-x: auto;
+  background: #FFFFFF;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 14px;
+}
+
+.admin-table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.admin-table th {
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+  text-align: left;
+  white-space: nowrap;
+  background: var(--md-sys-color-surface-container-low);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.admin-table td {
+  padding: 10px 12px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--md-sys-color-surface-container);
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-table td.is-warn,
+.admin-facts dd.is-warn,
+.admin-card__line.is-warn {
+  color: var(--gold-dark);
+}
+
+.admin-table td.is-danger {
+  color: var(--md-sys-color-error);
+}
+
+.admin-table td.is-muted {
+  color: var(--md-sys-color-outline);
+}
+
+.admin-cell-main,
+.admin-cell-sub {
+  display: block;
+}
+
+.admin-cell-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--md-sys-color-outline);
+}
+
+.admin-student-name {
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.admin-student-name:hover,
+.admin-student-name:focus-visible {
+  color: var(--gold-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.admin-card-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-card--warn {
+  border-color: var(--md-sys-color-primary);
+}
+
+.admin-card--muted {
+  background: var(--md-sys-color-surface-container-low);
+}
+
+.admin-card__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.admin-card__meta,
+.admin-card__line {
+  margin: 0;
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.admin-card__label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-outline);
+}
+
+.admin-occupancy {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-occupancy__text {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-occupancy__bar {
+  height: 8px;
+  overflow: hidden;
+  background: var(--md-sys-color-surface-container);
+  border-radius: 999px;
+}
+
+/* Lebar diisi admin-overview.js lewat element.style.width (bukan atribut style). */
+.admin-occupancy__fill {
+  height: 100%;
+  background: var(--md-sys-color-tertiary);
+  border-radius: 999px;
+}
+
+.admin-occupancy__fill.is-near {
+  background: var(--md-sys-color-primary);
+}
+
+.admin-occupancy__fill.is-full {
+  background: var(--md-sys-color-error);
+}
+
+.admin-name-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 14px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.admin-facts dt {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.admin-facts dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .admin-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-card-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 430px) {
+  .admin-kpi {
+    padding: 14px;
+  }
+
+  .admin-kpi__value {
+    font-size: 22px;
+  }
+
+  .admin-alert {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-alerts,
+  .admin-card {
+    padding: 16px;
   }
 }

@@ -136,7 +136,12 @@ async function loadActors() {
   const response = await fetch('/api/accounts', { headers: headers() });
   const result = await response.json();
   if (!response.ok) return;
+  // Opsi pertama ("Semua pelaku") dipertahankan; sisanya diganti supaya pemuatan ulang
+  // tidak menggandakan daftar.
+  const terpilih = filterActor.value;
+  filterActor.replaceChildren(filterActor.options[0]);
   result.items.forEach((account) => filterActor.add(new Option(`${account.name} · ${account.role}`, account.id)));
+  filterActor.value = terpilih;
 }
 
 function jalankan(pekerjaan) {
@@ -174,17 +179,18 @@ if (logoutButton) {
 (async function initialize() {
   if (session()) document.body.classList.add('in-crm');
   try {
-    const response = await fetch('/api/me', { headers: headers() });
-    const result = await response.json();
-    if (!response.ok || result.account.role !== 'admin') {
+    const me = await window.hamasahMintaAkun(headers());
+    const result = me.body;
+    if (!me.ok || result.account.role !== 'admin') {
       throw new Error('Halaman ini hanya dapat dibuka oleh admin.');
     }
     guard.hidden = true;
     consoleSection.hidden = false;
     document.body.classList.add('in-crm');
     renderStaffNav(staffNav, result.account.role, 'audit', result.account);
-    await loadActors();
-    await loadEvents();
+    const muatData = () => Promise.all([loadActors(), loadEvents()]);
+    window.hamasahSaatDataSegar(muatData);
+    await muatData();
   } catch (error) {
     guardCopy.textContent = error.message || 'Silakan masuk melalui Portal Hamasah.';
     const judul = guard.querySelector('h1');

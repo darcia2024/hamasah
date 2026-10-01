@@ -110,7 +110,12 @@ async function seedDevelopmentData({ database, logger = console }) {
     );
     createdDormitories.push(dibuat.name);
   }
-  const asramaPerJenis = new Map((await dormitoryStore.listDormitories()).map((asrama) => [asrama.gender, asrama.id]));
+  // Hanya asrama contoh milik seed ini. Tanpa saringan, asrama lain dengan jenis yang
+  // sama (misalnya dari data demo) bisa terpilih dan musyrif dev ikut ditugaskan ke sana.
+  const namaAsramaContoh = new Set(DEV_DORMITORIES.map((asrama) => asrama.name));
+  const asramaPerJenis = new Map((await dormitoryStore.listDormitories())
+    .filter((asrama) => namaAsramaContoh.has(asrama.name))
+    .map((asrama) => [asrama.gender, asrama.id]));
   // Musyrif dev ditugaskan ke asrama putra saja, supaya pembatasan per asrama
   // langsung terlihat saat mencoba aplikasi.
   await dormitoryStore.assignStaff(musyrif.id, asramaPerJenis.get('putra'));

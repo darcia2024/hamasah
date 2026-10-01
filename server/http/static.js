@@ -50,6 +50,22 @@ function cacheControlFor(extension, search) {
   return `public, max-age=${DAY_SECONDS}`;
 }
 
+// Di Vercel setiap permintaan, termasuk HTML dan CSS, dilayani fungsi api/index.js.
+// Header ini mengizinkan CDN Vercel menyimpan jawabannya di lokasi terdekat pengguna,
+// jadi halaman dan aset tidak perlu membangunkan fungsi lagi (yang bisa makan ratusan
+// milidetik, lebih lama lagi bila fungsinya sedang tidur). CDN Vercel tidak memakai
+// simpanan deploy lama setelah ada deploy baru, jadi halaman yang berubah tetap tampil.
+// Browser tidak membaca header ini dan tetap mengikuti Cache-Control di atas.
+function cdnCacheControlFor(extension, search) {
+  if (IMMUTABLE_CANDIDATES.has(extension) && /(?:^|[?&])v=[\w.-]+/.test(search || '')) {
+    return `max-age=${YEAR_SECONDS}, immutable`;
+  }
+  if (extension === '.html' || COMPRESSIBLE.has(extension)) {
+    return `max-age=300, stale-while-revalidate=${DAY_SECONDS}`;
+  }
+  return `max-age=${DAY_SECONDS}, stale-while-revalidate=${DAY_SECONDS * 7}`;
+}
+
 // ETag lemah dari ukuran dan waktu ubah. Lemah, karena isi yang sama dapat terkirim dalam
 // beberapa bentuk kompresi.
 function etagFor(stat) {
@@ -112,14 +128,15 @@ function sendFile(response, request, filePath, search, transform) {
     'Content-Type': MIME_TYPES[extension] || 'application/octet-stream',
     'X-Content-Type-Options': 'nosniff',
     ETag: etag,
-    'Cache-Control': cacheControlFor(extension, search)
+    'Cache-Control': cacheControlFor(extension, search),
+    'Vercel-CDN-Cache-Control': cdnCacheControlFor(extension, search)
   };
   const compressible = COMPRESSIBLE.has(extension);
   if (compressible) headers.Vary = 'Accept-Encoding';
 
   const requestHeaders = (request && request.headers) || {};
   if (matchesEtag(requestHeaders['if-none-match'], etag)) {
-    const notModified = { ETag: etag, 'Cache-Control': headers['Cache-Control'] };
+    const notModified = { ETag: etag, 'Cache-Control': headers['Cache-Control'], 'Vercel-CDN-Cache-Control': headers['Vercel-CDN-Cache-Control'] };
     if (compressible) notModified.Vary = 'Accept-Encoding';
     response.writeHead(304, notModified);
     response.end();

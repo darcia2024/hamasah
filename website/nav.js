@@ -165,56 +165,8 @@ function updateCrmUserBadges(account) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Smooth Page Navigation Transitions (Multi-Page Animation)
-// ---------------------------------------------------------------------------
-function initPageTransitions() {
-  if (typeof document === 'undefined' || typeof window === 'undefined') return;
-
-  document.documentElement.classList.add('crm-page-ready');
-
-  document.addEventListener('click', (e) => {
-    const link = e.target.closest('a');
-    if (!link) return;
-
-    const href = link.getAttribute('href');
-    if (!href) return;
-
-    if (
-      href.startsWith('#') ||
-      href.startsWith('javascript:') ||
-      href.startsWith('mailto:') ||
-      href.startsWith('tel:')
-    ) {
-      return;
-    }
-
-    if (link.target === '_blank' || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) {
-      return;
-    }
-
-    if (href.startsWith('http://') || href.startsWith('https://')) {
-      try {
-        const url = new URL(href, window.location.href);
-        if (url.origin !== window.location.origin) return;
-      } catch {
-        return;
-      }
-    }
-
-    e.preventDefault();
-    document.body.classList.add('crm-page-exiting');
-
-    setTimeout(() => {
-      window.location.href = href;
-    }, 180);
-  });
-}
-
-if (typeof document !== 'undefined') {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initPageTransitions);
-  } else {
-    initPageTransitions();
-  }
-}
+// Perpindahan antarhalaman konsol tidak lagi ditahan JavaScript. Dulu setiap klik
+// tautan dicegat, halaman dipudarkan sampai kosong, lalu baru pindah 180 ms kemudian,
+// sehingga setiap pindah menu terasa memuat. Transisinya kini ditangani browser lewat
+// View Transitions di portal.css, dan halaman tujuan disiapkan lebih dulu lewat
+// Speculation Rules (server/http/speculation-rules.js).

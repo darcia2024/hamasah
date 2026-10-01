@@ -500,9 +500,9 @@ if (logoutButton) {
 (async function initialize() {
   if (session()) document.body.classList.add('in-crm');
   try {
-    const response = await fetch('/api/me', { headers: headers() });
-    const result = await response.json();
-    if (!response.ok || !['admin', 'supervisor'].includes(result.account.role)) throw new Error('Halaman ini hanya dapat dibuka oleh admin atau pengawas.');
+    const me = await window.hamasahMintaAkun(headers());
+    const result = me.body;
+    if (!me.ok || !['admin', 'supervisor'].includes(result.account.role)) throw new Error('Halaman ini hanya dapat dibuka oleh admin atau pengawas.');
     currentRole = result.account.role; guard.hidden = true; consoleSection.hidden = false;
     document.body.classList.add('in-crm');
     renderStaffNav(staffNav, currentRole, 'monitoring', result.account);
@@ -510,10 +510,13 @@ if (logoutButton) {
       document.querySelectorAll('.admin-only-tab').forEach((tab) => { tab.hidden = false; });
       accountLinkSection.hidden = false;
       dormitorySection.hidden = false;
-      await loadAssignableAccounts();
-      await loadDormitories();
     }
-    await loadStudents();
+    const muatData = async () => {
+      await Promise.all([loadAssignableAccounts(), loadDormitories()]);
+      await loadStudents();
+    };
+    window.hamasahSaatDataSegar(muatData);
+    await muatData();
   } catch (error) {
     guardCopy.textContent = error.message || 'Silakan masuk melalui Portal Hamasah.';
     const judul = guard.querySelector('h1');

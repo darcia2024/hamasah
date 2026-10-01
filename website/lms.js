@@ -1083,10 +1083,10 @@ if (logoutButton) {
 (async function initialize() {
   if (session()) document.body.classList.add('in-crm');
   try {
-    const response = await fetch('/api/me', { headers: headers() });
-    const result = await response.json();
+    const me = await window.hamasahMintaAkun(headers());
+    const result = me.body;
     // Belum masuk / sesi berakhir dibedakan dari peran yang tidak berhak.
-    if (!response.ok) throw Object.assign(new Error('Sesi Anda belum ada atau sudah berakhir. Masuk lewat Portal Hamasah untuk membuka LMS.'), { judul: 'Masuk untuk membuka LMS' });
+    if (!me.ok) throw Object.assign(new Error('Sesi Anda belum ada atau sudah berakhir. Masuk lewat Portal Hamasah untuk membuka LMS.'), { judul: 'Masuk untuk membuka LMS' });
     if (!LMS_VIEW_ROLES.includes(result.account.role)) throw Object.assign(new Error('Halaman ini hanya tersedia untuk santri, guru, pengawas, atau admin.'), { judul: 'LMS tidak tersedia untuk akun ini' });
     role = result.account.role;
     guard.hidden = true;
@@ -1096,11 +1096,13 @@ if (logoutButton) {
     if (LMS_MANAGE_ROLES.includes(role)) {
       document.querySelectorAll('.staff-only-tab').forEach((el) => { el.hidden = false; });
       staffSection.hidden = false;
-      await loadStaffCourses();
     }
-    if (role !== 'teacher') {
-      await loadStudents();
-    }
+    const muatData = () => Promise.all([
+      loadStaffCourses(),
+      role !== 'teacher' ? loadStudents() : null
+    ]);
+    window.hamasahSaatDataSegar(muatData);
+    await muatData();
   } catch (error) {
     guardCopy.textContent = error.message || 'Silakan masuk melalui Portal Hamasah.';
     // Judul tidak boleh tetap "Memeriksa..." setelah pemeriksaan selesai.

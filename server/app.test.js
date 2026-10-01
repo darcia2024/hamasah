@@ -658,6 +658,19 @@ async function run() {
     const staffPage = await request(baseUrl, '/website/staff.html');
     assert.equal(staffPage.status, 200);
     assert.match(staffPage.body, /Konsol pendaftaran/);
+
+    // Halaman konsol membawa aturan penyiapan halaman (Speculation Rules); halaman
+    // publik tidak. Aturannya JSON dengan tipe khusus dan hanya menunjuk halaman konsol.
+    for (const halaman of ['/portal.html', '/website/monitoring.html', '/operations.html']) {
+      assert.equal((await fetch(`${baseUrl}${halaman}`)).headers.get('speculation-rules'), '"/konsol-spekulasi.json"', halaman);
+    }
+    assert.equal((await fetch(`${baseUrl}/website/`)).headers.get('speculation-rules'), null);
+    const aturan = await fetch(`${baseUrl}/konsol-spekulasi.json`);
+    assert.equal(aturan.status, 200);
+    assert.equal(aturan.headers.get('content-type'), 'application/speculationrules+json');
+    const isiAturan = await aturan.json();
+    assert.equal(isiAturan.prerender[0].eagerness, 'moderate');
+    assert.ok(isiAturan.prerender[0].where.and[0].href_matches.every((pola) => /^\/(website\/)?(portal|staff|monitoring|operations|lms|audit)\.html$/.test(pola)));
     // Artikel dirender server (Task R7.3): judul artikel sudah ada tanpa JavaScript.
     const articlePage = await request(baseUrl, `/website/article.html?slug=${articleCreated.body.item.slug}`);
     assert.equal(articlePage.status, 200);

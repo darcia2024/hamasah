@@ -150,6 +150,7 @@ async function run() {
       { permission: 'accounts.invitation-send', method: 'POST', path: () => `/api/accounts/${akunId[R.TEACHER]}/invitation` },
 
       { permission: 'audit.read', method: 'GET', path: '/api/audit?limit=5' },
+      { permission: 'overview.read', method: 'GET', path: '/api/admin/overview' },
 
       { permission: 'dormitories.manage', method: 'GET', path: '/api/dormitories' },
       {

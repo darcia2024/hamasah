@@ -38,10 +38,12 @@ const { json, tooManyRequests } = require('./http/respond.js');
 const { MAX_REQUEST_BODY_BYTES, RequestBodyError, readJsonBody } = require('./http/body.js');
 const { serveStaticFile } = require('./http/static.js');
 const seo = require('./seo.js');
+const speculationRules = require('./http/speculation-rules.js');
 const articlePage = require('./article-page.js');
 const { createEventNotifier } = require('./event-notifications.js');
 const { createDepartureService } = require('./departure-service.js');
 const { createStudentCareService } = require('./student-care-service.js');
+const { createAdminOverviewService } = require('./admin-overview-service.js');
 const { createPostgresStudentCareStore } = require('./postgres-student-care-store.js');
 const { createPostgresDepartureStore } = require('./postgres-departure-store.js');
 const { createRequestAuth, hashToken, safeEqual } = require('./http/auth.js');
@@ -60,6 +62,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/auth.js'),
   ...require('./routes/accounts.js'),
   ...require('./routes/audit.js'),
+  ...require('./routes/admin-overview.js'),
   ...require('./routes/files.js'),
   ...require('./routes/operations.js'),
   ...require('./routes/dormitories.js'),
@@ -140,6 +143,7 @@ function createHamasahApp(options) {
     accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor),
     healthEnabled: healthRecordsEnabled
   });
+  const adminOverviewService = config.adminOverviewService || createAdminOverviewService({ database, healthEnabled: healthRecordsEnabled });
   const departureService = config.departureService || createDepartureService({
     store: createPostgresDepartureStore({ database }),
     async registrationExists(registrationId) { return Boolean(await registrationStore.get(registrationId)); }
@@ -275,6 +279,7 @@ function createHamasahApp(options) {
 
   const services = Object.freeze({
     maintenanceService,
+    adminOverviewService,
     accountStore,
     departureService,
     studentCareService,
@@ -396,6 +401,14 @@ function createHamasahApp(options) {
         const articles = await articleStore.listPublishedForSitemap();
         sendText(response, 'application/xml; charset=utf-8', seo.sitemapXml({ origin, websiteDirectory: path.join(rootDirectory, 'website'), articles }));
         return;
+      }
+      // Aturan penyiapan halaman konsol, lihat server/http/speculation-rules.js.
+      if (speculationRules.isRulesPath(url.pathname)) {
+        sendText(response, speculationRules.CONTENT_TYPE, speculationRules.rulesJson());
+        return;
+      }
+      if (speculationRules.isConsolePage(url.pathname)) {
+        response.setHeader('Speculation-Rules', speculationRules.HEADER_VALUE);
       }
       // Halaman artikel dirender server dari database (Task R7.3). URL lama dipertahankan.
       if ((url.pathname === '/website/article.html' || url.pathname === '/article.html') && ['GET', 'HEAD'].includes(request.method)) {

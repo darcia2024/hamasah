@@ -25,6 +25,8 @@ const PERMISSIONS = Object.freeze({
   'dormitories.manage': Object.freeze([ROLES.ADMIN]),
   // Catatan audit memuat siapa melakukan apa di seluruh sistem, jadi hanya admin.
   'audit.read': Object.freeze([ROLES.ADMIN]),
+  // Ringkasan seluruh santri, asrama, dan musyrif di dashboard super admin.
+  'overview.read': Object.freeze([ROLES.ADMIN]),
 
   'registrations.read': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
   'registrations.update-status': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),

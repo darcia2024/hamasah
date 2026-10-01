@@ -978,15 +978,21 @@ if (logoutButton) {
 (async function initialize() {
   if (session()) document.body.classList.add('in-crm');
   try {
-    const result = await jsonRequest('/api/me', { headers: headers() });
+    const me = await window.hamasahMintaAkun(headers());
+    if (!me.ok) throw new Error(me.body.error || 'Permintaan belum dapat diproses.');
+    const result = me.body;
     if (!OPERATIONS_ROLES.includes(result.account.role)) throw new Error('Halaman ini hanya dapat dibuka oleh admin atau keuangan.');
     guard.hidden = true;
     consoleSection.hidden = false;
     document.body.classList.add('in-crm');
     renderStaffNav(staffNav, result.account.role, 'operations', result.account);
-    // Daftar santri dimuat lebih dulu supaya panel visa menampilkan nama, bukan UUID.
-    if (result.account.role === 'admin') await loadStudents();
-    await Promise.all([loadOperations(), loadVisaReminders(), loadVisaDocuments()]);
+    const muatData = async () => {
+      // Daftar santri dimuat lebih dulu supaya panel visa menampilkan nama, bukan UUID.
+      if (result.account.role === 'admin') await loadStudents();
+      await Promise.all([loadOperations(), loadVisaReminders(), loadVisaDocuments()]);
+    };
+    window.hamasahSaatDataSegar(muatData);
+    await muatData();
   } catch (error) {
     guardCopy.textContent = error.message || 'Silakan masuk melalui Portal Hamasah.';
     const judul = guard.querySelector('h1');

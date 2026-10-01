@@ -11,8 +11,11 @@
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
     <link rel="stylesheet" href="staff.css?v=ad5ed10012" />
-    <link rel="stylesheet" href="portal.css?v=95993599af" />
+    <link rel="stylesheet" href="portal.css?v=fc8b87e47e" />
     <script src="session-hint.js?v=b0562827f3"></script>
+    <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
+         supaya pindah menu tidak menampilkan kerangka kosong. Lihat portal.css. -->
+    <link rel="expect" href="#konsol-siap" blocking="render" />
   </head>
   <body class="staff-page">
     <!-- Header saat Belum Login -->
@@ -239,8 +242,10 @@
       </div>
     </section>
 
-    <script src="internal-shell.js?v=070ab95b61"></script>
-    <script src="nav.js?v=5bff154c06"></script>
-    <script src="portal.js?v=8f5d66b7e8"></script>
+    <script src="internal-shell.js?v=80d564c4fb"></script>
+    <script src="nav.js?v=6b165f2d0d"></script>
+    <script src="admin-overview.js?v=17679a09c3"></script>
+    <script src="portal.js?v=9ac6499e3e"></script>
+    <div id="konsol-siap" hidden></div>
   </body>
 </html>
