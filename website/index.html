@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
-    <link rel="stylesheet" href="website-public.css?v=25babcecac" />
+    <link rel="stylesheet" href="website-public.css?v=77bac38981" />
     <link rel="stylesheet" href="landing.css?v=239c2942c1" />
     <link rel="stylesheet" href="fields.css?v=40377b19dc" />
   </head>
@@ -490,7 +490,7 @@
       <section class="lp-section lp-register" id="pendaftaran" aria-labelledby="daftar-title">
         <div class="shell lp-register__grid">
           <div class="lp-register__copy">
-            <p class="eyebrow">Penerimaan 2026/2027</p>
+            <p class="eyebrow" id="registration-period">Penerimaan 2026/2027</p>
             <h2 class="lp-h2" id="daftar-title">Mulai dengan konsultasi gratis.</h2>
             <p class="lp-lede">Isi data singkat ini, cukup tiga menit. Admin kami menghubungi Anda lewat WhatsApp untuk membahas jalur yang paling pas untuk ananda.</p>
 
@@ -505,6 +505,12 @@
           </div>
 
           <div class="registration-form-wrap">
+            <!-- Tampil bila super admin menutup pendaftaran di halaman Pengaturan (website.js). -->
+            <div class="registration-closed" id="registration-closed" tabindex="-1" hidden>
+              <h3>Pendaftaran sedang ditutup</h3>
+              <p id="registration-closed-message"></p>
+              <a class="button button--primary" href="https://wa.me/6287897591978" target="_blank" rel="noopener">Tanya admin lewat WhatsApp</a>
+            </div>
             <form method="post" class="registration-form" id="registration-form" novalidate>
               <div class="form-heading">
                 <h3>Formulir konsultasi</h3>
@@ -727,8 +733,8 @@
 
     <script src="public-header.js?v=af5a025609"></script>
 
-    <script src="assistant.js?v=1dcc603786"></script>
+    <script src="assistant.js?v=47da2fe8dd"></script>
     <script src="registration-domain.js?v=34520aece0"></script>
-    <script src="website.js?v=615a73a085"></script>
+    <script src="website.js?v=aa1dbbcc0a"></script>
   </body>
 </html>

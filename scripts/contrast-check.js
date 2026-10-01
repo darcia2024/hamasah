@@ -179,7 +179,7 @@ function buildScenarios(context) {
   scenarios.push({ name: 'cek-status', page: 'cek-status', states });
 
   // Layar masuk halaman internal: yang dilihat siapa pun yang belum punya sesi.
-  for (const page of ['portal', 'staff', 'lms', 'monitoring', 'operations', 'audit']) {
+  for (const page of ['portal', 'staff', 'lms', 'monitoring', 'operations', 'audit', 'pengaturan']) {
     scenarios.push({ name: `${page} (layar masuk)`, page });
   }
 
@@ -187,7 +187,7 @@ function buildScenarios(context) {
   const signedIn = [
     ['portal', 'admin'], ['portal', 'wali'], ['portal', 'santri'], ['portal', 'musyrif'],
     ['staff', 'petugas'], ['lms', 'guru'], ['lms', 'santri'],
-    ['monitoring', 'musyrif'], ['operations', 'keuangan'], ['audit', 'admin']
+    ['monitoring', 'musyrif'], ['operations', 'keuangan'], ['audit', 'admin'], ['pengaturan', 'admin']
   ];
   for (const [page, role] of signedIn) {
     scenarios.push({ name: `${page} (${role})`, page, role, autoTabs: true });

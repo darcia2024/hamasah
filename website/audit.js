@@ -59,7 +59,9 @@ const LABEL = {
   'dormitory.deleted': 'Asrama dihapus',
   'account.updated': 'Akun diubah',
   'account.password-reset-by-admin': 'Kata sandi sementara dibuat admin',
-  'course.updated': 'Maddah diubah'
+  'course.updated': 'Maddah diubah',
+  'settings.updated': 'Pengaturan diubah',
+  'database.updated': 'Database diperbarui'
 };
 
 function session() {

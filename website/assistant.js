@@ -86,6 +86,15 @@
   root.append(panel, launcher);
   document.body.append(root);
 
+  // Saklar "Asisten di website" di halaman Pengaturan: bila dimatikan, tombolnya tidak
+  // ditampilkan. Bila gagal dibaca, tombol tetap ada dan server yang menolak.
+  fetch('/api/settings/public')
+    .then((response) => (response.ok ? response.json() : null))
+    .then((pengaturan) => {
+      if (pengaturan && pengaturan.asisten && pengaturan.asisten.situs === false) root.remove();
+    })
+    .catch(() => {});
+
   function addMessage(role, text, extras = {}) {
     const bubble = document.createElement('div');
     bubble.className = `assistant__msg assistant__msg--${role}`;
@@ -150,7 +159,9 @@
       });
       const result = await response.json().catch(() => ({}));
       typing.remove();
-      if (response.status === 429) {
+      if (result.nonaktif) {
+        addMessage('bot', result.error || 'Asisten sedang tidak aktif. Silakan chat admin di WhatsApp.', { handoff: true });
+      } else if (response.status === 429) {
         addMessage('bot', 'Pertanyaannya banyak sekali dalam waktu singkat. Coba lagi beberapa menit lagi, atau chat admin di WhatsApp.', { handoff: true });
       } else if (!response.ok || !result.answer) {
         addMessage('bot', 'Maaf, asisten sedang tidak bisa menjawab. Silakan chat admin di WhatsApp.', { handoff: true });

@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pengaturan | Hamasah International</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="icon" href="../assets/favicon.png" />
+    <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
+    <link rel="stylesheet" href="staff.css?v=c57890b487" />
+    <link rel="stylesheet" href="portal.css?v=a446ad35e9" />
+    <link rel="stylesheet" href="fields.css?v=40377b19dc" />
+    <script src="session-hint.js?v=b0562827f3"></script>
+    <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
+         supaya pindah menu tidak menampilkan kerangka kosong. Lihat portal.css. -->
+    <link rel="expect" href="#konsol-siap" blocking="render" />
+  </head>
+  <body class="staff-page">
+    <!-- Header saat Belum Login -->
+    <header class="staff-header staff-header--shell" id="public-header">
+      <a href="portal.html" class="staff-brand">
+        <img class="brand-logo-icon" src="../assets/logo-emblem-gold.png" alt="" width="30" height="33" />
+        <span class="staff-brand__name">Hamasah International</span> <span>Pengaturan</span>
+      </a>
+      <div class="staff-header-actions">
+        <a href="portal.html" class="button button--secondary">Portal akun</a>
+      </div>
+    </header>
+
+    <!-- Guard Section (Saat Belum Login) -->
+    <section id="settings-guard" class="staff-login" aria-live="polite">
+      <div class="staff-login__card">
+        <div class="staff-login__brand">
+          <img class="staff-login__brand-logo" src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" width="44" height="44" />
+          <div>
+            <span class="eyebrow u-m-0">Super Admin</span>
+            <div class="staff-login__brand-name">Pengaturan aplikasi</div>
+          </div>
+        </div>
+        <h1>Memeriksa akses pengaturan</h1>
+        <p class="staff-login__copy" id="settings-guard-copy">
+          Silakan masuk melalui Portal Hamasah. Halaman pengaturan hanya untuk super admin.
+        </p>
+        <a href="portal.html" class="button button--primary staff-login__cta">
+          <span>Buka halaman masuk</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      </div>
+    </section>
+
+    <!-- UNIFIED ALTEZZA CRM SHELL -->
+    <section id="settings-console" hidden class="crm-shell">
+      <!-- CRM Left Sidebar -->
+      <aside class="crm-sidebar" id="crm-sidebar">
+        <div class="crm-sidebar-header">
+          <a href="portal.html" class="crm-brand">
+            <img src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" class="crm-brand-logo" width="34" height="34" />
+            <div class="crm-brand-text">
+              <span class="crm-brand-title">Hamasah <strong>CRM</strong></span>
+              <span class="crm-brand-sub">Al-Azhar Kairo</span>
+            </div>
+          </a>
+          <button type="button" class="crm-collapse-btn" title="Ciutkan Sidebar" aria-label="Toggle Sidebar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+        </div>
+
+        <div class="crm-user-card" id="crm-user-card">
+          <div class="crm-user-avatar" id="crm-user-avatar">AD</div>
+          <div class="crm-user-info">
+            <div class="crm-user-name" id="crm-user-name">Super Administrator</div>
+            <div class="crm-user-role-pill" id="crm-user-role-pill">Super Admin</div>
+          </div>
+        </div>
+
+        <div class="crm-nav-group-title">
+          <span>Menu utama</span>
+          <span class="crm-nav-group-caret" aria-hidden="true"></span>
+        </div>
+        <nav class="crm-nav" id="staff-nav"></nav>
+
+        <div class="crm-sidebar-footer">
+          <div class="crm-system-status">
+            <span class="crm-status-dot"></span>
+            <span>Memeriksa sesi...</span>
+          </div>
+          <button class="crm-logout-btn" id="logout-button" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>Keluar sesi</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- CRM Main Workspace Area -->
+      <div class="crm-workspace">
+        <header class="crm-topbar">
+          <div class="crm-breadcrumbs">
+            <span class="crumb-root">Hamasah CRM</span>
+            <span class="crumb-sep">&gt;</span>
+            <span class="crumb-active">Pengaturan</span>
+          </div>
+          <div class="crm-topbar-actions">
+            <span class="crm-role-chip" id="crm-header-role">Super Admin</span>
+            <button class="crm-topbar-action-btn" id="reload-settings" type="button" aria-label="Muat ulang pengaturan">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l6.07-1.19"/></svg>
+              <span>Muat ulang</span>
+            </button>
+          </div>
+        </header>
+
+        <div class="crm-canvas">
+          <div class="crm-page-header">
+            <h2 class="crm-summary-title">Pengaturan</h2>
+            <p class="crm-summary-subtitle">Menyalakan dan mematikan fitur tanpa menunggu pengembang. Perubahan tercatat di Jejak Audit dan terasa di situs dalam beberapa detik.</p>
+          </div>
+
+          <p id="settings-unavailable" class="settings-banner" role="alert" hidden>Pengaturan belum bisa disimpan karena database belum diperbarui. Terapkan pembaruan database di bagian bawah halaman lebih dulu. Sampai saat itu situs memakai nilai bawaan yang tampil di bawah.</p>
+
+          <form id="settings-form" class="staff-form settings-form" novalidate>
+            <div class="crm-white-card">
+              <div class="crm-white-card-header">
+                <div>
+                  <h3>Pendaftaran</h3>
+                  <p>Formulir konsultasi di halaman utama.</p>
+                </div>
+              </div>
+              <div class="setting-row">
+                <div class="setting-row__text">
+                  <label for="set-pendaftaran-dibuka">Pendaftaran online dibuka</label>
+                  <p id="set-pendaftaran-dibuka-ket">Bila dimatikan, formulir diganti pesan di bawah dan pendaftaran baru ditolak. Pendaftar yang sudah masuk tetap bisa membuka Cek status.</p>
+                </div>
+                <input class="setting-switch" type="checkbox" role="switch" id="set-pendaftaran-dibuka" data-kunci="pendaftaran.dibuka" aria-describedby="set-pendaftaran-dibuka-ket" />
+              </div>
+              <div class="setting-field">
+                <label for="set-pendaftaran-periode">Periode penerimaan</label>
+                <input id="set-pendaftaran-periode" type="text" data-kunci="pendaftaran.periode" aria-describedby="set-pendaftaran-periode-ket" maxlength="60" />
+                <p class="setting-field__hint" id="set-pendaftaran-periode-ket">Tampil di atas judul bagian pendaftaran. 3 sampai 60 karakter.</p>
+              </div>
+              <div class="setting-field">
+                <label for="set-pendaftaran-pesanTutup">Pesan saat pendaftaran ditutup</label>
+                <textarea id="set-pendaftaran-pesanTutup" data-kunci="pendaftaran.pesanTutup" rows="3" aria-describedby="set-pendaftaran-pesanTutup-ket" maxlength="300"></textarea>
+                <p class="setting-field__hint" id="set-pendaftaran-pesanTutup-ket">Ditampilkan kepada pengunjung saat pendaftaran ditutup. 10 sampai 300 karakter.</p>
+              </div>
+            </div>
+            <div class="crm-white-card u-mt-20">
+              <div class="crm-white-card-header">
+                <div>
+                  <h3>Asisten otomatis</h3>
+                  <p>Asisten tanya-jawab di website dan asisten belajar di LMS.</p>
+                </div>
+              </div>
+              <div class="setting-row">
+                <div class="setting-row__text">
+                  <label for="set-asisten-situs">Asisten di website</label>
+                  <p id="set-asisten-situs-ket">Tombol &ldquo;Tanya Hamasah&rdquo; di halaman publik. Bila dimatikan, tombolnya hilang dan pengunjung diarahkan ke WhatsApp.</p>
+                </div>
+                <input class="setting-switch" type="checkbox" role="switch" id="set-asisten-situs" data-kunci="asisten.situs" aria-describedby="set-asisten-situs-ket" />
+              </div>
+              <div class="setting-row">
+                <div class="setting-row__text">
+                  <label for="set-asisten-belajar">Asisten belajar LMS</label>
+                  <p id="set-asisten-belajar-ket">Tombol tanya materi untuk santri di Ruang belajar.</p>
+                </div>
+                <input class="setting-switch" type="checkbox" role="switch" id="set-asisten-belajar" data-kunci="asisten.belajar" aria-describedby="set-asisten-belajar-ket" />
+              </div>
+              <div class="setting-field">
+                <label for="set-asisten-batasPerJam">Batas pertanyaan per akun per jam</label>
+                <input id="set-asisten-batasPerJam" type="number" data-kunci="asisten.batasPerJam" aria-describedby="set-asisten-batasPerJam-ket" min="1" max="200" step="1" inputmode="numeric" />
+                <p class="setting-field__hint" id="set-asisten-batasPerJam-ket">Mencegah biaya AI melonjak. 1 sampai 200.</p>
+              </div>
+            </div>
+            <div class="crm-white-card u-mt-20">
+              <div class="crm-white-card-header">
+                <div>
+                  <h3>Data pribadi</h3>
+                  <p>Fitur yang menyimpan data sensitif santri.</p>
+                </div>
+              </div>
+              <div class="setting-row">
+                <div class="setting-row__text">
+                  <label for="set-kesehatan-aktif">Catatan kesehatan santri</label>
+                  <p id="set-kesehatan-aktif-ket">Nyalakan hanya setelah Kebijakan Privasi memuat pengolahan data kesehatan. Catatan yang sudah ada tidak terhapus saat dimatikan, hanya disembunyikan.</p>
+                </div>
+                <input class="setting-switch" type="checkbox" role="switch" id="set-kesehatan-aktif" data-kunci="kesehatan.aktif" aria-describedby="set-kesehatan-aktif-ket" />
+              </div>
+              <div class="setting-field">
+                <label for="set-audit-masaSimpanHari">Masa simpan jejak audit (hari)</label>
+                <input id="set-audit-masaSimpanHari" type="number" data-kunci="audit.masaSimpanHari" aria-describedby="set-audit-masaSimpanHari-ket" min="90" max="3650" step="1" inputmode="numeric" />
+                <p class="setting-field__hint" id="set-audit-masaSimpanHari-ket">Catatan audit yang lebih tua dihapus otomatis setiap hari. 90 sampai 3650.</p>
+              </div>
+            </div>
+
+            <div class="settings-actions">
+              <p id="settings-last" class="settings-last"></p>
+              <button class="button button--secondary control--h42" id="settings-reset" type="button" disabled>Batalkan perubahan</button>
+              <button class="button button--primary control--h42" id="settings-save" type="submit" disabled>Simpan pengaturan</button>
+            </div>
+            <p id="settings-status" class="form-status" role="status" aria-live="polite"></p>
+          </form>
+
+          <div class="crm-white-card u-mt-20" id="database-card">
+            <div class="crm-white-card-header">
+              <div>
+                <h3>Pembaruan database</h3>
+                <p>Rilis baru kadang membawa perubahan struktur database. Terapkan di sini setelah aplikasi diperbarui, tanpa membuka terminal.</p>
+              </div>
+            </div>
+            <p id="database-summary" class="settings-db-summary">Memeriksa database...</p>
+            <ul id="database-pending" class="settings-db-list" hidden></ul>
+            <p id="database-problem" class="settings-banner" role="alert" hidden></p>
+            <button class="button button--primary control--h42" id="database-apply" type="button" hidden>Terapkan pembaruan database</button>
+            <p id="database-status" class="form-status" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script src="internal-shell.js?v=7219343ccd"></script>
+    <script src="nav.js?v=4bef2fea1d"></script>
+    <script src="pengaturan.js?v=074ea583a6"></script>
+    <div id="konsol-siap" hidden></div>
+  </body>
+</html>

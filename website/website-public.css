@@ -1457,6 +1457,38 @@
   border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }
 
+/* Pengganti formulir saat pendaftaran ditutup dari halaman Pengaturan. */
+.registration-closed {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  background: var(--md-sys-color-surface-container-lowest);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-shape-corner-extra-large);
+  padding: 38px;
+  box-shadow: var(--md-sys-elevation-2);
+}
+
+.registration-closed[hidden] { display: none; }
+
+.registration-closed h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+.registration-closed p {
+  margin: 0 0 8px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+@media (max-width: 640px) {
+  .registration-closed { padding: 24px; }
+}
+
 .form-heading h3 {
   font-size: 22px;
   font-weight: 600;

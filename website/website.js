@@ -307,6 +307,26 @@ function showRegistrationReceipt(registrationId, accessCode) {
   registrationReceipt.focus({ preventScroll: true });
 }
 
+// Saklar "Pendaftaran online" dan periode penerimaan dari halaman Pengaturan. Bila gagal
+// dibaca, formulir tetap tampil: server tetap menolak dengan pesan yang sama saat dikirim.
+(async function terapkanPengaturanPendaftaran() {
+  try {
+    const response = await fetch('/api/settings/public');
+    if (!response.ok) return;
+    const { pendaftaran } = await response.json();
+    const periode = document.querySelector('#registration-period');
+    if (periode && pendaftaran.periode) periode.textContent = pendaftaran.periode;
+    const tutup = document.querySelector('#registration-closed');
+    if (!pendaftaran.dibuka && tutup) {
+      tutup.querySelector('#registration-closed-message').textContent = pendaftaran.pesanTutup;
+      tutup.hidden = false;
+      form.hidden = true;
+    }
+  } catch {
+    // Jaringan putus: biarkan formulir apa adanya.
+  }
+}());
+
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
   status.classList.remove('is-error');
