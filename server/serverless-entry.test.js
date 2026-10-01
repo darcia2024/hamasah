@@ -90,3 +90,17 @@ test('api/index.js melayani permintaan dengan environment production', async () 
     Object.assign(process.env, cadangan);
   }
 });
+
+// Vercel mengirim request.url "/api/index.js?__path=..." untuk semua alamat yang
+// di-rewrite (terlihat di log production 1 Oktober 2026: semua halaman 404).
+test('alamat asli pengunjung dikembalikan dari parameter rewrite Vercel', () => {
+  const { restoreOriginalUrl } = require('../api/index.js');
+  assert.equal(restoreOriginalUrl('/api/index.js?__path=website/biaya.html'), '/website/biaya.html');
+  assert.equal(restoreOriginalUrl('/api/index.js?__path=api/ready'), '/api/ready');
+  assert.equal(restoreOriginalUrl('/api/index.js?__path='), '/');
+  assert.equal(restoreOriginalUrl('/api/index.js?slug=tips-lulus&__path=website/article.html'), '/website/article.html?slug=tips-lulus');
+  assert.equal(restoreOriginalUrl('/api/index?__path=website/cek-status.html&id=HI-REG-1'), '/website/cek-status.html?id=HI-REG-1');
+  // Permintaan yang tidak lewat rewrite tidak diubah.
+  assert.equal(restoreOriginalUrl('/website/kontak.html?topic=biaya'), '/website/kontak.html?topic=biaya');
+  assert.equal(restoreOriginalUrl('/'), '/');
+});

@@ -19,6 +19,21 @@ const { createHamasahApp } = require('../server/app.js');
 const { appOptionsFromConfig, readProductionConfig } = require('../server/production-config.js');
 const { createRequestId, errorFields, logEvent } = require('../server/http/request-log.js');
 
+// Rewrite Vercel ("/(.*)" ke "/api/index.js") membuat fungsi menerima request.url
+// "/api/index.js", bukan alamat yang diminta pengunjung. Karena itu rewrite di
+// vercel.json membawa alamat asli sebagai parameter __path, dan di sini alamat itu
+// dikembalikan sebelum aplikasi melihatnya. Query asli pengunjung tetap utuh.
+const PATH_PARAM = '__path';
+
+function restoreOriginalUrl(rawUrl) {
+  const url = new URL(rawUrl || '/', 'http://localhost');
+  if (!/^\/api\/index(\.js)?$/.test(url.pathname) || !url.searchParams.has(PATH_PARAM)) return rawUrl;
+  const original = `/${String(url.searchParams.get(PATH_PARAM) || '').replace(/^\/+/, '')}`;
+  url.searchParams.delete(PATH_PARAM);
+  const query = url.searchParams.toString();
+  return `${original}${query ? `?${query}` : ''}`;
+}
+
 let handlerPromise = null;
 
 function buatHandler() {
@@ -58,5 +73,8 @@ module.exports = async function handler(request, response) {
     response.end(JSON.stringify({ error: `Layanan belum siap. Sebutkan kode ${requestId} saat melapor ke petugas.`, requestId }));
     return;
   }
+  request.url = restoreOriginalUrl(request.url);
   return listener(request, response);
 };
+
+module.exports.restoreOriginalUrl = restoreOriginalUrl;
