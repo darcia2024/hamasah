@@ -30,6 +30,8 @@
     "security:check": "node scripts/security-local-check.js",
     "preflight:staging": "node scripts/staging-preflight.js",
     "cleanup:smoke-data": "node scripts/cleanup-smoke-data.js",
+    "demo:isi": "node scripts/demo-data.js",
+    "demo:hapus": "node scripts/demo-data.js --hapus",
     "test": "node database/validate-schema.js && node --test"
   },
   "dependencies": {

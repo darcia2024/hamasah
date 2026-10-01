@@ -105,6 +105,53 @@ Hanya sekali, saat database masih tanpa admin.
 
 ---
 
+## 5a. Data demo
+
+`scripts/demo-data.js` mengisi data contoh yang terasa seperti data sungguhan, supaya pengurus
+bisa mencoba aplikasi dari sisi setiap peran: 9 akun (petugas, musyrif, musyrifah, guru,
+keuangan, 2 wali, 2 santri), 2 asrama, 12 santri dengan presensi, sholat, hafalan, kesehatan,
+dan catatan pembinaan, tagihan dan kuitansi, visa, inventaris, 12 pendaftar di semua tahap,
+3 kloter, pesan konsultasi, dan 2 maddah LMS lengkap dengan progres belajar. Akun admin tidak
+dibuat dan tidak disentuh.
+
+Semua data fiktif dan bertanda: email `@demo.hamasah.test` (domain `.test` tidak bisa menerima
+email) dan nomor WhatsApp `0800-0000-xxxx` (bukan nomor seluler).
+
+**Akun demo adalah akun sungguhan dengan hak sesuai perannya.** Petugas demo melihat semua
+pendaftar, keuangan demo melihat semua tagihan. Hapus data demo sebelum aplikasi dipakai untuk
+data sungguhan.
+
+Di laptop (hentikan preview dulu):
+
+```bash
+npm run demo:isi                                  # kata sandi semua akun: kata-sandi-demo-hamasah
+npm run demo:hapus                                # laporan saja
+CONFIRM_DELETE=I_UNDERSTAND npm run demo:hapus    # menghapus
+```
+
+Ke production, dari folder proyek di PowerShell. `DATABASE_URL` sama dengan yang dipakai Vercel
+(Supabase, Connect, Session pooler). Prosesnya 2 sampai 10 menit tergantung jarak ke server
+database.
+
+```powershell
+$env:APP_ENV="production"; $env:ALLOW_PRODUCTION_WRITE="I_UNDERSTAND"; $env:DATABASE_URL="<connection string>"
+node scripts/demo-data.js
+```
+
+- Kata sandi akun demo dibuat acak dan **hanya ditampilkan sekali** di terminal, bersama nomor
+  pendaftaran dan kode akses pendaftar demo (untuk `/cek-status.html`). Semua akun masuk lewat
+  `/portal.html`.
+- Lupa kata sandi atau kode akses: jalankan lagi dengan `--sandi-baru`. Sesi lama ikut diakhiri.
+- Menghapus: `node scripts/demo-data.js --hapus` menampilkan laporan. Bila sudah benar, ulangi
+  dengan `$env:CONFIRM_DELETE="I_UNDERSTAND"`. Kloter, asrama, dan inventaris yang sudah dipakai
+  data sungguhan dilewati dan disebut di laporan. Penomoran pendaftaran, invoice, dan kuitansi
+  dikembalikan, sehingga data sungguhan pertama tetap mulai dari 00001.
+- Bila akun demo sempat mengunggah berkas, penghapusan juga memerlukan `SUPABASE_URL` dan
+  `SUPABASE_SERVICE_ROLE_KEY` di terminal yang sama.
+- Tutup terminal setelah selesai, karena `DATABASE_URL` berisi kata sandi database.
+
+---
+
 ## 6. Pemantauan
 
 ### Uptime
