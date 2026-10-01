@@ -222,6 +222,39 @@ function renderConversionResult(conversion) {
   conversionResult.append(title, copy, list, next);
 }
 
+// ---------------------------------------------------------------------------
+// Daftar pendaftar: kartu ringkas, detail dan semua aksi di pop up.
+//
+// Dulu setiap kartu memuat seluruh isian (status, WhatsApp, catatan, tindak lanjut,
+// kloter, dokumen), sehingga satu pendaftar memakan satu layar penuh dan daftar sulit
+// dipindai. Kini kartu hanya berisi yang dibutuhkan untuk memilih, dan pop up memuat
+// detail lengkap, termasuk catatan, tindak lanjut, dan riwayat status yang sebelumnya
+// tidak pernah ditampilkan.
+// ---------------------------------------------------------------------------
+const LABEL_PROGRAM = Object.freeze({
+  'kuliah-al-azhar': 'Kuliah S1 Al-Azhar',
+  'mahad-al-azhar': "Ma'had Al-Azhar",
+  'hamasah-courses': 'Hamasah Courses'
+});
+const LABEL_STATUS_PENDAFTAR = Object.freeze(Object.fromEntries(statusOptions));
+const LABEL_VISIBILITAS = Object.freeze({ applicant: 'Terlihat pendaftar', internal: 'Internal petugas' });
+const NADA_STATUS = Object.freeze({
+  submitted: 'baru', 'document-review': 'proses', 'needs-revision': 'perbaikan',
+  'academic-preparation': 'proses', 'ready-for-departure': 'siap', completed: 'selesai', cancelled: 'batal'
+});
+
+function elemen(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined && text !== null) node.textContent = text;
+  return node;
+}
+
+function formatTanggal(value) {
+  if (!value) return '';
+  return new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`));
+}
+
 function renderRegistrations(items) {
   registrationList.replaceChildren();
   if (!items.length) {
@@ -231,199 +264,352 @@ function renderRegistrations(items) {
     registrationList.append(empty);
     return;
   }
+  items.forEach((registration) => registrationList.append(kartuPendaftar(registration)));
+}
 
-  items.forEach((registration) => {
-    const card = document.createElement('article');
-    card.className = 'staff-registration';
-    const content = document.createElement('div');
-    const name = document.createElement('h2');
-    name.textContent = registration.applicant.applicantName;
-    const identity = document.createElement('p');
-    identity.textContent = `${registration.registrationId} · ${registration.program}`;
-    const meta = document.createElement('div');
-    meta.className = 'staff-registration__meta staff-registration__meta--compact';
-    const terakhir = (registration.history || []).at(-1);
-    const pelaku = terakhir ? (terakhir.byName || labelPeran(terakhir.byRole)) : '';
-    [
-      `WhatsApp calon: ${registration.applicant.phone}`,
-      `Wali: ${registration.applicant.guardianName || 'Belum diisi'} · ${registration.applicant.guardianPhone || 'Belum diisi'}`,
-      `Pendidikan: ${registration.applicant.educationLevel || 'Belum diisi'} · Domisili: ${registration.applicant.city || 'Belum diisi'}`,
-      `Status: ${registration.statusLabel} · Progres ${registration.progress}%`,
-      terakhir ? `Terakhir diubah oleh ${pelaku} pada ${formatWaktu(terakhir.at)}` : 'Belum ada perubahan status.'
-    ].forEach((text) => {
-      const line = document.createElement('p');
-      line.textContent = text;
-      meta.append(line);
+function kartuPendaftar(registration) {
+  const kartu = elemen('button', 'staff-reg-card');
+  kartu.type = 'button';
+  kartu.setAttribute('aria-haspopup', 'dialog');
+
+  const atas = elemen('span', 'staff-reg-card__top');
+  atas.append(
+    elemen('span', 'staff-reg-card__name', registration.applicant.applicantName),
+    elemen('span', `staff-reg-card__status is-${NADA_STATUS[registration.status] || 'proses'}`, LABEL_STATUS_PENDAFTAR[registration.status] || registration.statusLabel)
+  );
+
+  const info = elemen('span', 'staff-reg-card__meta', [
+    registration.registrationId,
+    LABEL_PROGRAM[registration.program] || registration.program,
+    registration.applicant.city
+  ].filter(Boolean).join(' · '));
+
+  const progres = elemen('span', 'staff-reg-card__progress');
+  progres.setAttribute('aria-hidden', 'true');
+  const isiProgres = elemen('span', 'staff-reg-card__progress-fill');
+  isiProgres.style.width = `${Math.max(0, Math.min(100, registration.progress || 0))}%`;
+  progres.append(isiProgres);
+
+  const tanda = [];
+  if (registration.departure) tanda.push(registration.departure.name);
+  const langkahTerbuka = (registration.nextSteps || []).filter((step) => !step.doneAt).length;
+  if (langkahTerbuka) tanda.push(`${langkahTerbuka} tindak lanjut`);
+  const dokumen = registration.documents || [];
+  const ditolak = dokumen.filter((d) => d.reviewStatus === 'rejected').length;
+  const menunggu = dokumen.filter((d) => (d.reviewStatus || 'pending') === 'pending').length;
+  if (menunggu) tanda.push(`${menunggu} dokumen menunggu review`);
+  if (ditolak) tanda.push(`${ditolak} dokumen ditolak`);
+
+  const bawah = elemen('span', 'staff-reg-card__foot');
+  bawah.append(
+    elemen('span', 'staff-reg-card__updated', `Diperbarui ${formatWaktu(registration.updatedAt || registration.createdAt)}${tanda.length ? ` · ${tanda.join(' · ')}` : ''}`),
+    elemen('span', 'staff-reg-card__open', 'Buka detail')
+  );
+
+  kartu.append(atas, info, progres, bawah);
+  kartu.addEventListener('click', () => bukaDetailPendaftar(registration));
+  return kartu;
+}
+
+// ---------------------------------------------------------------------------
+// Pop up detail pendaftar
+
+let dialogPendaftar = null;
+let isiDialogPendaftar = null;
+let statusDialogPendaftar = null;
+let nomorTerbuka = null;
+
+function pastikanDialogPendaftar() {
+  if (dialogPendaftar) return dialogPendaftar;
+  dialogPendaftar = elemen('dialog', 'op-dialog staff-reg-dialog');
+  dialogPendaftar.setAttribute('aria-labelledby', 'staff-reg-dialog-title');
+  isiDialogPendaftar = elemen('div', 'staff-reg-dialog__body');
+  dialogPendaftar.append(isiDialogPendaftar);
+  dialogPendaftar.addEventListener('close', () => { nomorTerbuka = null; });
+  // Klik di luar kotak (pada latar gelap) menutup pop up.
+  dialogPendaftar.addEventListener('click', (event) => {
+    if (event.target === dialogPendaftar) dialogPendaftar.close();
+  });
+  document.body.append(dialogPendaftar);
+  return dialogPendaftar;
+}
+
+function bukaDetailPendaftar(registration) {
+  const dialog = pastikanDialogPendaftar();
+  nomorTerbuka = registration.registrationId;
+  gambarDetailPendaftar(registration);
+  if (!dialog.open) dialog.showModal();
+}
+
+function tulisStatusDetail(teks, galat = false) {
+  if (!statusDialogPendaftar) return;
+  statusDialogPendaftar.textContent = teks;
+  statusDialogPendaftar.classList.toggle('is-error', galat);
+}
+
+async function kirimPerubahan(url, method, body) {
+  const response = await fetch(url, {
+    method,
+    headers: { ...authHeaders(), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || 'Perubahan belum dapat disimpan.');
+  return result;
+}
+
+// Satu aksi di pop up: tombol dinonaktifkan selama berjalan, hasilnya ditulis di pop up
+// (bukan di daftar di belakangnya), lalu pop up dan daftar diperbarui.
+async function aksiDetail(tombol, registration, kerja, pesanBerhasil) {
+  tombol.disabled = true;
+  tulisStatusDetail('Menyimpan...');
+  try {
+    const pesan = await kerja();
+    await perbaruiDetailPendaftar(registration.registrationId, pesan || pesanBerhasil);
+  } catch (error) {
+    tulisStatusDetail(error.message || 'Perubahan belum dapat disimpan.', true);
+  } finally {
+    tombol.disabled = false;
+  }
+}
+
+async function perbaruiDetailPendaftar(nomor, pesan) {
+  loadRegistrations().catch(() => {});
+  const response = await fetch(`/api/registrations?search=${encodeURIComponent(nomor)}&pageSize=5`, { headers: authHeaders() });
+  const result = await response.json().catch(() => ({}));
+  const baru = (result.items || []).find((item) => item.registrationId === nomor);
+  if (baru && nomorTerbuka === nomor) gambarDetailPendaftar(baru);
+  tulisStatusDetail(pesan || 'Tersimpan.');
+}
+
+function bagian(judul, ...isi) {
+  const wadah = elemen('section', 'staff-reg-section');
+  wadah.append(elemen('h3', 'staff-reg-section__title', judul), ...isi);
+  return wadah;
+}
+
+function gambarDetailPendaftar(registration) {
+  const kepala = elemen('div', 'staff-reg-dialog__head');
+  const judul = elemen('div');
+  const nama = elemen('h2', 'staff-reg-dialog__title', registration.applicant.applicantName);
+  nama.id = 'staff-reg-dialog-title';
+  judul.append(nama, elemen('p', 'staff-reg-dialog__sub', [
+    registration.registrationId, LABEL_PROGRAM[registration.program] || registration.program, LABEL_STATUS_PENDAFTAR[registration.status] || registration.statusLabel
+  ].join(' · ')));
+  const tutup = elemen('button', 'button button--secondary staff-reg-dialog__close', 'Tutup');
+  tutup.type = 'button';
+  // Fokus awal di tombol Tutup, bukan di wadah isi yang bisa digulir.
+  tutup.autofocus = true;
+  tutup.addEventListener('click', () => dialogPendaftar.close());
+  kepala.append(judul, tutup);
+
+  statusDialogPendaftar = elemen('p', 'staff-reg-dialog__status');
+  statusDialogPendaftar.setAttribute('role', 'status');
+
+  const kiri = elemen('div', 'staff-reg-dialog__col');
+  const kanan = elemen('div', 'staff-reg-dialog__col');
+  kiri.append(bagianRingkasan(registration), bagianStatus(registration), createWhatsappControl(registration));
+  if (registration.status !== 'cancelled') kiri.append(createDepartureControl(registration));
+  const konversi = bagianKonversi(registration);
+  if (konversi) kiri.append(konversi);
+  kanan.append(bagianCatatan(registration), bagianTindakLanjut(registration));
+  if ((registration.documents || []).length) kanan.append(bagianDokumen(registration));
+  kanan.append(bagianRiwayat(registration));
+
+  const kolom = elemen('div', 'staff-reg-dialog__grid');
+  kolom.append(kiri, kanan);
+  isiDialogPendaftar.replaceChildren(kepala, statusDialogPendaftar, kolom);
+}
+
+function bagianRingkasan(registration) {
+  const daftar = elemen('dl', 'staff-reg-facts');
+  const fakta = (judul, nilai) => daftar.append(elemen('dt', '', judul), elemen('dd', '', nilai || 'Belum diisi'));
+  fakta('WhatsApp calon', registration.applicant.phone);
+  fakta('Wali', [registration.applicant.guardianName, registration.applicant.guardianPhone].filter(Boolean).join(' · '));
+  fakta('Pendidikan', registration.applicant.educationLevel);
+  fakta('Domisili', registration.applicant.city);
+  fakta('Progres', `${registration.progress}%`);
+  fakta('Mendaftar', formatWaktu(registration.createdAt));
+  return bagian('Data pendaftar', daftar);
+}
+
+function bagianStatus(registration) {
+  const baris = elemen('div', 'staff-reg-row');
+  const select = document.createElement('select');
+  select.setAttribute('aria-label', 'Status pendaftaran');
+  statusOptions.forEach(([value, label]) => {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = label;
+    option.selected = value === registration.status;
+    select.append(option);
+  });
+  const simpan = elemen('button', 'button button--primary', 'Simpan status');
+  simpan.type = 'button';
+  simpan.addEventListener('click', () => aksiDetail(simpan, registration, async () => {
+    await kirimPerubahan(`/api/registrations/${encodeURIComponent(registration.registrationId)}/status`, 'PATCH', { status: select.value });
+    return `Status diubah menjadi ${LABEL_STATUS_PENDAFTAR[select.value]}.`;
+  }));
+  baris.append(select, simpan);
+  return bagian('Ubah status', baris);
+}
+
+function bagianCatatan(registration) {
+  const isi = [];
+  const catatan = [...(registration.notes || [])].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  if (catatan.length) {
+    const daftar = elemen('ul', 'staff-reg-list');
+    catatan.forEach((note) => {
+      const item = elemen('li');
+      item.append(elemen('p', 'staff-reg-list__body', note.body), elemen('p', 'staff-reg-list__meta', `${LABEL_VISIBILITAS[note.visibility] || note.visibility} · ${formatWaktu(note.createdAt)}`));
+      daftar.append(item);
     });
-    content.append(name, identity, meta);
+    isi.push(daftar);
+  } else {
+    isi.push(elemen('p', 'staff-reg-empty', 'Belum ada catatan.'));
+  }
+  const kotak = elemen('div', 'staff-note-box staff-note-box--catatan');
+  const teks = document.createElement('textarea');
+  teks.rows = 2;
+  teks.placeholder = 'Tulis catatan untuk pendaftar atau internal';
+  teks.setAttribute('aria-label', 'Catatan baru');
+  const visibilitas = document.createElement('select');
+  visibilitas.setAttribute('aria-label', 'Siapa yang melihat catatan');
+  Object.entries(LABEL_VISIBILITAS).forEach(([value, text]) => visibilitas.add(new Option(text, value)));
+  const tambah = elemen('button', 'button button--secondary', 'Tambah catatan');
+  tambah.type = 'button';
+  tambah.addEventListener('click', () => {
+    if (!teks.value.trim()) return;
+    aksiDetail(tambah, registration, async () => {
+      await kirimPerubahan(`/api/registrations/${encodeURIComponent(registration.registrationId)}/notes`, 'POST', { visibility: visibilitas.value, body: teks.value });
+    }, 'Catatan ditambahkan.');
+  });
+  kotak.append(teks, visibilitas, tambah);
+  isi.push(kotak);
+  return bagian('Catatan', ...isi);
+}
 
-    if ((registration.documents || []).length) {
-      const documents = document.createElement('div');
-      documents.className = 'staff-registration__documents';
-      const heading = document.createElement('strong');
-      heading.textContent = 'Dokumen pendaftaran';
-      documents.append(heading);
-      registration.documents.forEach((documentItem) => {
-        const row = document.createElement('div');
-        row.className = 'staff-document-row';
-        const label = document.createElement('span');
-        label.textContent = `${documentItem.type} · ${documentItem.reviewStatus || 'pending'}`;
-        const review = document.createElement('select');
-        [['accepted', 'Terima'], ['rejected', 'Tolak']].forEach(([value, text]) => {
-          const option = document.createElement('option'); option.value = value; option.textContent = text;
-          option.selected = value === documentItem.reviewStatus; review.append(option);
-        });
-        const note = document.createElement('input');
-        note.type = 'text'; note.placeholder = 'Catatan review'; note.value = documentItem.reviewNote || '';
-        // Tanpa ini petugas menyetujui atau menolak paspor, ijazah, dan surat
-        // kesehatan tanpa pernah bisa membukanya dari konsol.
-        const buka = document.createElement('button');
-        buka.type = 'button';
-        buka.className = 'button button--secondary';
-        buka.textContent = 'Buka berkas';
-        buka.disabled = !documentItem.fileObjectId;
-        if (!documentItem.fileObjectId) buka.title = 'Berkas belum terunggah lengkap.';
-        buka.addEventListener('click', async () => {
-          const labelAsli = buka.textContent;
-          buka.disabled = true;
-          buka.textContent = 'Menyiapkan...';
-          try {
-            await window.HamasahFileOpen.buka(documentItem.fileObjectId, {
-              headers: authHeaders(),
-              nama: `${registration.registrationId}-${documentItem.type}`
-            });
-            registrationListStatus.textContent = '';
-            registrationListStatus.classList.remove('is-error');
-          } catch (error) {
-            registrationListStatus.textContent = error.message;
-            registrationListStatus.classList.add('is-error');
-          } finally {
-            buka.disabled = false;
-            buka.textContent = labelAsli;
-          }
-        });
-
-        const save = document.createElement('button'); save.type = 'button'; save.className = 'button button--secondary'; save.textContent = 'Simpan';
-        save.addEventListener('click', async () => {
-          save.disabled = true;
-          try {
-            const response = await fetch(`/api/registrations/${encodeURIComponent(registration.registrationId)}/documents/${encodeURIComponent(documentItem.id)}/review`, {
-              method: 'PATCH', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-              body: JSON.stringify({ reviewStatus: review.value, note: note.value })
-            });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.error || 'Review dokumen belum dapat disimpan.');
-            await loadRegistrations();
-          } catch (error) {
-            registrationListStatus.textContent = error.message;
-            registrationListStatus.classList.add('is-error');
-          } finally { save.disabled = false; }
-        });
-        row.append(label, buka, review, note, save); documents.append(row);
-      });
-      content.append(documents);
-    }
-
-    const controls = document.createElement('div');
-    controls.className = 'staff-registration__controls staff-registration__controls--primary';
-    const select = document.createElement('select');
-    statusOptions.forEach(([value, label]) => {
-      const option = document.createElement('option');
-      option.value = value;
-      option.textContent = label;
-      option.selected = value === registration.status;
-      select.append(option);
+function bagianTindakLanjut(registration) {
+  const isi = [];
+  const langkah = registration.nextSteps || [];
+  if (langkah.length) {
+    const daftar = elemen('ul', 'staff-reg-list');
+    langkah.forEach((step) => {
+      const item = elemen('li');
+      item.append(
+        elemen('p', 'staff-reg-list__body', step.title),
+        elemen('p', 'staff-reg-list__meta', step.doneAt ? `Selesai ${formatWaktu(step.doneAt)}` : (step.dueOn ? `Tenggat ${formatTanggal(step.dueOn)}` : 'Tanpa tenggat'))
+      );
+      daftar.append(item);
     });
-    const update = document.createElement('button');
-    update.className = 'button button--primary';
-    update.type = 'button';
-    update.textContent = 'Simpan status';
-    update.addEventListener('click', async () => {
-      update.disabled = true;
+    isi.push(daftar);
+  } else {
+    isi.push(elemen('p', 'staff-reg-empty', 'Belum ada tindak lanjut.'));
+  }
+  const kotak = elemen('div', 'staff-note-box staff-note-box--langkah');
+  const judul = document.createElement('input');
+  judul.type = 'text';
+  judul.placeholder = 'Tindak lanjut berikutnya';
+  judul.setAttribute('aria-label', 'Tindak lanjut berikutnya');
+  const tenggat = document.createElement('input');
+  tenggat.type = 'date';
+  tenggat.setAttribute('aria-label', 'Tenggat tindak lanjut');
+  const tambah = elemen('button', 'button button--secondary', 'Tambah tindak lanjut');
+  tambah.type = 'button';
+  tambah.addEventListener('click', () => {
+    if (!judul.value.trim()) return;
+    aksiDetail(tambah, registration, async () => {
+      await kirimPerubahan(`/api/registrations/${encodeURIComponent(registration.registrationId)}/next-steps`, 'POST', { title: judul.value, dueOn: tenggat.value || null });
+    }, 'Tindak lanjut ditambahkan.');
+  });
+  kotak.append(judul, tenggat, tambah);
+  isi.push(kotak);
+  return bagian('Tindak lanjut', ...isi);
+}
+
+function bagianDokumen(registration) {
+  const wadah = elemen('div', 'staff-registration__documents');
+  registration.documents.forEach((documentItem) => {
+    const row = elemen('div', 'staff-document-row');
+    const label = elemen('span', '', `${documentItem.type} · ${documentItem.reviewStatus || 'pending'}`);
+    const review = document.createElement('select');
+    review.setAttribute('aria-label', `Hasil review ${documentItem.type}`);
+    [['accepted', 'Terima'], ['rejected', 'Tolak']].forEach(([value, text]) => {
+      const option = new Option(text, value);
+      option.selected = value === documentItem.reviewStatus;
+      review.append(option);
+    });
+    const note = document.createElement('input');
+    note.type = 'text';
+    note.placeholder = 'Catatan review';
+    note.setAttribute('aria-label', `Catatan review ${documentItem.type}`);
+    note.value = documentItem.reviewNote || '';
+    // Tanpa ini petugas menyetujui atau menolak paspor, ijazah, dan surat
+    // kesehatan tanpa pernah bisa membukanya dari konsol.
+    const buka = elemen('button', 'button button--secondary', 'Buka berkas');
+    buka.type = 'button';
+    buka.disabled = !documentItem.fileObjectId;
+    if (!documentItem.fileObjectId) buka.title = 'Berkas belum terunggah lengkap.';
+    buka.addEventListener('click', async () => {
+      const labelAsli = buka.textContent;
+      buka.disabled = true;
+      buka.textContent = 'Menyiapkan...';
       try {
-        const response = await fetch(`/api/registrations/${encodeURIComponent(registration.registrationId)}/status`, {
-          method: 'PATCH',
-          headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: select.value })
+        await window.HamasahFileOpen.buka(documentItem.fileObjectId, {
+          headers: authHeaders(),
+          nama: `${registration.registrationId}-${documentItem.type}`
         });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'Status belum dapat disimpan.');
-        await loadRegistrations();
+        tulisStatusDetail('');
       } catch (error) {
-        registrationListStatus.textContent = error.message || 'Status belum dapat disimpan.';
-        registrationListStatus.classList.add('is-error');
+        tulisStatusDetail(error.message, true);
       } finally {
-        update.disabled = false;
+        buka.disabled = false;
+        buka.textContent = labelAsli;
       }
     });
-    controls.append(select, update);
-    controls.append(createWhatsappControl(registration));
-    const noteBox = document.createElement('div'); noteBox.className = 'staff-note-box staff-note-box--secondary';
-    const noteInput = document.createElement('textarea'); noteInput.rows = 2; noteInput.placeholder = 'Catatan untuk pendaftar atau internal';
-    const visibility = document.createElement('select');
-    [['applicant', 'Terlihat pendaftar'], ['internal', 'Internal petugas']].forEach(([value, text]) => { const option = document.createElement('option'); option.value = value; option.textContent = text; visibility.append(option); });
-    const addNote = document.createElement('button'); addNote.type = 'button'; addNote.className = 'button button--secondary'; addNote.textContent = 'Tambah catatan';
-    addNote.addEventListener('click', async () => {
-      if (!noteInput.value.trim()) return;
-      addNote.disabled = true;
-      try {
-        const response = await fetch(`/api/registrations/${encodeURIComponent(registration.registrationId)}/notes`, { method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ visibility: visibility.value, body: noteInput.value }) });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'Catatan belum dapat disimpan.');
-        noteInput.value = ''; await loadRegistrations();
-      } catch (error) { registrationListStatus.textContent = error.message; registrationListStatus.classList.add('is-error'); }
-      finally { addNote.disabled = false; }
-    });
-    noteBox.append(noteInput, visibility, addNote); controls.append(noteBox);
-    const nextStepBox = document.createElement('div'); nextStepBox.className = 'staff-note-box staff-note-box--secondary';
-    const nextStepTitle = document.createElement('input'); nextStepTitle.placeholder = 'Tindak lanjut berikutnya';
-    const nextStepDue = document.createElement('input'); nextStepDue.type = 'date';
-    const addNextStep = document.createElement('button'); addNextStep.type = 'button'; addNextStep.className = 'button button--secondary'; addNextStep.textContent = 'Tambah tindak lanjut';
-    addNextStep.addEventListener('click', async () => {
-      if (!nextStepTitle.value.trim()) return;
-      addNextStep.disabled = true;
-      try {
-        const response = await fetch(`/api/registrations/${encodeURIComponent(registration.registrationId)}/next-steps`, { method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ title: nextStepTitle.value, dueOn: nextStepDue.value || null }) });
-        const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Tindak lanjut belum dapat disimpan.');
-        nextStepTitle.value = ''; nextStepDue.value = ''; await loadRegistrations();
-      } catch (error) { registrationListStatus.textContent = error.message; registrationListStatus.classList.add('is-error'); }
-      finally { addNextStep.disabled = false; }
-    });
-    nextStepBox.append(nextStepTitle, nextStepDue, addNextStep); controls.append(nextStepBox);
-    if (registration.status !== 'cancelled') controls.append(createDepartureControl(registration));
-    if (['ready-for-departure', 'completed'].includes(registration.status)) {
-      const convert = document.createElement('button');
-      convert.className = 'button button--primary';
-      convert.type = 'button';
-      convert.textContent = 'Konversi jadi santri';
-      convert.addEventListener('click', async () => {
-        if (!window.confirm(`Konversi ${registration.applicant.applicantName} menjadi santri sekarang?`)) return;
-        convert.disabled = true;
-        try {
-          const response = await fetch(`/api/registrations/${encodeURIComponent(registration.registrationId)}/convert`, {
-            method: 'POST', headers: authHeaders()
-          });
-          const result = await response.json();
-          if (!response.ok) throw new Error(result.error || 'Konversi belum dapat dilakukan.');
-          const conversion = result.conversion;
-          registrationListStatus.classList.remove('is-error');
-          registrationListStatus.textContent = conversion.alreadyConverted
-            ? `Pendaftaran sudah terhubung ke santri (${conversion.studentId}).`
-            : `Santri berhasil dibuat (${conversion.studentId}). ${conversion.invitationsQueued} undangan masuk antrean.`;
-          renderConversionResult(conversion);
-          await loadRegistrations();
-        } catch (error) {
-          registrationListStatus.textContent = error.message || 'Konversi belum dapat dilakukan.';
-          registrationListStatus.classList.add('is-error');
-        } finally {
-          convert.disabled = false;
-        }
-      });
-      controls.append(convert);
-    }
-    card.append(content, controls);
-    registrationList.append(card);
+    const simpan = elemen('button', 'button button--secondary', 'Simpan');
+    simpan.type = 'button';
+    simpan.addEventListener('click', () => aksiDetail(simpan, registration, async () => {
+      await kirimPerubahan(`/api/registrations/${encodeURIComponent(registration.registrationId)}/documents/${encodeURIComponent(documentItem.id)}/review`, 'PATCH', { reviewStatus: review.value, note: note.value });
+    }, 'Review dokumen disimpan.'));
+    row.append(label, buka, review, note, simpan);
+    wadah.append(row);
   });
+  return bagian('Dokumen pendaftaran', wadah);
+}
+
+function bagianRiwayat(registration) {
+  const riwayat = [...(registration.history || [])].reverse();
+  if (!riwayat.length) return bagian('Riwayat status', elemen('p', 'staff-reg-empty', 'Belum ada perubahan status.'));
+  const daftar = elemen('ul', 'staff-reg-list');
+  riwayat.forEach((entry) => {
+    const item = elemen('li');
+    const pelaku = entry.byName || labelPeran(entry.byRole);
+    item.append(
+      elemen('p', 'staff-reg-list__body', LABEL_STATUS_PENDAFTAR[entry.to] || entry.to),
+      elemen('p', 'staff-reg-list__meta', `${pelaku} · ${formatWaktu(entry.at)}${entry.note ? ` · ${entry.note}` : ''}`)
+    );
+    daftar.append(item);
+  });
+  return bagian('Riwayat status', daftar);
+}
+
+function bagianKonversi(registration) {
+  if (!['ready-for-departure', 'completed'].includes(registration.status)) return null;
+  const convert = elemen('button', 'button button--primary', 'Konversi jadi santri');
+  convert.type = 'button';
+  convert.addEventListener('click', () => {
+    if (!window.confirm(`Konversi ${registration.applicant.applicantName} menjadi santri sekarang?`)) return;
+    aksiDetail(convert, registration, async () => {
+      const result = await kirimPerubahan(`/api/registrations/${encodeURIComponent(registration.registrationId)}/convert`, 'POST');
+      const conversion = result.conversion;
+      renderConversionResult(conversion);
+      return conversion.alreadyConverted
+        ? `Pendaftaran sudah terhubung ke santri (${conversion.studentId}).`
+        : `Santri berhasil dibuat (${conversion.studentId}). ${conversion.invitationsQueued} undangan masuk antrean.`;
+    });
+  });
+  return bagian('Jadikan santri', elemen('p', 'staff-reg-empty', 'Membuat data santri dan undangan akun wali dari pendaftaran ini.'), convert);
 }
 
 // Pemberitahuan ke pendaftar dikirim manual lewat WhatsApp petugas. Tombol ini
@@ -586,20 +772,10 @@ function createDepartureControl(registration) {
   save.type = 'button';
   save.className = 'button button--secondary';
   save.textContent = 'Simpan kloter';
-  save.addEventListener('click', async () => {
-    save.disabled = true;
-    try {
-      const response = await fetch('/api/registrations/' + encodeURIComponent(registration.registrationId) + '/departure', {
-        method: 'PUT', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ departureGroupId: select.value || null })
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(result.error || 'Kloter belum dapat disimpan.');
-      await loadRegistrations();
-    } catch (error) {
-      registrationListStatus.textContent = error.message;
-      registrationListStatus.classList.add('is-error');
-    } finally { save.disabled = false; }
-  });
+  save.addEventListener('click', () => aksiDetail(save, registration, async () => {
+    await kirimPerubahan(`/api/registrations/${encodeURIComponent(registration.registrationId)}/departure`, 'PUT', { departureGroupId: select.value || null });
+    return select.value ? `Dimasukkan ke ${select.selectedOptions[0].textContent}.` : 'Kloter dilepas.';
+  }));
   box.append(label, save);
   return box;
 }

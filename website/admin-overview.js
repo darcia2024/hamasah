@@ -252,57 +252,174 @@
   // ---------------------------------------------------------------------------
   // Asrama
 
-  function daftarNamaSantri(santri, onOpenStudent) {
-    const daftar = el('ul', 'admin-name-list');
-    santri.forEach((s) => {
-      const item = el('li');
-      const tombol = el('button', 'admin-link', s.name);
-      tombol.type = 'button';
-      tombol.addEventListener('click', () => onOpenStudent(s.id));
-      item.append(tombol, el('span', 'admin-cell-sub', s.program));
+  // Kartu asrama berupa pratinjau, dua per baris. Klik membuka pop up berisi semua
+  // penghuni beserta catatannya dan kegiatan asrama 30 hari terakhir.
+
+  // studentId -> daftar peringatan untuk santri itu.
+  function peringatanPerSantri(data) {
+    const peta = new Map();
+    data.alerts.filter((a) => a.studentId).forEach((a) => {
+      if (!peta.has(a.studentId)) peta.set(a.studentId, []);
+      peta.get(a.studentId).push(a);
+    });
+    return peta;
+  }
+
+  function persenTeks(nilai) {
+    return nilai === null || nilai === undefined ? 'belum dicatat' : `${nilai}%`;
+  }
+
+  function barKeterisian(d) {
+    const persen = d.capacity > 0 ? Math.min(100, Math.round((d.occupied / d.capacity) * 100)) : 0;
+    const bar = el('div', 'admin-occupancy__bar');
+    const isiBar = el('div', `admin-occupancy__fill${persen >= 100 ? ' is-full' : (persen >= 90 ? ' is-near' : '')}`);
+    isiBar.style.width = `${persen}%`;
+    bar.append(isiBar);
+    return bar;
+  }
+
+  function kartuAsrama(d, buka) {
+    const kartu = el('button', 'admin-dorm-card');
+    kartu.type = 'button';
+    kartu.setAttribute('aria-haspopup', 'dialog');
+    kartu.append(
+      el('span', 'admin-dorm-card__title', d.name),
+      el('span', 'admin-dorm-card__meta', `${d.gender === 'putra' ? 'Putra' : 'Putri'} · ${d.area}`),
+      el('span', 'admin-dorm-card__occupancy', d.capacity > 0 ? `${d.occupied}/${d.capacity} terisi` : `${d.occupied} santri`)
+    );
+    if (d.capacity > 0) kartu.append(barKeterisian(d));
+    kartu.append(el('span', `admin-dorm-card__line${d.supervisors.length ? '' : ' is-warn'}`,
+      d.supervisors.length ? `Musyrif: ${d.supervisors.map((m) => m.name).join(', ')}` : 'Belum ada musyrif'));
+    if (d.occupied) {
+      kartu.append(el('span', 'admin-dorm-card__line', `Hadir ${persenTeks(d.attendanceRate7)} · Berjamaah ${persenTeks(d.prayerRate7)}`));
+    }
+    const terakhir = d.activities[0];
+    kartu.append(el('span', 'admin-dorm-card__line', terakhir ? `Kegiatan terakhir: ${terakhir.title}, ${tanggal(terakhir.date)}` : 'Belum ada kegiatan bulan ini'));
+    kartu.append(el('span', 'admin-dorm-card__open', 'Lihat detail'));
+    kartu.addEventListener('click', buka);
+    return kartu;
+  }
+
+  function dialogDetail(judul, subjudul, isi) {
+    const dialog = el('dialog', 'op-dialog admin-dorm-dialog');
+    dialog.setAttribute('aria-labelledby', 'admin-dorm-dialog-judul');
+    const badan = el('div', 'admin-dorm-dialog__body');
+    const kepala = el('div', 'admin-dorm-dialog__head');
+    const teks = el('div');
+    const h = el('h3', 'admin-dorm-dialog__title', judul);
+    h.id = 'admin-dorm-dialog-judul';
+    teks.append(h, el('p', 'admin-card__meta', subjudul));
+    const tutup = tombol('Tutup', 'button--secondary', () => dialog.close());
+    tutup.autofocus = true;
+    kepala.append(teks, tutup);
+    badan.append(kepala, ...isi);
+    dialog.append(badan);
+    dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
+    dialog.addEventListener('close', () => dialog.remove());
+    document.body.append(dialog);
+    dialog.showModal();
+    return dialog;
+  }
+
+  function daftarPenghuni(data, santriDiAsrama, ditandai, bukaSantri) {
+    if (!santriDiAsrama.length) return el('p', 'admin-empty', 'Belum ada santri di asrama ini.');
+    const daftar = el('ul', 'admin-resident-list');
+    santriDiAsrama.forEach((s) => {
+      const item = el('li', 'admin-resident');
+      const kiri = el('div', 'admin-resident__main');
+      const nama = el('button', 'admin-student-name', s.name);
+      nama.type = 'button';
+      nama.addEventListener('click', () => bukaSantri(s.id));
+      kiri.append(nama, el('span', 'admin-cell-sub', s.program));
+      const kanan = el('div', 'admin-resident__facts');
+      const hadir = s.attendance7;
+      kanan.append(el('span', hadir.absent ? 'is-warn' : '', hadir.recorded ? `Hadir ${hadir.present + hadir.late}/${hadir.recorded}${hadir.absent ? `, ${hadir.absent} alpa` : ''}` : 'Presensi belum dicatat'));
+      const hafalan = s.memorization.last;
+      kanan.append(el('span', hafalan && hafalan.grade === 'ulang' ? 'is-warn' : '', hafalan ? `Hafalan: ${hafalan.portion} (${LABEL_HAFALAN[hafalan.grade] || hafalan.grade})` : 'Belum ada setoran'));
+      if (s.health && s.health.condition !== 'sehat') kanan.append(el('span', 'is-danger', `${s.health.label}, ${tanggal(s.health.date)}`));
+      // Isi peringatan (tanpa nama di depannya), selain kesehatan yang sudah tampil di atas.
+      (ditandai.get(s.id) || []).filter((alert) => alert.kind !== 'kesehatan').slice(0, 2).forEach((alert) => {
+        kanan.append(el('span', alert.level === 'tinggi' ? 'is-danger' : 'is-warn', alert.title.replace(`${s.name}: `, '')));
+      });
+      item.append(kiri, kanan);
       daftar.append(item);
     });
     return daftar;
   }
 
+  function daftarKegiatan(kegiatan) {
+    if (!kegiatan.length) return el('p', 'admin-empty', 'Belum ada kegiatan yang dicatat dalam 30 hari terakhir.');
+    const daftar = el('ul', 'admin-activity-list');
+    kegiatan.forEach((k) => {
+      const item = el('li');
+      item.append(
+        el('p', 'admin-activity-list__title', k.title),
+        el('p', 'admin-cell-sub', `${tanggal(k.date)} · ${k.participants} santri`)
+      );
+      if (k.description) item.append(el('p', 'admin-activity-list__desc', k.description));
+      daftar.append(item);
+    });
+    return daftar;
+  }
+
+  function bukaDetailAsrama(data, d, onOpenStudent) {
+    const santriDiAsrama = data.students.filter((s) => s.dormitory && s.dormitory.id === d.id);
+    const ditandai = peringatanPerSantri(data);
+    let dialog = null;
+    const bukaSantri = (id) => { dialog.close(); onOpenStudent(id); };
+
+    const fakta = el('dl', 'admin-facts admin-facts--grid');
+    const tambah = (judul, nilai, nada) => fakta.append(el('dt', '', judul), el('dd', nada ? `is-${nada}` : '', nilai));
+    tambah('Keterisian', d.capacity > 0 ? `${d.occupied} dari ${d.capacity} tempat` : `${d.occupied} santri, kapasitas belum diisi`);
+    tambah('Musyrif', d.supervisors.length ? d.supervisors.map((m) => m.name).join(', ') : 'Belum ditugaskan', d.supervisors.length ? '' : 'warn');
+    tambah('Kehadiran 7 hari', persenTeks(d.attendanceRate7));
+    tambah('Sholat berjamaah 7 hari', persenTeks(d.prayerRate7));
+    tambah('Setoran hafalan 7 hari', String(d.deposits7));
+    const jumlahDitandai = santriDiAsrama.filter((s) => ditandai.has(s.id)).length;
+    tambah('Perlu perhatian', jumlahDitandai ? `${jumlahDitandai} santri` : 'Tidak ada', jumlahDitandai ? 'warn' : '');
+
+    const bagian = (judul, ...isi) => {
+      const wadah = el('section', 'admin-dorm-dialog__section');
+      wadah.append(el('p', 'admin-card__label', judul), ...isi);
+      return wadah;
+    };
+    dialog = dialogDetail(d.name, `${d.gender === 'putra' ? 'Asrama putra' : 'Asrama putri'} · ${d.area}`, [
+      fakta,
+      bagian(`Penghuni (${santriDiAsrama.length})`, daftarPenghuni(data, santriDiAsrama, ditandai, bukaSantri)),
+      bagian('Kegiatan 30 hari terakhir', daftarKegiatan(d.activities))
+    ]);
+  }
+
+  function bukaBelumDitempatkan(data, belum, onOpenStudent) {
+    let dialog = null;
+    const bukaSantri = (id) => { dialog.close(); onOpenStudent(id); };
+    dialog = dialogDetail('Belum ditempatkan', `${belum.length} santri aktif belum punya asrama. Tempatkan lewat halaman Monitoring.`, [
+      daftarPenghuni(data, belum, peringatanPerSantri(data), bukaSantri)
+    ]);
+  }
+
   function panelAsrama(data, { onOpenStudent }) {
-    const wadah = el('div', 'admin-panel admin-card-grid');
+    const wadah = el('div', 'admin-panel');
     if (!data.dormitories.length) {
       wadah.append(el('p', 'admin-empty', 'Belum ada asrama. Tambahkan lewat halaman Monitoring.'));
       return wadah;
     }
-    data.dormitories.forEach((d) => {
-      const kartu = el('article', 'admin-card');
-      kartu.append(el('h4', 'admin-card__title', d.name), el('p', 'admin-card__meta', `${d.gender === 'putra' ? 'Putra' : 'Putri'}, ${d.area}`));
-
-      const isi = el('div', 'admin-occupancy');
-      const persen = d.capacity > 0 ? Math.min(100, Math.round((d.occupied / d.capacity) * 100)) : 0;
-      isi.append(el('p', 'admin-occupancy__text', d.capacity > 0 ? `${d.occupied} dari ${d.capacity} tempat terisi` : `${d.occupied} santri, kapasitas belum diisi`));
-      if (d.capacity > 0) {
-        const bar = el('div', 'admin-occupancy__bar');
-        const isiBar = el('div', `admin-occupancy__fill${persen >= 100 ? ' is-full' : (persen >= 90 ? ' is-near' : '')}`);
-        isiBar.style.width = `${persen}%`;
-        bar.append(isiBar);
-        isi.append(bar);
-      }
-      kartu.append(isi);
-
-      kartu.append(el('p', `admin-card__line${d.supervisors.length ? '' : ' is-warn'}`,
-        d.supervisors.length ? `Musyrif: ${d.supervisors.map((m) => m.name).join(', ')}` : 'Belum ada musyrif yang ditugaskan'));
-      if (d.students.length) {
-        kartu.append(el('p', 'admin-card__label', 'Penghuni'), daftarNamaSantri(d.students, onOpenStudent));
-      } else {
-        kartu.append(el('p', 'admin-empty', 'Belum ada santri di asrama ini.'));
-      }
-      wadah.append(kartu);
-    });
-
+    const grid = el('div', 'admin-dorm-grid');
+    data.dormitories.forEach((d) => grid.append(kartuAsrama(d, () => bukaDetailAsrama(data, d, onOpenStudent))));
     const belum = data.students.filter((s) => !s.dormitory);
     if (belum.length) {
-      const kartu = el('article', 'admin-card admin-card--warn');
-      kartu.append(el('h4', 'admin-card__title', 'Belum ditempatkan'), el('p', 'admin-card__meta', `${belum.length} santri aktif belum punya asrama.`), daftarNamaSantri(belum, onOpenStudent));
-      wadah.append(kartu);
+      const kartu = el('button', 'admin-dorm-card admin-dorm-card--warn');
+      kartu.type = 'button';
+      kartu.setAttribute('aria-haspopup', 'dialog');
+      kartu.append(
+        el('span', 'admin-dorm-card__title', 'Belum ditempatkan'),
+        el('span', 'admin-dorm-card__meta', `${belum.length} santri aktif belum punya asrama`),
+        el('span', 'admin-dorm-card__open', 'Lihat daftar')
+      );
+      kartu.addEventListener('click', () => bukaBelumDitempatkan(data, belum, onOpenStudent));
+      grid.append(kartu);
     }
+    wadah.append(grid);
     return wadah;
   }
 

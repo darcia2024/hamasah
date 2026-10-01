@@ -78,3 +78,10 @@ Diukur di 360 dan 375px. Blok "Mobile pass kedua" ada di akhir `website-public.c
 - **Konsol:** laci menu tertutup tidak meninggalkan bayangan di tepi kiri. Periode rekam jejak memakai dua tanggal berdampingan. Kepala halaman masuk muat di 360px.
 - Perbaikan yang juga berlaku di desktop: `.divisions-box` bukan kartu lagi (dulu bayangan kartu tanpa padding), baris jejak audit tidak lagi bertumpuk (dua span berbagi satu area grid), dan eyebrow dasbor tidak terpotong.
 - Gaya garis (outline) di seluruh situs: tanpa badge atau pil dekoratif, tanpa emoji dan simbol teks (panah, segitiga, garis menu), tanpa em dash. Panah dan caret digambar dengan border 1,5px yang diputar; ikon memakai SVG `stroke` tanpa `fill`. Jepitan kartu hero bergaris emas di atas putih.
+
+## Kotak isian (2 Oktober 2026)
+
+- Satu sistem untuk semua halaman dan fitur, di `website/fields.css` (dipasang di setiap halaman): kotak satu baris 42 px, kotak teks dan pilihan ganda mulai 84 px, huruf 14 px, isi tepi 12 px, sudut 10 px, garis 1 px `#8F8B84` (3,4:1 di atas putih), fokus garis emas gelap dengan cincin emas tipis. Di perangkat sentuh 44 px dan huruf 16 px supaya Safari di iPhone tidak memperbesar halaman.
+- Aturan ini berada di cascade layer dengan `!important`, jadi aturan lama di berkas lain tidak bisa menimpanya. Jangan menulis ukuran, huruf, garis, atau sudut kotak isian di berkas lain; atur lebar dan tata letaknya saja.
+- Pengecualian: kotak chat asisten (bentuk pil) dan centang, radio, serta unggah berkas.
+- Tombol di konsol setinggi kotak isian (42 px) supaya sejajar.

@@ -4373,12 +4373,13 @@ table,
   padding-block: 12px;
 }
 
-/* 3. Tombol: kapsul, tinggi tetap, tidak melebar penuh di layar lebar. */
+/* 3. Tombol: kapsul, tinggi tetap, tidak melebar penuh di layar lebar. Tingginya sama
+   dengan kotak isian (fields.css), supaya tombol di samping kotak tampak sejajar. */
 .crm-canvas .button,
 .staff-form .button,
 #account-form button[type="submit"] {
   border-radius: 9999px;
-  min-height: 46px;
+  min-height: 42px;
   height: auto;
   font-size: 14px;
   font-weight: 600;
@@ -5575,4 +5576,583 @@ table,
   padding: 0;
   list-style: none;
   font-size: 13px;
+}
+
+/* Kotak catatan dan tindak lanjut di kartu pendaftar: selalu selebar kartu. Kotak isian
+   utama penuh di atas, pilihan atau tanggal sejajar dengan tombolnya di bawah. Dulu
+   keduanya ikut menyusut seukuran isi dan berdiri sebagai dua kolom sempit. */
+.crm-canvas .staff-registration__controls--primary > .staff-note-box--secondary {
+  flex: 1 1 100%;
+  width: 100%;
+  align-self: stretch;
+}
+
+.staff-note-box--catatan,
+.staff-note-box--langkah {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.staff-note-box--catatan > textarea,
+.staff-note-box--langkah > input[type="text"] {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.staff-note-box--catatan > select,
+.staff-note-box--langkah > input[type="date"] {
+  width: 100%;
+  min-width: 0;
+}
+
+.staff-note-box--catatan > .button,
+.staff-note-box--langkah > .button {
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Daftar pendaftar (staff.js): kartu ringkas yang membuka pop up detail.
+   Gaya garis tanpa badge: status ditandai warna teks, progres dengan garis tipis.
+   ========================================================================== */
+.staff-registration-list {
+  gap: 10px !important;
+}
+
+.staff-reg-card {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  padding: 16px 18px;
+  font: inherit;
+  color: var(--md-sys-color-on-surface);
+  text-align: left;
+  background: #FFFFFF;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.staff-reg-card:hover {
+  border-color: var(--md-sys-color-primary);
+  box-shadow: var(--crm-shadow-card-hover);
+}
+
+.staff-reg-card:focus-visible {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+.staff-reg-card__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.staff-reg-card__name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.staff-reg-card__status {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.staff-reg-card__status.is-baru {
+  color: var(--gold-dark);
+}
+
+.staff-reg-card__status.is-perbaikan {
+  color: var(--md-sys-color-error);
+}
+
+.staff-reg-card__status.is-siap,
+.staff-reg-card__status.is-selesai {
+  color: var(--md-sys-color-tertiary);
+}
+
+.staff-reg-card__status.is-batal {
+  color: var(--md-sys-color-outline);
+}
+
+.staff-reg-card__meta {
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+  overflow-wrap: anywhere;
+}
+
+.staff-reg-card__progress {
+  display: block;
+  height: 4px;
+  overflow: hidden;
+  background: var(--md-sys-color-surface-container);
+  border-radius: 999px;
+}
+
+/* Lebar diisi staff.js lewat element.style.width (bukan atribut style). */
+.staff-reg-card__progress-fill {
+  display: block;
+  height: 100%;
+  background: var(--md-sys-color-primary);
+  border-radius: 999px;
+}
+
+.staff-reg-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--md-sys-color-outline);
+}
+
+.staff-reg-card__open {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+/* Panah garis 1,5 px yang diputar, sesuai aturan gaya garis di DESIGN.md. */
+.staff-reg-card__open::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+}
+
+/* Pop up detail. Ditempel ke <body>, di luar .crm-canvas, jadi gaya tombolnya diatur
+   di sini. Di layar sempit tampil penuh layar. */
+.staff-reg-dialog {
+  width: min(940px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+}
+
+.staff-reg-dialog__body {
+  display: grid;
+  gap: 12px;
+  max-height: calc(100vh - 34px);
+  padding: 0 24px 24px;
+  overflow-y: auto;
+}
+
+.staff-reg-dialog__head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 0 12px;
+  background: var(--crm-card-bg, #FFFFFF);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.staff-reg-dialog__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.staff-reg-dialog__sub {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.staff-reg-dialog__status {
+  min-height: 1.4em;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--md-sys-color-tertiary);
+}
+
+.staff-reg-dialog__status.is-error {
+  color: var(--md-sys-color-error);
+}
+
+.staff-reg-dialog__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 16px 28px;
+}
+
+.staff-reg-dialog__col {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  min-width: 0;
+}
+
+.staff-reg-dialog__col > :not(:first-child) {
+  padding-top: 16px;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.staff-reg-dialog .button {
+  min-height: 42px;
+  padding-inline: 18px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.staff-reg-section {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.staff-reg-section__title,
+.staff-reg-dialog .staff-whatsapp > strong {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-outline);
+}
+
+.staff-reg-dialog .staff-note-box {
+  margin-top: 0;
+}
+
+.staff-reg-facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 14px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.staff-reg-facts dt {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.staff-reg-facts dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.staff-reg-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.staff-reg-list {
+  display: grid;
+  gap: 8px;
+  max-height: 220px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.staff-reg-list li {
+  padding: 8px 12px;
+  background: var(--md-sys-color-surface-container-low);
+  border-radius: 10px;
+}
+
+.staff-reg-list__body {
+  margin: 0;
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.staff-reg-list__meta {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--md-sys-color-outline);
+}
+
+.staff-reg-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--md-sys-color-outline);
+}
+
+.staff-reg-dialog .staff-document-row {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.staff-reg-dialog .staff-document-row > span {
+  grid-column: 1 / -1;
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .staff-reg-dialog__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .staff-reg-dialog__col + .staff-reg-dialog__col {
+    padding-top: 16px;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+  }
+}
+
+@media (max-width: 600px) {
+  .staff-reg-dialog {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .staff-reg-dialog__body {
+    max-height: 100dvh;
+    padding: 0 16px 24px;
+  }
+
+  .staff-reg-card__foot {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ==========================================================================
+   Tab Asrama di dashboard super admin: kartu pratinjau dua per baris di semua
+   ukuran layar, klik membuka pop up penghuni dan kegiatan (admin-overview.js).
+   ========================================================================== */
+.admin-dorm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-dorm-card {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  padding: 16px;
+  font: inherit;
+  color: var(--md-sys-color-on-surface);
+  text-align: left;
+  background: #FFFFFF;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-dorm-card:hover {
+  border-color: var(--md-sys-color-primary);
+  box-shadow: var(--crm-shadow-card-hover);
+}
+
+.admin-dorm-card:focus-visible {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+.admin-dorm-card--warn {
+  border-color: var(--md-sys-color-primary);
+}
+
+.admin-dorm-card__title {
+  font-size: 15px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.admin-dorm-card__meta,
+.admin-dorm-card__line {
+  font-size: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+  overflow-wrap: anywhere;
+}
+
+.admin-dorm-card__line.is-warn {
+  color: var(--gold-dark);
+}
+
+.admin-dorm-card__occupancy {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-dorm-card__open {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-dorm-card__open::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+}
+
+/* Pop up detail asrama. */
+.admin-dorm-dialog {
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+}
+
+.admin-dorm-dialog__body {
+  display: grid;
+  gap: 18px;
+  max-height: calc(100vh - 34px);
+  padding: 0 24px 24px;
+  overflow-y: auto;
+}
+
+.admin-dorm-dialog__head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 0 12px;
+  background: var(--crm-card-bg, #FFFFFF);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.admin-dorm-dialog__title {
+  margin: 0 0 4px;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.admin-dorm-dialog .button {
+  min-height: 42px;
+  padding-inline: 18px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-dorm-dialog__section {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-facts--grid {
+  grid-template-columns: repeat(2, auto minmax(0, 1fr));
+  gap: 8px 14px;
+}
+
+.admin-resident-list,
+.admin-activity-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-resident {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 6px 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 12px;
+}
+
+.admin-resident__main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.admin-resident__facts {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.admin-resident__facts .is-warn {
+  color: var(--gold-dark);
+}
+
+.admin-resident__facts .is-danger {
+  color: var(--md-sys-color-error);
+}
+
+.admin-activity-list li {
+  padding: 10px 12px;
+  background: var(--md-sys-color-surface-container-low);
+  border-radius: 12px;
+}
+
+.admin-activity-list__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-activity-list__desc {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+@media (max-width: 600px) {
+  .admin-dorm-grid {
+    gap: 8px;
+  }
+
+  .admin-dorm-card {
+    padding: 12px;
+  }
+
+  .admin-dorm-dialog {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .admin-dorm-dialog__body {
+    max-height: 100dvh;
+    padding: 0 16px 24px;
+  }
+
+  .admin-facts--grid {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .admin-resident {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.admin-resident .admin-student-name {
+  font-size: 14px;
 }

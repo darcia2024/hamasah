@@ -44,6 +44,11 @@ async function run() {
     // Asrama: penghuni sesuai jenis kelamin, dan musyrifnya tercantum.
     for (const asrama of dormitories) {
       assert.equal(asrama.supervisors.length, 1, asrama.name);
+      // Kegiatan bersama dikelompokkan: satu baris per judul dan tanggal, dengan jumlah peserta.
+      assert.ok(asrama.activities.length > 0, `${asrama.name} punya kegiatan.`);
+      assert.ok(asrama.activities.every((k) => k.participants >= 1 && /^\d{4}-\d{2}-\d{2}$/.test(k.date)));
+      assert.ok(asrama.activities.some((k) => k.participants === asrama.occupied), 'Kegiatan bersama diikuti semua penghuni.');
+      assert.ok(asrama.attendanceRate7 > 0 && asrama.prayerRate7 > 0);
       assert.ok(asrama.students.every((s) => students.find((x) => x.id === s.id).gender === asrama.gender), asrama.name);
     }
     // Musyrif: memegang satu asrama dan terlihat aktif mencatat pekan ini.

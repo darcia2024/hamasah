@@ -86,7 +86,7 @@ function createAdminOverviewService({ database, healthEnabled = false, now = () 
     // bergeser oleh zona waktu server.
     const [
       santri, statusSantri, asrama, penugasan, musyrif, kehadiran, sholat, hafalanTerakhir, hafalanHitung,
-      kesehatan, pelanggaran, tagihan, visa, aktivitas
+      kesehatan, pelanggaran, tagihan, visa, aktivitas, kegiatanAsrama
     ] = await Promise.all([
       ambil(
         `SELECT s.id, s.name, s.program, s.city, s.gender, s.dormitory_id, s.student_account_id,
@@ -191,6 +191,19 @@ function createAdminOverviewService({ database, healthEnabled = false, now = () 
          WHERE akun IS NOT NULL
          GROUP BY akun`,
         [sejak7]
+      ),
+      // Kegiatan per asrama 30 hari terakhir. Kegiatan bersama dicatat per santri, jadi
+      // dikelompokkan menurut judul dan tanggal, dengan jumlah santri yang ikut.
+      ambil(
+        `SELECT s.dormitory_id, a.title, a.description,
+                to_char((a.occurred_at AT TIME ZONE 'Asia/Jakarta')::date, 'YYYY-MM-DD') AS tanggal,
+                count(*)::int AS peserta
+         FROM student_activities a
+         JOIN students s ON s.id = a.student_id
+         WHERE s.status = 'active' AND s.dormitory_id IS NOT NULL AND a.occurred_at >= $1::date
+         GROUP BY s.dormitory_id, a.title, a.description, tanggal
+         ORDER BY tanggal DESC, a.title`,
+        [awal30]
       )
     ]);
 
@@ -264,6 +277,7 @@ function createAdminOverviewService({ database, healthEnabled = false, now = () 
 
     const dormitories = asrama.map((row) => {
       const penghuni = students.filter((student) => student.dormitory && student.dormitory.id === row.id);
+      const jumlah = (pilih) => penghuni.reduce((total, student) => total + pilih(student), 0);
       return {
         id: row.id,
         name: row.name,
@@ -272,7 +286,14 @@ function createAdminOverviewService({ database, healthEnabled = false, now = () 
         capacity: Number(row.capacity) || 0,
         occupied: penghuni.length,
         supervisors: pembinaPer.get(row.id) || [],
-        students: penghuni.map((student) => ({ id: student.id, name: student.name, program: student.program }))
+        students: penghuni.map((student) => ({ id: student.id, name: student.name, program: student.program })),
+        attendanceRate7: persen(jumlah((st) => st.attendance7.present + st.attendance7.late), jumlah((st) => st.attendance7.recorded)),
+        prayerRate7: persen(jumlah((st) => st.prayers7.congregational), jumlah((st) => st.prayers7.recorded)),
+        deposits7: jumlah((st) => st.memorization.deposits7),
+        activities: kegiatanAsrama
+          .filter((kegiatan) => kegiatan.dormitory_id === row.id)
+          .slice(0, 15)
+          .map((kegiatan) => ({ title: kegiatan.title, description: kegiatan.description || '', date: kegiatan.tanggal, participants: kegiatan.peserta }))
       };
     });
 

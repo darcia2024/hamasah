@@ -1,0 +1,112 @@
+/* ==========================================================================
+   Sistem kotak isian untuk seluruh situs: halaman publik, halaman akun, dan konsol.
+
+   Sebelumnya ukuran kotak isian ditentukan belasan aturan yang tersebar di berkas
+   CSS berbeda, banyak yang memakai !important: tingginya 38 sampai 96 px, hurufnya
+   12 sampai 16 px, dan kotak yang dibuat JavaScript tanpa kelas jatuh ke gaya bawaan
+   browser (border tebal miring, huruf besar). Satu halaman bisa memuat enam rupa kotak.
+
+   Semua aturan di sini berada di dalam cascade layer dan memakai !important. Deklarasi
+   !important di dalam layer selalu menang atas !important di luar layer, apa pun
+   selektornya, sehingga aturan lama tidak bisa lagi menimpa rupa kotak tanpa perang
+   selektor. Berkas ini hanya mengatur rupa kotak (tinggi, huruf, isi tepi, garis, sudut,
+   warna, fokus). Lebar, margin, dan tata letak tetap diatur masing-masing halaman.
+
+   Garis kotak 3,4:1 di atas putih, memenuhi batas kontras 3:1 untuk batas komponen
+   (WCAG 1.4.11). Di perangkat sentuh huruf 16 px, supaya Safari di iPhone tidak
+   memperbesar halaman saat kotak diketuk.
+   ========================================================================== */
+@layer hamasah-bidang {
+  :root {
+    --bidang-tinggi: 42px;
+    --bidang-huruf: 14px;
+    --bidang-sudut: 10px;
+    --bidang-garis: #8F8B84;
+    --bidang-garis-fokus: #856000;
+    --bidang-cincin: rgba(231, 177, 12, 0.28);
+    --bidang-teks: #1E1B16;
+    --bidang-petunjuk: #6F6D72;
+    --bidang-galat: #B91C1C;
+  }
+
+  :is(
+    input:not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="color"], [type="hidden"], [type="submit"], [type="button"], [type="reset"], [type="image"]),
+    select,
+    textarea
+  ):not(.assistant__form input) {
+    box-sizing: border-box !important;
+    font-family: inherit !important;
+    font-size: var(--bidang-huruf) !important;
+    font-weight: 400 !important;
+    line-height: 1.4 !important;
+    color: var(--bidang-teks) !important;
+    background-color: #FFFFFF !important;
+    border: 1px solid var(--bidang-garis) !important;
+    border-radius: var(--bidang-sudut) !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+  }
+
+  /* Satu baris: tinggi tetap. */
+  :is(
+    input:not([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="color"], [type="hidden"], [type="submit"], [type="button"], [type="reset"], [type="image"]),
+    select:not([multiple], [size])
+  ):not(.assistant__form input) {
+    height: var(--bidang-tinggi) !important;
+    min-height: var(--bidang-tinggi) !important;
+    padding: 0 12px !important;
+  }
+
+  /* Ruang untuk panah pilihan, baik bawaan browser maupun panah garis .select-wrapper. */
+  select:not([multiple], [size]) {
+    padding-right: 36px !important;
+  }
+
+  input[type="search"] {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+  }
+
+  /* Beberapa baris: tinggi menyesuaikan isi, mulai dari kira-kira tiga baris. */
+  :is(textarea, select[multiple], select[size]) {
+    height: auto !important;
+    min-height: 84px !important;
+    padding: 10px 12px !important;
+    line-height: 1.5 !important;
+  }
+
+  textarea {
+    resize: vertical !important;
+  }
+
+  :is(input, select, textarea):not(.assistant__form input)::placeholder {
+    color: var(--bidang-petunjuk) !important;
+    opacity: 1 !important;
+  }
+
+  /* Fokus: garis emas gelap dan cincin, tanpa mengubah tebal garis (tidak menggeser isi). */
+  :is(input, select, textarea):not(.assistant__form input):focus {
+    border-color: var(--bidang-garis-fokus) !important;
+    box-shadow: 0 0 0 3px var(--bidang-cincin) !important;
+  }
+
+  :is(input, select, textarea):not(.assistant__form input):disabled {
+    color: #68676A !important;
+    background-color: #F4F2EE !important;
+    cursor: not-allowed !important;
+  }
+
+  :is(.has-error, .is-invalid) :is(input, select, textarea),
+  :is(input, select, textarea):is([aria-invalid="true"], .is-invalid) {
+    border-color: var(--bidang-galat) !important;
+    background-color: #FFF7F7 !important;
+  }
+
+  @media (pointer: coarse) {
+    :root {
+      --bidang-tinggi: 44px;
+      --bidang-huruf: 16px;
+    }
+  }
+}
