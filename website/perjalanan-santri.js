@@ -46,6 +46,47 @@
     return `lms.html#${params.toString()}`;
   }
 
+  // --------------------------------------------------------- Indikator utama
+  // Sholat berjamaah (periode ringkasan ibadah), hafalan juz, dan kondisi kesehatan
+  // terakhir. Kesehatan hanya bila fiturnya dinyalakan admin (care.health bukan null).
+  const KONDISI = { sehat: 'Sehat', 'sakit-ringan': 'Sakit ringan', 'perlu-perhatian': 'Perlu perhatian', dirujuk: 'Dirujuk ke dokter' };
+
+  function kotakIndikator(label, nilai, keterangan, kelas = '') {
+    const kotak = el('div', `santri-indicator ${kelas}`.trim());
+    kotak.append(el('span', 'santri-indicator__label', label), el('strong', 'santri-indicator__value', nilai), el('span', 'santri-indicator__note', keterangan));
+    return kotak;
+  }
+
+  function kartuIndikator(care, juz) {
+    const kotak = [];
+    if (care && care.prayers) {
+      const p = care.prayers;
+      kotak.push(kotakIndikator(
+        'Sholat berjamaah',
+        p.berjamaahRate === null ? '-' : `${p.berjamaahRate}%`,
+        p.recorded ? `${p.totals.berjamaah} dari ${p.recorded} waktu, ${tanggal(care.period.from)} sampai ${tanggal(care.period.to)}` : 'Belum ada presensi sholat yang dicatat.'
+      ));
+    }
+    if (juz && juz.tersedia) {
+      kotak.push(kotakIndikator(
+        'Hafalan Al-Qur\'an',
+        `${juz.hafal} juz`,
+        juz.sedang ? `${juz.sedang} juz sedang dihafal` : (juz.hafal ? 'Sudah hafal' : 'Belum ada juz yang ditandai musyrif.')
+      ));
+    }
+    if (care && Array.isArray(care.health)) {
+      const terakhir = care.health.slice().sort((a, b) => String(b.occurredOn).localeCompare(String(a.occurredOn)))[0];
+      kotak.push(terakhir
+        ? kotakIndikator('Kesehatan', KONDISI[terakhir.condition] || terakhir.condition, `Dicatat ${tanggal(terakhir.occurredOn)}`, `is-${terakhir.condition}`)
+        : kotakIndikator('Kesehatan', '-', 'Belum ada catatan kesehatan pada periode ini.'));
+    }
+    if (!kotak.length) return null;
+    const wadah = el('section', 'santri-indicators');
+    wadah.setAttribute('aria-label', 'Indikator utama');
+    wadah.append(...kotak);
+    return wadah;
+  }
+
   // ------------------------------------------------------------------ Hari ini
   function daftarTugas(courses) {
     const tugas = [];
@@ -399,6 +440,7 @@
       if (lama && baru) lama.replaceWith(baru);
     };
     const kartuKartu = [
+      kartuIndikator(care, juz),
       santri ? kartuHariIni(courses && courses.items, care) : null,
       keluarga ? kartuPengumuman(pengumuman) : null,
       keluarga ? kartuIzin(izin, { studentId, headers, santri, muatUlang: muatUlangIzin }) : null,

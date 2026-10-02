@@ -74,6 +74,19 @@ function createPostgresDormitoryStore({ database } = {}) {
       return rows.map((row) => row.dormitory_id);
     },
 
+    // Nama musyrif aktif yang memegang satu asrama, untuk kartu profil santri di portal
+    // keluarga. Hanya nama: email staf tidak dikirim ke wali dan santri.
+    async supervisorNames(dormitoryId) {
+      const { rows } = await database.query(
+        `SELECT k.name FROM staff_dormitory_assignments a
+           JOIN accounts k ON k.id = a.account_id
+          WHERE a.dormitory_id = $1 AND k.active AND k.role = 'supervisor'
+          ORDER BY a.assigned_at ASC, k.name ASC`,
+        [dormitoryId]
+      );
+      return rows.map((row) => row.name);
+    },
+
     // Seluruh penugasan, untuk ditampilkan di layar admin.
     async listAssignments() {
       const { rows } = await database.query(

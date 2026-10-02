@@ -6600,3 +6600,52 @@ button.santri-juz__cell:focus-visible {
   .santri-leave-form { grid-template-columns: 1fr; }
   .santri-juz__grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 }
+
+/* Indikator utama di dashboard santri (perjalanan-santri.js). */
+.santri-indicators {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.santri-indicator {
+  display: grid;
+  gap: 4px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container-lowest);
+}
+
+.santri-indicator__label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-outline);
+}
+
+.santri-indicator__value {
+  font-size: 26px;
+  line-height: 1.2;
+  color: var(--md-sys-color-on-surface);
+}
+
+.santri-indicator__note {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.santri-indicator.is-sakit-ringan,
+.santri-indicator.is-perlu-perhatian,
+.santri-indicator.is-dirujuk {
+  border-color: var(--md-sys-color-error);
+}
+
+/* Pilihan cepat periode di dashboard santri. */
+.crm-period-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

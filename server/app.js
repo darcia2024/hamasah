@@ -220,6 +220,7 @@ function createHamasahApp(options) {
     // Musyrif hanya melihat santri di asrama yang ditugaskan kepadanya.
     supervisorDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId),
     getDormitory: (dormitoryId) => dormitoryStore.getDormitory(dormitoryId),
+    dormitorySupervisors: (dormitoryId) => (typeof dormitoryStore.supervisorNames === 'function' ? dormitoryStore.supervisorNames(dormitoryId) : []),
     countInDormitory: (dormitoryId) => studentStore.countInDormitory(dormitoryId)
   });
   // Roadmap studi dan santri teladan bulanan (migrasi 044).

@@ -106,6 +106,8 @@ function createStudentPortalService(options) {
   const supervisorDormitories = config.supervisorDormitories || async function belumDitugaskan() { return []; };
   // Dipakai untuk memeriksa asrama tujuan saat menempatkan santri.
   const getDormitory = config.getDormitory || async function tanpaAsrama() { return null; };
+  // Nama musyrif yang memegang asrama santri, ditampilkan di kartu profil.
+  const dormitorySupervisors = config.dormitorySupervisors || async function tanpaMusyrif() { return []; };
   const countInDormitory = config.countInDormitory || (async function tanpaHitungan() { return 0; });
 
   function assertStaff(actor) {
@@ -416,6 +418,7 @@ function createStudentPortalService(options) {
     // asrama hanya untuk pengelola, sehingga tanpa ini portal tidak punya nama untuk
     // ditampilkan dan sebelumnya mengarangnya.
     const asrama = student.dormitoryId ? await getDormitory(student.dormitoryId) : null;
+    const musyrif = asrama ? await dormitorySupervisors(student.dormitoryId) : [];
 
     const latestFirst = function byLatest(left, right) { return right.occurredAt.localeCompare(left.occurredAt); };
     const range = options || {};
@@ -448,7 +451,7 @@ function createStudentPortalService(options) {
           status: student.status,
           gender: student.gender || null,
           dormitoryId: student.dormitoryId || null,
-          dormitory: asrama ? { name: asrama.name, area: asrama.area || null } : null
+          dormitory: asrama ? { name: asrama.name, area: asrama.area || null, supervisors: musyrif } : null
         },
         period: { from: range.from || null, to: range.to || null },
         attendance: { total: attendance.length, present: presentCount, rate: attendanceRate, byStatus, entries: forViewer(attendance.slice(0, 30)) },

@@ -71,6 +71,11 @@ async function run() {
     const tWali = await masuk('wali@uji.test');
     const tMusyrif = await masuk('musyrif-a@uji.test');
 
+    // Nama musyrif asrama ikut di dashboard (tanpa email), untuk kartu profil wali.
+    const profil = await api('GET', `/api/students/${ahmad.id}/dashboard`, tWali);
+    assert.deepEqual(profil.body.dashboard.student.dormitory.supervisors, ['Musyrif A']);
+    assert.deepEqual((await api('GET', `/api/students/${bilal.id}/dashboard`, tBilal)).body.dashboard.student.dormitory.supervisors, [], 'Asrama B tanpa musyrif.');
+
     // ------------------------------------------------------------------ hafalan juz
     const kosong = await api('GET', `/api/students/${ahmad.id}/juz`, tAhmad);
     assert.equal(kosong.status, 200);

@@ -225,7 +225,9 @@ function createStudentCompactCard(student, idx, account, onOpen) {
   // baris (dibuat dari nomor urut), sehingga berganti setiap urutan daftar berubah.
   const statusLabel = STUDENT_STATUS_LABELS[student.status] || student.status || '';
   const metaParts = [];
-  if (student.city) metaParts.push(`Asal ${escapeHtml(student.city)}`);
+  // "Kota", bukan "Asal": santri yang dibuat manual menyimpan kota domisili (Kairo),
+  // sedangkan hasil konversi pendaftar menyimpan kota asal pendaftar.
+  if (student.city) metaParts.push(`Kota ${escapeHtml(student.city)}`);
   if (student.program) metaParts.push(`<span class="crm-student-compact-pill">${escapeHtml(student.program)}</span>`);
   metaParts.push(`<span class="crm-student-compact-dorm"><svg class="js-icon-inline--tight" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> ${escapeHtml(dormitoryLabel(student))}</span>`);
 
@@ -367,12 +369,13 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
   if (onBack) {
     const backBar = document.createElement('div');
     backBar.className = 'crm-back-bar';
+    const labelKembali = account && account.role === 'parent' ? 'Kembali ke daftar ananda' : 'Kembali ke daftar santri';
     backBar.innerHTML = `
       <button type="button" class="crm-topbar-action-btn js-chip-active" id="crm-back-btn">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-        <span>Kembali ke konsol</span>
+        <span>${labelKembali}</span>
       </button>
-      <span class="js-text-meta">Rekam Jejak CRM: <strong>${escapeHtml(student.name)}</strong></span>
+      <span class="js-text-meta">Rekam jejak <strong>${escapeHtml(student.name)}</strong></span>
     `;
     backBar.querySelector('#crm-back-btn').addEventListener('click', onBack);
     studentDashboard.append(backBar);
@@ -413,11 +416,16 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
         <p class="crm-field-label">ASRAMA</p>
         <div class="crm-person-row"><span class="crm-person-name">${escapeHtml(dormitoryLabel(student))}</span></div>
       </div>
+      ${student.dormitory && student.dormitory.supervisors && student.dormitory.supervisors.length ? `
+      <div>
+        <p class="crm-field-label">MUSYRIF PENANGGUNG JAWAB</p>
+        <div class="crm-person-row"><span class="crm-person-name">${escapeHtml(student.dormitory.supervisors.join(', '))}</span></div>
+      </div>` : ''}
     </div>
 
     <div class="crm-summary-col">
       <div>
-        <p class="crm-field-label">PRESENSI IBADAH</p>
+        <p class="crm-field-label">KEHADIRAN KEGIATAN</p>
         <div class="crm-field-value">
           <span class="crm-outline-dot" aria-hidden="true"></span>
           <span>${escapeHtml(attendanceText)}</span>
@@ -459,7 +467,34 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
     const to = periodControls.querySelector('#record-period-to').value;
     try { await loadDashboard(student.id, account, onBack, { from, to }); } catch (error) { window.alert(error.message); }
   });
-  toolbar.append(periodControls);
+  // Pilihan cepat periode: Hari ini, Kemarin, 7 hari, 30 hari. Tanggal memakai kalender
+  // perangkat pembaca; yang sedang aktif ditandai.
+  const PERIODE_CEPAT = [['Hari ini', 0, 0], ['Kemarin', 1, 1], ['7 hari', 6, 0], ['30 hari', 29, 0]];
+  const tanggalMundur = (hari) => {
+    const d = new Date();
+    d.setDate(d.getDate() - hari);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+  const cepat = document.createElement('div');
+  cepat.className = 'crm-period-quick';
+  cepat.setAttribute('role', 'group');
+  cepat.setAttribute('aria-label', 'Pilihan cepat periode');
+  PERIODE_CEPAT.forEach(([label, mulai, akhir]) => {
+    const tombol = document.createElement('button');
+    tombol.type = 'button';
+    tombol.className = 'crm-pill-btn';
+    tombol.textContent = label;
+    const from = tanggalMundur(mulai);
+    const to = tanggalMundur(akhir);
+    const aktif = dashboard.period && dashboard.period.from === from && dashboard.period.to === to;
+    tombol.classList.toggle('is-active', Boolean(aktif));
+    tombol.setAttribute('aria-pressed', aktif ? 'true' : 'false');
+    tombol.addEventListener('click', async () => {
+      try { await loadDashboard(student.id, account, onBack, { from, to }); } catch (error) { window.alert(error.message); }
+    });
+    cepat.append(tombol);
+  });
+  toolbar.append(cepat, periodControls);
   if (canRecord) {
     const actions = document.createElement('div');
     actions.className = 'crm-toolbar-actions';
@@ -834,23 +869,8 @@ function renderExecutiveDashboard(_daftarAwal, account) {
     </button>
   `;
 
-  const statRow = document.createElement('div');
-  // Hanya angka yang benar-benar diketahui. Dua kartu 'Belum ada data' (tahfidz, presensi)
-  // dulu tampil permanen karena tidak ada kode yang mengisinya.
-  statRow.className = 'coursue-stat-row coursue-stat-row--single';
-  statRow.innerHTML = `
-    <div class="coursue-stat-pill">
-      <div class="coursue-stat-icon coursue-stat-icon--gold">${renderBadgeIcon('mosque')}</div>
-      <div class="coursue-stat-meta">
-        <p class="coursue-stat-count">${allTotal} Santri</p>
-        <p class="coursue-stat-label">terhubung dengan akun</p>
-      </div>
-    </div>
-  `;
-
-  const featuredSection = document.createElement('div');
-  featuredSection.className = 'coursue-empty-state';
-  featuredSection.innerHTML = '<h3 class="coursue-section-title">Halaqah &amp; Program</h3><p class="coursue-user-subtext">Program akan muncul setelah maddah dan materi diterbitkan oleh pembina.</p>';
+  // Selain admin, tidak ada kartu angka di bawah judul: jumlah santri sudah ada di
+  // subjudul, dan kotak "Halaqah & Program" dulu hanya teks pengisi tanpa data.
 
   // Dulu ada lima tab tambahan (Mutaba'ah, Sholat, Talaqqi, Asrama, LMS) berisi sekitar
   // 300 baris konten karangan, karena tidak ada sumber data agregat di tingkat ini.
@@ -996,12 +1016,12 @@ function renderExecutiveDashboard(_daftarAwal, account) {
   // Admin: angka yang sama dengan ringkasan di kiri (santri aktif), sisanya disebut
   // terpisah supaya 13 dan 14 tidak tampak saling bertentangan.
   const tidakAktif = ringkasan ? Math.max(0, allTotal - ringkasan.summary.activeStudents) : 0;
-  jumlah.textContent = isParent
-    ? `${allTotal} ananda terhubung dengan akun ini.`
-    : ringkasan
-      ? `${ringkasan.summary.activeStudents} santri aktif${tidakAktif ? `, ${tidakAktif} sudah lulus atau nonaktif` : ''}.`
-      : `${allTotal} santri dapat Anda akses.`;
-  statCard.append(salam, peran, jumlah);
+  // Hanya admin: peran lain sudah membaca jumlah yang sama di subjudul di kiri.
+  jumlah.textContent = ringkasan
+    ? `${ringkasan.summary.activeStudents} santri aktif${tidakAktif ? `, ${tidakAktif} sudah lulus atau nonaktif` : ''}.`
+    : '';
+  statCard.append(salam, peran);
+  if (jumlah.textContent) statCard.append(jumlah);
   const tautan = PINTASAN[account && account.role] || [];
   if (tautan.length) {
     const judul = document.createElement('p');
@@ -1041,8 +1061,7 @@ function renderExecutiveDashboard(_daftarAwal, account) {
 
   mainCol.append(
     heroBanner,
-    ringkasan ? window.HamasahAdminOverview.kpi(ringkasan) : statRow,
-    ringkasan ? window.HamasahAdminOverview.perhatian(ringkasan, { onOpenStudent: bukaSantri }) : featuredSection,
+    ...(ringkasan ? [window.HamasahAdminOverview.kpi(ringkasan), window.HamasahAdminOverview.perhatian(ringkasan, { onOpenStudent: bukaSantri })] : []),
     subtabsRow,
     panelsContainer
   );

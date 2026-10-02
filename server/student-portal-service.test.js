@@ -68,7 +68,8 @@ async function run() {
 
   // Nama asrama ikut terbawa bila asramanya ada, supaya portal tidak perlu mengarangnya.
   const layananAsrama = portal.createStudentPortalService({
-    getDormitory: async (id) => (id === 'asrama-uji' ? { name: 'Gedung Uji', area: 'Kawasan Uji' } : null)
+    getDormitory: async (id) => (id === 'asrama-uji' ? { name: 'Gedung Uji', area: 'Kawasan Uji' } : null),
+    dormitorySupervisors: async (id) => (id === 'asrama-uji' ? ['Ust. Uji'] : [])
   });
   const dibuat = await layananAsrama.createStudent({ name: 'Santri Asrama', program: 'Program Mahad', city: 'Kairo', joinDate: '2026-08-21', parentAccountIds: [parent.id] }, admin);
   const belumDitempatkan = await layananAsrama.dashboard(dibuat.value.id, admin);
@@ -76,7 +77,8 @@ async function run() {
   const ditempatkan = await layananAsrama.setPlacement(dibuat.value.id, { dormitoryId: 'asrama-uji' }, admin);
   assert.equal(ditempatkan.ok, true, JSON.stringify(ditempatkan));
   const denganAsrama = await layananAsrama.dashboard(dibuat.value.id, admin);
-  assert.deepEqual(denganAsrama.value.student.dormitory, { name: 'Gedung Uji', area: 'Kawasan Uji' });
+  // Nama musyrif ikut dibawa untuk kartu profil di portal keluarga.
+  assert.deepEqual(denganAsrama.value.student.dormitory, { name: 'Gedung Uji', area: 'Kawasan Uji', supervisors: ['Ust. Uji'] });
   // Ringkasan daftar juga membawa nama, supaya kartu santri tidak menulis nama asrama sendiri.
   const daftarAdmin = await layananAsrama.listForActor(admin);
   assert.equal(daftarAdmin.find((santri) => santri.id === dibuat.value.id).dormitoryName, 'Gedung Uji');
