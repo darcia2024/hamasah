@@ -10,8 +10,8 @@
 // Membuka halaman konsol tidak mencatat apa pun di audit dan hanya membaca data, jadi
 // halaman yang disiapkan lalu tidak jadi dibuka tidak meninggalkan jejak palsu.
 
-const CONSOLE_PAGES = Object.freeze(['portal', 'staff', 'monitoring', 'operations', 'lms', 'audit', 'pengaturan']);
-const CONSOLE_PATH = /^\/(?:website\/)?(?:portal|staff|monitoring|operations|lms|audit|pengaturan)\.html$/;
+const CONSOLE_PAGES = Object.freeze(['portal', 'staff', 'monitoring', 'operations', 'lms', 'audit', 'pengaturan', 'akun']);
+const CONSOLE_PATH = /^\/(?:website\/)?(?:portal|staff|monitoring|operations|lms|audit|pengaturan|akun)\.html$/;
 const RULES_PATH = '/konsol-spekulasi.json';
 const CONTENT_TYPE = 'application/speculationrules+json';
 // Nilai header berupa daftar string terstruktur (RFC 8941), jadi wajib berkutip.

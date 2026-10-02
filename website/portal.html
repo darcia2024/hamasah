@@ -10,8 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
-    <link rel="stylesheet" href="staff.css?v=c57890b487" />
-    <link rel="stylesheet" href="portal.css?v=808a25e8e0" />
+    <link rel="stylesheet" href="staff.css?v=fc5fbd7568" />
+    <link rel="stylesheet" href="portal.css?v=727364725a" />
     <link rel="stylesheet" href="fields.css?v=40377b19dc" />
     <script src="session-hint.js?v=b0562827f3"></script>
     <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
@@ -150,120 +150,14 @@
             <section id="student-dashboard" class="portal-dashboard portal-dashboard--flush" aria-live="polite"></section>
           </section>
 
-          <!-- Administrator Management Console -->
-          <section class="portal-admin u-mt-36" id="portal-admin" hidden aria-labelledby="portal-admin-title">
-            <div class="u-mb-20">
-              <p class="eyebrow">Manajemen Akses &amp; Pengguna</p>
-              <h2 id="portal-admin-title">Kelola akun portal</h2>
-              <p class="u-text-secondary">Buat akun baru untuk staf kantor, musyrif asrama Kairo, guru pengajar, serta akses portal wali santri.</p>
-            </div>
-
-            <div class="portal-admin-grid">
-              <form method="post" id="account-form" class="staff-form">
-                <div class="form-title-group">
-                  <div class="form-title-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-                  </div>
-                  <div>
-                    <h2>Tambah akun baru</h2>
-                    <p class="monitoring-hint">Registrasi hak akses pengguna sistem.</p>
-                  </div>
-                </div>
-
-                <label for="account-name">Nama lengkap pengguna</label>
-                <input id="account-name" type="text" placeholder="Contoh: Ustadz Ahmad Fauzi" required />
-
-                <label for="account-email">Alamat email resmi</label>
-                <input id="account-email" type="email" placeholder="nama@hamasah.test" required />
-
-                <label for="account-role">Tingkat hak akses (role)</label>
-                <select id="account-role" class="monitoring-select">
-                  <option value="registration-officer">Petugas Pendaftaran</option>
-                  <option value="supervisor">Musyrif Asrama</option>
-                  <option value="teacher">Guru / Asatidz</option>
-                  <option value="finance">Keuangan</option>
-                  <option value="parent">Wali Santri</option>
-                  <option value="student">Santri</option>
-                  <option value="admin">Super Admin</option>
-                </select>
-
-                <label for="account-password">Kata sandi awal (minimal 12 karakter)</label>
-                <input id="account-password" type="password" minlength="12" placeholder="Minimal 12 karakter aman" required />
-
-                <button class="button button--primary" type="submit">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-                  Buat akun
-                </button>
-                <p id="account-form-status" class="form-status" role="status" aria-live="polite"></p>
-              </form>
-
-              <form method="post" id="invite-form" class="staff-form">
-                <div class="form-title-group">
-                  <div class="form-title-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4z"/><polyline points="4 6 12 13 20 6"/></svg>
-                  </div>
-                  <div>
-                    <h2>Undang lewat email</h2>
-                    <p class="monitoring-hint">Penerima membuat kata sandinya sendiri lewat tautan aktivasi.</p>
-                  </div>
-                </div>
-
-                <label for="invite-name">Nama lengkap pengguna</label>
-                <input id="invite-name" type="text" placeholder="Nama sesuai identitas" required />
-
-                <label for="invite-email">Alamat email resmi</label>
-                <input id="invite-email" type="email" placeholder="nama@hamasah.test" required />
-
-                <label for="invite-role">Tingkat hak akses (role)</label>
-                <select id="invite-role" class="monitoring-select">
-                  <option value="registration-officer">Petugas Pendaftaran</option>
-                  <option value="supervisor">Musyrif Asrama</option>
-                  <option value="teacher">Guru / Asatidz</option>
-                  <option value="finance">Keuangan</option>
-                  <option value="parent">Wali Santri</option>
-                  <option value="student">Santri</option>
-                  <option value="admin">Super Admin</option>
-                </select>
-
-                <button class="button button--secondary" type="submit">Kirim undangan</button>
-                <p id="invite-form-status" class="form-status" role="status" aria-live="polite"></p>
-              </form>
-
-              <div>
-                <div class="form-title-group u-mb-14">
-                  <div class="form-title-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                  </div>
-                  <div>
-                    <h2 class="portal-list-title u-m-0">Daftar akun terdaftar</h2>
-                    <p class="monitoring-hint">Semua akun staf, wali, dan santri.</p>
-                  </div>
-                </div>
-                <!-- Disaring di peramban: /api/accounts sudah mengirim semua akun. Lihat portal.js. -->
-                <div class="account-filter" role="search" aria-label="Saring daftar akun">
-                  <input id="account-search" type="search" placeholder="Cari nama atau email" aria-label="Cari nama atau email" />
-                  <select id="account-role-filter" class="monitoring-select" aria-label="Saring menurut peran">
-                    <option value="">Semua peran</option>
-                  </select>
-                  <select id="account-active-filter" class="monitoring-select" aria-label="Saring menurut status">
-                    <option value="">Semua status</option>
-                    <option value="aktif">Aktif saja</option>
-                    <option value="nonaktif">Nonaktif saja</option>
-                  </select>
-                </div>
-                <p id="account-list-summary" class="monitoring-hint" role="status" aria-live="polite"></p>
-                <div id="account-list" class="portal-account-list"></div>
-              </div>
-            </div>
-          </section>
         </div>
       </div>
     </section>
 
     <script src="internal-shell.js?v=7219343ccd"></script>
-    <script src="nav.js?v=6103df2e5d"></script>
+    <script src="nav.js?v=803e5ce2eb"></script>
     <script src="admin-overview.js?v=192c57a8c8"></script>
-    <script src="portal.js?v=a94426460e"></script>
+    <script src="portal.js?v=f754589c87"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>

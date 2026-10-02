@@ -7,12 +7,6 @@ const portalLogout = document.querySelector('#portal-logout');
 const studentsStatus = document.querySelector('#portal-students-status');
 const studentList = document.querySelector('#portal-student-list');
 const studentDashboard = document.querySelector('#student-dashboard');
-const portalAdmin = document.querySelector('#portal-admin');
-const accountForm = document.querySelector('#account-form');
-const accountFormStatus = document.querySelector('#account-form-status');
-const accountList = document.querySelector('#account-list');
-const inviteForm = document.querySelector('#invite-form');
-const inviteFormStatus = document.querySelector('#invite-form-status');
 const publicHeader = document.querySelector('#public-header');
 const staffNav = document.querySelector('#staff-nav');
 
@@ -781,7 +775,7 @@ async function fetchStudentPage({ search = '', offset = 0 } = {}) {
   return { items: result.items || [], total: typeof result.total === 'number' ? result.total : (result.items || []).length };
 }
 
-function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
+function renderExecutiveDashboard(_daftarAwal, account) {
   const students = studentPage.items;
   const allTotal = studentPage.allTotal;
   studentDashboard.replaceChildren();
@@ -861,14 +855,6 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
     : [
       { id: 'students', label: isParent ? 'Daftar ananda' : 'Daftar santri', icon: TAB_ICONS.users, count: allTotal }
     ];
-  if (isAdmin) {
-    tabDefs.push({
-      id: 'accounts',
-      label: 'Kelola akun',
-      icon: TAB_ICONS.lock,
-      count: Array.isArray(accountsList) ? accountsList.length : undefined
-    });
-  }
 
   const subtabsRow = document.createElement('div');
   subtabsRow.className = 'crm-subtabs-row';
@@ -906,7 +892,7 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
   }
 
   function bukaSantri(studentId) {
-    loadDashboard(studentId, account, () => renderExecutiveDashboard(null, account, accountsList)).catch((err) => {
+    loadDashboard(studentId, account, () => renderExecutiveDashboard(null, account)).catch((err) => {
       alert(err.message || 'Dashboard belum dapat dimuat.');
     });
   }
@@ -965,15 +951,6 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
     ]
     : [panelStudents];
   panels.slice(1).forEach((panel) => { panel.hidden = true; });
-  if (isAdmin) {
-    const panelAccounts = document.createElement('div');
-    panelAccounts.hidden = true;
-    if (portalAdmin) {
-      panelAccounts.append(portalAdmin);
-      portalAdmin.hidden = false;
-    }
-    panels.push(panelAccounts);
-  }
   buildTabs(tabDefs, panels, subtabsRow);
   panelsContainer.append(...panels);
 
@@ -988,6 +965,7 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
       ['monitoring.html', 'Monitoring santri & asrama'],
       ['lms.html', 'LMS: maddah dan materi'],
       ['operations.html', 'Keuangan, visa, dan inventaris'],
+      ['akun.html', 'Kelola akun'],
       ['audit.html', 'Jejak audit'],
       ['pengaturan.html', 'Pengaturan aplikasi']
     ],
@@ -1045,7 +1023,7 @@ function renderExecutiveDashboard(_daftarAwal, account, accountsList = []) {
   if (heroBtn) {
     heroBtn.addEventListener('click', () => {
       if (students.length > 0) {
-        loadDashboard(students[0].id, account, () => renderExecutiveDashboard(null, account, accountsList)).catch((err) => {
+        loadDashboard(students[0].id, account, () => renderExecutiveDashboard(null, account)).catch((err) => {
           alert(err.message || 'Dashboard belum dapat dimuat.');
         });
       }
@@ -1122,13 +1100,6 @@ function renderStudents(students, account) {
   }
 }
 
-async function loadAccounts() {
-  const response = await fetch('/api/accounts', { headers: requestHeaders() });
-  const result = await response.json();
-  if (!response.ok) throw new Error(result.error || 'Daftar akun belum dapat dimuat.');
-  renderAccounts(result.items);
-  return result.items || [];
-}
 
 async function loadStudents(account) {
   // Status ini sebelumnya selalu tersembunyi, sehingga pesan memuat tidak pernah
@@ -1169,16 +1140,14 @@ async function loadStudents(account) {
       renderStudents([], account);
     }
   } else {
-    let accountsList = [];
     if (account && account.role === 'admin') {
-      // Ringkasan santri, asrama, dan musyrif diambil bersamaan dengan daftar akun.
-      // Bila ringkasan gagal, dashboard tetap tampil dengan daftar santri biasa.
-      const [akun, ringkasan] = await Promise.allSettled([
-        loadAccounts(),
-        window.HamasahAdminOverview ? window.HamasahAdminOverview.muat(requestHeaders()) : Promise.reject(new Error('Modul ringkasan tidak dimuat.'))
-      ]);
-      if (akun.status === 'fulfilled') accountsList = akun.value;
-      adminOverview = ringkasan.status === 'fulfilled' ? ringkasan.value : null;
+      // Ringkasan santri, asrama, dan musyrif. Bila gagal, dashboard tetap tampil dengan
+      // daftar santri biasa. Akun dikelola di halaman sendiri (akun.html).
+      try {
+        adminOverview = window.HamasahAdminOverview ? await window.HamasahAdminOverview.muat(requestHeaders()) : null;
+      } catch {
+        adminOverview = null;
+      }
       perbaruiAngkaPerhatian();
     }
 
@@ -1191,7 +1160,7 @@ async function loadStudents(account) {
           try {
             if (window.location.hash) history.replaceState(null, '', window.location.pathname);
           } catch {}
-          renderExecutiveDashboard(null, account, accountsList);
+          renderExecutiveDashboard(null, account);
         });
         opened = true;
       } catch {
@@ -1199,7 +1168,7 @@ async function loadStudents(account) {
       }
     }
     if (!opened) {
-      renderExecutiveDashboard(null, account, accountsList);
+      renderExecutiveDashboard(null, account);
       // Datang dari lonceng saat sedang membuka detail santri.
       if (window.location.hash === '#perhatian') {
         const daftar = document.querySelector('#admin-perhatian');
@@ -1210,177 +1179,7 @@ async function loadStudents(account) {
   }
 }
 
-// Pencarian dan filter daftar akun. /api/accounts mengirim semua akun sekaligus, jadi
-// penyaringan cukup di peramban; tetap ada setelah daftar dimuat ulang (misalnya
-// sesudah menonaktifkan akun).
-let semuaAkun = [];
-const accountSearch = document.querySelector('#account-search');
-const accountRoleFilter = document.querySelector('#account-role-filter');
-const accountActiveFilter = document.querySelector('#account-active-filter');
-const accountListSummary = document.querySelector('#account-list-summary');
 
-if (accountRoleFilter) {
-  ROLE_ORDER.forEach((role) => accountRoleFilter.add(new Option(ROLE_DISPLAY_NAMES[role], role)));
-}
-[accountSearch, accountRoleFilter, accountActiveFilter].forEach((kontrol) => {
-  if (kontrol) kontrol.addEventListener(kontrol === accountSearch ? 'input' : 'change', () => tampilkanAkun());
-});
-
-function renderAccounts(accounts) {
-  semuaAkun = Array.isArray(accounts) ? accounts : [];
-  tampilkanAkun();
-}
-
-function tampilkanAkun() {
-  const kata = accountSearch ? accountSearch.value.trim().toLocaleLowerCase('id-ID') : '';
-  const peran = accountRoleFilter ? accountRoleFilter.value : '';
-  const status = accountActiveFilter ? accountActiveFilter.value : '';
-  const cocok = semuaAkun.filter((account) => (!peran || account.role === peran)
-    && (!status || (status === 'aktif') === Boolean(account.active))
-    && (!kata || `${account.name} ${account.email}`.toLocaleLowerCase('id-ID').includes(kata)));
-  if (accountListSummary) {
-    accountListSummary.textContent = cocok.length === semuaAkun.length
-      ? `${semuaAkun.length} akun.`
-      : `Menampilkan ${cocok.length} dari ${semuaAkun.length} akun.`;
-  }
-  if (!cocok.length && semuaAkun.length) {
-    const kosong = document.createElement('p');
-    kosong.className = 'form-status';
-    kosong.textContent = 'Tidak ada akun yang cocok dengan pencarian atau filter ini.';
-    accountList.replaceChildren(kosong);
-    return;
-  }
-  gambarDaftarAkun(cocok);
-}
-
-function gambarDaftarAkun(accounts) {
-  accountList.replaceChildren();
-  accounts.forEach((account) => {
-    const item = document.createElement('div');
-    item.className = 'portal-account';
-
-    const head = document.createElement('div');
-    head.className = 'portal-account__head';
-    const name = document.createElement('strong');
-    name.textContent = account.name;
-    const state = document.createElement('span');
-    state.className = account.active ? 'portal-account__state is-active' : 'portal-account__state';
-    state.textContent = account.active ? 'Aktif' : 'Nonaktif';
-    head.append(name, state);
-
-    const copy = document.createElement('span');
-    copy.textContent = `${account.email} · ${roleLabels[account.role] || account.role}`;
-
-    // PATCH /api/accounts/:id/active. Menonaktifkan akun juga mencabut sesinya
-    // di semua perangkat, jadi tombolnya diberi konfirmasi.
-    const action = document.createElement('button');
-    action.type = 'button';
-    action.className = 'button button--secondary portal-account__action';
-    action.textContent = account.active ? 'Nonaktifkan' : 'Aktifkan';
-    action.addEventListener('click', async () => {
-      if (account.active && !window.confirm(`Nonaktifkan akun ${account.name}? Sesi di semua perangkatnya ikut berakhir.`)) return;
-      action.disabled = true;
-      accountFormStatus.classList.remove('is-error');
-      try {
-        const response = await fetch(`/api/accounts/${encodeURIComponent(account.id)}/active`, {
-          method: 'PATCH',
-          headers: { ...requestHeaders(), 'Content-Type': 'application/json' },
-          body: JSON.stringify({ active: !account.active })
-        });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'Status akun belum dapat diubah.');
-        accountFormStatus.textContent = result.account && result.account.active
-          ? `Akun ${account.name} diaktifkan.`
-          : `Akun ${account.name} dinonaktifkan. ${result.sessionsRevoked || 0} sesi dicabut.`;
-        await loadAccounts();
-      } catch (error) {
-        accountFormStatus.textContent = error.message || 'Status akun belum dapat diubah.';
-        accountFormStatus.classList.add('is-error');
-        action.disabled = false;
-      }
-    });
-
-    const ubah = document.createElement('button');
-    ubah.type = 'button';
-    ubah.className = 'button button--secondary portal-account__action';
-    ubah.textContent = 'Ubah';
-    ubah.addEventListener('click', () => ubahAkun(account));
-
-    const aksi = document.createElement('div');
-    aksi.className = 'portal-account__actions';
-    aksi.append(ubah, action);
-    if (!currentAccount || account.id !== currentAccount.id) {
-      const sandi = document.createElement('button');
-      sandi.type = 'button';
-      sandi.className = 'button button--secondary portal-account__action';
-      sandi.textContent = 'Kata sandi sementara';
-      sandi.addEventListener('click', () => buatSandiSementara(account, sandi));
-      aksi.append(sandi);
-    }
-
-    item.append(head, copy, aksi);
-    accountList.append(item);
-  });
-}
-
-// Peran untuk pilihan di formulir ubah akun.
-const PILIHAN_PERAN = Object.freeze(ROLE_ORDER.map((role) => [role, ROLE_DISPLAY_NAMES[role]]));
-
-async function kirimJsonPortal(url, method, body) {
-  const response = await fetch(url, {
-    method,
-    headers: { ...requestHeaders(), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
-    body: body === undefined ? undefined : JSON.stringify(body)
-  });
-  const result = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(result.error || 'Perubahan belum dapat disimpan.');
-  return result;
-}
-
-async function ubahAkun(account) {
-  const diriSendiri = currentAccount && account.id === currentAccount.id;
-  const hasil = await window.HamasahDialog.formulir({
-    judul: `Ubah akun ${account.name}`,
-    keterangan: 'Bila email atau peran diubah, akun ini keluar dari semua perangkat dan perlu masuk lagi.',
-    bidang: [
-      { nama: 'name', label: 'Nama', nilai: account.name, wajib: true },
-      { nama: 'email', label: 'Email', jenis: 'email', nilai: account.email, wajib: true },
-      {
-        nama: 'role', label: 'Peran', jenis: 'select', nilai: account.role, pilihan: PILIHAN_PERAN,
-        petunjuk: diriSendiri ? 'Peran akun yang sedang dipakai tidak dapat diubah sendiri.' : 'Musyrif yang diganti perannya otomatis dilepas dari asramanya.'
-      }
-    ],
-    kirim: (nilai) => kirimJsonPortal(`/api/accounts/${encodeURIComponent(account.id)}`, 'PATCH', nilai)
-  });
-  if (!hasil) return;
-  accountFormStatus.classList.remove('is-error');
-  accountFormStatus.textContent = hasil.changed && hasil.changed.length
-    ? `Akun ${hasil.account.name} diperbarui.${hasil.sessionsRevoked ? ` ${hasil.sessionsRevoked} sesi dicabut.` : ''}`
-    : 'Tidak ada yang berubah.';
-  await loadAccounts();
-}
-
-async function buatSandiSementara(account, tombol) {
-  if (!window.confirm(`Buat kata sandi sementara untuk ${account.name}? Kata sandi lamanya langsung tidak berlaku dan semua sesinya berakhir.`)) return;
-  tombol.disabled = true;
-  try {
-    const hasil = await kirimJsonPortal(`/api/accounts/${encodeURIComponent(account.id)}/password-reset`, 'POST');
-    await window.HamasahDialog.pesan({
-      judul: `Kata sandi sementara ${account.name}`,
-      isi: [
-        'Berikan kata sandi ini langsung ke pemilik akun, misalnya lewat WhatsApp pribadi. Kata sandi hanya ditampilkan sekali.',
-        'Setelah masuk, minta pemilik akun menggantinya lewat menu Ganti kata sandi.'
-      ],
-      labelRahasia: `Masuk dengan email ${account.email}`,
-      rahasia: hasil.temporaryPassword
-    });
-  } catch (error) {
-    accountFormStatus.textContent = error.message || 'Kata sandi sementara belum dapat dibuat.';
-    accountFormStatus.classList.add('is-error');
-  } finally {
-    tombol.disabled = false;
-  }
-}
 
 async function showPortal() {
   const me = await window.hamasahMintaAkun(requestHeaders());
@@ -1482,69 +1281,6 @@ portalLoginForm.addEventListener('submit', async (event) => {
     setLoginError(error.message || 'Login belum berhasil.');
   }
 });
-
-accountForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  accountFormStatus.classList.remove('is-error');
-  try {
-    const response = await fetch('/api/accounts', {
-      method: 'POST',
-      headers: { ...requestHeaders(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: document.querySelector('#account-name').value,
-        email: document.querySelector('#account-email').value,
-        role: document.querySelector('#account-role').value,
-        password: document.querySelector('#account-password').value
-      })
-    });
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Akun belum dapat dibuat.');
-    accountForm.reset();
-    accountFormStatus.textContent = `Akun ${result.account.name} berhasil dibuat.`;
-    const accounts = await loadAccounts();
-    const countBadge = document.querySelector('#tab-count-accounts');
-    if (countBadge) countBadge.textContent = accounts.length;
-  } catch (error) {
-    accountFormStatus.textContent = error.message || 'Akun belum dapat dibuat.';
-    accountFormStatus.classList.add('is-error');
-  }
-});
-
-// POST /api/accounts/invitations: akun dibuat nonaktif, penerima memasang kata
-// sandinya sendiri lewat tautan aktivasi. Admin tidak perlu mengarang kata sandi.
-if (inviteForm) {
-  inviteForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    inviteFormStatus.classList.remove('is-error');
-    inviteFormStatus.textContent = 'Mengirim undangan...';
-    try {
-      const response = await fetch('/api/accounts/invitations', {
-        method: 'POST',
-        headers: { ...requestHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: document.querySelector('#invite-name').value,
-          email: document.querySelector('#invite-email').value,
-          role: document.querySelector('#invite-role').value
-        })
-      });
-      const result = await response.json();
-      // 502 berarti akun sudah dibuat tetapi emailnya gagal terkirim. Itu bukan
-      // kegagalan penuh, jadi pesannya dibedakan dari galat validasi.
-      if (!response.ok && !result.account) throw new Error(result.error || 'Undangan belum dapat dikirim.');
-      inviteForm.reset();
-      inviteFormStatus.textContent = response.ok
-        ? `Undangan terkirim ke ${result.account.email}. Tautan aktivasi berlaku terbatas.`
-        : `Akun ${result.account.name} dibuat, tetapi email undangan belum terkirim. Periksa konfigurasi email lalu kirim ulang.`;
-      if (!response.ok) inviteFormStatus.classList.add('is-error');
-      const accounts = await loadAccounts();
-      const countBadge = document.querySelector('#tab-count-accounts');
-      if (countBadge) countBadge.textContent = accounts.length;
-    } catch (error) {
-      inviteFormStatus.textContent = error.message || 'Undangan belum dapat dikirim.';
-      inviteFormStatus.classList.add('is-error');
-    }
-  });
-}
 
 portalLogout.addEventListener('click', async () => {
   await fetch('/api/auth/logout', { method: 'POST', headers: requestHeaders() }).catch(() => {});

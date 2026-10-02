@@ -1383,7 +1383,8 @@ html.has-portal-session body:has(:is(#monitoring-guard, #operations-guard, #lms-
    jadi papan ketik (spasi) dan pembaca layar tetap bekerja tanpa skrip tambahan. */
 /* Formulir ini membungkus beberapa kartu, jadi dirinya sendiri tidak boleh ikut menjadi
    kartu (portal.css menjadikan setiap ".crm-canvas .staff-form" kartu dengan !important). */
-.crm-canvas form.settings-form {
+.crm-canvas form.settings-form,
+.crm-canvas form.accounts-form {
   display: block;
   padding: 0 !important;
   border: 0 !important;
@@ -1541,4 +1542,20 @@ html.has-portal-session body:has(:is(#monitoring-guard, #operations-guard, #lms-
   .settings-actions { justify-content: stretch; }
   .settings-actions .button { flex: 1 1 100%; }
   .settings-last { margin: 0; }
+}
+
+/* Halaman Kelola Akun (akun.html): dua formulir berdampingan, daftar akun selebar halaman. */
+.accounts-forms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.accounts-form .button {
+  align-self: flex-start;
+}
+
+.accounts-form .form-status:empty {
+  display: none;
 }

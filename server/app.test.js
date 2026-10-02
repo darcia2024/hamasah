@@ -670,7 +670,7 @@ async function run() {
     assert.equal(aturan.headers.get('content-type'), 'application/speculationrules+json');
     const isiAturan = await aturan.json();
     assert.equal(isiAturan.prerender[0].eagerness, 'moderate');
-    assert.ok(isiAturan.prerender[0].where.and[0].href_matches.every((pola) => /^\/(website\/)?(portal|staff|monitoring|operations|lms|audit|pengaturan)\.html$/.test(pola)));
+    assert.ok(isiAturan.prerender[0].where.and[0].href_matches.every((pola) => /^\/(website\/)?(portal|staff|monitoring|operations|lms|audit|pengaturan|akun)\.html$/.test(pola)));
     // Artikel dirender server (Task R7.3): judul artikel sudah ada tanpa JavaScript.
     const articlePage = await request(baseUrl, `/website/article.html?slug=${articleCreated.body.item.slug}`);
     assert.equal(articlePage.status, 200);

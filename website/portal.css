@@ -182,77 +182,6 @@
   align-items: start;
 }
 
-/* Crisp White Form Inputs for Altezza Theme */
-#account-form {
-  background: #FFFFFF !important;
-  border-radius: 16px !important;
-  border: 1px solid var(--md-sys-color-outline-variant) !important;
-  padding: 24px !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
-}
-
-#account-form label {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--md-sys-color-on-surface-variant);
-  margin: 12px 0 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-#account-form label:first-of-type {
-  margin-top: 0;
-}
-
-#account-form input,
-#account-form select {
-  background: #FFFFFF !important;
-  border: 1px solid var(--md-sys-color-surface-container-highest) !important;
-  border-radius: 10px !important;
-  color: var(--md-sys-color-on-surface) !important;
-  font-family: inherit;
-  font-size: 14px !important;
-  font-weight: 400 !important;
-  min-height: 46px !important;
-  height: auto !important;
-  padding: 0 14px !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-#account-form input:focus,
-#account-form select:focus {
-  border-color: #FFC42C !important;
-  box-shadow: 0 0 0 3px rgba(255, 196, 44, 0.25) !important;
-  outline: none !important;
-}
-
-#account-form button[type="submit"] {
-  width: 100%;
-  margin-top: 18px;
-  min-height: 44px;
-  height: auto;
-  background: #FFC42C;
-  color: #111827;
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(255, 196, 44, 0.3);
-  transition: background 0.15s ease;
-}
-
-#account-form button[type="submit"]:hover {
-  background: #F5B81A;
-}
-
 .portal-account-list {
   display: flex;
   flex-direction: column;
@@ -439,9 +368,7 @@
 .crm-pill-btn:focus-visible,
 .crm-collapse-btn:focus-visible,
 .monitoring-select:focus-visible,
-.record-form select:focus-visible,
-#account-form input:focus-visible,
-#account-form select:focus-visible {
+.record-form select:focus-visible {
   outline: 3px solid var(--md-sys-color-primary, var(--md-sys-color-primary)) !important;
   outline-offset: 2px;
 }
@@ -4416,9 +4343,7 @@ table,
 .staff-form textarea,
 .crm-canvas input:not([type="checkbox"]):not([type="radio"]),
 .crm-canvas select,
-.crm-canvas textarea,
-#account-form input,
-#account-form select {
+.crm-canvas textarea {
   border-radius: 12px !important;
   min-height: 46px;
 }
@@ -4432,8 +4357,7 @@ table,
 /* 3. Tombol: kapsul, tinggi tetap, tidak melebar penuh di layar lebar. Tingginya sama
    dengan kotak isian (fields.css), supaya tombol di samping kotak tampak sejajar. */
 .crm-canvas .button,
-.staff-form .button,
-#account-form button[type="submit"] {
+.staff-form .button {
   border-radius: 9999px;
   min-height: 42px;
   height: auto;
@@ -4442,8 +4366,7 @@ table,
 }
 
 @media (min-width: 861px) {
-  .staff-form .button,
-  #account-form button[type="submit"] {
+  .staff-form .button {
     align-self: flex-start;
     width: auto;
     padding-inline: 28px;
@@ -4798,14 +4721,6 @@ table,
   }
 }
 
-/* Label formulir akun mengikuti label formulir lain: kapital awal kalimat, 14px. */
-#account-form label {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--md-sys-color-on-surface);
-  text-transform: none;
-  letter-spacing: 0;
-}
 
 /* --------------------------------------------------------------------------
    Tugas dan kuis: penyusun soal untuk guru, pengerjaan untuk santri, dan
