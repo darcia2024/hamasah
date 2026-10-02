@@ -8,7 +8,7 @@ cookies.txt
 .env
 node_modules/
 # Database pengembangan lokal (PGlite) dan berkas unggahan lokal.
-data/dev-db/
+data/dev-db*/
 data/dev-storage/
 *.tmp
 coverage/
