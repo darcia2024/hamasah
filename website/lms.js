@@ -56,9 +56,18 @@ const ICONS = {
 };
 
 
+// Alamat langsung ke satu materi: lms.html#maddah=<id>&materi=<id>.
+function alamatMateri(courseId, materialId) {
+  const params = new URLSearchParams({ maddah: courseId });
+  if (materialId) params.set('materi', materialId);
+  return `#${params.toString()}`;
+}
+
 function renderCourse(course, activeMaterialId) {
   const materials = course.materials || [];
   const activeMaterial = (activeMaterialId ? materials.find((m) => m.id === activeMaterialId) : null) || materials[0] || null;
+  // Alamat ikut materi yang dibuka, supaya muat ulang halaman tidak kembali ke awal.
+  try { history.replaceState(null, '', alamatMateri(course.id, activeMaterial && activeMaterial.id)); } catch {}
   if (syncStatus) syncStatus.textContent = activeMaterial ? `Maddah aktif: ${course.title}` : 'Belum ada materi yang dipilih';
 
   // Update breadcrumb
@@ -84,7 +93,8 @@ function renderCourse(course, activeMaterialId) {
   backBtn.title = 'Kembali ke daftar maddah';
   backBtn.innerHTML = ICONS.back;
   backBtn.addEventListener('click', () => {
-    if (breadcrumbActive) breadcrumbActive.textContent = 'LMS Hamasah dan silabus maddah';
+    if (breadcrumbActive) breadcrumbActive.textContent = teksRemahLms();
+    try { history.replaceState(null, '', window.location.pathname); } catch {}
     switchLmsTab(tabBtnMyCourses);
   });
 
@@ -119,16 +129,30 @@ function renderCourse(course, activeMaterialId) {
   shareBtn.type = 'button';
   shareBtn.className = 'lms-btn-share';
   shareBtn.innerHTML = `${ICONS.share} <span>Bagikan</span>`;
-  shareBtn.addEventListener('click', () => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
-      shareBtn.innerHTML = `${ICONS.check} <span>Tersalin!</span>`;
-      setTimeout(() => { shareBtn.innerHTML = `${ICONS.share} <span>Bagikan</span>`; }, 2000);
+  shareBtn.title = 'Salin tautan langsung ke materi ini';
+  // Tautan membuka maddah dan materi yang sama (lihat bukaDariAlamat). Penerima tetap
+  // harus masuk dan terdaftar di maddah itu; tautan tidak memberi akses apa pun.
+  const tautan = `${window.location.origin}${window.location.pathname}${alamatMateri(course.id, activeMaterial && activeMaterial.id)}`;
+  shareBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(tautan);
+      shareBtn.innerHTML = `${ICONS.check} <span>Tautan tersalin</span>`;
+    } catch {
+      shareBtn.innerHTML = `<span>Gagal menyalin</span>`;
     }
+    setTimeout(() => { shareBtn.innerHTML = `${ICONS.share} <span>Bagikan</span>`; }, 2000);
   });
 
   headerActions.append(shareBtn);
-  if (activeMaterial) {
+  // Kuis dan tugas tidak punya tombol "Tandai selesai": kuis selesai saat lulus, tugas
+  // saat dinilai lulus oleh pengajar (server menolak penandaan manual keduanya).
+  const SELESAI_OTOMATIS = { quiz: 'Selesai otomatis setelah lulus kuis', assignment: 'Selesai setelah dinilai lulus pengajar' };
+  if (activeMaterial && !activeMaterial.completed && SELESAI_OTOMATIS[activeMaterial.type]) {
+    const keterangan = document.createElement('span');
+    keterangan.className = 'lms-btn-enroll is-auto';
+    keterangan.textContent = SELESAI_OTOMATIS[activeMaterial.type];
+    headerActions.append(keterangan);
+  } else if (activeMaterial) {
     const actionComplete = document.createElement('button');
     actionComplete.type = 'button';
     actionComplete.className = 'lms-btn-enroll';
@@ -737,6 +761,16 @@ function renderCourses(courses) {
   });
 }
 
+// Alamat (#maddah=...&materi=...) selalu mengikuti materi yang sedang dibuka (renderCourse)
+// dan dikosongkan saat kembali ke daftar. Jadi setiap kali daftar maddah dimuat ulang,
+// termasuk lewat tautan "Bagikan" dan penyegaran data di latar, materi itu dibuka lagi
+// alih-alih santri terlempar ke daftar. Maddah di luar daftar santri ini diabaikan.
+function bukaDariAlamat(courses) {
+  const params = new URLSearchParams(window.location.hash.slice(1));
+  const course = params.get('maddah') && courses.find((item) => item.id === params.get('maddah'));
+  if (course) renderCourse(course, params.get('materi'));
+}
+
 async function loadCourses() {
   if (!studentSelect.value) {
     courseList.replaceChildren();
@@ -747,8 +781,11 @@ async function loadCourses() {
   if (syncStatus) syncStatus.textContent = 'Memuat materi santri…';
   const response = await fetch(`/api/students/${encodeURIComponent(studentSelect.value)}/courses`, { headers: headers() });
   const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Maddah belum dapat dimuat.');
-  renderCourses(result.items); setStatus(status, `${result.items.length} maddah tersedia.`);
-  if (syncStatus) syncStatus.textContent = result.items.length ? 'Materi tersedia untuk santri terpilih' : 'Belum ada materi untuk santri terpilih';
+  renderCourses(result.items); setStatus(status, role === 'student' ? '' : `${result.items.length} maddah tersedia.`);
+  bukaDariAlamat(result.items);
+  if (syncStatus) syncStatus.textContent = role === 'student'
+    ? (result.items.length ? `${result.items.length} maddah sedang Anda ikuti` : 'Anda belum terdaftar di maddah mana pun. Tanyakan ke pengajar atau musyrif.')
+    : (result.items.length ? 'Materi tersedia untuk santri terpilih' : 'Belum ada materi untuk santri terpilih');
 }
 
 let staffCourses = [];
@@ -947,6 +984,23 @@ async function loadStaffCourses() {
   renderStaffCourses(result.items);
 }
 
+function teksRemahLms() {
+  return role === 'student' ? 'Ruang belajar' : 'LMS Hamasah dan silabus maddah';
+}
+
+// Santri hanya melihat dirinya sendiri: teks halaman ditulis untuknya, dan pemilih santri
+// disembunyikan (tetap dipakai di belakang layar karena terisi otomatis oleh loadStudents).
+function siapkanTampilanSantri() {
+  const judul = document.querySelector('.crm-summary-title');
+  const subjudul = document.querySelector('.crm-summary-subtitle');
+  const remah = document.querySelector('.crm-breadcrumbs .crumb-active');
+  if (judul) judul.textContent = 'Ruang belajar';
+  if (subjudul) subjudul.textContent = 'Pelajari materi maddah Anda, kerjakan kuis dan tugas, lalu tanyakan bagian yang belum jelas.';
+  if (remah) remah.textContent = 'Ruang belajar';
+  const pemilih = document.querySelector('#lms-selector-toolbar .crm-date-selector');
+  if (pemilih) pemilih.hidden = true;
+}
+
 let studentPicker = null;
 async function loadStudents() {
   if (!studentPicker) studentPicker = window.HamasahStudentPicker.attach(studentSelect, { headers, placeholder: 'Pilih santri' });
@@ -1106,7 +1160,7 @@ function switchLmsTab(targetBtn) {
   });
   if (targetBtn === tabBtnMyCourses || targetBtn === tabBtnManage) {
     const breadcrumbActive = document.querySelector('.crm-breadcrumbs .crumb-active');
-    if (breadcrumbActive) breadcrumbActive.textContent = 'LMS Hamasah dan silabus maddah';
+    if (breadcrumbActive) breadcrumbActive.textContent = teksRemahLms();
   }
 }
 
@@ -1136,6 +1190,7 @@ if (logoutButton) {
     consoleSection.hidden = false;
     document.body.classList.add('in-crm');
     renderStaffNav(staffNav, role, 'lms', result.account);
+    if (role === 'student') siapkanTampilanSantri();
     if (LMS_MANAGE_ROLES.includes(role)) {
       document.querySelectorAll('.staff-only-tab').forEach((el) => { el.hidden = false; });
       staffSection.hidden = false;

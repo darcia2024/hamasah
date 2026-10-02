@@ -4454,6 +4454,19 @@ table,
   border-color: transparent;
 }
 
+/* Kuis dan tugas: keterangan kapan dianggap selesai, bukan tombol. */
+.lms-btn-enroll.is-auto {
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface-variant);
+  box-shadow: none;
+  cursor: default;
+}
+
+.lms-btn-enroll.is-auto:hover {
+  background: var(--md-sys-color-surface-container);
+  transform: none;
+}
+
 .lms-content-card--active {
   padding: 22px 26px;
   gap: 14px;

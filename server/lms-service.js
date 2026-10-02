@@ -344,6 +344,15 @@ function createLmsService(options) {
     if (!material) {
       return { ok: false, error: 'Materi tidak ditemukan.' };
     }
+    // Kuis selesai saat lulus (submitQuiz) dan tugas saat dinilai lulus oleh pengajar
+    // (reviewSubmission). Menandai keduanya selesai secara manual membuat progres yang
+    // dilihat wali palsu.
+    if (material.type === 'quiz') {
+      return { ok: false, error: 'Kuis tercatat selesai otomatis setelah Anda lulus.' };
+    }
+    if (material.type === 'assignment') {
+      return { ok: false, error: 'Tugas tercatat selesai otomatis setelah dinilai lulus oleh pengajar.' };
+    }
     // Store menolak duplikat sendiri, jadi klik ganda tidak membuat baris kedua.
     await store.addCompletion({ id: crypto.randomUUID(), studentId, courseId, materialId, completedAt: now() });
     return getStudentCourse(studentId, courseId, actor);

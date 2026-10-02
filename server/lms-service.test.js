@@ -50,11 +50,17 @@ async function run() {
   assert.equal(lulus.value.attempt.passed, true);
   assert.equal((await service.submitQuiz('student-1', courseId, quiz.value.id, { 0: 'mubtada', 1: 'khabar' }, student)).ok, true);
   assert.equal((await service.submitQuiz('student-1', courseId, quiz.value.id, { 0: 'mubtada', 1: 'khabar' }, student)).ok, false, 'Percobaan keempat harus ditolak.');
+  // Kuis dan tugas tidak bisa ditandai selesai secara manual (progres palsu).
+  const kuisManual = await service.completeMaterial('student-1', courseId, quiz.value.id, student);
+  assert.equal(kuisManual.ok, false);
+  assert.match(kuisManual.error, /otomatis/);
 
   const assignment = await service.addMaterial(courseId, { type: 'assignment', title: 'Tugas Ringkas', content: 'Jelaskan mubtada dan khabar.', summary: 'Tugas penjelasan singkat.', keyPoints: ['Struktur kalimat'] }, admin);
   assert.equal(assignment.value.version, 1);
   const updatedMaterial = await service.updateMaterial(courseId, assignment.value.id, { title: 'Tugas Ringkas Revisi', content: 'Jelaskan mubtada dan khabar dengan contoh.', summary: 'Tugas penjelasan dengan contoh.', keyPoints: ['Struktur kalimat', 'Contoh'] }, admin);
   assert.equal(updatedMaterial.value.version, 2);
+  assert.equal((await service.completeMaterial('student-1', courseId, assignment.value.id, student)).ok, false, 'Tugas belum dikirim tidak boleh ditandai selesai.');
+  assert.equal((await service.getStudentCourse('student-1', courseId, student)).value.materials.find((item) => item.id === assignment.value.id).completed, false);
   const submission = await service.submitAssignment('student-1', courseId, assignment.value.id, { body: 'Mubtada adalah pokok kalimat.' }, student);
   assert.equal(submission.ok, true);
   assert.equal((await service.submitAssignment('student-1', courseId, assignment.value.id, { body: 'Duplikat' }, student)).ok, false);
