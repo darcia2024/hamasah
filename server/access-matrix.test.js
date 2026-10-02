@@ -241,6 +241,9 @@ async function run() {
         body: () => ({ studentId, description: 'SPP tambahan', amount: 750000 })
       },
       { permission: 'finance.manage', method: 'PATCH', path: () => `/api/operations/invoices/${invoiceId}/paid` },
+      { permission: 'finance.manage', method: 'GET', path: '/api/operations/invoices/massal' },
+      // Pratinjau saja: tidak menerbitkan apa pun.
+      { permission: 'finance.manage', method: 'POST', path: '/api/operations/invoices/massal', body: () => ({ description: 'SPP pratinjau matriks', amount: 100000 }) },
       {
         permission: 'operations.manage', method: 'POST', path: '/api/operations/visas',
         body: () => ({ studentId, status: 'collecting-documents', note: 'Berkas diperiksa.' })

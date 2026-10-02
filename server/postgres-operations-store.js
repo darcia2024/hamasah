@@ -102,6 +102,18 @@ function createPostgresOperationsStore({ database } = {}) {
       return rows.map(toInvoice);
     },
 
+    // Santri yang sudah punya tagihan dengan keterangan yang sama (tanpa membedakan huruf
+    // besar dan spasi di tepi), selain yang dibatalkan. Dipakai tagihan massal supaya
+    // tidak ada santri yang ditagih dua kali untuk hal yang sama.
+    async studentIdsWithInvoiceDescription(description) {
+      const { rows } = await database.query(
+        `SELECT DISTINCT student_id FROM invoices
+          WHERE lower(btrim(description)) = lower(btrim($1)) AND status <> 'voided'`,
+        [description]
+      );
+      return rows.map((row) => row.student_id);
+    },
+
     // Satu halaman tagihan, disaring dan dipotong di SQL, dengan nama santri dari tabel
     // students (Task R6.2). Pencarian mencocokkan nomor, keterangan, dan nama santri.
     async listInvoicesPage({ status, search, studentId, limit, offset } = {}) {

@@ -878,6 +878,131 @@ document.querySelector('#invoice-form').addEventListener('submit', async (event)
   }
 });
 
+// Tagihan massal: satu keterangan dan nominal untuk banyak santri aktif sekaligus.
+// Pratinjau dulu (POST tanpa terbitkan), lalu terbitkan isian yang sama persis. Mengubah
+// isian setelah pratinjau membatalkan pratinjaunya.
+const invoiceForm = document.querySelector('#invoice-form');
+const bulkForm = document.querySelector('#bulk-invoice-form');
+const bulkProgram = document.querySelector('#bulk-program');
+const bulkPreview = document.querySelector('#bulk-preview');
+const bulkIssue = document.querySelector('#bulk-issue');
+let bulkPratinjau = null;
+let bulkPilihanDimuat = false;
+
+function rupiahTeks(nilai) {
+  return `Rp${Number(nilai).toLocaleString('id-ID')}`;
+}
+
+function isianMassal() {
+  return {
+    program: bulkProgram.value,
+    description: document.querySelector('#bulk-description').value.trim(),
+    amount: Number(document.querySelector('#bulk-amount').value)
+  };
+}
+
+async function muatPilihanMassal() {
+  if (bulkPilihanDimuat) return;
+  const pilihan = await jsonRequest('/api/operations/invoices/massal', { headers: headers() });
+  bulkProgram.replaceChildren(new Option(`Semua santri aktif (${pilihan.activeStudents})`, ''));
+  pilihan.groups.forEach((item) => bulkProgram.add(new Option(`${item.value} (${item.count})`, item.value)));
+  pilihan.programs.forEach((item) => bulkProgram.add(new Option(`  ${item.value} (${item.count})`, item.value)));
+  bulkPilihanDimuat = true;
+}
+
+function batalkanPratinjau() {
+  bulkPratinjau = null;
+  bulkPreview.hidden = true;
+}
+
+function isiDaftar(selector, items, teks) {
+  document.querySelector(selector).replaceChildren(...items.map((item) => {
+    const li = document.createElement('li');
+    li.textContent = teks(item);
+    return li;
+  }));
+}
+
+function tampilkanPratinjau(hasil) {
+  const jumlah = hasil.sasaran.length;
+  document.querySelector('#bulk-summary').textContent = jumlah
+    ? `${jumlah} tagihan × ${rupiahTeks(hasil.amount)} = ${rupiahTeks(hasil.total)} untuk "${hasil.description}".`
+    : `Tidak ada santri yang perlu ditagih untuk "${hasil.description}".`;
+  document.querySelector('#bulk-targets').hidden = !jumlah;
+  document.querySelector('#bulk-targets-summary').textContent = `Santri yang akan ditagih (${jumlah})`;
+  isiDaftar('#bulk-target-list', hasil.sasaran, (item) => `${item.name} · ${item.program}`);
+  const dilewati = document.querySelector('#bulk-skipped');
+  dilewati.hidden = !hasil.dilewati.length;
+  document.querySelector('#bulk-skipped-summary').textContent = `Dilewati karena sudah ditagih (${hasil.dilewati.length})`;
+  isiDaftar('#bulk-skipped-list', hasil.dilewati, (item) => `${item.name} · ${item.alasan}`);
+  bulkIssue.hidden = !jumlah;
+  bulkIssue.textContent = `Terbitkan ${jumlah} tagihan`;
+  bulkPreview.hidden = false;
+}
+
+document.querySelectorAll('input[name="invoice-mode"]').forEach((radio) => {
+  radio.addEventListener('change', () => {
+    const massal = radio.value === 'massal' && radio.checked;
+    if (!radio.checked) return;
+    invoiceForm.hidden = massal;
+    bulkForm.hidden = !massal;
+    if (massal) muatPilihanMassal().catch((error) => feedback('#bulk-status', error.message, true));
+  });
+});
+
+bulkForm.addEventListener('input', batalkanPratinjau);
+bulkForm.addEventListener('change', batalkanPratinjau);
+
+bulkForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const isian = isianMassal();
+  if (isian.description.length < 3 || !Number.isInteger(isian.amount) || isian.amount <= 0) {
+    feedback('#bulk-status', 'Isi keterangan (minimal 3 karakter) dan nominal bilangan bulat lebih dari nol.', true);
+    return;
+  }
+  feedback('#bulk-status', 'Menyiapkan pratinjau...');
+  try {
+    const hasil = await jsonRequest('/api/operations/invoices/massal', {
+      method: 'POST',
+      headers: { ...headers(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(isian)
+    });
+    bulkPratinjau = isian;
+    tampilkanPratinjau(hasil);
+    feedback('#bulk-status', '');
+  } catch (error) {
+    batalkanPratinjau();
+    feedback('#bulk-status', error.message, true);
+  }
+});
+
+bulkIssue.addEventListener('click', async () => {
+  if (!bulkPratinjau) return;
+  const isian = bulkPratinjau;
+  const jumlah = document.querySelectorAll('#bulk-target-list li').length;
+  if (!window.confirm(`Terbitkan ${jumlah} tagihan "${isian.description}" sebesar ${rupiahTeks(isian.amount)} per santri?`)) return;
+  bulkIssue.disabled = true;
+  feedback('#bulk-status', 'Menerbitkan tagihan...');
+  try {
+    const hasil = await jsonRequest('/api/operations/invoices/massal', {
+      method: 'POST',
+      headers: { ...headers(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...isian, terbitkan: true })
+    });
+    const nomor = hasil.invoices.map((invoice) => invoice.number);
+    bulkForm.reset();
+    batalkanPratinjau();
+    feedback('#bulk-status', `${nomor.length} tagihan terbit (${nomor[0]} sampai ${nomor[nomor.length - 1]}).${hasil.dilewati.length ? ` ${hasil.dilewati.length} santri dilewati karena sudah ditagih.` : ''}`);
+    await loadOperations();
+  } catch (error) {
+    batalkanPratinjau();
+    feedback('#bulk-status', error.message, true);
+    await loadOperations().catch(() => {});
+  } finally {
+    bulkIssue.disabled = false;
+  }
+});
+
 document.querySelector('#visa-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   try {

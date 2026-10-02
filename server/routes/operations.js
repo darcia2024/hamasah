@@ -123,6 +123,56 @@ module.exports = [
     }
   },
 
+  // Pilihan program dan jumlah santri aktif untuk formulir tagihan massal.
+  {
+    method: 'GET',
+    pattern: /^\/api\/operations\/invoices\/massal$/,
+    permission: 'finance.manage',
+    async handler({ response, services, auth }) {
+      const hasil = await services.operationsService.bulkInvoiceOptions(await auth.actor());
+      json(response, hasil.ok ? 200 : (hasil.status || 422), hasil.ok ? hasil.value : publicError(hasil));
+    }
+  },
+
+  // Tagihan massal untuk santri aktif. { terbitkan: false } hanya pratinjau.
+  // Setiap tagihan tetap punya catatan INVOICE_CREATED sendiri (seperti tagihan satuan),
+  // ditambah satu ringkasan INVOICE_BULK_CREATED.
+  {
+    method: 'POST',
+    pattern: /^\/api\/operations\/invoices\/massal$/,
+    permission: 'finance.manage',
+    async handler({ response, services, auth, readBody, ip }) {
+      const actor = await auth.actor();
+      const hasil = await services.operationsService.bulkInvoices(await readBody(), actor);
+      const terbit = hasil.ok ? (hasil.value.invoices || []) : (hasil.invoices || []);
+      for (const invoice of terbit) {
+        await services.auditService.record({
+          action: ACTIONS.INVOICE_CREATED, actor, ip,
+          entityType: 'invoice', entityId: invoice.id,
+          metadata: { number: invoice.number, amount: invoice.amount, studentId: invoice.studentId, massal: true }
+        });
+      }
+      if (terbit.length) {
+        await services.auditService.record({
+          action: ACTIONS.INVOICE_BULK_CREATED, actor, ip,
+          entityType: 'invoice', entityId: terbit[0].id,
+          metadata: {
+            jumlah: terbit.length,
+            keterangan: terbit[0].description,
+            nominal: terbit[0].amount,
+            nomorAwal: terbit[0].number,
+            nomorAkhir: terbit[terbit.length - 1].number
+          }
+        });
+      }
+      if (!hasil.ok) {
+        json(response, hasil.status || 422, publicError(hasil));
+        return;
+      }
+      json(response, hasil.value.invoices ? 201 : 200, hasil.value);
+    }
+  },
+
   {
     method: 'PATCH',
     pattern: /^\/api\/operations\/invoices\/([\w-]+)\/paid$/,

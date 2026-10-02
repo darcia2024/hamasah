@@ -50,6 +50,7 @@ const LABEL = {
   'file.downloaded': 'Berkas diunduh',
   'invoice.created': 'Invoice dibuat',
   'invoice.paid': 'Invoice ditandai lunas',
+  'invoice.bulk-created': 'Tagihan massal diterbitkan',
   'invoice.receipt-downloaded': 'Kuitansi diunduh',
   'demo.data-started': 'Pengisian data demo dimulai',
   'demo.password-reset': 'Kata sandi akun demo diganti',

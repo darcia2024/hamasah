@@ -75,6 +75,7 @@ const ACTIONS = Object.freeze({
   ,ACCOUNT_PASSWORD_RESET_BY_ADMIN: 'account.password-reset-by-admin'
   ,COURSE_UPDATED: 'course.updated'
   ,SETTINGS_UPDATED: 'settings.updated'
+  ,INVOICE_BULK_CREATED: 'invoice.bulk-created'
   ,DATABASE_UPDATED: 'database.updated'
 });
 

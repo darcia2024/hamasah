@@ -1559,3 +1559,70 @@ html.has-portal-session body:has(:is(#monitoring-guard, #operations-guard, #lms-
 .accounts-form .form-status:empty {
   display: none;
 }
+
+/* Halaman Keuangan: pilihan satu santri atau tagihan massal, dan pratinjau tagihan massal. */
+.invoice-mode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.invoice-mode label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--crm-border);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--crm-text-primary);
+  cursor: pointer;
+}
+
+.invoice-mode label:has(input:checked) {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary-container);
+}
+
+.invoice-mode input {
+  accent-color: var(--md-sys-color-primary);
+}
+
+.bulk-preview {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--md-sys-color-primary);
+  border-radius: 14px;
+  background: var(--md-sys-color-surface-container-low);
+}
+
+.bulk-preview[hidden] { display: none; }
+
+.bulk-preview__summary {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--crm-text-primary);
+}
+
+.bulk-preview summary {
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--crm-text-secondary);
+}
+
+.bulk-preview__list {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  max-height: 220px;
+  overflow-y: auto;
+  font-size: 13px;
+  color: var(--crm-text-secondary);
+}
+
+.bulk-preview .button {
+  justify-self: start;
+}

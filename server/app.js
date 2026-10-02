@@ -251,6 +251,7 @@ function createHamasahApp(options) {
   const operationsService = config.operationsService || createOperationsService({
     store: operationsStore,
     async studentExists(studentId) { return Boolean(await studentStore.getStudent(studentId)); },
+    listStudents: () => studentStore.listStudents(),
     // Wali: sama dengan hak melihat dashboard santri (hanya santri yang terhubung).
     async parentCanViewStudent(studentId, actor) {
       if (!actor || actor.role !== identity.ROLES.PARENT) return false;
