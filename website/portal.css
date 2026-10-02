@@ -6164,3 +6164,239 @@ table,
   justify-content: space-between;
   gap: 8px 12px;
 }
+
+/* --------------------------------------------------------------------------
+   Dashboard santri: Hari ini, roadmap studi, santri teladan (perjalanan-santri.js)
+   -------------------------------------------------------------------------- */
+.santri-journey {
+  display: grid;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.santri-journey[hidden] { display: none; }
+
+.santri-card__head {
+  margin-bottom: 14px;
+}
+
+.santri-card__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+.santri-card__note {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--md-sys-color-outline);
+}
+
+/* Hari ini */
+.santri-today__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 24px;
+}
+
+.santri-today__label {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-outline);
+}
+
+.santri-today__col > .santri-today__label:not(:first-child) {
+  margin-top: 16px;
+}
+
+.santri-today__empty,
+.santri-today__meta,
+.santri-today__date {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.santri-today__date {
+  margin-bottom: 6px;
+}
+
+.santri-today__strong {
+  margin: 0 0 2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+.santri-task-list,
+.santri-prayer-list,
+.santri-honors__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.santri-task {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 12px;
+}
+
+.santri-task.is-perlu {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary-container);
+}
+
+.santri-task__link {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  text-decoration: none;
+}
+
+.santri-task__link:hover,
+.santri-task__link:focus-visible {
+  text-decoration: underline;
+}
+
+.santri-task__meta {
+  font-size: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.santri-prayer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--md-sys-color-surface-container-low);
+  font-size: 13px;
+}
+
+.santri-prayer__status {
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.santri-prayer.is-berjamaah .santri-prayer__status {
+  color: var(--md-sys-color-tertiary);
+}
+
+.santri-prayer.is-tidak .santri-prayer__status {
+  color: var(--md-sys-color-error);
+}
+
+/* Roadmap */
+.santri-roadmap__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.santri-roadmap__step {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  padding: 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 14px;
+}
+
+.santri-roadmap__dot {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.santri-roadmap__title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--md-sys-color-on-surface);
+}
+
+.santri-roadmap__state {
+  font-size: 12px;
+  color: var(--md-sys-color-outline);
+}
+
+.santri-roadmap__step.is-done .santri-roadmap__dot {
+  background: var(--md-sys-color-tertiary);
+  color: var(--md-sys-color-on-tertiary);
+}
+
+.santri-roadmap__step.is-current {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary-container);
+}
+
+.santri-roadmap__step.is-current .santri-roadmap__dot {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+/* Santri teladan */
+.santri-honors__item {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary-container);
+}
+
+.santri-honors__badge {
+  justify-self: start;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.santri-honors__name {
+  margin-top: 4px;
+  font-size: 15px;
+  color: var(--md-sys-color-on-surface);
+}
+
+.santri-honors__program {
+  font-size: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.santri-honors__reason {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--md-sys-color-on-primary-container);
+}
+
+@media (max-width: 860px) {
+  .santri-today__grid { grid-template-columns: 1fr; }
+  .santri-roadmap__list { grid-template-columns: 1fr; }
+  .santri-roadmap__step { grid-template-columns: auto 1fr; align-items: center; column-gap: 10px; }
+  .santri-roadmap__state { grid-column: 2; }
+}

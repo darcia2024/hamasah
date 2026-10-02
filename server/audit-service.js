@@ -76,6 +76,9 @@ const ACTIONS = Object.freeze({
   ,COURSE_UPDATED: 'course.updated'
   ,SETTINGS_UPDATED: 'settings.updated'
   ,INVOICE_BULK_CREATED: 'invoice.bulk-created'
+  ,STUDENT_PHASE_UPDATED: 'student.phase-updated'
+  ,HONOR_ADDED: 'honor.added'
+  ,HONOR_REMOVED: 'honor.removed'
   ,DATABASE_UPDATED: 'database.updated'
 });
 

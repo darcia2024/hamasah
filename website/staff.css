@@ -1626,3 +1626,63 @@ html.has-portal-session body:has(:is(#monitoring-guard, #operations-guard, #lms-
 .bulk-preview .button {
   justify-self: start;
 }
+
+/* Monitoring: tab Santri teladan (admin). */
+.honors-month {
+  display: grid;
+  gap: 6px;
+  max-width: 220px;
+  margin-bottom: 8px;
+}
+
+.honors-month label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--crm-text-primary);
+}
+
+.honors-subtitle {
+  margin: 18px 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--crm-text-primary);
+}
+
+.honors-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.honors-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--crm-border);
+  border-radius: 12px;
+}
+
+.honors-item > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.honors-item strong {
+  font-size: 14px;
+  color: var(--crm-text-primary);
+}
+
+.honors-item span {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--crm-text-secondary);
+}
+
+@media (max-width: 640px) {
+  .honors-item { flex-direction: column; align-items: flex-start; }
+}

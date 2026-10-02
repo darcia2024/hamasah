@@ -36,6 +36,8 @@ const assignmentAccount = document.querySelector('#assignment-account');
 const assignmentDormitory = document.querySelector('#assignment-dormitory');
 const assignmentList = document.querySelector('#assignment-list');
 const editStudentButton = document.querySelector('#edit-student');
+const editPhaseButton = document.querySelector('#edit-phase');
+let roadmapTerpilih = null;
 const dormitoryList = document.querySelector('#dormitory-list');
 const dormitoryListStatus = document.querySelector('#dormitory-list-status');
 // Data santri yang sedang dibuka, untuk mengisi formulir ubah data.
@@ -257,6 +259,7 @@ async function loadDashboard() {
     recordTrailSection.hidden = true;
     downloadReport.hidden = true;
     editStudentButton.hidden = true;
+    editPhaseButton.hidden = true;
     santriTerpilih = null;
     placementSection.hidden = true;
     if (monitoringEmptyState) monitoringEmptyState.hidden = false;
@@ -270,6 +273,7 @@ async function loadDashboard() {
   santriTerpilih = result.dashboard.student;
   // Mengubah data inti santri hanya untuk admin; musyrif tetap mencatat kegiatan saja.
   editStudentButton.hidden = currentRole !== 'admin';
+  await muatRoadmapTerpilih(studentId);
   await loadCare(studentId);
   placementSection.hidden = false;
   placementGender.value = result.dashboard.student.gender || '';
@@ -450,6 +454,50 @@ async function ubahSantri() {
 
 editStudentButton.addEventListener('click', () => ubahSantri().catch(() => {}));
 
+// Fase roadmap studi santri terpilih (admin). Tombolnya hanya ada bila program santri
+// punya roadmap; lihat server/student-journey-service.js.
+async function muatRoadmapTerpilih(studentId) {
+  roadmapTerpilih = null;
+  editPhaseButton.hidden = true;
+  if (currentRole !== 'admin') return;
+  try {
+    const hasil = await kirimJson(`/api/students/${encodeURIComponent(studentId)}/roadmap`, 'GET');
+    roadmapTerpilih = hasil.roadmap;
+  } catch {
+    roadmapTerpilih = null;
+  }
+  tampilkanTombolFase();
+}
+
+function tampilkanTombolFase() {
+  editPhaseButton.hidden = !roadmapTerpilih;
+  if (roadmapTerpilih) {
+    editPhaseButton.querySelector('span').textContent = roadmapTerpilih.current ? `Fase studi: ${roadmapTerpilih.current}/${roadmapTerpilih.phases.length}` : 'Fase studi';
+  }
+}
+
+async function ubahFaseStudi() {
+  if (!santriTerpilih || !roadmapTerpilih) return;
+  const s = santriTerpilih;
+  const hasil = await window.HamasahDialog.formulir({
+    judul: `Fase studi ${s.name}`,
+    keterangan: `Roadmap ${roadmapTerpilih.program}. Santri dan walinya melihat fase ini di dashboard mereka.`,
+    bidang: [{
+      nama: 'phase', label: 'Fase saat ini', jenis: 'select', nilai: roadmapTerpilih.current || '',
+      pilihan: [['', 'Belum diisi'], ...roadmapTerpilih.phases.map((fase) => [String(fase.number), `${fase.number}. ${fase.title}`])]
+    }],
+    labelSimpan: 'Simpan fase',
+    kirim: (nilai) => kirimJson(`/api/students/${encodeURIComponent(s.id)}/roadmap`, 'PUT', { phase: nilai.phase ? Number(nilai.phase) : null })
+  });
+  if (!hasil) return;
+  // Dari jawaban PUT langsung, bukan GET ulang: GET bisa dijawab dari data yang diingat
+  // internal-shell.js sebelum versi barunya sampai.
+  roadmapTerpilih = { ...roadmapTerpilih, current: hasil.phase };
+  tampilkanTombolFase();
+}
+
+editPhaseButton.addEventListener('click', () => ubahFaseStudi().catch(() => {}));
+
 async function loadAssignableAccounts() {
   if (currentRole !== 'admin') return;
   const response = await fetch('/api/accounts', { headers: headers() });
@@ -594,7 +642,8 @@ const tabBtns = [
   { btn: document.querySelector('#tab-btn-add-student'), panel: document.querySelector('#panel-add-student') },
   { btn: document.querySelector('#tab-btn-placement'), panel: document.querySelector('#panel-placement') },
   { btn: document.querySelector('#tab-btn-dorm-mgmt'), panel: document.querySelector('#panel-dorm-mgmt') },
-  { btn: document.querySelector('#tab-btn-link-account'), panel: document.querySelector('#panel-link-account') }
+  { btn: document.querySelector('#tab-btn-link-account'), panel: document.querySelector('#panel-link-account') },
+  { btn: document.querySelector('#tab-btn-honors'), panel: document.querySelector('#panel-honors'), onOpen: () => muatTeladan() }
 ];
 
 function switchTab(clickedBtn) {
@@ -605,11 +654,109 @@ function switchTab(clickedBtn) {
       panel.hidden = !active;
     }
   });
+  const terpilih = tabBtns.find(({ btn }) => btn === clickedBtn);
+  if (terpilih && terpilih.onOpen) terpilih.onOpen();
 }
 
 tabBtns.forEach(({ btn }) => {
   if (btn) btn.addEventListener('click', () => switchTab(btn));
 });
+
+// Santri teladan bulanan (admin). GET/POST /api/admin/honors, DELETE /api/admin/honors/:id.
+const honorsMonth = document.querySelector('#honors-month');
+const honorsStatus = document.querySelector('#honors-status');
+const honorsSelected = document.querySelector('#honors-selected');
+const honorsCandidates = document.querySelector('#honors-candidates');
+
+function bulanIni() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit' }).format(new Date()).slice(0, 7);
+}
+
+function teksPersen(nilai, jumlah, satuan) {
+  return nilai === null ? `belum ada ${satuan}` : `${nilai}% dari ${jumlah} ${satuan}`;
+}
+
+function barisTeladan(judul, rincian, tombol) {
+  const item = document.createElement('li');
+  item.className = 'honors-item';
+  const teks = document.createElement('div');
+  const nama = document.createElement('strong');
+  nama.textContent = judul;
+  teks.append(nama);
+  if (rincian) {
+    const isi = document.createElement('span');
+    isi.textContent = rincian;
+    teks.append(isi);
+  }
+  item.append(teks);
+  if (tombol) item.append(tombol);
+  return item;
+}
+
+function tombolKecil(teks, onClick) {
+  const tombol = document.createElement('button');
+  tombol.type = 'button';
+  tombol.className = 'button button--secondary control--h40';
+  tombol.textContent = teks;
+  tombol.addEventListener('click', () => onClick(tombol));
+  return tombol;
+}
+
+function statusTeladan(teks, galat = false) {
+  honorsStatus.textContent = teks;
+  honorsStatus.classList.toggle('is-error', galat);
+}
+
+async function muatTeladan() {
+  if (currentRole !== 'admin') return;
+  if (!honorsMonth.value) honorsMonth.value = bulanIni();
+  statusTeladan('Memuat...');
+  try {
+    const data = await kirimJson(`/api/admin/honors?month=${encodeURIComponent(honorsMonth.value)}`, 'GET');
+    statusTeladan(data.tersedia ? '' : 'Database belum diperbarui untuk santri teladan. Terapkan pembaruan database di halaman Pengaturan.', !data.tersedia);
+    const sudah = new Set(data.items.map((item) => item.studentId));
+    honorsSelected.replaceChildren(...(data.items.length
+      ? data.items.map((item) => barisTeladan(`${item.name} · ${item.title}`, item.reason, tombolKecil('Hapus', (tombol) => hapusTeladan(item, tombol))))
+      : [barisTeladan('Belum ada santri teladan bulan ini.', '', null)]));
+    honorsCandidates.replaceChildren(...(data.candidates.length
+      ? data.candidates.map((item) => barisTeladan(
+        `${item.name} · ${item.program}`,
+        `Sholat berjamaah ${teksPersen(item.berjamaahRate, item.prayers, 'waktu sholat')} · Hadir ${teksPersen(item.attendanceRate, item.activities, 'kegiatan')} · ${item.ziyadah} setoran hafalan baru`,
+        sudah.has(item.studentId) || !data.tersedia ? null : tombolKecil('Pilih', () => pilihTeladan(item))
+      ))
+      : [barisTeladan('Belum ada catatan ibadah, kegiatan, atau hafalan di bulan ini.', '', null)]));
+  } catch (error) {
+    statusTeladan(error.message || 'Santri teladan belum dapat dimuat.', true);
+  }
+}
+
+async function pilihTeladan(kandidat) {
+  const hasil = await window.HamasahDialog.formulir({
+    judul: `Pilih ${kandidat.name} sebagai santri teladan`,
+    keterangan: 'Gelar dan alasan ini dibaca santri dan wali. Tulis dengan bahasa yang memotivasi.',
+    bidang: [
+      { nama: 'title', label: 'Gelar penghargaan', nilai: 'Santri teladan', wajib: true, petunjuk: 'Contoh: Santri teladan sholat berjamaah. 3 sampai 80 karakter.' },
+      { nama: 'reason', label: 'Alasan', jenis: 'textarea', wajib: true, petunjuk: '10 sampai 300 karakter.' }
+    ],
+    labelSimpan: 'Pilih',
+    kirim: (nilai) => kirimJson('/api/admin/honors', 'POST', { month: honorsMonth.value, studentId: kandidat.studentId, title: nilai.title, reason: nilai.reason })
+  });
+  if (hasil) await muatTeladan();
+}
+
+async function hapusTeladan(item, tombol) {
+  if (!window.confirm(`Hapus ${item.name} dari santri teladan bulan ini?`)) return;
+  tombol.disabled = true;
+  try {
+    await kirimJson(`/api/admin/honors/${encodeURIComponent(item.id)}`, 'DELETE');
+    await muatTeladan();
+  } catch (error) {
+    statusTeladan(error.message || 'Belum dapat dihapus.', true);
+    tombol.disabled = false;
+  }
+}
+
+honorsMonth.addEventListener('change', () => muatTeladan());
 
 const logoutButton = document.querySelector('#logout-button');
 if (logoutButton) {

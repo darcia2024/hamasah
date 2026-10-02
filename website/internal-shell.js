@@ -404,12 +404,21 @@
       dialog.append(form);
       document.body.append(dialog);
 
+      // Selesai tepat satu kali: lewat tombol Batal, Escape (event close), atau setelah
+      // simpan berhasil. Event close dikirim Chrome bersama gambar layar berikutnya, jadi
+      // di tab yang sedang tidak tampil event itu tertunda; setelah simpan, halaman tidak
+      // boleh menunggu tab kembali tampil untuk memperbarui dirinya.
       let hasil = null;
-      batal.addEventListener('click', () => dialog.close());
-      dialog.addEventListener('close', () => {
+      let selesai = false;
+      function tutup() {
+        if (selesai) return;
+        selesai = true;
+        if (dialog.open) dialog.close();
         dialog.remove();
         resolve(hasil);
-      });
+      }
+      batal.addEventListener('click', tutup);
+      dialog.addEventListener('close', tutup);
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
         const nilai = Object.fromEntries(Object.entries(kontrol).map(([nama, input]) => [nama, input.value.trim()]));
@@ -425,7 +434,7 @@
         try {
           const jawaban = await kirim(nilai);
           hasil = jawaban === undefined ? true : jawaban;
-          dialog.close();
+          tutup();
         } catch (error) {
           pesan.textContent = error.message || 'Perubahan belum dapat disimpan.';
           simpan.disabled = false;
@@ -471,14 +480,20 @@
       }
       const selesai = el('button', 'button button--primary', 'Selesai');
       selesai.type = 'button';
-      selesai.addEventListener('click', () => dialog.close());
+      // Sama seperti formulir: tombol Selesai tidak menunggu event close.
+      let sudahTutup = false;
+      function tutup() {
+        if (sudahTutup) return;
+        sudahTutup = true;
+        if (dialog.open) dialog.close();
+        dialog.remove();
+        resolve();
+      }
+      selesai.addEventListener('click', tutup);
       aksi.append(selesai);
       badan.append(status, aksi);
       dialog.append(badan);
-      dialog.addEventListener('close', () => {
-        dialog.remove();
-        resolve();
-      });
+      dialog.addEventListener('close', tutup);
       document.body.append(dialog);
       dialog.showModal();
       selesai.focus();

@@ -177,6 +177,13 @@ async function run() {
       { permission: 'courses.manage', method: 'PATCH', path: () => `/api/courses/${courseId}`, body: () => ({ title: 'Nahwu Matriks' }) },
       { permission: 'students.read', method: 'GET', path: '/api/my-students' },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/dashboard` },
+      { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/roadmap` },
+      { permission: 'students.read', method: 'GET', path: '/api/honors' },
+      // Fase di luar rentang dan teladan tanpa data lengkap: admin mendapat 422, tidak mengubah apa pun.
+      { permission: 'honors.manage', method: 'PUT', path: () => `/api/students/${studentId}/roadmap`, body: () => ({ phase: 99 }) },
+      { permission: 'honors.manage', method: 'GET', path: '/api/admin/honors?month=2026-10' },
+      { permission: 'honors.manage', method: 'POST', path: '/api/admin/honors', body: () => ({ month: '2026-10' }) },
+      { permission: 'honors.manage', method: 'DELETE', path: '/api/admin/honors/00000000-0000-4000-8000-000000000000' },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/report` },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/report.pdf` },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/course-progress` },

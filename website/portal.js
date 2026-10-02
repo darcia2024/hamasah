@@ -753,9 +753,18 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
   buildTabs(tabDefs, panels, subtabsRow);
   panelsContainer.append(...panels);
 
-  studentDashboard.append(summaryCard, subtabsRow, toolbar, panelsContainer);
+  // Hari ini, roadmap studi, dan santri teladan (perjalanan-santri.js). Diisi setelah
+  // dashboard tampil; kartu yang datanya kosong tidak muncul.
+  const perjalanan = document.createElement('div');
+  perjalanan.className = 'santri-journey';
+  perjalanan.hidden = true;
+
+  studentDashboard.append(summaryCard, perjalanan, subtabsRow, toolbar, panelsContainer);
   studentDashboard.classList.add('crm-view-enter');
   studentDashboard.hidden = false;
+  if (window.HamasahPerjalanan) {
+    window.HamasahPerjalanan.isi(perjalanan, { studentId: student.id, role: account && account.role, care, headers: requestHeaders() }).catch(() => {});
+  }
 }
 
 // Daftar santri dimuat per halaman (Task R6.2). Yang ditampilkan selalu isi `items`;

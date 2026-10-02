@@ -44,6 +44,7 @@ const { createEventNotifier } = require('./event-notifications.js');
 const { createDepartureService } = require('./departure-service.js');
 const { createStudentCareService } = require('./student-care-service.js');
 const { createAdminOverviewService } = require('./admin-overview-service.js');
+const { createStudentJourneyService } = require('./student-journey-service.js');
 const { createDemoDataService } = require('./demo-data-service.js');
 const { createSettingsService } = require('./settings-service.js');
 const { createDatabaseUpdateService } = require('./database-update-service.js');
@@ -68,6 +69,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/admin-overview.js'),
   ...require('./routes/admin-demo.js'),
   ...require('./routes/settings.js'),
+  ...require('./routes/journey.js'),
   ...require('./routes/files.js'),
   ...require('./routes/operations.js'),
   ...require('./routes/dormitories.js'),
@@ -218,6 +220,12 @@ function createHamasahApp(options) {
     getDormitory: (dormitoryId) => dormitoryStore.getDormitory(dormitoryId),
     countInDormitory: (dormitoryId) => studentStore.countInDormitory(dormitoryId)
   });
+  // Roadmap studi dan santri teladan bulanan (migrasi 044).
+  const studentJourneyService = config.studentJourneyService || createStudentJourneyService({
+    database,
+    accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor),
+    getStudent: (studentId) => studentStore.getStudent(studentId)
+  });
   const aiService = config.aiService || createAiService({
     provider: config.aiProvider || null,
     maxRequests: () => settingsService.ambil('asisten.batasPerJam'),
@@ -322,6 +330,7 @@ function createHamasahApp(options) {
     adminOverviewService,
     demoDataService,
     settingsService,
+    studentJourneyService,
     databaseUpdateService,
     accountStore,
     departureService,

@@ -9,8 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
-    <link rel="stylesheet" href="staff.css?v=3678ad94da" />
-    <link rel="stylesheet" href="portal.css?v=87969bd243" />
+    <link rel="stylesheet" href="staff.css?v=e03eba7436" />
+    <link rel="stylesheet" href="portal.css?v=c37faa326f" />
     <link rel="stylesheet" href="fields.css?v=40377b19dc" />
     <script src="session-hint.js?v=b0562827f3"></script>
     <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
@@ -138,6 +138,10 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
               <span>Hubungkan akun wali</span>
             </button>
+            <button type="button" class="crm-pill-btn admin-only-tab" id="tab-btn-honors" hidden>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+              <span>Santri teladan</span>
+            </button>
           </div>
 
           <!-- Tab Panel 1: Monitoring Rekam Jejak -->
@@ -159,6 +163,11 @@
                 <button id="edit-student" class="button button--secondary monitoring-download control--h40" type="button" hidden>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                   <span>Ubah data santri</span>
+                </button>
+                <!-- Hanya admin, dan hanya bila program santri punya roadmap studi (monitoring.js). -->
+                <button id="edit-phase" class="button button--secondary monitoring-download control--h40" type="button" hidden>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+                  <span>Fase studi</span>
                 </button>
               </div>
             </div>
@@ -540,14 +549,37 @@
             </section>
           </div>
 
+          <!-- Tab Panel 6: Santri teladan bulanan (Admin Only). Dilihat santri dan wali di
+               dashboard mereka, tidak di halaman publik. Lihat monitoring.js. -->
+          <div id="panel-honors" class="crm-card-stack" hidden>
+            <div class="crm-white-card">
+              <div class="crm-white-card-header">
+                <div>
+                  <h3>Santri teladan bulanan</h3>
+                  <p>Pilih santri teladan dari kandidat berdasarkan catatan bulan itu. Nama, program, gelar, dan alasannya tampil di dashboard santri dan wali, tanpa foto.</p>
+                </div>
+              </div>
+              <div class="honors-month">
+                <label for="honors-month">Bulan</label>
+                <input id="honors-month" type="month" />
+              </div>
+              <p id="honors-status" class="form-status" role="status" aria-live="polite"></p>
+              <h4 class="honors-subtitle">Terpilih</h4>
+              <ul id="honors-selected" class="honors-list"></ul>
+              <h4 class="honors-subtitle">Kandidat dari catatan bulan ini</h4>
+              <p class="monitoring-hint">Diurutkan menurut sholat berjamaah, lalu kehadiran kegiatan, lalu setoran hafalan baru. Hanya bahan pertimbangan; pilihan tetap di tangan pengurus.</p>
+              <ul id="honors-candidates" class="honors-list"></ul>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
 
-    <script src="internal-shell.js?v=7219343ccd"></script>
+    <script src="internal-shell.js?v=af5d3d7d4c"></script>
     <script src="nav.js?v=803e5ce2eb"></script>
     <script src="student-picker.js?v=e59fd6a323"></script>
-    <script src="monitoring.js?v=7709f7400d"></script>
+    <script src="monitoring.js?v=d7d4f5ab19"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>

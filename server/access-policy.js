@@ -31,6 +31,8 @@ const PERMISSIONS = Object.freeze({
   'demo.manage': Object.freeze([ROLES.ADMIN]),
   // Halaman Pengaturan: saklar fitur dan pembaruan database.
   'settings.manage': Object.freeze([ROLES.ADMIN]),
+  // Memilih santri teladan bulanan dan mengatur fase roadmap studi.
+  'honors.manage': Object.freeze([ROLES.ADMIN]),
 
   'registrations.read': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
   'registrations.update-status': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
