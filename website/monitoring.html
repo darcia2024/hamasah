@@ -9,8 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
-    <link rel="stylesheet" href="staff.css?v=e03eba7436" />
-    <link rel="stylesheet" href="portal.css?v=c37faa326f" />
+    <link rel="stylesheet" href="staff.css?v=60f9680e98" />
+    <link rel="stylesheet" href="portal.css?v=181ed88159" />
     <link rel="stylesheet" href="fields.css?v=40377b19dc" />
     <script src="session-hint.js?v=b0562827f3"></script>
     <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
@@ -137,6 +137,15 @@
             <button type="button" class="crm-pill-btn admin-only-tab" id="tab-btn-link-account" hidden>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
               <span>Hubungkan akun wali</span>
+            </button>
+            <button type="button" class="crm-pill-btn" id="tab-btn-leave">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></svg>
+              <span>Izin santri</span>
+              <span class="crm-pill-count" id="leave-pending-count" hidden></span>
+            </button>
+            <button type="button" class="crm-pill-btn" id="tab-btn-announcements">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
+              <span>Pengumuman</span>
             </button>
             <button type="button" class="crm-pill-btn admin-only-tab" id="tab-btn-honors" hidden>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
@@ -338,6 +347,9 @@
                 <p id="health-form-status" class="form-status" role="status" aria-live="polite"></p>
               </form>
             </section>
+
+            <!-- Peta hafalan 30 juz, bisa diubah musyrif dan admin (perjalanan-santri.js). -->
+            <div id="juz-editor" hidden></div>
 
             <section id="record-trail-section" class="crm-white-card" hidden>
               <div class="crm-white-card-header">
@@ -549,6 +561,78 @@
             </section>
           </div>
 
+          <!-- Tab Panel: Izin santri. Musyrif melihat asrama yang dipegang, admin semua. -->
+          <div id="panel-leave" class="crm-card-stack" hidden>
+            <div class="crm-white-card">
+              <div class="crm-white-card-header">
+                <div>
+                  <h3>Pengajuan izin santri</h3>
+                  <p>Setujui atau tolak izin dari santri. Izin yang disetujui tercatat otomatis sebagai kehadiran berstatus izin; santri dan walinya melihat keputusan beserta catatannya.</p>
+                </div>
+              </div>
+              <div class="honors-month">
+                <label for="leave-status-filter">Tampilkan</label>
+                <select id="leave-status-filter" class="monitoring-select">
+                  <option value="menunggu">Menunggu keputusan</option>
+                  <option value="disetujui">Disetujui</option>
+                  <option value="ditolak">Ditolak</option>
+                  <option value="semua">Semua</option>
+                </select>
+              </div>
+              <p id="leave-status" class="form-status" role="status" aria-live="polite"></p>
+              <ul id="leave-list" class="honors-list"></ul>
+            </div>
+          </div>
+
+          <!-- Tab Panel: Pengumuman ke santri dan wali. Musyrif hanya untuk asrama yang dipegang. -->
+          <div id="panel-announcements" class="crm-card-stack" hidden>
+            <div class="crm-white-card">
+              <div class="crm-white-card-header">
+                <div>
+                  <h3>Tulis pengumuman</h3>
+                  <p>Tampil di dashboard santri dan/atau wali sampai tanggal berakhir (bila diisi).</p>
+                </div>
+              </div>
+              <form method="post" id="announcement-form" class="staff-form record-form" novalidate>
+                <div>
+                  <label for="announcement-title">Judul</label>
+                  <input id="announcement-title" type="text" maxlength="120" required />
+                </div>
+                <div>
+                  <label for="announcement-body">Isi</label>
+                  <textarea id="announcement-body" rows="4" maxlength="2000" required></textarea>
+                </div>
+                <div>
+                  <label for="announcement-audience">Untuk</label>
+                  <select id="announcement-audience" class="monitoring-select">
+                    <option value="semua">Santri dan wali</option>
+                    <option value="santri">Santri saja</option>
+                    <option value="wali">Wali saja</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="announcement-dormitory">Asrama</label>
+                  <select id="announcement-dormitory" class="monitoring-select"></select>
+                </div>
+                <div>
+                  <label for="announcement-expires">Berakhir (opsional)</label>
+                  <input id="announcement-expires" type="date" />
+                </div>
+                <button class="button button--primary" type="submit">Terbitkan pengumuman</button>
+                <p id="announcement-status" class="form-status" role="status" aria-live="polite"></p>
+              </form>
+            </div>
+            <div class="crm-white-card">
+              <div class="crm-white-card-header">
+                <div>
+                  <h3>Pengumuman yang masih berlaku</h3>
+                  <p>Musyrif hanya dapat menghapus pengumuman untuk asrama yang dipegangnya.</p>
+                </div>
+              </div>
+              <ul id="announcement-list" class="honors-list"></ul>
+            </div>
+          </div>
+
           <!-- Tab Panel 6: Santri teladan bulanan (Admin Only). Dilihat santri dan wali di
                dashboard mereka, tidak di halaman publik. Lihat monitoring.js. -->
           <div id="panel-honors" class="crm-card-stack" hidden>
@@ -579,7 +663,8 @@
     <script src="internal-shell.js?v=af5d3d7d4c"></script>
     <script src="nav.js?v=803e5ce2eb"></script>
     <script src="student-picker.js?v=e59fd6a323"></script>
-    <script src="monitoring.js?v=d7d4f5ab19"></script>
+    <script src="perjalanan-santri.js?v=6f75b15209"></script>
+    <script src="monitoring.js?v=28ee587e41"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>

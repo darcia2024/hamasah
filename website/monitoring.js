@@ -260,6 +260,7 @@ async function loadDashboard() {
     downloadReport.hidden = true;
     editStudentButton.hidden = true;
     editPhaseButton.hidden = true;
+    juzEditor.hidden = true;
     santriTerpilih = null;
     placementSection.hidden = true;
     if (monitoringEmptyState) monitoringEmptyState.hidden = false;
@@ -274,6 +275,7 @@ async function loadDashboard() {
   // Mengubah data inti santri hanya untuk admin; musyrif tetap mencatat kegiatan saja.
   editStudentButton.hidden = currentRole !== 'admin';
   await muatRoadmapTerpilih(studentId);
+  await muatPetaJuz(studentId);
   await loadCare(studentId);
   placementSection.hidden = false;
   placementGender.value = result.dashboard.student.gender || '';
@@ -643,6 +645,8 @@ const tabBtns = [
   { btn: document.querySelector('#tab-btn-placement'), panel: document.querySelector('#panel-placement') },
   { btn: document.querySelector('#tab-btn-dorm-mgmt'), panel: document.querySelector('#panel-dorm-mgmt') },
   { btn: document.querySelector('#tab-btn-link-account'), panel: document.querySelector('#panel-link-account') },
+  { btn: document.querySelector('#tab-btn-leave'), panel: document.querySelector('#panel-leave'), onOpen: () => muatIzin() },
+  { btn: document.querySelector('#tab-btn-announcements'), panel: document.querySelector('#panel-announcements'), onOpen: () => muatPengumuman() },
   { btn: document.querySelector('#tab-btn-honors'), panel: document.querySelector('#panel-honors'), onOpen: () => muatTeladan() }
 ];
 
@@ -660,6 +664,161 @@ function switchTab(clickedBtn) {
 
 tabBtns.forEach(({ btn }) => {
   if (btn) btn.addEventListener('click', () => switchTab(btn));
+});
+
+// Peta hafalan 30 juz santri terpilih. Musyrif dan admin mengklik kotak juz untuk
+// mengganti statusnya; kartu dan logikanya ada di perjalanan-santri.js.
+const juzEditor = document.querySelector('#juz-editor');
+
+async function muatPetaJuz(studentId) {
+  juzEditor.hidden = true;
+  if (!window.HamasahPerjalanan) return;
+  try {
+    const data = await kirimJson(`/api/students/${encodeURIComponent(studentId)}/juz?t=${Date.now()}`, 'GET');
+    const galat = document.createElement('p');
+    galat.className = 'form-status is-error';
+    galat.setAttribute('role', 'status');
+    const kartu = window.HamasahPerjalanan.kartuJuz(data, {
+      studentId, headers: headers(), editable: true,
+      onError: (pesan) => { galat.textContent = pesan; }
+    });
+    if (!kartu) return;
+    kartu.append(galat);
+    juzEditor.replaceChildren(kartu);
+    juzEditor.hidden = false;
+  } catch {
+    juzEditor.hidden = true;
+  }
+}
+
+// Pengajuan izin santri (admin dan musyrif). GET /api/leave, PATCH /api/leave/:id.
+const leaveList = document.querySelector('#leave-list');
+const leaveStatus = document.querySelector('#leave-status');
+const leaveFilter = document.querySelector('#leave-status-filter');
+const leaveCount = document.querySelector('#leave-pending-count');
+const WAKTU_IZIN = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+const STATUS_IZIN = { menunggu: 'Menunggu keputusan', disetujui: 'Disetujui', ditolak: 'Ditolak', dibatalkan: 'Dibatalkan' };
+
+function statusPanel(node, teks, galat = false) {
+  node.textContent = teks;
+  node.classList.toggle('is-error', galat);
+}
+
+async function hitungIzinMenunggu() {
+  try {
+    const data = await kirimJson(`/api/leave?status=menunggu&t=${Date.now()}`, 'GET');
+    leaveCount.textContent = String(data.items.length);
+    leaveCount.hidden = !data.items.length;
+  } catch {
+    leaveCount.hidden = true;
+  }
+}
+
+async function muatIzin() {
+  statusPanel(leaveStatus, 'Memuat...');
+  try {
+    const data = await kirimJson(`/api/leave?status=${encodeURIComponent(leaveFilter.value)}&t=${Date.now()}`, 'GET');
+    statusPanel(leaveStatus, data.tersedia ? '' : 'Database belum diperbarui untuk izin. Terapkan pembaruan database di halaman Pengaturan.', !data.tersedia);
+    if (leaveFilter.value === 'menunggu') {
+      leaveCount.textContent = String(data.items.length);
+      leaveCount.hidden = !data.items.length;
+    }
+    leaveList.replaceChildren(...(data.items.length ? data.items.map((item) => {
+      const rincian = [
+        `${item.kindLabel} · ${WAKTU_IZIN.format(new Date(item.startsAt))} sampai ${WAKTU_IZIN.format(new Date(item.endsAt))}`,
+        item.reason,
+        item.status === 'menunggu' ? '' : `${STATUS_IZIN[item.status]}${item.decidedBy ? ` oleh ${item.decidedBy}` : ''}${item.decisionNote ? `: ${item.decisionNote}` : ''}`
+      ].filter(Boolean).join(' · ');
+      const aksi = document.createElement('div');
+      aksi.className = 'honors-item__actions';
+      if (item.status === 'menunggu') {
+        aksi.append(
+          tombolKecil('Setujui', () => putuskanIzin(item, 'disetujui')),
+          tombolKecil('Tolak', () => putuskanIzin(item, 'ditolak'))
+        );
+      }
+      return barisTeladan(`${item.studentName}${item.dormitoryName ? ` · ${item.dormitoryName}` : ''}`, rincian, aksi.childElementCount ? aksi : null);
+    }) : [barisTeladan(leaveFilter.value === 'menunggu' ? 'Tidak ada izin yang menunggu keputusan.' : 'Belum ada izin dengan status ini.', '', null)]));
+  } catch (error) {
+    statusPanel(leaveStatus, error.message || 'Daftar izin belum dapat dimuat.', true);
+  }
+}
+
+async function putuskanIzin(item, keputusan) {
+  const setuju = keputusan === 'disetujui';
+  const hasil = await window.HamasahDialog.formulir({
+    judul: `${setuju ? 'Setujui' : 'Tolak'} izin ${item.studentName}`,
+    keterangan: `${item.kindLabel}: ${item.reason}`,
+    bidang: [{
+      nama: 'note', label: setuju ? 'Catatan untuk santri (opsional)' : 'Alasan penolakan', jenis: 'textarea', wajib: !setuju,
+      petunjuk: setuju ? 'Contoh: kembali sebelum maghrib.' : 'Santri dan walinya membaca alasan ini.'
+    }],
+    labelSimpan: setuju ? 'Setujui' : 'Tolak',
+    kirim: (nilai) => kirimJson(`/api/leave/${encodeURIComponent(item.id)}`, 'PATCH', { decision: keputusan, note: nilai.note })
+  });
+  if (hasil) await muatIzin();
+}
+
+leaveFilter.addEventListener('change', () => muatIzin());
+
+// Pengumuman (admin dan musyrif). GET/POST /api/announcements, DELETE /api/announcements/:id.
+const announcementForm = document.querySelector('#announcement-form');
+const announcementStatus = document.querySelector('#announcement-status');
+const announcementList = document.querySelector('#announcement-list');
+const announcementDormitory = document.querySelector('#announcement-dormitory');
+const PENERIMA = { semua: 'Santri dan wali', santri: 'Santri', wali: 'Wali' };
+
+async function isiPilihanAsramaPengumuman() {
+  // Admin boleh ke semua asrama; musyrif hanya asrama yang dipegang (disaring server).
+  const data = await kirimJson('/api/announcements/asrama', 'GET').catch(() => ({ allowAll: false, dormitories: [] }));
+  const pilihan = data.allowAll ? [new Option('Semua asrama', '')] : [];
+  announcementDormitory.replaceChildren(...pilihan, ...data.dormitories.map((item) => new Option(item.name, item.id)));
+}
+
+async function muatPengumuman() {
+  if (!announcementDormitory.options.length) await isiPilihanAsramaPengumuman();
+  try {
+    const data = await kirimJson(`/api/announcements?limit=50&t=${Date.now()}`, 'GET');
+    if (!data.tersedia) statusPanel(announcementStatus, 'Database belum diperbarui untuk pengumuman. Terapkan pembaruan database di halaman Pengaturan.', true);
+    announcementList.replaceChildren(...(data.items.length ? data.items.map((item) => barisTeladan(
+      item.title,
+      `${PENERIMA[item.audience]} · ${item.dormitoryName || 'Semua asrama'}${item.expiresOn ? ` · sampai ${item.expiresOn}` : ''} · ${item.body}`,
+      item.canDelete ? tombolKecil('Hapus', (tombol) => hapusPengumuman(item, tombol)) : null
+    )) : [barisTeladan('Belum ada pengumuman yang berlaku.', '', null)]));
+  } catch (error) {
+    statusPanel(announcementStatus, error.message || 'Pengumuman belum dapat dimuat.', true);
+  }
+}
+
+async function hapusPengumuman(item, tombol) {
+  if (!window.confirm(`Hapus pengumuman "${item.title}"?`)) return;
+  tombol.disabled = true;
+  try {
+    await kirimJson(`/api/announcements/${encodeURIComponent(item.id)}`, 'DELETE');
+    await muatPengumuman();
+  } catch (error) {
+    statusPanel(announcementStatus, error.message, true);
+    tombol.disabled = false;
+  }
+}
+
+announcementForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  statusPanel(announcementStatus, '');
+  try {
+    await kirimJson('/api/announcements', 'POST', {
+      title: document.querySelector('#announcement-title').value,
+      body: document.querySelector('#announcement-body').value,
+      audience: document.querySelector('#announcement-audience').value,
+      dormitoryId: announcementDormitory.value || null,
+      expiresOn: document.querySelector('#announcement-expires').value || null
+    });
+    announcementForm.reset();
+    statusPanel(announcementStatus, 'Pengumuman diterbitkan.');
+    await muatPengumuman();
+  } catch (error) {
+    statusPanel(announcementStatus, error.message, true);
+  }
 });
 
 // Santri teladan bulanan (admin). GET/POST /api/admin/honors, DELETE /api/admin/honors/:id.
@@ -776,6 +935,7 @@ if (logoutButton) {
     currentRole = result.account.role; guard.hidden = true; consoleSection.hidden = false;
     document.body.classList.add('in-crm');
     renderStaffNav(staffNav, currentRole, 'monitoring', result.account);
+    hitungIzinMenunggu();
     if (currentRole === 'admin') {
       document.querySelectorAll('.admin-only-tab').forEach((tab) => { tab.hidden = false; });
       accountLinkSection.hidden = false;

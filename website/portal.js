@@ -682,9 +682,9 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
     panels.push(panelHealth);
   }
 
-  // Panel 7: Tagihan & Kuitansi. Hanya untuk wali (santri yang terhubung) dan admin; peran
+  // Panel 7: Tagihan & Kuitansi. Untuk wali (santri yang terhubung), santri itu sendiri, dan admin; peran
   // lain tidak punya akses ke data keuangan santri. Kuitansi hanya untuk tagihan lunas.
-  if (currentAccount && ['parent', 'admin'].includes(currentAccount.role)) {
+  if (currentAccount && ['parent', 'student', 'admin'].includes(currentAccount.role)) {
     const panelBilling = document.createElement('div');
     panelBilling.className = 'crm-white-card';
     panelBilling.hidden = true;

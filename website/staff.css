@@ -1686,3 +1686,10 @@ html.has-portal-session body:has(:is(#monitoring-guard, #operations-guard, #lms-
 @media (max-width: 640px) {
   .honors-item { flex-direction: column; align-items: flex-start; }
 }
+
+.honors-item__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: none;
+}

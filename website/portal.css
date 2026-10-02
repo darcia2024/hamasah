@@ -6400,3 +6400,203 @@ table,
   .santri-roadmap__step { grid-template-columns: auto 1fr; align-items: center; column-gap: 10px; }
   .santri-roadmap__state { grid-column: 2; }
 }
+
+/* Pengumuman, izin, dan peta hafalan juz (perjalanan-santri.js). */
+.santri-announce-list,
+.santri-leave-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.santri-announce {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--md-sys-color-primary);
+  border-radius: 0 12px 12px 0;
+  background: var(--md-sys-color-surface-container-low);
+}
+
+.santri-announce__title {
+  font-size: 15px;
+  color: var(--md-sys-color-on-surface);
+}
+
+.santri-announce__body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-line;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.santri-announce__meta,
+.santri-leave__meta {
+  font-size: 12px;
+  color: var(--md-sys-color-outline);
+}
+
+.santri-leave-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 14px;
+  align-items: end;
+  margin-bottom: 8px;
+}
+
+.santri-leave-form__field {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+.santri-leave-form__field:nth-of-type(4) {
+  grid-column: 1 / -1;
+}
+
+.santri-leave-form select,
+.santri-leave-form input,
+.santri-leave-form textarea {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  font-weight: 400;
+}
+
+.santri-leave-form .button {
+  justify-self: start;
+}
+
+.santri-leave {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 12px;
+}
+
+.santri-leave__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--md-sys-color-on-surface);
+}
+
+.santri-leave__status {
+  flex: none;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.santri-leave.is-menunggu .santri-leave__status {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.santri-leave.is-disetujui .santri-leave__status {
+  background: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
+}
+
+.santri-leave.is-ditolak .santri-leave__status {
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+}
+
+.santri-leave__reason,
+.santri-leave__note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.santri-leave__note {
+  font-style: italic;
+}
+
+.santri-leave__cancel {
+  justify-self: start;
+  margin-top: 4px;
+}
+
+.santri-juz__grid {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.santri-juz__cell {
+  display: grid;
+  place-items: center;
+  min-height: 38px;
+  padding: 0;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--md-sys-color-surface-container-lowest);
+  color: var(--md-sys-color-outline);
+}
+
+button.santri-juz__cell {
+  cursor: pointer;
+}
+
+button.santri-juz__cell:focus-visible {
+  outline: 2px solid var(--md-sys-color-on-primary);
+  outline-offset: 2px;
+}
+
+.santri-juz__cell.is-sedang {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.santri-juz__cell.is-hafal {
+  border-color: var(--md-sys-color-tertiary);
+  background: var(--md-sys-color-tertiary);
+  color: var(--md-sys-color-on-tertiary);
+}
+
+.santri-juz__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.santri-juz__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.santri-juz__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.santri-juz__swatch.is-sedang { background: var(--md-sys-color-primary-container); border-color: var(--md-sys-color-primary); }
+.santri-juz__swatch.is-hafal { background: var(--md-sys-color-tertiary); border-color: var(--md-sys-color-tertiary); }
+
+@media (max-width: 640px) {
+  .santri-leave-form { grid-template-columns: 1fr; }
+  .santri-juz__grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}

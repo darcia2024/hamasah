@@ -79,6 +79,12 @@ const ACTIONS = Object.freeze({
   ,STUDENT_PHASE_UPDATED: 'student.phase-updated'
   ,HONOR_ADDED: 'honor.added'
   ,HONOR_REMOVED: 'honor.removed'
+  ,STUDENT_JUZ_UPDATED: 'student.juz-updated'
+  ,ANNOUNCEMENT_CREATED: 'announcement.created'
+  ,ANNOUNCEMENT_DELETED: 'announcement.deleted'
+  ,LEAVE_REQUESTED: 'leave.requested'
+  ,LEAVE_DECIDED: 'leave.decided'
+  ,LEAVE_CANCELLED: 'leave.cancelled'
   ,DATABASE_UPDATED: 'database.updated'
 });
 

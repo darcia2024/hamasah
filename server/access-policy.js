@@ -33,6 +33,11 @@ const PERMISSIONS = Object.freeze({
   'settings.manage': Object.freeze([ROLES.ADMIN]),
   // Memilih santri teladan bulanan dan mengatur fase roadmap studi.
   'honors.manage': Object.freeze([ROLES.ADMIN]),
+  // Pengumuman ke santri dan wali: admin ke semua, musyrif ke asrama yang dipegang.
+  'announcements.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
+  // Pengajuan izin dibuat santri, diputuskan musyrif asramanya atau admin.
+  'leave.request': Object.freeze([ROLES.STUDENT]),
+  'leave.decide': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
 
   'registrations.read': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
   'registrations.update-status': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),

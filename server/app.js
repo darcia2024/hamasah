@@ -45,6 +45,7 @@ const { createDepartureService } = require('./departure-service.js');
 const { createStudentCareService } = require('./student-care-service.js');
 const { createAdminOverviewService } = require('./admin-overview-service.js');
 const { createStudentJourneyService } = require('./student-journey-service.js');
+const { createStudentLifeService } = require('./student-life-service.js');
 const { createDemoDataService } = require('./demo-data-service.js');
 const { createSettingsService } = require('./settings-service.js');
 const { createDatabaseUpdateService } = require('./database-update-service.js');
@@ -70,6 +71,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/admin-demo.js'),
   ...require('./routes/settings.js'),
   ...require('./routes/journey.js'),
+  ...require('./routes/student-life.js'),
   ...require('./routes/files.js'),
   ...require('./routes/operations.js'),
   ...require('./routes/dormitories.js'),
@@ -226,6 +228,14 @@ function createHamasahApp(options) {
     accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor),
     getStudent: (studentId) => studentStore.getStudent(studentId)
   });
+  // Peta hafalan juz, pengumuman, dan pengajuan izin (migrasi 045).
+  const studentLifeService = config.studentLifeService || createStudentLifeService({
+    database,
+    accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor),
+    getStudent: (studentId) => studentStore.getStudent(studentId),
+    staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId),
+    recordAttendance: (studentId, input, actor) => studentPortalService.addAttendance(studentId, input, actor)
+  });
   const aiService = config.aiService || createAiService({
     provider: config.aiProvider || null,
     maxRequests: () => settingsService.ambil('asisten.batasPerJam'),
@@ -260,10 +270,11 @@ function createHamasahApp(options) {
     store: operationsStore,
     async studentExists(studentId) { return Boolean(await studentStore.getStudent(studentId)); },
     listStudents: () => studentStore.listStudents(),
-    // Wali: sama dengan hak melihat dashboard santri (hanya santri yang terhubung).
-    async parentCanViewStudent(studentId, actor) {
-      if (!actor || actor.role !== identity.ROLES.PARENT) return false;
-      return (await studentPortalService.dashboard(studentId, actor)).ok;
+    // Wali dan santri: sama dengan hak melihat dashboard santri (wali hanya anak yang
+    // terhubung, santri hanya dirinya sendiri).
+    async familyCanViewStudent(studentId, actor) {
+      if (!actor || ![identity.ROLES.PARENT, identity.ROLES.STUDENT].includes(actor.role)) return false;
+      return (await studentPortalService.accessFor(studentId, actor)).view;
     }
   });
   const operationsImportService = config.operationsImportService || createOperationsImportService({
@@ -331,6 +342,7 @@ function createHamasahApp(options) {
     demoDataService,
     settingsService,
     studentJourneyService,
+    studentLifeService,
     databaseUpdateService,
     accountStore,
     departureService,

@@ -548,7 +548,7 @@ function rakitLayanan(database, jam) {
   const operationsService = createOperationsService({
     store: createPostgresOperationsStore({ database }),
     async studentExists(studentId) { return Boolean(await studentStore.getStudent(studentId)); },
-    async parentCanViewStudent() { return false; },
+    async familyCanViewStudent() { return false; },
     now
   });
   const lmsService = createLmsService({ store: createPostgresLmsStore({ database }), now });

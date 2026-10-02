@@ -142,7 +142,9 @@ function createOperationsService(options) {
   let massalBerjalan = false;
   // Wali melihat tagihan dan kuitansi santri yang terhubung dengannya (diinjeksi app: sama
   // dengan hak melihat dashboard santri itu). Tanpa injeksi, tidak ada wali yang boleh.
-  const parentCanViewStudent = config.parentCanViewStudent || async function noParentAccess() { return false; };
+  // Wali dan santri: boleh melihat tagihan santri yang memang boleh mereka lihat
+  // (wali: anaknya, santri: dirinya sendiri). Diisi app.js.
+  const familyCanViewStudent = config.familyCanViewStudent || async function noFamilyAccess() { return false; };
 
   // Harus sepadan dengan izin finance.manage dan operations.manage di server/access-policy.js.
   function adminOnly(actor) { return Boolean(actor && FINANCE_ROLES.includes(actor.role)); }
@@ -281,7 +283,7 @@ function createOperationsService(options) {
   // menerima alasan pembatalan dan versi internal.
   async function canViewStudentBilling(studentId, actor) {
     if (adminOnly(actor)) return true;
-    return Boolean(actor && actor.role === 'parent' && (await parentCanViewStudent(studentId, actor)));
+    return Boolean(actor && ['parent', 'student'].includes(actor.role) && (await familyCanViewStudent(studentId, actor)));
   }
 
   function forBillingViewer(invoice, actor) {
