@@ -646,6 +646,7 @@ const tabBtns = [
   { btn: document.querySelector('#tab-btn-dorm-mgmt'), panel: document.querySelector('#panel-dorm-mgmt') },
   { btn: document.querySelector('#tab-btn-link-account'), panel: document.querySelector('#panel-link-account') },
   { btn: document.querySelector('#tab-btn-leave'), panel: document.querySelector('#panel-leave'), onOpen: () => muatIzin() },
+  { btn: document.querySelector('#tab-btn-family'), panel: document.querySelector('#panel-family'), onOpen: () => muatPesanWali() },
   { btn: document.querySelector('#tab-btn-announcements'), panel: document.querySelector('#panel-announcements'), onOpen: () => muatPengumuman() },
   { btn: document.querySelector('#tab-btn-honors'), panel: document.querySelector('#panel-honors'), onOpen: () => muatTeladan() }
 ];
@@ -760,6 +761,64 @@ async function putuskanIzin(item, keputusan) {
 }
 
 leaveFilter.addEventListener('change', () => muatIzin());
+
+// Pesan dan doa dari wali (admin dan musyrif). GET /api/doa, POST /api/doa/:id/dibaca.
+const familyList = document.querySelector('#family-list');
+const familyStatus = document.querySelector('#family-status');
+const familyFilter = document.querySelector('#family-status-filter');
+const familyCount = document.querySelector('#family-unread-count');
+
+function tampilkanJumlahPesan(jumlah) {
+  familyCount.textContent = String(jumlah);
+  familyCount.hidden = !jumlah;
+}
+
+async function hitungPesanWali() {
+  try {
+    const data = await kirimJson(`/api/doa?status=belum&t=${Date.now()}`, 'GET');
+    tampilkanJumlahPesan(data.items.length);
+  } catch {
+    familyCount.hidden = true;
+  }
+}
+
+async function muatPesanWali() {
+  statusPanel(familyStatus, 'Memuat...');
+  try {
+    const data = await kirimJson(`/api/doa?status=${encodeURIComponent(familyFilter.value)}&t=${Date.now()}`, 'GET');
+    statusPanel(familyStatus, data.tersedia ? '' : 'Database belum diperbarui untuk pesan wali. Terapkan pembaruan database di halaman Pengaturan.', !data.tersedia);
+    if (familyFilter.value === 'belum') tampilkanJumlahPesan(data.items.length);
+    familyList.replaceChildren(...(data.items.length ? data.items.map((item) => {
+      const dari = `${item.parentName || 'Wali'} untuk ${item.studentName}${item.dormitoryName ? ` · ${item.dormitoryName}` : ''}`;
+      const status = item.readAt ? `Dibaca${item.readBy ? ` ${item.readBy}` : ''} · ${WAKTU_IZIN.format(new Date(item.readAt))}` : 'Belum dibaca';
+      const baris = barisTeladan(
+        dari,
+        `${WAKTU_IZIN.format(new Date(item.createdAt))} · ${status}`,
+        item.readAt ? null : tombolKecil('Tandai sudah dibaca', (tombol) => tandaiPesanDibaca(item, tombol))
+      );
+      const isi = document.createElement('p');
+      isi.className = 'honors-item__body';
+      isi.textContent = item.body;
+      baris.firstElementChild.append(isi);
+      return baris;
+    }) : [barisTeladan(familyFilter.value === 'belum' ? 'Tidak ada pesan wali yang belum dibaca.' : 'Belum ada pesan dari wali.', '', null)]));
+  } catch (error) {
+    statusPanel(familyStatus, error.message || 'Pesan wali belum dapat dimuat.', true);
+  }
+}
+
+async function tandaiPesanDibaca(item, tombol) {
+  tombol.disabled = true;
+  try {
+    await kirimJson(`/api/doa/${encodeURIComponent(item.id)}/dibaca`, 'POST');
+    await muatPesanWali();
+  } catch (error) {
+    statusPanel(familyStatus, error.message, true);
+    tombol.disabled = false;
+  }
+}
+
+familyFilter.addEventListener('change', () => muatPesanWali());
 
 // Pengumuman (admin dan musyrif). GET/POST /api/announcements, DELETE /api/announcements/:id.
 const announcementForm = document.querySelector('#announcement-form');
@@ -936,6 +995,7 @@ if (logoutButton) {
     document.body.classList.add('in-crm');
     renderStaffNav(staffNav, currentRole, 'monitoring', result.account);
     hitungIzinMenunggu();
+    hitungPesanWali();
     if (currentRole === 'admin') {
       document.querySelectorAll('.admin-only-tab').forEach((tab) => { tab.hidden = false; });
       accountLinkSection.hidden = false;

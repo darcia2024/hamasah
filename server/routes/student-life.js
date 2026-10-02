@@ -166,5 +166,60 @@ module.exports = [
       }
       balas(response, hasil);
     }
+  },
+
+  // --------------------------------------------- pesan dan doa dari wali (doa)
+  // Wali: pesannya sendiri untuk ananda ini. Musyrif dan admin: semua pesan santri ini.
+  {
+    method: 'GET',
+    pattern: /^\/api\/students\/([\w-]+)\/doa$/,
+    permission: 'students.read',
+    async handler({ response, services, auth, params }) {
+      balas(response, await services.studentLifeService.familyMessagesOf(params[0], await auth.actor()));
+    }
+  },
+
+  {
+    method: 'POST',
+    pattern: /^\/api\/students\/([\w-]+)\/doa$/,
+    permission: 'family-messages.send',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const actor = await auth.actor();
+      const hasil = await services.studentLifeService.sendFamilyMessage(params[0], await readBody(), actor);
+      if (hasil.ok) {
+        await services.auditService.record({
+          action: ACTIONS.FAMILY_MESSAGE_SENT, actor, ip,
+          entityType: 'family-message', entityId: hasil.value.id, metadata: { studentId: params[0] }
+        });
+      }
+      balas(response, hasil, 201, (value) => ({ message: value }));
+    }
+  },
+
+  // Kotak masuk musyrif dan admin (?status=belum|semua).
+  {
+    method: 'GET',
+    pattern: /^\/api\/doa$/,
+    permission: 'family-messages.read',
+    async handler({ response, services, auth, url }) {
+      balas(response, await services.studentLifeService.familyInbox(await auth.actor(), url.searchParams.get('status')));
+    }
+  },
+
+  {
+    method: 'POST',
+    pattern: /^\/api\/doa\/([\w-]+)\/dibaca$/,
+    permission: 'family-messages.read',
+    async handler({ response, services, auth, params, ip }) {
+      const actor = await auth.actor();
+      const hasil = await services.studentLifeService.markFamilyMessageRead(params[0], actor);
+      if (hasil.ok) {
+        await services.auditService.record({
+          action: ACTIONS.FAMILY_MESSAGE_READ, actor, ip,
+          entityType: 'family-message', entityId: params[0], metadata: { studentId: hasil.value.studentId }
+        });
+      }
+      balas(response, hasil, 200, (value) => ({ message: value }));
+    }
   }
 ];

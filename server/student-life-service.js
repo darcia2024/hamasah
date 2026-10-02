@@ -18,12 +18,14 @@ const MAX_LEAVE_DAYS = 30;
 const MAX_PENDING_LEAVES = 3;
 const HARI_MS = 24 * 60 * 60 * 1000;
 
-const DATABASE_BELUM_SIAP = 'Database belum diperbarui untuk hafalan, pengumuman, dan izin. Terapkan pembaruan database di halaman Pengaturan lebih dulu.';
+const DATABASE_BELUM_SIAP = 'Database belum diperbarui untuk fitur ini. Terapkan pembaruan database di halaman Pengaturan lebih dulu.';
+// Batas pesan wali per santri per hari, supaya kotak masuk musyrif tidak dibanjiri.
+const MAX_FAMILY_MESSAGES_PER_DAY = 10;
 
 function tabelBelumAda(error) {
   if (!error) return false;
   if (error.code === '42P01') return true;
-  return /(student_juz_progress|announcements|student_leave_requests)/.test(String(error.message || '')) && /does not exist/i.test(String(error.message || ''));
+  return /(student_juz_progress|announcements|student_leave_requests|family_messages)/.test(String(error.message || '')) && /does not exist/i.test(String(error.message || ''));
 }
 
 function clean(value) {
@@ -399,9 +401,113 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
     });
   }
 
+  // ------------------------------------------------- pesan dan doa dari wali
+  // Dibaca musyrif asrama santri itu dan admin. Santri tidak membacanya; wali hanya
+  // melihat pesannya sendiri beserta status sudah dibaca.
+
+  function toFamilyMessage(row) {
+    return {
+      id: row.id,
+      studentId: row.student_id,
+      studentName: row.student_name || undefined,
+      dormitoryName: row.dormitory_name || undefined,
+      parentName: row.parent_name || undefined,
+      body: row.body,
+      readAt: iso(row.read_at),
+      readBy: row.read_by || null,
+      createdAt: iso(row.created_at)
+    };
+  }
+
+  const SELECT_FAMILY = `SELECT m.*, s.name AS student_name, d.name AS dormitory_name, p.name AS parent_name, r.name AS read_by
+      FROM family_messages m
+      JOIN students s ON s.id = m.student_id
+      LEFT JOIN dormitories d ON d.id = s.dormitory_id
+      LEFT JOIN accounts p ON p.id = m.parent_account_id
+      LEFT JOIN accounts r ON r.id = m.read_by_account_id`;
+
+  async function sendFamilyMessage(studentId, input, actor) {
+    if (!actor || actor.role !== 'parent') return { ok: false, status: 403, error: 'Pesan untuk ananda dikirim oleh wali.' };
+    const akses = await aksesSantri(studentId, actor, 'view');
+    if (!akses.ok) return akses;
+    const body = teks(input && input.body);
+    if (body.length < 5 || body.length > 1000) return { ok: false, error: 'Pesan 5 sampai 1000 karakter.' };
+    return tulis(async () => {
+      const { rows: hitung } = await database.query(
+        `SELECT count(*)::int AS jumlah FROM family_messages
+          WHERE student_id = $1 AND parent_account_id = $2 AND created_at > $3`,
+        [studentId, actor.id, new Date(now().getTime() - HARI_MS)]
+      );
+      if (hitung[0].jumlah >= MAX_FAMILY_MESSAGES_PER_DAY) {
+        return { ok: false, status: 429, error: `Paling banyak ${MAX_FAMILY_MESSAGES_PER_DAY} pesan sehari untuk satu ananda. Coba lagi besok.` };
+      }
+      const id = crypto.randomUUID();
+      await database.query(
+        'INSERT INTO family_messages (id, student_id, parent_account_id, body, created_at) VALUES ($1, $2, $3, $4, $5)',
+        [id, studentId, actor.id, body, now()]
+      );
+      const { rows } = await database.query(`${SELECT_FAMILY} WHERE m.id = $1`, [id]);
+      return { ok: true, value: toFamilyMessage(rows[0]) };
+    });
+  }
+
+  // Wali: pesannya sendiri untuk santri ini. Musyrif asramanya dan admin: semua pesan
+  // untuk santri ini. Santri: ditolak.
+  async function familyMessagesOf(studentId, actor) {
+    if (!actor || actor.role === 'student') return { ok: false, status: 403, error: 'Pesan wali hanya dibaca musyrif.' };
+    const akses = await aksesSantri(studentId, actor, 'view');
+    if (!akses.ok) return akses;
+    const hasil = await baca(async () => {
+      const { rows } = await database.query(
+        `${SELECT_FAMILY} WHERE m.student_id = $1 AND ($2::uuid IS NULL OR m.parent_account_id = $2) ORDER BY m.created_at DESC LIMIT 20`,
+        [studentId, actor.role === 'parent' ? actor.id : null]
+      );
+      return { tersedia: true, rows };
+    }, { tersedia: false, rows: [] });
+    return { ok: true, value: { tersedia: hasil.tersedia, items: hasil.rows.map(toFamilyMessage) } };
+  }
+
+  // Kotak masuk musyrif (asrama yang dipegang) dan admin (semua). status: belum | semua.
+  async function familyInbox(actor, statusInput) {
+    if (!actor || !['admin', 'supervisor'].includes(actor.role)) return { ok: false, status: 403, error: 'Hanya admin dan musyrif.' };
+    const status = clean(statusInput) || 'belum';
+    if (!['belum', 'semua'].includes(status)) return { ok: false, error: 'Status pesan tidak dikenal.' };
+    const asrama = actor.role === 'supervisor' ? await staffDormitories(actor.id) : null;
+    const hasil = await baca(async () => {
+      const { rows } = await database.query(
+        `${SELECT_FAMILY}
+          WHERE ($1::text = 'semua' OR m.read_at IS NULL)
+            AND ($2::uuid[] IS NULL OR s.dormitory_id = ANY($2::uuid[]))
+          ORDER BY m.created_at DESC LIMIT 50`,
+        [status, asrama]
+      );
+      return { tersedia: true, rows };
+    }, { tersedia: false, rows: [] });
+    return { ok: true, value: { tersedia: hasil.tersedia, items: hasil.rows.map(toFamilyMessage) } };
+  }
+
+  async function markFamilyMessageRead(id, actor) {
+    if (!actor || !['admin', 'supervisor'].includes(actor.role)) return { ok: false, status: 403, error: 'Hanya admin dan musyrif.' };
+    return tulis(async () => {
+      const { rows } = await database.query('SELECT student_id, read_at FROM family_messages WHERE id = $1', [id]);
+      if (!rows.length) return { ok: false, status: 404, error: 'Pesan tidak ditemukan.' };
+      const akses = await aksesSantri(rows[0].student_id, actor, 'write');
+      if (!akses.ok) return akses;
+      if (!rows[0].read_at) {
+        await database.query(
+          'UPDATE family_messages SET read_at = $2, read_by_account_id = $3 WHERE id = $1 AND read_at IS NULL',
+          [id, now(), actor.id || null]
+        );
+      }
+      const { rows: akhir } = await database.query(`${SELECT_FAMILY} WHERE m.id = $1`, [id]);
+      return { ok: true, value: toFamilyMessage(akhir[0]) };
+    });
+  }
+
   return Object.freeze({
-    announcementTargets, announcementsFor, cancelLeave, createAnnouncement, decideLeave, juzMap,
-    leaveQueue, leavesOf, removeAnnouncement, requestLeave, setJuz
+    announcementTargets, announcementsFor, cancelLeave, createAnnouncement, decideLeave,
+    familyInbox, familyMessagesOf, juzMap, leaveQueue, leavesOf, markFamilyMessageRead,
+    removeAnnouncement, requestLeave, sendFamilyMessage, setJuz
   });
 }
 

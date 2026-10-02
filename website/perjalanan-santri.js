@@ -419,20 +419,80 @@
     return wadah;
   }
 
+  // ------------------------------------------------ Kirim doa untuk ananda (wali)
+  // Hanya musyrif asrama ananda dan admin yang membaca; santri tidak. Wali melihat
+  // pesannya sendiri dan apakah sudah dibaca.
+  function kartuDoa(data, { studentId, headers, muatUlang, pesan = '' }) {
+    if (!data || !data.tersedia) return null;
+    const wadah = kartu('Kirim doa untuk ananda', 'Pesan atau doa Anda dibaca musyrif asrama ananda. Ananda sendiri tidak membacanya.', 'santri-doa-card');
+    const form = el('form', 'santri-doa-form');
+    form.noValidate = true;
+    const isian = el('textarea');
+    isian.rows = 3;
+    isian.maxLength = 1000;
+    isian.placeholder = 'Contoh: Semoga ananda dimudahkan hafalannya dan sehat selalu. Mohon diingatkan untuk menelepon ibunya pekan ini.';
+    isian.setAttribute('aria-label', 'Pesan atau doa untuk ananda');
+    const tombol = el('button', 'button button--primary', 'Kirim ke musyrif');
+    tombol.type = 'submit';
+    const status = el('p', 'form-status', pesan);
+    status.setAttribute('role', 'status');
+    form.append(isian, tombol);
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      status.classList.remove('is-error');
+      if (isian.value.trim().length < 5) {
+        status.textContent = 'Tulis pesan minimal 5 karakter.';
+        status.classList.add('is-error');
+        return;
+      }
+      tombol.disabled = true;
+      try {
+        await kirim(`/api/students/${encodeURIComponent(studentId)}/doa`, 'POST', headers, { body: isian.value });
+        await muatUlang('Terkirim. Musyrif akan membacanya.');
+      } catch (error) {
+        status.textContent = error.message;
+        status.classList.add('is-error');
+        tombol.disabled = false;
+      }
+    });
+    wadah.append(form, status);
+    if (data.items.length) {
+      const daftar = el('ul', 'santri-doa-list');
+      data.items.slice(0, 5).forEach((item) => {
+        const baris = el('li', 'santri-doa');
+        baris.append(
+          el('p', 'santri-doa__body', item.body),
+          el('span', 'santri-doa__meta', `${waktu(item.createdAt)} · ${item.readAt ? `Sudah dibaca${item.readBy ? ` ${item.readBy}` : ''}` : 'Belum dibaca'}`)
+        );
+        daftar.append(baris);
+      });
+      wadah.append(el('h4', 'santri-today__label', 'Pesan yang sudah dikirim'), daftar);
+    }
+    return wadah;
+  }
+
   // wadah: elemen kosong di bawah kartu profil. role: peran akun yang membuka dashboard.
   async function isi(wadah, { studentId, role, care, headers }) {
     if (!wadah || !studentId) return;
     const id = encodeURIComponent(studentId);
     const santri = role === 'student';
     const keluarga = santri || role === 'parent';
-    const [roadmap, honors, courses, pengumuman, juz, izin] = await Promise.all([
+    const wali = role === 'parent';
+    const [roadmap, honors, courses, pengumuman, juz, izin, doa] = await Promise.all([
       ambil(`/api/students/${id}/roadmap`, headers),
       keluarga ? ambil('/api/honors', headers) : null,
       santri ? ambil(`/api/students/${id}/courses`, headers) : null,
       keluarga ? ambil('/api/announcements', headers) : null,
       ambil(`/api/students/${id}/juz`, headers),
-      keluarga ? ambil(`/api/students/${id}/leave`, headers) : null
+      keluarga ? ambil(`/api/students/${id}/leave`, headers) : null,
+      wali ? ambil(`/api/students/${id}/doa`, headers) : null
     ]);
+    const muatUlangDoa = async (pesan = '') => {
+      const segar = await ambil(`/api/students/${id}/doa?t=${Date.now()}`, headers);
+      const lama = wadah.querySelector('.santri-doa-card');
+      const baru = kartuDoa(segar, { studentId, headers, muatUlang: muatUlangDoa, pesan });
+      if (lama && baru) lama.replaceWith(baru);
+    };
     const muatUlangIzin = async (pesan = '') => {
       const segar = await ambil(`/api/students/${id}/leave?t=${Date.now()}`, headers);
       const lama = wadah.querySelector('.santri-leave-card');
@@ -444,6 +504,7 @@
       santri ? kartuHariIni(courses && courses.items, care) : null,
       keluarga ? kartuPengumuman(pengumuman) : null,
       keluarga ? kartuIzin(izin, { studentId, headers, santri, muatUlang: muatUlangIzin }) : null,
+      wali ? kartuDoa(doa, { studentId, headers, muatUlang: muatUlangDoa }) : null,
       kartuRoadmap(roadmap && roadmap.roadmap),
       kartuJuz(juz),
       keluarga ? kartuTeladan(honors) : null

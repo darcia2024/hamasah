@@ -1693,3 +1693,11 @@ html.has-portal-session body:has(:is(#monitoring-guard, #operations-guard, #lms-
   gap: 8px;
   flex: none;
 }
+
+.honors-item__body {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-line;
+  color: var(--crm-text-primary);
+}

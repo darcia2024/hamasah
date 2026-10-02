@@ -212,6 +212,45 @@ async function downloadWithSession(url, fileName, button) {
   }
 }
 
+// Ringkasan satu ananda untuk wali: tagihan belum lunas, izin yang menunggu keputusan,
+// dan kehadiran kegiatan 7 hari terakhir. Bagian yang gagal dimuat dilewati saja.
+async function isiRingkasanAnanda(studentId, wadah) {
+  const id = encodeURIComponent(studentId);
+  const tanggal = (mundur) => {
+    const d = new Date();
+    d.setDate(d.getDate() - mundur);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+  const ambilJson = (url) => fetch(url, { headers: requestHeaders() }).then((res) => (res.ok ? res.json() : null)).catch(() => null);
+  const [tagihan, izin, dasbor] = await Promise.all([
+    ambilJson(`/api/students/${id}/invoices`),
+    ambilJson(`/api/students/${id}/leave`),
+    ambilJson(`/api/students/${id}/dashboard?from=${tanggal(6)}&to=${tanggal(0)}`)
+  ]);
+  const butir = [];
+  if (tagihan && Array.isArray(tagihan.items)) {
+    const belum = tagihan.items.filter((item) => item.status === 'unpaid');
+    const total = belum.reduce((jumlah, item) => jumlah + (Number(item.amount) || 0), 0);
+    butir.push(belum.length
+      ? [`${belum.length} tagihan belum lunas, Rp${total.toLocaleString('id-ID')}`, 'perlu']
+      : ['Tidak ada tagihan tertunda', 'baik']);
+  }
+  if (izin && Array.isArray(izin.items)) {
+    const menunggu = izin.items.filter((item) => item.status === 'menunggu').length;
+    if (menunggu) butir.push([`${menunggu} izin menunggu keputusan musyrif`, 'tunggu']);
+  }
+  if (dasbor && dasbor.dashboard && dasbor.dashboard.attendance) {
+    const hadir = dasbor.dashboard.attendance;
+    butir.push([hadir.rate === null ? 'Belum ada catatan kegiatan 7 hari terakhir' : `Kehadiran 7 hari ${hadir.rate}%`, 'netral']);
+  }
+  wadah.replaceChildren(...butir.map(([teks, jenis]) => {
+    const chip = document.createElement('span');
+    chip.className = `crm-summary-chip is-${jenis}`;
+    chip.textContent = teks;
+    return chip;
+  }));
+}
+
 function createStudentCompactCard(student, idx, account, onOpen) {
   const card = document.createElement('div');
   card.className = 'crm-student-compact-card';
@@ -254,6 +293,18 @@ function createStudentCompactCard(student, idx, account, onOpen) {
       </a>
     </div>
   `;
+
+  // Wali: ringkasan singkat per ananda supaya yang perlu ditindaklanjuti terlihat tanpa
+  // membuka satu per satu. Dimuat setelah kartu tampil.
+  if (account && account.role === 'parent') {
+    const ringkas = document.createElement('div');
+    ringkas.className = 'crm-student-compact-summary';
+    ringkas.id = `ringkasan-ananda-${student.id}`;
+    ringkas.textContent = 'Memuat ringkasan...';
+    card.querySelector('.crm-student-compact-info').append(ringkas);
+    card.setAttribute('aria-describedby', ringkas.id);
+    isiRingkasanAnanda(student.id, ringkas).catch(() => { ringkas.textContent = ''; });
+  }
 
   card.addEventListener('click', (e) => {
     if (e.target.closest('.crm-student-compact-newtab')) return;

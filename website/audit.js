@@ -60,6 +60,8 @@ const LABEL = {
   'leave.requested': 'Izin diajukan santri',
   'leave.decided': 'Izin diputuskan',
   'leave.cancelled': 'Izin dibatalkan santri',
+  'family-message.sent': 'Pesan wali dikirim',
+  'family-message.read': 'Pesan wali dibaca musyrif',
   'invoice.receipt-downloaded': 'Kuitansi diunduh',
   'demo.data-started': 'Pengisian data demo dimulai',
   'demo.password-reset': 'Kata sandi akun demo diganti',

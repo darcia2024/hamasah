@@ -169,7 +169,42 @@ async function run() {
     assert.equal((await api('GET', `/api/students/${ahmad.id}/invoices`, tBilal)).status, 403, 'Santri lain tidak melihat tagihan Ahmad.');
     assert.equal((await api('POST', '/api/operations/invoices', tAhmad, { studentId: ahmad.id, description: 'Coba', amount: 1 })).status, 403);
 
-    // ------------------------------------------------- sebelum migrasi 045 diterapkan
+    // --------------------------------------------- pesan dan doa dari wali
+    const waliLain = await akun('Wali Lain', 'wali-lain@uji.test', 'parent');
+    const tWaliLain = await masuk('wali-lain@uji.test');
+    const doa = await api('POST', `/api/students/${ahmad.id}/doa`, tWali, { body: 'Semoga Ahmad istiqamah dan sehat selalu di Kairo.' });
+    assert.equal(doa.status, 201, JSON.stringify(doa.body));
+    assert.equal(doa.body.message.readAt, null);
+    assert.equal((await api('POST', `/api/students/${ahmad.id}/doa`, tWali, { body: 'Hai' })).status, 422);
+    assert.equal((await api('POST', `/api/students/${ahmad.id}/doa`, tWaliLain, { body: 'Bukan anak saya.' })).status, 403);
+    assert.equal((await api('POST', `/api/students/${ahmad.id}/doa`, tAhmad, { body: 'Santri tidak mengirim.' })).status, 403);
+    assert.ok(waliLain.id);
+
+    assert.equal((await api('GET', `/api/students/${ahmad.id}/doa`, tAhmad)).status, 403, 'Santri tidak membaca pesan wali.');
+    assert.deepEqual((await api('GET', `/api/students/${ahmad.id}/doa`, tWali)).body.items.map((item) => item.body), ['Semoga Ahmad istiqamah dan sehat selalu di Kairo.']);
+    const kotakMasuk = await api('GET', '/api/doa', tMusyrif);
+    assert.deepEqual(kotakMasuk.body.items.map((item) => [item.studentName, item.parentName]), [['Ahmad Uji', 'Wali Ahmad']]);
+    assert.equal((await api('GET', '/api/doa', tWali)).status, 403);
+
+    // Musyrif lain (tanpa asrama A) tidak melihat dan tidak bisa menandai.
+    await akun('Musyrif B', 'musyrif-b@uji.test', 'supervisor');
+    const tMusyrifB = await masuk('musyrif-b@uji.test');
+    assert.deepEqual((await api('GET', '/api/doa', tMusyrifB)).body.items, []);
+    assert.equal((await api('POST', `/api/doa/${doa.body.message.id}/dibaca`, tMusyrifB)).status, 403);
+
+    const dibaca = await api('POST', `/api/doa/${doa.body.message.id}/dibaca`, tMusyrif);
+    assert.equal(dibaca.status, 200, JSON.stringify(dibaca.body));
+    assert.equal(dibaca.body.message.readBy, 'Musyrif A');
+    assert.deepEqual((await api('GET', '/api/doa', tMusyrif)).body.items, [], 'Yang sudah dibaca hilang dari kotak belum dibaca.');
+    assert.equal((await api('GET', '/api/doa?status=semua', tMusyrif)).body.items.length, 1);
+    assert.ok((await api('GET', `/api/students/${ahmad.id}/doa`, tWali)).body.items[0].readAt, 'Wali melihat pesannya sudah dibaca.');
+    assert.equal(await jumlahAudit('family-message.sent'), 1);
+    assert.equal(await jumlahAudit('family-message.read'), 1);
+
+    // ------------------------------------------------- sebelum migrasi 045 dan 046 diterapkan
+    await database.query('DROP TABLE family_messages');
+    assert.equal((await api('GET', `/api/students/${ahmad.id}/doa`, tWali)).body.tersedia, false);
+    assert.equal((await api('POST', `/api/students/${ahmad.id}/doa`, tWali, { body: 'Ditolak karena tabel belum ada.' })).status, 409);
     await database.query('DROP TABLE student_juz_progress');
     await database.query('DROP TABLE announcements');
     await database.query('DROP TABLE student_leave_requests');

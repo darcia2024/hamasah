@@ -9,8 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
-    <link rel="stylesheet" href="staff.css?v=60f9680e98" />
-    <link rel="stylesheet" href="portal.css?v=f8a086ec29" />
+    <link rel="stylesheet" href="staff.css?v=79d5b4ca2a" />
+    <link rel="stylesheet" href="portal.css?v=86599d8615" />
     <link rel="stylesheet" href="fields.css?v=40377b19dc" />
     <script src="session-hint.js?v=b0562827f3"></script>
     <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
@@ -142,6 +142,11 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></svg>
               <span>Izin santri</span>
               <span class="crm-pill-count" id="leave-pending-count" hidden></span>
+            </button>
+            <button type="button" class="crm-pill-btn" id="tab-btn-family">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span>Pesan wali</span>
+              <span class="crm-pill-count" id="family-unread-count" hidden></span>
             </button>
             <button type="button" class="crm-pill-btn" id="tab-btn-announcements">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
@@ -584,6 +589,28 @@
             </div>
           </div>
 
+          <!-- Tab Panel: Pesan dan doa dari wali untuk musyrif ("Kirim doa untuk ananda").
+               Musyrif melihat santri di asrama yang dipegang, admin semua. Santri tidak membacanya. -->
+          <div id="panel-family" class="crm-card-stack" hidden>
+            <div class="crm-white-card">
+              <div class="crm-white-card-header">
+                <div>
+                  <h3>Pesan dan doa dari wali</h3>
+                  <p>Dikirim wali lewat dashboard ananda. Hanya musyrif asrama santri itu dan admin yang membacanya; wali melihat apakah pesannya sudah dibaca.</p>
+                </div>
+              </div>
+              <div class="honors-month">
+                <label for="family-status-filter">Tampilkan</label>
+                <select id="family-status-filter" class="monitoring-select">
+                  <option value="belum">Belum dibaca</option>
+                  <option value="semua">Semua</option>
+                </select>
+              </div>
+              <p id="family-status" class="form-status" role="status" aria-live="polite"></p>
+              <ul id="family-list" class="honors-list"></ul>
+            </div>
+          </div>
+
           <!-- Tab Panel: Pengumuman ke santri dan wali. Musyrif hanya untuk asrama yang dipegang. -->
           <div id="panel-announcements" class="crm-card-stack" hidden>
             <div class="crm-white-card">
@@ -663,8 +690,8 @@
     <script src="internal-shell.js?v=af5d3d7d4c"></script>
     <script src="nav.js?v=803e5ce2eb"></script>
     <script src="student-picker.js?v=e59fd6a323"></script>
-    <script src="perjalanan-santri.js?v=449198f4a3"></script>
-    <script src="monitoring.js?v=28ee587e41"></script>
+    <script src="perjalanan-santri.js?v=be2fefc7b3"></script>
+    <script src="monitoring.js?v=0ba07ae76b"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>

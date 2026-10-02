@@ -79,7 +79,7 @@ async function run() {
     assert.deepEqual(saya.body.permissions, ['finance.manage', 'operations.manage', 'operations.read']);
     assert.deepEqual(
       (await request(baseUrl, 'GET', '/api/me', { token: token[ROLES.PARENT] })).body.permissions,
-      ['students.read']
+      ['family-messages.send', 'students.read']
     );
 
     // Data secukupnya supaya endpoint punya sasaran yang nyata.
@@ -195,6 +195,10 @@ async function run() {
       { permission: 'leave.request', method: 'POST', path: () => `/api/students/${studentId}/leave`, body: () => ({}) },
       { permission: 'leave.request', method: 'POST', path: '/api/leave/00000000-0000-4000-8000-000000000000/batal' },
       { permission: 'leave.decide', method: 'GET', path: '/api/leave' },
+      { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/doa` },
+      { permission: 'family-messages.send', method: 'POST', path: () => `/api/students/${studentId}/doa`, body: () => ({}) },
+      { permission: 'family-messages.read', method: 'GET', path: '/api/doa' },
+      { permission: 'family-messages.read', method: 'POST', path: '/api/doa/00000000-0000-4000-8000-000000000000/dibaca' },
       { permission: 'leave.decide', method: 'PATCH', path: '/api/leave/00000000-0000-4000-8000-000000000000', body: () => ({ decision: 'tidak-ada' }) },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/report` },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/report.pdf` },

@@ -85,6 +85,8 @@ const ACTIONS = Object.freeze({
   ,LEAVE_REQUESTED: 'leave.requested'
   ,LEAVE_DECIDED: 'leave.decided'
   ,LEAVE_CANCELLED: 'leave.cancelled'
+  ,FAMILY_MESSAGE_SENT: 'family-message.sent'
+  ,FAMILY_MESSAGE_READ: 'family-message.read'
   ,DATABASE_UPDATED: 'database.updated'
 });
 
