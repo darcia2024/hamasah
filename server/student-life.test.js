@@ -71,6 +71,13 @@ async function run() {
     const tWali = await masuk('wali@uji.test');
     const tMusyrif = await masuk('musyrif-a@uji.test');
 
+    // Membuat santri, memindahkan asrama, dan menghubungkan akun hanya admin; musyrif tetap
+    // mencatat pembinaan santri di asramanya.
+    assert.equal((await api('POST', '/api/students', tMusyrif, { name: 'Santri Musyrif', program: 'Kuliah S1 Al-Azhar', city: 'Kairo', joinDate: '2026-08-20' })).status, 403);
+    assert.equal((await api('PATCH', `/api/students/${ahmad.id}/placement`, tMusyrif, { dormitoryId: null })).status, 403);
+    assert.equal((await api('PATCH', `/api/students/${ahmad.id}/accounts`, tMusyrif, { parentAccountIds: [waliAhmad.id] })).status, 403);
+    assert.equal((await api('POST', `/api/students/${ahmad.id}/attendance`, tMusyrif, { status: 'present', category: 'Talaqqi pagi' })).status, 201);
+
     // Nama musyrif asrama ikut di dashboard (tanpa email), untuk kartu profil wali.
     const profil = await api('GET', `/api/students/${ahmad.id}/dashboard`, tWali);
     assert.deepEqual(profil.body.dashboard.student.dormitory.supervisors, ['Musyrif A']);

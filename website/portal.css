@@ -6728,3 +6728,34 @@ button.santri-juz__cell:focus-visible {
   background: var(--md-sys-color-tertiary-container);
   color: var(--md-sys-color-on-tertiary-container);
 }
+
+/* Beranda musyrif: Tugas hari ini. */
+.musyrif-task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.musyrif-task {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  font-size: 14px;
+  color: var(--md-sys-color-on-surface);
+}
+
+.musyrif-task.is-perlu {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary-container);
+}
+
+.musyrif-task.is-selesai {
+  border-color: var(--md-sys-color-tertiary);
+  background: var(--md-sys-color-tertiary-container);
+}

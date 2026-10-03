@@ -9,8 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
-    <link rel="stylesheet" href="staff.css?v=79d5b4ca2a" />
-    <link rel="stylesheet" href="portal.css?v=86599d8615" />
+    <link rel="stylesheet" href="staff.css?v=cd070d9561" />
+    <link rel="stylesheet" href="portal.css?v=d787432f6f" />
     <link rel="stylesheet" href="fields.css?v=40377b19dc" />
     <script src="session-hint.js?v=b0562827f3"></script>
     <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
@@ -122,11 +122,15 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M22 12h-4M6 12H2M12 6V2M12 22v-4"/><circle cx="12" cy="12" r="3"/></svg>
               <span>Monitoring rekam jejak</span>
             </button>
-            <button type="button" class="crm-pill-btn" id="tab-btn-add-student">
+            <button type="button" class="crm-pill-btn" id="tab-btn-roll">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              <span>Presensi asrama</span>
+            </button>
+            <button type="button" class="crm-pill-btn admin-only-tab" id="tab-btn-add-student" hidden>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
               <span>Profil santri baru</span>
             </button>
-            <button type="button" class="crm-pill-btn" id="tab-btn-placement">
+            <button type="button" class="crm-pill-btn admin-only-tab" id="tab-btn-placement" hidden>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
               <span>Penempatan Kamar &amp; Asrama</span>
             </button>
@@ -566,6 +570,46 @@
             </section>
           </div>
 
+          <!-- Tab Panel: Presensi asrama. Satu daftar untuk seluruh santri aktif di asrama;
+               disimpan lewat layanan per santri (server/dormitory-roll-service.js). -->
+          <div id="panel-roll" class="crm-card-stack" hidden>
+            <div class="crm-white-card">
+              <div class="crm-white-card-header">
+                <div>
+                  <h3>Presensi asrama</h3>
+                  <p>Catat sholat atau kegiatan untuk seluruh santri asrama sekaligus. Santri yang belum dicatat otomatis terpilih Berjamaah (sholat) atau Hadir (kegiatan); ubah yang berbeda lalu simpan.</p>
+                </div>
+              </div>
+              <form id="roll-filter" class="roll-filter" novalidate>
+                <div class="roll-filter__mode" role="radiogroup" aria-label="Jenis presensi">
+                  <label><input type="radio" name="roll-mode" value="sholat" checked /> Sholat</label>
+                  <label><input type="radio" name="roll-mode" value="kegiatan" /> Kegiatan</label>
+                </div>
+                <label class="roll-filter__field">Tanggal <input id="roll-date" type="date" /></label>
+                <label class="roll-filter__field" id="roll-dormitory-field">Asrama <select id="roll-dormitory" class="monitoring-select"></select></label>
+                <label class="roll-filter__field" id="roll-prayer-field">Waktu sholat
+                  <select id="roll-prayer" class="monitoring-select">
+                    <option value="subuh">Subuh</option>
+                    <option value="dzuhur">Dzuhur</option>
+                    <option value="ashar">Ashar</option>
+                    <option value="maghrib">Maghrib</option>
+                    <option value="isya">Isya</option>
+                  </select>
+                </label>
+                <label class="roll-filter__field" id="roll-category-field" hidden>Nama kegiatan
+                  <input id="roll-category" type="text" list="roll-category-list" maxlength="120" placeholder="Contoh: Talaqqi pagi" />
+                  <datalist id="roll-category-list"></datalist>
+                </label>
+                <button class="button button--secondary" type="submit">Tampilkan daftar</button>
+              </form>
+              <p id="roll-status" class="form-status" role="status" aria-live="polite"></p>
+              <form id="roll-form" class="roll-form" novalidate hidden>
+                <ul id="roll-list" class="roll-list"></ul>
+                <button class="button button--primary" type="submit" id="roll-save">Simpan presensi</button>
+              </form>
+            </div>
+          </div>
+
           <!-- Tab Panel: Izin santri. Musyrif melihat asrama yang dipegang, admin semua. -->
           <div id="panel-leave" class="crm-card-stack" hidden>
             <div class="crm-white-card">
@@ -691,7 +735,7 @@
     <script src="nav.js?v=803e5ce2eb"></script>
     <script src="student-picker.js?v=e59fd6a323"></script>
     <script src="perjalanan-santri.js?v=be2fefc7b3"></script>
-    <script src="monitoring.js?v=0ba07ae76b"></script>
+    <script src="monitoring.js?v=1e0328dfb2"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>

@@ -645,6 +645,7 @@ const tabBtns = [
   { btn: document.querySelector('#tab-btn-placement'), panel: document.querySelector('#panel-placement') },
   { btn: document.querySelector('#tab-btn-dorm-mgmt'), panel: document.querySelector('#panel-dorm-mgmt') },
   { btn: document.querySelector('#tab-btn-link-account'), panel: document.querySelector('#panel-link-account') },
+  { btn: document.querySelector('#tab-btn-roll'), panel: document.querySelector('#panel-roll'), onOpen: () => muatPresensiAsrama() },
   { btn: document.querySelector('#tab-btn-leave'), panel: document.querySelector('#panel-leave'), onOpen: () => muatIzin() },
   { btn: document.querySelector('#tab-btn-family'), panel: document.querySelector('#panel-family'), onOpen: () => muatPesanWali() },
   { btn: document.querySelector('#tab-btn-announcements'), panel: document.querySelector('#panel-announcements'), onOpen: () => muatPengumuman() },
@@ -761,6 +762,165 @@ async function putuskanIzin(item, keputusan) {
 }
 
 leaveFilter.addEventListener('change', () => muatIzin());
+
+// Tab yang bisa dibuka langsung lewat alamat, misalnya dari pintasan di beranda Portal.
+const TAB_ALAMAT = Object.freeze({ presensi: '#tab-btn-roll', izin: '#tab-btn-leave', 'pesan-wali': '#tab-btn-family', pengumuman: '#tab-btn-announcements' });
+// #presensi-subuh dan sejenisnya langsung memilih waktu sholat itu dan menampilkan daftarnya.
+function bukaTabDariAlamat() {
+  const alamat = window.location.hash.slice(1);
+  const [kunci, sholat] = alamat.split('-');
+  const tujuan = TAB_ALAMAT[alamat] || TAB_ALAMAT[kunci];
+  const tombol = tujuan && document.querySelector(tujuan);
+  if (!tombol || tombol.hidden) return;
+  if (kunci === 'presensi' && sholat && [...rollPrayer.options].some((opsi) => opsi.value === sholat)) {
+    rollPrayer.value = sholat;
+  }
+  switchTab(tombol);
+}
+
+// Presensi asrama (admin dan musyrif). GET /api/presensi-asrama, POST .../sholat|kegiatan.
+const rollFilter = document.querySelector('#roll-filter');
+const rollForm = document.querySelector('#roll-form');
+const rollList = document.querySelector('#roll-list');
+const rollStatus = document.querySelector('#roll-status');
+const rollDate = document.querySelector('#roll-date');
+const rollDormitory = document.querySelector('#roll-dormitory');
+const rollPrayer = document.querySelector('#roll-prayer');
+const rollCategory = document.querySelector('#roll-category');
+const STATUS_SHOLAT = [['berjamaah', 'Berjamaah'], ['munfarid', 'Munfarid'], ['tidak', 'Tidak'], ['izin', 'Izin']];
+const STATUS_KEGIATAN = [['present', 'Hadir'], ['late', 'Terlambat'], ['excused', 'Izin'], ['absent', 'Alpa']];
+let rollData = null;
+
+function modePresensi() {
+  return rollFilter.querySelector('input[name="roll-mode"]:checked').value;
+}
+
+function perbaruiFilterPresensi() {
+  const sholat = modePresensi() === 'sholat';
+  document.querySelector('#roll-prayer-field').hidden = !sholat;
+  document.querySelector('#roll-category-field').hidden = sholat;
+  rollForm.hidden = true;
+  statusPanel(rollStatus, '');
+}
+
+async function muatPresensiAsrama() {
+  if (!rollDate.value) rollDate.value = hariIniWib();
+  rollDate.max = hariIniWib();
+  const sholat = modePresensi() === 'sholat';
+  if (!sholat && rollCategory.value.trim().length < 3) {
+    // Tampilkan saran kegiatan dulu; daftar santri menunggu nama kegiatan.
+    const params = new URLSearchParams({ mode: 'sholat', date: rollDate.value, prayer: 'subuh' });
+    if (rollDormitory.value) params.set('dormitoryId', rollDormitory.value);
+    const awal = await kirimJson(`/api/presensi-asrama?${params}&t=${Date.now()}`, 'GET').catch(() => null);
+    if (awal) isiPilihanPresensi(awal);
+    statusPanel(rollStatus, 'Tulis atau pilih nama kegiatan, lalu tampilkan daftar.');
+    rollForm.hidden = true;
+    return;
+  }
+  statusPanel(rollStatus, 'Memuat daftar...');
+  const params = new URLSearchParams({ mode: modePresensi(), date: rollDate.value });
+  if (sholat) params.set('prayer', rollPrayer.value);
+  else params.set('category', rollCategory.value.trim());
+  if (rollDormitory.value) params.set('dormitoryId', rollDormitory.value);
+  try {
+    rollData = await kirimJson(`/api/presensi-asrama?${params}&t=${Date.now()}`, 'GET');
+    isiPilihanPresensi(rollData);
+    gambarDaftarPresensi();
+  } catch (error) {
+    statusPanel(rollStatus, error.message, true);
+    rollForm.hidden = true;
+  }
+}
+
+function isiPilihanPresensi(data) {
+  const terpilih = data.dormitoryId || rollDormitory.value;
+  rollDormitory.replaceChildren(...data.dormitories.map((item) => new Option(item.name, item.id)));
+  if (terpilih) rollDormitory.value = terpilih;
+  document.querySelector('#roll-dormitory-field').hidden = data.dormitories.length <= 1;
+  document.querySelector('#roll-category-list').replaceChildren(...(data.categories || []).map((nama) => new Option(nama)));
+}
+
+function gambarDaftarPresensi() {
+  const sholat = rollData.mode === 'sholat';
+  const pilihan = sholat ? STATUS_SHOLAT : STATUS_KEGIATAN;
+  if (!rollData.students.length) {
+    statusPanel(rollStatus, rollData.dormitoryId ? 'Belum ada santri aktif di asrama ini.' : 'Anda belum memegang asrama. Hubungi admin.');
+    rollForm.hidden = true;
+    return;
+  }
+  const belum = rollData.students.filter((item) => !item.status).length;
+  statusPanel(rollStatus, `${rollData.students.length} santri · ${belum} belum dicatat.`);
+  rollList.replaceChildren(...rollData.students.map((santri, indeks) => {
+    const baris = document.createElement('li');
+    baris.className = 'roll-row';
+    const terkunci = !sholat && Boolean(santri.status);
+    if (terkunci) baris.classList.add('is-locked');
+    const nama = document.createElement('span');
+    nama.className = 'roll-row__name';
+    nama.textContent = santri.name;
+    const grup = document.createElement('fieldset');
+    grup.className = 'roll-row__options';
+    const legend = document.createElement('legend');
+    legend.className = 'sr-only';
+    legend.textContent = `Status ${santri.name}`;
+    grup.append(legend);
+    const nilai = santri.status || pilihan[0][0];
+    pilihan.forEach(([kode, label]) => {
+      const opsi = document.createElement('label');
+      opsi.className = 'roll-option';
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = `roll-${indeks}`;
+      radio.value = kode;
+      radio.checked = kode === nilai;
+      radio.disabled = terkunci;
+      radio.dataset.studentId = santri.id;
+      opsi.append(radio, document.createTextNode(label));
+      grup.append(opsi);
+    });
+    const keterangan = document.createElement('span');
+    keterangan.className = 'roll-row__note';
+    keterangan.textContent = santri.status ? (terkunci ? 'Sudah dicatat' : 'Sudah dicatat, bisa diubah') : 'Belum dicatat';
+    baris.append(nama, grup, keterangan);
+    return baris;
+  }));
+  rollForm.hidden = false;
+}
+
+rollFilter.addEventListener('submit', (event) => {
+  event.preventDefault();
+  muatPresensiAsrama();
+});
+rollFilter.querySelectorAll('input[name="roll-mode"]').forEach((radio) => radio.addEventListener('change', perbaruiFilterPresensi));
+rollDormitory.addEventListener('change', () => { rollForm.hidden = true; });
+
+rollForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (!rollData) return;
+  const sholat = rollData.mode === 'sholat';
+  const entries = [...rollList.querySelectorAll('input[type="radio"]:checked:not(:disabled)')]
+    .map((radio) => ({ studentId: radio.dataset.studentId, status: radio.value }));
+  if (!entries.length) {
+    statusPanel(rollStatus, 'Semua santri sudah tercatat untuk kegiatan ini.');
+    return;
+  }
+  const tombol = document.querySelector('#roll-save');
+  tombol.disabled = true;
+  try {
+    const body = { dormitoryId: rollData.dormitoryId, date: rollData.date, entries };
+    if (sholat) body.prayer = rollData.prayer;
+    else body.category = rollData.category;
+    const hasil = await kirimJson(`/api/presensi-asrama/${sholat ? 'sholat' : 'kegiatan'}`, 'POST', body);
+    await muatPresensiAsrama();
+    const nama = new Map(rollData.students.map((item) => [item.id, item.name]));
+    const gagal = hasil.gagal.map((item) => `${nama.get(item.studentId) || 'santri'} (${item.error})`).join(', ');
+    statusPanel(rollStatus, `${hasil.tersimpan} presensi tersimpan.${gagal ? ` Belum tersimpan: ${gagal}` : ''}`, Boolean(gagal));
+  } catch (error) {
+    statusPanel(rollStatus, error.message, true);
+  } finally {
+    tombol.disabled = false;
+  }
+});
 
 // Pesan dan doa dari wali (admin dan musyrif). GET /api/doa, POST /api/doa/:id/dibaca.
 const familyList = document.querySelector('#family-list');
@@ -996,6 +1156,7 @@ if (logoutButton) {
     renderStaffNav(staffNav, currentRole, 'monitoring', result.account);
     hitungIzinMenunggu();
     hitungPesanWali();
+    bukaTabDariAlamat();
     if (currentRole === 'admin') {
       document.querySelectorAll('.admin-only-tab').forEach((tab) => { tab.hidden = false; });
       accountLinkSection.hidden = false;

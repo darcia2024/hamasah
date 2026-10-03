@@ -1037,7 +1037,11 @@ function renderExecutiveDashboard(_daftarAwal, account) {
   // Kartu sapaan: hanya yang benar-benar diketahui (nama, peran, jumlah santri) dan
   // pintasan kerja sesuai peran. Dulu ada "Statistik Pekanan" dengan cincin progres dan
   // "Musyrif & Asatidzah" yang tidak pernah terisi oleh kode mana pun.
-  const userName = account && account.name ? account.name.split(' ')[0] : '';
+  // Nama depan untuk sapaan. Gelar di depan (Ust., Ustzh., H., Dr., dst.) ikut disebut
+  // bersama nama depannya, supaya tidak menjadi "Assalamu'alaikum, Ust.".
+  const kataNama = account && account.name ? account.name.trim().split(/\s+/) : [];
+  const GELAR = /^(ust|ustz|ustzh|ustadz|ustadzah|ustaz|ustazah|kh|h|hj|dr|drs|prof|ir)\.?$/i;
+  const userName = kataNama.length > 1 && GELAR.test(kataNama[0]) ? `${kataNama[0]} ${kataNama[1]}` : (kataNama[0] || '');
   const PINTASAN = {
     // Urutannya sama dengan menu samping (nav.js).
     admin: [
@@ -1050,7 +1054,13 @@ function renderExecutiveDashboard(_daftarAwal, account) {
       ['pengaturan.html', 'Pengaturan aplikasi']
     ],
     'registration-officer': [['staff.html', 'Pendaftaran calon santri']],
-    supervisor: [['monitoring.html', 'Catat kegiatan dan ibadah santri']],
+    supervisor: [
+      ['monitoring.html#presensi', 'Presensi asrama (sholat dan kegiatan)'],
+      ['monitoring.html', 'Catat pembinaan per santri'],
+      ['monitoring.html#izin', 'Izin santri'],
+      ['monitoring.html#pesan-wali', 'Pesan wali'],
+      ['lms.html', 'Progres maddah santri']
+    ],
     teacher: [['lms.html', 'Kelola maddah dan materi']],
     finance: [['operations.html', 'Tagihan dan kuitansi']],
     student: [['lms.html', 'Buka ruang belajar']]
@@ -1113,6 +1123,7 @@ function renderExecutiveDashboard(_daftarAwal, account) {
   mainCol.append(
     heroBanner,
     ...(ringkasan ? [window.HamasahAdminOverview.kpi(ringkasan), window.HamasahAdminOverview.perhatian(ringkasan, { onOpenStudent: bukaSantri })] : []),
+    ...(isSupervisor ? [kartuTugasMusyrif()] : []),
     subtabsRow,
     panelsContainer
   );
@@ -1250,7 +1261,7 @@ async function loadStudents(account) {
       renderExecutiveDashboard(null, account);
       // Datang dari lonceng saat sedang membuka detail santri.
       if (window.location.hash === '#perhatian') {
-        const daftar = document.querySelector('#admin-perhatian');
+        const daftar = document.querySelector('#admin-perhatian, #tugas-musyrif');
         if (daftar) daftar.scrollIntoView({ block: 'start' });
         try { history.replaceState(null, '', window.location.pathname); } catch {}
       }
@@ -1315,11 +1326,12 @@ function siapkanIkonTopbar(account) {
       })
       .catch(() => {});
   }
-  if (lonceng && role === 'admin' && !lonceng.dataset.siap) {
+  if (lonceng && ['admin', 'supervisor'].includes(role) && !lonceng.dataset.siap) {
     lonceng.dataset.siap = '1';
     lonceng.hidden = false;
+    // Admin: daftar "Perlu perhatian". Musyrif: kartu "Tugas hari ini".
     lonceng.addEventListener('click', () => {
-      const daftar = document.querySelector('#admin-perhatian');
+      const daftar = document.querySelector('#admin-perhatian, #tugas-musyrif');
       if (daftar) {
         // Fokus lebih dulu supaya tidak memotong animasi gulir.
         daftar.focus({ preventScroll: true });
@@ -1335,6 +1347,70 @@ function siapkanIkonTopbar(account) {
       }
     });
   }
+}
+
+// Kartu "Tugas hari ini" di beranda musyrif: waktu sholat yang belum dicatat, izin
+// menunggu, pesan wali belum dibaca, dan catatan kesehatan yang perlu perhatian.
+// GET /api/presensi-asrama/hari-ini. Angka lonceng ikut diperbarui.
+function kartuTugasMusyrif() {
+  const wadah = document.createElement('section');
+  wadah.className = 'admin-alerts musyrif-tasks';
+  wadah.id = 'tugas-musyrif';
+  wadah.tabIndex = -1;
+  const kepala = document.createElement('div');
+  kepala.className = 'admin-section-head';
+  const judul = document.createElement('h3');
+  judul.className = 'admin-section-title';
+  judul.textContent = 'Tugas hari ini';
+  kepala.append(judul);
+  const daftar = document.createElement('ul');
+  daftar.className = 'musyrif-task-list';
+  const memuat = document.createElement('p');
+  memuat.className = 'admin-empty';
+  memuat.textContent = 'Memuat...';
+  wadah.append(kepala, memuat);
+
+  const NAMA_SHOLAT = { subuh: 'Subuh', dzuhur: 'Dzuhur', ashar: 'Ashar', maghrib: 'Maghrib', isya: 'Isya' };
+  const KONDISI = { 'sakit-ringan': 'sakit ringan', 'perlu-perhatian': 'perlu perhatian', dirujuk: 'dirujuk ke dokter' };
+  function tugas(teks, href, tautan, jenis) {
+    const item = document.createElement('li');
+    item.className = `musyrif-task is-${jenis}`;
+    const isi = document.createElement('span');
+    isi.textContent = teks;
+    item.append(isi);
+    if (href) {
+      const a = document.createElement('a');
+      a.className = 'admin-link';
+      a.href = href;
+      a.textContent = tautan;
+      item.append(a);
+    }
+    return item;
+  }
+
+  fetch('/api/presensi-asrama/hari-ini', { headers: requestHeaders() })
+    .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Tugas hari ini belum dapat dimuat.'))))
+    .then((data) => {
+      const butir = [];
+      if (!data.students) {
+        butir.push(tugas('Anda belum memegang asrama. Hubungi admin untuk penugasan.', null, '', 'info'));
+      } else if (data.sholatBelum.length) {
+        data.sholatBelum.forEach((item) => butir.push(tugas(`Sholat ${NAMA_SHOLAT[item.prayer] || item.prayer}: ${item.belum} dari ${data.students} santri belum dicatat`, `monitoring.html#presensi-${item.prayer}`, 'Catat', 'perlu')));
+      } else {
+        butir.push(tugas(`Semua waktu sholat hari ini sudah dicatat untuk ${data.students} santri.`, null, '', 'selesai'));
+      }
+      if (data.izinMenunggu) butir.push(tugas(`${data.izinMenunggu} izin menunggu keputusan`, 'monitoring.html#izin', 'Putuskan', 'perlu'));
+      if (data.pesanBelumDibaca) butir.push(tugas(`${data.pesanBelumDibaca} pesan wali belum dibaca`, 'monitoring.html#pesan-wali', 'Baca', 'perlu'));
+      (data.kesehatan || []).forEach((item) => butir.push(tugas(`${item.name}: ${KONDISI[item.condition] || item.condition} (${formatTanggalPanjang(item.date)})`, null, '', 'perlu')));
+      daftar.replaceChildren(...butir);
+      memuat.replaceWith(daftar);
+      const jumlah = (data.izinMenunggu || 0) + (data.pesanBelumDibaca || 0) + (data.kesehatan || []).length;
+      isiAngkaIkon('#topbar-attention-count', jumlah);
+      const lonceng = document.querySelector('#topbar-attention');
+      if (lonceng) lonceng.setAttribute('aria-label', jumlah ? `Tugas hari ini, ${jumlah} perlu ditindaklanjuti` : 'Tugas hari ini');
+    })
+    .catch((error) => { memuat.textContent = error.message; });
+  return wadah;
 }
 
 function perbaruiAngkaPerhatian() {

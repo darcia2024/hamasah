@@ -57,7 +57,9 @@ const PERMISSIONS = Object.freeze({
 
   // Mencatat dan mengubah data santri. Wali dan santri tidak pernah menulis.
   'students.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
-  // Mengubah data inti santri (nama, program, status lulus atau keluar). Hanya admin.
+  // Hanya admin: mengubah data inti santri (nama, program, status lulus atau keluar),
+  // membuat santri, memindahkan asrama, dan menghubungkan akun santri/wali. Musyrif
+  // tetap mencatat pembinaan lewat students.manage.
   'students.edit': Object.freeze([ROLES.ADMIN]),
   // Membaca data santri. Siapa yang boleh melihat santri yang mana tetap ditentukan
   // service: wali hanya anaknya, santri hanya dirinya sendiri.

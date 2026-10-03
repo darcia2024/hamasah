@@ -62,6 +62,7 @@ const LABEL = {
   'leave.cancelled': 'Izin dibatalkan santri',
   'family-message.sent': 'Pesan wali dikirim',
   'family-message.read': 'Pesan wali dibaca musyrif',
+  'dormitory.roll-recorded': 'Presensi asrama dicatat',
   'invoice.receipt-downloaded': 'Kuitansi diunduh',
   'demo.data-started': 'Pengisian data demo dimulai',
   'demo.password-reset': 'Kata sandi akun demo diganti',

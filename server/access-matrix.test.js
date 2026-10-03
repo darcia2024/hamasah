@@ -195,6 +195,10 @@ async function run() {
       { permission: 'leave.request', method: 'POST', path: () => `/api/students/${studentId}/leave`, body: () => ({}) },
       { permission: 'leave.request', method: 'POST', path: '/api/leave/00000000-0000-4000-8000-000000000000/batal' },
       { permission: 'leave.decide', method: 'GET', path: '/api/leave' },
+      { permission: 'students.manage', method: 'GET', path: '/api/presensi-asrama?mode=sholat&date=2026-10-01&prayer=subuh' },
+      { permission: 'students.manage', method: 'GET', path: '/api/presensi-asrama/hari-ini' },
+      { permission: 'students.manage', method: 'POST', path: '/api/presensi-asrama/sholat', body: () => ({ date: '2026-10-01', prayer: 'subuh', entries: [] }) },
+      { permission: 'students.manage', method: 'POST', path: '/api/presensi-asrama/kegiatan', body: () => ({ date: '2026-10-01', category: 'Ta', entries: [] }) },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/doa` },
       { permission: 'family-messages.send', method: 'POST', path: () => `/api/students/${studentId}/doa`, body: () => ({}) },
       { permission: 'family-messages.read', method: 'GET', path: '/api/doa' },
@@ -210,15 +214,20 @@ async function run() {
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/invoices` },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/invoices/00000000-0000-4000-8000-000000000000/receipt.pdf` },
       {
-        permission: 'students.manage', method: 'POST', path: '/api/students',
+        permission: 'students.edit', method: 'POST', path: '/api/students',
         body: () => ({ name: 'Santri Tambahan', program: 'Mahad Al-Azhar', city: 'Kairo', joinDate: '2026-08-22' })
       },
       {
-        permission: 'students.manage', method: 'PATCH', path: () => `/api/students/${studentId}/accounts`,
+        permission: 'students.edit', method: 'PATCH', path: () => `/api/students/${studentId}/accounts`,
         body: () => ({ parentAccountIds: [akunId[R.PARENT]] })
       },
+      // Koreksi catatan pembinaan tetap untuk musyrif dan admin (catatan fiktif: 4xx).
       {
-        permission: 'students.manage', method: 'PATCH', path: () => `/api/students/${studentId}/placement`,
+        permission: 'students.manage', method: 'PATCH', path: () => `/api/students/${studentId}/attendance/00000000-0000-4000-8000-000000000000`,
+        body: () => ({ status: 'present', reason: 'Koreksi uji matriks akses.' })
+      },
+      {
+        permission: 'students.edit', method: 'PATCH', path: () => `/api/students/${studentId}/placement`,
         body: () => ({ gender: 'putra', dormitoryId })
       },
       {

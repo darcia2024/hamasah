@@ -157,9 +157,17 @@ function createStudentPortalService(options) {
     return canView(student, actor, await dormitoryLimitFor(actor));
   }
 
+  // Membuat santri, menghubungkan akun, dan memindahkan asrama hanya untuk admin.
+  // Musyrif dulu bisa ketiganya: santri buatannya tersimpan tanpa asrama lalu tidak
+  // terlihat lagi olehnya, penempatan bisa mengeluarkan santri dari asramanya, dan akun
+  // wali mana pun bisa dihubungkan ke santrinya.
+  function adminSaja(actor) {
+    return Boolean(actor && actor.role === 'admin');
+  }
+
   async function createStudent(input, actor) {
-    if (!assertStaff(actor)) {
-      return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
+    if (!adminSaja(actor)) {
+      return { ok: false, status: 403, error: 'Akses admin diperlukan.' };
     }
     const source = input || {};
     const name = clean(source.name);
@@ -196,8 +204,8 @@ function createStudentPortalService(options) {
   }
 
   async function linkAccounts(studentId, input, actor) {
-    if (!assertStaff(actor)) {
-      return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
+    if (!adminSaja(actor)) {
+      return { ok: false, status: 403, error: 'Akses admin diperlukan.' };
     }
     const student = await store.getStudent(studentId);
     if (!student) {
@@ -288,8 +296,8 @@ function createStudentPortalService(options) {
   // Menempatkan santri ke asrama. Dipisahkan dari linkAccounts karena ini soal
   // pembinaan, bukan soal akun.
   async function setPlacement(studentId, input, actor) {
-    if (!assertStaff(actor)) {
-      return { ok: false, error: 'Akses pengawas atau admin diperlukan.' };
+    if (!adminSaja(actor)) {
+      return { ok: false, status: 403, error: 'Akses admin diperlukan.' };
     }
     const student = await store.getStudent(studentId);
     if (!student) {

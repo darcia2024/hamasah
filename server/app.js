@@ -46,6 +46,7 @@ const { createStudentCareService } = require('./student-care-service.js');
 const { createAdminOverviewService } = require('./admin-overview-service.js');
 const { createStudentJourneyService } = require('./student-journey-service.js');
 const { createStudentLifeService } = require('./student-life-service.js');
+const { createDormitoryRollService } = require('./dormitory-roll-service.js');
 const { createDemoDataService } = require('./demo-data-service.js');
 const { createSettingsService } = require('./settings-service.js');
 const { createDatabaseUpdateService } = require('./database-update-service.js');
@@ -72,6 +73,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/settings.js'),
   ...require('./routes/journey.js'),
   ...require('./routes/student-life.js'),
+  ...require('./routes/dormitory-roll.js'),
   ...require('./routes/files.js'),
   ...require('./routes/operations.js'),
   ...require('./routes/dormitories.js'),
@@ -237,6 +239,14 @@ function createHamasahApp(options) {
     staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId),
     recordAttendance: (studentId, input, actor) => studentPortalService.addAttendance(studentId, input, actor)
   });
+  // Presensi sholat dan kegiatan per asrama, lewat layanan per santri yang sudah ada.
+  const dormitoryRollService = config.dormitoryRollService || createDormitoryRollService({
+    database,
+    staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId),
+    recordPrayers: (studentId, input, actor) => studentCareService.recordPrayers(studentId, input, actor),
+    recordAttendance: (studentId, input, actor) => studentPortalService.addAttendance(studentId, input, actor),
+    healthEnabled: kesehatanAktif
+  });
   const aiService = config.aiService || createAiService({
     provider: config.aiProvider || null,
     maxRequests: () => settingsService.ambil('asisten.batasPerJam'),
@@ -344,6 +354,7 @@ function createHamasahApp(options) {
     settingsService,
     studentJourneyService,
     studentLifeService,
+    dormitoryRollService,
     databaseUpdateService,
     accountStore,
     departureService,

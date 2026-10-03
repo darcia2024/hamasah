@@ -51,7 +51,7 @@ module.exports = [
   {
     method: 'POST',
     pattern: /^\/api\/students$/,
-    permission: 'students.manage',
+    permission: 'students.edit',
     async handler({ response, services, auth, readBody, ip }) {
       const created = await services.studentPortalService.createStudent(await readBody(), await auth.actor());
       if (created.ok) {
@@ -69,7 +69,7 @@ module.exports = [
   {
     method: 'PATCH',
     pattern: /^\/api\/students\/([\w-]+)\/accounts$/,
-    permission: 'students.manage',
+    permission: 'students.edit',
     async handler({ response, services, auth, params, readBody, ip }) {
       const actor = await auth.actor();
       const body = await readBody();
@@ -105,7 +105,7 @@ module.exports = [
   {
     method: 'PATCH',
     pattern: /^\/api\/students\/([\w-]+)\/placement$/,
-    permission: 'students.manage',
+    permission: 'students.edit',
     async handler({ response, services, auth, params, readBody, ip }) {
       const hasil = await services.studentPortalService.setPlacement(params[0], await readBody(), await auth.actor());
       if (hasil.ok) {
