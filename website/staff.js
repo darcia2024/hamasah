@@ -500,6 +500,16 @@ function bagianTindakLanjut(registration) {
         elemen('p', 'staff-reg-list__body', step.title),
         elemen('p', 'staff-reg-list__meta', step.doneAt ? `Selesai ${formatWaktu(step.doneAt)}` : (step.dueOn ? `Tenggat ${formatTanggal(step.dueOn)}` : 'Tanpa tenggat'))
       );
+      // Tandai selesai atau buka kembali: PATCH /api/registrations/:id/next-steps/:stepId.
+      const tandai = elemen('button', 'button button--secondary op-action', step.doneAt ? 'Buka kembali' : 'Tandai selesai');
+      tandai.type = 'button';
+      tandai.addEventListener('click', () => {
+        aksiDetail(tandai, registration, async () => {
+          await kirimPerubahan(`/api/registrations/${encodeURIComponent(registration.registrationId)}/next-steps/${encodeURIComponent(step.id)}`, 'PATCH', { done: !step.doneAt });
+          return step.doneAt ? 'Tindak lanjut dibuka kembali.' : 'Tindak lanjut ditandai selesai.';
+        });
+      });
+      item.append(tandai);
       daftar.append(item);
     });
     isi.push(daftar);
@@ -792,7 +802,7 @@ async function loadRegistrations() {
   if (!response.ok) throw new Error(result.error || 'Data pendaftar belum dapat dimuat.');
   renderRegistrations(result.items);
   const badgeEl = document.querySelector('#badge-reg-count');
-  if (badgeEl) badgeEl.textContent = result.items.length;
+  if (badgeEl) badgeEl.textContent = result.total;
   const pages = Math.max(1, Math.ceil(result.total / result.pageSize));
   registrationPagination.hidden = pages <= 1;
   registrationPageLabel.textContent = `Halaman ${result.page} dari ${pages}`;
@@ -808,6 +818,16 @@ function showConsole(account) {
   consoleSection.hidden = false;
   logoutButton.hidden = false;
   renderStaffNav(staffNav, role, 'staff', typeof account === 'object' ? account : null);
+  // Import operasional memakai izin operations.manage (admin dan keuangan saja).
+  if (tabBtnImport) tabBtnImport.hidden = !['admin', 'finance'].includes(role);
+  // Angka tab "Pesan konsultasi" sejak halaman dibuka, bukan baru setelah tabnya diklik.
+  fetch('/api/inquiries?status=new&page=1&pageSize=1', { headers: authHeaders() })
+    .then((res) => (res.ok ? res.json() : null))
+    .then((hasil) => {
+      const badge = document.querySelector('#badge-inquiry-count');
+      if (hasil && badge) badge.textContent = hasil.total;
+    })
+    .catch(() => {});
   const muatData = () => loadRegistrations().catch((error) => {
     registrationListStatus.textContent = error.message || 'Data pendaftar belum dapat dimuat.';
     registrationListStatus.classList.add('is-error');

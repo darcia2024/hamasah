@@ -176,6 +176,17 @@ function createPostgresRegistrationStore({ database } = {}) {
       return get(registrationId);
     },
 
+    // doneAt null membuka kembali tindak lanjut yang sudah ditandai selesai.
+    async setNextStepDone(registrationId, stepId, doneAt) {
+      const registration = await get(registrationId);
+      if (!registration) return null;
+      const result = await database.query(
+        'UPDATE registration_next_steps SET done_at = $3 WHERE id = $1 AND registration_id = $2',
+        [stepId, registration.id, doneAt]
+      );
+      return result.rowCount ? get(registrationId) : null;
+    },
+
     async addNextStep(registrationId, step) {
       const registration = await get(registrationId);
       if (!registration) return null;

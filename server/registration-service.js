@@ -421,10 +421,18 @@
       return record ? { ok: true, value: toPublicRegistration(record) } : { ok: false, error: 'Pendaftaran tidak ditemukan.' };
     }
 
+    async function setNextStepDone(registrationId, stepId, input, actor) {
+      if (!actor || ![domain.ROLES.ADMIN, domain.ROLES.REGISTRATION_OFFICER].includes(actor.role)) return { ok: false, error: 'Akses petugas diperlukan.' };
+      const done = (input || {}).done !== false;
+      const record = typeof store.setNextStepDone === 'function' ? await store.setNextStepDone(registrationId, String(stepId || ''), done ? getNow() : null) : null;
+      return record ? { ok: true, value: toStaffRegistration(record) } : { ok: false, error: 'Tindak lanjut tidak ditemukan.' };
+    }
+
     return Object.freeze({
       addDocument,
       addNote,
       addNextStep,
+      setNextStepDone,
       changeStatus,
       create,
       getPublic,

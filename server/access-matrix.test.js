@@ -298,6 +298,10 @@ async function run() {
         body: () => ({ visibility: 'internal', body: 'Catatan matriks.' })
       },
       {
+        permission: 'registrations.update-status', method: 'PATCH', path: () => `/api/registrations/${registrationId}/next-steps/00000000-0000-4000-8000-000000000000`,
+        body: () => ({ done: true })
+      },
+      {
         permission: 'registrations.convert', method: 'POST', path: () => `/api/registrations/${registrationId}/convert`
       },
       { permission: 'departures.manage', method: 'GET', path: '/api/departures' },

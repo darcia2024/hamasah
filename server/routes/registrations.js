@@ -278,5 +278,16 @@ module.exports = [
       const result = await services.registrationService.addNextStep(params[0], await readBody(), { role: registrationRoleOf(staff), accountId: staff.id });
       json(response, result.ok ? 201 : 422, result.ok ? { registration: result.value } : publicError(result));
     }
+  },
+  // Tandai tindak lanjut selesai ({ done: true }) atau buka kembali ({ done: false }).
+  {
+    method: 'PATCH',
+    pattern: new RegExp(`^/api/registrations/(${REGISTRATION_ID})/next-steps/([\\w-]+)$`),
+    permission: 'registrations.update-status',
+    async handler({ response, services, auth, params, readBody }) {
+      const staff = await auth.actor();
+      const result = await services.registrationService.setNextStepDone(params[0], params[1], await readBody(), { role: registrationRoleOf(staff), accountId: staff.id });
+      json(response, result.ok ? 200 : 422, result.ok ? { registration: result.value } : publicError(result));
+    }
   }
 ];
