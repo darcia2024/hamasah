@@ -1537,6 +1537,13 @@ html.has-portal-session body:has(:is(#monitoring-guard, #operations-guard, #lms-
   color: var(--crm-text-secondary);
 }
 
+/* Judul artikel bawaan: huruf biasa, bukan nama berkas. */
+.settings-db-list--teks {
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 @media (max-width: 640px) {
   .setting-row { align-items: flex-start; }
   .settings-actions { justify-content: stretch; }

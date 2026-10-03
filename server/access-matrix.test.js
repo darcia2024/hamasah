@@ -333,6 +333,7 @@ async function run() {
       { permission: 'finance.manage', method: 'GET', path: '/api/operations/invoices/00000000-0000-0000-0000-000000000001/receipt.pdf' },
       { permission: 'operations.read', method: 'GET', path: '/api/operations/report.csv' },
       { permission: 'operations.read', method: 'GET', path: '/api/operations/pilihan-santri' },
+      { permission: 'settings.manage', method: 'POST', path: '/api/admin/settings/artikel' },
       { permission: 'operations.read', method: 'GET', path: '/api/operations/ringkasan' },
       { permission: 'operations.read', method: 'GET', path: '/api/operations/tunggakan' },
       { permission: 'operations.read', method: 'GET', path: '/api/operations/riwayat' },

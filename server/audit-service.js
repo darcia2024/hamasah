@@ -91,6 +91,7 @@ const ACTIONS = Object.freeze({
   ,DATABASE_UPDATED: 'database.updated'
   ,INVOICE_REMINDER_SENT: 'invoice.reminder-sent'
   ,DEPARTURE_MANIFEST_EXPORTED: 'departure-group.manifest-exported'
+  ,ARTICLES_SEEDED: 'article.defaults-added'
 });
 
 // Riwayat keuangan: semua kejadian tagihan dan kuitansi, untuk tab Riwayat di halaman

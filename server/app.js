@@ -50,6 +50,7 @@ const { createDormitoryRollService } = require('./dormitory-roll-service.js');
 const { createDemoDataService } = require('./demo-data-service.js');
 const { createSettingsService } = require('./settings-service.js');
 const { createDatabaseUpdateService } = require('./database-update-service.js');
+const { createArticleSeedService } = require('./article-seed-service.js');
 const { createPostgresStudentCareStore } = require('./postgres-student-care-store.js');
 const { createPostgresDepartureStore } = require('./postgres-departure-store.js');
 const { createRequestAuth, hashToken, safeEqual } = require('./http/auth.js');
@@ -178,6 +179,7 @@ function createHamasahApp(options) {
     }
   });
   const databaseUpdateService = config.databaseUpdateService || createDatabaseUpdateService({ database });
+  const articleSeedService = config.articleSeedService || createArticleSeedService({ database });
   const kesehatanAktif = () => settingsService.ambil('kesehatan.aktif');
   const studentCareService = config.studentCareService || createStudentCareService({
     store: createPostgresStudentCareStore({ database }),
@@ -357,6 +359,7 @@ function createHamasahApp(options) {
     studentLifeService,
     dormitoryRollService,
     databaseUpdateService,
+    articleSeedService,
     accountStore,
     departureService,
     studentCareService,

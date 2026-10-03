@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
-    <link rel="stylesheet" href="staff.css?v=cd070d9561" />
+    <link rel="stylesheet" href="staff.css?v=41cdd9ab2f" />
     <link rel="stylesheet" href="portal.css?v=d8334a5e2e" />
     <link rel="stylesheet" href="fields.css?v=40377b19dc" />
     <script src="session-hint.js?v=b0562827f3"></script>
@@ -213,13 +213,27 @@
             <button class="button button--primary control--h42" id="database-apply" type="button" hidden>Terapkan pembaruan database</button>
             <p id="database-status" class="form-status" role="status" aria-live="polite"></p>
           </div>
+
+          <!-- Artikel bawaan dari repo yang belum masuk database. POST /api/admin/settings/artikel. -->
+          <div class="crm-white-card u-mt-20" id="articles-card">
+            <div class="crm-white-card-header">
+              <div>
+                <h3>Artikel bawaan Pena Hamasah</h3>
+                <p>Artikel yang dibawa rilis aplikasi tetapi belum ada di database situs ini. Artikel yang sudah ada tidak ditimpa, jadi suntingan di Pena Hamasah tetap aman.</p>
+              </div>
+            </div>
+            <p id="articles-summary" class="settings-db-summary">Memeriksa artikel...</p>
+            <ul id="articles-pending" class="settings-db-list settings-db-list--teks" hidden></ul>
+            <button class="button button--primary control--h42" id="articles-apply" type="button" hidden>Tambahkan artikel bawaan</button>
+            <p id="articles-status" class="form-status" role="status" aria-live="polite"></p>
+          </div>
         </div>
       </div>
     </section>
 
     <script src="internal-shell.js?v=af5d3d7d4c"></script>
     <script src="nav.js?v=19b659b728"></script>
-    <script src="pengaturan.js?v=074ea583a6"></script>
+    <script src="pengaturan.js?v=d50ee41b6a"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>

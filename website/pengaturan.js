@@ -116,12 +116,58 @@ function renderDatabase(db) {
   dbApply.hidden = !tertunda.length || Boolean(db.masalah);
 }
 
+const artikelSummary = document.querySelector('#articles-summary');
+const artikelPending = document.querySelector('#articles-pending');
+const artikelApply = document.querySelector('#articles-apply');
+const artikelStatus = document.querySelector('#articles-status');
+
+function renderArtikel(artikel) {
+  if (!artikel) {
+    artikelSummary.textContent = 'Daftar artikel belum dapat diperiksa.';
+    artikelPending.hidden = true;
+    artikelApply.hidden = true;
+    return;
+  }
+  const belum = artikel.belumAda || [];
+  artikelSummary.textContent = belum.length
+    ? `${belum.length} dari ${artikel.total} artikel bawaan belum ada di situs ini:`
+    : `Semua ${artikel.total} artikel bawaan sudah ada di situs ini.`;
+  artikelPending.hidden = !belum.length;
+  artikelPending.replaceChildren(...belum.map((item) => {
+    const li = document.createElement('li');
+    li.textContent = item.title;
+    return li;
+  }));
+  artikelApply.hidden = !belum.length;
+}
+
 async function muat() {
   const data = await kirim('GET', '/api/admin/settings');
   setStatus(status, '');
   renderPengaturan(data);
   renderDatabase(data.database);
+  renderArtikel(data.artikel);
 }
+
+artikelApply.addEventListener('click', async () => {
+  const jumlah = artikelPending.children.length;
+  if (!window.confirm(`Tambahkan ${jumlah} artikel bawaan ke Pena Hamasah? Artikel langsung terbit dan bisa disunting atau diarsipkan dari halaman Pendaftaran.`)) return;
+  artikelApply.disabled = true;
+  artikelApply.textContent = 'Menambahkan...';
+  setStatus(artikelStatus, '');
+  try {
+    const hasil = await kirim('POST', '/api/admin/settings/artikel');
+    setStatus(artikelStatus, hasil.ditambahkan.length
+      ? `${hasil.ditambahkan.length} artikel ditambahkan dan sudah tampil di situs.`
+      : 'Tidak ada artikel yang perlu ditambahkan.');
+    renderArtikel(hasil.status);
+  } catch (error) {
+    setStatus(artikelStatus, error.message, true);
+  } finally {
+    artikelApply.disabled = false;
+    artikelApply.textContent = 'Tambahkan artikel bawaan';
+  }
+});
 
 function jalankan(pekerjaan, node = status) {
   return pekerjaan().catch((error) => setStatus(node, error.message || 'Pengaturan belum dapat dimuat.', true));

@@ -16,11 +16,12 @@ module.exports = [
     pattern: /^\/api\/admin\/settings$/,
     permission: 'settings.manage',
     async handler({ response, services }) {
-      const [pengaturan, database] = await Promise.all([
+      const [pengaturan, database, artikel] = await Promise.all([
         services.settingsService.semua(),
-        services.databaseUpdateService.status()
+        services.databaseUpdateService.status(),
+        services.articleSeedService.status().catch(() => null)
       ]);
-      json(response, 200, { ...pengaturan, database });
+      json(response, 200, { ...pengaturan, database, artikel });
     }
   },
 
@@ -59,6 +60,24 @@ module.exports = [
         });
       }
       json(response, hasil.ok ? 200 : (hasil.status || 422), hasil.ok ? hasil.value : publicError(hasil));
+    }
+  },
+
+  // Artikel bawaan (data/articles.json) yang belum ada di database. Yang sudah ada tidak ditimpa.
+  {
+    method: 'POST',
+    pattern: /^\/api\/admin\/settings\/artikel$/,
+    permission: 'settings.manage',
+    async handler({ response, services, auth, ip }) {
+      const hasil = await services.articleSeedService.tambahkan();
+      if (hasil.ditambahkan.length) {
+        await services.auditService.record({
+          action: ACTIONS.ARTICLES_SEEDED, actor: await auth.actor(), ip,
+          entityType: 'article', entityId: 'bawaan',
+          metadata: { jumlah: hasil.ditambahkan.length, slug: hasil.ditambahkan }
+        });
+      }
+      json(response, 200, hasil);
     }
   },
 
