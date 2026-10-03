@@ -793,11 +793,14 @@ let staffCourses = [];
 function renderStaffCourses(courses) {
   staffCourses = courses || [];
   const terpilih = materialCourse.value;
+  const terpilihEnroll = enrollmentCourse.value;
   [materialCourse, enrollmentCourse].forEach((select) => select.replaceChildren());
   staffCourses.forEach((course) => [materialCourse, enrollmentCourse].forEach((select) => select.add(new Option(course.title, course.id))));
   if (terpilih && staffCourses.some((course) => course.id === terpilih)) materialCourse.value = terpilih;
+  if (terpilihEnroll && staffCourses.some((course) => course.id === terpilihEnroll)) enrollmentCourse.value = terpilihEnroll;
   renderStaffMaterials();
   loadSubmissions().catch(() => {});
+  loadProgress().catch(() => {});
 }
 
 // Daftar materi maddah terpilih. Materi yang sudah diarsipkan tetap ditampilkan
@@ -824,9 +827,12 @@ function renderStaffMaterials() {
     const title = document.createElement('strong');
     title.textContent = material.title;
     const meta = document.createElement('span');
+    // Label jenis mengikuti pilihan "Format materi" di formulir, bukan kode internalnya.
+    const jenis = (materialType && [...materialType.options].find((option) => option.value === material.type)) || null;
+    const labelJenis = jenis ? jenis.textContent.trim() : material.type;
     meta.textContent = material.archivedAt
-      ? `${material.type} · diarsipkan`
-      : material.type;
+      ? `${labelJenis} · diarsipkan`
+      : labelJenis;
     info.append(title, meta);
 
     row.append(info);
@@ -865,14 +871,42 @@ async function loadSubmissions() {
   }
 }
 
+let saringanKiriman = 'menunggu';
+let kirimanTerakhir = [];
+const submissionFilter = document.querySelector('#submission-filter');
+if (submissionFilter) {
+  submissionFilter.addEventListener('click', (event) => {
+    const tombol = event.target.closest('[data-saring]');
+    if (!tombol) return;
+    saringanKiriman = tombol.dataset.saring;
+    renderSubmissions(kirimanTerakhir);
+  });
+}
+
 function renderSubmissions(items) {
+  kirimanTerakhir = items;
   submissionList.replaceChildren();
   const menunggu = items.filter((item) => item.status !== 'reviewed');
-  submissionStatus.textContent = items.length
-    ? `${menunggu.length} menunggu penilaian dari ${items.length} kiriman.`
-    : 'Belum ada kiriman tugas pada maddah ini.';
+  const dinilai = items.filter((item) => item.status === 'reviewed');
+  if (submissionFilter) {
+    submissionFilter.querySelectorAll('[data-saring]').forEach((tombol) => {
+      const aktif = tombol.dataset.saring === saringanKiriman;
+      tombol.classList.toggle('is-active', aktif);
+      tombol.setAttribute('aria-pressed', String(aktif));
+      const jumlah = { menunggu: menunggu.length, dinilai: dinilai.length, semua: items.length }[tombol.dataset.saring];
+      tombol.textContent = `${{ menunggu: 'Menunggu penilaian', dinilai: 'Sudah dinilai', semua: 'Semua' }[tombol.dataset.saring]} (${jumlah})`;
+    });
+  }
+  // Yang menunggu: paling lama dikirim di atas, supaya tidak ada yang tertinggal.
+  const urutMenunggu = menunggu.slice().sort((left, right) => String(left.submittedAt || '').localeCompare(String(right.submittedAt || '')));
+  const tampil = saringanKiriman === 'menunggu' ? urutMenunggu : saringanKiriman === 'dinilai' ? dinilai : urutMenunggu.concat(dinilai);
+  submissionStatus.textContent = !items.length
+    ? 'Belum ada kiriman tugas pada maddah ini.'
+    : !tampil.length
+      ? (saringanKiriman === 'menunggu' ? 'Semua kiriman sudah dinilai.' : 'Belum ada kiriman yang dinilai.')
+      : `${menunggu.length} menunggu penilaian dari ${items.length} kiriman.`;
 
-  items.forEach((item) => {
+  tampil.forEach((item) => {
     const card = document.createElement('div');
     card.className = item.status === 'reviewed' ? 'lms-submission is-reviewed' : 'lms-submission';
 
@@ -942,6 +976,7 @@ function renderSubmissions(items) {
           if (!response.ok) throw new Error(result.error || 'Penilaian belum dapat disimpan.');
           await loadSubmissions();
           submissionStatus.textContent = `Penilaian untuk ${item.studentName || item.studentId} tersimpan.`;
+          loadProgress().catch(() => {});
         } catch (error) {
           submissionStatus.textContent = error.message || 'Penilaian belum dapat disimpan.';
           submissionStatus.classList.add('is-error');
@@ -985,7 +1020,48 @@ async function loadStaffCourses() {
 }
 
 function teksRemahLms() {
+  if (role === 'teacher') return 'Maddah yang Anda ampu';
   return role === 'student' ? 'Ruang belajar' : 'LMS Hamasah dan silabus maddah';
+}
+
+// Guru tidak punya akses daftar santri, jadi tab "Ruang belajar" (yang memilih santri)
+// tidak berguna baginya: langsung tab Kelola dengan teks yang ditulis untuk pengajar.
+function siapkanTampilanGuru() {
+  const judul = document.querySelector('.crm-summary-title');
+  const subjudul = document.querySelector('.crm-summary-subtitle');
+  if (judul) judul.textContent = 'Maddah yang Anda ampu';
+  if (subjudul) subjudul.textContent = 'Tambah materi, nilai kiriman tugas, dan pantau progres santri di maddah Anda.';
+  if (syncStatus) syncStatus.textContent = '';
+  [tabBtnMyCourses, tabBtnCourseDetail].forEach((tombol) => { if (tombol) tombol.hidden = true; });
+  const labelKelola = tabBtnManage && tabBtnManage.querySelector('span');
+  if (labelKelola) labelKelola.textContent = 'Kelola maddah saya';
+  switchLmsTab(tabBtnManage);
+}
+
+// Tautan dari beranda guru: #kelola=kiriman|progres&maddah=<id>.
+function bukaBagianKelola() {
+  const params = new URLSearchParams(window.location.hash.slice(1));
+  const bagian = params.get('kelola');
+  if (!bagian) return;
+  const maddah = params.get('maddah');
+  if (maddah && staffCourses.some((course) => course.id === maddah)) {
+    if (bagian === 'kiriman' && materialCourse.value !== maddah) {
+      materialCourse.value = maddah;
+      renderStaffMaterials();
+      loadSubmissions().catch(() => {});
+    }
+    if (bagian === 'progres' && enrollmentCourse.value !== maddah) {
+      enrollmentCourse.value = maddah;
+      loadProgress().catch(() => {});
+    }
+  }
+  const tujuan = document.querySelector(bagian === 'progres' ? '#lms-progres' : '#lms-kiriman');
+  if (tujuan) {
+    if (tabBtnManage) switchLmsTab(tabBtnManage);
+    tujuan.focus({ preventScroll: true });
+    tujuan.scrollIntoView({ block: 'start' });
+  }
+  try { history.replaceState(null, '', window.location.pathname); } catch {}
 }
 
 // Santri hanya melihat dirinya sendiri: teks halaman ditulis untuknya, dan pemilih santri
@@ -1131,9 +1207,152 @@ materialForm.addEventListener('submit', async (event) => {
   const guideQuestion = document.querySelector('#guide-question').value.trim(); const guideAnswer = document.querySelector('#guide-answer').value.trim();
   try { const response = await fetch(`/api/courses/${encodeURIComponent(materialCourse.value)}/materials`, { method: 'POST', headers: { ...headers(), 'Content-Type': 'application/json' }, body: JSON.stringify({ type: document.querySelector('#material-type').value, title: document.querySelector('#material-title').value, content: materialType.value === 'quiz' ? JSON.stringify({ questions: bacaPertanyaanKuis() }) : document.querySelector('#material-content').value, summary: document.querySelector('#material-summary').value, keyPoints: document.querySelector('#material-points').value.split(',').map((entry) => entry.trim()).filter(Boolean), studyGuide: guideQuestion && guideAnswer ? [{ question: guideQuestion, answer: guideAnswer }] : [] }) }); const result = await response.json(); if (!response.ok) throw new Error(result.error); materialForm.reset(); quizQuestionList.replaceChildren(); perbaruiFormMateri(); loadStaffCourses().catch(() => {}); setStatus(materialStatus, `Materi ${result.material.title} berhasil ditambahkan.`); if (studentSelect.value) await loadCourses(); } catch (error) { setStatus(materialStatus, error.message || 'Materi belum dapat ditambahkan.', true); }
 });
+// Rekap progres dan pendaftaran santri per maddah. Guru tidak punya izin membaca data
+// santri, jadi pilihan santri diambil dari GET /api/lms/pilihan-santri (id, nama, program)
+// dan rekap dari GET /api/courses/:id/progres.
+const progressTable = document.querySelector('#progress-table');
+const progressBody = document.querySelector('#progress-body');
+const progressStatus = document.querySelector('#progress-status');
+const enrollmentOptions = document.querySelector('#enrollment-options');
+const enrollmentSearch = document.querySelector('#enrollment-search');
+const enrollmentSubmit = document.querySelector('#enrollment-submit');
+let pilihanSantri = null;
+let terdaftarDiMaddah = new Set();
+
+async function loadProgress() {
+  if (!progressBody) return;
+  if (!enrollmentCourse.value) {
+    progressTable.hidden = true;
+    progressStatus.textContent = 'Buat maddah lebih dulu untuk mendaftarkan santri.';
+    renderEnrollmentOptions();
+    return;
+  }
+  progressStatus.classList.remove('is-error');
+  progressStatus.textContent = 'Memuat progres santri...';
+  try {
+    const [progres, pilihan] = await Promise.all([
+      fetch(`/api/courses/${encodeURIComponent(enrollmentCourse.value)}/progres`, { headers: headers() }).then(async (response) => {
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Progres santri belum dapat dimuat.');
+        return result;
+      }),
+      pilihanSantri ? pilihanSantri : fetch('/api/lms/pilihan-santri', { headers: headers() }).then((response) => (response.ok ? response.json() : { items: [] })).then((result) => result.items || [])
+    ]);
+    pilihanSantri = pilihan;
+    terdaftarDiMaddah = new Set(progres.items.map((item) => item.studentId));
+    renderProgress(progres.items);
+  } catch (error) {
+    progressTable.hidden = true;
+    progressStatus.textContent = error.message || 'Progres santri belum dapat dimuat.';
+    progressStatus.classList.add('is-error');
+  }
+  renderEnrollmentOptions();
+}
+
+function renderProgress(items) {
+  progressBody.replaceChildren();
+  progressTable.hidden = !items.length;
+  progressStatus.textContent = items.length
+    ? `${items.length} santri terdaftar. Rata-rata progres ${Math.round(items.reduce((sum, item) => sum + item.progress, 0) / items.length)}%.`
+    : 'Belum ada santri terdaftar di maddah ini. Daftarkan di bawah.';
+  items.forEach((item) => {
+    const baris = document.createElement('tr');
+    const nama = document.createElement('th');
+    nama.scope = 'row';
+    nama.textContent = item.studentName;
+    const materi = document.createElement('td');
+    const bar = document.createElement('span');
+    bar.className = 'lms-progress-bar';
+    bar.setAttribute('aria-hidden', 'true');
+    const isiBar = document.createElement('span');
+    isiBar.style.width = `${item.progress}%`;
+    bar.append(isiBar);
+    materi.append(bar, document.createTextNode(` ${item.completed}/${item.total} (${item.progress}%)`));
+    const kuis = document.createElement('td');
+    kuis.textContent = item.bestQuizScore === null ? 'Belum' : String(item.bestQuizScore);
+    const tugas = document.createElement('td');
+    const { total, pending, reviewed } = item.assignments;
+    const belumDikirim = total - pending - reviewed;
+    tugas.textContent = !total ? '-'
+      : pending ? `${pending} menunggu dinilai`
+        : !belumDikirim ? 'Semua dinilai'
+          : reviewed ? `${reviewed}/${total} dinilai, ${belumDikirim} belum dikirim` : 'Belum dikirim';
+    if (pending) tugas.className = 'is-pending';
+    baris.append(nama, materi, kuis, tugas);
+    progressBody.append(baris);
+  });
+}
+
+function renderEnrollmentOptions() {
+  if (!enrollmentOptions) return;
+  const cari = (enrollmentSearch && enrollmentSearch.value.trim().toLowerCase()) || '';
+  const belum = (pilihanSantri || []).filter((item) => !terdaftarDiMaddah.has(item.id));
+  const tampil = belum.filter((item) => !cari || item.name.toLowerCase().includes(cari));
+  const tercentang = new Set([...enrollmentOptions.querySelectorAll('input:checked')].map((input) => input.value));
+  enrollmentOptions.replaceChildren();
+  if (!belum.length) {
+    const kosong = document.createElement('p');
+    kosong.className = 'lms-enroll__empty';
+    kosong.textContent = pilihanSantri && pilihanSantri.length ? 'Semua santri aktif sudah terdaftar di maddah ini.' : 'Belum ada santri aktif.';
+    enrollmentOptions.append(kosong);
+  } else if (!tampil.length) {
+    const kosong = document.createElement('p');
+    kosong.className = 'lms-enroll__empty';
+    kosong.textContent = 'Tidak ada santri yang cocok dengan pencarian.';
+    enrollmentOptions.append(kosong);
+  }
+  tampil.forEach((item) => {
+    const label = document.createElement('label');
+    label.className = 'lms-enroll__option';
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.value = item.id;
+    input.checked = tercentang.has(item.id);
+    const nama = document.createElement('span');
+    nama.textContent = item.name;
+    label.append(input, nama);
+    if (item.program) {
+      const program = document.createElement('small');
+      program.textContent = item.program;
+      label.append(program);
+    }
+    enrollmentOptions.append(label);
+  });
+  perbaruiTombolEnroll();
+}
+
+function perbaruiTombolEnroll() {
+  const jumlah = enrollmentOptions.querySelectorAll('input:checked').length;
+  enrollmentSubmit.disabled = !jumlah || !enrollmentCourse.value;
+  enrollmentSubmit.querySelector('span').textContent = jumlah ? `Daftarkan ${jumlah} santri` : 'Daftarkan santri terpilih';
+}
+
+if (enrollmentOptions) enrollmentOptions.addEventListener('change', perbaruiTombolEnroll);
+if (enrollmentSearch) enrollmentSearch.addEventListener('input', renderEnrollmentOptions);
+enrollmentCourse.addEventListener('change', () => loadProgress().catch(() => {}));
+
 enrollmentForm.addEventListener('submit', async (event) => {
-  event.preventDefault(); if (!studentSelect.value) { setStatus(enrollmentStatus, 'Pilih santri terlebih dahulu.', true); return; }
-  try { const response = await fetch(`/api/students/${encodeURIComponent(studentSelect.value)}/courses/${encodeURIComponent(enrollmentCourse.value)}`, { method: 'POST', headers: headers() }); if (!response.ok) { const result = await response.json(); throw new Error(result.error); } setStatus(enrollmentStatus, 'Santri berhasil didaftarkan ke maddah.'); await loadCourses(); } catch (error) { setStatus(enrollmentStatus, error.message || 'Enrollment belum dapat disimpan.', true); }
+  event.preventDefault();
+  const ids = [...enrollmentOptions.querySelectorAll('input:checked')].map((input) => input.value);
+  if (!ids.length) { setStatus(enrollmentStatus, 'Centang santri yang akan didaftarkan.', true); return; }
+  enrollmentSubmit.disabled = true;
+  setStatus(enrollmentStatus, 'Mendaftarkan santri...');
+  let berhasil = 0;
+  let gagal = null;
+  for (const id of ids) {
+    try {
+      const response = await fetch(`/api/students/${encodeURIComponent(id)}/courses/${encodeURIComponent(enrollmentCourse.value)}`, { method: 'POST', headers: headers() });
+      if (!response.ok) { const result = await response.json().catch(() => ({})); throw new Error(result.error || 'Enrollment belum dapat disimpan.'); }
+      berhasil += 1;
+    } catch (error) {
+      gagal = error.message;
+    }
+  }
+  enrollmentOptions.querySelectorAll('input:checked').forEach((input) => { input.checked = false; });
+  await loadProgress().catch(() => {});
+  if (gagal) setStatus(enrollmentStatus, `${berhasil} santri terdaftar. Sebagian gagal: ${gagal}`, true);
+  else setStatus(enrollmentStatus, `${berhasil} santri berhasil didaftarkan ke maddah.`);
+  if (studentSelect.value) loadCourses().catch(() => {});
 });
 
 // Subtabs management
@@ -1197,12 +1416,14 @@ if (logoutButton) {
     }
     // Admin datang ke LMS untuk mengelola maddah, bukan belajar: buka tab Kelola lebih dulu.
     if (role === 'admin' && tabBtnManage) switchLmsTab(tabBtnManage);
+    if (role === 'teacher') siapkanTampilanGuru();
     const muatData = () => Promise.all([
       loadStaffCourses(),
       role !== 'teacher' ? loadStudents() : null
     ]);
     window.hamasahSaatDataSegar(muatData);
     await muatData();
+    bukaBagianKelola();
   } catch (error) {
     guardCopy.textContent = error.message || 'Silakan masuk melalui Portal Hamasah.';
     // Judul tidak boleh tetap "Memeriksa..." setelah pemeriksaan selesai.

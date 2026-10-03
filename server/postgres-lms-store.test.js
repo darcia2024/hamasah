@@ -65,6 +65,13 @@ async function run() {
     await store.addEnrollment(studentId, course.id, CREATED_AT);
     assert.deepEqual(await store.getEnrollments(studentId), [course.id]);
     assert.deepEqual(await store.getEnrollments(studentLain), []);
+    assert.deepEqual(await store.listEnrolledStudentIds(course.id), [studentId]);
+
+    // Tanpa materialId: semua percobaan kuis santri itu (dipakai buildStudentCourse).
+    await store.addAttempt({ id: crypto.randomUUID(), studentId, courseId: course.id, materialId: pertama.id, attemptNumber: 1, answers: {}, score: 80, passed: true, submittedAt: CREATED_AT });
+    assert.equal((await store.listAttempts(studentId, null)).length, 1);
+    assert.equal((await store.listAttempts(studentId, pertama.id)).length, 1);
+    assert.equal((await store.listAttempts(studentLain, null)).length, 0);
 
     // Penyelesaian materi ganda juga hanya satu baris.
     const completion = { id: crypto.randomUUID(), studentId, courseId: course.id, materialId: pertama.id, completedAt: CREATED_AT };

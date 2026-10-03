@@ -159,6 +159,14 @@ function createPostgresLmsStore({ database } = {}) {
       return rows.map((row) => row.course_id);
     },
 
+    async listEnrolledStudentIds(courseId) {
+      const { rows } = await database.query(
+        'SELECT student_id FROM course_enrollments WHERE course_id = $1 ORDER BY enrolled_at ASC',
+        [courseId]
+      );
+      return rows.map((row) => row.student_id);
+    },
+
     async addEnrollment(studentId, courseId, enrolledAt) {
       await database.query(
         `INSERT INTO course_enrollments (student_id, course_id, enrolled_at)
@@ -194,7 +202,7 @@ function createPostgresLmsStore({ database } = {}) {
     async listAttempts(studentId, materialId) {
       const { rows } = await database.query(
         `SELECT id, student_id, course_id, material_id, attempt_number, answers, score, passed, submitted_at
-           FROM lms_attempts WHERE student_id = $1 AND material_id = $2 ORDER BY attempt_number ASC`,
+           FROM lms_attempts WHERE student_id = $1 AND ($2::uuid IS NULL OR material_id = $2::uuid) ORDER BY attempt_number ASC`,
         [studentId, materialId]
       );
       return rows.map((row) => ({ id: row.id, studentId: row.student_id, courseId: row.course_id, materialId: row.material_id, attemptNumber: row.attempt_number, answers: toJson(row.answers), score: row.score, passed: row.passed, submittedAt: toIso(row.submitted_at) }));

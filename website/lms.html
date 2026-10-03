@@ -10,7 +10,7 @@
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
     <link rel="stylesheet" href="staff.css?v=cd070d9561" />
-    <link rel="stylesheet" href="portal.css?v=d787432f6f" />
+    <link rel="stylesheet" href="portal.css?v=3a6ada4403" />
     <link rel="stylesheet" href="fields.css?v=40377b19dc" />
     <script src="session-hint.js?v=b0562827f3"></script>
     <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
@@ -260,8 +260,13 @@
                     <p id="material-form-status" class="form-status" role="status" aria-live="polite"></p>
                   </form>
 
-                  <div class="lms-review-manager">
+                  <div class="lms-review-manager" id="lms-kiriman" tabindex="-1">
                     <h4>Kiriman tugas</h4>
+                    <div class="lms-filter-row" id="submission-filter" role="group" aria-label="Saring kiriman tugas">
+                      <button type="button" class="crm-pill-btn is-active" data-saring="menunggu" aria-pressed="true">Menunggu penilaian</button>
+                      <button type="button" class="crm-pill-btn" data-saring="dinilai" aria-pressed="false">Sudah dinilai</button>
+                      <button type="button" class="crm-pill-btn" data-saring="semua" aria-pressed="false">Semua</button>
+                    </div>
                     <div id="submission-list" class="lms-submission-list" aria-live="polite"></div>
                     <p id="submission-status" class="form-status" role="status" aria-live="polite"></p>
                   </div>
@@ -277,25 +282,45 @@
                 </div>
               </div>
 
-              <!-- Pendaftaran Santri ke Maddah (Enrollment) -->
-              <div class="crm-white-card u-mt-20">
+              <!-- Santri dan progres per maddah, sekaligus pendaftaran santri (enrollment) -->
+              <div class="crm-white-card u-mt-20" id="lms-progres" tabindex="-1">
                 <div class="crm-white-card-header">
                   <div>
-                    <h3>Pendaftaran santri ke maddah (enrollment)</h3>
-                    <p>Daftarkan santri yang sedang dipilih pada selector di atas ke maddah berikut.</p>
+                    <h3>Santri dan progres maddah</h3>
+                    <p>Pantau progres santri yang terdaftar, lalu daftarkan santri baru ke maddah ini.</p>
                   </div>
                 </div>
-                <form method="post" id="enrollment-form" class="staff-form record-form">
-                  <div class="crm-toolbar-row">
-                    <div class="crm-toolbar-field">
-                      <label for="enrollment-course">Pilih maddah sasaran</label>
-                      <select id="enrollment-course" class="monitoring-select"></select>
-                    </div>
-                    <button class="button button--secondary control--h44" type="submit">
-                      <span>Daftarkan santri terpilih</span>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 11 18 13 22 9"/></svg>
-                    </button>
+                <div class="crm-toolbar-row">
+                  <div class="crm-toolbar-field">
+                    <label for="enrollment-course">Maddah</label>
+                    <select id="enrollment-course" class="monitoring-select"></select>
                   </div>
+                </div>
+                <div class="lms-progress-wrap">
+                  <table class="lms-progress-table" id="progress-table" hidden>
+                    <caption class="sr-only">Progres santri pada maddah terpilih</caption>
+                    <thead>
+                      <tr><th scope="col">Santri</th><th scope="col">Materi selesai</th><th scope="col">Kuis terbaik</th><th scope="col">Tugas</th></tr>
+                    </thead>
+                    <tbody id="progress-body"></tbody>
+                  </table>
+                </div>
+                <p id="progress-status" class="form-status" role="status" aria-live="polite"></p>
+
+                <form method="post" id="enrollment-form" class="staff-form record-form lms-enroll">
+                  <h4>Daftarkan santri</h4>
+                  <div class="crm-toolbar-field">
+                    <label for="enrollment-search">Cari santri</label>
+                    <input type="search" id="enrollment-search" placeholder="Ketik nama santri..." autocomplete="off" />
+                  </div>
+                  <fieldset class="lms-enroll__list">
+                    <legend class="sr-only">Santri yang belum terdaftar di maddah ini</legend>
+                    <div id="enrollment-options"></div>
+                  </fieldset>
+                  <button class="button button--secondary control--h44" type="submit" id="enrollment-submit" disabled>
+                    <span>Daftarkan santri terpilih</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 11 18 13 22 9"/></svg>
+                  </button>
                   <p id="enrollment-form-status" class="form-status" role="status" aria-live="polite"></p>
                 </form>
               </div>
@@ -307,9 +332,9 @@
     </section>
 
     <script src="internal-shell.js?v=af5d3d7d4c"></script>
-    <script src="nav.js?v=803e5ce2eb"></script>
+    <script src="nav.js?v=b053d43ff8"></script>
     <script src="student-picker.js?v=e59fd6a323"></script>
-    <script src="lms.js?v=b6411be7f5"></script>
+    <script src="lms.js?v=f3f7d5d2b7"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>

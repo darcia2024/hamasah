@@ -271,6 +271,7 @@ function createHamasahApp(options) {
       if (!actor || actor.role !== identity.ROLES.PARENT) return false;
       return (await studentPortalService.dashboard(studentId, actor)).ok;
     },
+    listStudents: () => studentStore.listStudents(),
     async studentNameOf(studentId) {
       const santri = await studentStore.getStudent(studentId);
       return santri ? santri.fullName || santri.name || null : null;

@@ -1034,6 +1034,43 @@ function renderExecutiveDashboard(_daftarAwal, account) {
   buildTabs(tabDefs, panels, subtabsRow);
   panelsContainer.append(...panels);
 
+  const statCard = kartuSapaan(account, ringkasan, allTotal);
+
+  rightPanel.append(statCard);
+  if (isAdmin && window.HamasahAdminOverview) {
+    rightPanel.append(window.HamasahAdminOverview.kartuDemo({
+      headers: requestHeaders,
+      onSelesai: () => loadStudents(account).catch(() => {})
+    }));
+  }
+
+  const heroBtn = heroBanner.querySelector('#btn-hero-action');
+  if (heroBtn) {
+    heroBtn.addEventListener('click', () => {
+      if (students.length > 0) {
+        loadDashboard(students[0].id, account, () => renderExecutiveDashboard(null, account)).catch((err) => {
+          alert(err.message || 'Dashboard belum dapat dimuat.');
+        });
+      }
+    });
+  }
+
+  mainCol.append(
+    heroBanner,
+    ...(ringkasan ? [window.HamasahAdminOverview.kpi(ringkasan), window.HamasahAdminOverview.perhatian(ringkasan, { onOpenStudent: bukaSantri })] : []),
+    ...(isSupervisor ? [kartuTugasMusyrif()] : []),
+    subtabsRow,
+    panelsContainer
+  );
+  coursueLayout.append(mainCol, rightPanel);
+  coursueLayout.classList.add('crm-view-enter');
+
+  studentDashboard.append(coursueLayout);
+  studentDashboard.hidden = false;
+}
+
+// Kartu sapaan di kolom kanan beranda: salam, peran, dan pintasan kerja per peran.
+function kartuSapaan(account, ringkasan, allTotal) {
   // Kartu sapaan: hanya yang benar-benar diketahui (nama, peran, jumlah santri) dan
   // pintasan kerja sesuai peran. Dulu ada "Statistik Pekanan" dengan cincin progres dan
   // "Musyrif & Asatidzah" yang tidak pernah terisi oleh kode mana pun.
@@ -1061,7 +1098,11 @@ function renderExecutiveDashboard(_daftarAwal, account) {
       ['monitoring.html#pesan-wali', 'Pesan wali'],
       ['lms.html', 'Progres maddah santri']
     ],
-    teacher: [['lms.html', 'Kelola maddah dan materi']],
+    teacher: [
+      ['lms.html', 'Kelola maddah dan materi'],
+      ['lms.html#kelola=kiriman', 'Nilai kiriman tugas'],
+      ['lms.html#kelola=progres', 'Progres dan pendaftaran santri']
+    ],
     finance: [['operations.html', 'Tagihan dan kuitansi']],
     student: [['lms.html', 'Buka ruang belajar']]
   };
@@ -1100,38 +1141,138 @@ function renderExecutiveDashboard(_daftarAwal, account) {
     });
     statCard.append(judul, daftar);
   }
+  return statCard;
+}
 
-  rightPanel.append(statCard);
-  if (isAdmin && window.HamasahAdminOverview) {
-    rightPanel.append(window.HamasahAdminOverview.kartuDemo({
-      headers: requestHeaders,
-      onSelesai: () => loadStudents(account).catch(() => {})
-    }));
+// Beranda peran yang tidak memegang daftar santri: banner, kartu kerja (guru: tugas
+// mengajar), dan kartu sapaan. Keuangan dan petugas pendaftaran langsung diarahkan ke
+// halaman kerjanya lewat tombol banner dan pintasan.
+const BERANDA_PERAN = {
+  teacher: { tag: 'RUANG ASATIDZ', judul: 'Konsol pengajar', sub: 'Maddah yang Anda ampu, kiriman tugas, dan progres santri.', cta: 'Buka maddah saya', href: 'lms.html' },
+  finance: { tag: 'KONSOL KEUANGAN', judul: 'Konsol keuangan', sub: 'Tagihan, pembayaran, dan kuitansi santri.', cta: 'Buka tagihan', href: 'operations.html' },
+  'registration-officer': { tag: 'KONSOL PENDAFTARAN', judul: 'Konsol pendaftaran', sub: 'Calon santri, berkas, dan pesan konsultasi.', cta: 'Buka pendaftaran', href: 'staff.html' }
+};
+
+function renderBerandaPeran(account) {
+  const info = BERANDA_PERAN[account && account.role] || { tag: 'PORTAL HAMASAH', judul: 'Portal Hamasah', sub: '', cta: '', href: '' };
+  studentDashboard.replaceChildren();
+  if (studentList) studentList.hidden = true;
+  if (studentsStatus) studentsStatus.hidden = true;
+
+  const layout = document.createElement('div');
+  layout.className = 'coursue-layout crm-view-enter';
+  const mainCol = document.createElement('div');
+  mainCol.className = 'coursue-main-col';
+  const rightPanel = document.createElement('div');
+  rightPanel.className = 'coursue-right-panel';
+
+  const hero = document.createElement('div');
+  hero.className = 'coursue-hero-banner';
+  const tag = document.createElement('div');
+  tag.className = 'coursue-hero-tag';
+  tag.textContent = info.tag;
+  const judul = document.createElement('h2');
+  judul.className = 'coursue-hero-title';
+  judul.textContent = info.judul;
+  const sub = document.createElement('p');
+  sub.className = 'coursue-hero-subtitle';
+  sub.textContent = info.sub;
+  hero.append(tag, judul, sub);
+  if (info.href) {
+    const cta = document.createElement('a');
+    cta.className = 'coursue-hero-cta';
+    cta.href = info.href;
+    cta.innerHTML = `<span>${escapeHtml(info.cta)}</span><span class="coursue-hero-cta-arrow"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>`;
+    hero.append(cta);
   }
+  mainCol.append(hero);
+  if (account && account.role === 'teacher') mainCol.append(kartuTugasGuru(sub));
 
-  const heroBtn = heroBanner.querySelector('#btn-hero-action');
-  if (heroBtn) {
-    heroBtn.addEventListener('click', () => {
-      if (students.length > 0) {
-        loadDashboard(students[0].id, account, () => renderExecutiveDashboard(null, account)).catch((err) => {
-          alert(err.message || 'Dashboard belum dapat dimuat.');
-        });
-      }
-    });
-  }
-
-  mainCol.append(
-    heroBanner,
-    ...(ringkasan ? [window.HamasahAdminOverview.kpi(ringkasan), window.HamasahAdminOverview.perhatian(ringkasan, { onOpenStudent: bukaSantri })] : []),
-    ...(isSupervisor ? [kartuTugasMusyrif()] : []),
-    subtabsRow,
-    panelsContainer
-  );
-  coursueLayout.append(mainCol, rightPanel);
-  coursueLayout.classList.add('crm-view-enter');
-
-  studentDashboard.append(coursueLayout);
+  rightPanel.append(kartuSapaan(account, null, 0));
+  layout.append(mainCol, rightPanel);
+  studentDashboard.append(layout);
   studentDashboard.hidden = false;
+
+  if (window.location.hash === '#perhatian') {
+    const daftar = document.querySelector('#tugas-guru');
+    if (daftar) daftar.scrollIntoView({ block: 'start' });
+    try { history.replaceState(null, '', window.location.pathname); } catch {}
+  }
+}
+
+// Kartu "Tugas mengajar" di beranda guru: kiriman yang menunggu dinilai dan maddah yang
+// belum punya santri. GET /api/lms/ringkasan-guru. Angka lonceng dan subjudul banner ikut
+// diperbarui.
+function kartuTugasGuru(subjudul) {
+  const wadah = document.createElement('section');
+  wadah.className = 'admin-alerts musyrif-tasks';
+  wadah.id = 'tugas-guru';
+  wadah.tabIndex = -1;
+  const kepala = document.createElement('div');
+  kepala.className = 'admin-section-head';
+  const judul = document.createElement('h3');
+  judul.className = 'admin-section-title';
+  judul.textContent = 'Tugas mengajar';
+  kepala.append(judul);
+  const memuat = document.createElement('p');
+  memuat.className = 'admin-empty';
+  memuat.textContent = 'Memuat...';
+  wadah.append(kepala, memuat);
+
+  function tugas(teks, href, tautan, jenis) {
+    const item = document.createElement('li');
+    item.className = `musyrif-task is-${jenis}`;
+    const isi = document.createElement('span');
+    isi.textContent = teks;
+    item.append(isi);
+    if (href) {
+      const a = document.createElement('a');
+      a.className = 'admin-link';
+      a.href = href;
+      a.textContent = tautan;
+      item.append(a);
+    }
+    return item;
+  }
+
+  fetch('/api/lms/ringkasan-guru', { headers: requestHeaders() })
+    .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Tugas mengajar belum dapat dimuat.'))))
+    .then((data) => {
+      const { courses, totals } = data;
+      if (subjudul) {
+        subjudul.textContent = courses.length
+          ? `${totals.courses} maddah diampu, ${totals.students} santri terdaftar, ${totals.pending} kiriman menunggu dinilai.`
+          : 'Belum ada maddah yang Anda ampu.';
+      }
+      const daftar = document.createElement('ul');
+      daftar.className = 'musyrif-task-list';
+      const butir = [];
+      if (!courses.length) {
+        butir.push(tugas('Belum ada maddah yang Anda ampu. Buat maddah baru atau minta admin menugaskan Anda.', 'lms.html', 'Buat maddah', 'info'));
+      }
+      courses.filter((course) => course.pending).forEach((course) => {
+        butir.push(tugas(`${course.title}: ${course.pending} kiriman menunggu dinilai`, `lms.html#kelola=kiriman&maddah=${encodeURIComponent(course.id)}`, 'Nilai', 'perlu'));
+      });
+      courses.filter((course) => !course.students).forEach((course) => {
+        butir.push(tugas(`${course.title}: belum ada santri terdaftar`, `lms.html#kelola=progres&maddah=${encodeURIComponent(course.id)}`, 'Daftarkan', 'perlu'));
+      });
+      courses.filter((course) => !course.materials).forEach((course) => {
+        butir.push(tugas(`${course.title}: belum ada materi aktif`, 'lms.html', 'Tambah materi', 'perlu'));
+      });
+      if (courses.length && !butir.length) {
+        butir.push(tugas('Semua kiriman tugas sudah dinilai.', null, '', 'selesai'));
+      }
+      courses.forEach((course) => {
+        butir.push(tugas(`${course.title}: ${course.materials} materi, ${course.students} santri`, `lms.html#kelola=progres&maddah=${encodeURIComponent(course.id)}`, 'Progres', 'info'));
+      });
+      daftar.append(...butir);
+      memuat.replaceWith(daftar);
+      isiAngkaIkon('#topbar-attention-count', totals.pending);
+      const lonceng = document.querySelector('#topbar-attention');
+      if (lonceng) lonceng.setAttribute('aria-label', totals.pending ? `Tugas mengajar, ${totals.pending} kiriman menunggu dinilai` : 'Tugas mengajar');
+    })
+    .catch((error) => { memuat.textContent = error.message; });
+  return wadah;
 }
 
 async function loadDashboard(studentId, account, onBack, range = {}) {
@@ -1191,7 +1332,20 @@ function renderStudents(students, account) {
 }
 
 
+// Peran yang tidak membaca daftar santri. /api/me mengirim daftar izin; bila tidak ada,
+// peran-peran ini yang dipakai sebagai cadangan.
+const PERAN_TANPA_DAFTAR_SANTRI = ['teacher', 'finance', 'registration-officer'];
+let izinAkun = null;
+function bolehMembacaSantri(account) {
+  if (Array.isArray(izinAkun)) return izinAkun.includes('students.read');
+  return !PERAN_TANPA_DAFTAR_SANTRI.includes(account && account.role);
+}
+
 async function loadStudents(account) {
+  if (!bolehMembacaSantri(account)) {
+    renderBerandaPeran(account);
+    return;
+  }
   // Status ini sebelumnya selalu tersembunyi, sehingga pesan memuat tidak pernah
   // terlihat. Sekarang ditampilkan selama permintaan berjalan lalu disembunyikan lagi.
   studentsStatus.classList.remove('is-error');
@@ -1277,6 +1431,7 @@ async function showPortal() {
   if (!me.ok) throw new Error(result.error || 'Sesi sudah berakhir.');
 
   currentAccount = result.account;
+  izinAkun = Array.isArray(result.permissions) ? result.permissions : null;
   document.body.classList.add('in-crm');
   // Atribut hidden sudah cukup: staff.css memberi `[hidden] { display: none !important }`.
   // Menulis style.display lagi hanya menambah atribut style di DOM tanpa efek tambahan.
@@ -1294,9 +1449,9 @@ async function showPortal() {
   siapkanIkonTopbar(result.account);
   if (!dataSegarTerpasang) {
     dataSegarTerpasang = true;
-    window.hamasahSaatDataSegar(() => loadStudents(currentAccount));
+    window.hamasahSaatDataSegar(() => loadStudents(currentAccount).catch(() => {}));
   }
-  await loadStudents(result.account);
+  await loadStudents(result.account).catch(() => {});
 }
 
 let dataSegarTerpasang = false;
@@ -1326,12 +1481,12 @@ function siapkanIkonTopbar(account) {
       })
       .catch(() => {});
   }
-  if (lonceng && ['admin', 'supervisor'].includes(role) && !lonceng.dataset.siap) {
+  if (lonceng && ['admin', 'supervisor', 'teacher'].includes(role) && !lonceng.dataset.siap) {
     lonceng.dataset.siap = '1';
     lonceng.hidden = false;
-    // Admin: daftar "Perlu perhatian". Musyrif: kartu "Tugas hari ini".
+    // Admin: daftar "Perlu perhatian". Musyrif: kartu "Tugas hari ini". Guru: "Tugas mengajar".
     lonceng.addEventListener('click', () => {
-      const daftar = document.querySelector('#admin-perhatian, #tugas-musyrif');
+      const daftar = document.querySelector('#admin-perhatian, #tugas-musyrif, #tugas-guru');
       if (daftar) {
         // Fokus lebih dulu supaya tidak memotong animasi gulir.
         daftar.focus({ preventScroll: true });

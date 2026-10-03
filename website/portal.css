@@ -6759,3 +6759,121 @@ button.santri-juz__cell:focus-visible {
   border-color: var(--md-sys-color-tertiary);
   background: var(--md-sys-color-tertiary-container);
 }
+
+/* LMS guru: saringan kiriman, rekap progres, dan daftar centang enrollment. */
+.lms-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.lms-progress-wrap {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.lms-progress-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.lms-progress-table th,
+.lms-progress-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  white-space: nowrap;
+}
+
+.lms-progress-table thead th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.lms-progress-table tbody th {
+  font-weight: 600;
+}
+
+.lms-progress-table td.is-pending {
+  color: var(--md-sys-color-primary);
+  font-weight: 600;
+}
+
+.lms-progress-bar {
+  display: inline-block;
+  width: 72px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--md-sys-color-surface-container-high);
+  vertical-align: middle;
+  overflow: hidden;
+}
+
+.lms-progress-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--md-sys-color-primary);
+}
+
+.lms-enroll {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.lms-enroll h4 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.lms-enroll__list {
+  margin: 12px 0;
+  padding: 0;
+  border: 0;
+}
+
+.lms-enroll__list > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+/* Label dan input umum di .staff-form (blok, tinggi 46px) tidak berlaku untuk centang. */
+.lms-enroll .lms-enroll__option {
+  display: flex !important;
+  margin: 0 !important;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--md-sys-color-surface-container-low);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.lms-enroll .lms-enroll__option small {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.lms-enroll .lms-enroll__option input {
+  flex: none;
+  width: 18px !important;
+  height: 18px !important;
+  min-height: 0 !important;
+  margin: 0;
+  accent-color: var(--md-sys-color-primary);
+}
+
+.lms-enroll__empty {
+  margin: 0;
+  font-size: 14px;
+  color: var(--md-sys-color-on-surface-variant);
+}

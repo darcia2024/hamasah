@@ -8,7 +8,14 @@ const otherTeacher = { id: 'teacher-2', role: 'teacher' };
 const service = createLmsService({
   now: function now() { return '2026-09-15T08:00:00.000Z'; },
   // Sengaja async, meniru pemeriksaan akses sungguhan yang membaca database.
-  async canAccessStudent(studentId, actor) { return studentId === 'student-1' && actor.id === student.id; }
+  async canAccessStudent(studentId, actor) { return studentId === 'student-1' && actor.id === student.id; },
+  async listStudents() {
+    return [
+      { id: 'student-1', name: 'Ahmad', program: 'Kuliah', status: 'active', city: 'Bandung' },
+      { id: 'student-9', name: 'Lulusan', program: 'Kuliah', status: 'graduated', city: 'Bogor' }
+    ];
+  },
+  async studentNameOf(studentId) { return studentId === 'student-1' ? 'Ahmad' : null; }
 });
 
 async function run() {
@@ -68,6 +75,25 @@ async function run() {
   assert.equal(reviewed.value.status, 'reviewed');
   assert.equal((await service.getStudentCourse('student-1', courseId, student)).value.progress, 100);
   assert.equal((await service.getStudentCourse('student-1', courseId, student)).value.completionStatus, 'completed');
+
+  // Ringkasan guru, pilihan santri, dan rekap progres per maddah.
+  const ringkasan = await service.teacherSummary(admin);
+  assert.equal(ringkasan.ok, true);
+  const nahwu = ringkasan.value.courses.find((item) => item.id === courseId);
+  assert.deepEqual([nahwu.students, nahwu.pending], [1, 0]);
+  assert.equal((await service.teacherSummary(teacher)).value.courses.length, 1, 'Guru hanya melihat maddah yang diampunya.');
+  assert.equal((await service.teacherSummary(student)).ok, false);
+  const pilihan = await service.studentOptions(teacher);
+  assert.deepEqual(pilihan.value, [{ id: 'student-1', name: 'Ahmad', program: 'Kuliah' }], 'Hanya santri aktif, tanpa data pribadi lain.');
+  assert.equal((await service.studentOptions(student)).ok, false);
+  const progres = await service.courseProgress(courseId, admin);
+  assert.equal(progres.ok, true);
+  assert.equal(progres.value.items.length, 1);
+  assert.equal(progres.value.items[0].studentName, 'Ahmad');
+  assert.equal(progres.value.items[0].progress, 100);
+  assert.equal(progres.value.items[0].bestQuizScore, 100);
+  assert.deepEqual(progres.value.items[0].assignments, { total: 1, pending: 0, reviewed: 1 });
+  assert.equal((await service.courseProgress(courseId, teacher)).ok, false, 'Guru lain tidak boleh melihat rekap maddah yang bukan miliknya.');
 
   // Santri tidak boleh membuka maddah milik santri lain.
   assert.equal((await service.getStudentCourse('student-2', courseId, student)).ok, false);

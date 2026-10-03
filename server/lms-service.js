@@ -50,6 +50,9 @@ function createMemoryLmsStore() {
     async getEnrollments(studentId) {
       return clone(database.enrollments[studentId] || []);
     },
+    async listEnrolledStudentIds(courseId) {
+      return Object.keys(database.enrollments).filter((studentId) => database.enrollments[studentId].includes(courseId));
+    },
     async addEnrollment(studentId, courseId) {
       const enrolled = database.enrollments[studentId] || [];
       if (!enrolled.includes(courseId)) {
@@ -91,6 +94,8 @@ function createLmsService(options) {
   // Guru tidak punya izin students.read, jadi nama santri pada daftar kiriman tugas
   // diambil di server lewat pencari ini, bukan dengan memanggil API santri dari peramban.
   const studentNameOf = config.studentNameOf || async function noName() { return null; };
+  // Daftar santri untuk formulir enrollment guru (hanya id, nama, program).
+  const listStudents = config.listStudents || async function tanpaSantri() { return []; };
   // Dipakai saat admin memindahkan maddah ke guru lain.
   const getAccount = config.getAccount || async function tanpaAkun() { return null; };
 
@@ -412,6 +417,81 @@ function createLmsService(options) {
     };
   }
 
+  // Beranda guru: per maddah yang diampu, jumlah materi aktif, santri terdaftar, dan
+  // kiriman tugas yang menunggu dinilai. Admin melihat semua maddah.
+  async function teacherSummary(actor) {
+    const daftar = await listCourses(actor);
+    if (!daftar.ok) return daftar;
+    const courses = [];
+    for (const course of daftar.value) {
+      const santri = typeof store.listEnrolledStudentIds === 'function' ? await store.listEnrolledStudentIds(course.id) : [];
+      const kiriman = typeof store.listSubmissionsByCourse === 'function' ? await store.listSubmissionsByCourse(course.id) : [];
+      courses.push({
+        id: course.id,
+        title: course.title,
+        materials: course.materials.filter((material) => !material.archivedAt).length,
+        students: santri.length,
+        pending: kiriman.filter((item) => item.status === 'submitted').length
+      });
+    }
+    return {
+      ok: true,
+      value: {
+        courses,
+        totals: {
+          courses: courses.length,
+          students: courses.reduce((sum, item) => sum + item.students, 0),
+          pending: courses.reduce((sum, item) => sum + item.pending, 0)
+        }
+      }
+    };
+  }
+
+  // Pilihan santri untuk enrollment. Guru tidak punya students.read, jadi yang dikirim
+  // hanya santri aktif dengan id, nama, dan program, tanpa data pribadi lain.
+  async function studentOptions(actor) {
+    if (!isStaff(actor)) return { ok: false, error: 'Akses guru atau admin diperlukan.' };
+    const semua = await listStudents();
+    return {
+      ok: true,
+      value: semua
+        .filter((student) => student.status === 'active')
+        .map((student) => ({ id: student.id, name: student.name, program: student.program || '' }))
+    };
+  }
+
+  // Rekap progres per maddah: semua santri terdaftar beserta persentase materi selesai,
+  // nilai kuis terbaik, dan status tugas. Hanya guru pengampu dan admin.
+  async function courseProgress(courseId, actor) {
+    if (!isStaff(actor)) return { ok: false, error: 'Akses guru atau admin diperlukan.' };
+    const course = await store.getCourse(courseId);
+    if (!course || !canManageCourse(course, actor)) return { ok: false, error: 'Maddah tidak ditemukan.' };
+    const ids = typeof store.listEnrolledStudentIds === 'function' ? await store.listEnrolledStudentIds(courseId) : [];
+    const items = [];
+    for (const studentId of ids) {
+      const hasil = await buildStudentCourse(studentId, courseId);
+      if (!hasil.ok) continue;
+      const materi = hasil.value.materials;
+      const nilaiKuis = materi.flatMap((material) => (material.attempts || []).map((attempt) => attempt.score));
+      const tugas = materi.filter((material) => material.type === 'assignment');
+      items.push({
+        studentId,
+        studentName: (await studentNameOf(studentId)) || studentId,
+        progress: hasil.value.progress,
+        completed: materi.filter((material) => material.completed).length,
+        total: materi.length,
+        bestQuizScore: nilaiKuis.length ? Math.max(...nilaiKuis) : null,
+        assignments: {
+          total: tugas.length,
+          pending: tugas.filter((material) => material.submission && material.submission.status === 'submitted').length,
+          reviewed: tugas.filter((material) => material.submission && material.submission.status === 'reviewed').length
+        }
+      });
+    }
+    items.sort((left, right) => left.studentName.localeCompare(right.studentName, 'id-ID'));
+    return { ok: true, value: { course: { id: course.id, title: course.title }, items } };
+  }
+
   async function reviewSubmission(submissionId, input, actor) {
     if (!isStaff(actor)) return { ok: false, error: 'Akses guru atau admin diperlukan.' };
     const score = Number(input && input.score); const note = clean(input && input.note);
@@ -477,7 +557,10 @@ function createLmsService(options) {
     updateMaterial,
     submitAssignment,
     listSubmissions,
-    reviewSubmission
+    reviewSubmission,
+    teacherSummary,
+    studentOptions,
+    courseProgress
     ,submitQuiz
   });
 }

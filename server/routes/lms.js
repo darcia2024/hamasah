@@ -152,6 +152,33 @@ module.exports = [
     }
   },
   {
+    method: 'GET',
+    pattern: /^\/api\/lms\/ringkasan-guru$/,
+    permission: 'courses.manage',
+    async handler({ response, services, auth }) {
+      const result = await services.lmsService.teacherSummary(await auth.actor());
+      json(response, result.ok ? 200 : 403, result.ok ? result.value : publicError(result));
+    }
+  },
+  {
+    method: 'GET',
+    pattern: /^\/api\/lms\/pilihan-santri$/,
+    permission: 'courses.manage',
+    async handler({ response, services, auth }) {
+      const result = await services.lmsService.studentOptions(await auth.actor());
+      json(response, result.ok ? 200 : 403, result.ok ? { items: result.value } : publicError(result));
+    }
+  },
+  {
+    method: 'GET',
+    pattern: /^\/api\/courses\/([\w-]+)\/progres$/,
+    permission: 'courses.manage',
+    async handler({ response, services, auth, params }) {
+      const result = await services.lmsService.courseProgress(params[0], await auth.actor());
+      json(response, result.ok ? 200 : 404, result.ok ? result.value : publicError(result));
+    }
+  },
+  {
     method: 'PATCH',
     pattern: /^\/api\/lms\/submissions\/([\w-]+)\/review$/,
     permission: 'courses.manage',
