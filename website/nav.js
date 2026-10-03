@@ -137,7 +137,8 @@ function getInitials(name) {
   // Gelar di depan (Ust., Ustzh., H., Dr., dst.) tidak ikut jadi inisial:
   // "Ust. Ridwan Fathoni" menjadi RF, bukan UF.
   const GELAR = /^(ust|ustz|ustzh|ustadz|ustadzah|ustaz|ustazah|kh|h|hj|dr|drs|prof|ir)\.?$/i;
-  const semua = name.trim().split(/\s+/).filter(Boolean);
+  // Gelar di belakang koma (", Lc", ", S.Pd") juga tidak ikut: "Ust Aji Nugeroho, Lc" menjadi AN.
+  const semua = name.split(',')[0].trim().split(/\s+/).filter(Boolean);
   const parts = semua.length > 1 && GELAR.test(semua[0]) ? semua.slice(1) : semua;
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
