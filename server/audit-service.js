@@ -89,7 +89,12 @@ const ACTIONS = Object.freeze({
   ,FAMILY_MESSAGE_READ: 'family-message.read'
   ,DORMITORY_ROLL_RECORDED: 'dormitory.roll-recorded'
   ,DATABASE_UPDATED: 'database.updated'
+  ,INVOICE_REMINDER_SENT: 'invoice.reminder-sent'
 });
+
+// Riwayat keuangan: semua kejadian tagihan dan kuitansi, untuk tab Riwayat di halaman
+// keuangan. Keuangan boleh membacanya walau jejak audit lengkap hanya untuk admin.
+const FINANCE_ACTIONS = Object.freeze(Object.values(ACTIONS).filter((action) => action.startsWith('invoice.')));
 
 const ACTION_VALUES = Object.freeze(Object.values(ACTIONS));
 
@@ -184,6 +189,14 @@ function createAuditService(options = {}) {
     return { ok: true, value: await store.list(query || {}) };
   }
 
+  async function listFinance(query, actor) {
+    if (!actor || !['admin', 'finance'].includes(actor.role)) {
+      return { ok: false, error: 'Akses admin atau keuangan diperlukan.' };
+    }
+    const source = query || {};
+    return { ok: true, value: await store.list({ limit: source.limit, offset: source.offset, actions: FINANCE_ACTIONS }) };
+  }
+
   // Dipanggil job harian. Mengembalikan jumlah baris yang dihapus.
   async function purgeOlderThan(days) {
     const hari = Number.isInteger(days) && days > 0 ? days : DEFAULT_RETENTION_DAYS;
@@ -191,7 +204,7 @@ function createAuditService(options = {}) {
     return store.deleteBefore(batas);
   }
 
-  return Object.freeze({ list, purgeOlderThan, record, sanitizeMetadata });
+  return Object.freeze({ list, listFinance, purgeOlderThan, record, sanitizeMetadata });
 }
 
-module.exports = { ACTIONS, ACTION_VALUES, DEFAULT_RETENTION_DAYS, createAuditService, sanitizeMetadata };
+module.exports = { ACTIONS, ACTION_VALUES, FINANCE_ACTIONS, DEFAULT_RETENTION_DAYS, createAuditService, sanitizeMetadata };

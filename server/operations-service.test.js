@@ -63,7 +63,89 @@ async function run() {
   assert.equal(yearInJakarta('2026-12-31T17:30:00.000Z'), 2027);
   assert.equal(documentNumber('INV', 7, 2027), 'INV/HI/2027/00007');
 
+  await keuangan();
   console.log('operations-service tests passed');
+}
+
+// Ringkasan, tunggakan, rincian pembayaran, pengingat, dan saringan bulan (role keuangan).
+async function keuangan() {
+  let waktu = '2026-10-03T03:00:00.000Z';
+  const keu = { id: 'akun-keuangan', role: 'finance' };
+  const service = createOperationsService({
+    now: () => waktu,
+    studentExists: async (id) => ['s-1', 's-2'].includes(id),
+    listStudents: async () => [
+      { id: 's-1', name: 'Ahmad', program: 'Kuliah S1 Al-Azhar', status: 'active', city: 'Bandung' },
+      { id: 's-2', name: 'Budi', program: "Ma'had Al-Azhar", status: 'active' },
+      { id: 's-3', name: 'Lulus', program: 'Kuliah S1 Al-Azhar', status: 'graduated' }
+    ]
+  });
+
+  // Pilihan santri: hanya yang aktif, tanpa data pribadi lain.
+  assert.deepEqual((await service.studentOptions(keu)).value, [
+    { id: 's-1', name: 'Ahmad', program: 'Kuliah S1 Al-Azhar' },
+    { id: 's-2', name: 'Budi', program: "Ma'had Al-Azhar" }
+  ]);
+  assert.equal((await service.studentOptions(musyrif)).ok, false);
+
+  // Satu tagihan lama (Agustus), dua tagihan Oktober.
+  waktu = '2026-08-15T03:00:00.000Z';
+  const lama = await service.createInvoice({ studentId: 's-1', description: 'Daftar ulang', amount: 3500000 }, keu);
+  waktu = '2026-10-01T03:00:00.000Z';
+  const okt1 = await service.createInvoice({ studentId: 's-1', description: 'SPP Oktober', amount: 1500000 }, keu);
+  const okt2 = await service.createInvoice({ studentId: 's-2', description: 'SPP Oktober', amount: 1500000 }, keu);
+  waktu = '2026-10-03T03:00:00.000Z';
+
+  // Rincian pembayaran: tanggal tidak boleh di masa depan atau sebelum terbit, metode wajib.
+  assert.equal((await service.markInvoicePaid(okt2.value.id, keu, { paidOn: '2026-10-04', method: 'tunai' })).ok, false);
+  assert.equal((await service.markInvoicePaid(okt2.value.id, keu, { paidOn: '2026-09-30', method: 'tunai' })).ok, false);
+  assert.equal((await service.markInvoicePaid(okt2.value.id, keu, { paidOn: '2026-10-02', method: 'cek' })).ok, false);
+  const lunas = await service.markInvoicePaid(okt2.value.id, keu, { paidOn: '2026-10-02', method: 'transfer', note: 'BSI' });
+  assert.equal(lunas.ok, true);
+  assert.equal(lunas.paymentDetailSaved, true);
+  assert.deepEqual(lunas.value.payment, { paidOn: '2026-10-02', method: 'transfer', note: 'BSI', recordedByAccountId: 'akun-keuangan', recordedAt: waktu });
+  // Tanpa rincian tetap bisa (perilaku lama).
+  assert.equal((await service.markInvoicePaid(lama.value.id, keu)).ok, true);
+  assert.equal((await service.getInvoice(lama.value.id, keu)).payment, null);
+  waktu = '2026-10-03T04:00:00.000Z';
+  const lama2 = await service.createInvoice({ studentId: 's-2', description: 'Seragam', amount: 400000 }, keu);
+  waktu = '2026-11-20T03:00:00.000Z';
+
+  // Ringkasan per 20 November: tunggakan okt1 + lama2, keduanya > 30 hari.
+  const r = (await service.financeSummary(keu)).value;
+  assert.equal(r.month, '2026-11');
+  assert.deepEqual(r.outstanding, { count: 2, total: 1900000 });
+  assert.deepEqual(r.overdue, { count: 2, total: 1900000 });
+  assert.deepEqual(r.collectedThisMonth, { count: 0, total: 0 });
+  assert.deepEqual(r.issuedThisMonth, { count: 0, total: 0 });
+  assert.equal((await service.financeSummary(musyrif)).ok, false);
+
+  // Tunggakan per santri, total terbesar dulu.
+  const t = (await service.arrears(keu)).value;
+  assert.deepEqual(t.map((item) => [item.studentName, item.count, item.total]), [['Ahmad', 1, 1500000], ['Budi', 1, 400000]]);
+
+  // Saringan bulan terbit (WIB) dan urutan terlama dulu.
+  const oktober = await service.listInvoicesPage({ month: '2026-10' });
+  assert.equal(oktober.total, 3);
+  const terlama = await service.listInvoicesPage({ status: 'unpaid', sort: 'oldest' });
+  assert.deepEqual(terlama.items.map((item) => item.id), [okt1.value.id, lama2.value.id]);
+  assert.equal((await service.listInvoicesPage({ studentId: 's-2' })).total, 2);
+
+  // Pengingat: hanya yang belum dibayar, paling sering sekali per 24 jam.
+  assert.equal((await service.prepareReminder(okt2.value.id, keu)).ok, false, 'Tagihan lunas tidak diingatkan.');
+  assert.equal((await service.prepareReminder(okt1.value.id, keu)).ok, true);
+  await service.recordReminder(okt1.value.id, keu, 1);
+  const kedua = await service.prepareReminder(okt1.value.id, keu);
+  assert.equal(kedua.status, 429);
+  const dariDaftar = (await service.listInvoicesPage({ studentId: 's-1', status: 'unpaid' })).items[0];
+  assert.equal(dariDaftar.lastReminder.count, 1);
+  waktu = '2026-11-21T03:00:01.000Z';
+  assert.equal((await service.prepareReminder(okt1.value.id, keu)).ok, true, 'Setelah 24 jam boleh lagi.');
+
+  // Laporan: rentang bulan inklusif.
+  const laporan = await service.invoiceReport({ fromMonth: '2026-10', toMonth: '2026-10' });
+  assert.deepEqual(laporan.map((item) => item.description).sort(), ['SPP Oktober', 'SPP Oktober', 'Seragam']);
+  assert.equal(laporan.find((item) => item.id === okt2.value.id).payment.method, 'transfer');
 }
 
 run().catch((error) => {

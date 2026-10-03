@@ -15,6 +15,14 @@ function waktu(value) {
   return Number.isNaN(date.getTime()) ? '-' : `${new Intl.DateTimeFormat('id-ID', { dateStyle: 'long', timeStyle: 'short', timeZone: ZONA }).format(date)} WIB`;
 }
 
+const METODE = Object.freeze({ transfer: 'Transfer bank', tunai: 'Tunai', lainnya: 'Lainnya' });
+
+// Tanggal bayar (YYYY-MM-DD) tanpa jam.
+function tanggal(value) {
+  const date = new Date(`${value}T00:00:00Z`);
+  return Number.isNaN(date.getTime()) ? '-' : new Intl.DateTimeFormat('id-ID', { dateStyle: 'long', timeZone: 'UTC' }).format(date);
+}
+
 function createReceiptPdf(invoice, { generatedAt = new Date() } = {}) {
   const blocks = [
     { kind: 'title', text: 'Kuitansi Pembayaran' },
@@ -25,7 +33,14 @@ function createReceiptPdf(invoice, { generatedAt = new Date() } = {}) {
     { kind: 'text', text: `Atas nama santri: ${invoice.studentName || 'Nama santri tidak tercatat'}` },
     { kind: 'text', text: `Untuk pembayaran: ${invoice.description}` },
     { kind: 'text', text: `Jumlah: ${rupiah(invoice.amount)}` },
-    { kind: 'text', text: `Tanggal dibayar: ${waktu(invoice.paidAt)}` },
+    ...(invoice.payment
+      ? [
+        { kind: 'text', text: `Tanggal dibayar: ${tanggal(invoice.payment.paidOn)}` },
+        { kind: 'text', text: `Metode pembayaran: ${METODE[invoice.payment.method] || invoice.payment.method}` },
+        ...(invoice.payment.note ? [{ kind: 'text', text: `Catatan: ${invoice.payment.note}` }] : []),
+        { kind: 'text', text: `Dicatat lunas: ${waktu(invoice.paidAt)}` }
+      ]
+      : [{ kind: 'text', text: `Tanggal dibayar: ${waktu(invoice.paidAt)}` }]),
     { kind: 'space', size: 14 },
     { kind: 'rule' },
     { kind: 'muted', text: `Dicetak dari sistem Hamasah International pada ${waktu(generatedAt)}.` }

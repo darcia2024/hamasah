@@ -8,7 +8,8 @@
 // Aturan penerima:
 //   - pendaftaran: email pendaftar dan email wali pada formulir (tanpa duplikat);
 //   - pendaftaran berstatus dibatalkan tidak dikirimi apa pun;
-//   - pembayaran: akun wali aktif yang terhubung ke santri pemilik tagihan.
+//   - pembayaran, tagihan baru, dan pengingat tagihan: akun wali aktif yang terhubung ke
+//     santri pemilik tagihan.
 // Belum ada preferensi penerima di sistem; bila ditambahkan, periksa di sini.
 const registrationDomain = require('../website/registration-domain.js');
 const { EVENT_TYPES } = require('./notification-templates.js');
@@ -34,6 +35,26 @@ function createEventNotifier({ notificationService, registrationStore, database,
       logger.error(`[notifikasi] ${label} gagal diantrekan: ${error.message}`);
       return 0;
     }
+  }
+
+  async function waliTagihan(invoice) {
+    if (!invoice || !invoice.studentId) return [];
+    const { rows } = await database.query(
+      `SELECT a.email, a.name, s.name AS student_name
+       FROM student_parent_accounts pa
+       JOIN accounts a ON a.id = pa.parent_account_id AND a.active = TRUE
+       JOIN students s ON s.id = pa.student_id
+       WHERE pa.student_id = $1`,
+      [invoice.studentId]
+    );
+    return rows;
+  }
+
+  function payloadTagihan(invoice, wali) {
+    return {
+      name: wali.name, studentName: wali.student_name, invoiceNumber: invoice.number,
+      description: invoice.description, amount: invoice.amount
+    };
   }
 
   async function registrationTarget(registrationId) {
@@ -88,17 +109,40 @@ function createEventNotifier({ notificationService, registrationStore, database,
         return jumlah;
       });
     },
+    // Email bisa dikirim di server ini (penyedia email terpasang). Dipakai tombol
+    // pengingat supaya keuangan tahu bila pengingat tidak akan sampai.
+    tersedia() {
+      return aktif();
+    },
+
+    // Tagihan baru: satu email per wali per tagihan. Untuk tagihan massal, dipanggil
+    // dengan semua tagihan yang terbit.
+    invoiceIssued(invoices) {
+      return guarded('tagihan baru', async () => {
+        let jumlah = 0;
+        for (const invoice of invoices || []) {
+          for (const wali of await waliTagihan(invoice)) {
+            jumlah += await queueAll(EVENT_TYPES.INVOICE_ISSUED, [wali.email], payloadTagihan(invoice, wali));
+          }
+        }
+        return jumlah;
+      });
+    },
+
+    invoiceReminder(invoice) {
+      return guarded('pengingat tagihan', async () => {
+        let jumlah = 0;
+        for (const wali of await waliTagihan(invoice)) {
+          jumlah += await queueAll(EVENT_TYPES.INVOICE_REMINDER, [wali.email], payloadTagihan(invoice, wali));
+        }
+        return jumlah;
+      });
+    },
+
     invoicePaid(invoice) {
       return guarded('pembayaran diterima', async () => {
         if (!invoice || !invoice.studentId) return 0;
-        const { rows } = await database.query(
-          `SELECT a.email, a.name, s.name AS student_name
-           FROM student_parent_accounts pa
-           JOIN accounts a ON a.id = pa.parent_account_id AND a.active = TRUE
-           JOIN students s ON s.id = pa.student_id
-           WHERE pa.student_id = $1`,
-          [invoice.studentId]
-        );
+        const rows = await waliTagihan(invoice);
         let jumlah = 0;
         for (const wali of rows) {
           jumlah += await queueAll(EVENT_TYPES.PAYMENT_RECEIVED, [wali.email], {

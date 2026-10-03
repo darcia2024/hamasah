@@ -221,6 +221,35 @@ async function run() {
     assert.equal((await store.listInventoryMovements(lemari.id)).length, 2, 'Mutasi yang ditolak tidak boleh tercatat.');
     assert.equal((await store.listInventory()).find((x) => x.id === lemari.id).quantity, 6);
 
+    // Rincian pembayaran dan pengingat (migrasi 047).
+    const bayarDetail = { paidOn: '2026-09-21', method: 'transfer', note: 'BSI', recordedByAccountId: null, recordedAt: '2026-09-21T03:00:00.000Z' };
+    assert.equal(await store.savePaymentDetail(invoice.id, bayarDetail), true);
+    const rincian = await store.paymentDetails([invoice.id, kedua.id]);
+    assert.deepEqual(rincian.get(invoice.id), { paidOn: '2026-09-21', method: 'transfer', note: 'BSI' });
+    assert.equal(rincian.has(kedua.id), false);
+    assert.equal(await store.saveReminder({ id: crypto.randomUUID(), invoiceId: kedua.id, actorAccountId: null, recipients: 2, sentAt: '2026-09-22T00:00:00.000Z' }), true);
+    await store.saveReminder({ id: crypto.randomUUID(), invoiceId: kedua.id, actorAccountId: null, recipients: 2, sentAt: '2026-09-23T00:00:00.000Z' });
+    assert.deepEqual((await store.lastReminders([kedua.id])).get(kedua.id), { sentAt: '2026-09-23T00:00:00.000Z', count: 2 });
+    const urutLama = await store.listInvoicesPage({ sort: 'oldest', from: '2026-01-01T00:00:00.000Z', to: '2027-01-01T00:00:00.000Z' });
+    assert.ok(urutLama.items.length >= 2);
+    assert.ok(urutLama.items[0].issuedAt <= urutLama.items[urutLama.items.length - 1].issuedAt, 'sort oldest: terlama dulu.');
+
+    // Sebelum migrasi 047: baca null, tulis false, tanpa galat.
+    await database.query('DROP TABLE invoice_payments');
+    await database.query('DROP TABLE invoice_reminders');
+    assert.equal(await store.paymentDetails([invoice.id]), null);
+    assert.equal(await store.savePaymentDetail(invoice.id, bayarDetail), false);
+    assert.equal(await store.lastReminders([invoice.id]), null);
+    assert.equal(await store.saveReminder({ id: crypto.randomUUID(), invoiceId: invoice.id, actorAccountId: null, recipients: 0, sentAt: '2026-09-23T00:00:00.000Z' }), false);
+    const layananLama = createOperationsService({ store, now: () => '2026-09-25T03:00:00.000Z', studentExists: async () => true });
+    const ketiga = await layananLama.createInvoice({ studentId, description: 'Tanpa migrasi 047', amount: 100000 }, { role: 'admin' });
+    const pengingatLama = await layananLama.prepareReminder(ketiga.value.id, { role: 'admin' });
+    assert.equal(pengingatLama.status, 409, 'Pengingat diarahkan ke halaman Pengaturan.');
+    const lunasLama = await layananLama.markInvoicePaid(ketiga.value.id, { role: 'admin' }, { paidOn: '2026-09-25', method: 'tunai' });
+    assert.equal(lunasLama.ok, true, 'Tetap bisa ditandai lunas.');
+    assert.equal(lunasLama.paymentDetailSaved, false);
+    assert.equal(lunasLama.value.payment, null);
+
     console.log('postgres operations store tests passed');
   } finally {
     await database.close();

@@ -32,26 +32,23 @@ async function jsonRequest(url, options) {
   return body;
 }
 
-// Nama santri dipetakan sekali supaya baris invoice tidak menampilkan UUID mentah.
-// Peran finance tidak punya izin students.read, jadi untuknya peta ini kosong dan
-// baris invoice jatuh kembali ke id. Melebarkan izin itu keputusan akses, bukan
-// pekerjaan task ini.
+// Nama santri dipetakan sekali supaya baris invoice dan visa tidak menampilkan UUID mentah.
 const studentNames = new Map();
 
-const studentPickers = [];
+// Pilihan santri dari GET /api/operations/pilihan-santri (santri aktif: id, nama,
+// program). Dulu memakai daftar santri umum yang tertutup untuk peran keuangan, sehingga
+// keuangan tidak bisa menerbitkan tagihan satuan maupun memperbarui visa.
 async function loadStudents() {
-  if (!studentPickers.length) {
-    ['#invoice-student', '#visa-student'].forEach((selector) => {
-      const select = document.querySelector(selector);
-      if (!select) return;
-      studentPickers.push(window.HamasahStudentPicker.attach(select, {
-        headers,
-        placeholder: null,
-        onLoaded: ({ items }) => items.forEach((student) => studentNames.set(student.id, student.name))
-      }));
-    });
-  }
-  await Promise.all(studentPickers.map((picker) => picker.reload()));
+  const hasil = await jsonRequest('/api/operations/pilihan-santri', { headers: headers() });
+  hasil.items.forEach((student) => studentNames.set(student.id, student.name));
+  ['#invoice-student', '#visa-student'].forEach((selector) => {
+    const select = document.querySelector(selector);
+    if (!select) return;
+    const terpilih = select.value;
+    select.replaceChildren(new Option('Pilih santri', ''));
+    hasil.items.forEach((student) => select.add(new Option(student.program ? `${student.name} · ${student.program}` : student.name, student.id)));
+    if (terpilih && hasil.items.some((student) => student.id === terpilih)) select.value = terpilih;
+  });
 }
 
 // Nama datang dari peta santri yang sudah dimuat, lalu dari nama yang dibawa barisnya
@@ -317,6 +314,12 @@ function kosong(pesan) {
   return p;
 }
 
+// Label status visa mengikuti pilihan di formulir visa, bukan kode internalnya.
+function labelStatusVisa(status) {
+  const opsi = [...document.querySelectorAll('#visa-state option')].find((option) => option.value === status);
+  return opsi ? opsi.textContent.trim().toLowerCase() : status;
+}
+
 function visaReminderRow(item) {
   const baris = document.createElement('div');
   baris.className = 'op-row';
@@ -326,7 +329,7 @@ function visaReminderRow(item) {
   const judul = document.createElement('strong');
   judul.textContent = `${VISA_DOCUMENT_LABELS[item.document] || item.document} \u00b7 ${studentLabel(item.studentId, item.studentName)}`;
   const rinci = document.createElement('span');
-  rinci.textContent = `Berlaku sampai ${tanggalIndonesia(item.expiresAt)} \u00b7 status ${item.status}`;
+  rinci.textContent = `Berlaku sampai ${tanggalIndonesia(item.expiresAt)} \u00b7 status ${labelStatusVisa(item.status)}`;
   utama.append(judul, rinci);
 
   // Perbedaan sudah lewat dan akan lewat dinyatakan lewat kata, bukan hanya warna.
@@ -585,30 +588,79 @@ const INVOICE_STATUS_LABELS = Object.freeze({
   voided: 'Dibatalkan'
 });
 
-async function tandaiLunas(invoice, tombol) {
-  // Menandai lunas menerbitkan nomor kuitansi resmi yang tidak bisa ditarik kembali,
-  // jadi nomor invoice dan nominalnya disebutkan sebelum aksi dijalankan.
-  const setuju = window.confirm(
-    `Tandai invoice ${invoice.number} senilai Rp${invoice.amount.toLocaleString('id-ID')} sebagai lunas?`
-    + '\n\nNomor kuitansi resmi akan diterbitkan dan tidak dapat ditarik kembali. Aksi ini tercatat di jejak audit.'
-  );
-  if (!setuju) return;
+// Tanggal hari ini (YYYY-MM-DD) di Indonesia, untuk nilai awal tanggal bayar.
+function hariIniWib() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+}
 
-  const labelAsli = tombol.textContent;
+const METODE_BAYAR = { transfer: 'Transfer bank', tunai: 'Tunai', lainnya: 'Lainnya' };
+
+async function tandaiLunas(invoice) {
+  // Menandai lunas menerbitkan nomor kuitansi resmi yang tidak bisa ditarik kembali,
+  // jadi nomor invoice dan nominalnya disebutkan di dialog sebelum aksi dijalankan.
+  const hasil = await window.HamasahDialog.formulir({
+    judul: `Tandai lunas ${invoice.number}`,
+    keterangan: `${studentLabel(invoice.studentId, invoice.studentName)} · ${invoice.description} · Rp${invoice.amount.toLocaleString('id-ID')}. Nomor kuitansi resmi akan diterbitkan dan tidak dapat ditarik kembali.`,
+    labelSimpan: 'Tandai lunas',
+    bidang: [
+      { nama: 'paidOn', label: 'Tanggal dibayar', jenis: 'date', nilai: hariIniWib(), wajib: true, petunjuk: 'Tanggal uang diterima, boleh berbeda dari hari ini.' },
+      { nama: 'method', label: 'Metode pembayaran', jenis: 'select', nilai: 'transfer', wajib: true, pilihan: Object.entries(METODE_BAYAR) },
+      { nama: 'note', label: 'Catatan (opsional)', jenis: 'textarea', nilai: '', petunjuk: 'Contoh: transfer BSI a.n. wali, bukti di WhatsApp keuangan.' }
+    ],
+    async kirim(nilai) {
+      return jsonRequest(`/api/operations/invoices/${encodeURIComponent(invoice.id)}/paid`, {
+        method: 'PATCH',
+        headers: { ...headers(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paidOn: nilai.paidOn, method: nilai.method, note: nilai.note })
+      });
+    }
+  });
+  if (!hasil) return;
+  const catatan = hasil.paymentDetailSaved === false
+    ? ' Rincian pembayaran belum tersimpan karena pembaruan database (migrasi 047) belum diterapkan.'
+    : '';
+  feedback('#invoice-list-status', `Invoice ${invoice.number} lunas. Nomor kuitansi ${hasil.invoice.receiptNumber}.${catatan}`, Boolean(catatan));
+  await loadOperations();
+}
+
+async function kirimPengingat(invoice, tombol) {
+  if (!window.confirm(`Kirim email pengingat tagihan ${invoice.number} ke wali ${studentLabel(invoice.studentId, invoice.studentName)}?`)) return;
   tombol.disabled = true;
-  tombol.textContent = 'Menyimpan...';
   try {
-    const hasil = await jsonRequest(`/api/operations/invoices/${encodeURIComponent(invoice.id)}/paid`, {
-      method: 'PATCH',
-      headers: headers()
-    });
-    feedback('#invoice-list-status', `Invoice ${invoice.number} lunas. Nomor kuitansi ${hasil.invoice.receiptNumber}.`);
-    await loadOperations();
+    const hasil = await jsonRequest(`/api/operations/invoices/${encodeURIComponent(invoice.id)}/pengingat`, { method: 'POST', headers: headers() });
+    feedback('#invoice-list-status', `Pengingat ${invoice.number} dikirim ke ${hasil.recipients} wali.`);
+    await loadInvoices();
   } catch (error) {
     tombol.disabled = false;
-    tombol.textContent = labelAsli;
     feedback('#invoice-list-status', error.message, true);
   }
+}
+
+function tanggalPendek(iso) {
+  if (!iso) return '';
+  const date = new Date(iso.length === 10 ? `${iso}T00:00:00+07:00` : iso);
+  return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Jakarta' }).format(date);
+}
+
+function umurHari(iso) {
+  return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86400000));
+}
+
+// Baris tanggal: terbit, umur tunggakan, pelunasan, dan pengingat terakhir.
+function teksTanggalInvoice(invoice) {
+  const bagian = [`Terbit ${tanggalPendek(invoice.issuedAt)}`];
+  if (invoice.status === 'unpaid') {
+    const hari = umurHari(invoice.issuedAt);
+    bagian.push(hari ? `belum dibayar ${hari} hari` : 'terbit hari ini');
+  }
+  if (invoice.status === 'paid') {
+    bagian.push(invoice.payment
+      ? `dibayar ${tanggalPendek(invoice.payment.paidOn)} (${METODE_BAYAR[invoice.payment.method] || invoice.payment.method})`
+      : `lunas ${tanggalPendek(invoice.paidAt)}`);
+  }
+  if (invoice.status === 'voided' && invoice.voidedAt) bagian.push(`dibatalkan ${tanggalPendek(invoice.voidedAt)}`);
+  if (invoice.lastReminder) bagian.push(`pengingat terakhir ${tanggalPendek(invoice.lastReminder.sentAt)}`);
+  return bagian.join(' · ');
 }
 
 async function unduhKuitansi(invoice, tombol) {
@@ -634,7 +686,10 @@ function invoiceRow(invoice) {
   judul.textContent = `${invoice.number} · Rp${invoice.amount.toLocaleString('id-ID')}`;
   const rinci = document.createElement('span');
   rinci.textContent = `${studentLabel(invoice.studentId, invoice.studentName)} · ${invoice.description}`;
-  utama.append(judul, rinci);
+  const waktu = document.createElement('span');
+  waktu.className = invoice.status === 'unpaid' && umurHari(invoice.issuedAt) > TUNGGAKAN_HARI ? 'op-row__date is-late' : 'op-row__date';
+  waktu.textContent = teksTanggalInvoice(invoice);
+  utama.append(judul, rinci, waktu);
 
   const status = document.createElement('span');
   status.className = `op-status op-status--${invoice.status}`;
@@ -650,8 +705,13 @@ function invoiceRow(invoice) {
     bayar.type = 'button';
     bayar.className = 'button button--secondary op-action';
     bayar.textContent = 'Tandai lunas';
-    bayar.addEventListener('click', () => tandaiLunas(invoice, bayar));
-    aksi.append(bayar);
+    bayar.addEventListener('click', () => tandaiLunas(invoice).catch((error) => feedback('#invoice-list-status', error.message, true)));
+    const ingat = document.createElement('button');
+    ingat.type = 'button';
+    ingat.className = 'button button--secondary op-action';
+    ingat.textContent = 'Kirim pengingat';
+    ingat.addEventListener('click', () => kirimPengingat(invoice, ingat));
+    aksi.append(bayar, ingat);
   }
 
   // Kuitansi hanya ada untuk invoice lunas. Endpoint menolak selain itu dengan 404,
@@ -714,6 +774,10 @@ const INVOICE_PAGE_SIZE = 20;
 let invoiceShown = 0;
 let invoiceSearchText = '';
 let invoiceStatusFilter = '';
+let invoiceMonthFilter = '';
+let invoiceSortOrder = 'newest';
+let invoiceStudentFilter = null;
+const TUNGGAKAN_HARI = 30;
 let invoiceRequest = 0;
 const invoiceTools = document.createElement('div');
 invoiceTools.className = 'portal-student-tools';
@@ -730,13 +794,52 @@ invoiceStatus.className = 'monitoring-select';
 invoiceStatus.setAttribute('aria-label', 'Saring invoice menurut status');
 invoiceStatus.add(new Option('Semua status', ''));
 Object.entries(INVOICE_STATUS_LABELS).forEach(([nilai, teks]) => invoiceStatus.add(new Option(teks, nilai)));
+// Bulan terbit (WIB) dan urutan; "terlama dulu" untuk menagih tunggakan paling lama.
+const invoiceMonth = document.createElement('input');
+invoiceMonth.type = 'month';
+invoiceMonth.id = 'invoice-month-filter';
+invoiceMonth.className = 'monitoring-select';
+invoiceMonth.setAttribute('aria-label', 'Saring invoice menurut bulan terbit');
+const invoiceSort = document.createElement('select');
+invoiceSort.id = 'invoice-sort';
+invoiceSort.className = 'monitoring-select';
+invoiceSort.setAttribute('aria-label', 'Urutan invoice');
+invoiceSort.add(new Option('Terbaru dulu', 'newest'));
+invoiceSort.add(new Option('Terlama dulu', 'oldest'));
 const invoiceFilterRow = document.createElement('div');
 invoiceFilterRow.className = 'invoice-filter-row';
-invoiceFilterRow.append(invoiceSearch, invoiceStatus);
+invoiceFilterRow.append(invoiceSearch, invoiceStatus, invoiceMonth, invoiceSort);
+// Penanda santri terpilih dari tabel tunggakan, dengan tombol untuk melepasnya.
+const invoiceStudentChip = document.createElement('p');
+invoiceStudentChip.className = 'invoice-student-chip';
+invoiceStudentChip.hidden = true;
+// Laporan CSV per rentang bulan.
+const reportRow = document.createElement('div');
+reportRow.className = 'invoice-report-row';
+const reportFrom = document.createElement('input');
+reportFrom.type = 'month';
+reportFrom.id = 'report-from';
+reportFrom.className = 'monitoring-select';
+reportFrom.setAttribute('aria-label', 'Laporan dari bulan');
+const reportTo = document.createElement('input');
+reportTo.type = 'month';
+reportTo.id = 'report-to';
+reportTo.className = 'monitoring-select';
+reportTo.setAttribute('aria-label', 'Laporan sampai bulan');
+const reportButton = document.createElement('button');
+reportButton.type = 'button';
+reportButton.className = 'button button--secondary op-action';
+reportButton.id = 'download-report-range';
+reportButton.textContent = 'Unduh laporan CSV';
+const reportLabel = document.createElement('span');
+reportLabel.textContent = 'Laporan tagihan:';
+const reportSd = document.createElement('span');
+reportSd.textContent = 's.d.';
+reportRow.append(reportLabel, reportFrom, reportSd, reportTo, reportButton);
 const invoiceHint = document.createElement('p');
 invoiceHint.className = 'portal-student-hint';
 invoiceHint.setAttribute('role', 'status');
-invoiceTools.append(invoiceFilterRow, invoiceHint);
+invoiceTools.append(invoiceFilterRow, invoiceStudentChip, invoiceHint, reportRow);
 invoiceList.before(invoiceTools);
 const invoiceMore = document.createElement('button');
 invoiceMore.type = 'button';
@@ -750,7 +853,7 @@ function renderInvoices(invoices, append) {
   if (!invoices.length && !append) {
     const kosong = document.createElement('p');
     kosong.className = 'form-status';
-    kosong.textContent = invoiceSearchText || invoiceStatusFilter
+    kosong.textContent = invoiceSearchText || invoiceStatusFilter || invoiceMonthFilter || invoiceStudentFilter
       ? 'Tidak ada invoice yang cocok dengan pencarian atau filter ini.'
       : 'Belum ada invoice. Terbitkan tagihan lewat formulir di atas.';
     invoiceList.append(kosong);
@@ -769,6 +872,18 @@ async function loadInvoices({ append = false } = {}) {
   params.set('offset', String(offset));
   if (invoiceSearchText) params.set('search', invoiceSearchText);
   if (invoiceStatusFilter) params.set('status', invoiceStatusFilter);
+  if (invoiceMonthFilter) params.set('month', invoiceMonthFilter);
+  if (invoiceSortOrder === 'oldest') params.set('sort', 'oldest');
+  if (invoiceStudentFilter) params.set('studentId', invoiceStudentFilter.id);
+  invoiceStudentChip.hidden = !invoiceStudentFilter;
+  if (invoiceStudentFilter) {
+    const lepas = document.createElement('button');
+    lepas.type = 'button';
+    lepas.className = 'button button--secondary op-action';
+    lepas.textContent = 'Tampilkan semua santri';
+    lepas.addEventListener('click', () => { invoiceStudentFilter = null; invoiceShown = 0; loadInvoices().catch((error) => { invoiceHint.textContent = error.message; }); });
+    invoiceStudentChip.replaceChildren(document.createTextNode(`Tagihan ${invoiceStudentFilter.name} `), lepas);
+  }
   invoiceMore.disabled = true;
   try {
     const result = await jsonRequest(`/api/operations/invoices?${params}`, { headers: headers() });
@@ -776,7 +891,7 @@ async function loadInvoices({ append = false } = {}) {
     renderInvoices(result.items, append);
     invoiceShown = offset + result.items.length;
     invoiceMore.hidden = invoiceShown >= result.total;
-    invoiceHint.textContent = result.total > invoiceShown || invoiceSearchText || invoiceStatusFilter
+    invoiceHint.textContent = result.total > invoiceShown || invoiceSearchText || invoiceStatusFilter || invoiceMonthFilter || invoiceStudentFilter
       ? `Menampilkan ${invoiceShown} dari ${result.total} invoice.`
       : '';
   } finally {
@@ -798,42 +913,199 @@ invoiceStatus.addEventListener('change', () => {
   invoiceShown = 0;
   loadInvoices().catch((error) => { invoiceHint.textContent = error.message; });
 });
+invoiceMonth.addEventListener('change', () => {
+  invoiceMonthFilter = invoiceMonth.value;
+  invoiceShown = 0;
+  loadInvoices().catch((error) => { invoiceHint.textContent = error.message; });
+});
+invoiceSort.addEventListener('change', () => {
+  invoiceSortOrder = invoiceSort.value;
+  invoiceShown = 0;
+  loadInvoices().catch((error) => { invoiceHint.textContent = error.message; });
+});
+reportButton.addEventListener('click', () => unduhLaporan({ dari: reportFrom.value, sampai: reportTo.value, tombol: reportButton }));
+
+// Saringan dari kartu ringkasan dan tautan beranda: status, urutan, bulan, santri.
+function terapkanSaringan({ status = '', sort = 'newest', month = '', student = null } = {}) {
+  invoiceStatusFilter = status;
+  invoiceStatus.value = status;
+  invoiceSortOrder = sort;
+  invoiceSort.value = sort;
+  invoiceMonthFilter = month;
+  invoiceMonth.value = month;
+  invoiceSearchText = '';
+  invoiceSearch.value = '';
+  invoiceStudentFilter = student;
+  invoiceShown = 0;
+  const tab = document.querySelector('#tab-btn-invoices');
+  if (tab) switchOpTab(tab);
+  invoiceTools.scrollIntoView({ block: 'start' });
+  return loadInvoices().catch((error) => { invoiceHint.textContent = error.message; });
+}
+
 invoiceMore.addEventListener('click', () => loadInvoices({ append: true }).catch((error) => { invoiceHint.textContent = error.message; }));
 
-async function unduhLaporan() {
+// Tanpa rentang: semua tagihan, visa, dan inventaris (tombol di topbar). Dengan rentang
+// bulan: hanya tagihan yang terbit pada bulan-bulan itu.
+async function unduhLaporan({ dari = '', sampai = '', tombol = downloadReportButton } = {}) {
   try {
-    // Endpoint laporan tidak menerima parameter periode, jadi tanggal unduhan yang
-    // membedakan berkas, bukan rentang data di dalamnya.
+    if (dari && sampai && dari > sampai) throw new Error('Bulan awal laporan tidak boleh setelah bulan akhir.');
+    const params = new URLSearchParams();
+    if (dari) params.set('dari', dari);
+    if (sampai) params.set('sampai', sampai);
     const tanggal = new Date().toISOString().slice(0, 10);
-    await unduhBerkas('/api/operations/report.csv', `laporan-operasional-hamasah-${tanggal}.csv`, downloadReportButton);
-    feedback('#invoice-list-status', 'Laporan operasional diunduh.');
+    const nama = dari || sampai ? `laporan-tagihan-hamasah-${dari || 'awal'}-sd-${sampai || 'kini'}.csv` : `laporan-operasional-hamasah-${tanggal}.csv`;
+    await unduhBerkas(`/api/operations/report.csv${params.toString() ? `?${params}` : ''}`, nama, tombol);
+    feedback('#invoice-list-status', dari || sampai ? 'Laporan tagihan diunduh.' : 'Laporan operasional diunduh.');
   } catch (error) {
     feedback('#invoice-list-status', error.message, true);
   }
 }
 
-function renderOperations(data) {
-  operationsList.replaceChildren();
-  const rows = [
-    ...data.invoices.map((item) => `${item.number} · ${item.status === 'paid' ? item.receiptNumber : 'Belum dibayar'} · Rp${item.amount.toLocaleString('id-ID')}`),
-    ...(data.invoicesTotal > data.invoices.length ? [`${data.invoicesTotal - data.invoices.length} invoice lainnya ada di tab Faktur.`] : []),
-    ...data.visas.map((item) => `Visa ${studentLabel(item.studentId, item.studentName)} · ${item.status}`),
-    ...data.inventory.map((item) => `${item.name} · ${item.location} · ${item.quantity} unit`)
-  ];
-  if (!rows.length) rows.push('Belum ada data operasional.');
-  rows.forEach((text) => {
-    const item = document.createElement('div');
-    item.className = 'portal-account';
-    item.textContent = text;
-    operationsList.append(item);
+// Riwayat keuangan: GET /api/operations/riwayat (jejak audit tagihan), terbaru dulu.
+const LABEL_RIWAYAT = {
+  'invoice.created': 'menerbitkan tagihan',
+  'invoice.bulk-created': 'menerbitkan tagihan massal',
+  'invoice.paid': 'menandai lunas',
+  'invoice.corrected': 'mengoreksi tagihan',
+  'invoice.voided': 'membatalkan tagihan',
+  'invoice.receipt-downloaded': 'mengunduh kuitansi',
+  'invoice.reminder-sent': 'mengirim pengingat ke wali'
+};
+const historyMore = document.querySelector('#history-more');
+let riwayatTampil = 0;
+
+function riwayatRow(item) {
+  const baris = document.createElement('div');
+  baris.className = 'op-row';
+  const utama = document.createElement('div');
+  utama.className = 'op-row__main';
+  const judul = document.createElement('strong');
+  const m = item.metadata || {};
+  const sasaran = item.action === 'invoice.bulk-created'
+    ? `${m.jumlah} tagihan "${m.keterangan}" (${m.nomorAwal} sampai ${m.nomorAkhir})`
+    : [m.number, m.receiptNumber, m.amount ? `Rp${Number(m.amount).toLocaleString('id-ID')}` : ''].filter(Boolean).join(' · ');
+  judul.textContent = `${item.actorName || 'Sistem'} ${LABEL_RIWAYAT[item.action] || item.action}`;
+  const rinci = document.createElement('span');
+  rinci.textContent = [sasaran, item.action === 'invoice.reminder-sent' && m.penerima ? `${m.penerima} wali` : ''].filter(Boolean).join(' · ');
+  const waktu = document.createElement('span');
+  waktu.className = 'op-row__date';
+  waktu.textContent = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Jakarta' }).format(new Date(item.occurredAt));
+  utama.append(judul, rinci, waktu);
+  baris.append(utama);
+  return baris;
+}
+
+async function loadRiwayat({ append = false } = {}) {
+  const offset = append ? riwayatTampil : 0;
+  const hasil = await jsonRequest(`/api/operations/riwayat?limit=30&offset=${offset}`, { headers: headers() });
+  if (!append) operationsList.replaceChildren();
+  operationsList.append(...hasil.items.map(riwayatRow));
+  riwayatTampil = offset + hasil.items.length;
+  historyMore.hidden = riwayatTampil >= hasil.total;
+  feedback('#history-status', hasil.total ? '' : 'Belum ada kejadian keuangan yang tercatat.');
+}
+
+if (historyMore) historyMore.addEventListener('click', () => loadRiwayat({ append: true }).catch((error) => feedback('#history-status', error.message, true)));
+
+// Kartu angka di atas halaman. Setiap kartu menyaring daftar invoice atau membuka tab visa.
+const RUPIAH_RINGKAS = new Intl.NumberFormat('id-ID', { notation: 'compact', maximumFractionDigits: 1 });
+const financeSummary = document.querySelector('#finance-summary');
+
+function kartuRingkasan(label, nilai, catatan, nada, aksi) {
+  const kartu = document.createElement('button');
+  kartu.type = 'button';
+  kartu.className = `admin-kpi finance-kpi${nada ? ` admin-kpi--${nada}` : ''}`;
+  const a = document.createElement('p');
+  a.className = 'admin-kpi__label';
+  a.textContent = label;
+  const b = document.createElement('p');
+  b.className = 'admin-kpi__value';
+  b.textContent = nilai;
+  const c = document.createElement('p');
+  c.className = 'admin-kpi__note';
+  c.textContent = catatan;
+  kartu.append(a, b, c);
+  kartu.addEventListener('click', aksi);
+  return kartu;
+}
+
+async function loadRingkasan() {
+  const r = await jsonRequest('/api/operations/ringkasan', { headers: headers() });
+  const rp = (n) => `Rp${RUPIAH_RINGKAS.format(n)}`;
+  const namaBulan = new Intl.DateTimeFormat('id-ID', { month: 'long', timeZone: 'UTC' }).format(new Date(`${r.month}-01T00:00:00Z`));
+  financeSummary.replaceChildren(
+    kartuRingkasan('Tunggakan', rp(r.outstanding.total), r.outstanding.count ? `${r.outstanding.count} tagihan belum dibayar` : 'Semua tagihan lunas', r.outstanding.count ? 'warn' : '', () => terapkanSaringan({ status: 'unpaid' })),
+    kartuRingkasan(`Menunggak > ${r.overdueDays} hari`, rp(r.overdue.total), r.overdue.count ? `${r.overdue.count} tagihan, tagih yang terlama dulu` : 'Tidak ada', r.overdue.count ? 'danger' : '', () => terapkanSaringan({ status: 'unpaid', sort: 'oldest' })),
+    kartuRingkasan(`Terkumpul ${namaBulan}`, rp(r.collectedThisMonth.total), `${r.collectedThisMonth.count} pembayaran`, '', () => terapkanSaringan({ status: 'paid' })),
+    kartuRingkasan(`Terbit ${namaBulan}`, rp(r.issuedThisMonth.total), `${r.issuedThisMonth.count} tagihan`, '', () => terapkanSaringan({ month: r.month })),
+    kartuRingkasan('Visa dan paspor', String(r.visa.expiring + r.visa.expired), r.visa.expired ? `${r.visa.expired} sudah lewat, ${r.visa.expiring} habis dalam 30 hari` : r.visa.expiring ? `${r.visa.expiring} habis dalam 30 hari` : 'Tidak ada yang segera habis', r.visa.expired ? 'danger' : r.visa.expiring ? 'warn' : '', () => switchOpTab(document.querySelector('#tab-btn-visa')))
+  );
+  financeSummary.hidden = false;
+}
+
+// Tunggakan per santri: GET /api/operations/tunggakan.
+async function loadTunggakan() {
+  const wadah = document.querySelector('#arrears-list');
+  const hasil = await jsonRequest('/api/operations/tunggakan', { headers: headers() });
+  wadah.replaceChildren();
+  feedback('#arrears-status', hasil.items.length ? '' : 'Tidak ada tunggakan. Semua tagihan sudah lunas atau dibatalkan.');
+  if (!hasil.items.length) return;
+  const tabel = document.createElement('table');
+  tabel.className = 'lms-progress-table arrears-table';
+  tabel.innerHTML = '<caption class="sr-only">Tunggakan per santri</caption><thead><tr><th scope="col">Santri</th><th scope="col">Tagihan</th><th scope="col">Total</th><th scope="col">Tertua</th><th scope="col"><span class="sr-only">Aksi</span></th></tr></thead>';
+  const isi = document.createElement('tbody');
+  hasil.items.forEach((item) => {
+    const baris = document.createElement('tr');
+    const nama = document.createElement('th');
+    nama.scope = 'row';
+    nama.textContent = studentLabel(item.studentId, item.studentName);
+    const jumlah = document.createElement('td');
+    jumlah.textContent = String(item.count);
+    const total = document.createElement('td');
+    total.textContent = `Rp${item.total.toLocaleString('id-ID')}`;
+    const tertua = document.createElement('td');
+    const hari = umurHari(item.oldestIssuedAt);
+    tertua.textContent = `${tanggalPendek(item.oldestIssuedAt)} (${hari} hari)`;
+    if (hari > TUNGGAKAN_HARI) tertua.className = 'is-pending';
+    const aksi = document.createElement('td');
+    const lihat = document.createElement('button');
+    lihat.type = 'button';
+    lihat.className = 'button button--secondary op-action';
+    lihat.textContent = 'Lihat tagihan';
+    lihat.addEventListener('click', () => terapkanSaringan({ status: 'unpaid', sort: 'oldest', student: { id: item.studentId, name: nama.textContent } }));
+    aksi.append(lihat);
+    baris.append(nama, jumlah, total, tertua, aksi);
+    isi.append(baris);
   });
+  tabel.append(isi);
+  wadah.append(tabel);
 }
 
 async function loadOperations() {
   const result = await jsonRequest('/api/operations', { headers: headers() });
-  renderOperations(result);
-  await loadInvoices();
+  await Promise.all([
+    loadInvoices(),
+    loadRingkasan().catch(() => { financeSummary.hidden = true; }),
+    loadTunggakan().catch((error) => feedback('#arrears-status', error.message, true)),
+    loadRiwayat().catch((error) => feedback('#history-status', error.message, true))
+  ]);
   renderInventory(result.inventory);
+}
+
+// Tautan dari beranda Portal: #belum-dibayar, #menunggak, #tunggakan, #visa.
+function bukaDariAlamat() {
+  const alamat = window.location.hash.slice(1);
+  if (!alamat) return;
+  if (alamat === 'belum-dibayar') terapkanSaringan({ status: 'unpaid' });
+  if (alamat === 'menunggak') terapkanSaringan({ status: 'unpaid', sort: 'oldest' });
+  if (alamat === 'tunggakan') {
+    switchOpTab(document.querySelector('#tab-btn-invoices'));
+    const bagian = document.querySelector('#tunggakan');
+    if (bagian) { bagian.focus({ preventScroll: true }); bagian.scrollIntoView({ block: 'start' }); }
+  }
+  if (alamat === 'visa') switchOpTab(document.querySelector('#tab-btn-visa'));
+  try { history.replaceState(null, '', window.location.pathname); } catch {}
 }
 
 // Subtab switcher
@@ -860,6 +1132,11 @@ opTabs.forEach(({ btn }) => {
 
 document.querySelector('#invoice-form').addEventListener('submit', async (event) => {
   event.preventDefault();
+  if (!document.querySelector('#invoice-student').value) {
+    feedback('#invoice-status', 'Pilih santri yang akan ditagih.', true);
+    return;
+  }
+  const kirimEmail = document.querySelector('#invoice-email').checked;
   try {
     const result = await jsonRequest('/api/operations/invoices', {
       method: 'POST',
@@ -867,11 +1144,12 @@ document.querySelector('#invoice-form').addEventListener('submit', async (event)
       body: JSON.stringify({
         studentId: document.querySelector('#invoice-student').value,
         description: document.querySelector('#invoice-description').value,
-        amount: Number(document.querySelector('#invoice-amount').value)
+        amount: Number(document.querySelector('#invoice-amount').value),
+        kirimEmail
       })
     });
     event.target.reset();
-    feedback('#invoice-status', `Invoice ${result.invoice.number} berhasil dibuat.`);
+    feedback('#invoice-status', `Invoice ${result.invoice.number} berhasil dibuat.${kirimEmail ? ' Email tagihan dikirim ke wali yang terhubung (bila email aktif).' : ''}`);
     await loadOperations();
   } catch (error) {
     feedback('#invoice-status', error.message, true);
@@ -987,7 +1265,7 @@ bulkIssue.addEventListener('click', async () => {
     const hasil = await jsonRequest('/api/operations/invoices/massal', {
       method: 'POST',
       headers: { ...headers(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...isian, terbitkan: true })
+      body: JSON.stringify({ ...isian, terbitkan: true, kirimEmail: document.querySelector('#bulk-email').checked })
     });
     const nomor = hasil.invoices.map((invoice) => invoice.number);
     bulkForm.reset();
@@ -1131,11 +1409,13 @@ if (logoutButton) {
     renderStaffNav(staffNav, result.account.role, 'operations', result.account);
     const muatData = async () => {
       // Daftar santri dimuat lebih dulu supaya panel visa menampilkan nama, bukan UUID.
-      if (result.account.role === 'admin') await loadStudents();
+      await loadStudents().catch(() => {});
       await Promise.all([loadOperations(), loadVisaReminders(), loadVisaDocuments()]);
     };
     window.hamasahSaatDataSegar(muatData);
     await muatData();
+    bukaDariAlamat();
+    window.addEventListener('hashchange', bukaDariAlamat);
   } catch (error) {
     guardCopy.textContent = error.message || 'Silakan masuk melalui Portal Hamasah.';
     const judul = guard.querySelector('h1');

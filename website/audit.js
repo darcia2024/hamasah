@@ -51,6 +51,7 @@ const LABEL = {
   'invoice.created': 'Invoice dibuat',
   'invoice.paid': 'Invoice ditandai lunas',
   'invoice.bulk-created': 'Tagihan massal diterbitkan',
+  'invoice.reminder-sent': 'Pengingat tagihan dikirim ke wali',
   'student.phase-updated': 'Fase roadmap santri diubah',
   'honor.added': 'Santri teladan dipilih',
   'honor.removed': 'Santri teladan dihapus',

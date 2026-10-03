@@ -70,6 +70,12 @@ async function run() {
   assert.ok(pesan.html.includes('https://app.test/website/cek-status.html'));
   const bayar = eventMessage('payment-received', { name: 'Wali', studentName: 'Santri', invoiceNumber: 'INV/HI/2026/00001', receiptNumber: 'KWT/HI/2026/00001', amount: 1500000 }, 'https://app.test');
   assert.match(bayar.html, /Rp\s?1\.500\.000/);
+  const tagihan = eventMessage('invoice-issued', { name: 'Wali', studentName: 'Santri <i>', invoiceNumber: 'INV/HI/2026/00002', description: 'SPP Oktober', amount: 1500000 }, 'https://app.test');
+  assert.equal(tagihan.subject, 'Tagihan baru INV/HI/2026/00002');
+  assert.ok(tagihan.html.includes('SPP Oktober') && !tagihan.html.includes('<i>'));
+  const ingat = eventMessage('invoice-reminder', { name: 'Wali', studentName: 'Santri', invoiceNumber: 'INV/HI/2026/00002', description: 'SPP Oktober', amount: 1500000 }, 'https://app.test');
+  assert.equal(ingat.subject, 'Pengingat tagihan INV/HI/2026/00002');
+  assert.match(ingat.html, /belum tercatat lunas/);
   assert.equal(eventMessage('tidak-dikenal', {}, ''), null);
 
   console.log('event notification tests passed');

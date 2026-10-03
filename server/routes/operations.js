@@ -7,13 +7,25 @@ module.exports = [
     method: 'GET',
     pattern: /^\/api\/operations\/report\.csv$/,
     permission: 'operations.read',
-    async handler({ response, services }) {
-      const data = await services.operationsService.list();
-      const rows = [['jenis', 'id', 'status', 'nomor', 'studentId', 'jumlah', 'tanggal']];
-      data.invoices.forEach((item) => rows.push(['invoice', item.id, item.status, item.number, item.studentId, item.amount, item.issuedAt]));
-      data.visas.forEach((item) => rows.push(['visa', item.studentId, item.status, '', item.studentId, '', item.updatedAt]));
-      data.inventory.forEach((item) => rows.push(['inventory', item.id, String(item.quantity), item.name, '', item.quantity, item.updatedAt]));
-      csv(response, { filename: 'laporan-operasional-hamasah.csv', rows });
+    // ?dari=YYYY-MM&sampai=YYYY-MM membatasi tagihan menurut bulan terbit (WIB). Tanpa
+    // keduanya, semua tagihan beserta visa dan inventaris (perilaku lama).
+    async handler({ response, services, url }) {
+      const dari = /^\d{4}-\d{2}$/.test(url.searchParams.get('dari') || '') ? url.searchParams.get('dari') : null;
+      const sampai = /^\d{4}-\d{2}$/.test(url.searchParams.get('sampai') || '') ? url.searchParams.get('sampai') : null;
+      const invoices = await services.operationsService.invoiceReport({ fromMonth: dari, toMonth: sampai });
+      const rows = [['jenis', 'id', 'status', 'nomor', 'studentId', 'jumlah', 'tanggal', 'santri', 'keterangan', 'tanggal_lunas', 'nomor_kuitansi', 'tanggal_bayar', 'metode_bayar']];
+      invoices.forEach((item) => rows.push([
+        'invoice', item.id, item.status, item.number, item.studentId, item.amount, item.issuedAt,
+        item.studentName || '', item.description, item.paidAt || '', item.receiptNumber || '',
+        item.payment ? item.payment.paidOn : '', item.payment ? item.payment.method : ''
+      ]));
+      if (!dari && !sampai) {
+        const data = await services.operationsService.list();
+        data.visas.forEach((item) => rows.push(['visa', item.studentId, item.status, '', item.studentId, '', item.updatedAt]));
+        data.inventory.forEach((item) => rows.push(['inventory', item.id, String(item.quantity), item.name, '', item.quantity, item.updatedAt]));
+      }
+      const akhiran = dari || sampai ? `-${dari || 'awal'}-sd-${sampai || 'kini'}` : '';
+      csv(response, { filename: `laporan-operasional-hamasah${akhiran}.csv`, rows });
     }
   },
   {
@@ -47,9 +59,79 @@ module.exports = [
       json(response, 200, await services.operationsService.listInvoicesPage({
         status: query.get('status') || undefined,
         search: query.get('search') || undefined,
+        studentId: query.get('studentId') || undefined,
+        month: query.get('month') || undefined,
+        sort: query.get('sort') || undefined,
         limit: query.get('limit'),
         offset: query.get('offset')
       }));
+    }
+  },
+
+  // Pilihan santri aktif (id, nama, program) untuk formulir tagihan satuan dan visa.
+  {
+    method: 'GET',
+    pattern: /^\/api\/operations\/pilihan-santri$/,
+    permission: 'operations.read',
+    async handler({ response, services, auth }) {
+      const result = await services.operationsService.studentOptions(await auth.actor());
+      json(response, result.ok ? 200 : (result.status || 403), result.ok ? { items: result.value } : publicError(result));
+    }
+  },
+  // Angka utama keuangan untuk beranda, lonceng, dan kepala halaman keuangan.
+  {
+    method: 'GET',
+    pattern: /^\/api\/operations\/ringkasan$/,
+    permission: 'operations.read',
+    async handler({ response, services, auth }) {
+      const result = await services.operationsService.financeSummary(await auth.actor());
+      json(response, result.ok ? 200 : (result.status || 403), result.ok ? result.value : publicError(result));
+    }
+  },
+  {
+    method: 'GET',
+    pattern: /^\/api\/operations\/tunggakan$/,
+    permission: 'operations.read',
+    async handler({ response, services, auth }) {
+      const result = await services.operationsService.arrears(await auth.actor());
+      json(response, result.ok ? 200 : (result.status || 403), result.ok ? { items: result.value } : publicError(result));
+    }
+  },
+  // Riwayat kejadian tagihan dari jejak audit.
+  {
+    method: 'GET',
+    pattern: /^\/api\/operations\/riwayat$/,
+    permission: 'operations.read',
+    async handler({ response, services, auth, url }) {
+      const result = await services.auditService.listFinance({ limit: url.searchParams.get('limit'), offset: url.searchParams.get('offset') }, await auth.actor());
+      json(response, result.ok ? 200 : 403, result.ok ? result.value : publicError(result));
+    }
+  },
+  // Pengingat tagihan ke wali lewat email, paling sering sekali per 24 jam per tagihan.
+  {
+    method: 'POST',
+    pattern: /^\/api\/operations\/invoices\/([\w-]+)\/pengingat$/,
+    permission: 'finance.manage',
+    async handler({ response, services, auth, params, ip }) {
+      const actor = await auth.actor();
+      const siap = await services.operationsService.prepareReminder(params[0], actor);
+      if (!siap.ok) { json(response, siap.status || 422, publicError(siap)); return; }
+      if (!services.eventNotifier.tersedia || !services.eventNotifier.tersedia()) {
+        json(response, 503, { error: 'Email belum aktif di server ini, jadi pengingat tidak dapat dikirim. Hubungi admin untuk memasang penyedia email.' });
+        return;
+      }
+      const penerima = await services.eventNotifier.invoiceReminder(siap.value);
+      if (!penerima) {
+        json(response, 422, { error: 'Santri ini belum punya akun wali aktif yang terhubung, jadi pengingat tidak dapat dikirim.' });
+        return;
+      }
+      const catatan = await services.operationsService.recordReminder(siap.value.id, actor, penerima);
+      await services.auditService.record({
+        action: ACTIONS.INVOICE_REMINDER_SENT, actor, ip,
+        entityType: 'invoice', entityId: siap.value.id,
+        metadata: { number: siap.value.number, penerima }
+      });
+      json(response, 201, { reminder: catatan, recipients: penerima });
     }
   },
 
@@ -111,13 +193,15 @@ module.exports = [
     pattern: /^\/api\/operations\/invoices$/,
     permission: 'finance.manage',
     async handler({ response, services, auth, readBody, ip }) {
-      const created = await services.operationsService.createInvoice(await readBody(), await auth.actor());
+      const body = await readBody();
+      const created = await services.operationsService.createInvoice(body, await auth.actor());
       if (created.ok) {
         await services.auditService.record({
           action: ACTIONS.INVOICE_CREATED, actor: await auth.actor(), ip,
           entityType: 'invoice', entityId: created.value.id,
           metadata: { number: created.value.number, amount: created.value.amount, studentId: created.value.studentId }
         });
+        if (!body || body.kirimEmail !== false) await services.eventNotifier.invoiceIssued([created.value]);
       }
       json(response, created.ok ? 201 : 422, created.ok ? { invoice: created.value } : publicError(created));
     }
@@ -143,7 +227,8 @@ module.exports = [
     permission: 'finance.manage',
     async handler({ response, services, auth, readBody, ip }) {
       const actor = await auth.actor();
-      const hasil = await services.operationsService.bulkInvoices(await readBody(), actor);
+      const body = await readBody();
+      const hasil = await services.operationsService.bulkInvoices(body, actor);
       const terbit = hasil.ok ? (hasil.value.invoices || []) : (hasil.invoices || []);
       for (const invoice of terbit) {
         await services.auditService.record({
@@ -165,6 +250,7 @@ module.exports = [
           }
         });
       }
+      if (terbit.length && (!body || body.kirimEmail !== false)) await services.eventNotifier.invoiceIssued(terbit);
       if (!hasil.ok) {
         json(response, hasil.status || 422, publicError(hasil));
         return;
@@ -177,17 +263,17 @@ module.exports = [
     method: 'PATCH',
     pattern: /^\/api\/operations\/invoices\/([\w-]+)\/paid$/,
     permission: 'finance.manage',
-    async handler({ response, services, auth, params, ip }) {
-      const paid = await services.operationsService.markInvoicePaid(params[0], await auth.actor());
+    async handler({ response, services, auth, params, ip, readBody }) {
+      const paid = await services.operationsService.markInvoicePaid(params[0], await auth.actor(), await readBody());
       if (paid.ok) {
         await services.auditService.record({
           action: ACTIONS.INVOICE_PAID, actor: await auth.actor(), ip,
           entityType: 'invoice', entityId: paid.value.id,
-          metadata: { number: paid.value.number, receiptNumber: paid.value.receiptNumber, amount: paid.value.amount }
+          metadata: { number: paid.value.number, receiptNumber: paid.value.receiptNumber, amount: paid.value.amount, metode: paid.value.payment ? paid.value.payment.method : null }
         });
         if (paid.changed) await services.eventNotifier.invoicePaid(paid.value);
       }
-      json(response, paid.ok ? 200 : 422, paid.ok ? { invoice: paid.value } : publicError(paid));
+      json(response, paid.ok ? 200 : 422, paid.ok ? { invoice: paid.value, paymentDetailSaved: paid.paymentDetailSaved } : publicError(paid));
     }
   },
 

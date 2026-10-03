@@ -7,7 +7,9 @@ const EVENT_TYPES = Object.freeze({
   DOCUMENT_REVISION: 'document-revision',
   PAYMENT_RECEIVED: 'payment-received',
   DEPARTURE_ASSIGNED: 'departure-assigned',
-  DEPARTURE_UPDATED: 'departure-updated'
+  DEPARTURE_UPDATED: 'departure-updated',
+  INVOICE_ISSUED: 'invoice-issued',
+  INVOICE_REMINDER: 'invoice-reminder'
 });
 
 const LABEL_PERUBAHAN = Object.freeze({ plannedDate: 'Rencana berangkat', origin: 'Berangkat dari', status: 'Status kloter' });
@@ -70,6 +72,19 @@ function eventMessage(type, payload, appBaseUrl) {
     return {
       subject: `Pembayaran diterima: ${payload.invoiceNumber}`,
       html: `${salam}<p>Pembayaran untuk tagihan <strong>${escapeHtml(payload.invoiceNumber)}</strong>${atasNama} sebesar <strong>${escapeHtml(rupiah(payload.amount))}</strong> sudah kami terima.</p><p>Nomor kuitansi: <strong>${escapeHtml(payload.receiptNumber)}</strong>. Kuitansi dapat diunduh di <a href="${escapeHtml(`${appBaseUrl}/website/portal.html`)}">portal wali</a>.</p>${penutup}`
+    };
+  }
+  if (type === EVENT_TYPES.INVOICE_ISSUED || type === EVENT_TYPES.INVOICE_REMINDER) {
+    const atasNama = payload.studentName ? ` atas nama ${escapeHtml(payload.studentName)}` : '';
+    const portal = `${appBaseUrl}/website/portal.html`;
+    const pengingat = type === EVENT_TYPES.INVOICE_REMINDER;
+    const pembuka = pengingat
+      ? `<p>Kami mengingatkan bahwa tagihan <strong>${escapeHtml(payload.invoiceNumber)}</strong>${atasNama} untuk <strong>${escapeHtml(payload.description || '')}</strong> sebesar <strong>${escapeHtml(rupiah(payload.amount))}</strong> belum tercatat lunas.</p>`
+      : `<p>Tagihan baru telah diterbitkan${atasNama}: <strong>${escapeHtml(payload.description || '')}</strong> sebesar <strong>${escapeHtml(rupiah(payload.amount))}</strong> (nomor ${escapeHtml(payload.invoiceNumber)}).</p>`;
+    const sudahBayar = pengingat ? '<p>Bila pembayaran sudah dilakukan, mohon abaikan email ini atau kabari bagian keuangan agar segera kami catat.</p>' : '';
+    return {
+      subject: pengingat ? `Pengingat tagihan ${payload.invoiceNumber}` : `Tagihan baru ${payload.invoiceNumber}`,
+      html: `${salam}${pembuka}${sudahBayar}<p>Rincian tagihan dapat dilihat di <a href="${escapeHtml(portal)}">portal wali</a>.</p>${penutup}`
     };
   }
   return null;

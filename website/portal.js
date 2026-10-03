@@ -1103,7 +1103,12 @@ function kartuSapaan(account, ringkasan, allTotal) {
       ['lms.html#kelola=kiriman', 'Nilai kiriman tugas'],
       ['lms.html#kelola=progres', 'Progres dan pendaftaran santri']
     ],
-    finance: [['operations.html', 'Tagihan dan kuitansi']],
+    finance: [
+      ['operations.html', 'Terbitkan tagihan dan kuitansi'],
+      ['operations.html#menunggak', 'Tagihan menunggak'],
+      ['operations.html#tunggakan', 'Tunggakan per santri'],
+      ['operations.html#visa', 'Visa dan paspor']
+    ],
     student: [['lms.html', 'Buka ruang belajar']]
   };
   const statCard = document.createElement('div');
@@ -1187,6 +1192,7 @@ function renderBerandaPeran(account) {
   }
   mainCol.append(hero);
   if (account && account.role === 'teacher') mainCol.append(kartuTugasGuru(sub));
+  if (account && account.role === 'finance') mainCol.append(kartuTugasKeuangan(sub));
 
   rightPanel.append(kartuSapaan(account, null, 0));
   layout.append(mainCol, rightPanel);
@@ -1194,7 +1200,7 @@ function renderBerandaPeran(account) {
   studentDashboard.hidden = false;
 
   if (window.location.hash === '#perhatian') {
-    const daftar = document.querySelector('#tugas-guru');
+    const daftar = document.querySelector('#tugas-guru, #tugas-keuangan');
     if (daftar) daftar.scrollIntoView({ block: 'start' });
     try { history.replaceState(null, '', window.location.pathname); } catch {}
   }
@@ -1270,6 +1276,89 @@ function kartuTugasGuru(subjudul) {
       isiAngkaIkon('#topbar-attention-count', totals.pending);
       const lonceng = document.querySelector('#topbar-attention');
       if (lonceng) lonceng.setAttribute('aria-label', totals.pending ? `Tugas mengajar, ${totals.pending} kiriman menunggu dinilai` : 'Tugas mengajar');
+    })
+    .catch((error) => { memuat.textContent = error.message; });
+  return wadah;
+}
+
+// Beranda keuangan: angka utama (GET /api/operations/ringkasan) dan daftar yang perlu
+// ditindaklanjuti. Angka lonceng = tagihan menunggak + visa/paspor yang habis atau segera habis.
+function kartuTugasKeuangan(subjudul) {
+  const wadah = document.createElement('section');
+  wadah.className = 'admin-alerts musyrif-tasks';
+  wadah.id = 'tugas-keuangan';
+  wadah.tabIndex = -1;
+  const kepala = document.createElement('div');
+  kepala.className = 'admin-section-head';
+  const judul = document.createElement('h3');
+  judul.className = 'admin-section-title';
+  judul.textContent = 'Perlu ditindaklanjuti';
+  kepala.append(judul);
+  const memuat = document.createElement('p');
+  memuat.className = 'admin-empty';
+  memuat.textContent = 'Memuat...';
+  const angka = document.createElement('div');
+  angka.className = 'admin-kpi-grid finance-home-kpis';
+  wadah.append(kepala, memuat);
+
+  const rp = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
+  // Angka besar di kartu diringkas (Rp48,5 jt); nilai lengkap ada di catatan kartu.
+  const rpRingkas = (n) => `Rp${new Intl.NumberFormat('id-ID', { notation: 'compact', maximumFractionDigits: 1 }).format(n)}`;
+  function kartu(label, nilai, catatan, href, nada) {
+    const a = document.createElement('a');
+    a.className = `admin-kpi${nada ? ` admin-kpi--${nada}` : ''}`;
+    a.href = href;
+    const l = document.createElement('p');
+    l.className = 'admin-kpi__label';
+    l.textContent = label;
+    const v = document.createElement('p');
+    v.className = 'admin-kpi__value';
+    v.textContent = nilai;
+    const c = document.createElement('p');
+    c.className = 'admin-kpi__note';
+    c.textContent = catatan;
+    a.append(l, v, c);
+    return a;
+  }
+  function tugas(teks, href, tautan, jenis) {
+    const item = document.createElement('li');
+    item.className = `musyrif-task is-${jenis}`;
+    const isi = document.createElement('span');
+    isi.textContent = teks;
+    item.append(isi);
+    if (href) {
+      const a = document.createElement('a');
+      a.className = 'admin-link';
+      a.href = href;
+      a.textContent = tautan;
+      item.append(a);
+    }
+    return item;
+  }
+
+  fetch('/api/operations/ringkasan', { headers: requestHeaders() })
+    .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Ringkasan keuangan belum dapat dimuat.'))))
+    .then((r) => {
+      const namaBulan = new Intl.DateTimeFormat('id-ID', { month: 'long', timeZone: 'UTC' }).format(new Date(`${r.month}-01T00:00:00Z`));
+      if (subjudul) subjudul.textContent = `Tunggakan ${rp(r.outstanding.total)} dari ${r.outstanding.count} tagihan. Terkumpul ${namaBulan}: ${rp(r.collectedThisMonth.total)}.`;
+      angka.append(
+        kartu('Tunggakan', rpRingkas(r.outstanding.total), `${r.outstanding.count} tagihan, ${rp(r.outstanding.total)}`, 'operations.html#belum-dibayar', r.outstanding.count ? 'warn' : ''),
+        kartu(`Terkumpul ${namaBulan}`, rpRingkas(r.collectedThisMonth.total), `${r.collectedThisMonth.count} pembayaran, ${rp(r.collectedThisMonth.total)}`, 'operations.html', ''),
+        kartu(`Terbit ${namaBulan}`, rpRingkas(r.issuedThisMonth.total), `${r.issuedThisMonth.count} tagihan, ${rp(r.issuedThisMonth.total)}`, 'operations.html', '')
+      );
+      const daftar = document.createElement('ul');
+      daftar.className = 'musyrif-task-list';
+      const butir = [];
+      if (r.overdue.count) butir.push(tugas(`${r.overdue.count} tagihan belum dibayar lebih dari ${r.overdueDays} hari (${rp(r.overdue.total)})`, 'operations.html#menunggak', 'Tagih', 'perlu'));
+      if (r.visa.expired) butir.push(tugas(`${r.visa.expired} visa atau paspor sudah lewat masa berlaku`, 'operations.html#visa', 'Periksa', 'perlu'));
+      if (r.visa.expiring) butir.push(tugas(`${r.visa.expiring} visa atau paspor habis dalam 30 hari`, 'operations.html#visa', 'Periksa', 'perlu'));
+      if (!butir.length) butir.push(tugas('Tidak ada tunggakan lama dan tidak ada visa yang segera habis.', null, '', 'selesai'));
+      daftar.append(...butir);
+      memuat.replaceWith(angka, daftar);
+      const jumlah = r.overdue.count + r.visa.expired + r.visa.expiring;
+      isiAngkaIkon('#topbar-attention-count', jumlah);
+      const lonceng = document.querySelector('#topbar-attention');
+      if (lonceng) lonceng.setAttribute('aria-label', jumlah ? `Perlu ditindaklanjuti, ${jumlah} hal` : 'Perlu ditindaklanjuti');
     })
     .catch((error) => { memuat.textContent = error.message; });
   return wadah;
@@ -1481,12 +1570,12 @@ function siapkanIkonTopbar(account) {
       })
       .catch(() => {});
   }
-  if (lonceng && ['admin', 'supervisor', 'teacher'].includes(role) && !lonceng.dataset.siap) {
+  if (lonceng && ['admin', 'supervisor', 'teacher', 'finance'].includes(role) && !lonceng.dataset.siap) {
     lonceng.dataset.siap = '1';
     lonceng.hidden = false;
     // Admin: daftar "Perlu perhatian". Musyrif: kartu "Tugas hari ini". Guru: "Tugas mengajar".
     lonceng.addEventListener('click', () => {
-      const daftar = document.querySelector('#admin-perhatian, #tugas-musyrif, #tugas-guru');
+      const daftar = document.querySelector('#admin-perhatian, #tugas-musyrif, #tugas-guru, #tugas-keuangan');
       if (daftar) {
         // Fokus lebih dulu supaya tidak memotong animasi gulir.
         daftar.focus({ preventScroll: true });

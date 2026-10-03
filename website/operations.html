@@ -10,7 +10,7 @@
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
     <link rel="stylesheet" href="staff.css?v=cd070d9561" />
-    <link rel="stylesheet" href="portal.css?v=3a6ada4403" />
+    <link rel="stylesheet" href="portal.css?v=671e9244a9" />
     <link rel="stylesheet" href="fields.css?v=40377b19dc" />
     <script src="session-hint.js?v=b0562827f3"></script>
     <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
@@ -120,6 +120,9 @@
             <p class="crm-summary-subtitle">Terbitkan tagihan dan kuitansi, pantau dokumen visa santri, dan catat inventaris asrama.</p>
           </div>
 
+          <!-- Angka utama keuangan. Lihat GET /api/operations/ringkasan. -->
+          <section id="finance-summary" class="finance-summary" aria-label="Ringkasan keuangan" hidden></section>
+
           <!-- Horizontal Subtabs for Operations -->
           <div class="crm-subtabs-row" id="operations-subtabs">
             <button type="button" class="crm-pill-btn is-active" id="tab-btn-invoices">
@@ -136,7 +139,7 @@
             </button>
             <button type="button" class="crm-pill-btn" id="tab-btn-history">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span>Riwayat data operasional</span>
+              <span>Riwayat keuangan</span>
             </button>
           </div>
 
@@ -167,6 +170,7 @@
                 <label for="invoice-amount">Nominal pembayaran (Rp)</label>
                 <input id="invoice-amount" type="number" min="1" placeholder="Contoh: 1500000" required />
               </div>
+              <label class="op-check"><input type="checkbox" id="invoice-email" checked /> Kirim email tagihan ke wali</label>
               <button class="button button--primary staff-form__submit" type="submit">
                 <span>Terbitkan invoice</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
@@ -193,6 +197,7 @@
               </div>
               <button class="button button--secondary staff-form__submit" type="submit">Lihat pratinjau</button>
 
+              <label class="op-check"><input type="checkbox" id="bulk-email" checked /> Kirim email tagihan ke wali</label>
               <div id="bulk-preview" class="bulk-preview" hidden>
                 <p id="bulk-summary" class="bulk-preview__summary"></p>
                 <details id="bulk-targets">
@@ -207,6 +212,15 @@
               </div>
               <p id="bulk-status" class="form-status" role="status" aria-live="polite"></p>
             </form>
+
+            <div class="crm-white-card-header op-subheader" id="tunggakan" tabindex="-1">
+              <div>
+                <h3>Tunggakan per santri</h3>
+                <p>Santri dengan tagihan belum dibayar, diurutkan dari total terbesar. Pilih santri untuk melihat tagihannya.</p>
+              </div>
+            </div>
+            <div id="arrears-list" class="arrears-wrap"></div>
+            <p id="arrears-status" class="form-status" role="status" aria-live="polite"></p>
 
             <div class="crm-white-card-header op-subheader">
               <div>
@@ -405,15 +419,17 @@
             </dialog>
           </div>
 
-          <!-- Tab Panel 4: Riwayat Data Operasional -->
+          <!-- Tab Panel 4: Riwayat keuangan (dari jejak audit) -->
           <div id="panel-history" class="crm-white-card" hidden>
             <div class="crm-white-card-header">
               <div>
-                <h3>Riwayat data operasional terbaru</h3>
-                <p>Log mutasi tagihan invoice santri, perubahan berkas visa, dan aset inventaris terdata.</p>
+                <h3>Riwayat keuangan</h3>
+                <p>Tagihan yang diterbitkan, dilunasi, dikoreksi, dibatalkan, dan pengingat yang dikirim, beserta siapa dan kapan.</p>
               </div>
             </div>
-            <div id="operations-list" class="portal-account-list"></div>
+            <div id="operations-list" class="op-row-list"></div>
+            <p id="history-status" class="form-status" role="status" aria-live="polite"></p>
+            <button type="button" class="button button--secondary" id="history-more" hidden>Muat lebih banyak</button>
           </div>
 
         </div>
@@ -422,8 +438,7 @@
 
     <script src="internal-shell.js?v=af5d3d7d4c"></script>
     <script src="nav.js?v=b053d43ff8"></script>
-    <script src="student-picker.js?v=e59fd6a323"></script>
-    <script src="operations.js?v=d93cf885b4"></script>
+    <script src="operations.js?v=8dde0278ff"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>

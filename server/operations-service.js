@@ -9,6 +9,12 @@ const MAX_INVOICE_AMOUNT = 1000000000;
 // Batas satu kali tagihan massal, supaya satu klik tidak menerbitkan ribuan tagihan.
 const MAX_BULK_INVOICES = 500;
 const BULK_SKIP_REASON = 'Sudah punya tagihan dengan keterangan yang sama.';
+const PAYMENT_METHODS = Object.freeze(['transfer', 'tunai', 'lainnya']);
+// Tagihan belum dibayar lebih lama dari ini dianggap menunggak (beranda dan lonceng).
+const OVERDUE_DAYS = 30;
+const REMINDER_GAP_HOURS = 24;
+const MIGRASI_047 = 'Fitur ini menunggu pembaruan database (migrasi 047). Admin dapat menerapkannya di halaman Pengaturan.';
+const HARI_MS = 24 * 60 * 60 * 1000;
 
 function clean(value) { return String(value || '').trim(); }
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
@@ -18,13 +24,31 @@ function yearInJakarta(date) {
   return Number(new Intl.DateTimeFormat('en-CA', { timeZone: FINANCE_TIME_ZONE, year: 'numeric' }).format(new Date(date)));
 }
 
+// Tanggal (YYYY-MM-DD) di Indonesia untuk sebuah waktu.
+function dateInJakarta(date) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: FINANCE_TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(date));
+}
+
+// Batas satu bulan (YYYY-MM) di Indonesia sebagai waktu UTC: [awal, akhir).
+// WIB tidak memakai musim panas, jadi selisihnya selalu 7 jam.
+function monthRange(month) {
+  const cocok = /^(\d{4})-(\d{2})$/.exec(String(month || ''));
+  if (!cocok) return null;
+  const tahun = Number(cocok[1]);
+  const bulan = Number(cocok[2]);
+  if (bulan < 1 || bulan > 12) return null;
+  const awal = new Date(Date.UTC(tahun, bulan - 1, 1) - 7 * 60 * 60 * 1000);
+  const akhir = new Date(Date.UTC(tahun, bulan, 1) - 7 * 60 * 60 * 1000);
+  return { from: awal.toISOString(), to: akhir.toISOString() };
+}
+
 function documentNumber(prefix, sequence, year) {
   return `${prefix}/HI/${year}/${String(sequence).padStart(5, '0')}`;
 }
 
 // Antarmuka store operasional sama persis dengan postgres-operations-store.js.
 function createMemoryOperationsStore() {
-  const database = { invoices: {}, inventory: {}, visas: {}, visaDocuments: {}, visaHistory: {}, inventoryMovements: {}, corrections: {}, importBatches: {}, counters: {} };
+  const database = { invoices: {}, inventory: {}, visas: {}, visaDocuments: {}, visaHistory: {}, inventoryMovements: {}, corrections: {}, importBatches: {}, counters: {}, payments: {}, reminders: [] };
   async function nextSequence(scope, year) {
     const key = `${scope}:${year}`;
     const next = (database.counters[key] || 0) + 1;
@@ -42,13 +66,15 @@ function createMemoryOperationsStore() {
         .map((invoice) => invoice.studentId))];
     },
     // Setara dengan listInvoicesPage milik store PostgreSQL, untuk test dan pengembangan.
-    async listInvoicesPage({ status, search, studentId, limit, offset } = {}) {
+    async listInvoicesPage({ status, search, studentId, from, to, sort, limit, offset } = {}) {
       const kata = String(search || '').trim().toLocaleLowerCase('id-ID');
       const page = normalizePage({ limit, offset });
+      const arah = sort === 'oldest' ? 1 : -1;
       const cocok = Object.values(database.invoices)
         .filter((invoice) => (!status || invoice.status === status) && (!studentId || invoice.studentId === studentId)
+          && (!from || invoice.issuedAt >= from) && (!to || invoice.issuedAt < to)
           && (!kata || `${invoice.number} ${invoice.description}`.toLocaleLowerCase('id-ID').includes(kata)))
-        .sort((left, right) => right.issuedAt.localeCompare(left.issuedAt) || left.id.localeCompare(right.id));
+        .sort((left, right) => arah * left.issuedAt.localeCompare(right.issuedAt) || left.id.localeCompare(right.id));
       return { items: cocok.slice(page.offset, page.offset + page.limit).map(clone), total: cocok.length };
     },
     async saveInvoice(value) { database.invoices[value.id] = { version: 1, ...clone(value) }; return clone(database.invoices[value.id]); },
@@ -93,6 +119,22 @@ function createMemoryOperationsStore() {
       database.invoices[id].receiptNumber = payment.receiptNumberFor(sequence);
       return clone(database.invoices[id]);
     },
+    // Rincian pembayaran dan pengingat (migrasi 047). Store PostgreSQL mengembalikan null
+    // bila tabelnya belum ada; store memori selalu tersedia.
+    async paymentDetails(invoiceIds) {
+      return new Map(invoiceIds.filter((id) => database.payments[id]).map((id) => [id, clone(database.payments[id])]));
+    },
+    async savePaymentDetail(invoiceId, detail) { database.payments[invoiceId] = clone(detail); return true; },
+    async lastReminders(invoiceIds) {
+      const peta = new Map();
+      for (const item of database.reminders) {
+        if (!invoiceIds.includes(item.invoiceId)) continue;
+        const ada = peta.get(item.invoiceId);
+        peta.set(item.invoiceId, { sentAt: !ada || item.sentAt > ada.sentAt ? item.sentAt : ada.sentAt, count: (ada ? ada.count : 0) + 1 });
+      }
+      return peta;
+    },
+    async saveReminder(record) { database.reminders.push(clone(record)); return true; },
     async getVisa(studentId) { return database.visas[studentId] ? clone(database.visas[studentId]) : null; },
     async listVisas() { return Object.values(database.visas).map(clone); },
     async saveVisa(value) { database.visas[value.studentId] = clone(value); (database.visaHistory[value.studentId] ||= []).push(clone(value)); return clone(value); },
@@ -162,6 +204,80 @@ function createOperationsService(options) {
       return { ok: false, error: 'Data invoice belum valid.' };
     }
     return { ok: true, value: await terbitkanInvoice(studentId, description, amount) };
+  }
+
+  // Pilihan santri untuk formulir tagihan satuan dan visa. Keuangan tidak punya izin
+  // students.read, jadi yang dikirim hanya santri aktif dengan id, nama, dan program.
+  async function studentOptions(actor) {
+    if (!adminOnly(actor)) return { ok: false, status: 403, error: 'Akses admin atau keuangan diperlukan.' };
+    const semua = await listStudents();
+    return {
+      ok: true,
+      value: semua
+        .filter((student) => student.status === 'active')
+        .map((student) => ({ id: student.id, name: student.name, program: student.program || '' }))
+        .sort((kiri, kanan) => String(kiri.name).localeCompare(String(kanan.name), 'id-ID'))
+    };
+  }
+
+  // Angka utama beranda dan halaman keuangan: tunggakan, tunggakan lebih dari 30 hari,
+  // terkumpul dan terbit bulan ini (WIB), serta visa/paspor yang segera habis.
+  async function financeSummary(actor) {
+    if (!adminOnly(actor)) return { ok: false, status: 403, error: 'Akses admin atau keuangan diperlukan.' };
+    const sekarang = now();
+    const bulan = dateInJakarta(sekarang).slice(0, 7);
+    const rentang = monthRange(bulan);
+    const batasLama = new Date(new Date(sekarang).getTime() - OVERDUE_DAYS * HARI_MS).toISOString();
+    const invoices = await store.listInvoices();
+    const jumlah = (daftar) => ({ count: daftar.length, total: daftar.reduce((sum, item) => sum + item.amount, 0) });
+    const belum = invoices.filter((item) => item.status === 'unpaid');
+    const visa = await visaReminders({ days: 30 }, actor);
+    const pengingatVisa = visa.ok ? visa.value : [];
+    return {
+      ok: true,
+      value: {
+        month: bulan,
+        overdueDays: OVERDUE_DAYS,
+        outstanding: jumlah(belum),
+        overdue: jumlah(belum.filter((item) => item.issuedAt < batasLama)),
+        collectedThisMonth: jumlah(invoices.filter((item) => item.status === 'paid' && item.paidAt >= rentang.from && item.paidAt < rentang.to)),
+        issuedThisMonth: jumlah(invoices.filter((item) => item.status !== 'voided' && item.issuedAt >= rentang.from && item.issuedAt < rentang.to)),
+        visa: {
+          expiring: pengingatVisa.filter((item) => !item.overdue).length,
+          expired: pengingatVisa.filter((item) => item.overdue).length
+        }
+      }
+    };
+  }
+
+  // Tunggakan per santri: jumlah tagihan belum dibayar, totalnya, dan yang tertua.
+  async function arrears(actor) {
+    if (!adminOnly(actor)) return { ok: false, status: 403, error: 'Akses admin atau keuangan diperlukan.' };
+    const nama = new Map((await listStudents()).map((student) => [student.id, student.name]));
+    const peta = new Map();
+    for (const invoice of await store.listInvoices()) {
+      if (invoice.status !== 'unpaid') continue;
+      const baris = peta.get(invoice.studentId) || { studentId: invoice.studentId, studentName: nama.get(invoice.studentId) || null, count: 0, total: 0, oldestIssuedAt: invoice.issuedAt };
+      baris.count += 1;
+      baris.total += invoice.amount;
+      if (invoice.issuedAt < baris.oldestIssuedAt) baris.oldestIssuedAt = invoice.issuedAt;
+      peta.set(invoice.studentId, baris);
+    }
+    return { ok: true, value: [...peta.values()].sort((kiri, kanan) => kanan.total - kiri.total || kiri.oldestIssuedAt.localeCompare(kanan.oldestIssuedAt)) };
+  }
+
+  // Rincian pembayaran dan pengingat terakhir ditempelkan ke tagihan. Tanpa migrasi 047
+  // keduanya null dan tagihan tampil seperti sebelumnya.
+  async function lengkapiTagihan(invoices) {
+    const ids = invoices.map((invoice) => invoice.id);
+    if (!ids.length) return invoices;
+    const bayar = typeof store.paymentDetails === 'function' ? await store.paymentDetails(ids) : null;
+    const ingat = typeof store.lastReminders === 'function' ? await store.lastReminders(ids) : null;
+    return invoices.map((invoice) => ({
+      ...invoice,
+      payment: bayar ? bayar.get(invoice.id) || null : null,
+      lastReminder: ingat ? ingat.get(invoice.id) || null : null
+    }));
   }
 
   // Nomor dan penyimpanan satu tagihan, sama untuk tagihan satuan dan massal.
@@ -248,10 +364,28 @@ function createOperationsService(options) {
     return { ok: true, value: { ...ringkasan, invoices: dibuat } };
   }
 
-  async function markInvoicePaid(invoiceId, actor) {
+  // Rincian pembayaran opsional: { paidOn: 'YYYY-MM-DD', method, note }. Tanggal bayar
+  // tidak boleh di masa depan atau sebelum tanggal tagihan terbit.
+  function periksaRincian(input, invoice) {
+    const source = input || {};
+    if (source.paidOn === undefined && source.method === undefined && source.note === undefined) return { ok: true, value: null };
+    const paidOn = clean(source.paidOn);
+    const method = clean(source.method);
+    const note = clean(source.note);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(paidOn) || Number.isNaN(new Date(`${paidOn}T00:00:00Z`).getTime())) return { ok: false, error: 'Tanggal bayar belum valid.' };
+    if (paidOn > dateInJakarta(now())) return { ok: false, error: 'Tanggal bayar tidak boleh di masa depan.' };
+    if (paidOn < dateInJakarta(invoice.issuedAt)) return { ok: false, error: 'Tanggal bayar tidak boleh sebelum tagihan terbit.' };
+    if (!PAYMENT_METHODS.includes(method)) return { ok: false, error: 'Metode pembayaran belum dipilih.' };
+    if (note.length > 300) return { ok: false, error: 'Catatan pembayaran paling banyak 300 karakter.' };
+    return { ok: true, value: { paidOn, method, note: note || null } };
+  }
+
+  async function markInvoicePaid(invoiceId, actor, input) {
     if (!adminOnly(actor)) return { ok: false, error: 'Akses admin diperlukan.' };
     const invoice = await store.getInvoice(invoiceId);
     if (!invoice) return { ok: false, error: 'Invoice tidak ditemukan.' };
+    const rincian = periksaRincian(input, invoice);
+    if (!rincian.ok) return rincian;
     // changed: false bila sudah lunas sebelumnya, supaya pemanggil tidak memicu notifikasi
     // pembayaran kedua untuk peristiwa yang sama (Task R8.3).
     if (invoice.status === 'paid') return { ok: true, value: invoice, changed: false };
@@ -271,12 +405,42 @@ function createOperationsService(options) {
       const terkini = await store.getInvoice(invoiceId);
       return terkini ? { ok: true, value: terkini, changed: false } : { ok: false, error: 'Invoice tidak ditemukan.' };
     }
-    return { ok: true, value: paid, changed: true };
+    // Rincian disimpan setelah status lunas. Tanpa tabel (migrasi 047) tagihan tetap lunas,
+    // dan pemanggil diberi tahu rinciannya belum tersimpan.
+    let paymentDetailSaved = null;
+    if (rincian.value && typeof store.savePaymentDetail === 'function') {
+      paymentDetailSaved = await store.savePaymentDetail(invoiceId, { ...rincian.value, recordedByAccountId: actor.id || null, recordedAt: paidAt });
+    }
+    const [lengkap] = await lengkapiTagihan([paid]);
+    return { ok: true, value: lengkap, changed: true, paymentDetailSaved };
+  }
+
+  // Pengingat tagihan ke wali: hanya tagihan belum dibayar, paling sering sekali per 24 jam.
+  // Pemanggil (route) yang mengantrekan email lalu memanggil catatPengingat.
+  async function prepareReminder(invoiceId, actor) {
+    if (!adminOnly(actor)) return { ok: false, status: 403, error: 'Akses admin atau keuangan diperlukan.' };
+    const invoice = await store.getInvoice(invoiceId);
+    if (!invoice) return { ok: false, status: 404, error: 'Invoice tidak ditemukan.' };
+    if (invoice.status !== 'unpaid') return { ok: false, error: 'Pengingat hanya untuk tagihan yang belum dibayar.' };
+    const terakhir = typeof store.lastReminders === 'function' ? await store.lastReminders([invoiceId]) : null;
+    if (!terakhir) return { ok: false, status: 409, error: MIGRASI_047 };
+    const sebelumnya = terakhir.get(invoiceId);
+    if (sebelumnya && new Date(now()).getTime() - new Date(sebelumnya.sentAt).getTime() < REMINDER_GAP_HOURS * 60 * 60 * 1000) {
+      return { ok: false, status: 429, error: 'Pengingat untuk tagihan ini sudah dikirim dalam 24 jam terakhir.' };
+    }
+    return { ok: true, value: invoice };
+  }
+
+  async function recordReminder(invoiceId, actor, recipients) {
+    const record = { id: crypto.randomUUID(), invoiceId, actorAccountId: actor.id || null, recipients, sentAt: now() };
+    await store.saveReminder(record);
+    return record;
   }
 
   async function getInvoice(invoiceId, actor) {
     if (!adminOnly(actor)) return null;
-    return store.getInvoice(invoiceId);
+    const invoice = await store.getInvoice(invoiceId);
+    return invoice ? (await lengkapiTagihan([invoice]))[0] : null;
   }
 
   // Tagihan satu santri untuk wali (hanya santri yang terhubung) dan staf keuangan. Wali tidak
@@ -418,12 +582,36 @@ function createOperationsService(options) {
   }
 
   // Satu halaman tagihan untuk konsol; dipotong di store (SQL pada PostgreSQL).
+  // Saringan: status, pencarian, santri, bulan terbit (YYYY-MM, WIB), dan urutan
+  // ('oldest' = terlama dulu, selain itu terbaru dulu).
   async function listInvoicesPage(options = {}) {
     const page = normalizePage(options);
+    const rentang = options.month ? monthRange(options.month) : null;
     const result = typeof store.listInvoicesPage === 'function'
-      ? await store.listInvoicesPage({ status: options.status, search: options.search, ...page })
+      ? await store.listInvoicesPage({
+        status: options.status,
+        search: options.search,
+        studentId: options.studentId,
+        from: rentang ? rentang.from : undefined,
+        to: rentang ? rentang.to : undefined,
+        sort: options.sort === 'oldest' ? 'oldest' : 'newest',
+        ...page
+      })
       : { items: [], total: 0 };
-    return { items: result.items, total: result.total, limit: page.limit, offset: page.offset };
+    return { items: await lengkapiTagihan(result.items), total: result.total, limit: page.limit, offset: page.offset };
+  }
+
+  // Laporan CSV: tagihan dengan nama santri dan rincian pembayaran, bisa dibatasi bulan
+  // terbit dari..sampai (YYYY-MM, keduanya inklusif).
+  async function invoiceReport({ fromMonth, toMonth } = {}) {
+    const awal = fromMonth ? monthRange(fromMonth) : null;
+    const akhir = toMonth ? monthRange(toMonth) : null;
+    const nama = new Map((await listStudents()).map((student) => [student.id, student.name]));
+    const invoices = (await store.listInvoices())
+      .filter((item) => (!awal || item.issuedAt >= awal.from) && (!akhir || item.issuedAt < akhir.to))
+      .sort((kiri, kanan) => kiri.issuedAt.localeCompare(kanan.issuedAt));
+    const lengkap = await lengkapiTagihan(invoices);
+    return lengkap.map((item) => ({ ...item, studentName: item.studentName || nama.get(item.studentId) || null }));
   }
 
   // Ringkasan untuk layar konsol: halaman pertama tagihan beserta totalnya, ditambah visa
@@ -467,7 +655,7 @@ function createOperationsService(options) {
     return { ok: true, value: items.sort((a, b) => a.expiresAt.localeCompare(b.expiresAt)) };
   }
 
-  return Object.freeze({ bulkInvoiceOptions, bulkInvoices, createInvoice, createMemoryOperationsStore, correctInvoice, getInvoice, list, listInvoicesPage, listStudentInvoices, studentReceiptInvoice, overview, listInventoryMovements, listInvoiceCorrections, listVisaDocuments, markInvoicePaid, moveInventory, saveInventory, saveVisa, saveVisaDocument, visaReminders, voidInvoice });
+  return Object.freeze({ arrears, financeSummary, invoiceReport, prepareReminder, recordReminder, studentOptions, bulkInvoiceOptions, bulkInvoices, createInvoice, createMemoryOperationsStore, correctInvoice, getInvoice, list, listInvoicesPage, listStudentInvoices, studentReceiptInvoice, overview, listInventoryMovements, listInvoiceCorrections, listVisaDocuments, markInvoicePaid, moveInventory, saveInventory, saveVisa, saveVisaDocument, visaReminders, voidInvoice });
 }
 
-module.exports = { MAX_BULK_INVOICES, MAX_INVOICE_AMOUNT, VISA_STATUSES, createMemoryOperationsStore, createOperationsService, documentNumber, yearInJakarta };
+module.exports = { MAX_BULK_INVOICES, MAX_INVOICE_AMOUNT, PAYMENT_METHODS, VISA_STATUSES, monthRange, createMemoryOperationsStore, createOperationsService, documentNumber, yearInJakarta };

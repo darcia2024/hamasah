@@ -55,7 +55,8 @@ async function run() {
     await tambah(80, 6);
     const besar = await ukur({ limit: 10 });
     assert.equal(besar.queries, kecil.queries, `Query tagihan tumbuh dari ${kecil.queries} ke ${besar.queries} saat 6 -> 80 tagihan.`);
-    assert.equal(besar.queries, 2, 'Satu halaman: satu query hitung dan satu query halaman.');
+    // Hitung, halaman, rincian pembayaran, dan pengingat terakhir (migrasi 047): tetap empat.
+    assert.equal(besar.queries, 4, 'Satu halaman: hitung, halaman, rincian bayar, dan pengingat.');
 
     // Bentuk, urutan terbaru dulu, dan halaman berikutnya melanjutkan tanpa tumpang tindih.
     assert.deepEqual([besar.hasil.items.length, besar.hasil.total, besar.hasil.limit, besar.hasil.offset], [10, 80, 10, 0]);

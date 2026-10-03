@@ -116,11 +116,13 @@ function createPostgresOperationsStore({ database } = {}) {
 
     // Satu halaman tagihan, disaring dan dipotong di SQL, dengan nama santri dari tabel
     // students (Task R6.2). Pencarian mencocokkan nomor, keterangan, dan nama santri.
-    async listInvoicesPage({ status, search, studentId, limit, offset } = {}) {
+    async listInvoicesPage({ status, search, studentId, from, to, sort, limit, offset } = {}) {
       const kondisi = [];
       const nilai = [];
       if (status) { nilai.push(String(status)); kondisi.push(`i.status = $${nilai.length}`); }
       if (studentId) { nilai.push(String(studentId)); kondisi.push(`i.student_id = $${nilai.length}`); }
+      if (from) { nilai.push(from); kondisi.push(`i.issued_at >= $${nilai.length}`); }
+      if (to) { nilai.push(to); kondisi.push(`i.issued_at < $${nilai.length}`); }
       if (search && String(search).trim()) {
         nilai.push(likePattern(search));
         const n = nilai.length;
@@ -128,13 +130,13 @@ function createPostgresOperationsStore({ database } = {}) {
       }
       const where = kondisi.length ? `WHERE ${kondisi.join(' AND ')}` : '';
       const page = normalizePage({ limit, offset });
-      const from = 'FROM invoices i LEFT JOIN students s ON s.id = i.student_id';
-      const total = await database.query(`SELECT count(*)::int AS jumlah ${from} ${where}`, nilai);
+      const sumber = 'FROM invoices i LEFT JOIN students s ON s.id = i.student_id';
+      const total = await database.query(`SELECT count(*)::int AS jumlah ${sumber} ${where}`, nilai);
       const { rows } = await database.query(
         `SELECT i.id, i.invoice_number, i.receipt_number, i.student_id, i.description, i.amount_rupiah, i.status,
                 i.issued_at, i.paid_at, i.version, i.voided_at, i.void_reason, s.name AS student_name
-           ${from} ${where}
-          ORDER BY i.issued_at DESC, i.id
+           ${sumber} ${where}
+          ORDER BY i.issued_at ${sort === 'oldest' ? 'ASC' : 'DESC'}, i.id
           LIMIT $${nilai.length + 1} OFFSET $${nilai.length + 2}`,
         [...nilai, page.limit, page.offset]
       );
@@ -225,6 +227,63 @@ function createPostgresOperationsStore({ database } = {}) {
         );
         return toInvoice(rows[0]);
       });
+    },
+
+    // Rincian pembayaran dan pengingat (migrasi 047). Selama tabelnya belum ada, baca
+    // mengembalikan null dan tulis mengembalikan false; pemanggil yang memutuskan.
+    async paymentDetails(invoiceIds) {
+      try {
+        const { rows } = await database.query(
+          `SELECT invoice_id, paid_on::text AS paid_on, method, note FROM invoice_payments WHERE invoice_id = ANY($1::uuid[])`,
+          [invoiceIds]
+        );
+        return new Map(rows.map((row) => [row.invoice_id, { paidOn: row.paid_on, method: row.method, note: row.note || null }]));
+      } catch (error) {
+        if (error.code === '42P01') return null;
+        throw error;
+      }
+    },
+
+    async savePaymentDetail(invoiceId, detail) {
+      try {
+        await database.query(
+          `INSERT INTO invoice_payments (invoice_id, paid_on, method, note, recorded_by_account_id, recorded_at)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           ON CONFLICT (invoice_id) DO NOTHING`,
+          [invoiceId, detail.paidOn, detail.method, detail.note || null, detail.recordedByAccountId || null, detail.recordedAt]
+        );
+        return true;
+      } catch (error) {
+        if (error.code === '42P01') return false;
+        throw error;
+      }
+    },
+
+    async lastReminders(invoiceIds) {
+      try {
+        const { rows } = await database.query(
+          `SELECT invoice_id, max(sent_at) AS sent_at, count(*)::int AS jumlah
+             FROM invoice_reminders WHERE invoice_id = ANY($1::uuid[]) GROUP BY invoice_id`,
+          [invoiceIds]
+        );
+        return new Map(rows.map((row) => [row.invoice_id, { sentAt: toIso(row.sent_at), count: row.jumlah }]));
+      } catch (error) {
+        if (error.code === '42P01') return null;
+        throw error;
+      }
+    },
+
+    async saveReminder(record) {
+      try {
+        await database.query(
+          'INSERT INTO invoice_reminders (id, invoice_id, actor_account_id, recipients, sent_at) VALUES ($1, $2, $3, $4, $5)',
+          [record.id, record.invoiceId, record.actorAccountId || null, record.recipients, record.sentAt]
+        );
+        return true;
+      } catch (error) {
+        if (error.code === '42P01') return false;
+        throw error;
+      }
     },
 
     async getVisa(studentId) {

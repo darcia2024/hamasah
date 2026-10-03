@@ -48,7 +48,7 @@ function createPostgresAuditStore({ database } = {}) {
 
     // Penyaringan dan paginasi. ip_hash sengaja tidak pernah ikut keluar: nilainya
     // tidak berguna untuk dibaca manusia dan hanya menambah risiko kalau bocor.
-    async list({ from, to, action, actorAccountId, limit, offset } = {}) {
+    async list({ from, to, action, actions, actorAccountId, limit, offset } = {}) {
       const kondisi = [];
       const nilai = [];
       function tambah(sql, isi) {
@@ -58,6 +58,7 @@ function createPostgresAuditStore({ database } = {}) {
       if (from) tambah('e.occurred_at >= $n', from);
       if (to) tambah('e.occurred_at <= $n', to);
       if (action) tambah('e.action = $n', action);
+      if (Array.isArray(actions) && actions.length) tambah('e.action = ANY($n::text[])', actions);
       if (actorAccountId) tambah('e.actor_account_id = $n', actorAccountId);
 
       const where = kondisi.length ? `WHERE ${kondisi.join(' AND ')}` : '';

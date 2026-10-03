@@ -320,6 +320,10 @@ async function run() {
       },
       { permission: 'finance.manage', method: 'GET', path: '/api/operations/invoices/00000000-0000-0000-0000-000000000001/receipt.pdf' },
       { permission: 'operations.read', method: 'GET', path: '/api/operations/report.csv' },
+      { permission: 'operations.read', method: 'GET', path: '/api/operations/pilihan-santri' },
+      { permission: 'operations.read', method: 'GET', path: '/api/operations/ringkasan' },
+      { permission: 'operations.read', method: 'GET', path: '/api/operations/tunggakan' },
+      { permission: 'operations.read', method: 'GET', path: '/api/operations/riwayat' },
       {
         permission: 'articles.write', method: 'PATCH', path: '/api/articles/artikel-matriks-tidak-ada',
         body: () => ({ status: 'published' })

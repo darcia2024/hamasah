@@ -180,6 +180,26 @@ async function run() {
     assert.equal(await jumlahOutbox('payment-received'), waliTerhubung);
     assert.equal((await request(baseUrl, `/api/operations/invoices/${invoice.body.invoice.id}/paid`, { method: 'PATCH', headers: adminHeaders })).status, 200);
     assert.equal(await jumlahOutbox('payment-received'), waliTerhubung, 'Tanpa notifikasi ganda untuk satu pembayaran.');
+    // Tagihan baru dikirim ke wali; pengingat sekali per 24 jam; rincian pembayaran tercetak di kuitansi.
+    assert.ok(await jumlahOutbox('invoice-issued') >= waliTerhubung, 'Tagihan baru dikirim ke wali.');
+    const ingat = await request(baseUrl, `/api/operations/invoices/${belumLunas.body.invoice.id}/pengingat`, { method: 'POST', headers: adminHeaders });
+    assert.equal(ingat.status, 201);
+    assert.equal(ingat.body.recipients, waliTerhubung);
+    assert.equal(await jumlahOutbox('invoice-reminder'), waliTerhubung);
+    assert.equal((await request(baseUrl, `/api/operations/invoices/${belumLunas.body.invoice.id}/pengingat`, { method: 'POST', headers: adminHeaders })).status, 429);
+    const sebelumTanpaEmail = await jumlahOutbox('invoice-issued');
+    const tanpaEmail = await request(baseUrl, '/api/operations/invoices', { method: 'POST', headers: adminHeaders, body: JSON.stringify({ studentId, description: 'Buku kitab', amount: 250000, kirimEmail: false }) });
+    assert.equal(tanpaEmail.status, 201);
+    assert.equal(await jumlahOutbox('invoice-issued'), sebelumTanpaEmail, 'kirimEmail: false tidak mengirim email.');
+    const hariIni = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
+    const lunasRinci = await request(baseUrl, `/api/operations/invoices/${belumLunas.body.invoice.id}/paid`, { method: 'PATCH', headers: adminHeaders, body: JSON.stringify({ paidOn: hariIni, method: 'tunai', note: 'Bayar di kantor' }) });
+    assert.equal(lunasRinci.status, 200);
+    assert.equal(lunasRinci.body.paymentDetailSaved, true);
+    const kuitansiRinci = await fetch(`${baseUrl}/api/operations/invoices/${belumLunas.body.invoice.id}/receipt.pdf`, { headers: adminHeaders });
+    assert.ok(Buffer.from(await kuitansiRinci.arrayBuffer()).toString('latin1').includes('(Metode pembayaran: Tunai)'));
+    const riwayat = await request(baseUrl, '/api/operations/riwayat', { headers: adminHeaders });
+    assert.ok(riwayat.body.items.some((item) => item.action === 'invoice.reminder-sent'));
+    assert.ok(riwayat.body.items.every((item) => item.action.startsWith('invoice.')), 'Riwayat keuangan hanya kejadian tagihan.');
     const visa = await request(baseUrl, '/api/operations/visas', {
       method: 'POST', headers: adminHeaders,
       body: JSON.stringify({ studentId, status: 'collecting-documents', note: 'Paspor diperiksa.' })
@@ -218,7 +238,7 @@ async function run() {
     assert.equal(supervisorOperations.status, 403);
     const operations = await request(baseUrl, '/api/operations', { headers: adminHeaders });
     assert.equal(operations.status, 200);
-    assert.equal(operations.body.invoices.length, 4); // termasuk "SPP Oktober" dari uji kuitansi wali
+    assert.equal(operations.body.invoices.length, 5); // termasuk "SPP Oktober" dan "Buku kitab" dari uji kuitansi wali
     const report = await request(baseUrl, `/api/students/${studentId}/report`, {
       headers: { Authorization: `Bearer ${parentLogin.body.accessToken}` }
     });
