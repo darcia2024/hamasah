@@ -11,7 +11,7 @@
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
     <link rel="stylesheet" href="staff.css?v=cd070d9561" />
-    <link rel="stylesheet" href="portal.css?v=671e9244a9" />
+    <link rel="stylesheet" href="portal.css?v=d8334a5e2e" />
     <link rel="stylesheet" href="fields.css?v=40377b19dc" />
     <script src="session-hint.js?v=b0562827f3"></script>
     <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
@@ -136,6 +136,11 @@
               <span>Daftar calon santri masuk</span>
               <span class="crm-pill-count" id="badge-reg-count">0</span>
             </button>
+            <button type="button" class="crm-pill-btn" id="tab-btn-agenda">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              <span>Agenda tindak lanjut</span>
+              <span class="crm-pill-count" id="badge-agenda-count">0</span>
+            </button>
             <button type="button" class="crm-pill-btn" id="tab-btn-article">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
               <span>Pena Hamasah (terbitkan artikel)</span>
@@ -147,9 +152,16 @@
 
           <!-- Tab Panel 1: Registrations List -->
           <div id="panel-registrations" class="crm-card-stack">
+            <!-- Ringkasan per tahap dan hal yang perlu ditindaklanjuti. GET /api/registrations/ringkasan. -->
+            <section id="pipeline-summary" class="pipeline-summary" aria-label="Ringkasan pendaftaran" hidden></section>
             <div class="crm-toolbar">
               <div class="crm-toolbar-filters">
                 <input id="registration-search" class="registration-search" type="search" placeholder="Cari nama, nomor, WhatsApp" aria-label="Cari pendaftar">
+                <select id="registration-program-filter" class="registration-status-filter" aria-label="Saring program"><option value="">Semua program</option><option value="kuliah-al-azhar">Kuliah S1 Al-Azhar</option><option value="mahad-al-azhar">Ma'had Al-Azhar</option><option value="hamasah-courses">Hamasah Courses</option></select>
+                <select id="registration-departure-filter" class="registration-status-filter" aria-label="Saring kloter"><option value="">Semua kloter</option><option value="none">Belum punya kloter</option></select>
+                <select id="registration-sort" class="registration-status-filter" aria-label="Urutan"><option value="updated">Terbaru diperbarui</option><option value="stale">Terlama belum diproses</option></select>
+                <label class="registration-overdue-filter"><input type="checkbox" id="registration-overdue-filter" /> Tindak lanjut lewat tenggat</label>
+                <button type="button" class="button button--primary" id="registration-manual">Tambah pendaftar manual</button>
                 <select id="registration-status-filter" class="registration-status-filter" aria-label="Filter status"><option value="">Semua status</option><option value="submitted">Data dikirim</option><option value="document-review">Pemeriksaan berkas</option><option value="needs-revision">Perlu perbaikan</option><option value="academic-preparation">Persiapan akademik</option><option value="ready-for-departure">Siap keberangkatan</option><option value="completed">Selesai</option><option value="cancelled">Dibatalkan</option></select>
               </div>
             </div>
@@ -182,8 +194,22 @@
             </details>
             <p id="registration-list-status" class="form-status" role="status" aria-live="polite"></p>
             <div id="registration-pagination" class="registration-pagination" hidden><button id="registration-prev" type="button" class="button button--secondary">Sebelumnya</button><span id="registration-page-label"></span><button id="registration-next" type="button" class="button button--secondary">Berikutnya</button></div>
+            <p id="registration-special-filter" class="registration-special-filter" hidden></p>
+            <section id="manual-result" class="conversion-result manual-result" hidden aria-live="polite"></section>
             <section id="conversion-result" class="conversion-result" hidden aria-labelledby="conversion-result-title"></section>
             <div id="registration-list" class="staff-registration-list"></div>
+          </div>
+
+          <!-- Agenda tindak lanjut lintas pendaftar. GET /api/registrations/tindak-lanjut. -->
+          <div id="panel-agenda" class="crm-white-card" hidden>
+            <div class="crm-white-card-header">
+              <div>
+                <h3>Agenda tindak lanjut</h3>
+                <p>Semua tindak lanjut yang belum selesai dari pendaftaran yang masih berjalan, urut tenggat. Yang lewat tenggat ditandai merah.</p>
+              </div>
+            </div>
+            <div id="agenda-list" class="op-row-list"></div>
+            <p id="agenda-status" class="form-status" role="status" aria-live="polite"></p>
           </div>
 
           <!-- Tab Panel 2: Pena Hamasah CMS -->
@@ -331,11 +357,53 @@
       </div>
     </section>
 
+    <!-- Pendaftaran manual oleh petugas. Lihat POST /api/registrations/manual. -->
+    <dialog id="manual-dialog" class="op-dialog manual-dialog" aria-labelledby="manual-title">
+      <form method="post" id="manual-form" class="staff-form op-dialog__form" novalidate>
+        <h3 id="manual-title">Tambah pendaftar manual</h3>
+        <p class="op-dialog__summary" id="manual-summary">Untuk calon yang mendaftar lewat WhatsApp, telepon, atau datang langsung. Data wajibnya sama dengan formulir pendaftaran publik.</p>
+        <input type="hidden" id="manual-inquiry-id" />
+        <div class="form-grid-2">
+          <div><label for="manual-sumber">Mendaftar lewat</label>
+            <select id="manual-sumber" class="monitoring-select">
+              <option value="whatsapp">WhatsApp</option>
+              <option value="telepon">Telepon</option>
+              <option value="datang-langsung">Datang langsung</option>
+              <option value="konsultasi">Pesan konsultasi</option>
+            </select></div>
+          <div><label for="manual-program">Program</label>
+            <select id="manual-program" class="monitoring-select">
+              <option value="kuliah-al-azhar">Kuliah S1 Al-Azhar</option>
+              <option value="mahad-al-azhar">Ma'had Al-Azhar</option>
+              <option value="hamasah-courses">Hamasah Courses</option>
+            </select></div>
+          <div><label for="manual-name">Nama lengkap calon</label><input id="manual-name" name="applicantName" type="text" autocomplete="off" /></div>
+          <div><label for="manual-phone">WhatsApp calon</label><input id="manual-phone" name="phone" type="tel" placeholder="08xx atau +62xx" /></div>
+          <div><label for="manual-email">Email calon</label><input id="manual-email" name="email" type="email" /></div>
+          <div><label for="manual-birth">Tanggal lahir</label><input id="manual-birth" name="birthDate" type="date" /></div>
+          <div><label for="manual-gender">Jenis kelamin</label>
+            <select id="manual-gender" name="gender" class="monitoring-select"><option value="">Pilih</option><option value="putra">Putra</option><option value="putri">Putri</option></select></div>
+          <div><label for="manual-education">Pendidikan terakhir</label><input id="manual-education" name="educationLevel" type="text" placeholder="SMA / MA / Pondok Pesantren" /></div>
+          <div><label for="manual-school">Sekolah asal</label><input id="manual-school" name="schoolOrigin" type="text" /></div>
+          <div><label for="manual-city">Kota domisili</label><input id="manual-city" name="city" type="text" /></div>
+          <div><label for="manual-guardian">Nama wali</label><input id="manual-guardian" name="guardianName" type="text" /></div>
+          <div><label for="manual-guardian-phone">WhatsApp wali</label><input id="manual-guardian-phone" name="guardianPhone" type="tel" /></div>
+          <div><label for="manual-guardian-email">Email wali (wajib bila calon di bawah 18 tahun)</label><input id="manual-guardian-email" name="guardianEmail" type="email" /></div>
+        </div>
+        <label class="op-check"><input type="checkbox" id="manual-consent" /> Calon (dan wali) sudah menyetujui pemrosesan data pribadi sesuai kebijakan privasi Hamasah.</label>
+        <label class="op-check"><input type="checkbox" id="manual-guardian-consent" /> Wali menyetujui pendaftaran (wajib bila calon di bawah 18 tahun).</label>
+        <p id="manual-error" class="field-error" role="alert"></p>
+        <div class="op-dialog__actions">
+          <button type="button" class="button button--secondary" id="manual-cancel">Batal</button>
+          <button type="submit" class="button button--primary" id="manual-submit">Simpan pendaftaran</button>
+        </div>
+      </form>
+    </dialog>
     <script src="internal-shell.js?v=af5d3d7d4c"></script>
     <script src="nav.js?v=b053d43ff8"></script>
     <script src="file-open.js?v=23834ad36d"></script>
     <script src="whatsapp-message.js?v=18cb7b182f"></script>
-    <script src="staff.js?v=65bca032a4"></script>
+    <script src="staff.js?v=ed8a697c45"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>

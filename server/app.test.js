@@ -425,6 +425,19 @@ async function run() {
     assert.deepEqual((await emailKloter()).map((row) => row.status), ['sent', 'sent'], 'Worker merender dan mengirim email kloter.');
     const daftarKloter = await request(baseUrl, '/api/departures', { headers: adminHeaders });
     assert.equal(daftarKloter.body.items.find((item) => item.id === kloter.body.group.id).memberCount, 1);
+    // Anggota kloter dan manifest CSV (diaudit tanpa nama).
+    const anggotaKloter = await request(baseUrl, `/api/departures/${kloter.body.group.id}/anggota`, { headers: adminHeaders });
+    assert.equal(anggotaKloter.status, 200);
+    assert.deepEqual(anggotaKloter.body.items.map((item) => [item.registrationId, item.applicantName]), [[registrationId, 'Naufal Rizki']]);
+    assert.equal(anggotaKloter.body.items[0].documents.required, 5);
+    const manifest = await fetch(`${baseUrl}/api/departures/${kloter.body.group.id}/manifest.csv`, { headers: adminHeaders });
+    assert.equal(manifest.status, 200);
+    const isiManifest = await manifest.text();
+    assert.ok(isiManifest.includes('"Naufal Rizki"') && isiManifest.includes('"2007-04-12"'), 'Manifest memuat nama dan tanggal lahir.');
+    const auditManifest = await database.query("SELECT metadata FROM audit_events WHERE action = 'departure-group.manifest-exported'");
+    assert.deepEqual(auditManifest.rows.map((row) => row.metadata), [{ jumlah: 1 }]);
+    assert.equal((await request(baseUrl, '/api/departures/00000000-0000-4000-8000-000000000000/anggota', { headers: adminHeaders })).status, 404);
+
     const daftarPendaftar = await request(baseUrl, '/api/registrations?pageSize=50', { headers: adminHeaders });
     assert.equal(daftarPendaftar.body.items.find((item) => item.registrationId === registrationId).departure.name, 'Kloter 1 Jakarta');
     assert.equal((await request(baseUrl, `/api/registrations/${registrationId}/departure`, { method: 'PUT', headers: candidateHeaders, body: JSON.stringify({ departureGroupId: null }) })).status, 401, 'Pendaftar tidak bisa mengubah kloternya.');
@@ -773,6 +786,34 @@ async function run() {
       body: JSON.stringify({ email: 'admin@hamasah.test', password: 'kata-sandi-admin-aman' })
     });
     assert.equal(tetapBisa.status, 200, 'Akun lain tidak boleh ikut terkunci.');
+
+    // Pendaftaran manual oleh petugas: konfirmasi persetujuan wajib, kode akses dikembalikan
+    // sekali dan bisa dipakai login cek status, dan catatan internal mencatat asalnya.
+    const manualTanpaKonfirmasi = await request(baseUrl, '/api/registrations/manual', { method: 'POST', headers: adminHeaders, body: JSON.stringify({ sumber: 'whatsapp', applicantName: 'Calon Manual' }) });
+    assert.equal(manualTanpaKonfirmasi.status, 422);
+    const manual = await request(baseUrl, '/api/registrations/manual', {
+      method: 'POST', headers: adminHeaders,
+      body: JSON.stringify({
+        sumber: 'telepon', konfirmasiPersetujuan: true, applicantName: 'Calon Manual', phone: '0812 7777 8888',
+        guardianName: 'Wali Manual', guardianPhone: '0813 7777 9999', email: 'manual@hamasah.test', guardianEmail: 'wali-manual@hamasah.test',
+        birthDate: '2006-01-02', gender: 'putri', schoolOrigin: 'MA Manual', guardianConsent: true,
+        program: 'kuliah-al-azhar', educationLevel: 'MA', city: 'Garut'
+      })
+    });
+    assert.equal(manual.status, 201);
+    assert.match(manual.body.accessCode, /\S{6,}/);
+    const loginManual = await request(baseUrl, '/api/applicant/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ registrationId: manual.body.registration.registrationId, accessCode: manual.body.accessCode }) });
+    assert.equal(loginManual.status, 200, 'Kode akses pendaftaran manual bisa dipakai cek status.');
+    const dataManual = (await request(baseUrl, `/api/registrations?search=${manual.body.registration.registrationId}`, { headers: adminHeaders })).body.items[0];
+    assert.match(dataManual.notes[0].body, /lewat telepon/);
+    assert.equal(dataManual.notes[0].visibility, 'internal');
+    const auditManual = await database.query('SELECT metadata FROM audit_events WHERE action = $1 AND entity_id = $2', ['registration.created', manual.body.registration.registrationId]);
+    assert.equal(auditManual.rows[0].metadata.sumber, 'telepon');
+    const ringkasanPipeline = await request(baseUrl, '/api/registrations/ringkasan', { headers: adminHeaders });
+    assert.equal(ringkasanPipeline.status, 200);
+    assert.ok(ringkasanPipeline.body.byStatus.submitted >= 1);
+    assert.equal(typeof ringkasanPipeline.body.newInquiries, 'number');
+    assert.equal((await request(baseUrl, '/api/registrations/tindak-lanjut', { headers: adminHeaders })).status, 200);
   } finally {
     await new Promise(function close(resolve) { server.close(resolve); });
     await app.close();

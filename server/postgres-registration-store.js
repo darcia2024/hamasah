@@ -177,6 +177,65 @@ function createPostgresRegistrationStore({ database } = {}) {
     },
 
     // doneAt null membuka kembali tindak lanjut yang sudah ditandai selesai.
+    // Ringkasan pipeline untuk beranda dan kepala halaman pendaftaran.
+    async pipelineSummary({ staleBefore, today }) {
+      const [perStatus, baru, tenggat, berkas] = await Promise.all([
+        database.query('SELECT status, count(*)::int AS jumlah FROM registrations GROUP BY status'),
+        database.query(`SELECT count(*)::int AS jumlah FROM registrations WHERE status = 'submitted' AND created_at < $1`, [staleBefore]),
+        database.query(
+          `SELECT count(*)::int AS langkah, count(DISTINCT s.registration_id)::int AS pendaftar
+             FROM registration_next_steps s JOIN registrations r ON r.id = s.registration_id
+            WHERE s.done_at IS NULL AND s.due_on < $1::date AND r.status NOT IN ('completed', 'cancelled')`,
+          [today]
+        ),
+        database.query(
+          `SELECT count(DISTINCT d.registration_id)::int AS pendaftar, count(*)::int AS berkas
+             FROM registration_documents d JOIN registrations r ON r.id = d.registration_id
+            WHERE d.review_status = 'pending' AND r.status NOT IN ('completed', 'cancelled')`
+        )
+      ]);
+      return {
+        byStatus: Object.fromEntries(perStatus.rows.map((row) => [row.status, row.jumlah])),
+        stale: baru.rows[0].jumlah,
+        overdueSteps: tenggat.rows[0].langkah,
+        overdueRegistrations: tenggat.rows[0].pendaftar,
+        pendingDocuments: berkas.rows[0].berkas,
+        pendingDocumentRegistrations: berkas.rows[0].pendaftar
+      };
+    },
+
+    // Agenda: semua tindak lanjut yang belum selesai, dari pendaftaran yang masih berjalan.
+    async openNextSteps({ limit = 300 } = {}) {
+      const { rows } = await database.query(
+        `SELECT s.id, s.title, s.due_on, s.created_at, r.registration_id, r.applicant_name, r.status, r.program
+           FROM registration_next_steps s JOIN registrations r ON r.id = s.registration_id
+          WHERE s.done_at IS NULL AND r.status NOT IN ('completed', 'cancelled')
+          ORDER BY s.due_on NULLS LAST, s.created_at
+          LIMIT $1`,
+        [limit]
+      );
+      return rows.map((row) => ({
+        stepId: row.id,
+        title: row.title,
+        dueOn: row.due_on ? row.due_on.toISOString().slice(0, 10) : null,
+        createdAt: row.created_at.toISOString(),
+        registrationId: row.registration_id,
+        applicantName: row.applicant_name,
+        status: row.status,
+        program: row.program
+      }));
+    },
+
+    // Beberapa pendaftaran sekaligus (anggota kloter), urut nama.
+    async listByRegistrationIds(registrationIds) {
+      if (!registrationIds.length) return [];
+      const { rows } = await database.query(
+        'SELECT * FROM registrations WHERE registration_id = ANY($1::text[]) ORDER BY applicant_name',
+        [registrationIds]
+      );
+      return hydrate(rows);
+    },
+
     async setNextStepDone(registrationId, stepId, doneAt) {
       const registration = await get(registrationId);
       if (!registration) return null;
@@ -222,10 +281,34 @@ function createPostgresRegistrationStore({ database } = {}) {
     // halaman, dan empat query anak untuk baris halaman itu saja. Jumlahnya tetap enam
     // berapa pun total pendaftar (Task R6.1). Pencarian mencocokkan nomor pendaftaran,
     // nama, dan nomor telepon calon.
-    async list({ search, status, page, pageSize } = {}) {
+    // Saringan tambahan untuk konsol petugas: program, kloter (id atau 'none'), tindak lanjut
+    // lewat tenggat (overdueBefore = tanggal hari ini), berkas menunggu review, pendaftar baru
+    // yang belum disentuh (staleBefore), dan urutan 'stale' (terlama diperbarui dulu).
+    async list({ search, status, page, pageSize, program, departureGroupId, overdueBefore, pendingDocuments, staleBefore, sort } = {}) {
       const kondisi = [];
       const nilai = [];
       if (status) { nilai.push(status); kondisi.push(`status = $${nilai.length}`); }
+      if (program) { nilai.push(program); kondisi.push(`program = $${nilai.length}`); }
+      if (departureGroupId === 'none') {
+        kondisi.push('registration_id NOT IN (SELECT registration_id FROM registration_departures)');
+      } else if (departureGroupId) {
+        nilai.push(departureGroupId);
+        kondisi.push(`registration_id IN (SELECT registration_id FROM registration_departures WHERE departure_group_id::text = $${nilai.length})`);
+      }
+      if (overdueBefore) {
+        nilai.push(overdueBefore);
+        kondisi.push(`status NOT IN ('completed', 'cancelled') AND EXISTS (SELECT 1 FROM registration_next_steps s WHERE s.registration_id = registrations.id AND s.done_at IS NULL AND s.due_on < $${nilai.length}::date)`);
+      }
+      if (pendingDocuments) {
+        kondisi.push(`status NOT IN ('completed', 'cancelled') AND EXISTS (SELECT 1 FROM registration_documents d WHERE d.registration_id = registrations.id AND d.review_status = 'pending')`);
+      }
+      if (staleBefore) {
+        nilai.push(staleBefore);
+        kondisi.push(`status = 'submitted' AND created_at < $${nilai.length}`);
+      }
+      // "Terlama belum diproses" hanya untuk pendaftaran yang masih berjalan, kecuali
+      // petugas memilih statusnya sendiri.
+      if (sort === 'stale' && !status) kondisi.push(`status NOT IN ('completed', 'cancelled')`);
       const kata = String(search || '').trim();
       if (kata) {
         // % dan _ dari pengguna adalah huruf biasa, bukan pola.
@@ -240,7 +323,7 @@ function createPostgresRegistrationStore({ database } = {}) {
       const total = await database.query(`SELECT count(*)::int AS jumlah FROM registrations ${where}`, nilai);
       const { rows } = await database.query(
         `SELECT * FROM registrations ${where}
-          ORDER BY updated_at DESC, id
+          ORDER BY updated_at ${sort === 'stale' ? 'ASC' : 'DESC'}, id
           LIMIT $${nilai.length + 1} OFFSET $${nilai.length + 2}`,
         [...nilai, ukuran, (halaman - 1) * ukuran]
       );

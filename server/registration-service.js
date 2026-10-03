@@ -24,6 +24,9 @@
     return JSON.parse(JSON.stringify(value));
   }
 
+  // Pendaftar berstatus "Data dikirim" lebih lama dari ini dianggap belum disentuh.
+  const STALE_DAYS = 3;
+
   function createMemoryStore() {
     const records = new Map();
     const counters = new Map();
@@ -59,15 +62,22 @@
         return records.size;
       },
       // Sama bentuknya dengan store PostgreSQL: satu halaman yang sudah disaring.
-      list({ search, status, page, pageSize } = {}) {
+      list({ search, status, page, pageSize, program, overdueBefore, pendingDocuments, staleBefore, sort } = {}) {
         const kata = String(search || '').trim().toLocaleLowerCase('id-ID');
         const ukuran = Math.min(100, Math.max(1, Number(pageSize) || 20));
         const halaman = Math.max(1, Number(page) || 1);
+        const berjalan = (record) => !['completed', 'cancelled'].includes(record.status);
+        const arah = sort === 'stale' ? 1 : -1;
         const cocok = [...records.values()]
-          .sort(function latestFirst(left, right) { return right.updatedAt.localeCompare(left.updatedAt); })
+          .sort(function byUpdated(left, right) { return arah * left.updatedAt.localeCompare(right.updatedAt); })
           .filter((record) => {
             const haystack = `${record.registrationId} ${record.applicant.applicantName} ${record.applicant.phone}`.toLocaleLowerCase('id-ID');
-            return (!status || record.status === status) && (!kata || haystack.includes(kata));
+            return (!status || record.status === status) && (!kata || haystack.includes(kata))
+              && (!program || record.applicant.program === program)
+              && (!overdueBefore || (berjalan(record) && (record.nextSteps || []).some((step) => !step.doneAt && step.dueOn && step.dueOn < overdueBefore)))
+              && (!pendingDocuments || (berjalan(record) && (record.documents || []).some((document) => (document.reviewStatus || 'pending') === 'pending')))
+              && (!staleBefore || (record.status === 'submitted' && record.createdAt < staleBefore))
+              && (sort !== 'stale' || Boolean(status) || berjalan(record));
           });
         return { items: cocok.slice((halaman - 1) * ukuran, halaman * ukuran).map(clone), total: cocok.length, page: halaman, pageSize: ukuran };
       },
@@ -143,7 +153,16 @@
       }),
       documents: record.documents,
       notes: record.notes || [],
-      nextSteps: record.nextSteps || []
+      nextSteps: record.nextSteps || [],
+      // Untuk manifest kloter dan formulir petugas; tidak pernah dikirim ke pendaftar.
+      applicantProfile: {
+        email: record.applicant.email || '',
+        birthDate: record.applicant.birthDate || '',
+        gender: record.applicant.gender || '',
+        schoolOrigin: record.applicant.schoolOrigin || '',
+        guardianEmail: record.applicant.guardianEmail || '',
+        referralSource: record.applicant.referralSource || ''
+      }
     };
   }
 
@@ -230,11 +249,20 @@
       if (typeof store.list !== 'function') {
         return { items: [], total: 0, page: 1, pageSize: 20 };
       }
+      const batas = batasWaktu();
+      const program = String(options.program || '').trim();
+      const kloter = String(options.departure || '').trim();
       const page = await store.list({
         search: String(options.search || '').trim(),
         status: String(options.status || '').trim(),
         page: Math.max(1, Number(options.page) || 1),
-        pageSize: Math.min(100, Math.max(1, Number(options.pageSize) || 20))
+        pageSize: Math.min(100, Math.max(1, Number(options.pageSize) || 20)),
+        program: Object.values(domain.PROGRAMS).includes(program) ? program : '',
+        departureGroupId: kloter === 'none' || /^[0-9a-f-]{36}$/i.test(kloter) ? kloter : '',
+        overdueBefore: options.overdue ? batas.today : '',
+        pendingDocuments: Boolean(options.pendingDocuments),
+        staleBefore: options.stale ? batas.staleBefore : '',
+        sort: options.sort === 'stale' ? 'stale' : 'updated'
       });
       return { items: page.items.map(toStaffRegistration), total: page.total, page: page.page, pageSize: page.pageSize };
     }
@@ -421,9 +449,36 @@
       return record ? { ok: true, value: toPublicRegistration(record) } : { ok: false, error: 'Pendaftaran tidak ditemukan.' };
     }
 
+    // Hari ini (YYYY-MM-DD) di zona pendaftaran, dan batas "belum disentuh" (3 hari).
+    function batasWaktu() {
+      const sekarang = getNow();
+      return {
+        today: new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(sekarang)),
+        staleBefore: new Date(new Date(sekarang).getTime() - STALE_DAYS * 24 * 60 * 60 * 1000).toISOString()
+      };
+    }
+
+    async function pipelineSummary() {
+      if (typeof store.pipelineSummary !== 'function') return null;
+      return { ...(await store.pipelineSummary(batasWaktu())), staleDays: STALE_DAYS };
+    }
+
+    async function openNextSteps() {
+      if (typeof store.openNextSteps !== 'function') return [];
+      const { today } = batasWaktu();
+      return (await store.openNextSteps({ limit: 300 })).map((item) => ({ ...item, overdue: Boolean(item.dueOn && item.dueOn < today) }));
+    }
+
+    async function staffByRegistrationIds(registrationIds) {
+      if (typeof store.listByRegistrationIds !== 'function') return [];
+      return (await store.listByRegistrationIds(registrationIds)).map(toStaffRegistration);
+    }
+
     async function setNextStepDone(registrationId, stepId, input, actor) {
       if (!actor || ![domain.ROLES.ADMIN, domain.ROLES.REGISTRATION_OFFICER].includes(actor.role)) return { ok: false, error: 'Akses petugas diperlukan.' };
       const done = (input || {}).done !== false;
+      // Id bukan UUID langsung ditolak, supaya tidak menjadi galat database.
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(stepId || ''))) return { ok: false, error: 'Tindak lanjut tidak ditemukan.' };
       const record = typeof store.setNextStepDone === 'function' ? await store.setNextStepDone(registrationId, String(stepId || ''), done ? getNow() : null) : null;
       return record ? { ok: true, value: toStaffRegistration(record) } : { ok: false, error: 'Tindak lanjut tidak ditemukan.' };
     }
@@ -433,6 +488,9 @@
       addNote,
       addNextStep,
       setNextStepDone,
+      pipelineSummary,
+      openNextSteps,
+      staffByRegistrationIds,
       changeStatus,
       create,
       getPublic,

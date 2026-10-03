@@ -38,6 +38,7 @@ const LABEL = {
   'student.worship-recorded': 'Catatan ibadah santri disimpan',
   'student.health-recorded': 'Catatan kesehatan santri dibuat',
   'departure-group.saved': 'Kloter keberangkatan disimpan',
+  'departure-group.manifest-exported': 'Manifest kloter diunduh',
   'registration.document-added': 'Dokumen pendaftaran ditambahkan',
   'student.created': 'Santri ditambahkan',
   'student.accounts-linked': 'Relasi akun santri diubah',

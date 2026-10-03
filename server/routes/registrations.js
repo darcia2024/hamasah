@@ -123,13 +123,90 @@ module.exports = [
     }
   },
 
+  // Ringkasan pipeline: jumlah per status, pendaftar baru belum disentuh, tindak lanjut lewat
+  // tenggat, berkas menunggu review, dan pesan konsultasi baru.
+  {
+    method: 'GET',
+    pattern: /^\/api\/registrations\/ringkasan$/,
+    permission: 'registrations.read',
+    async handler({ response, services }) {
+      const ringkasan = await services.registrationService.pipelineSummary();
+      let pesanBaru = 0;
+      try {
+        pesanBaru = (await services.inquiryStore.list({ status: 'new', page: 1, pageSize: 1 })).total;
+      } catch { pesanBaru = 0; }
+      json(response, 200, { ...(ringkasan || {}), newInquiries: pesanBaru });
+    }
+  },
+
+  // Agenda tindak lanjut lintas pendaftar, urut tenggat.
+  {
+    method: 'GET',
+    pattern: /^\/api\/registrations\/tindak-lanjut$/,
+    permission: 'registrations.read',
+    async handler({ response, services }) {
+      json(response, 200, { items: await services.registrationService.openNextSteps() });
+    }
+  },
+
+  // Pendaftaran manual oleh petugas (calon lewat WhatsApp, telepon, atau datang langsung,
+  // atau dari pesan konsultasi). Data wajib sama dengan formulir publik; persetujuan
+  // dikonfirmasi petugas dengan calon/wali. Kode akses cek status dikembalikan sekali.
+  {
+    method: 'POST',
+    pattern: /^\/api\/registrations\/manual$/,
+    permission: 'registrations.update-status',
+    async handler({ response, services, auth, readBody, ip }) {
+      const staff = await auth.actor();
+      const body = await readBody();
+      const SUMBER = { whatsapp: 'WhatsApp', telepon: 'telepon', 'datang-langsung': 'datang langsung', konsultasi: 'pesan konsultasi' };
+      const sumber = SUMBER[body.sumber] ? body.sumber : '';
+      if (!sumber) { json(response, 422, { error: 'Pilih dari mana calon mendaftar.' }); return; }
+      if (body.konfirmasiPersetujuan !== true) {
+        json(response, 422, { error: 'Konfirmasi bahwa calon (dan wali) sudah menyetujui pemrosesan data pribadi.', errors: { konfirmasiPersetujuan: 'Centang konfirmasi bahwa calon (dan wali) sudah menyetujui pemrosesan data pribadi.' } });
+        return;
+      }
+      const accessCode = services.applicantService.createAccessCode();
+      const accessToken = createAccessToken();
+      const created = await services.registrationService.create({
+        ...body,
+        referralSource: body.referralSource || `Petugas (${SUMBER[sumber]})`,
+        consent: true,
+        dataProcessingConsent: true,
+        guardianConsent: body.guardianConsent === true
+      }, {
+        privateData: { accessTokenHash: hashToken(accessToken), accessCodeHash: await services.applicantService.hashAccessCode(accessCode) }
+      });
+      if (!created.ok) { json(response, 422, publicError(created)); return; }
+      const registrationId = created.value.registrationId;
+      await services.registrationService.addNote(registrationId, {
+        visibility: 'internal',
+        body: `Didaftarkan manual oleh petugas lewat ${SUMBER[sumber]}. Persetujuan pemrosesan data dikonfirmasi petugas.`
+      }, { role: registrationRoleOf(staff), accountId: staff.id });
+      await services.auditService.record({
+        action: ACTIONS.REGISTRATION_CREATED, actor: staff, ip,
+        entityType: 'registration', entityId: registrationId,
+        metadata: { program: created.value.program, manual: true, sumber }
+      });
+      // Pesan konsultasi asalnya otomatis ditandai sudah dihubungi.
+      if (body.inquiryId) {
+        try { await services.inquiryStore.updateStatus(String(body.inquiryId), 'contacted', staff.id); } catch { /* status pesan tidak menggagalkan pendaftaran */ }
+      }
+      json(response, 201, { registration: created.value, accessCode });
+    }
+  },
+
   {
     method: 'GET',
     pattern: /^\/api\/registrations$/,
     permission: 'registrations.read',
     async handler({ request, response, services }) {
       const query = new URL(request.url, 'http://localhost').searchParams;
-      const page = await services.registrationService.listForStaff({ search: query.get('search'), status: query.get('status'), page: query.get('page'), pageSize: query.get('pageSize') });
+      const page = await services.registrationService.listForStaff({
+        search: query.get('search'), status: query.get('status'), page: query.get('page'), pageSize: query.get('pageSize'),
+        program: query.get('program'), departure: query.get('departure'), sort: query.get('sort'),
+        overdue: query.get('overdue') === '1', pendingDocuments: query.get('pendingDocuments') === '1', stale: query.get('stale') === '1'
+      });
       // Kloter tiap pendaftaran pada halaman ini, satu query untuk seluruh halaman.
       const kloter = await services.departureService.forRegistrations((page.items || []).map((item) => item.registrationId));
       json(response, 200, { ...page, items: (page.items || []).map((item) => ({ ...item, departure: kloter[item.registrationId] || null })) });

@@ -100,6 +100,41 @@ async function run() {
     assert.equal(Array.isArray(tanpaArgumen), false);
     assert.deepEqual(Object.keys(tanpaArgumen).sort(), ['items', 'page', 'pageSize', 'total']);
 
+    // Konsol petugas: ringkasan, saringan khusus, agenda, dan tindak lanjut selesai.
+    const petugas = { role: 'registration-officer', accountId: null };
+    const layanan = createRegistrationService({ store, now: () => '2026-09-10T03:00:00.000Z' });
+    await layanan.addNextStep('HI-REG-2026-00010', { title: 'Lewat tenggat', dueOn: '2026-09-05' }, petugas);
+    await layanan.addNextStep('HI-REG-2026-00011', { title: 'Belum jatuh tempo', dueOn: '2026-09-20' }, petugas);
+    const selesai = await layanan.addNextStep('HI-REG-2026-00012', { title: 'Sudah selesai', dueOn: '2026-09-04' }, petugas);
+    const langkahSelesai = selesai.value.nextSteps[0].id;
+    assert.equal((await layanan.setNextStepDone('HI-REG-2026-00012', langkahSelesai, { done: true }, petugas)).value.nextSteps[0].doneAt, '2026-09-10T03:00:00.000Z');
+    assert.equal((await layanan.setNextStepDone('HI-REG-2026-00012', 'bukan-uuid-langkah', { done: true }, petugas)).ok, false);
+    assert.equal((await layanan.setNextStepDone('HI-REG-2026-00012', langkahSelesai, { done: true }, { role: 'applicant' })).ok, false);
+
+    const dokumenMenunggu = Array.from({ length: 60 }, (_, n) => (n + 1) % 4).reduce((sum, value) => sum + value, 0);
+    const ringkas = await layanan.pipelineSummary();
+    assert.deepEqual(ringkas.byStatus, { submitted: 40, 'document-review': 20 });
+    assert.equal(ringkas.stale, 40, 'Semua yang masih "Data dikirim" sudah lebih dari 3 hari.');
+    assert.deepEqual([ringkas.overdueSteps, ringkas.overdueRegistrations], [1, 1], 'Yang sudah selesai dan yang belum jatuh tempo tidak dihitung.');
+    assert.deepEqual([ringkas.pendingDocuments, ringkas.pendingDocumentRegistrations], [dokumenMenunggu, 45]);
+
+    assert.deepEqual((await layanan.listForStaff({ overdue: true })).items.map((item) => item.registrationId), ['HI-REG-2026-00010']);
+    assert.equal((await layanan.listForStaff({ stale: true })).total, 40);
+    assert.equal((await layanan.listForStaff({ pendingDocuments: true })).total, 45);
+    assert.equal((await layanan.listForStaff({ program: 'kuliah-al-azhar' })).total, 0);
+    assert.equal((await layanan.listForStaff({ program: 'mahad-al-azhar' })).total, 60);
+    assert.equal((await layanan.listForStaff({ program: 'program-palsu' })).total, 60, 'Program tak dikenal diabaikan.');
+    assert.equal((await layanan.listForStaff({ departure: 'none' })).total, 60);
+    assert.equal((await layanan.listForStaff({ sort: 'stale', pageSize: 1 })).items[0].registrationId, 'HI-REG-2026-00001', 'Terlama dulu.');
+
+    const agenda = await layanan.openNextSteps();
+    assert.deepEqual(agenda.map((item) => [item.registrationId, item.overdue]), [['HI-REG-2026-00010', true], ['HI-REG-2026-00011', false]]);
+    assert.equal(agenda[0].applicantName, 'Calon 010');
+
+    const anggota = await layanan.staffByRegistrationIds(['HI-REG-2026-00002', 'HI-REG-2026-00001']);
+    assert.deepEqual(anggota.map((item) => item.registrationId), ['HI-REG-2026-00001', 'HI-REG-2026-00002'], 'Urut nama.');
+    assert.equal(anggota[0].applicantProfile.birthDate, '2008-04-12');
+
     console.log(`registration list tests passed (${besar.queries} query per halaman pada 5 dan 60 pendaftar)`);
   } finally {
     await database.close();

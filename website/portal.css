@@ -6978,3 +6978,137 @@ button.santri-juz__cell:focus-visible {
 .finance-home-kpis a.admin-kpi:focus-visible {
   border-color: var(--md-sys-color-primary);
 }
+
+/* Pendaftaran: ringkasan per tahap, penanda umur, agenda, anggota kloter, pendaftaran manual. */
+.pipeline-summary {
+  display: grid;
+  gap: 12px;
+}
+
+.pipeline-summary__stages {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.pipeline-kpi {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pipeline-kpi:hover,
+.pipeline-kpi:focus-visible {
+  border-color: var(--md-sys-color-primary);
+}
+
+.pipeline-summary__alerts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pipeline-alert {
+  padding: 8px 14px;
+  border: 1px solid var(--md-sys-color-primary);
+  border-radius: 999px;
+  background: var(--md-sys-color-primary-container, #FDF3D3);
+  color: var(--md-sys-color-on-surface);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.registration-overdue-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.registration-overdue-filter input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--md-sys-color-primary);
+}
+
+.registration-special-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.staff-reg-card__age {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.staff-reg-card__age .is-late,
+.agenda-row.is-overdue .agenda-row__due {
+  color: var(--md-sys-color-error);
+  font-weight: 600;
+}
+
+.agenda-row.is-overdue {
+  border-color: var(--md-sys-color-error);
+}
+
+.departure-list__row {
+  flex-wrap: wrap;
+}
+
+.departure-list__row > .departure-list__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.departure-list__row > .departure-list__members {
+  flex: 1 1 100%;
+}
+
+.manual-dialog {
+  width: min(760px, calc(100vw - 32px));
+}
+
+.manual-dialog .form-grid-2 {
+  margin-bottom: 12px;
+}
+
+.manual-result {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.manual-result h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.manual-result__code {
+  margin: 0;
+  font-size: 15px;
+}
+
+.manual-result__code strong {
+  font-size: 20px;
+  letter-spacing: 0.08em;
+}
+
+.registration-home-kpis .admin-kpi__value {
+  font-size: 24px;
+}

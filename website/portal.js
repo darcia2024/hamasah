@@ -1090,7 +1090,12 @@ function kartuSapaan(account, ringkasan, allTotal) {
       ['audit.html', 'Jejak audit'],
       ['pengaturan.html', 'Pengaturan aplikasi']
     ],
-    'registration-officer': [['staff.html', 'Pendaftaran calon santri']],
+    'registration-officer': [
+      ['staff.html', 'Pendaftaran calon santri'],
+      ['staff.html#tambah-manual', 'Tambah pendaftar manual'],
+      ['staff.html#agenda', 'Agenda tindak lanjut'],
+      ['staff.html#pesan-konsultasi', 'Pesan konsultasi']
+    ],
     supervisor: [
       ['monitoring.html#presensi', 'Presensi asrama (sholat dan kegiatan)'],
       ['monitoring.html', 'Catat pembinaan per santri'],
@@ -1193,6 +1198,7 @@ function renderBerandaPeran(account) {
   mainCol.append(hero);
   if (account && account.role === 'teacher') mainCol.append(kartuTugasGuru(sub));
   if (account && account.role === 'finance') mainCol.append(kartuTugasKeuangan(sub));
+  if (account && account.role === 'registration-officer') mainCol.append(kartuTugasPendaftaran(sub));
 
   rightPanel.append(kartuSapaan(account, null, 0));
   layout.append(mainCol, rightPanel);
@@ -1200,7 +1206,7 @@ function renderBerandaPeran(account) {
   studentDashboard.hidden = false;
 
   if (window.location.hash === '#perhatian') {
-    const daftar = document.querySelector('#tugas-guru, #tugas-keuangan');
+    const daftar = document.querySelector('#tugas-guru, #tugas-keuangan, #tugas-pendaftaran');
     if (daftar) daftar.scrollIntoView({ block: 'start' });
     try { history.replaceState(null, '', window.location.pathname); } catch {}
   }
@@ -1356,6 +1362,89 @@ function kartuTugasKeuangan(subjudul) {
       daftar.append(...butir);
       memuat.replaceWith(angka, daftar);
       const jumlah = r.overdue.count + r.visa.expired + r.visa.expiring;
+      isiAngkaIkon('#topbar-attention-count', jumlah);
+      const lonceng = document.querySelector('#topbar-attention');
+      if (lonceng) lonceng.setAttribute('aria-label', jumlah ? `Perlu ditindaklanjuti, ${jumlah} hal` : 'Perlu ditindaklanjuti');
+    })
+    .catch((error) => { memuat.textContent = error.message; });
+  return wadah;
+}
+
+// Beranda petugas pendaftaran: jumlah per tahap (GET /api/registrations/ringkasan) dan
+// daftar yang perlu ditindaklanjuti. Angka lonceng = tindak lanjut lewat tenggat +
+// pendaftar baru yang belum disentuh.
+function kartuTugasPendaftaran(subjudul) {
+  const wadah = document.createElement('section');
+  wadah.className = 'admin-alerts musyrif-tasks';
+  wadah.id = 'tugas-pendaftaran';
+  wadah.tabIndex = -1;
+  const kepala = document.createElement('div');
+  kepala.className = 'admin-section-head';
+  const judul = document.createElement('h3');
+  judul.className = 'admin-section-title';
+  judul.textContent = 'Perlu ditindaklanjuti';
+  kepala.append(judul);
+  const memuat = document.createElement('p');
+  memuat.className = 'admin-empty';
+  memuat.textContent = 'Memuat...';
+  wadah.append(kepala, memuat);
+
+  const TAHAP = [
+    ['submitted', 'Data baru masuk'],
+    ['document-review', 'Pemeriksaan berkas'],
+    ['needs-revision', 'Perlu perbaikan'],
+    ['academic-preparation', 'Persiapan akademik'],
+    ['ready-for-departure', 'Siap berangkat']
+  ];
+  function kartu(label, nilai, href, nada) {
+    const a = document.createElement('a');
+    a.className = `admin-kpi${nada ? ` admin-kpi--${nada}` : ''}`;
+    a.href = href;
+    const l = document.createElement('p');
+    l.className = 'admin-kpi__label';
+    l.textContent = label;
+    const v = document.createElement('p');
+    v.className = 'admin-kpi__value';
+    v.textContent = String(nilai);
+    a.append(l, v);
+    return a;
+  }
+  function tugas(teks, href, tautan, jenis) {
+    const item = document.createElement('li');
+    item.className = `musyrif-task is-${jenis}`;
+    const isi = document.createElement('span');
+    isi.textContent = teks;
+    item.append(isi);
+    if (href) {
+      const a = document.createElement('a');
+      a.className = 'admin-link';
+      a.href = href;
+      a.textContent = tautan;
+      item.append(a);
+    }
+    return item;
+  }
+
+  fetch('/api/registrations/ringkasan', { headers: requestHeaders() })
+    .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Ringkasan pendaftaran belum dapat dimuat.'))))
+    .then((r) => {
+      const per = r.byStatus || {};
+      const berjalan = TAHAP.reduce((sum, [status]) => sum + (per[status] || 0), 0);
+      if (subjudul) subjudul.textContent = `${berjalan} pendaftaran sedang berjalan, ${per.submitted || 0} di antaranya data baru masuk.`;
+      const angka = document.createElement('div');
+      angka.className = 'admin-kpi-grid finance-home-kpis registration-home-kpis';
+      TAHAP.forEach(([status, label]) => angka.append(kartu(label, per[status] || 0, 'staff.html', status === 'needs-revision' && per[status] ? 'warn' : '')));
+      const daftar = document.createElement('ul');
+      daftar.className = 'musyrif-task-list';
+      const butir = [];
+      if (r.stale) butir.push(tugas(`${r.stale} pendaftar baru belum disentuh lebih dari ${r.staleDays || 3} hari`, 'staff.html#baru-tertunda', 'Periksa', 'perlu'));
+      if (r.overdueSteps) butir.push(tugas(`${r.overdueSteps} tindak lanjut lewat tenggat (${r.overdueRegistrations} pendaftar)`, 'staff.html#agenda', 'Buka agenda', 'perlu'));
+      if (r.pendingDocuments) butir.push(tugas(`${r.pendingDocuments} berkas menunggu review (${r.pendingDocumentRegistrations} pendaftar)`, 'staff.html#berkas-menunggu', 'Review', 'perlu'));
+      if (r.newInquiries) butir.push(tugas(`${r.newInquiries} pesan konsultasi baru`, 'staff.html#pesan-konsultasi', 'Balas', 'perlu'));
+      if (!butir.length) butir.push(tugas('Tidak ada pendaftar tertunda, tindak lanjut lewat tenggat, atau berkas yang menunggu.', null, '', 'selesai'));
+      daftar.append(...butir);
+      memuat.replaceWith(angka, daftar);
+      const jumlah = (r.stale || 0) + (r.overdueSteps || 0);
       isiAngkaIkon('#topbar-attention-count', jumlah);
       const lonceng = document.querySelector('#topbar-attention');
       if (lonceng) lonceng.setAttribute('aria-label', jumlah ? `Perlu ditindaklanjuti, ${jumlah} hal` : 'Perlu ditindaklanjuti');
@@ -1570,12 +1659,12 @@ function siapkanIkonTopbar(account) {
       })
       .catch(() => {});
   }
-  if (lonceng && ['admin', 'supervisor', 'teacher', 'finance'].includes(role) && !lonceng.dataset.siap) {
+  if (lonceng && ['admin', 'supervisor', 'teacher', 'finance', 'registration-officer'].includes(role) && !lonceng.dataset.siap) {
     lonceng.dataset.siap = '1';
     lonceng.hidden = false;
     // Admin: daftar "Perlu perhatian". Musyrif: kartu "Tugas hari ini". Guru: "Tugas mengajar".
     lonceng.addEventListener('click', () => {
-      const daftar = document.querySelector('#admin-perhatian, #tugas-musyrif, #tugas-guru, #tugas-keuangan');
+      const daftar = document.querySelector('#admin-perhatian, #tugas-musyrif, #tugas-guru, #tugas-keuangan, #tugas-pendaftaran');
       if (daftar) {
         // Fokus lebih dulu supaya tidak memotong animasi gulir.
         daftar.focus({ preventScroll: true });

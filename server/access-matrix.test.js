@@ -289,6 +289,14 @@ async function run() {
       },
 
       { permission: 'registrations.read', method: 'GET', path: '/api/registrations' },
+      { permission: 'registrations.read', method: 'GET', path: '/api/registrations/ringkasan' },
+      { permission: 'registrations.read', method: 'GET', path: '/api/registrations/tindak-lanjut' },
+      {
+        permission: 'registrations.update-status', method: 'POST', path: '/api/registrations/manual',
+        body: () => ({ sumber: 'whatsapp', konfirmasiPersetujuan: false })
+      },
+      { permission: 'departures.manage', method: 'GET', path: '/api/departures/00000000-0000-4000-8000-000000000000/anggota' },
+      { permission: 'departures.manage', method: 'GET', path: '/api/departures/00000000-0000-4000-8000-000000000000/manifest.csv' },
       {
         permission: 'registrations.update-status', method: 'PATCH', path: () => `/api/registrations/${registrationId}/status`,
         body: () => ({ status: 'document-review', note: 'Berkas mulai diperiksa.' })

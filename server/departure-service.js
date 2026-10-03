@@ -95,6 +95,13 @@ function createDepartureService({ store, now = () => new Date().toISOString(), r
       // yang sama bukan perubahan dan tidak boleh memicu email kedua.
       return { ok: true, value: sesudah, changed: (sebelum ? sebelum.id : null) !== (sesudah ? sesudah.id : null) };
     },
+    // Anggota satu kloter: data kloter dan nomor pendaftaran anggotanya.
+    async members(groupId, actor) {
+      if (!staff(actor)) return { ok: false, status: 403, error: 'Akses petugas diperlukan.' };
+      const group = await store.getGroup(groupId);
+      if (!group) return { ok: false, status: 404, error: 'Kloter tidak ditemukan.' };
+      return { ok: true, value: { group, registrationIds: await store.memberRegistrationIds(groupId) } };
+    },
     // Untuk daftar petugas: { registrationId: kloter } (bentuk lengkap).
     async forRegistrations(registrationIds) {
       return registrationIds.length ? store.forRegistrations(registrationIds) : {};

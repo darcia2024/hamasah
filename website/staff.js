@@ -300,13 +300,21 @@ function kartuPendaftar(registration) {
   if (menunggu) tanda.push(`${menunggu} dokumen menunggu review`);
   if (ditolak) tanda.push(`${ditolak} dokumen ditolak`);
 
+  const umur = teksUmurPendaftar(registration);
+  const lewat = langkahLewatTenggat(registration);
+  const usia = elemen('span', 'staff-reg-card__age');
+  if (umur) usia.append(elemen('span', registration.status === 'submitted' && selisihHari(registration.createdAt) > STALE_HARI ? 'is-late' : '', umur));
+  if (lewat) usia.append(elemen('span', 'is-late', `${lewat} tindak lanjut lewat tenggat`));
+
   const bawah = elemen('span', 'staff-reg-card__foot');
   bawah.append(
     elemen('span', 'staff-reg-card__updated', `Diperbarui ${formatWaktu(registration.updatedAt || registration.createdAt)}${tanda.length ? ` · ${tanda.join(' · ')}` : ''}`),
     elemen('span', 'staff-reg-card__open', 'Buka detail')
   );
 
-  kartu.append(atas, info, progres, bawah);
+  kartu.append(atas, info, progres);
+  if (usia.children.length) kartu.append(usia);
+  kartu.append(bawah);
   kartu.addEventListener('click', () => bukaDetailPendaftar(registration));
   return kartu;
 }
@@ -718,7 +726,31 @@ function renderDepartureGroups() {
       departureReset.hidden = false;
       document.querySelector('#departure-name').focus();
     });
-    row.append(info, edit);
+    const anggota = document.createElement('button');
+    anggota.type = 'button';
+    anggota.className = 'button button--secondary';
+    anggota.textContent = 'Lihat anggota';
+    anggota.setAttribute('aria-expanded', 'false');
+    const wadahAnggota = document.createElement('div');
+    wadahAnggota.className = 'departure-list__members';
+    wadahAnggota.hidden = true;
+    anggota.addEventListener('click', () => {
+      const buka = wadahAnggota.hidden;
+      wadahAnggota.hidden = !buka;
+      anggota.setAttribute('aria-expanded', String(buka));
+      anggota.textContent = buka ? 'Sembunyikan anggota' : 'Lihat anggota';
+      if (buka) tampilkanAnggotaKloter(group, wadahAnggota).catch(() => {});
+    });
+    const manifest = document.createElement('button');
+    manifest.type = 'button';
+    manifest.className = 'button button--secondary';
+    manifest.textContent = 'Unduh manifest CSV';
+    manifest.disabled = !group.memberCount;
+    manifest.addEventListener('click', () => unduhManifest(group, manifest));
+    const aksiKloter = document.createElement('div');
+    aksiKloter.className = 'departure-list__actions';
+    aksiKloter.append(anggota, manifest, edit);
+    row.append(info, aksiKloter, wadahAnggota);
     departureList.append(row);
   });
 }
@@ -797,6 +829,9 @@ async function loadRegistrations() {
   const params = new URLSearchParams({ page: String(registrationPage), pageSize: '10' });
   if (registrationSearch.value.trim()) params.set('search', registrationSearch.value.trim());
   if (registrationStatusFilter.value) params.set('status', registrationStatusFilter.value);
+  parameterSaringan(params);
+  isiPilihanKloter();
+  loadRingkasanPipeline().catch(() => {});
   const response = await fetch(`/api/registrations?${params}`, { headers: authHeaders() });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Data pendaftar belum dapat dimuat.');
@@ -842,6 +877,7 @@ function showConsole(account) {
     const tabPesan = STAFF_TABS.find((tab) => tab.button === tabBtnInquiries);
     if (tabPesan) openStaffTab(tabPesan);
   }
+  bukaDariAlamatPendaftaran();
 }
 
 let dataSegarTerpasang = false;
@@ -1064,6 +1100,12 @@ function renderInquiries(items) {
       actions.append(button);
     });
 
+    const daftarkan = document.createElement('button');
+    daftarkan.type = 'button';
+    daftarkan.className = 'button button--secondary';
+    daftarkan.textContent = 'Jadikan pendaftaran';
+    daftarkan.addEventListener('click', () => bukaFormManual({ inquiryId: item.id, name: item.name, phone: item.phone, program: TOPIK_PROGRAM[item.topic] }));
+    actions.prepend(daftarkan);
     row.append(head, meta, message, actions);
     inquiryList.append(row);
   });
@@ -1114,6 +1156,14 @@ if (inquiryNext) inquiryNext.addEventListener('click', () => { inquiryPage += 1;
 // Sekarang daftarnya satu tempat: tambah baris untuk menambah tab.
 const STAFF_TABS = [
   { button: tabBtnRegs, panel: panelRegs, onOpen: null },
+  {
+    button: document.querySelector('#tab-btn-agenda'),
+    panel: document.querySelector('#panel-agenda'),
+    onOpen: () => loadAgenda().catch((error) => {
+      agendaStatus.textContent = error.message;
+      agendaStatus.classList.add('is-error');
+    })
+  },
   { button: tabBtnArticle, panel: panelArticle, onOpen: () => loadArticles().catch(() => {}) },
   {
     button: tabBtnNotifications,
@@ -1327,3 +1377,355 @@ logoutButton.addEventListener('click', async () => {
     clearSession();
   }
 }());
+
+// ---------------------------------------------------------------------------
+// Ringkasan pipeline, saringan khusus, agenda tindak lanjut, anggota kloter, dan
+// pendaftaran manual (petugas pendaftaran).
+// ---------------------------------------------------------------------------
+const STALE_HARI = 3;
+const TAHAP_RINGKASAN = [
+  ['submitted', 'Data baru masuk'],
+  ['document-review', 'Pemeriksaan berkas'],
+  ['needs-revision', 'Perlu perbaikan'],
+  ['academic-preparation', 'Persiapan akademik'],
+  ['ready-for-departure', 'Siap berangkat']
+];
+const SARINGAN_KHUSUS = {
+  stale: `Pendaftar baru yang belum disentuh lebih dari ${STALE_HARI} hari`,
+  pendingDocuments: 'Pendaftar dengan berkas menunggu review'
+};
+const registrationProgramFilter = document.querySelector('#registration-program-filter');
+const registrationDepartureFilter = document.querySelector('#registration-departure-filter');
+const registrationSort = document.querySelector('#registration-sort');
+const registrationOverdueFilter = document.querySelector('#registration-overdue-filter');
+const registrationSpecialFilter = document.querySelector('#registration-special-filter');
+const pipelineSummary = document.querySelector('#pipeline-summary');
+let saringanKhusus = '';
+
+function hariIniWib() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+}
+
+function selisihHari(iso) {
+  return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86400000));
+}
+
+// "Data dikirim 5 hari lalu, belum diperiksa" atau "Di tahap ini 12 hari".
+function teksUmurPendaftar(registration) {
+  if (['completed', 'cancelled'].includes(registration.status)) return '';
+  const riwayat = registration.history || [];
+  const terakhir = riwayat.length ? riwayat[riwayat.length - 1].at : registration.createdAt;
+  const hari = selisihHari(terakhir || registration.createdAt);
+  if (registration.status === 'submitted') {
+    return hari ? `Data dikirim ${hari} hari lalu, belum diperiksa` : 'Data dikirim hari ini';
+  }
+  return hari ? `Di tahap ini ${hari} hari` : 'Masuk tahap ini hari ini';
+}
+
+function langkahLewatTenggat(registration) {
+  const hariIni = hariIniWib();
+  return (registration.nextSteps || []).filter((step) => !step.doneAt && step.dueOn && step.dueOn < hariIni).length;
+}
+
+function parameterSaringan(params) {
+  if (registrationProgramFilter && registrationProgramFilter.value) params.set('program', registrationProgramFilter.value);
+  if (registrationDepartureFilter && registrationDepartureFilter.value) params.set('departure', registrationDepartureFilter.value);
+  if (registrationSort && registrationSort.value === 'stale') params.set('sort', 'stale');
+  if (registrationOverdueFilter && registrationOverdueFilter.checked) params.set('overdue', '1');
+  if (saringanKhusus) params.set(saringanKhusus, '1');
+  if (registrationSpecialFilter) {
+    registrationSpecialFilter.hidden = !saringanKhusus;
+    if (saringanKhusus) {
+      const lepas = elemen('button', 'button button--secondary op-action', 'Tampilkan semua');
+      lepas.type = 'button';
+      lepas.addEventListener('click', () => terapkanSaringanPendaftar({}));
+      registrationSpecialFilter.replaceChildren(document.createTextNode(`${SARINGAN_KHUSUS[saringanKhusus]} `), lepas);
+    }
+  }
+}
+
+// Dipakai kartu ringkasan dan tautan dari beranda Portal.
+function terapkanSaringanPendaftar({ status = '', khusus = '', overdue = false, sort = 'updated' } = {}) {
+  registrationStatusFilter.value = status;
+  saringanKhusus = khusus;
+  if (registrationOverdueFilter) registrationOverdueFilter.checked = overdue;
+  if (registrationSort) registrationSort.value = sort;
+  registrationPage = 1;
+  const tab = STAFF_TABS.find((item) => item.button === tabBtnRegs);
+  if (tab) openStaffTab(tab);
+  return loadRegistrations().catch((error) => {
+    registrationListStatus.textContent = error.message;
+    registrationListStatus.classList.add('is-error');
+  });
+}
+
+function kartuRingkasan(label, angka, catatan, nada, aksi) {
+  const kartu = elemen('button', `admin-kpi pipeline-kpi${nada ? ` admin-kpi--${nada}` : ''}`);
+  kartu.type = 'button';
+  kartu.append(elemen('p', 'admin-kpi__label', label), elemen('p', 'admin-kpi__value', String(angka)), elemen('p', 'admin-kpi__note', catatan));
+  kartu.addEventListener('click', aksi);
+  return kartu;
+}
+
+async function loadRingkasanPipeline() {
+  if (!pipelineSummary) return;
+  const response = await fetch('/api/registrations/ringkasan', { headers: authHeaders() });
+  if (!response.ok) { pipelineSummary.hidden = true; return; }
+  const r = await response.json();
+  const per = r.byStatus || {};
+  const tahap = elemen('div', 'pipeline-summary__stages');
+  TAHAP_RINGKASAN.forEach(([status, label]) => {
+    const jumlah = per[status] || 0;
+    tahap.append(kartuRingkasan(label, jumlah, jumlah ? 'Lihat pendaftar' : 'Kosong', status === 'needs-revision' && jumlah ? 'warn' : '', () => terapkanSaringanPendaftar({ status })));
+  });
+  const perhatian = elemen('ul', 'pipeline-summary__alerts');
+  function butir(teks, aksi) {
+    const item = elemen('li');
+    const tombol = elemen('button', 'pipeline-alert', teks);
+    tombol.type = 'button';
+    tombol.addEventListener('click', aksi);
+    item.append(tombol);
+    perhatian.append(item);
+  }
+  if (r.stale) butir(`${r.stale} pendaftar baru belum disentuh lebih dari ${r.staleDays || STALE_HARI} hari`, () => terapkanSaringanPendaftar({ khusus: 'stale', sort: 'stale' }));
+  if (r.overdueSteps) butir(`${r.overdueSteps} tindak lanjut lewat tenggat (${r.overdueRegistrations} pendaftar)`, () => bukaAgenda());
+  if (r.pendingDocuments) butir(`${r.pendingDocuments} berkas menunggu review (${r.pendingDocumentRegistrations} pendaftar)`, () => terapkanSaringanPendaftar({ khusus: 'pendingDocuments', sort: 'stale' }));
+  if (r.newInquiries) butir(`${r.newInquiries} pesan konsultasi baru`, () => { const tab = STAFF_TABS.find((item) => item.button === tabBtnInquiries); if (tab) openStaffTab(tab); });
+  pipelineSummary.replaceChildren(tahap);
+  if (perhatian.children.length) pipelineSummary.append(perhatian);
+  pipelineSummary.hidden = false;
+  // Angka di pilihan status.
+  [...registrationStatusFilter.options].forEach((option) => {
+    if (!option.dataset.label) option.dataset.label = option.textContent;
+    option.textContent = option.value ? `${option.dataset.label} (${per[option.value] || 0})` : option.dataset.label;
+  });
+  const badgeAgenda = document.querySelector('#badge-agenda-count');
+  if (badgeAgenda) badgeAgenda.textContent = r.overdueSteps || 0;
+}
+
+function isiPilihanKloter() {
+  if (!registrationDepartureFilter) return;
+  const terpilih = registrationDepartureFilter.value;
+  [...registrationDepartureFilter.options].slice(2).forEach((option) => option.remove());
+  departureGroups.forEach((group) => registrationDepartureFilter.add(new Option(group.name, group.id)));
+  if ([...registrationDepartureFilter.options].some((option) => option.value === terpilih)) registrationDepartureFilter.value = terpilih;
+}
+
+[registrationProgramFilter, registrationDepartureFilter, registrationSort, registrationOverdueFilter].forEach((kontrol) => {
+  if (kontrol) kontrol.addEventListener('change', () => { registrationPage = 1; loadRegistrations().catch(() => {}); });
+});
+
+// Agenda tindak lanjut.
+const tabBtnAgenda = document.querySelector('#tab-btn-agenda');
+const panelAgenda = document.querySelector('#panel-agenda');
+const agendaList = document.querySelector('#agenda-list');
+const agendaStatus = document.querySelector('#agenda-status');
+
+async function bukaPendaftarDariNomor(nomor) {
+  const response = await fetch(`/api/registrations?search=${encodeURIComponent(nomor)}&pageSize=5`, { headers: authHeaders() });
+  const result = await response.json().catch(() => ({}));
+  const data = (result.items || []).find((item) => item.registrationId === nomor);
+  if (data) bukaDetailPendaftar(data);
+}
+
+async function loadAgenda() {
+  agendaStatus.classList.remove('is-error');
+  agendaStatus.textContent = 'Memuat agenda...';
+  const response = await fetch('/api/registrations/tindak-lanjut', { headers: authHeaders() });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || 'Agenda belum dapat dimuat.');
+  agendaList.replaceChildren();
+  const items = result.items || [];
+  agendaStatus.textContent = items.length
+    ? `${items.length} tindak lanjut belum selesai, ${items.filter((item) => item.overdue).length} lewat tenggat.`
+    : 'Tidak ada tindak lanjut yang belum selesai.';
+  const badge = document.querySelector('#badge-agenda-count');
+  if (badge) badge.textContent = items.filter((item) => item.overdue).length;
+  items.forEach((item) => {
+    const baris = elemen('div', `op-row agenda-row${item.overdue ? ' is-overdue' : ''}`);
+    const utama = elemen('div', 'op-row__main');
+    utama.append(
+      elemen('strong', null, item.title),
+      elemen('span', null, `${item.applicantName} · ${item.registrationId} · ${LABEL_STATUS_PENDAFTAR[item.status] || item.status}`),
+      elemen('span', 'agenda-row__due', item.dueOn ? `${item.overdue ? 'Lewat tenggat: ' : 'Tenggat '}${formatTanggal(item.dueOn)}` : 'Tanpa tenggat')
+    );
+    const aksi = elemen('div', 'op-row__actions');
+    const buka = elemen('button', 'button button--secondary op-action', 'Buka detail');
+    buka.type = 'button';
+    buka.addEventListener('click', () => bukaPendaftarDariNomor(item.registrationId).catch(() => {}));
+    const selesai = elemen('button', 'button button--primary op-action', 'Tandai selesai');
+    selesai.type = 'button';
+    selesai.addEventListener('click', async () => {
+      selesai.disabled = true;
+      try {
+        await kirimPerubahan(`/api/registrations/${encodeURIComponent(item.registrationId)}/next-steps/${encodeURIComponent(item.stepId)}`, 'PATCH', { done: true });
+        await loadAgenda();
+        loadRingkasanPipeline().catch(() => {});
+      } catch (error) {
+        agendaStatus.textContent = error.message;
+        agendaStatus.classList.add('is-error');
+        selesai.disabled = false;
+      }
+    });
+    aksi.append(buka, selesai);
+    baris.append(utama, aksi);
+    agendaList.append(baris);
+  });
+}
+
+function bukaAgenda() {
+  const tab = STAFF_TABS.find((item) => item.button === tabBtnAgenda);
+  if (tab) openStaffTab(tab);
+}
+
+// Anggota kloter dan manifest CSV.
+async function tampilkanAnggotaKloter(group, wadah) {
+  wadah.replaceChildren(elemen('p', 'departure-list__empty', 'Memuat anggota...'));
+  const response = await fetch(`/api/departures/${encodeURIComponent(group.id)}/anggota`, { headers: authHeaders() });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) { wadah.replaceChildren(elemen('p', 'departure-list__empty', result.error || 'Anggota belum dapat dimuat.')); return; }
+  if (!result.items.length) { wadah.replaceChildren(elemen('p', 'departure-list__empty', 'Belum ada pendaftar di kloter ini.')); return; }
+  const tabel = elemen('table', 'lms-progress-table departure-members');
+  tabel.innerHTML = '<caption class="sr-only">Anggota kloter</caption><thead><tr><th scope="col">Nama</th><th scope="col">Program</th><th scope="col">Status</th><th scope="col">Berkas</th><th scope="col">WhatsApp</th></tr></thead>';
+  const isi = elemen('tbody');
+  result.items.forEach((item) => {
+    const baris = elemen('tr');
+    const nama = elemen('th', null, item.applicantName);
+    nama.scope = 'row';
+    const berkas = elemen('td', item.documents.accepted < item.documents.required ? 'is-pending' : '', `${item.documents.accepted}/${item.documents.required} diterima · paspor ${item.documents.passport}`);
+    baris.append(nama, elemen('td', null, LABEL_PROGRAM[item.program] || item.program), elemen('td', null, LABEL_STATUS_PENDAFTAR[item.status] || item.statusLabel), berkas, elemen('td', null, item.phone));
+    isi.append(baris);
+  });
+  tabel.append(isi);
+  const gulir = elemen('div', 'arrears-wrap');
+  gulir.append(tabel);
+  wadah.replaceChildren(gulir);
+}
+
+async function unduhManifest(group, tombol) {
+  tombol.disabled = true;
+  try {
+    const response = await fetch(`/api/departures/${encodeURIComponent(group.id)}/manifest.csv`, { headers: authHeaders() });
+    if (!response.ok) { const result = await response.json().catch(() => ({})); throw new Error(result.error || 'Manifest belum dapat diunduh.'); }
+    const blob = await response.blob();
+    const tautan = document.createElement('a');
+    tautan.href = URL.createObjectURL(blob);
+    const nama = (response.headers.get('content-disposition') || '').match(/filename="([^"]+)"/);
+    tautan.download = nama ? nama[1] : 'manifest-kloter.csv';
+    document.body.append(tautan);
+    tautan.click();
+    tautan.remove();
+    setTimeout(() => URL.revokeObjectURL(tautan.href), 1000);
+    departureFormStatus.classList.remove('is-error');
+    departureFormStatus.textContent = `Manifest ${group.name} diunduh.`;
+  } catch (error) {
+    departureFormStatus.textContent = error.message;
+    departureFormStatus.classList.add('is-error');
+  } finally {
+    tombol.disabled = false;
+  }
+}
+
+// Pendaftaran manual, termasuk dari pesan konsultasi.
+const manualDialog = document.querySelector('#manual-dialog');
+const manualForm = document.querySelector('#manual-form');
+const manualError = document.querySelector('#manual-error');
+const manualResult = document.querySelector('#manual-result');
+const TOPIK_PROGRAM = { kuliah: 'kuliah-al-azhar', mahad: 'mahad-al-azhar', courses: 'hamasah-courses' };
+
+function bukaFormManual(isian = {}) {
+  manualForm.reset();
+  manualError.textContent = '';
+  document.querySelector('#manual-inquiry-id').value = isian.inquiryId || '';
+  document.querySelector('#manual-sumber').value = isian.inquiryId ? 'konsultasi' : 'whatsapp';
+  if (isian.program) document.querySelector('#manual-program').value = isian.program;
+  document.querySelector('#manual-name').value = isian.name || '';
+  document.querySelector('#manual-phone').value = isian.phone || '';
+  document.querySelector('#manual-summary').textContent = isian.inquiryId
+    ? 'Dari pesan konsultasi. Lengkapi data wajib berikut bersama calon; pesan otomatis ditandai sudah dihubungi.'
+    : 'Untuk calon yang mendaftar lewat WhatsApp, telepon, atau datang langsung. Data wajibnya sama dengan formulir pendaftaran publik.';
+  manualDialog.showModal();
+  document.querySelector('#manual-name').focus();
+}
+
+function tutupFormManual() {
+  if (manualDialog.open) manualDialog.close();
+}
+
+function tampilkanHasilManual(registration, accessCode) {
+  manualResult.replaceChildren();
+  const judul = elemen('h3', null, `Pendaftaran ${registration.registrationId} tersimpan`);
+  const kode = elemen('p', 'manual-result__code');
+  kode.append(document.createTextNode('Kode akses cek status: '), elemen('strong', null, accessCode));
+  const catatan = elemen('p', 'staff-reg-empty', 'Kode ini hanya ditampilkan sekali. Kirimkan ke calon bersama nomor pendaftaran supaya bisa membuka halaman cek status dan mengunggah berkas.');
+  const salin = elemen('button', 'button button--secondary op-action', 'Salin nomor dan kode');
+  salin.type = 'button';
+  salin.addEventListener('click', () => {
+    const teks = `Nomor pendaftaran: ${registration.registrationId}\nKode akses: ${accessCode}\nCek status: ${window.location.origin}/website/cek-status.html`;
+    navigator.clipboard.writeText(teks).then(() => { salin.textContent = 'Tersalin'; }).catch(() => { salin.textContent = 'Salin manual dari layar'; });
+  });
+  const tutup = elemen('button', 'button button--text op-action', 'Tutup');
+  tutup.type = 'button';
+  tutup.addEventListener('click', () => { manualResult.hidden = true; manualResult.replaceChildren(); });
+  manualResult.append(judul, kode, catatan, salin, tutup);
+  manualResult.hidden = false;
+  manualResult.scrollIntoView({ block: 'nearest' });
+}
+
+if (manualForm) {
+  document.querySelector('#registration-manual').addEventListener('click', () => bukaFormManual());
+  document.querySelector('#manual-cancel').addEventListener('click', tutupFormManual);
+  manualForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const nilai = (id) => document.querySelector(id).value.trim();
+    const body = {
+      sumber: nilai('#manual-sumber'),
+      program: nilai('#manual-program'),
+      applicantName: nilai('#manual-name'),
+      phone: nilai('#manual-phone'),
+      email: nilai('#manual-email'),
+      birthDate: nilai('#manual-birth'),
+      gender: nilai('#manual-gender'),
+      educationLevel: nilai('#manual-education'),
+      schoolOrigin: nilai('#manual-school'),
+      city: nilai('#manual-city'),
+      guardianName: nilai('#manual-guardian'),
+      guardianPhone: nilai('#manual-guardian-phone'),
+      guardianEmail: nilai('#manual-guardian-email'),
+      guardianConsent: document.querySelector('#manual-guardian-consent').checked,
+      konfirmasiPersetujuan: document.querySelector('#manual-consent').checked,
+      inquiryId: nilai('#manual-inquiry-id') || undefined
+    };
+    const tombol = document.querySelector('#manual-submit');
+    tombol.disabled = true;
+    manualError.textContent = '';
+    try {
+      const response = await fetch('/api/registrations/manual', { method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const rinci = result.errors ? Object.values(result.errors) : [];
+        throw new Error(rinci.length ? rinci.join(' ') : (result.error || 'Pendaftaran belum dapat disimpan.'));
+      }
+      tutupFormManual();
+      tampilkanHasilManual(result.registration, result.accessCode);
+      registrationPage = 1;
+      await loadRegistrations();
+      if (body.inquiryId) loadInquiries().catch(() => {});
+    } catch (error) {
+      manualError.textContent = error.message;
+    } finally {
+      tombol.disabled = false;
+    }
+  });
+}
+
+// Tautan dari beranda Portal.
+function bukaDariAlamatPendaftaran() {
+  const alamat = window.location.hash.slice(1);
+  if (alamat === 'baru-tertunda') terapkanSaringanPendaftar({ khusus: 'stale', sort: 'stale' });
+  else if (alamat === 'berkas-menunggu') terapkanSaringanPendaftar({ khusus: 'pendingDocuments', sort: 'stale' });
+  else if (alamat === 'lewat-tenggat' || alamat === 'agenda') bukaAgenda();
+  else if (alamat === 'tambah-manual') bukaFormManual();
+  else return;
+  try { history.replaceState(null, '', window.location.pathname); } catch {}
+}
