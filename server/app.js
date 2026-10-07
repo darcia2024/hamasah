@@ -49,6 +49,8 @@ const { createStudentLifeService } = require('./student-life-service.js');
 const { createDormitoryRollService } = require('./dormitory-roll-service.js');
 const { createDemoDataService } = require('./demo-data-service.js');
 const { createSettingsService } = require('./settings-service.js');
+const { createSiteContentService } = require('./site-content-service.js');
+const siteContent = require('./site-content.js');
 const { createDatabaseUpdateService } = require('./database-update-service.js');
 const { createArticleSeedService } = require('./article-seed-service.js');
 const { createPostgresStudentCareStore } = require('./postgres-student-care-store.js');
@@ -72,6 +74,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/admin-overview.js'),
   ...require('./routes/admin-demo.js'),
   ...require('./routes/settings.js'),
+  ...require('./routes/site-content.js'),
   ...require('./routes/journey.js'),
   ...require('./routes/student-life.js'),
   ...require('./routes/dormitory-roll.js'),
@@ -179,6 +182,7 @@ function createHamasahApp(options) {
     }
   });
   const databaseUpdateService = config.databaseUpdateService || createDatabaseUpdateService({ database });
+  const siteContentService = config.siteContentService || createSiteContentService({ database });
   const articleSeedService = config.articleSeedService || createArticleSeedService({ database });
   const kesehatanAktif = () => settingsService.ambil('kesehatan.aktif');
   const studentCareService = config.studentCareService || createStudentCareService({
@@ -355,6 +359,7 @@ function createHamasahApp(options) {
     adminOverviewService,
     demoDataService,
     settingsService,
+    siteContentService,
     studentJourneyService,
     studentLifeService,
     dormitoryRollService,
@@ -499,12 +504,21 @@ function createHamasahApp(options) {
         response.end(page.html);
         return;
       }
+      // Konten website yang diubah admin (halaman Konten Website) disisipkan sebelum halaman
+      // publik dikirim. Hanya dibaca untuk permintaan halaman, bukan untuk CSS, JS, atau gambar.
+      const mintaHalaman = /(?:\/|\.html)$/.test(url.pathname);
+      const konten = mintaHalaman ? await siteContentService.untukHalaman() : null;
       serveStaticFile(response, {
         pathname: url.pathname,
         rootDirectory,
         request,
         search: url.search,
-        transformHtml: (relativePath, html) => seo.decoratePublicPage(relativePath, html, origin)
+        transformHtml: (relativePath, html) => {
+          const dihias = seo.decoratePublicPage(relativePath, html, origin);
+          const nama = relativePath.replace(/^website\//, '');
+          if (!konten || !relativePath.startsWith('website/') || !siteContent.HALAMAN_PUBLIK.includes(nama)) return dihias;
+          return siteContent.renderHalaman(typeof dihias === 'string' ? dihias : html, konten);
+        }
       });
     } catch (error) {
       if (error instanceof RequestBodyError) {

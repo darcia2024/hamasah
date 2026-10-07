@@ -1,38 +1,8 @@
-const answers = {
-  program: {
-    topic: 'Tentang Hamasah',
-    title: 'Pendamping pendidikan bagi pelajar Indonesia menuju Al-Azhar, Mesir.',
-    text: 'Hamasah International adalah lembaga konsultan pendidikan luar negeri yang mendampingi pelajar Indonesia dari awal pendaftaran hingga tiba dan resmi menjadi mahasiswa Universitas Al-Azhar atau pelajar Ma\'had Al-Azhar di Kairo.'
-  },
-  registration: {
-    topic: 'Tentang persiapan bahasa',
-    title: 'Calon mahasiswa tidak harus sudah mahir bahasa Arab untuk memulai proses.',
-    text: 'Semua calon mahasiswa mengikuti Ujian Tahdid Mustawa untuk penempatan level bahasa Arab, lalu karantina bahasa (Dauroh Ta’hili) sebelum ujian seleksi. Bila level awal belum mencukupi, ada kelas bahasa terlebih dahulu.'
-  },
-  mahad: {
-    topic: 'Tentang Program Ma\'had',
-    title: 'Ma\'had Al-Azhar memadukan ilmu syar’i, bahasa Arab, dan pelajaran umum.',
-    text: 'Program ini untuk usia 13 sampai 30 tahun, lulusan SD, SMP, maupun SMA. Setibanya di Kairo, calon santri mengikuti tes bahasa Arab, kelas bahasa, lalu tes qobul untuk penempatan di kelas I\'dadi (setingkat SMP) atau langsung Tsanawi (setingkat SMA). Pelajar berprestasi berpeluang akselerasi.'
-  },
-  parent: {
-    topic: 'Tentang pendaftaran',
-    title: 'Pendaftaran dimulai dengan formulir dan verifikasi berkas.',
-    text: 'Alurnya: isi formulir, verifikasi berkas, Ujian Tahdid Mustawa, karantina daring (Dauroh Ta’hili), ujian muadalah, lalu pemberkasan dan keberangkatan sampai resmi kuliah di Al-Azhar.'
-  },
-  cost: {
-    topic: 'Tentang biaya',
-    title: 'Rincian biaya disampaikan saat konsultasi, sesuai program dan periode keberangkatan.',
-    text: 'Pembayaran bisa dicicil. Ma\'had: DP Rp 5 juta, sisanya dilunasi sebelum berangkat. Kuliah: dicicil selama rangkaian tes. Komponen yang tercakup ada di halaman Biaya & fasilitas, dan nominal terbaru dikonfirmasi saat konsultasi.'
-  },
-  documents: {
-    topic: 'Tentang dokumen awal',
-    title: 'Untuk mendaftar, cukup pindaian ijazah dan paspor atau KTP.',
-    text: 'Dokumen asli baru dibutuhkan setelah lulus seleksi: ijazah, akta kelahiran, paspor yang berlaku minimal 18 bulan, surat izin orang tua bermeterai, pasfoto 4x6, rekomendasi Kemenag daerah, dan surat keterangan sehat berupa hasil tes darah (tahlil dam). Kami pandu satu per satu.'
-  }
-};
-
+// Jawaban tiap pertanyaan tertulis di halaman (#faq-sources), supaya bisa diubah admin dari
+// halaman Konten Website tanpa mengubah skrip ini.
 const questionButtons = document.querySelectorAll('.faq-question');
 const answerPanel = document.querySelector('#faq-answer');
+const answerSources = document.querySelector('#faq-sources');
 
 function renderAnswer(topic, title, text) {
   const topicElement = document.createElement('p');
@@ -47,13 +17,14 @@ function renderAnswer(topic, title, text) {
 
 questionButtons.forEach((button) => {
   button.addEventListener('click', () => {
-    const answer = answers[button.dataset.answer];
+    const source = answerSources && answerSources.querySelector(`[data-answer="${button.dataset.answer}"]`);
+    if (!source) return;
     questionButtons.forEach((item) => {
       const active = item === button;
       item.classList.toggle('is-active', active);
       item.setAttribute('aria-pressed', String(active));
     });
-    renderAnswer(answer.topic, answer.title, answer.text);
+    answerPanel.replaceChildren(...[...source.children].map((node) => node.cloneNode(true)));
   });
 });
 
@@ -77,7 +48,8 @@ faqForm.addEventListener('submit', async (event) => {
     const followUp = document.createElement('p');
     followUp.className = 'faq-answer__handoff';
     const link = document.createElement('a');
-    link.href = 'https://wa.me/6287897591978';
+    const nomorWa = document.querySelector('meta[name="hamasah-whatsapp"]');
+    link.href = `https://wa.me/${(nomorWa && nomorWa.content) || '6287897591978'}`;
     link.target = '_blank';
     link.rel = 'noopener';
     link.textContent = 'Tanya admin lewat WhatsApp';

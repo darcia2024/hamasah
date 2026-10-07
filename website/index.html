@@ -11,8 +11,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
-    <link rel="stylesheet" href="website-public.css?v=32b10a52dc" />
-    <link rel="stylesheet" href="landing.css?v=239c2942c1" />
+    <link rel="stylesheet" href="website-public.css?v=cb8e1fe637" />
+    <link rel="stylesheet" href="landing.css?v=f263bfc2c0" />
     <link rel="stylesheet" href="fields.css?v=40377b19dc" />
   </head>
   <body>
@@ -46,6 +46,7 @@
     </header>
 
     <main id="konten" class="lp">
+      <!--konten:pengumuman--><!--/konten:pengumuman-->
       <section class="lp-hero" id="beranda" aria-labelledby="hero-title">
         <div class="shell">
           <div class="lp-hero__copy">
@@ -143,24 +144,24 @@
             <a class="lp-path lp-path--feature" href="program-kuliah.html">
               <img src="../assets/cairo-skyline.jpg" alt="" width="2200" height="1469" loading="lazy" decoding="async" />
               <span class="lp-path__body">
-                <span class="lp-path__meta">Lulusan SMA, MA, atau pesantren</span>
+                <span class="lp-path__meta"><!--konten:program.kuliah.syarat-->Lulusan SMA, MA, atau pesantren<!--/konten:program.kuliah.syarat--></span>
                 <strong class="lp-path__title">Kuliah S1 <span class="lp-nb">Al-Azhar</span></strong>
-                <span class="lp-path__text">Dari verifikasi berkas, Tahdid Mustawa, karantina bahasa, sampai ujian muadalah dan resmi terdaftar.</span>
+                <span class="lp-path__text"><!--konten:program.kuliah.ringkasan-->Dari verifikasi berkas, Tahdid Mustawa, karantina bahasa, sampai ujian muadalah dan resmi terdaftar.<!--/konten:program.kuliah.ringkasan--></span>
                 <span class="lp-path__more">Selengkapnya</span>
               </span>
             </a>
 
             <a class="lp-path" href="program-mahad.html">
-              <span class="lp-path__meta">Usia 13 sampai 30 tahun</span>
+              <span class="lp-path__meta"><!--konten:program.mahad.syarat-->Usia 13 sampai 30 tahun<!--/konten:program.mahad.syarat--></span>
               <strong class="lp-path__title">Ma'had <span class="lp-nb">Al-Azhar</span></strong>
-              <span class="lp-path__text">Sekolah resmi <span class="lp-nb">Al-Azhar</span> setingkat SMP dan SMA di Kairo, dengan asrama dan musyrif.</span>
+              <span class="lp-path__text"><!--konten:program.mahad.ringkasan-->Sekolah resmi <span class="lp-nb">Al-Azhar</span> setingkat SMP dan SMA di Kairo, dengan asrama dan musyrif.<!--/konten:program.mahad.ringkasan--></span>
               <span class="lp-path__more">Selengkapnya</span>
             </a>
 
             <a class="lp-path" href="program-courses.html">
-              <span class="lp-path__meta">Daring, dari mana saja</span>
+              <span class="lp-path__meta"><!--konten:program.courses.syarat-->Daring, dari mana saja<!--/konten:program.courses.syarat--></span>
               <strong class="lp-path__title">Hamasah Courses</strong>
-              <span class="lp-path__text">Mata pelajaran Dirasah Khassah, Ma'had (I'dadi dan Tsanawi), dan kuliah tingkat 1.</span>
+              <span class="lp-path__text"><!--konten:program.courses.ringkasan-->Mata pelajaran Dirasah Khassah, Ma'had (I'dadi dan Tsanawi), dan kuliah tingkat 1.<!--/konten:program.courses.ringkasan--></span>
               <span class="lp-path__more">Selengkapnya</span>
             </a>
           </div>
@@ -380,7 +381,7 @@
             <h2 class="lp-h2" id="testimoni-title">Kata para wali yang sudah mempercayakan anaknya.</h2>
           </header>
 
-          <div class="lp-testimonials">
+          <div class="lp-testimonials"><!--konten:testimoni-->
             <article class="lp-testi">
               <figure class="lp-testi__photo">
                 <img src="../assets/testimoni-wali-ghazalba.webp" alt="Keluarga wali santri berfoto bersama" width="1280" height="853" loading="lazy" decoding="async" />
@@ -429,7 +430,7 @@
               </details>
               <p class="lp-testi__who"><strong>Wali dari Khafidzah Khoirunnisa</strong><span>Santri Ma'had <span class="lp-nb">Al-Azhar</span></span></p>
             </article>
-          </div>
+          <!--/konten:testimoni--></div>
         </div>
       </section>
 
@@ -462,19 +463,49 @@
           </div>
 
           <div class="faq-panel">
-            <div class="faq-questions" aria-label="Daftar topik pertanyaan umum">
-              <button class="faq-question is-active" type="button" data-answer="registration" aria-pressed="true">Apakah harus mahir bahasa Arab untuk daftar?</button>
-              <button class="faq-question" type="button" data-answer="mahad" aria-pressed="false">Apa saja yang dipelajari di Program Ma'had?</button>
-              <button class="faq-question" type="button" data-answer="parent" aria-pressed="false">Bagaimana alur pendaftaran melalui Hamasah?</button>
-              <button class="faq-question" type="button" data-answer="documents" aria-pressed="false">Dokumen awal apa yang perlu dipersiapkan?</button>
-              <button class="faq-question" type="button" data-answer="cost" aria-pressed="false">Berapa biayanya?</button>
-            </div>
+            <div class="faq-questions" aria-label="Daftar topik pertanyaan umum"><!--konten:faq.tombol-->
+              <button class="faq-question is-active" type="button" data-answer="faq-1" aria-pressed="true">Apakah harus mahir bahasa Arab untuk daftar?</button>
+              <button class="faq-question" type="button" data-answer="faq-2" aria-pressed="false">Apa saja yang dipelajari di Program Ma'had?</button>
+              <button class="faq-question" type="button" data-answer="faq-3" aria-pressed="false">Bagaimana alur pendaftaran melalui Hamasah?</button>
+              <button class="faq-question" type="button" data-answer="faq-4" aria-pressed="false">Dokumen awal apa yang perlu dipersiapkan?</button>
+              <button class="faq-question" type="button" data-answer="faq-5" aria-pressed="false">Berapa biayanya?</button>
+            <!--/konten:faq.tombol--></div>
 
-            <div class="faq-answer" id="faq-answer" aria-live="polite">
+            <div class="faq-answer" id="faq-answer" aria-live="polite"><!--konten:faq.jawaban-->
               <p class="faq-answer__topic">Tentang persiapan bahasa</p>
               <h3>Calon mahasiswa tidak harus sudah mahir bahasa Arab untuk memulai proses.</h3>
               <p>Semua calon mahasiswa mengikuti Ujian Tahdid Mustawa untuk penempatan level bahasa Arab, lalu karantina bahasa (Dauroh Ta’hili) sebelum ujian seleksi. Bila level awal belum mencukupi, ada kelas bahasa terlebih dahulu.</p>
-            </div>
+            <!--/konten:faq.jawaban--></div>
+
+            <!-- Isi jawaban setiap pertanyaan. Disalin ke panel jawaban oleh website.js saat
+                 pertanyaannya dipilih. Diubah dari halaman Konten Website. -->
+            <div class="faq-sources" id="faq-sources" hidden><!--konten:faq.sumber-->
+              <div data-answer="faq-1">
+                <p class="faq-answer__topic">Tentang persiapan bahasa</p>
+                <h3>Calon mahasiswa tidak harus sudah mahir bahasa Arab untuk memulai proses.</h3>
+                <p>Semua calon mahasiswa mengikuti Ujian Tahdid Mustawa untuk penempatan level bahasa Arab, lalu karantina bahasa (Dauroh Ta’hili) sebelum ujian seleksi. Bila level awal belum mencukupi, ada kelas bahasa terlebih dahulu.</p>
+              </div>
+              <div data-answer="faq-2">
+                <p class="faq-answer__topic">Tentang Program Ma'had</p>
+                <h3>Ma'had <span class="lp-nb">Al-Azhar</span> memadukan ilmu syar’i, bahasa Arab, dan pelajaran umum.</h3>
+                <p>Program ini untuk usia 13 sampai 30 tahun, lulusan SD, SMP, maupun SMA. Setibanya di Kairo, calon santri mengikuti tes bahasa Arab, kelas bahasa, lalu tes qobul untuk penempatan di kelas I'dadi (setingkat SMP) atau langsung Tsanawi (setingkat SMA). Pelajar berprestasi berpeluang akselerasi.</p>
+              </div>
+              <div data-answer="faq-3">
+                <p class="faq-answer__topic">Tentang pendaftaran</p>
+                <h3>Pendaftaran dimulai dengan formulir dan verifikasi berkas.</h3>
+                <p>Alurnya: isi formulir, verifikasi berkas, Ujian Tahdid Mustawa, karantina daring (Dauroh Ta’hili), ujian muadalah, lalu pemberkasan dan keberangkatan sampai resmi kuliah di <span class="lp-nb">Al-Azhar</span>.</p>
+              </div>
+              <div data-answer="faq-4">
+                <p class="faq-answer__topic">Tentang dokumen awal</p>
+                <h3>Untuk mendaftar, cukup pindaian ijazah dan paspor atau KTP.</h3>
+                <p>Dokumen asli baru dibutuhkan setelah lulus seleksi: ijazah, akta kelahiran, paspor yang berlaku minimal 18 bulan, surat izin orang tua bermeterai, pasfoto 4x6, rekomendasi Kemenag daerah, dan surat keterangan sehat berupa hasil tes darah (tahlil dam). Kami pandu satu per satu.</p>
+              </div>
+              <div data-answer="faq-5">
+                <p class="faq-answer__topic">Tentang biaya</p>
+                <h3>Rincian biaya disampaikan saat konsultasi, sesuai program dan periode keberangkatan.</h3>
+                <p>Pembayaran bisa dicicil. Ma'had: DP Rp 5 juta, sisanya dilunasi sebelum berangkat. Kuliah: dicicil selama rangkaian tes. Komponen yang tercakup ada di halaman Biaya &amp; fasilitas, dan nominal terbaru dikonfirmasi saat konsultasi.</p>
+              </div>
+            <!--/konten:faq.sumber--></div>
 
             <form class="faq-form" id="faq-form">
               <label for="faq-question-input">Punya pertanyaan lain seputar <span class="lp-nb">Al-Azhar</span>?</label>
@@ -735,8 +766,8 @@
 
     <script src="public-header.js?v=af5a025609"></script>
 
-    <script src="assistant.js?v=47da2fe8dd"></script>
+    <script src="assistant.js?v=dfdb2acff7"></script>
     <script src="registration-domain.js?v=34520aece0"></script>
-    <script src="website.js?v=aa1dbbcc0a"></script>
+    <script src="website.js?v=f4823185b7"></script>
   </body>
 </html>

@@ -31,6 +31,8 @@ const PERMISSIONS = Object.freeze({
   'demo.manage': Object.freeze([ROLES.ADMIN]),
   // Halaman Pengaturan: saklar fitur dan pembaruan database.
   'settings.manage': Object.freeze([ROLES.ADMIN]),
+  // Halaman Konten Website: biaya, program, kontak, testimoni, FAQ, pengumuman.
+  'content.manage': Object.freeze([ROLES.ADMIN]),
   // Memilih santri teladan bulanan dan mengatur fase roadmap studi.
   'honors.manage': Object.freeze([ROLES.ADMIN]),
   // Pengumuman ke santri dan wali: admin ke semua, musyrif ke asrama yang dipegang.

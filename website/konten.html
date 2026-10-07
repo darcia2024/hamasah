@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Catatan Audit | Hamasah International</title>
+    <title>Konten Website | Hamasah International</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
@@ -22,7 +22,7 @@
     <header class="staff-header staff-header--shell" id="public-header">
       <a href="portal.html" class="staff-brand">
         <img class="brand-logo-icon" src="../assets/logo-emblem-gold.png" alt="" width="30" height="33" />
-        <span class="staff-brand__name">Hamasah International</span> <span>Audit</span>
+        <span class="staff-brand__name">Hamasah International</span> <span>Konten Website</span>
       </a>
       <div class="staff-header-actions">
         <a href="portal.html" class="button button--secondary">Portal akun</a>
@@ -30,18 +30,18 @@
     </header>
 
     <!-- Guard Section (Saat Belum Login) -->
-    <section id="audit-guard" class="staff-login" aria-live="polite">
+    <section id="content-guard" class="staff-login" aria-live="polite">
       <div class="staff-login__card">
         <div class="staff-login__brand">
           <img class="staff-login__brand-logo" src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" width="44" height="44" />
           <div>
-            <span class="eyebrow u-m-0">Keamanan &amp; Akuntabilitas</span>
-            <div class="staff-login__brand-name">Log audit sistem</div>
+            <span class="eyebrow u-m-0">Super Admin</span>
+            <div class="staff-login__brand-name">Konten website</div>
           </div>
         </div>
-        <h1>Memeriksa akses log audit</h1>
-        <p class="staff-login__copy" id="audit-guard-copy">
-          Silakan masuk melalui Portal Hamasah. Halaman log audit ini khusus diperuntukkan bagi Administrator Sistem.
+        <h1>Memeriksa akses konten website</h1>
+        <p class="staff-login__copy" id="content-guard-copy">
+          Silakan masuk melalui Portal Hamasah. Halaman konten website hanya untuk super admin.
         </p>
         <a href="portal.html" class="button button--primary staff-login__cta">
           <span>Buka halaman masuk</span>
@@ -51,7 +51,7 @@
     </section>
 
     <!-- UNIFIED ALTEZZA CRM SHELL -->
-    <section id="audit-console" hidden class="crm-shell">
+    <section id="content-console" hidden class="crm-shell">
       <!-- CRM Left Sidebar -->
       <aside class="crm-sidebar" id="crm-sidebar">
         <div class="crm-sidebar-header">
@@ -99,102 +99,54 @@
           <div class="crm-breadcrumbs">
             <span class="crumb-root">Hamasah Portal</span>
             <span class="crumb-sep">&gt;</span>
-            <span class="crumb-active">Jejak Audit &amp; Keamanan Sistem</span>
+            <span class="crumb-active">Konten Website</span>
           </div>
           <div class="crm-topbar-actions">
             <span class="crm-role-chip" id="crm-header-role">Super Admin</span>
-            <button class="crm-topbar-action-btn" id="reload-audit" type="button" aria-label="Perbarui data">
+            <button class="crm-topbar-action-btn" id="reload-content" type="button" aria-label="Muat ulang konten">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l6.07-1.19"/></svg>
-              <span>Perbarui data</span>
+              <span>Muat ulang</span>
             </button>
           </div>
         </header>
 
         <div class="crm-canvas">
           <div class="crm-page-header">
-            <h2 class="crm-summary-title">Jejak audit</h2>
-            <p class="crm-summary-subtitle">Riwayat tindakan penting di sistem: siapa melakukannya, kapan, dan pada data apa.</p>
+            <h2 class="crm-summary-title">Konten website</h2>
+            <p class="crm-summary-subtitle">Mengubah isi website publik tanpa menunggu pengembang: kontak, biaya, program, testimoni, pertanyaan umum, dan pengumuman. Setiap perubahan tercatat di Jejak Audit.</p>
           </div>
 
-          <!-- Filter Card -->
-          <div class="crm-white-card">
-            <div class="crm-white-card-header">
-              <div>
-                <h3>Filter riwayat kejadian</h3>
-                <p>Saring rekam jejak aktivitas berdasarkan rentang tanggal, jenis aksi, atau akun pelaksana di sistem Hamasah.</p>
-              </div>
-            </div>
-            <form id="audit-filter" class="staff-form audit-filter-form">
-              <div class="audit-filter-grid">
-                <div>
-                  <label for="filter-from">Dari tanggal</label>
-                  <input id="filter-from" type="date" />
-                </div>
-                <div>
-                  <label for="filter-to">Sampai tanggal</label>
-                  <input id="filter-to" type="date" />
-                </div>
-                <div>
-                  <label for="filter-action">Jenis kejadian</label>
-                  <select id="filter-action" class="monitoring-select">
-                    <option value="">Semua kejadian</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="filter-actor">Pelaku / pengguna</label>
-                  <select id="filter-actor" class="monitoring-select">
-                    <option value="">Semua pelaku</option>
-                  </select>
-                </div>
-              </div>
+          <p id="content-unavailable" class="settings-banner" role="alert" hidden>Konten belum bisa disimpan karena database belum diperbarui. Buka <a href="pengaturan.html">Pengaturan</a> dan terapkan pembaruan database lebih dulu.</p>
 
-              <div class="audit-filter-actions">
-                <button class="button button--primary control--h42" type="submit">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                  <span>Terapkan filter</span>
-                </button>
-                <button class="button button--secondary control--h42" id="reset-filter" type="button">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                  <span>Reset filter</span>
-                </button>
-              </div>
-              <p id="audit-status" class="form-status" role="status" aria-live="polite"></p>
-            </form>
-          </div>
+          <div class="crm-subtabs-row" id="content-tabs" role="tablist" aria-label="Bagian konten website"></div>
 
-          <!-- Audit Timeline & Results Section -->
-          <div class="crm-white-card audit-results-card u-mt-20">
-            <div class="crm-white-card-header audit-results-header">
-              <div>
-                <h3>Timeline kejadian</h3>
-                <p class="u-m-0">Daftar aktivitas logis terbaru yang tercatat secara kronologis di database.</p>
+          <form id="content-form" class="staff-form settings-form content-form" novalidate>
+            <div class="crm-white-card">
+              <div class="crm-white-card-header">
+                <div>
+                  <h3 id="content-title">Memuat konten...</h3>
+                  <p id="content-desc"></p>
+                </div>
+                <a class="button button--secondary control--h40" id="content-preview" href="index.html" target="_blank" rel="noopener">Lihat di website</a>
               </div>
-              <p id="audit-summary" class="form-status audit-summary"></p>
+              <div id="content-fields"></div>
             </div>
 
-            <!-- Timeline Event List -->
-            <div id="audit-list" class="portal-account-list"></div>
-
-            <!-- Pagination Bar -->
-            <div class="staff-form__actions-end">
-              <button class="button button--secondary control--h40" id="audit-prev" type="button" disabled>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                <span>Sebelumnya</span>
-              </button>
-              <button class="button button--secondary control--h40" id="audit-next" type="button" disabled>
-                <span>Berikutnya</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-              </button>
+            <div class="settings-actions">
+              <p id="content-last" class="settings-last"></p>
+              <button class="button button--secondary control--h42" id="content-restore" type="button">Kembalikan ke isi bawaan</button>
+              <button class="button button--secondary control--h42" id="content-reset" type="button" disabled>Batalkan perubahan</button>
+              <button class="button button--primary control--h42" id="content-save" type="submit" disabled>Simpan</button>
             </div>
-          </div>
-
+            <p id="content-status" class="form-status" role="status" aria-live="polite"></p>
+          </form>
         </div>
       </div>
     </section>
 
     <script src="internal-shell.js?v=af5d3d7d4c"></script>
     <script src="nav.js?v=8c65ead6ae"></script>
-    <script src="audit.js?v=e7312fa03c"></script>
+    <script src="konten.js?v=c476c4ae54"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>

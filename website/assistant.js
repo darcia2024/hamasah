@@ -2,7 +2,8 @@
 // (server/site-assistant.js). Semua teks dari pengguna dan server dipasang lewat textContent;
 // hanya ikon statis yang memakai innerHTML.
 (function initSiteAssistant() {
-  const WHATSAPP_URL = 'https://wa.me/6287897591978';
+  // Nomor diisi server lewat <meta name="hamasah-whatsapp"> (bisa diubah di Konten Website).
+const WHATSAPP_URL = `https://wa.me/${(document.querySelector('meta[name="hamasah-whatsapp"]') || {}).content || '6287897591978'}`;
   const SUGGESTIONS = [
     'Berapa biayanya, bisa dicicil?',
     'Syarat daftar kuliah apa saja?',

@@ -40,6 +40,8 @@ const LABEL = {
   'departure-group.saved': 'Kloter keberangkatan disimpan',
   'departure-group.manifest-exported': 'Manifest kloter diunduh',
   'article.defaults-added': 'Artikel bawaan ditambahkan',
+  'site-content.updated': 'Konten website diubah',
+  'site-content.reset': 'Konten website dikembalikan ke bawaan',
   'registration.document-added': 'Dokumen pendaftaran ditambahkan',
   'student.created': 'Santri ditambahkan',
   'student.accounts-linked': 'Relasi akun santri diubah',

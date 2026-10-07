@@ -90,6 +90,7 @@ function createSettingsService({ database, defaults = {}, cacheMs = 10000, now =
         `SELECT s.key, s.value, s.updated_at, a.name AS updated_by
          FROM app_settings s
          LEFT JOIN accounts a ON a.id = s.updated_by_account_id
+         WHERE s.key NOT LIKE 'konten.%'
          ORDER BY s.updated_at DESC`
       );
       for (const row of rows) {

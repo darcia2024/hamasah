@@ -10,14 +10,14 @@
 // ---------------------------------------------------------------------------
 // Nomor WhatsApp resmi.
 //
-// SATU-SATUNYA tempat nomor ini ditulis. Isi dengan format internasional tanpa
-// tanda plus dan tanpa spasi, contoh: '6281234567890'. Selama masih kosong,
-// tombol WhatsApp tidak ditampilkan sama sekali.
+// Diisi server lewat <meta name="hamasah-whatsapp"> dan diubah super admin dari halaman
+// Konten Website. Nomor di sini hanya cadangan bila meta itu tidak ada (format
+// internasional tanpa tanda plus dan spasi). Selama kosong, tombol WhatsApp tidak tampil.
 //
-// Dikonfirmasi pengurus 24 September 2026 (butir A2): satu admin untuk Indonesia
-// dan Mesir. Nomor yang sama tertulis di kartu kantor pada kontak.html.
+// Nomor bawaan dikonfirmasi pengurus 24 September 2026 (butir A2): satu admin untuk
+// Indonesia dan Mesir.
 // ---------------------------------------------------------------------------
-const WHATSAPP_NUMBER = '6287897591978';
+const WHATSAPP_NUMBER = (document.querySelector('meta[name="hamasah-whatsapp"]') || {}).content || '6287897591978';
 
 function whatsappUrl() {
   const nomor = String(WHATSAPP_NUMBER || '').replace(/\D/g, '');

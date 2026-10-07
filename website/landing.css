@@ -1511,3 +1511,30 @@ main .lp-doc-groups h3 {
   grid-column: 1 / -1;
   margin: 0;
 }
+
+/* Pita pengumuman di atas beranda, diisi dari halaman Konten Website (server/site-content.js). */
+.lp-announce {
+  border-bottom: 1px solid var(--lp-line);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.lp-announce p {
+  margin: 0;
+  padding: 10px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.lp-announce strong {
+  margin-right: 6px;
+}
+
+.lp-announce a {
+  margin-left: 6px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-primary-container);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

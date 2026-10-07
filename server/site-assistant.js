@@ -11,10 +11,27 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { passagesOf, scorePassages, composeFromPassages, questionKind, tokens } = require('./study-retriever.js');
 const { KNOWLEDGE_BASE } = require('./faq-service.js');
+const siteContent = require('./site-content.js');
 
 const WEBSITE = path.join(__dirname, '..', 'website');
 const ARTICLES_FILE = path.join(__dirname, '..', 'data', 'articles.json');
 const WHATSAPP_URL = 'https://wa.me/6287897591978';
+
+// Konten website yang diubah admin (halaman Konten Website). Diisi route asisten sebelum
+// bertanya lewat pakaiKonten(), supaya jawaban memakai teks yang sama dengan yang tampil.
+let kontenAktif = null;
+
+function pakaiKonten(konten) {
+  kontenAktif = konten || null;
+}
+
+function kontenStamp() {
+  return kontenAktif ? JSON.stringify(kontenAktif.terakhir || {}) : '';
+}
+
+function whatsappUrl() {
+  return kontenAktif ? `https://wa.me/${kontenAktif.nilai.kontak.whatsapp}` : WHATSAPP_URL;
+}
 
 // Halaman publik yang dibaca, dengan URL relatif terhadap /website/.
 const PAGES = Object.freeze([
@@ -89,7 +106,8 @@ function headingOf(chunk) {
 }
 
 function sectionsOfPage(page) {
-  const html = fs.readFileSync(path.join(WEBSITE, page.file), 'utf8');
+  const asli = fs.readFileSync(path.join(WEBSITE, page.file), 'utf8');
+  const html = kontenAktif ? siteContent.renderHalaman(asli, kontenAktif) : asli;
   const main = (html.match(/<main\b[\s\S]*?<\/main>/i) || [html])[0];
   const starts = [...main.matchAll(/<section\b([^>]*)>/gi)];
   return starts.map((match, index) => {
@@ -147,7 +165,7 @@ function faqMaterials() {
     url: null,
     summary: '',
     keyPoints: [],
-    studyGuide: [{ question: entry.keywords.join(' '), answer: entry.answer }],
+    studyGuide: [{ question: entry.keywords.join(' '), answer: siteContent.sesuaikanTeksKontak(entry.answer, kontenAktif && kontenAktif.nilai.kontak) }],
     content: ''
   }));
 }
@@ -165,7 +183,7 @@ function fingerprint() {
 let cache = null;
 
 function knowledge() {
-  const stamp = fingerprint();
+  const stamp = `|${kontenStamp()}`;
   if (cache && cache.stamp === stamp) return cache;
   const materials = PAGES.flatMap(sectionsOfPage).concat(articleMaterials(), faqMaterials());
   const passages = materials.flatMap(passagesOf);
@@ -299,7 +317,7 @@ function localAnswer(rawQuestion) {
   const contentFirst = kind && ['definition', 'duration', 'example'].includes(kind.kind);
   if (faq && (!contentFirst || !chosen.length)) return faqReply(faq);
   if (!chosen.length) {
-    return reply('Maaf, informasi itu belum ada di website kami. Admin Hamasah siap menjawab langsung lewat WhatsApp.', { handoff: true, whatsapp: WHATSAPP_URL });
+    return reply('Maaf, informasi itu belum ada di website kami. Admin Hamasah siap menjawab langsung lewat WhatsApp.', { handoff: true, whatsapp: whatsappUrl() });
   }
 
   const answer = chosen.map((entry) => formatPassage(entry.item)).join(' ');
@@ -437,7 +455,7 @@ function createAssistant(options = {}) {
       const answer = cleanModelText(String(raw).split(HANDOFF_MARK).join(' '));
       if (!answer) throw new Error('openrouter-empty');
       return reply(answer, handoff
-        ? { handoff: true, whatsapp: WHATSAPP_URL, mode: 'ai' }
+        ? { handoff: true, whatsapp: whatsappUrl(), mode: 'ai' }
         : { sources: context.sources, mode: 'ai' });
     } finally {
       clearTimeout(timer);
@@ -467,6 +485,7 @@ const defaultAssistant = createAssistant();
 module.exports = {
   ask: (question, options) => defaultAssistant.ask(question, options),
   localAnswer,
+  pakaiKonten,
   buildContext,
   createAssistant,
   htmlToLines,

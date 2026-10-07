@@ -170,6 +170,28 @@ node scripts/demo-data.js
 
 ---
 
+## 5b. Konten website publik
+
+Super admin mengubah isi website dari konsol, menu **Konten Website** (`konten.html`): kontak
+(nomor WhatsApp, alamat, media sosial), biaya per program, ringkasan program, testimoni, pertanyaan
+umum di beranda, dan pita pengumuman.
+
+- Isi disimpan di tabel `app_settings` dengan kunci `konten.<bagian>`. Tidak ada migrasi khusus,
+  tetapi migrasi 043 harus sudah diterapkan (menu **Pengaturan**, Pembaruan database).
+- Halaman HTML tetap memuat isi bawaannya. Bagian yang bisa diubah ditandai
+  `<!--konten:...--> ... <!--/konten:...-->`, dan server mengganti isinya sebelum halaman dikirim
+  (`server/site-content.js`). Bagian yang belum pernah disimpan tampil persis seperti di HTML.
+- Saat mengubah teks bawaan di HTML, ubah juga `BAWAAN` di `server/site-content.js`.
+  `server/site-content.test.js` gagal bila keduanya berbeda.
+- CDN Vercel menyimpan halaman paling lama sekitar 5 menit, jadi perubahan bisa butuh beberapa
+  menit sampai tampil di semua pengunjung.
+- Foto testimoni hanya bisa dipilih dari berkas di `assets/` (daftar `FOTO_TESTIMONI`), karena CSP
+  hanya mengizinkan gambar dari domain sendiri. Foto baru ditambahkan pengembang ke folder dan
+  daftar itu.
+- Tombol **Kembalikan ke isi bawaan** menghapus isi tersimpan untuk satu bagian.
+
+---
+
 ## 6. Pemantauan
 
 ### Uptime

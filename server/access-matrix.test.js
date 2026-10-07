@@ -158,6 +158,10 @@ async function run() {
       { permission: 'demo.manage', method: 'POST', path: '/api/admin/demo-data/hapus', body: () => ({ konfirmasi: 'bukan' }) },
       { permission: 'demo.manage', method: 'POST', path: '/api/admin/demo-data/sandi' },
       { permission: 'settings.manage', method: 'GET', path: '/api/admin/settings' },
+      { permission: 'content.manage', method: 'GET', path: '/api/admin/content' },
+      // Isi tidak lengkap: admin mendapat 422, bukan konten situs yang berubah.
+      { permission: 'content.manage', method: 'PUT', path: '/api/admin/content/kontak', body: () => ({ nilai: {} }) },
+      { permission: 'content.manage', method: 'DELETE', path: '/api/admin/content/pengumuman' },
       // Tanpa perubahan dan database yang sudah lengkap: admin mendapat 200 tanpa mengubah apa pun.
       { permission: 'settings.manage', method: 'PUT', path: '/api/admin/settings', body: () => ({ nilai: {} }) },
       { permission: 'settings.manage', method: 'POST', path: '/api/admin/settings/database' },

@@ -1,4 +1,4 @@
-const { ask } = require('../site-assistant.js');
+const { ask, pakaiKonten } = require('../site-assistant.js');
 const { json } = require('../http/respond.js');
 
 module.exports = [
@@ -15,6 +15,8 @@ module.exports = [
         return;
       }
       const body = await readBody();
+      // Jawaban memakai konten website terbaru dari halaman Konten Website.
+      pakaiKonten(await services.siteContentService.untukHalaman());
       // history: beberapa giliran terakhir, supaya pertanyaan lanjutan ("kalau yang putri?") dipahami.
       json(response, 200, await ask(body.question, { history: body.history }));
     }

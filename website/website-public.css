@@ -5482,3 +5482,17 @@ main .eyebrow + h1 {
     font-size: 13px;
   }
 }
+
+/* Email dan media sosial di halaman Kontak, tampil bila diisi di halaman Konten Website. */
+.kontak-sosial {
+  margin: 28px 0 0;
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.kontak-sosial a {
+  font-weight: 600;
+  color: var(--gold-dark);
+}
