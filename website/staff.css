@@ -1947,3 +1947,32 @@ html.has-portal-session body:has(:is(#monitoring-guard, #operations-guard, #lms-
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+/* Foto galeri di halaman Konten Website: pratinjau kecil di atas tombol pilih berkas. */
+.content-photo__preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 220px;
+  max-width: 100%;
+  min-height: 120px;
+  margin-bottom: 10px;
+  border: 1px dashed var(--crm-border-subtle);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--md-sys-color-surface-container-low);
+  font-size: 13px;
+  color: var(--crm-text-muted);
+}
+
+.content-photo__preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.crm-canvas .content-photo input[type="file"] {
+  max-width: 360px;
+  height: auto;
+  padding: 8px;
+}

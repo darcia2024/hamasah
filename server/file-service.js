@@ -239,13 +239,30 @@ function createFileService(options = {}) {
     return { ok: true, value: { record, content: await storage.read(record.bucket, record.storageKey) } };
   }
 
+  // Berkas publik untuk ditampilkan di situs (misalnya foto galeri), tanpa sesi.
+  // Hanya berkas siap dari tujuan yang disebut, dan hanya bila tujuannya memang publik.
+  async function publicFile(fileId, purpose) {
+    const record = await store.get(fileId);
+    const policy = policyFor(purpose);
+    if (!record || record.status !== 'ready' || record.purpose !== purpose || !policy || policy.visibility !== 'public') {
+      return { ok: false, status: 404, error: 'Berkas tidak ditemukan.' };
+    }
+    return { ok: true, value: { record, content: await storage.read(record.bucket, record.storageKey) } };
+  }
+
+  // Memeriksa berkas siap dari satu tujuan tanpa membaca isinya.
+  async function isReady(fileId, purpose) {
+    const record = await store.get(fileId);
+    return Boolean(record && record.status === 'ready' && record.purpose === purpose);
+  }
+
   // Baris pending yang isinya tidak pernah dikirim hanya menumpuk. Dipanggil job harian.
   async function purgeStalePending(maxAgeMs = PENDING_EXPIRY_MS) {
     const batas = new Date(new Date(now()).getTime() - maxAgeMs).toISOString();
     return store.deletePendingBefore(batas);
   }
 
-  return Object.freeze({ beginContent, confirmContent, createDirectUpload, createUpload, prepareDownload, purgeStalePending, saveContent, supportsDirectUpload: Boolean(storage.supportsSignedUpload) });
+  return Object.freeze({ beginContent, confirmContent, createDirectUpload, createUpload, isReady, prepareDownload, publicFile, purgeStalePending, saveContent, supportsDirectUpload: Boolean(storage.supportsSignedUpload) });
 }
 
 module.exports = { PENDING_EXPIRY_MS, createFileService, safeFileName };

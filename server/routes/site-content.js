@@ -29,6 +29,17 @@ module.exports = [
     async handler({ response, services, auth, params, readBody, ip }) {
       const actor = await auth.actor();
       const body = await readBody();
+      // Foto galeri unggahan harus benar-benar ada dan siap, bukan id karangan.
+      if (params[0] === 'galeri' && body && Array.isArray(body.nilai)) {
+        for (const [i, item] of body.nilai.entries()) {
+          const cocok = /^unggah\/([0-9a-f-]{36})\.(?:jpg|png|webp)$/.exec(String((item && item.foto) || ''));
+          if (cocok && !(await services.fileService.isReady(cocok[1], 'gallery-photo'))) {
+            const pesan = `Foto ke-${i + 1} tidak ditemukan. Unggah ulang fotonya.`;
+            json(response, 422, { error: pesan, errors: { [`${i}.foto`]: pesan } });
+            return;
+          }
+        }
+      }
       const hasil = await services.siteContentService.simpan(params[0], body && body.nilai, actor);
       if (hasil.ok && hasil.value.berubah) {
         await services.auditService.record({

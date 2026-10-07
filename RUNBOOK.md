@@ -189,6 +189,13 @@ umum di beranda, dan pita pengumuman.
   hanya mengizinkan gambar dari domain sendiri. Foto baru ditambahkan pengembang ke folder dan
   daftar itu.
 - Tombol **Kembalikan ke isi bawaan** menghapus isi tersimpan untuk satu bagian.
+- **Galeri**: admin mengunggah foto langsung dari tab Galeri. Foto dikecilkan di peramban (sisi
+  terpanjang 1600 px, JPEG), disimpan di Supabase Storage dengan tujuan `gallery-photo`, dan
+  disajikan dari domain sendiri lewat `/media/galeri/<id>.jpg` karena CSP `img-src` hanya
+  mengizinkan `'self'`. Foto bawaan tetap di `assets/galeri/`. Foto yang dihapus dari galeri
+  tidak ikut dihapus dari storage.
+- Unggahan dari peramban dikirim langsung ke Supabase. Karena itu, bila `STORAGE_DRIVER=supabase`,
+  origin `SUPABASE_URL` otomatis masuk `connect-src` CSP (`server/app.js`).
 
 ---
 

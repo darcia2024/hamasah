@@ -95,6 +95,21 @@ const POLICIES = Object.freeze({
     }
   }),
 
+  // Foto galeri dokumentasi di beranda (halaman Konten Website). Publik: ditampilkan
+  // lewat /media/galeri/<id> (app.js), dari domain situs sendiri sesuai CSP img-src.
+  'gallery-photo': Object.freeze({
+    entityType: 'gallery',
+    visibility: 'public',
+    contentTypes: GAMBAR,
+    maxBytes: 5 * MB,
+    async canUpload({ actor }) {
+      return Boolean(actor) && roleHasPermission(actor.role, 'content.manage');
+    },
+    async canDownload() {
+      return true;
+    }
+  }),
+
   // Foto kegiatan santri. Pembatasan asrama untuk musyrif ikut berlaku, karena
   // pemeriksaannya memakai dashboard santri yang sudah dibatasi.
   'student-media': Object.freeze({

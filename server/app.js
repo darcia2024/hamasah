@@ -122,7 +122,13 @@ function createHamasahApp(options) {
     || (database
       ? createHybridRateLimiter({ store: createPostgresRateLimitStore({ database }) })
       : createRateLimiter());
-  const securityHeaders = createSecurityHeaders({ appEnvironment });
+  // Unggahan berkas dikirim peramban langsung ke Supabase Storage (lihat file-service.js,
+  // createDirectUpload). Tanpa origin Supabase di connect-src, CSP memblokir kiriman itu.
+  const storageOrigin = config.storageDriver === 'supabase' && config.supabaseUrl ? new URL(config.supabaseUrl).origin : null;
+  const securityHeaders = createSecurityHeaders({
+    appEnvironment,
+    extraCspSources: storageOrigin ? { 'connect-src': [storageOrigin] } : undefined
+  });
   const registrationStore = config.registrationStore || createPostgresRegistrationStore({ database });
   const registrationService = config.registrationService || registrationServiceModule.createRegistrationService({
     store: registrationStore,
@@ -491,6 +497,27 @@ function createHamasahApp(options) {
       if (/^\/(?:website\/)?sitemap\.xml$/.test(url.pathname)) {
         const articles = await articleStore.listPublishedForSitemap();
         sendText(response, 'application/xml; charset=utf-8', seo.sitemapXml({ origin, websiteDirectory: path.join(rootDirectory, 'website'), articles }));
+        return;
+      }
+      // Foto galeri yang diunggah dari halaman Konten Website. Disajikan dari domain sendiri
+      // karena CSP img-src hanya mengizinkan 'self'. Isinya tidak pernah berubah (setiap
+      // unggahan id baru), jadi boleh disimpan lama oleh peramban dan CDN.
+      const mediaGaleri = /^\/media\/galeri\/([0-9a-f-]{36})\.(?:jpg|png|webp)$/.exec(url.pathname);
+      if (mediaGaleri && ['GET', 'HEAD'].includes(request.method)) {
+        const berkas = await fileService.publicFile(mediaGaleri[1], 'gallery-photo');
+        if (!berkas.ok) {
+          response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
+          response.end('Foto tidak ditemukan.');
+          return;
+        }
+        response.writeHead(200, {
+          'Content-Type': berkas.value.record.contentType,
+          'Content-Length': String(berkas.value.content.length),
+          'Cache-Control': 'public, max-age=31536000, immutable',
+          'Vercel-CDN-Cache-Control': 'max-age=31536000, immutable',
+          'X-Content-Type-Options': 'nosniff'
+        });
+        response.end(request.method === 'HEAD' ? undefined : berkas.value.content);
         return;
       }
       // Aturan penyiapan halaman konsol, lihat server/http/speculation-rules.js.

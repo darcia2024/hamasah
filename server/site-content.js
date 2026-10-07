@@ -15,6 +15,9 @@
 // BAWAAN di bawah harus sama dengan isi HTML. site-content.test.js memeriksanya, supaya
 // formulir admin selalu dimulai dari teks yang memang tampil di situs.
 
+const fs = require('node:fs');
+const path = require('node:path');
+
 const NOMOR_WA_BAWAAN = '6287897591978';
 
 // Foto testimoni hanya boleh dipilih dari berkas yang ada di assets/. CSP situs hanya
@@ -31,6 +34,20 @@ const FOTO_TESTIMONI = Object.freeze([
 ]);
 
 const PROGRAM = Object.freeze(['kuliah', 'mahad', 'courses']);
+
+// Foto galeri bawaan di assets/galeri/. Foto baru diunggah admin (tujuan 'gallery-photo')
+// dan disimpan sebagai "unggah/<id>.<ext>", disajikan lewat /media/galeri/<id>.<ext>.
+const FOTO_GALERI_ASET = Object.freeze((() => {
+  try {
+    return fs.readdirSync(path.join(__dirname, '..', 'assets', 'galeri')).filter((nama) => /\.(jpe?g|png|webp)$/i.test(nama)).map((nama) => `galeri/${nama}`);
+  } catch {
+    return [];
+  }
+})());
+
+function srcFotoGaleri(foto) {
+  return foto.startsWith('unggah/') ? `/media/galeri/${foto.slice('unggah/'.length)}` : `../assets/${foto}`;
+}
 
 const BAWAAN = Object.freeze({
   kontak: {
@@ -192,7 +209,45 @@ const BAWAAN = Object.freeze({
     tautanUrl: '',
     mulai: '',
     selesai: ''
-  }
+  },
+
+  galeri: [
+    {
+      foto: 'galeri/founder-rektor-al-azhar.jpg', lebar: 1108, tinggi: 1280,
+      keterangan: 'Founder Hamasah International bersama Rektor Universitas Al-Azhar, Prof. Dr. Salamah Dawud',
+      alt: 'Founder Hamasah International berdiri berdampingan dengan Rektor Universitas Al-Azhar di sebuah ruang pertemuan'
+    },
+    {
+      foto: 'galeri/pimpinan-markaz-tatwir.jpg', lebar: 1600, tinggi: 1324,
+      keterangan: 'Pertemuan dengan Pimpinan Markaz Tatwir, lembaga pengembangan pendidikan Al-Azhar untuk pelajar asing',
+      alt: 'Perwakilan Hamasah International berfoto bersama Pimpinan Markaz Tatwir'
+    },
+    {
+      foto: 'galeri/wakil-pimpinan-markaz-tatwir.jpg', lebar: 960, tinggi: 1280,
+      keterangan: 'Pertemuan dengan Wakil Pimpinan Markaz Tatwir, lembaga pengembangan pendidikan Al-Azhar untuk pelajar asing',
+      alt: 'Perwakilan Hamasah International menyerahkan plakat penghargaan kepada Wakil Pimpinan Markaz Tatwir'
+    },
+    {
+      foto: 'galeri/keberangkatan-santri.jpg', lebar: 1280, tinggi: 960,
+      keterangan: 'Keberangkatan rombongan santri menuju Kairo',
+      alt: 'Rombongan santri Hamasah berfoto di area keberangkatan internasional bandara sebelum berangkat ke Kairo'
+    },
+    {
+      foto: 'galeri/idul-fitri-kairo.jpg', lebar: 1280, tinggi: 960,
+      keterangan: 'Suasana Hari Raya Idul Fitri di Kairo',
+      alt: 'Santri Hamasah berfoto bersama di depan masjid berkubah putih seusai salat Idul Fitri di Kairo'
+    },
+    {
+      foto: 'galeri/family-gathering-kairo.jpg', lebar: 1280, tinggi: 960,
+      keterangan: 'Family gathering Hamasah International di Kairo',
+      alt: 'Santri Hamasah berfoto bersama di depan spanduk Hamasah International dalam acara family gathering'
+    },
+    {
+      foto: 'galeri/cairo-international-book-fair.jpg', lebar: 1280, tinggi: 960,
+      keterangan: 'Mengunjungi Cairo International Book Fair',
+      alt: 'Santri putra dan putri Hamasah berfoto di depan gedung pameran Cairo International Book Fair'
+    }
+  ]
 });
 
 const BLOK = Object.freeze(Object.keys(BAWAAN));
@@ -203,7 +258,8 @@ const LABEL_BLOK = Object.freeze({
   program: 'Program',
   testimoni: 'Testimoni',
   faq: 'Pertanyaan umum (FAQ)',
-  pengumuman: 'Pengumuman'
+  pengumuman: 'Pengumuman',
+  galeri: 'Galeri'
 });
 
 // Halaman yang memuat tiap blok, untuk tautan "Lihat di website" dan pemuatan konten.
@@ -213,7 +269,8 @@ const HALAMAN_BLOK = Object.freeze({
   program: ['index.html', 'program-kuliah.html', 'program-mahad.html', 'program-courses.html'],
   testimoni: ['index.html'],
   faq: ['index.html'],
-  pengumuman: ['index.html']
+  pengumuman: ['index.html'],
+  galeri: ['index.html']
 });
 
 const HALAMAN_PUBLIK = Object.freeze([...new Set(Object.values(HALAMAN_BLOK).flat().concat(['articles.html', 'cek-status.html', 'tim.html']))]);
@@ -386,6 +443,10 @@ const PERIKSA = Object.freeze({
     });
   },
 
+  galeri(nilai) {
+    return periksaGaleri(nilai);
+  },
+
   pengumuman(nilai) {
     const v = objek(nilai);
     const aktif = v.aktif === true;
@@ -405,6 +466,34 @@ const PERIKSA = Object.freeze({
     return hasil;
   }
 });
+
+// Foto galeri: berkas bawaan di assets/galeri/, atau unggahan admin "unggah/<uuid>.<ext>".
+// Apakah unggahannya benar-benar ada diperiksa route (server/routes/site-content.js).
+function fotoGaleri(nilai, bidang, urutan) {
+  const foto = String(nilai || '').trim();
+  if (!foto) throw new KesalahanKonten(bidang, `Foto ke-${urutan} belum diunggah.`);
+  if (/^unggah\/[0-9a-f-]{36}\.(jpg|png|webp)$/.test(foto) || FOTO_GALERI_ASET.includes(foto)) return foto;
+  throw new KesalahanKonten(bidang, `Foto ke-${urutan} tidak dikenal. Unggah ulang fotonya.`);
+}
+
+function ukuranFoto(nilai, bidang, urutan) {
+  const angka = Number(nilai);
+  if (!Number.isInteger(angka) || angka < 50 || angka > 12000) throw new KesalahanKonten(bidang, `Ukuran foto ke-${urutan} tidak valid. Unggah ulang fotonya.`);
+  return angka;
+}
+
+function periksaGaleri(nilai) {
+  return daftar(nilai, 'galeri', 'Galeri', { min: 1, maks: 40 }).map((item, i) => {
+    const v = objek(item);
+    return {
+      foto: fotoGaleri(v.foto, `${i}.foto`, i + 1),
+      lebar: ukuranFoto(v.lebar, `${i}.foto`, i + 1),
+      tinggi: ukuranFoto(v.tinggi, `${i}.foto`, i + 1),
+      keterangan: teks(v.keterangan, `${i}.keterangan`, `Keterangan foto ke-${i + 1}`, { min: 5, maks: 200 }),
+      alt: teks(v.alt, `${i}.alt`, `Deskripsi foto ke-${i + 1}`, { min: 5, maks: 200 })
+    };
+  });
+}
 
 // { ok, nilai } atau { ok: false, error, bidang }.
 function periksaBlok(blok, nilai) {
@@ -551,6 +640,16 @@ ${paragraf(t.isi, '                ')}
     ];
   },
 
+  galeri(daftarFoto) {
+    const butir = daftarFoto.map((f) => `            <li>
+              <button class="lp-photos__item" type="button" aria-label="Perbesar foto: ${esc(f.keterangan)}">
+                <img src="${esc(srcFotoGaleri(f.foto))}" alt="${esc(f.alt)}" width="${f.lebar}" height="${f.tinggi}" loading="lazy" decoding="async" />
+                <span class="lp-photos__caption">${nb(f.keterangan)}</span>
+              </button>
+            </li>`);
+    return [wilayah('galeri', `\n${butir.join('\n')}\n          `)];
+  },
+
   pengumuman(p, sekarang) {
     if (!pengumumanTampil(p, sekarang)) return [wilayah('pengumuman', '')];
     const tautan = p.tautanUrl ? ` <a href="${esc(p.tautanUrl)}">${esc(p.tautanTeks)}</a>` : '';
@@ -629,6 +728,7 @@ function renderHalaman(html, konten, sekarang = new Date()) {
 module.exports = {
   BAWAAN,
   BLOK,
+  FOTO_GALERI_ASET,
   FOTO_TESTIMONI,
   HALAMAN_BLOK,
   HALAMAN_PUBLIK,

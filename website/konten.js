@@ -131,6 +131,18 @@ const SKEMA_KONTEN = {
       ]
     }
   },
+  galeri: {
+    keterangan: 'Foto dokumentasi di bagian Galeri beranda. Urutan di sini sama dengan urutan tampil. Foto otomatis dikecilkan sebelum diunggah, jadi foto langsung dari HP pun boleh.',
+    tautan: 'index.html#galeri',
+    akar: {
+      jenis: 'daftar', batas: 40, minimal: 1, tambah: 'Tambah foto', nama: 'Foto',
+      isi: [
+        { k: 'foto', label: 'Foto', jenis: 'foto-galeri' },
+        { k: 'keterangan', label: 'Keterangan', jenis: 'area', baris: 2, maks: 200, petunjuk: 'Tampil di bawah foto dan saat foto dibuka besar.' },
+        { k: 'alt', label: 'Deskripsi foto untuk pembaca layar', jenis: 'teks', maks: 200, petunjuk: 'Gambarkan isi foto, misalnya: Santri berfoto di depan Masjid Al-Azhar.' }
+      ]
+    }
+  },
   pengumuman: {
     keterangan: 'Pita pengumuman di bagian atas beranda. Bisa diberi tanggal mulai dan selesai supaya hilang sendiri.',
     tautan: 'index.html',
@@ -357,7 +369,118 @@ function formatWhatsapp(nilai) {
 
 let nomorId = 0;
 
+// ---- Foto galeri: dikecilkan di peramban, lalu diunggah lewat alur /api/uploads. ----
+
+const SISI_TERPANJANG = 1600;
+
+function srcFotoGaleri(foto) {
+  if (!foto) return '';
+  return foto.startsWith('unggah/') ? `/media/galeri/${foto.slice('unggah/'.length)}` : `../assets/${foto}`;
+}
+
+// Foto dari HP bisa 4000 px dan 5 MB. Dikecilkan ke sisi terpanjang 1600 px dan JPEG
+// kualitas 0,85 (sekitar 200 sampai 400 KB), cukup tajam untuk galeri dan foto besar.
+async function kecilkanFoto(file) {
+  let gambar;
+  try {
+    gambar = await createImageBitmap(file);
+  } catch {
+    throw new Error('Berkas ini tidak bisa dibaca sebagai foto. Gunakan JPG, PNG, atau WebP.');
+  }
+  const skala = Math.min(1, SISI_TERPANJANG / Math.max(gambar.width, gambar.height));
+  const lebar = Math.round(gambar.width * skala);
+  const tinggi = Math.round(gambar.height * skala);
+  const kanvas = document.createElement('canvas');
+  kanvas.width = lebar;
+  kanvas.height = tinggi;
+  const konteks = kanvas.getContext('2d');
+  konteks.fillStyle = '#FFFFFF';
+  konteks.fillRect(0, 0, lebar, tinggi);
+  konteks.drawImage(gambar, 0, 0, lebar, tinggi);
+  if (typeof gambar.close === 'function') gambar.close();
+  const blob = await new Promise((resolve) => kanvas.toBlob(resolve, 'image/jpeg', 0.85));
+  if (!blob) throw new Error('Foto belum dapat diproses. Coba foto lain.');
+  return { blob, lebar, tinggi };
+}
+
+// Alur dua langkah yang sama dengan unggah berkas lain (lihat operations.js).
+async function unggahFotoGaleri(blob) {
+  const minta = await kirim('POST', '/api/uploads', { purpose: 'gallery-photo', entityId: 'galeri', fileName: 'galeri.jpg', contentType: 'image/jpeg', size: blob.size });
+  const id = minta.upload.id;
+  if (minta.directUpload) {
+    const tautan = await kirim('POST', `/api/uploads/${encodeURIComponent(id)}/direct`);
+    const terkirim = await fetch(tautan.uploadUrl, { method: 'PUT', headers: { 'Content-Type': 'image/jpeg' }, body: blob });
+    if (!terkirim.ok) throw new Error('Foto gagal dikirim ke penyimpanan.');
+    await kirim('POST', `/api/uploads/${encodeURIComponent(id)}/confirm`);
+  } else {
+    const response = await fetch(`/api/uploads/${encodeURIComponent(id)}/content`, { method: 'PUT', headers: { ...headers(), 'Content-Type': 'image/jpeg' }, body: blob });
+    const hasil = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(hasil.error || 'Foto gagal diunggah.');
+  }
+  return `unggah/${id}.jpg`;
+}
+
+function kotakFotoGaleri(def, jalur) {
+  const jalurButir = jalur.split('.').slice(0, -1).join('.');
+  const butir = ambil(draf, jalurButir);
+  const baris = document.createElement('div');
+  baris.className = 'setting-field content-photo';
+  baris.dataset.jalur = jalur;
+
+  const id = `isi-${nomorId += 1}`;
+  const label = document.createElement('label');
+  label.htmlFor = id;
+  label.textContent = def.label;
+
+  const pratinjau = document.createElement('div');
+  pratinjau.className = 'content-photo__preview';
+  if (butir.foto) {
+    const img = document.createElement('img');
+    img.src = srcFotoGaleri(butir.foto);
+    img.alt = '';
+    pratinjau.append(img);
+  } else {
+    pratinjau.textContent = 'Belum ada foto.';
+  }
+
+  const masukan = document.createElement('input');
+  masukan.type = 'file';
+  masukan.id = id;
+  masukan.accept = 'image/jpeg,image/png,image/webp';
+  masukan.dataset.path = jalur;
+  masukan.dataset.foto = 'ya';
+  const keterangan = document.createElement('p');
+  keterangan.className = 'setting-field__hint';
+  keterangan.id = `${id}-ket`;
+  keterangan.textContent = butir.foto ? 'Pilih berkas baru untuk mengganti foto ini.' : 'Pilih foto JPG, PNG, atau WebP.';
+  masukan.setAttribute('aria-describedby', keterangan.id);
+
+  masukan.addEventListener('change', async () => {
+    const file = masukan.files && masukan.files[0];
+    if (!file) return;
+    masukan.disabled = true;
+    keterangan.textContent = 'Mengecilkan dan mengunggah foto...';
+    try {
+      const { blob, lebar, tinggi } = await kecilkanFoto(file);
+      const foto = await unggahFotoGaleri(blob);
+      Object.assign(ambil(draf, jalurButir), { foto, lebar, tinggi });
+      status.classList.remove('is-error');
+      gambarFormulir();
+      setStatus('Foto terunggah. Tekan Simpan supaya tampil di website.');
+    } catch (error) {
+      masukan.disabled = false;
+      masukan.value = '';
+      keterangan.textContent = error.message || 'Foto gagal diunggah.';
+      masukan.setAttribute('aria-invalid', 'true');
+    }
+  });
+
+  baris.append(label, pratinjau, masukan, keterangan);
+  return baris;
+}
+
 function kotak(def, jalur) {
+  if (def.jenis === 'foto-galeri') return kotakFotoGaleri(def, jalur);
   const id = `isi-${nomorId += 1}`;
   const nilai = ambil(draf, jalur);
   const baris = document.createElement('div');
@@ -588,7 +711,8 @@ async function muat() {
 // Setiap kotak menulis ke draf. "change" ikut didengar untuk pilihan, saklar, dan tanggal.
 function catatIsian(event) {
   const kontrol = event.target.closest('[data-path]');
-  if (!kontrol) return;
+  // Kotak berkas foto mengurus drafnya sendiri setelah unggahan selesai.
+  if (!kontrol || kontrol.dataset.foto) return;
   tulis(draf, kontrol.dataset.path, kontrol.type === 'checkbox' ? kontrol.checked : kontrol.value);
   kontrol.removeAttribute('aria-invalid');
   status.classList.remove('is-error');
