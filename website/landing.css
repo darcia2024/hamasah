@@ -1538,3 +1538,165 @@ main .lp-doc-groups h3 {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* ---------- Galeri dokumentasi ---------- */
+
+/* Kolom bertingkat: foto tegak dan mendatar tampil utuh tanpa dipotong. */
+.lp-photos {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  column-count: 3;
+  column-gap: 16px;
+}
+
+.lp-photos li {
+  margin: 0 0 16px;
+  break-inside: avoid;
+}
+
+.lp-photos__item {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--lp-radius);
+  overflow: hidden;
+  background: var(--md-sys-color-surface);
+  box-shadow: var(--lp-card-shadow);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: zoom-in;
+}
+
+.lp-photos__item img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 0.35s ease;
+}
+
+.lp-photos__item:hover img {
+  transform: scale(1.03);
+}
+
+.lp-photos__item:focus-visible {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: 3px;
+}
+
+.lp-photos__caption {
+  display: block;
+  position: relative;
+  padding: 14px 18px 16px;
+  background: var(--md-sys-color-surface);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--lp-ink);
+}
+
+/* Foto yang dibuka besar. */
+/* margin auto: reset global membuat margin dialog 0, sehingga tidak berada di tengah. */
+.lp-lightbox {
+  margin: auto;
+  width: min(1100px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  padding: 0;
+  border: 0;
+  border-radius: var(--lp-radius);
+  background: #1C1C1E;
+  color: #FFFFFF;
+  overflow: hidden;
+}
+
+.lp-lightbox::backdrop {
+  background: rgba(20, 20, 22, 0.82);
+}
+
+.lp-lightbox__figure {
+  margin: 0;
+}
+
+.lp-lightbox__figure img {
+  display: block;
+  width: 100%;
+  max-height: calc(100vh - 170px);
+  object-fit: contain;
+  background: #000000;
+}
+
+.lp-lightbox__figure figcaption {
+  padding: 14px 20px 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.lp-lightbox__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px 16px;
+}
+
+.lp-lightbox__count {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.lp-lightbox__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  background: transparent;
+  color: #FFFFFF;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lp-lightbox__btn:hover {
+  border-color: #F2C94C;
+  color: #F2C94C;
+}
+
+.lp-lightbox__btn:focus-visible {
+  outline: 2px solid #F2C94C;
+  outline-offset: 2px;
+}
+
+.lp-lightbox__close {
+  margin-left: auto;
+}
+
+/* Panah dari garis yang diputar. */
+.lp-lightbox__arrow {
+  width: 9px;
+  height: 9px;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform: translateX(-2px) rotate(45deg);
+}
+
+.lp-lightbox__arrow--prev {
+  transform: translateX(2px) rotate(-135deg);
+}
+
+@media (max-width: 980px) {
+  .lp-photos { column-count: 2; }
+}
+
+@media (max-width: 560px) {
+  .lp-photos { column-count: 1; }
+  .lp-lightbox { width: calc(100vw - 16px); }
+  .lp-lightbox__figure figcaption { padding: 12px 16px 0; font-size: 14px; }
+}

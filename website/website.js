@@ -340,3 +340,45 @@ form.addEventListener('submit', async (event) => {
     submitButton.textContent = 'Kirim data konsultasi';
   }
 });
+
+// Galeri dokumentasi: foto dibuka besar di <dialog>, bisa digeser dengan tombol atau panah
+// keyboard. Keterangan diambil dari teks kartu foto itu sendiri.
+(function galeri() {
+  const items = [...document.querySelectorAll('.lp-photos__item')];
+  const dialog = document.querySelector('#lp-lightbox');
+  if (!items.length || !dialog || typeof dialog.showModal !== 'function') return;
+  const gambar = dialog.querySelector('#lp-lightbox-img');
+  const keterangan = dialog.querySelector('#lp-lightbox-caption');
+  const hitungan = dialog.querySelector('#lp-lightbox-count');
+  let aktif = 0;
+  let pemicu = null;
+
+  function tampilkan(indeks) {
+    aktif = (indeks + items.length) % items.length;
+    const foto = items[aktif].querySelector('img');
+    gambar.src = foto.currentSrc || foto.src;
+    gambar.alt = foto.alt;
+    keterangan.textContent = items[aktif].querySelector('.lp-photos__caption').textContent;
+    hitungan.textContent = `${aktif + 1} dari ${items.length}`;
+  }
+
+  items.forEach((item, indeks) => item.addEventListener('click', () => {
+    pemicu = item;
+    tampilkan(indeks);
+    dialog.showModal();
+  }));
+  dialog.querySelector('#lp-lightbox-prev').addEventListener('click', () => tampilkan(aktif - 1));
+  dialog.querySelector('#lp-lightbox-next').addEventListener('click', () => tampilkan(aktif + 1));
+  dialog.querySelector('#lp-lightbox-close').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowLeft') tampilkan(aktif - 1);
+    if (event.key === 'ArrowRight') tampilkan(aktif + 1);
+  });
+  // Klik di luar foto (latar gelap) menutup.
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+  dialog.addEventListener('close', () => {
+    if (pemicu) pemicu.focus();
+  });
+}());

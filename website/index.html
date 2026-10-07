@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website-core.css?v=59e719d1ae" />
     <link rel="stylesheet" href="website-public.css?v=cb8e1fe637" />
-    <link rel="stylesheet" href="landing.css?v=f263bfc2c0" />
+    <link rel="stylesheet" href="landing.css?v=fe6253b9e3" />
     <link rel="stylesheet" href="fields.css?v=40377b19dc" />
   </head>
   <body>
@@ -338,6 +338,75 @@
           </div>
         </div>
       </section>
+
+      <!-- Galeri dokumentasi. Foto dibuka besar lewat #lp-lightbox (website.js). -->
+      <section class="lp-section" id="galeri" aria-labelledby="galeri-title">
+        <div class="shell">
+          <header class="lp-head">
+            <p class="eyebrow">Galeri</p>
+            <h2 class="lp-h2" id="galeri-title">Dokumentasi Hamasah International.</h2>
+            <p class="lp-lede">Bersama pimpinan <span class="lp-nb">Al-Azhar</span>, keberangkatan santri, dan kebersamaan di Kairo.</p>
+          </header>
+
+          <ul class="lp-photos">
+            <li>
+              <button class="lp-photos__item" type="button" aria-label="Perbesar foto: Founder Hamasah International bersama Rektor Universitas Al-Azhar">
+                <img src="../assets/galeri/founder-rektor-al-azhar.jpg" alt="Founder Hamasah International berdiri berdampingan dengan Rektor Universitas Al-Azhar di sebuah ruang pertemuan" width="1108" height="1280" loading="lazy" decoding="async" />
+                <span class="lp-photos__caption">Founder Hamasah International bersama Rektor Universitas <span class="lp-nb">Al-Azhar</span>, Prof. Dr. Salamah Dawud</span>
+              </button>
+            </li>
+            <li>
+              <button class="lp-photos__item" type="button" aria-label="Perbesar foto: Pertemuan dengan Pimpinan Markaz Tatwir">
+                <img src="../assets/galeri/pimpinan-markaz-tatwir.jpg" alt="Perwakilan Hamasah International berfoto bersama Pimpinan Markaz Tatwir" width="1600" height="1324" loading="lazy" decoding="async" />
+                <span class="lp-photos__caption">Pertemuan dengan Pimpinan Markaz Tatwir, lembaga pengembangan pendidikan <span class="lp-nb">Al-Azhar</span> untuk pelajar asing</span>
+              </button>
+            </li>
+            <li>
+              <button class="lp-photos__item" type="button" aria-label="Perbesar foto: Pertemuan dengan Wakil Pimpinan Markaz Tatwir">
+                <img src="../assets/galeri/wakil-pimpinan-markaz-tatwir.jpg" alt="Perwakilan Hamasah International menyerahkan plakat penghargaan kepada Wakil Pimpinan Markaz Tatwir" width="960" height="1280" loading="lazy" decoding="async" />
+                <span class="lp-photos__caption">Pertemuan dengan Wakil Pimpinan Markaz Tatwir, lembaga pengembangan pendidikan <span class="lp-nb">Al-Azhar</span> untuk pelajar asing</span>
+              </button>
+            </li>
+            <li>
+              <button class="lp-photos__item" type="button" aria-label="Perbesar foto: Keberangkatan santri">
+                <img src="../assets/galeri/keberangkatan-santri.jpg" alt="Rombongan santri Hamasah berfoto di area keberangkatan internasional bandara sebelum berangkat ke Kairo" width="1280" height="960" loading="lazy" decoding="async" />
+                <span class="lp-photos__caption">Keberangkatan rombongan santri menuju Kairo</span>
+              </button>
+            </li>
+            <li>
+              <button class="lp-photos__item" type="button" aria-label="Perbesar foto: Hari Raya Idul Fitri di Kairo">
+                <img src="../assets/galeri/idul-fitri-kairo.jpg" alt="Santri Hamasah berfoto bersama di depan masjid berkubah putih seusai salat Idul Fitri di Kairo" width="1280" height="960" loading="lazy" decoding="async" />
+                <span class="lp-photos__caption">Suasana Hari Raya Idul Fitri di Kairo</span>
+              </button>
+            </li>
+            <li>
+              <button class="lp-photos__item" type="button" aria-label="Perbesar foto: Family gathering di Kairo">
+                <img src="../assets/galeri/family-gathering-kairo.jpg" alt="Santri Hamasah berfoto bersama di depan spanduk Hamasah International dalam acara family gathering" width="1280" height="960" loading="lazy" decoding="async" />
+                <span class="lp-photos__caption">Family gathering Hamasah International di Kairo</span>
+              </button>
+            </li>
+            <li>
+              <button class="lp-photos__item" type="button" aria-label="Perbesar foto: Cairo International Book Fair">
+                <img src="../assets/galeri/cairo-international-book-fair.jpg" alt="Santri putra dan putri Hamasah berfoto di depan gedung pameran Cairo International Book Fair" width="1280" height="960" loading="lazy" decoding="async" />
+                <span class="lp-photos__caption">Mengunjungi Cairo International Book Fair</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <dialog class="lp-lightbox" id="lp-lightbox" aria-label="Foto galeri">
+        <figure class="lp-lightbox__figure">
+          <img id="lp-lightbox-img" src="data:," alt="" />
+          <figcaption id="lp-lightbox-caption"></figcaption>
+        </figure>
+        <div class="lp-lightbox__bar">
+          <button class="lp-lightbox__btn" type="button" id="lp-lightbox-prev" aria-label="Foto sebelumnya"><span class="lp-lightbox__arrow lp-lightbox__arrow--prev" aria-hidden="true"></span></button>
+          <span class="lp-lightbox__count" id="lp-lightbox-count" aria-live="polite"></span>
+          <button class="lp-lightbox__btn" type="button" id="lp-lightbox-next" aria-label="Foto berikutnya"><span class="lp-lightbox__arrow" aria-hidden="true"></span></button>
+          <button class="lp-lightbox__btn lp-lightbox__close" type="button" id="lp-lightbox-close">Tutup</button>
+        </div>
+      </dialog>
 
       <section class="lp-section" id="santri" aria-labelledby="santri-title">
         <div class="shell lp-portal">
@@ -768,6 +837,6 @@
 
     <script src="assistant.js?v=dfdb2acff7"></script>
     <script src="registration-domain.js?v=34520aece0"></script>
-    <script src="website.js?v=f4823185b7"></script>
+    <script src="website.js?v=9ec4a3d03d"></script>
   </body>
 </html>
