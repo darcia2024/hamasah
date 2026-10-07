@@ -39,6 +39,7 @@ const ROLE_NAV_LABELS = Object.freeze({
     akun: 'Kelola Akun',
     audit: 'Jejak Audit',
     konten: 'Konten Website',
+    template: 'Template',
     pengaturan: 'Pengaturan'
   }
 });
@@ -130,6 +131,15 @@ const STAFF_NAV_LINKS = Object.freeze([
     badge: null,
     badgeType: null,
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>'
+  },
+  {
+    href: 'template.html',
+    label: 'Template',
+    page: 'template',
+    roles: ['admin'],
+    badge: null,
+    badgeType: null,
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8M8 17h5"/></svg>'
   },
   {
     href: 'pengaturan.html',

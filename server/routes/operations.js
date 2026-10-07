@@ -35,7 +35,7 @@ module.exports = [
     async handler({ response, services, params, auth }) {
       const invoice = await services.operationsService.getInvoice(params[0], await auth.actor());
       if (!invoice || invoice.status !== 'paid') { json(response, 404, { error: 'Kuitansi belum tersedia.' }); return; }
-      const pdf = createReceiptPdf(invoice);
+      const pdf = createReceiptPdf(invoice, { kop: await services.templateService.ambil('kop') });
       response.writeHead(200, { 'Content-Type': 'application/pdf', 'Content-Disposition': `attachment; filename="${receiptFileName(invoice)}"`, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }); response.end(pdf);
     }
   },

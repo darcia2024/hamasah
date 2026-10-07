@@ -14,7 +14,7 @@ const cssRead = new Map();
 for (const page of pages) {
   const html = fs.readFileSync(path.join(root, page), 'utf8');
   assert.match(html, /<meta[^>]+name=["']viewport["']/i, `${page} harus memiliki viewport.`);
-  const publicPage = !/^(audit|monitoring|operations|lms|portal|staff|pengaturan|akun|konten)\.html$/i.test(page);
+  const publicPage = !/^(audit|monitoring|operations|lms|portal|staff|pengaturan|akun|konten|template)\.html$/i.test(page);
   if (publicPage) {
     assert.match(html, /<main\b/i, `${page} harus memiliki landmark main.`);
     if (/<nav\b/i.test(html) || /class=["'][^"']*shell/i.test(html)) assert.match(html, /skip-link/i, `${page} harus memiliki skip link.`);

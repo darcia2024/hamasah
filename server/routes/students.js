@@ -215,7 +215,7 @@ module.exports = [
         'Cache-Control': 'no-store',
         'X-Content-Type-Options': 'nosniff'
       });
-      response.end(createReceiptPdf(result.value));
+      response.end(createReceiptPdf(result.value, { kop: await services.templateService.ambil('kop') }));
     }
   },
 
@@ -249,7 +249,7 @@ module.exports = [
         rentang.from = awal.toISOString().slice(0, 10);
       }
       const care = await services.studentCareService.summary(params[0], actor, rentang);
-      const pdf = createStudentReportPdf(report.value, { courses: courses.ok ? courses.value : null, care: care.ok ? forParent(care.value) : null });
+      const pdf = createStudentReportPdf(report.value, { courses: courses.ok ? courses.value : null, care: care.ok ? forParent(care.value) : null, kop: await services.templateService.ambil('kop') });
       response.writeHead(200, {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="rapor-${report.value.student.id}.pdf"`,

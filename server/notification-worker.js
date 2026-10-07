@@ -2,7 +2,8 @@ const { decryptNotificationPayload } = require('./notification-payload.js');
 const { escapeHtml, NOTIFICATION_TYPES } = require('./notification-service.js');
 const { EVENT_TYPES, eventMessage } = require('./notification-templates.js');
 
-function createNotificationWorker({ store, sender, notificationPayloadKey, appBaseUrl, now = () => new Date(), senderTimeoutMs = 10000, maxAttempts = 5, baseRetryMs = 60000, leaseMs = 300000 } = {}) {
+// templates (opsional): fungsi async yang mengembalikan { email, kop } dari halaman Template.
+function createNotificationWorker({ store, sender, notificationPayloadKey, appBaseUrl, templates = null, now = () => new Date(), senderTimeoutMs = 10000, maxAttempts = 5, baseRetryMs = 60000, leaseMs = 300000 } = {}) {
   if (!store || typeof store.claim !== 'function') throw new Error('Worker membutuhkan store durable dengan claim().');
   if (!sender || typeof sender.send !== 'function') throw new Error('Worker membutuhkan sender email.');
   if (!notificationPayloadKey) throw new Error('Worker membutuhkan kunci payload notifikasi.');
@@ -30,7 +31,7 @@ function createNotificationWorker({ store, sender, notificationPayloadKey, appBa
       } else if (item.notification_type === NOTIFICATION_TYPES.PASSWORD_RESET && payload.kind === 'applicant-recovery') {
         message = { type: NOTIFICATION_TYPES.PASSWORD_RESET, to: item.recipient_email, subject: 'Kode akses pendaftaran Hamasah International', html: `<p>Assalamu'alaikum ${escapeHtml(payload.name)},</p><p>Berikut kode akses baru untuk memeriksa pendaftaran ${escapeHtml(payload.registrationId)}:</p><p style="font-size:24px;font-weight:700;letter-spacing:3px">${escapeHtml(payload.accessCode)}</p><p>Jangan bagikan kode ini kepada orang lain.</p>` };
       } else if (Object.values(EVENT_TYPES).includes(item.notification_type)) {
-        const content = eventMessage(item.notification_type, payload, appBaseUrl);
+        const content = eventMessage(item.notification_type, payload, appBaseUrl, templates ? await templates() : {});
         message = { type: item.notification_type, to: item.recipient_email, ...content };
       } else {
         throw new Error('Tipe payload notifikasi belum didukung worker.');

@@ -549,9 +549,9 @@ function bagianDokumen(registration) {
   const wadah = elemen('div', 'staff-registration__documents');
   registration.documents.forEach((documentItem) => {
     const row = elemen('div', 'staff-document-row');
-    const label = elemen('span', '', `${documentItem.type} · ${documentItem.reviewStatus || 'pending'}`);
+    const label = elemen('span', '', `${labelDokumen(documentItem.type)} · ${documentItem.reviewStatus || 'pending'}`);
     const review = document.createElement('select');
-    review.setAttribute('aria-label', `Hasil review ${documentItem.type}`);
+    review.setAttribute('aria-label', `Hasil review ${labelDokumen(documentItem.type)}`);
     [['accepted', 'Terima'], ['rejected', 'Tolak']].forEach(([value, text]) => {
       const option = new Option(text, value);
       option.selected = value === documentItem.reviewStatus;
@@ -647,7 +647,9 @@ function createWhatsappControl(registration) {
     ['guardian', 'WA wali', registration.applicant.guardianPhone]
   ];
   for (const [recipient, label, phone] of tujuan) {
-    const pesan = window.HamasahWhatsappMessage.registrationMessage(registration, { recipient, statusUrl });
+    const pesan = window.HamasahWhatsappMessage.registrationMessage(registration, {
+      recipient, statusUrl, template: templatePesan && templatePesan.whatsapp, dokumen: templatePesan && templatePesan.dokumen
+    });
     const url = window.HamasahWhatsappMessage.whatsappUrl(phone, pesan);
     if (url) {
       const link = document.createElement('a');
@@ -1373,10 +1375,26 @@ logoutButton.addEventListener('click', async () => {
       throw new Error('Halaman ini hanya dapat dibuka oleh admin atau petugas pendaftaran.');
     }
     showConsole(result.account);
+    muatTemplatePesan();
   } catch (error) {
     clearSession();
   }
 }());
+
+// Template pesan WhatsApp dan nama dokumen dari halaman Template (super admin). Bila gagal
+// dimuat, pesan tetap disusun dengan kalimat bawaan di whatsapp-message.js.
+let templatePesan = null;
+function muatTemplatePesan() {
+  fetch('/api/templates/whatsapp', { headers: authHeaders() })
+    .then((response) => (response.ok ? response.json() : null))
+    .then((hasil) => { if (hasil) templatePesan = hasil; })
+    .catch(() => {});
+}
+
+function labelDokumen(type) {
+  const dokumen = templatePesan && templatePesan.dokumen;
+  return (dokumen && dokumen[type] && dokumen[type].label) || window.HamasahWhatsappMessage.DOCUMENT_LABELS[type] || type;
+}
 
 // ---------------------------------------------------------------------------
 // Ringkasan pipeline, saringan khusus, agenda tindak lanjut, anggota kloter, dan

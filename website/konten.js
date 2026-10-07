@@ -1,6 +1,9 @@
-// Halaman Konten Website super admin: isi website publik yang bisa diubah tanpa pengembang.
-// Endpoint: GET /api/admin/content, PUT dan DELETE /api/admin/content/<bagian>
-// (server/routes/site-content.js). Bentuk dan aturan isi ada di server/site-content.js.
+// Editor isian super admin, dipakai dua halaman:
+// - Konten Website (konten.html, <body data-editor="konten">): isi website publik.
+//   Endpoint /api/admin/content (server/routes/site-content.js, server/site-content.js).
+// - Template (template.html, <body data-editor="template">): pesan WhatsApp, email,
+//   kop PDF, dan dokumen pendaftar. Endpoint /api/admin/templates (server/routes/templates.js,
+//   server/templates.js).
 //
 // Formulir dibangun dari SKEMA di bawah. Nilai yang sedang disunting disimpan di `draf`
 // (salinan nilai tersimpan); setiap kotak isian menulis ke draf lewat data-path, misalnya
@@ -23,10 +26,32 @@ const status = document.querySelector('#content-status');
 const unavailable = document.querySelector('#content-unavailable');
 const staffNav = document.querySelector('#staff-nav');
 
+const pratinjauBox = document.querySelector('#content-pratinjau');
+
+const EDITOR = document.body.dataset.editor === 'template' ? 'template' : 'konten';
+const KONFIG = {
+  konten: {
+    api: '/api/admin/content',
+    halaman: 'konten',
+    simpanan: 'hamasahKontenBagian',
+    bawaan: 'Masih memakai isi bawaan website.',
+    tersimpan: 'Tersimpan. Halaman website memakai isi baru dalam beberapa menit (paling lama sekitar 5 menit).',
+    dikembalikan: 'kembali ke isi bawaan. Website memakai isi ini dalam beberapa menit.'
+  },
+  template: {
+    api: '/api/admin/templates',
+    halaman: 'template',
+    simpanan: 'hamasahTemplateBagian',
+    bawaan: 'Masih memakai template bawaan.',
+    tersimpan: 'Tersimpan. Template baru langsung dipakai untuk pesan, email, dan PDF berikutnya.',
+    dikembalikan: 'kembali ke template bawaan.'
+  }
+}[EDITOR];
+
 const PROGRAM = [['kuliah', 'Kuliah S1 Al-Azhar'], ['mahad', "Ma'had Al-Azhar"], ['courses', 'Hamasah Courses']];
 
 // jenis: teks, area, saklar, tanggal, pilih. maks mengikuti batas di server.
-const SKEMA = {
+const SKEMA_KONTEN = {
   kontak: {
     keterangan: 'Nomor WhatsApp admin, alamat kantor, dan akun media sosial. Nomor baru langsung dipakai di semua tombol WhatsApp di website.',
     tautan: 'kontak.html',
@@ -120,8 +145,148 @@ const SKEMA = {
   }
 };
 
+const STATUS_PENDAFTARAN = [
+  ['submitted', 'Pendaftaran baru masuk'],
+  ['document-review', 'Berkas sedang diperiksa'],
+  ['needs-revision', 'Berkas perlu diperbaiki'],
+  ['academic-preparation', 'Persiapan akademik'],
+  ['ready-for-departure', 'Siap berangkat'],
+  ['completed', 'Selesai'],
+  ['cancelled', 'Dibatalkan']
+];
+
+const JENIS_EMAIL = [
+  ['registration-status', 'Status pendaftaran berubah', '{nomor}, {status}'],
+  ['document-revision', 'Berkas perlu diperbaiki', '{nomor}'],
+  ['departure-assigned', 'Masuk kloter keberangkatan', '{nomor}, {kloter}'],
+  ['departure-updated', 'Jadwal kloter berubah', '{nomor}, {kloter}'],
+  ['payment-received', 'Pembayaran diterima', '{tagihan}, {atasNama}, {jumlah}, {kuitansi}'],
+  ['invoice-issued', 'Tagihan baru', '{tagihan}, {atasNama}, {keterangan}, {jumlah}'],
+  ['invoice-reminder', 'Pengingat tagihan', '{tagihan}, {atasNama}, {keterangan}, {jumlah}']
+];
+
+const JENIS_DOKUMEN = [
+  ['passport', 'Paspor'], ['diploma', 'Ijazah'], ['transcript', 'Transkrip nilai'],
+  ['health-certificate', 'Surat keterangan sehat'], ['photo', 'Pasfoto'], ['other', 'Dokumen lain']
+];
+
+// Contoh pendaftar untuk pratinjau pesan WhatsApp dan email.
+const CONTOH_PENDAFTAR = {
+  registrationId: 'HI-REG-2026-00012',
+  status: 'needs-revision',
+  applicant: { applicantName: 'Ahmad Fauzan', guardianName: 'Hadi Santoso' },
+  documents: [{ type: 'passport', reviewStatus: 'rejected', reviewNote: 'Masa berlaku kurang dari 18 bulan.' }]
+};
+
+function isiContoh(teks, nilai) {
+  return String(teks || '').replace(/\{([^{}\s]+)\}/g, (cocok, nama) => (nama in nilai ? nilai[nama] : cocok));
+}
+
+const SKEMA_TEMPLATE = {
+  whatsapp: {
+    keterangan: 'Pesan yang disusun tombol "Kabari lewat WhatsApp" di halaman Pendaftaran. Petugas tetap bisa menyuntingnya sebelum menekan kirim.',
+    isi: [
+      { k: 'salam', label: 'Salam pembuka', jenis: 'teks', maks: 120, petunjuk: 'Isian: {sapaan} (nama calon santri, atau "Bapak/Ibu" dan nama wali).' },
+      {
+        grup: 'Kalimat utama per status pendaftaran',
+        k: 'status',
+        isi: STATUS_PENDAFTARAN.map(([kunci, nama]) => ({ k: kunci, label: nama, jenis: 'area', baris: 3, maks: 600, petunjuk: 'Isian: {nama}, {nomor}.' }))
+      },
+      { k: 'judulBerkasDitolak', label: 'Judul daftar berkas yang ditolak', jenis: 'teks', maks: 120, petunjuk: 'Tampil bila ada berkas yang ditolak, diikuti nama berkas dan catatan petugas.' },
+      { k: 'cekStatus', label: 'Kalimat tautan cek status', jenis: 'teks', maks: 200, petunjuk: 'Wajib memuat {tautan}.' },
+      { k: 'penutup', label: 'Salam penutup', jenis: 'teks', maks: 120 },
+      { k: 'tandaTangan', label: 'Nama pengirim', jenis: 'teks', maks: 120 }
+    ],
+    pratinjau(draf) {
+      return window.HamasahWhatsappMessage.registrationMessage(CONTOH_PENDAFTAR, {
+        recipient: 'guardian',
+        statusUrl: `${window.location.origin}/website/cek-status.html`,
+        template: draf,
+        dokumen: data.nilai.dokumen
+      });
+    }
+  },
+  email: {
+    keterangan: 'Email otomatis ke pendaftar dan wali. Rincian seperti tanggal kloter dan tautan dibuat sistem; yang diatur di sini salam, judul, kalimat utama, dan penutup.',
+    isi: [
+      { k: 'salam', label: 'Salam pembuka', jenis: 'teks', maks: 120, petunjuk: 'Isian: {nama} (nama penerima).' },
+      { k: 'penutup', label: 'Kalimat penutup', jenis: 'area', baris: 2, maks: 400 },
+      ...JENIS_EMAIL.map(([kunci, nama, isian]) => ({
+        grup: `Email: ${nama}`,
+        k: `jenis.${kunci}`,
+        isi: [
+          { k: 'judul', label: 'Judul email', jenis: 'teks', maks: 150, petunjuk: `Isian: ${isian}.` },
+          { k: 'pembuka', label: 'Kalimat utama', jenis: 'area', baris: 2, maks: 600, petunjuk: `Isian: ${isian}. Nilai isian dicetak tebal.` }
+        ]
+      }))
+    ],
+    pratinjau(draf) {
+      const nilai = { nama: 'Bapak Hadi Santoso', nomor: CONTOH_PENDAFTAR.registrationId, status: 'Perlu perbaikan berkas' };
+      const jenis = draf.jenis['registration-status'];
+      return [
+        `Contoh email "Status pendaftaran berubah"`,
+        '',
+        `Judul: ${isiContoh(jenis.judul, nilai)}`,
+        '',
+        isiContoh(draf.salam, nilai),
+        isiContoh(jenis.pembuka, nilai),
+        '(rincian dan tautan cek status dari sistem)',
+        draf.penutup
+      ].join('\n');
+    }
+  },
+  kop: {
+    keterangan: 'Kepala dan catatan di kuitansi pembayaran dan rapor santri (PDF). Rekening resmi juga dicantumkan di email tagihan.',
+    isi: [
+      { k: 'namaLembaga', label: 'Nama lembaga', jenis: 'teks', maks: 80 },
+      { k: 'alamat', label: 'Alamat (tidak wajib)', jenis: 'area', baris: 2, maks: 300, petunjuk: 'Ditulis satu baris di bawah nama lembaga.' },
+      { k: 'kontak', label: 'Kontak (tidak wajib)', jenis: 'teks', maks: 160, petunjuk: 'Misalnya: WhatsApp +62 878-9759-1978 · admin@hamasah.id' },
+      {
+        k: 'rekening', label: 'Rekening resmi pembayaran', jenis: 'daftar', batas: 4, tambah: 'Tambah rekening', nama: 'Rekening',
+        isi: [
+          { k: 'bank', label: 'Nama bank', jenis: 'teks', maks: 60 },
+          { k: 'nomor', label: 'Nomor rekening', jenis: 'teks', maks: 40 },
+          { k: 'atasNama', label: 'Atas nama', jenis: 'teks', maks: 80 }
+        ]
+      },
+      { k: 'catatanKuitansi', label: 'Catatan di kuitansi (tidak wajib)', jenis: 'area', baris: 2, maks: 300, petunjuk: 'Misalnya: Pembayaran hanya sah ke rekening di atas.' },
+      { k: 'penandatanganNama', label: 'Nama penandatangan kuitansi (tidak wajib)', jenis: 'teks', maks: 80 },
+      { k: 'penandatanganJabatan', label: 'Jabatan penandatangan (tidak wajib)', jenis: 'teks', maks: 80 },
+      { k: 'catatanRapor', label: 'Catatan di akhir rapor', jenis: 'area', baris: 2, maks: 300 }
+    ],
+    pratinjau(draf) {
+      const rekening = (draf.rekening || []).map((r) => `- ${r.bank} ${r.nomor} a.n. ${r.atasNama}`);
+      return [
+        'KUITANSI PEMBAYARAN',
+        draf.namaLembaga,
+        ...(draf.alamat ? [draf.alamat.split('\n').join(', ')] : []),
+        ...(draf.kontak ? [draf.kontak] : []),
+        '----------------------------------------',
+        'Nomor kuitansi, nama santri, jumlah, tanggal bayar ...',
+        ...(rekening.length ? ['', 'Rekening resmi pembayaran', ...rekening] : []),
+        ...(draf.catatanKuitansi ? ['', draf.catatanKuitansi] : []),
+        ...(draf.penandatanganNama ? ['', 'Hormat kami,', '', draf.penandatanganNama, draf.penandatanganJabatan || ''] : [])
+      ].join('\n');
+    }
+  },
+  dokumen: {
+    keterangan: 'Nama dan keterangan berkas yang diunggah pendaftar di halaman Cek status, serta mana yang wajib. Dokumen wajib dihitung di ringkasan berkas anggota kloter.',
+    isi: JENIS_DOKUMEN.map(([kunci, nama]) => ({
+      grup: nama,
+      k: kunci,
+      isi: [
+        { k: 'label', label: 'Nama dokumen', jenis: 'teks', maks: 60, petunjuk: 'Tampil di daftar berkas, pesan WhatsApp, dan halaman petugas.' },
+        { k: 'petunjuk', label: 'Keterangan untuk pendaftar', jenis: 'teks', maks: 160, petunjuk: 'Tampil di pilihan jenis berkas saat mengunggah.' },
+        { k: 'wajib', label: 'Wajib diunggah', jenis: 'saklar' }
+      ]
+    }))
+  }
+};
+
+const SKEMA = EDITOR === 'template' ? SKEMA_TEMPLATE : SKEMA_KONTEN;
+
 let data = null;
-let aktif = 'kontak';
+let aktif = EDITOR === 'template' ? 'whatsapp' : 'kontak';
 let draf = null;
 
 function session() {
@@ -343,6 +508,18 @@ function gambarFormulir() {
   const isi = skema.akar ? [daftar(skema.akar, '')] : bagian(skema.isi, '');
   fieldsBox.replaceChildren(...isi);
   tandaiPerubahan();
+  gambarPratinjau();
+}
+
+// Contoh hasil (pesan WhatsApp, email, kuitansi) dari draf yang sedang disunting.
+function gambarPratinjau() {
+  if (!pratinjauBox) return;
+  const skema = SKEMA[aktif];
+  pratinjauBox.hidden = !skema.pratinjau;
+  if (!skema.pratinjau) return;
+  let teks;
+  try { teks = skema.pratinjau(draf); } catch { teks = 'Pratinjau belum dapat ditampilkan.'; }
+  pratinjauBox.querySelector('pre').textContent = teks;
 }
 
 function adaPerubahan() {
@@ -375,11 +552,12 @@ function gambarBagian() {
   const skema = SKEMA[aktif];
   title.textContent = blok.label;
   desc.textContent = skema.keterangan;
-  preview.href = skema.tautan;
+  preview.hidden = !skema.tautan;
+  if (skema.tautan) preview.href = skema.tautan;
   const terakhir = data.terakhir[aktif];
   lastChanged.textContent = data.tersimpan[aktif] && terakhir
     ? `Diubah ${waktu(terakhir.pada)}${terakhir.oleh ? ` oleh ${terakhir.oleh}` : ''}.`
-    : 'Masih memakai isi bawaan website.';
+    : KONFIG.bawaan;
   draf = salin(data.nilai[aktif]);
   gambarTab();
   gambarFormulir();
@@ -390,17 +568,17 @@ function pilih(kunci) {
   if (adaPerubahan() && !window.confirm('Ada perubahan yang belum disimpan. Pindah bagian dan buang perubahan itu?')) return;
   aktif = kunci;
   setStatus('');
-  try { sessionStorage.setItem('hamasahKontenBagian', kunci); } catch {}
+  try { sessionStorage.setItem(KONFIG.simpanan, kunci); } catch {}
   gambarBagian();
 }
 
-function terima(konten) {
-  data = { ...data, ...konten };
+function terima(isi) {
+  data = { ...data, ...isi };
   unavailable.hidden = data.tersedia;
 }
 
 async function muat() {
-  const hasil = await kirim('GET', '/api/admin/content');
+  const hasil = await kirim('GET', KONFIG.api);
   data = hasil;
   unavailable.hidden = hasil.tersedia;
   setStatus('');
@@ -415,6 +593,7 @@ function catatIsian(event) {
   kontrol.removeAttribute('aria-invalid');
   status.classList.remove('is-error');
   tandaiPerubahan();
+  gambarPratinjau();
 }
 fieldsBox.addEventListener('input', catatIsian);
 fieldsBox.addEventListener('change', catatIsian);
@@ -427,13 +606,13 @@ resetButton.addEventListener('click', () => {
 
 restoreButton.addEventListener('click', async () => {
   const blok = data.blok.find((item) => item.kunci === aktif);
-  if (!window.confirm(`Kembalikan bagian ${blok.label} ke isi bawaan website? Isi yang sekarang tersimpan akan dihapus.`)) return;
+  if (!window.confirm(`Kembalikan bagian ${blok.label} ke isi bawaan? Isi yang sekarang tersimpan akan dihapus.`)) return;
   restoreButton.disabled = true;
   try {
-    const hasil = await kirim('DELETE', `/api/admin/content/${aktif}`);
-    terima(hasil.konten);
+    const hasil = await kirim('DELETE', `${KONFIG.api}/${aktif}`);
+    terima(hasil.isi);
     gambarBagian();
-    setStatus(`${blok.label} kembali ke isi bawaan. Website memakai isi ini dalam beberapa menit.`);
+    setStatus(`${blok.label} ${KONFIG.dikembalikan}`);
   } catch (error) {
     setStatus(error.message, true);
     tandaiPerubahan();
@@ -447,10 +626,10 @@ form.addEventListener('submit', async (event) => {
   saveButton.textContent = 'Menyimpan...';
   setStatus('');
   try {
-    const hasil = await kirim('PUT', `/api/admin/content/${aktif}`, { nilai: draf });
-    terima(hasil.konten);
+    const hasil = await kirim('PUT', `${KONFIG.api}/${aktif}`, { nilai: draf });
+    terima(hasil.isi);
     gambarBagian();
-    setStatus('Tersimpan. Halaman website memakai isi baru dalam beberapa menit (paling lama sekitar 5 menit).');
+    setStatus(KONFIG.tersimpan);
   } catch (error) {
     setStatus(error.message, true);
     Object.keys(error.errors || {}).forEach((jalur) => {
@@ -494,9 +673,9 @@ if (logoutButton) {
     guard.hidden = true;
     consoleSection.hidden = false;
     document.body.classList.add('in-crm');
-    renderStaffNav(staffNav, result.account.role, 'konten', result.account);
+    renderStaffNav(staffNav, result.account.role, KONFIG.halaman, result.account);
     try {
-      const tersimpan = sessionStorage.getItem('hamasahKontenBagian');
+      const tersimpan = sessionStorage.getItem(KONFIG.simpanan);
       if (tersimpan && SKEMA[tersimpan]) aktif = tersimpan;
     } catch {}
     await muat().catch((error) => setStatus(error.message || 'Konten belum dapat dimuat.', true));

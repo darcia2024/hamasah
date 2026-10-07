@@ -162,6 +162,10 @@ async function run() {
       // Isi tidak lengkap: admin mendapat 422, bukan konten situs yang berubah.
       { permission: 'content.manage', method: 'PUT', path: '/api/admin/content/kontak', body: () => ({ nilai: {} }) },
       { permission: 'content.manage', method: 'DELETE', path: '/api/admin/content/pengumuman' },
+      { permission: 'templates.manage', method: 'GET', path: '/api/admin/templates' },
+      { permission: 'templates.manage', method: 'PUT', path: '/api/admin/templates/kop', body: () => ({ nilai: {} }) },
+      { permission: 'templates.manage', method: 'DELETE', path: '/api/admin/templates/kop' },
+      { permission: 'registrations.read', method: 'GET', path: '/api/templates/whatsapp' },
       // Tanpa perubahan dan database yang sudah lengkap: admin mendapat 200 tanpa mengubah apa pun.
       { permission: 'settings.manage', method: 'PUT', path: '/api/admin/settings', body: () => ({ nilai: {} }) },
       { permission: 'settings.manage', method: 'POST', path: '/api/admin/settings/database' },
@@ -406,6 +410,7 @@ async function run() {
     assert.equal((await request(baseUrl, 'GET', '/api/health')).status, 200);
     assert.equal((await request(baseUrl, 'GET', '/api/articles')).status, 200);
     assert.equal((await request(baseUrl, 'GET', '/api/settings/public')).status, 200);
+    assert.equal((await request(baseUrl, 'GET', '/api/templates/documents')).status, 200);
     assert.equal((await request(baseUrl, 'POST', '/api/faq/ask', { body: { question: 'Bagaimana cara mendaftar?' } })).status, 200);
 
     console.log(`access matrix tests passed (${matriks.length} endpoint x ${SEMUA_ROLE.length} role = ${jumlahPemeriksaan} pemeriksaan)`);

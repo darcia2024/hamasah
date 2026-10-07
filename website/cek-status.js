@@ -68,14 +68,29 @@ document.addEventListener('DOMContentLoaded', () => {
     'hamasah-courses': 'Hamasah Courses (Kelas Bahasa Arab Digital)'
   };
 
+  // Nama dokumen. Nilai di sini bawaan; nama dan keterangan yang diatur super admin di
+  // halaman Template dimuat dari /api/templates/documents dan menggantikannya.
   const DOC_TYPE_LABELS = {
-    'passport': 'Paspor Asli',
-    'diploma': 'Ijazah Resmi',
+    'passport': 'Paspor',
+    'diploma': 'Ijazah',
     'transcript': 'Transkrip nilai',
     'health-certificate': 'Surat keterangan sehat',
-    'photo': 'Pasfoto Resmi (4x6)',
-    'other': 'Dokumen Tambahan'
+    'photo': 'Pasfoto 4x6',
+    'other': 'Dokumen tambahan'
   };
+
+  fetch('/api/templates/documents')
+    .then((response) => (response.ok ? response.json() : null))
+    .then((hasil) => {
+      if (!hasil || !Array.isArray(hasil.items) || !hasil.items.length) return;
+      const terpilih = docTypeSelect.value;
+      docTypeSelect.replaceChildren(...hasil.items.map((item) => {
+        DOC_TYPE_LABELS[item.type] = item.label;
+        return new Option(item.wajib ? item.petunjuk : `${item.petunjuk} (tidak wajib)`, item.type);
+      }));
+      if (terpilih) docTypeSelect.value = terpilih;
+    })
+    .catch(() => {});
 
   // Label tahapan mengikuti program. Urutan dan ambang progresnya sama untuk semua
   // program (status di server tidak berubah); yang berbeda hanya apa arti tiap tahap.

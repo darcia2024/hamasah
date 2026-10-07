@@ -53,29 +53,42 @@
       .replaceAll('{nomor}', registration.registrationId);
   }
 
+  // Template bawaan. Super admin bisa menggantinya di halaman Template; petugas lalu
+  // mengirim nilai dari GET /api/templates/whatsapp lewat opsi 	emplate dan dokumen.
+  const DEFAULT_TEMPLATE = Object.freeze({
+    salam: "Assalamu'alaikum {sapaan},",
+    status: STATUS_MESSAGES,
+    judulBerkasDitolak: 'Berkas yang perlu diunggah ulang:',
+    cekStatus: 'Perkembangan pendaftaran dapat dilihat di {tautan}',
+    penutup: "Wassalamu'alaikum,",
+    tandaTangan: 'Petugas Pendaftaran Hamasah International'
+  });
+
   // recipient: 'applicant' (calon santri) atau 'guardian' (wali).
   // statusUrl: alamat halaman cek status; hanya alamat, tanpa kode akses.
-  function registrationMessage(registration, { recipient = 'applicant', statusUrl = '' } = {}) {
+  // template: blok "whatsapp" dari halaman Template. dokumen: blok "dokumen" (nama dokumen).
+  function registrationMessage(registration, { recipient = 'applicant', statusUrl = '', template = null, dokumen = null } = {}) {
+    const t = { ...DEFAULT_TEMPLATE, ...(template || {}), status: { ...STATUS_MESSAGES, ...((template && template.status) || {}) } };
     const applicant = registration.applicant || {};
     const sapaan = recipient === 'guardian' && applicant.guardianName
       ? `Bapak/Ibu ${applicant.guardianName}`
       : recipient === 'guardian' ? 'Bapak/Ibu' : applicant.applicantName || '';
-    const baris = [`Assalamu'alaikum ${sapaan},`.replace(' ,', ','), ''];
-    baris.push(isi(STATUS_MESSAGES[registration.status] || 'Ada pembaruan pada pendaftaran {nama} (nomor {nomor}).', registration));
+    const baris = [t.salam.replaceAll('{sapaan}', sapaan).replace(' ,', ','), ''];
+    baris.push(isi(t.status[registration.status] || 'Ada pembaruan pada pendaftaran {nama} (nomor {nomor}).', registration));
 
-    const ditolak = (registration.documents || []).filter((dokumen) => dokumen.reviewStatus === 'rejected');
+    const ditolak = (registration.documents || []).filter((item) => item.reviewStatus === 'rejected');
     if (ditolak.length) {
-      baris.push('', 'Berkas yang perlu diunggah ulang:');
-      for (const dokumen of ditolak) {
-        const label = DOCUMENT_LABELS[dokumen.type] || dokumen.type;
-        baris.push(`- ${label}${dokumen.reviewNote ? `: ${dokumen.reviewNote}` : ''}`);
+      baris.push('', t.judulBerkasDitolak);
+      for (const item of ditolak) {
+        const label = (dokumen && dokumen[item.type] && dokumen[item.type].label) || DOCUMENT_LABELS[item.type] || item.type;
+        baris.push(`- ${label}${item.reviewNote ? `: ${item.reviewNote}` : ''}`);
       }
     }
 
     if (statusUrl && registration.status !== 'cancelled') {
-      baris.push('', `Perkembangan pendaftaran dapat dilihat di ${statusUrl}`);
+      baris.push('', t.cekStatus.replaceAll('{tautan}', statusUrl));
     }
-    baris.push('', 'Wassalamu\'alaikum,', 'Petugas Pendaftaran Hamasah International');
+    baris.push('', t.penutup, t.tandaTangan);
     return baris.join('\n');
   }
 
@@ -85,5 +98,5 @@
     return `https://wa.me/${nomor}?text=${encodeURIComponent(message)}`;
   }
 
-  return Object.freeze({ DOCUMENT_LABELS, STATUS_MESSAGES, registrationMessage, toWhatsappNumber, whatsappUrl });
+  return Object.freeze({ DEFAULT_TEMPLATE, DOCUMENT_LABELS, STATUS_MESSAGES, registrationMessage, toWhatsappNumber, whatsappUrl });
 });

@@ -2,6 +2,7 @@
 // berupa string ISO mentah; kini nama santri dan tanggal yang terbaca, dengan generator PDF
 // dokumen yang aman untuk huruf non-ASCII.
 const { createDocumentPdf } = require('./pdf.js');
+const { BAWAAN, barisRekening } = require('./templates.js');
 
 const ZONA = 'Asia/Jakarta';
 
@@ -23,10 +24,21 @@ function tanggal(value) {
   return Number.isNaN(date.getTime()) ? '-' : new Intl.DateTimeFormat('id-ID', { dateStyle: 'long', timeZone: 'UTC' }).format(date);
 }
 
-function createReceiptPdf(invoice, { generatedAt = new Date() } = {}) {
+// Nama lembaga, alamat, dan kontak di bawah judul dokumen (kop dari halaman Template).
+function kepalaKop(kop) {
+  return [
+    { kind: 'subtitle', text: kop.namaLembaga },
+    ...(kop.alamat ? [{ kind: 'muted', text: kop.alamat.split('\n').join(', ') }] : []),
+    ...(kop.kontak ? [{ kind: 'muted', text: kop.kontak }] : [])
+  ];
+}
+
+// kop: blok "kop" dari halaman Template. Tanpa itu dipakai bawaan (hanya nama lembaga).
+function createReceiptPdf(invoice, { generatedAt = new Date(), kop = BAWAAN.kop } = {}) {
+  const rekening = barisRekening(kop.rekening);
   const blocks = [
     { kind: 'title', text: 'Kuitansi Pembayaran' },
-    { kind: 'subtitle', text: 'Hamasah International' },
+    ...kepalaKop(kop),
     { kind: 'rule' },
     { kind: 'text', text: `Nomor kuitansi: ${invoice.receiptNumber}` },
     { kind: 'text', text: `Nomor tagihan: ${invoice.number}` },
@@ -41,9 +53,20 @@ function createReceiptPdf(invoice, { generatedAt = new Date() } = {}) {
         { kind: 'text', text: `Dicatat lunas: ${waktu(invoice.paidAt)}` }
       ]
       : [{ kind: 'text', text: `Tanggal dibayar: ${waktu(invoice.paidAt)}` }]),
+    ...(rekening.length ? [{ kind: 'heading', text: 'Rekening resmi pembayaran' }, ...rekening.map((baris) => ({ kind: 'item', text: baris }))] : []),
+    ...(kop.catatanKuitansi ? [{ kind: 'space', size: 8 }, { kind: 'muted', text: kop.catatanKuitansi }] : []),
+    ...(kop.penandatanganNama
+      ? [
+        { kind: 'space', size: 18 },
+        { kind: 'text', text: 'Hormat kami,' },
+        { kind: 'space', size: 28 },
+        { kind: 'text', text: kop.penandatanganNama },
+        ...(kop.penandatanganJabatan ? [{ kind: 'muted', text: kop.penandatanganJabatan }] : [])
+      ]
+      : []),
     { kind: 'space', size: 14 },
     { kind: 'rule' },
-    { kind: 'muted', text: `Dicetak dari sistem Hamasah International pada ${waktu(generatedAt)}.` }
+    { kind: 'muted', text: `Dicetak dari sistem ${kop.namaLembaga} pada ${waktu(generatedAt)}.` }
   ];
   return createDocumentPdf({ blocks, footer: invoice.receiptNumber });
 }
@@ -53,4 +76,4 @@ function receiptFileName(invoice) {
   return `${String(invoice.receiptNumber || 'kuitansi').replace(/[^\w.-]+/g, '-')}.pdf`;
 }
 
-module.exports = { createReceiptPdf, receiptFileName };
+module.exports = { createReceiptPdf, kepalaKop, receiptFileName };

@@ -94,6 +94,8 @@ const ACTIONS = Object.freeze({
   ,ARTICLES_SEEDED: 'article.defaults-added'
   ,SITE_CONTENT_UPDATED: 'site-content.updated'
   ,SITE_CONTENT_RESET: 'site-content.reset'
+  ,TEMPLATE_UPDATED: 'template.updated'
+  ,TEMPLATE_RESET: 'template.reset'
 });
 
 // Riwayat keuangan: semua kejadian tagihan dan kuitansi, untuk tab Riwayat di halaman

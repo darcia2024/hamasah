@@ -90,16 +90,17 @@ function createSettingsService({ database, defaults = {}, cacheMs = 10000, now =
         `SELECT s.key, s.value, s.updated_at, a.name AS updated_by
          FROM app_settings s
          LEFT JOIN accounts a ON a.id = s.updated_by_account_id
-         WHERE s.key NOT LIKE 'konten.%'
          ORDER BY s.updated_at DESC`
       );
-      for (const row of rows) {
-        if (!DEFINISI[row.key]) continue;
+      // Tabel yang sama juga menyimpan konten website (konten.*) dan template (template.*);
+      // yang dihitung di sini hanya kunci pengaturan.
+      const milikPengaturan = rows.filter((row) => DEFINISI[row.key]);
+      for (const row of milikPengaturan) {
         const hasil = periksaNilai(row.key, row.value);
         if (hasil.ok) nilai[row.key] = hasil.nilai;
       }
-      if (rows.length) {
-        terakhir = { pada: new Date(rows[0].updated_at).toISOString(), oleh: rows[0].updated_by || null };
+      if (milikPengaturan.length) {
+        terakhir = { pada: new Date(milikPengaturan[0].updated_at).toISOString(), oleh: milikPengaturan[0].updated_by || null };
       }
     } catch (error) {
       if (!tabelBelumAda(error)) throw error;

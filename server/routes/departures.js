@@ -5,15 +5,16 @@ const { ACTIONS } = require('../audit-service.js');
 const REGISTRATION_ID = String.raw`HI-REG-\d{4}-\d{5}`;
 
 const LABEL_PROGRAM = { 'kuliah-al-azhar': 'Kuliah S1 Al-Azhar', 'mahad-al-azhar': "Ma'had Al-Azhar", 'hamasah-courses': 'Hamasah Courses' };
-const JENIS_BERKAS = ['passport', 'diploma', 'transcript', 'health-certificate', 'photo'];
+const { dokumenWajib } = require('../templates.js');
 
-// Ringkasan berkas: berapa yang sudah diterima dari jenis berkas wajib, dan status paspor.
-function ringkasBerkas(documents) {
+// Ringkasan berkas: berapa yang sudah diterima dari jenis berkas wajib (diatur di halaman
+// Template, bagian Dokumen pendaftar), dan status paspor.
+function ringkasBerkas(documents, wajib) {
   const diterima = new Set(documents.filter((document) => document.reviewStatus === 'accepted').map((document) => document.type));
   const paspor = documents.filter((document) => document.type === 'passport');
   return {
-    accepted: JENIS_BERKAS.filter((jenis) => diterima.has(jenis)).length,
-    required: JENIS_BERKAS.length,
+    accepted: wajib.filter((jenis) => diterima.has(jenis)).length,
+    required: wajib.length,
     passport: diterima.has('passport') ? 'diterima' : paspor.length ? 'menunggu review' : 'belum ada'
   };
 }
@@ -22,6 +23,7 @@ async function anggotaKloter(services, groupId, actor) {
   const hasil = await services.departureService.members(groupId, actor);
   if (!hasil.ok) return hasil;
   const pendaftar = await services.registrationService.staffByRegistrationIds(hasil.value.registrationIds);
+  const wajib = dokumenWajib(await services.templateService.ambil('dokumen'));
   return {
     ok: true,
     value: {
@@ -36,7 +38,7 @@ async function anggotaKloter(services, groupId, actor) {
         guardianName: item.applicant.guardianName || '',
         guardianPhone: item.applicant.guardianPhone || '',
         city: item.applicant.city || '',
-        documents: ringkasBerkas(item.documents || [])
+        documents: ringkasBerkas(item.documents || [], wajib)
       }))
     }
   };

@@ -50,6 +50,7 @@ const { createDormitoryRollService } = require('./dormitory-roll-service.js');
 const { createDemoDataService } = require('./demo-data-service.js');
 const { createSettingsService } = require('./settings-service.js');
 const { createSiteContentService } = require('./site-content-service.js');
+const { createTemplateService } = require('./template-service.js');
 const siteContent = require('./site-content.js');
 const { createDatabaseUpdateService } = require('./database-update-service.js');
 const { createArticleSeedService } = require('./article-seed-service.js');
@@ -75,6 +76,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/admin-demo.js'),
   ...require('./routes/settings.js'),
   ...require('./routes/site-content.js'),
+  ...require('./routes/templates.js'),
   ...require('./routes/journey.js'),
   ...require('./routes/student-life.js'),
   ...require('./routes/dormitory-roll.js'),
@@ -183,6 +185,7 @@ function createHamasahApp(options) {
   });
   const databaseUpdateService = config.databaseUpdateService || createDatabaseUpdateService({ database });
   const siteContentService = config.siteContentService || createSiteContentService({ database });
+  const templateService = config.templateService || createTemplateService({ database });
   const articleSeedService = config.articleSeedService || createArticleSeedService({ database });
   const kesehatanAktif = () => settingsService.ambil('kesehatan.aktif');
   const studentCareService = config.studentCareService || createStudentCareService({
@@ -201,6 +204,8 @@ function createHamasahApp(options) {
     sender: emailSender,
     notificationPayloadKey: config.notificationPayloadKey || process.env.NOTIFICATION_PAYLOAD_KEY || process.env.IP_HASH_SECRET || 'development-only-key',
     appBaseUrl: config.appBaseUrl || process.env.APP_BASE_URL || 'http://localhost:4273',
+    // Salam, judul, kalimat utama, dan rekening dari halaman Template.
+    templates: async () => ({ email: await templateService.ambil('email'), kop: await templateService.ambil('kop') }),
     senderTimeoutMs: Number(config.notificationSenderTimeoutMs || process.env.NOTIFICATION_SENDER_TIMEOUT_MS || 10000)
   });
   // Host untuk URL absolut di tag bagikan dan sitemap (Phase R7).
@@ -360,6 +365,7 @@ function createHamasahApp(options) {
     demoDataService,
     settingsService,
     siteContentService,
+    templateService,
     studentJourneyService,
     studentLifeService,
     dormitoryRollService,

@@ -176,8 +176,8 @@ async function ujiHttp() {
     const simpan = await api('PUT', '/api/admin/content/biaya', admin, { nilai: biaya });
     assert.equal(simpan.status, 200, JSON.stringify(simpan.body));
     assert.equal(simpan.body.berubah, true);
-    assert.equal(simpan.body.konten.tersimpan.biaya, true);
-    assert.equal(simpan.body.konten.terakhir.biaya.oleh, 'Admin Uji');
+    assert.equal(simpan.body.isi.tersimpan.biaya, true);
+    assert.equal(simpan.body.isi.terakhir.biaya.oleh, 'Admin Uji');
     assert.ok((await html('/website/biaya.html')).includes('Rp 52.000.000'));
     assert.equal(await jumlahAudit('site-content.updated'), 1);
 

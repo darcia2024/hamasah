@@ -192,6 +192,25 @@ umum di beranda, dan pita pengumuman.
 
 ---
 
+## 5c. Template pesan, email, PDF, dan dokumen
+
+Super admin mengubah teks baku dari konsol, menu **Template** (`template.html`):
+
+- **Pesan WhatsApp**: salam, kalimat per status pendaftaran, dan penutup untuk tombol "Kabari
+  lewat WhatsApp" petugas. Isian: `{sapaan}`, `{nama}`, `{nomor}`, `{tautan}`.
+- **Email notifikasi**: salam, penutup, judul dan kalimat utama tiap jenis email. Rincian (tanggal
+  kloter, daftar perubahan, tautan) tetap disusun sistem.
+- **Kop & rekening PDF**: nama lembaga, alamat, kontak, rekening resmi, catatan, dan penandatangan
+  di kuitansi; catatan di akhir rapor. Rekening juga dicantumkan di email tagihan.
+- **Dokumen pendaftar**: nama, keterangan, dan status wajib tiap jenis berkas. Jenis berkas sendiri
+  tetap enam; menambah jenis baru butuh perubahan kode dan database.
+
+Disimpan di `app_settings` dengan kunci `template.<bagian>` (`server/templates.js`). Isian yang
+tidak dikenal (misalnya `{nma}`) ditolak saat menyimpan. Template baru langsung dipakai untuk
+pesan, email, dan PDF berikutnya; email yang sudah terkirim tidak berubah.
+
+---
+
 ## 6. Pemantauan
 
 ### Uptime

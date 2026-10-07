@@ -42,6 +42,8 @@ const LABEL = {
   'article.defaults-added': 'Artikel bawaan ditambahkan',
   'site-content.updated': 'Konten website diubah',
   'site-content.reset': 'Konten website dikembalikan ke bawaan',
+  'template.updated': 'Template diubah',
+  'template.reset': 'Template dikembalikan ke bawaan',
   'registration.document-added': 'Dokumen pendaftaran ditambahkan',
   'student.created': 'Santri ditambahkan',
   'student.accounts-linked': 'Relasi akun santri diubah',

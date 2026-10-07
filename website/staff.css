@@ -1931,3 +1931,19 @@ html.has-portal-session body:has(:is(#monitoring-guard, #operations-guard, #lms-
   .content-form .crm-white-card-header { flex-direction: column; }
   .content-group { padding: 4px 12px 6px; }
 }
+
+/* Pratinjau di halaman Template: contoh pesan, email, atau kuitansi dari isian yang disunting. */
+.content-preview pre {
+  margin: 0;
+  padding: 16px;
+  max-height: 420px;
+  overflow: auto;
+  border-radius: 12px;
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--crm-text-primary);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

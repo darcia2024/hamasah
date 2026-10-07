@@ -6,6 +6,7 @@
 // ditulis apa adanya. Akses mengikuti dashboard santri (wali hanya santrinya sendiri) dan
 // nama pencatat tidak ikut untuk wali, karena dashboard sudah membuangnya.
 const { createDocumentPdf } = require('./pdf.js');
+const { BAWAAN } = require('./templates.js');
 
 const STATUS_KEHADIRAN = Object.freeze({ present: 'Hadir', late: 'Terlambat', excused: 'Izin / sakit', absent: 'Tidak hadir' });
 const ZONA = 'Asia/Jakarta';
@@ -31,12 +32,15 @@ const LABEL_KONDISI = Object.freeze({ sehat: 'Sehat', 'sakit-ringan': 'Sakit rin
 
 // care: ringkasan dari student-care-service (atau null). Kesehatan di rapor selalu versi
 // wali: kondisi dan catatan untuk wali saja, tanpa keluhan dan tindakan.
-function buildStudentReportBlocks(dashboard, { courses = null, care = null, generatedAt = new Date() } = {}) {
+// kop: blok "kop" dari halaman Template (nama lembaga, alamat, kontak, catatan rapor).
+function buildStudentReportBlocks(dashboard, { courses = null, care = null, generatedAt = new Date(), kop = BAWAAN.kop } = {}) {
   const { student, attendance } = dashboard;
   const period = dashboard.period || {};
   const blocks = [
     { kind: 'title', text: 'Rapor Perkembangan Santri' },
-    { kind: 'subtitle', text: 'Hamasah International' },
+    { kind: 'subtitle', text: kop.namaLembaga },
+    ...(kop.alamat ? [{ kind: 'muted', text: kop.alamat.split('\n').join(', ') }] : []),
+    ...(kop.kontak ? [{ kind: 'muted', text: kop.kontak }] : []),
     { kind: 'rule' },
     { kind: 'text', text: `Nama: ${student.name}` },
     { kind: 'text', text: `Program: ${student.program || '-'}` },
@@ -98,7 +102,7 @@ function buildStudentReportBlocks(dashboard, { courses = null, care = null, gene
   }
 
   blocks.push({ kind: 'space', size: 14 }, { kind: 'rule' });
-  blocks.push({ kind: 'muted', text: `Disusun otomatis dari catatan pembina di sistem Hamasah International pada ${new Intl.DateTimeFormat('id-ID', { dateStyle: 'long', timeStyle: 'short', timeZone: ZONA }).format(generatedAt)} WIB. Rapor ini bukan transkrip resmi Universitas Al-Azhar.` });
+  blocks.push({ kind: 'muted', text: `Disusun otomatis dari catatan pembina di sistem ${kop.namaLembaga} pada ${new Intl.DateTimeFormat('id-ID', { dateStyle: 'long', timeStyle: 'short', timeZone: ZONA }).format(generatedAt)} WIB.${kop.catatanRapor ? ` ${kop.catatanRapor}` : ''}` });
   return blocks;
 }
 
