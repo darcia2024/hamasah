@@ -1,4 +1,4 @@
-# Tahap 4 — Header dan navigasi publik
+# Tahap 4: Header dan navigasi publik
 
 Tanggal: 2026-09-20
 
@@ -17,9 +17,9 @@ Lima halaman wajib (`biaya`, `kontak`, `articles`, `article`, `cek-status`) masi
 
 ## Validasi otomatis
 
-- `npm run test:browser-contract` — lulus, 16 halaman.
-- `node --check website/public-header.js` — lulus.
-- `git diff --check` — lulus; peringatan yang muncul hanya konversi akhir baris Git.
+- `npm run test:browser-contract`, lulus, 16 halaman.
+- `node --check website/public-header.js`, lulus.
+- `git diff --check`, lulus; peringatan yang muncul hanya konversi akhir baris Git.
 
 ---
 

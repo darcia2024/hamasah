@@ -9,7 +9,7 @@
 | Item | Keterangan |
 |---|---|
 | Versi dokumen | 1.0 (15 Sep 2026) |
-| Pelaksana task | Claude Sonnet di Claude Code, **satu task per sesi** |
+| Pelaksana task | **Satu task per sesi kerja** |
 | Reviewer | Tim Dar Dev (manusia) |
 | Yang dibangun | Aplikasi nyata di `website/`, `server/`, `database/` |
 | Yang TIDAK dibangun ulang | Prototype proposal di root (`index.html`, `app.js`, `styles.css`) |
@@ -208,7 +208,7 @@ Bagian ini dibaca **setiap sesi**. Jika aturan di sini bertentangan dengan isi t
 - Presensi harian disimpan sebagai tanggal lokal Kairo (`occurred_on DATE`), bukan jam UTC.
 
 **Teks untuk pengguna**
-- Bahasa Indonesia yang sopan, singkat, dan jelas. **Tanpa em dash (—)**. Tanpa istilah teknis (jangan tampilkan "422", "token", "SQL").
+- Bahasa Indonesia yang sopan, singkat, dan jelas. **Tanpa em dash**. Tanpa istilah teknis (jangan tampilkan "422", "token", "SQL").
 - Identifier kode dalam Bahasa Inggris.
 
 **Frontend**
@@ -781,7 +781,7 @@ Dikerjakan manusia. Sonnet tidak ikut.
    HEALTHCHECK --interval=30s --timeout=5s --start-period=20s CMD wget -qO- "http://127.0.0.1:${PORT}/api/health" || exit 1
    CMD ["node", "server.js"]
    ```
-2. `.dockerignore`: tambahkan `data/dev-db`, `data/dev-storage`, `.claude`, `.vercel`.
+2. `.dockerignore`: tambahkan `data/dev-db`, `data/dev-storage`, folder konfigurasi editor lokal, dan `.vercel`.
 3. Endpoint:
    - `GET /api/health`: liveness, tanpa database, selalu `200 { ok: true }`.
    - `GET /api/ready`: menjalankan `SELECT 1` dengan batas 2 detik. Hasilnya `200 { ok: true }` atau `503 { ok: false }`. Jangan menampilkan detail error.
@@ -821,7 +821,7 @@ Dikerjakan manusia. Sonnet tidak ikut.
 - Kota domisili tidak lagi ditandai wajib di formulir, karena server memang tidak mewajibkannya. Daftar field wajib yang final diputuskan bersama klien di Task 9.4.
 - `RequestBodyError` membawa status sendiri: 400 untuk JSON rusak, 413 untuk isi terlalu besar. Isi permintaan tetap dibaca sampai selesai (dengan batas keras 5 MB) supaya pengirim benar-benar menerima balasan 413, bukan koneksi terputus.
 - **Ditemukan dan diperbaiki saat verifikasi browser:** ada dua elemen dengan `id="program"` (section dan select), sehingga label "Program tujuan" tidak menunjuk ke select mana pun. Id select diubah menjadi `program-tujuan`. Saat menambah field baru, pastikan id-nya unik terhadap id section di halaman yang sama.
-- Verifikasi browser memakai server statis `.claude/launch.json` (`preview_start` dengan nama `static`), karena `npm run dev` baru ada setelah Task 7.1.
+- Verifikasi browser memakai server statis lokal, karena `npm run dev` baru ada setelah Task 7.1.
 
 ---
 
@@ -1415,7 +1415,7 @@ Pola sama dengan Task 7.2 untuk `server/lms-service.js` dan `server/lms-file-sto
 - Driver `local` menyimpan ke `data/dev-storage/`, di luar folder yang disajikan web. `readProductionConfig` menolak driver `local` di staging dan production, karena berkas di disk container ikut hilang setiap kali container diganti.
 - Setiap unduhan dicatat di audit, karena inilah cara dokumen pribadi keluar dari sistem.
 - Belum ada tampilan unggah di halaman mana pun; yang ada baru API. Formulir unggahnya menyusul bersama layar yang membutuhkannya (Phase 9 dan 10).
-- **Bug ditemukan saat pemilik menjalankan `npm run migrate` di staging** (bukan lewat test): `readProductionConfig()` yang baru mewajibkan `SUPABASE_URL` membuat `resolveMigrationUrl()` di `database/migrate.js` ikut gagal, padahal migrasi cuma butuh `DATABASE_URL` dan sama sekali tidak menyentuh penyimpanan berkas. Diperbaiki dengan menambahkan `resolveDatabaseUrl()` yang ringan di `server/production-config.js` — hanya menyelesaikan `DATABASE_URL`, tanpa memvalidasi storage atau `IP_HASH_SECRET` — lalu `migrate.js` dipindah memakainya. `readProductionConfig()` penuh tetap dipakai `server.js` seperti semula. Test suite sebelumnya tidak menangkap ini karena tidak ada test yang memanggil `resolveMigrationUrl` dengan `APP_ENV=staging/production` tanpa `DATABASE_MIGRATION_URL`; sudah ditambahkan di `database/migrate.test.js`.
+- **Bug ditemukan saat pemilik menjalankan `npm run migrate` di staging** (bukan lewat test): `readProductionConfig()` yang baru mewajibkan `SUPABASE_URL` membuat `resolveMigrationUrl()` di `database/migrate.js` ikut gagal, padahal migrasi cuma butuh `DATABASE_URL` dan sama sekali tidak menyentuh penyimpanan berkas. Diperbaiki dengan menambahkan `resolveDatabaseUrl()` yang ringan di `server/production-config.js`, hanya menyelesaikan `DATABASE_URL`, tanpa memvalidasi storage atau `IP_HASH_SECRET`, lalu `migrate.js` dipindah memakainya. `readProductionConfig()` penuh tetap dipakai `server.js` seperti semula. Test suite sebelumnya tidak menangkap ini karena tidak ada test yang memanggil `resolveMigrationUrl` dengan `APP_ENV=staging/production` tanpa `DATABASE_MIGRATION_URL`; sudah ditambahkan di `database/migrate.test.js`.
 
 ---
 
@@ -2068,7 +2068,7 @@ Jalankan checklist **Gerbang Rilis** (Bagian 17.2), ditambah:
 
 **Tujuan:** asisten publik menjawab pertanyaan calon santri dan wali **hanya** dari knowledge base resmi, dan Study Partner membantu santri memahami materi **hanya** dari isi materi, dengan biaya terkendali dan fallback yang aman.
 
-**Wajib sebelum mulai:** Sonnet menjalankan skill `claude-api` (lewat Skill tool) untuk memastikan bentuk API dan model terbaru. Informasi di bawah dicek pada 15 Sep 2026.
+**Wajib sebelum mulai:** periksa dokumentasi resmi penyedia API untuk memastikan bentuk API dan model terbaru. Informasi di bawah dicek pada 15 Sep 2026.
 
 **Selesai jika:**
 - [ ] Task 13.1 sampai 13.5 dicentang.

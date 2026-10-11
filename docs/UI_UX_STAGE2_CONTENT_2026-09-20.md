@@ -1,4 +1,4 @@
-# Tahap 2 — Konsistensi konten dan status
+# Tahap 2: Konsistensi konten dan status
 
 Tanggal: 2026-09-20
 
@@ -18,8 +18,8 @@ Tim Hamasah tetap perlu mengisi sumber resmi untuk alamat, telepon/WhatsApp, jam
 
 ## Validasi
 
-- `npm run test:browser-contract` — lulus, 16 halaman.
-- `git diff --check` — lulus; hanya ada peringatan normal konversi akhir baris Git.
+- `npm run test:browser-contract`, lulus, 16 halaman.
+- `git diff --check`, lulus; hanya ada peringatan normal konversi akhir baris Git.
 
 ---
 

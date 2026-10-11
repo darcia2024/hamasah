@@ -1,6 +1,6 @@
 # Lanjutan Remediasi: Serah Terima untuk Sesi Baru (21 September 2026)
 
-Dokumen ini untuk memulai sesi Claude baru dan melanjutkan dari titik terakhir tanpa membaca ulang seluruh percakapan. Baca dari atas ke bawah sekali, lalu kerjakan R7 dan R8.
+Dokumen ini untuk memulai sesi kerja baru dan melanjutkan dari titik terakhir tanpa membaca ulang seluruh percakapan. Baca dari atas ke bawah sekali, lalu kerjakan R7 dan R8.
 
 ## 1. Konteks singkat
 
@@ -53,7 +53,7 @@ npm run stamp:assets              # WAJIB setelah mengubah CSS/JS di website/
 npm run dev:reset                 # bila database dev PGlite rusak ("Aborted()")
 ```
 
-Server pratinjau: konfigurasi `hamasah-dev-r4` di `.claude/launch.json` (port 4291, database in-memory berisi data contoh). Login internal memakai akun dev (`admin@hamasah.test` dan lain-lain; kata sandi `DEV_PASSWORD` di `scripts/seed-dev.js`).
+Server pratinjau: konfigurasi lokal `hamasah-dev-r4` (port 4291, database in-memory berisi data contoh). Login internal memakai akun dev (`admin@hamasah.test` dan lain-lain; kata sandi `DEV_PASSWORD` di `scripts/seed-dev.js`).
 
 ## 5. Aturan teknis yang sering menjebak
 

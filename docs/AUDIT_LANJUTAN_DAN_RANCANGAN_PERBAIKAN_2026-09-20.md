@@ -1,4 +1,4 @@
-# Audit lanjutan dan rancangan perbaikan — 20 September 2026
+# Audit lanjutan dan rancangan perbaikan: 20 September 2026
 
 Dokumen ini adalah audit tahap berikutnya setelah `docs/AUDIT_UI_UX_2026-09-20.md` dan Tahap 1–8. Fokusnya bukan mengulang temuan visual yang sudah ditutup, melainkan hal yang belum pernah diperiksa: apakah fitur benar-benar berjalan di browser, apakah endpoint backend punya UI, apakah data dan konten layak dipublikasikan, dan apakah bukti kelulusan yang dipakai selama ini benar-benar menguji hal yang diklaim.
 
@@ -58,7 +58,7 @@ Semua temuan di bawah menyebut bukti terukurnya. Jika sebuah temuan belum terkon
 
 ### A. Blocker teknis
 
-#### A-01 — CSP memblokir seluruh style inline dan script inline — **P0**
+#### A-01: CSP memblokir seluruh style inline dan script inline: **P0**
 
 Server mengirim `Content-Security-Policy: ... script-src 'self'; style-src 'self' https://fonts.googleapis.com ...` untuk setiap dokumen (`server/app.js:300`, `server/http/security-headers.js`). Tidak ada `'unsafe-inline'`. Pada CSP Level 2/3, `style-src` tanpa `'unsafe-inline'` juga memblokir **atribut** `style="..."`, bukan hanya elemen `<style>`.
 
@@ -100,7 +100,7 @@ Karena inline style diblokir, keempatnya **tampil** di production, sehingga port
 
 Catatan penting: klaim Tahap 6 bahwa "operasi terukur dua kolom pada viewport desktop" dan klaim audit bahwa tinggi kontrol minimum 44 px sudah terpenuhi, **tidak dapat benar** selama CSP aktif, karena kedua hal itu ditulis sebagai atribut inline.
 
-#### A-02 — Formulir konsultasi di halaman kontak tidak berfungsi — **P0**
+#### A-02: Formulir konsultasi di halaman kontak tidak berfungsi: **P0**
 
 `website/kontak.html` hanya memuat `public-header.js`. Tidak ada `kontak.js`.
 
@@ -118,7 +118,7 @@ Tidak ada endpoint `POST /api/inquiries` atau sejenisnya di `server/routes/`. Ja
 
 Pemetaan seluruh `pattern` di `server/routes/*.js` terhadap seluruh pemanggilan `/api/...` di `website/` menunjukkan endpoint berikut **tidak pernah dipanggil dari UI mana pun**.
 
-#### B-01 — Modul operasional hanya mengekspos tiga dari sepuluh kemampuan — **P1**
+#### B-01: Modul operasional hanya mengekspos tiga dari sepuluh kemampuan: **P1**
 
 `website/operations.js` berukuran 6,4 KB dan hanya berisi tiga form (invoice, visa, inventaris), satu tombol muat ulang, dan logout. Yang sudah selesai di backend tetapi tidak punya kontrol UI:
 
@@ -134,29 +134,29 @@ Pemetaan seluruh `pattern` di `server/routes/*.js` terhadap seluruh pemanggilan 
 
 Efek nyata: keuangan tidak bisa mencetak kuitansi, tidak bisa membatalkan invoice yang salah, dan tidak bisa mengekspor laporan. Inventaris hanya bisa dibuat, tidak bisa dicatat pergerakannya. Peringatan visa tidak terlihat siapa pun.
 
-#### B-02 — LMS: penilaian tugas dan kuis tidak punya UI — **P1**
+#### B-02: LMS: penilaian tugas dan kuis tidak punya UI: **P1**
 
 Tabel `lms_attempts` (migrasi 025) dan `lms_submissions` (migrasi 026) sudah ada lengkap dengan constraint dan index. Endpoint tersedia. Tidak satu pun dipanggil:
 
-- `POST /api/students/:id/courses/:cid/materials/:mid/attempts` — santri mengerjakan kuis
-- `POST /api/students/:id/courses/:cid/materials/:mid/submission` — santri mengumpulkan tugas
-- `PATCH /api/lms/submissions/:id/review` — guru menilai
-- `PATCH /api/courses/:id/materials/:mid/archive` — arsip materi
-- `PATCH /api/courses/:id/materials/:mid` — sunting materi
+- `POST /api/students/:id/courses/:cid/materials/:mid/attempts`, santri mengerjakan kuis
+- `POST /api/students/:id/courses/:cid/materials/:mid/submission`, santri mengumpulkan tugas
+- `PATCH /api/lms/submissions/:id/review`, guru menilai
+- `PATCH /api/courses/:id/materials/:mid/archive`, arsip materi
+- `PATCH /api/courses/:id/materials/:mid`, sunting materi
 
 `website/lms.html` menyediakan tipe materi `tugas` dan `kuis` pada form pembuatan materi, tetapi santri tidak punya cara mengerjakannya dan guru tidak punya cara menilainya. Ini alur yang setengah jadi dan terlihat lengkap dari sisi pengajar.
 
-#### B-03 — Berkas yang diunggah tidak dapat dibuka dari UI — **P1**
+#### B-03: Berkas yang diunggah tidak dapat dibuka dari UI: **P1**
 
 `GET /api/files/:id` tidak pernah dipanggil. `website/cek-status.js` dan `website/staff.js` mengunggah dokumen lewat `POST /api/uploads` dan `PUT /api/uploads/:id/content`, serta menampilkan metadata dan catatan review. Tetapi tidak ada tautan untuk **melihat** berkas yang sudah diunggah.
 
 Artinya petugas pendaftaran menyetujui atau menolak paspor, ijazah, dan surat kesehatan **tanpa bisa membuka berkasnya dari konsol**. Ini membuat alur review dokumen tidak dapat dijalankan sebagaimana dirancang.
 
-#### B-04 — Keluar dari semua perangkat tidak terpasang — **P2**
+#### B-04: Keluar dari semua perangkat tidak terpasang: **P2**
 
 `POST /api/auth/logout-all` dan `POST /api/applicant/logout` tidak pernah dipanggil. Tidak ada cara bagi pengguna mengakhiri sesi di perangkat lain, dan sesi pendaftar hanya hilang saat kedaluwarsa.
 
-#### B-05 — Worker pengingat visa adalah stub — **P1**
+#### B-05: Worker pengingat visa adalah stub: **P1**
 
 `scripts/visa-reminder-worker.js` yang dijalankan `npm run worker:visa-reminders` **tidak melakukan apa pun**. Isinya:
 
@@ -171,7 +171,7 @@ if (process.argv.includes('--once')) {
 
 `IMPLEMENTATION_STATUS.md` mencantumkan "Scheduler adapter visa" sebagai tersedia. Secara harfiah benar, tetapi mudah dibaca sebagai fitur yang berjalan.
 
-#### B-06 — Notifikasi hanya menutupi dua peristiwa — **P2**
+#### B-06: Notifikasi hanya menutupi dua peristiwa: **P2**
 
 `server/notification-service.js` hanya mengenal `account-invitation` dan `password-reset`. Tidak ada notifikasi untuk perubahan status pendaftaran, dokumen perlu revisi, pembayaran diterima, visa mendekati kedaluwarsa, atau tugas LMS dinilai.
 
@@ -181,7 +181,7 @@ Pengirim yang tersedia hanya Resend (email), console, dan disabled. **Tidak ada 
 
 ### C. Keamanan dan privasi
 
-#### C-01 — Kredensial pengujian tertulis keras di JavaScript publik — **P0**
+#### C-01: Kredensial pengujian tertulis keras di JavaScript publik: **P0**
 
 `website/portal.html:63–81` menampilkan blok `Coba Cepat Akun Pengujian` dengan empat tombol. `website/portal.js:1641–1671` mengisi field login dengan kredensial literal:
 
@@ -202,7 +202,7 @@ Masalah ketiga: daftar tombolnya tidak konsisten dengan role yang ada. Seed memb
 
 Ini kelas masalah yang sama dengan tombol `Contoh Data` yang sudah dihapus dari `cek-status.html` pada Tahap 3. Tahap itu tidak menyentuh portal.
 
-#### C-02 — Logika bisnis server dan berkas test tersaji publik — **P1**
+#### C-02: Logika bisnis server dan berkas test tersaji publik: **P1**
 
 `server/http/static.js` mengizinkan awalan `website/` dan `assets/` untuk semua jenis berkas yang ada di `MIME_TYPES`, tanpa daftar-putih nama berkas. Hasil permintaan langsung ke server yang berjalan:
 
@@ -219,7 +219,7 @@ Ini kelas masalah yang sama dengan tombol `Contoh Data` yang sudah dihapus dari 
 
 Ini bukan kebocoran kredensial, tetapi memberi penyerang peta lengkap aturan bisnis dan nama field internal secara cuma-cuma, dan menandakan berkas server salah tempat.
 
-#### C-03 — Tidak ada kebijakan privasi, sementara data sensitif dikumpulkan — **P1**
+#### C-03: Tidak ada kebijakan privasi, sementara data sensitif dikumpulkan: **P1**
 
 Migrasi `013_registration_profile_fields.sql` menambahkan `privacy_policy_version TEXT NOT NULL DEFAULT 'v1'`. Dokumen "v1" itu tidak ada. Tidak ada `kebijakan-privasi.html`, `syarat-ketentuan.html`, atau halaman sejenis di `website/`, dan tidak ada tautan ke dokumen semacam itu dari formulir pendaftaran.
 
@@ -228,21 +228,21 @@ Checkbox persetujuan di `index.html:711–723` berbunyi:
 - `Saya mendapat persetujuan wali untuk mengikuti proses pendaftaran ini.`
 - `Saya bersedia dihubungi kembali oleh konsultan Hamasah International terkait tindak lanjut informasi pendaftaran.`
 
-Keduanya adalah persetujuan **dihubungi**, bukan persetujuan **pemrosesan data pribadi**. Yang benar-benar dikumpulkan jauh lebih luas: nama, tanggal lahir, jenis kelamin, email, nomor telepon calon dan wali, asal sekolah, kota, serta unggahan paspor, ijazah, dan surat kesehatan — sebagian dari calon yang masih di bawah umur.
+Keduanya adalah persetujuan **dihubungi**, bukan persetujuan **pemrosesan data pribadi**. Yang benar-benar dikumpulkan jauh lebih luas: nama, tanggal lahir, jenis kelamin, email, nomor telepon calon dan wali, asal sekolah, kota, serta unggahan paspor, ijazah, dan surat kesehatan, sebagian dari calon yang masih di bawah umur.
 
 UU PDP No. 27/2022 menuntut persetujuan yang eksplisit dan terinformasi dengan tujuan yang dinyatakan, plus informasi retensi dan hak subjek data. Ini perlu keputusan pemilik proses, bukan sekadar perbaikan teknis.
 
-#### C-04 — Rate limit hanya hidup di satu proses — **P2**
+#### C-04: Rate limit hanya hidup di satu proses: **P2**
 
 `server/rate-limit.js:38` memakai `const buckets = new Map()` di memori proses. Batas login lima percobaan per 15 menit berlaku per instance. Dua instance berarti sepuluh percobaan, dan setiap deploy mengembalikan hitungan ke nol. `server/ai-service.js` memakai pola yang sama untuk kuota AI per akun.
 
-Selain itu, `POST /api/auth/invitations/accept` dan `POST /api/auth/password-reset` tidak memiliki `rateLimit` sama sekali (`server/routes/auth.js:146, 162`). Dampaknya terbatas karena token memakai 32 byte acak (`crypto.randomBytes(32)`), jadi tebakan tidak realistis — tetapi endpoint ini tetap dapat dipakai menghabiskan sumber daya karena setiap permintaan memicu verifikasi scrypt.
+Selain itu, `POST /api/auth/invitations/accept` dan `POST /api/auth/password-reset` tidak memiliki `rateLimit` sama sekali (`server/routes/auth.js:146, 162`). Dampaknya terbatas karena token memakai 32 byte acak (`crypto.randomBytes(32)`), jadi tebakan tidak realistis, tetapi endpoint ini tetap dapat dipakai menghabiskan sumber daya karena setiap permintaan memicu verifikasi scrypt.
 
-#### C-05 — Parameter scrypt memakai nilai default Node — **P3**
+#### C-05: Parameter scrypt memakai nilai default Node: **P3**
 
 `server/identity-service.js:77` memanggil `crypto.scrypt(password, salt, 64, ...)` tanpa opsi. Node memakai N=16384, r=8, p=1, sekitar 16 MB memori. Rekomendasi OWASP untuk scrypt lebih tinggi. Bukan kerentanan langsung, tetapi layak dinaikkan sebelum menyimpan kata sandi pengguna nyata.
 
-#### C-06 — Prototipe lama masih tersaji publik — **P2**
+#### C-06: Prototipe lama masih tersaji publik: **P2**
 
 `server/http/static.js:60–78` melayani `/proposal/` dan `/hamasah/` dari berkas root: `index.html` (208.309 B), `styles.css` (194 KB), `app.js` (96 KB), `cinematic.css`, `proposal.css`. Permintaan ke `/proposal/` pada server yang berjalan mengembalikan 200 dengan 208.309 B.
 
@@ -263,7 +263,7 @@ Perlu keputusan: apakah prototipe masih dibutuhkan. Jika ya, ia harus ikut diaud
 
 ### D. Data dan konten
 
-#### D-01 — Palet warna menyimpang dari identitas merek — **P1**
+#### D-01: Palet warna menyimpang dari identitas merek: **P1**
 
 `website/website.css:6–57` diberi judul `Gold-Seeded Palette: #E7B10C`, tetapi token yang dipakai bukan itu:
 
@@ -280,7 +280,7 @@ Seluruh keluarga netral adalah palet Slate (biru-abu). Emas logo hanya muncul se
 
 Hasilnya situs terbaca sebagai template korporat biru-oranye, bukan identitas emas-charcoal Hamasah.
 
-#### D-02 — Gaya outline global merusak kontras badge — **P1**
+#### D-02: Gaya outline global merusak kontras badge: **P1**
 
 `website/website.css:2943–2954` menambahkan override menyeluruh:
 
@@ -308,19 +308,19 @@ Ini regresi yang diperkenalkan oleh pass "Outline UI" (`docs/UI_UX_OUTLINE_STYLE
 
 Catatan kejujuran: untuk `Ibadah & Talaqqi` dan `Pendampingan Belajar Talaqqi`, latar sesungguhnya adalah foto di belakang elemen, bukan putih. Rasio 1,06–1,11 diukur terhadap permukaan buram terdekat. Yang pasti benar adalah **scrim gelapnya hilang**, sehingga keterbacaan kini bergantung pada terang-gelapnya foto di titik itu, bukan pada desain.
 
-#### D-03 — Seksi "Kegiatan Santri" hampir kosong di mobile — **P2**
+#### D-03: Seksi "Kegiatan Santri" hampir kosong di mobile: **P2**
 
 `index.html:452–476` berisi empat `.activity-card`. Hanya kartu pertama yang punya gambar (`cairo-skyline.jpg`). Tiga kartu sisanya hanya punya badge ikon dan teks.
 
 Tangkapan layar pada `scrollY = 9900` di viewport 375 × 812 menghasilkan **layar putih polos**. Dikombinasikan dengan D-02, seksi ini praktis tidak menyampaikan apa pun di mobile.
 
-#### D-04 — Halaman publik sangat panjang di mobile — **P2**
+#### D-04: Halaman publik sangat panjang di mobile: **P2**
 
 Tinggi dokumen `index.html` pada viewport 375 × 812 adalah **18.871 px**, sekitar 23 layar. Baseline Tahap 0 mencatat 18.363 px, jadi setelah delapan tahap perbaikan halaman justru **bertambah 508 px**.
 
 Tidak ada overflow horizontal (`scrollWidth 375 = clientWidth 375`), jadi perbaikan Tahap 5 dan 8 memang bertahan. Masalahnya kepadatan informasi, bukan layout.
 
-#### D-05 — CMS hanya berisi satu artikel stub — **P2**
+#### D-05: CMS hanya berisi satu artikel stub: **P2**
 
 `GET /api/articles` pada instance yang berjalan mengembalikan satu item: `pendampingan-santri-di-kairo`, dengan `body` dua kalimat. Landing page mempromosikan "Pena Hamasah" sebagai pusat wawasan dan kabar.
 
@@ -330,15 +330,15 @@ Keterbatasan struktural yang memperparah:
 - Kolom `articles.author_account_id` ada di skema sejak `001_initial_schema.sql:60`, tetapi `server/postgres-article-store.js:29, 37` tidak pernah men-`SELECT` kolom itu. API tidak pernah mengembalikan penulis, sehingga `article.js:47` menuliskan byline tetap `Tim Redaksi Hamasah International` dan lokasi tetap `Kairo, Mesir` untuk semua artikel. Kolomnya mati.
 - `article.js:22` memakai fallback tanggal literal `'September 2026'` ketika `publishedAt` kosong. Ini menampilkan tanggal karangan sebagai fakta.
 
-#### D-06 — Klaim status sesi tidak berdasar — **P1**
+#### D-06: Klaim status sesi tidak berdasar: **P1**
 
 Teks `Sesi Terverifikasi Aman` tertulis statis di enam halaman internal: `portal.html:121`, `staff.html:94`, `lms.html:81`, `monitoring.html:81`, `operations.html:81`, `audit.html:81`. Nilainya tidak pernah diperbarui dari state sesi.
 
 Terbukti berbahaya saat sesi kedaluwarsa di tengah pemakaian. Pada pengujian browser, setelah `/api/me` mengembalikan **401**, konsol CRM tetap ter-render penuh: sidebar lengkap, nama `Admin Dev`, badge `SUPER ADMIN`, ringkasan `4 Santri Binaan aktif terdaftar`, dan label `Sesi Terverifikasi Aman`.
 
-Guard saat pemuatan halaman **bekerja dengan benar**: memuat ulang halaman dengan token palsu menghasilkan konsol tersembunyi, form login muncul, pesan `Sesi tidak ditemukan.`, dan sessionStorage dibersihkan. Jadi ini bukan bypass autentikasi — API tetap menolak. Masalahnya tidak ada penanganan 401 global setelah konsol terbuka. `website/portal.js` hanya melempar error di satu tempat (`:1555`); tiap modul menangani kegagalan sendiri-sendiri.
+Guard saat pemuatan halaman **bekerja dengan benar**: memuat ulang halaman dengan token palsu menghasilkan konsol tersembunyi, form login muncul, pesan `Sesi tidak ditemukan.`, dan sessionStorage dibersihkan. Jadi ini bukan bypass autentikasi, API tetap menolak. Masalahnya tidak ada penanganan 401 global setelah konsol terbuka. `website/portal.js` hanya melempar error di satu tempat (`:1555`); tiap modul menangani kegagalan sendiri-sendiri.
 
-#### D-07 — Data bisnis belum terkonfirmasi tertulis di kode — **P2**
+#### D-07: Data bisnis belum terkonfirmasi tertulis di kode: **P2**
 
 `website/portal.js:917` menyusun ringkasan role admin:
 
@@ -350,17 +350,17 @@ dan `:919` untuk pengawas: `Asrama Hay Asyir Madinat Nasr · …`.
 
 Nama lokasi ini adalah data operasional yang belum dikonfirmasi, ditulis keras di JavaScript. Ini kelas yang sama dengan alamat dan telepon yang sudah dihapus dari konten publik pada Tahap 2; pass itu tidak menyentuh portal.
 
-#### D-08 — Kotak pencarian global tidak tersambung — **P2**
+#### D-08: Kotak pencarian global tidak tersambung: **P2**
 
 `portal.html:135` menyediakan `<input id="crm-global-search" placeholder="Cari santri, berkas, maddah, atau tagihan...">`. Pencarian di seluruh `website/*.js` untuk `crm-global-search` mengembalikan nol hasil. Kontrol ini murni dekoratif dan menjanjikan kemampuan yang tidak ada.
 
-#### D-09 — Jejak pelaku tidak lengkap pada catatan pembinaan — **P2**
+#### D-09: Jejak pelaku tidak lengkap pada catatan pembinaan: **P2**
 
 `student_activities`, `student_attendance`, `student_achievements`, `student_evaluations`, dan `student_violations` (`001_initial_schema.sql:81–125`) **tidak menyimpan siapa yang mencatat**. Hanya koreksinya yang menyimpan (`student_record_corrections.actor_account_id`, migrasi 024).
 
-Untuk `student_violations` — catatan pelanggaran santri — ketiadaan jejak pembuat adalah masalah tata kelola, bukan sekadar kerapian data. Bandingkan dengan `registration_status_events` yang sudah memiliki `changed_by_account_id` sejak migrasi 005.
+Untuk `student_violations`, catatan pelanggaran santri, ketiadaan jejak pembuat adalah masalah tata kelola, bukan sekadar kerapian data. Bandingkan dengan `registration_status_events` yang sudah memiliki `changed_by_account_id` sejak migrasi 005.
 
-#### D-10 — Model keuangan hanya satu mata uang — **P3**
+#### D-10: Model keuangan hanya satu mata uang: **P3**
 
 `invoices.amount_rupiah BIGINT` dan `invoice_corrections.corrected_amount_rupiah`. Lembaga beroperasi di Mesir dan `biaya.html:252` sudah menyebut EGP. Tidak ada kolom mata uang maupun kurs.
 
@@ -368,7 +368,7 @@ Untuk `student_violations` — catatan pelanggaran santri — ketiadaan jejak pe
 
 ### E. Performa dan skalabilitas
 
-#### E-01 — `GET /api/registrations` memicu N+1 dan memfilter di memori — **P1**
+#### E-01: `GET /api/registrations` memicu N+1 dan memfilter di memori: **P1**
 
 `server/postgres-registration-store.js:183–186`:
 
@@ -381,19 +381,19 @@ async list() {
 
 `get()` menjalankan **lima query** per pendaftar: data utama, dokumen, riwayat status, catatan, dan tindak lanjut.
 
-`website/registration-service.js:213–231` (`listForStaff`) memanggil `store.list()` tanpa argumen, lalu mengurutkan, memfilter pencarian dan status, dan memotong halaman — semuanya di JavaScript.
+`website/registration-service.js:213–231` (`listForStaff`) memanggil `store.list()` tanpa argumen, lalu mengurutkan, memfilter pencarian dan status, dan memotong halaman, semuanya di JavaScript.
 
 Jadi setiap pembukaan konsol petugas menjalankan `1 + (N × 5)` query dan memuat seluruh pendaftar beserta dokumen dan riwayatnya ke memori, meskipun UI hanya menampilkan 20 baris. Pada 200 pendaftar itu sekitar **1.001 query per permintaan**. Pencarian dan filter yang dikirim UI tidak pernah sampai ke SQL.
 
-Catatan tambahan: `listForStaff` mengembalikan **tipe berbeda** tergantung argumen — array bila `options` kosong, objek `{items, total, page, pageSize}` bila tidak (`:230`). Ini rawan salah pakai.
+Catatan tambahan: `listForStaff` mengembalikan **tipe berbeda** tergantung argumen, array bila `options` kosong, objek `{items, total, page, pageSize}` bila tidak (`:230`). Ini rawan salah pakai.
 
-#### E-02 — Sebagian besar daftar tidak punya pagination — **P2**
+#### E-02: Sebagian besar daftar tidak punya pagination: **P2**
 
 Hanya tiga store yang punya `LIMIT`/`OFFSET`: `postgres-audit-store.js`, `postgres-notification-store.js`, dan `listImportBatches` di `postgres-operations-store.js`.
 
 Tanpa pagination: artikel, akun, santri, invoice, visa, inventaris, maddah, dan materi. `GET /api/articles` juga mengembalikan **`body` lengkap setiap artikel** pada respons katalog, padahal katalog hanya memerlukan judul dan ringkasan.
 
-#### E-03 — Aset statis tanpa cache dan tanpa kompresi — **P2**
+#### E-03: Aset statis tanpa cache dan tanpa kompresi: **P2**
 
 Pemeriksaan header respons untuk `/website/portal.css`:
 
@@ -418,7 +418,7 @@ Setiap halaman internal memuat tiga stylesheet dan dua sampai tiga script:
 
 Memperparah: versi cache-buster tidak konsisten. `index.html` memuat `website.css?v=21`, sedangkan halaman internal memuat `website.css?v=18`. Berkas yang sama diunduh dua kali sebagai dua URL berbeda.
 
-#### E-04 — Index database belum menutup jalur query yang sering dipakai — **P2**
+#### E-04: Index database belum menutup jalur query yang sering dipakai: **P2**
 
 | Tabel | Kekurangan | Query yang terdampak |
 |---|---|---|
@@ -434,13 +434,13 @@ Memperparah: versi cache-buster tidak konsisten. `index.html` memuat `website.cs
 
 ### F. SEO dan distribusi
 
-#### F-01 — Tidak ada satu pun tag Open Graph atau Twitter Card — **P1**
+#### F-01: Tidak ada satu pun tag Open Graph atau Twitter Card: **P1**
 
 Pemeriksaan `property="og:` dan `name="twitter:` pada seluruh 16 halaman: **nol**.
 
-Untuk lembaga yang distribusinya bertumpu pada WhatsApp dan media sosial, setiap tautan yang dibagikan akan muncul tanpa judul, deskripsi, atau gambar. `article.html` bahkan punya tombol `#btn-share-wa`, jadi berbagi ke WhatsApp memang alur yang dirancang — dan hasilnya pratinjau kosong.
+Untuk lembaga yang distribusinya bertumpu pada WhatsApp dan media sosial, setiap tautan yang dibagikan akan muncul tanpa judul, deskripsi, atau gambar. `article.html` bahkan punya tombol `#btn-share-wa`, jadi berbagi ke WhatsApp memang alur yang dirancang, dan hasilnya pratinjau kosong.
 
-#### F-02 — `sitemap.xml` tidak valid dan tidak lengkap — **P2**
+#### F-02: `sitemap.xml` tidak valid dan tidak lengkap: **P2**
 
 `website/sitemap.xml` memakai URL relatif:
 
@@ -452,9 +452,9 @@ Protokol Sitemap mewajibkan URL absolut lengkap dengan skema dan host. Google ak
 
 Isinya juga hanya lima halaman statis. Tidak ada satu pun URL artikel, dan tidak ada mekanisme menambahkan artikel baru ke sitemap saat diterbitkan lewat CMS. Tidak ada `lastmod`.
 
-`website/robots.txt` memakai `Sitemap: /sitemap.xml` yang juga relatif, dan melarang `staff`, `portal`, `monitoring`, `audit` — tetapi **tidak** melarang `lms.html` dan `operations.html`.
+`website/robots.txt` memakai `Sitemap: /sitemap.xml` yang juga relatif, dan melarang `staff`, `portal`, `monitoring`, `audit`, tetapi **tidak** melarang `lms.html` dan `operations.html`.
 
-#### F-03 — Detail artikel di-render sepenuhnya di sisi klien — **P2**
+#### F-03: Detail artikel di-render sepenuhnya di sisi klien: **P2**
 
 `website/article.js` mengambil artikel lewat `fetch` lalu menyuntik HTML. Crawler yang tidak menjalankan JavaScript hanya melihat kerangka kosong. Judul dokumen baru diubah setelah data tiba (`article.js:24`). Digabung dengan F-01, artikel CMS praktis tidak dapat ditemukan dan tidak dapat dibagikan.
 
@@ -464,7 +464,7 @@ Isinya juga hanya lima halaman statis. Tidak ada satu pun URL artikel, dan tidak
 
 Ini akar dari banyak temuan di atas: alat yang dipakai sebagai bukti kelulusan tidak menguji hal yang namanya klaim.
 
-#### G-01 — `test:browser-contract` tidak membuka browser — **P1**
+#### G-01: `test:browser-contract` tidak membuka browser: **P1**
 
 `scripts/browser-contract.test.js` membaca berkas HTML dan menjalankan regex. Ia memeriksa: ada `<meta name="viewport">`, ada `<main>` pada halaman publik, dan ada `skip-link`. Lalu:
 
@@ -474,11 +474,11 @@ const css = fs.readFileSync(path.join(root, '..', 'styles.css'), 'utf8')
 assert.match(css, /@media\s*\(/i, 'CSS harus memiliki breakpoint responsive.');
 ```
 
-Ia memeriksa **`styles.css` dan `cinematic.css` di root** — berkas milik prototipe lama. Halaman di `website/` memakai `website.css`, `portal.css`, dan `staff.css`, yang tidak pernah dibaca skrip ini.
+Ia memeriksa **`styles.css` dan `cinematic.css` di root**, berkas milik prototipe lama. Halaman di `website/` memakai `website.css`, `portal.css`, dan `staff.css`, yang tidak pernah dibaca skrip ini.
 
 Skrip ini dikutip sebagai bukti lulus di Tahap 2, 3, 4, 5, 6, 7, dan 8 ("lulus, 16 halaman"). Ia tidak mungkin menangkap A-01, A-02, C-01, D-02, atau D-08.
 
-#### G-02 — `test:uat-roles` tidak menguji tujuh role — **P1**
+#### G-02: `test:uat-roles` tidak menguji tujuh role: **P1**
 
 `scripts/uat-roles.test.js` diklaim di Tahap 8 sebagai "Automated synthetic role UAT lulus untuk admin, petugas pendaftaran, guru, pengawas, finance, wali, dan santri".
 
@@ -489,9 +489,9 @@ const roles = ['admin', 'registration-officer', 'teacher', 'supervisor', 'financ
 assert.deepEqual(roles.sort(), ['admin', 'finance', 'parent', ...].sort());
 ```
 
-Baris itu membandingkan array dengan dirinya sendiri — selalu lulus, tidak menguji apa pun. Sisanya menjalankan dua service dengan actor `admin`, `finance`, dan `student` saja. Role `teacher`, `supervisor`, `parent`, dan `registration-officer` **tidak pernah dipakai sebagai actor**. Batas izin antar-role tidak diuji, dan UI tidak disentuh.
+Baris itu membandingkan array dengan dirinya sendiri, selalu lulus, tidak menguji apa pun. Sisanya menjalankan dua service dengan actor `admin`, `finance`, dan `student` saja. Role `teacher`, `supervisor`, `parent`, dan `registration-officer` **tidak pernah dipakai sebagai actor**. Batas izin antar-role tidak diuji, dan UI tidak disentuh.
 
-#### G-03 — `test:performance` dan `test:http-performance` tidak mengukur yang relevan — **P2**
+#### G-03: `test:performance` dan `test:http-performance` tidak mengukur yang relevan: **P2**
 
 `scripts/performance-smoke.test.js` menjalankan 500 pemanggilan fallback AI dan 100 pembuatan invoice di dalam proses, dengan store memori. Tidak ada HTTP, tidak ada database, tidak ada halaman.
 
@@ -499,13 +499,13 @@ Baris itu membandingkan array dengan dirinya sendiri — selalu lulus, tidak men
 
 Tidak ada satu pun yang akan mendeteksi E-01 (1.001 query) atau E-03 (266 KB tanpa kompresi).
 
-#### G-04 — `security:check` terlalu dangkal — **P2**
+#### G-04: `security:check` terlalu dangkal: **P2**
 
 `scripts/security-local-check.js` memeriksa tiga hal: `package-lock.json` ada dan punya `packages`, tidak ada `console.log` yang mencetak password/secret/token di `server/*.js`, dan `security-headers.js` menyebut `X-Content-Type-Options`.
 
 Ia hanya memindai `server/`, jadi kredensial di `website/portal.js` (C-01) tidak akan pernah terdeteksi. Tidak ada `npm audit`, tidak ada pemindaian berkas yang tersaji publik.
 
-#### G-05 — Elemen DOM dipertahankan hanya untuk memuaskan test — **P2**
+#### G-05: Elemen DOM dipertahankan hanya untuk memuaskan test: **P2**
 
 `portal.html:153` berisi komentar:
 
@@ -540,7 +540,7 @@ Total 36 temuan.
 
 Urutan di bawah dipilih supaya setiap tahap menghasilkan sesuatu yang bisa diverifikasi, dan supaya tahap berikutnya tidak membatalkan tahap sebelumnya. Tahap 9 wajib lebih dulu: selama CSP masih memblokir style inline, setiap perbaikan visual lain diverifikasi di atas fondasi yang salah.
 
-### Tahap 9 — Pulihkan fondasi render dan kanal masuk (P0)
+### Tahap 9: Pulihkan fondasi render dan kanal masuk (P0)
 
 Ini satu-satunya tahap yang boleh menahan rilis.
 
@@ -561,9 +561,9 @@ Pindahkan `<script>` inline di `kontak.html` ke `website/kontak.js`, dan muat be
 
 Ini butuh keputusan pemilik proses lebih dulu, karena menyangkut ke mana pesan dikirim:
 
-- **Opsi A** — buat `POST /api/inquiries` dengan tabel `inquiries`, rate limit per IP, dan tampilkan di konsol petugas. Paling terkontrol, paling banyak kerjanya.
-- **Opsi B** — ganti formulir dengan tautan `wa.me` ke nomor resmi yang sudah dikonfirmasi. Paling cepat, paling cocok dengan kebiasaan pasar, tetapi tidak meninggalkan jejak di sistem.
-- **Opsi C** — jalankan keduanya: formulir menyimpan ke database dan menawarkan lanjut ke WhatsApp.
+- **Opsi A**, buat `POST /api/inquiries` dengan tabel `inquiries`, rate limit per IP, dan tampilkan di konsol petugas. Paling terkontrol, paling banyak kerjanya.
+- **Opsi B**, ganti formulir dengan tautan `wa.me` ke nomor resmi yang sudah dikonfirmasi. Paling cepat, paling cocok dengan kebiasaan pasar, tetapi tidak meninggalkan jejak di sistem.
+- **Opsi C**, jalankan keduanya: formulir menyimpan ke database dan menawarkan lanjut ke WhatsApp.
 
 Rekomendasi: **Opsi C**, dengan A sebagai sumber kebenaran.
 
@@ -573,7 +573,7 @@ Apa pun pilihannya, dua hal ini wajib: **jangan pernah menampilkan pesan sukses 
 
 **9.3 Cabut kredensial dari kode klien**
 
-Hapus blok `Coba Cepat Akun Pengujian` dari `portal.html` dan handler-nya dari `portal.js`. Jika pengisian cepat masih dibutuhkan saat development, sediakan lewat mekanisme yang tidak ikut ter-deploy — misalnya berkas terpisah yang hanya dimuat ketika `APP_ENV` bukan production, atau cukup lewat bookmarklet lokal.
+Hapus blok `Coba Cepat Akun Pengujian` dari `portal.html` dan handler-nya dari `portal.js`. Jika pengisian cepat masih dibutuhkan saat development, sediakan lewat mekanisme yang tidak ikut ter-deploy, misalnya berkas terpisah yang hanya dimuat ketika `APP_ENV` bukan production, atau cukup lewat bookmarklet lokal.
 
 Setelah itu: putar kata sandi akun `tester@hamasah.test` jika akun itu ada di environment mana pun selain lokal, dan periksa riwayat git untuk memutuskan apakah nilai lama perlu dianggap bocor.
 
@@ -581,7 +581,7 @@ Setelah itu: putar kata sandi akun `tester@hamasah.test` jika akun itu ada di en
 
 ---
 
-### Tahap 10 — Tutup celah data dan privasi (P1)
+### Tahap 10: Tutup celah data dan privasi (P1)
 
 **10.1 Pindahkan berkas server keluar dari `website/`**
 
@@ -610,7 +610,7 @@ Migrasi baru menambahkan `recorded_by_account_id UUID REFERENCES accounts(id) ON
 
 ---
 
-### Tahap 11 — Pasang UI untuk fitur backend yang sudah ada (P1)
+### Tahap 11: Pasang UI untuk fitur backend yang sudah ada (P1)
 
 Tahap ini tidak menulis fitur baru. Ia menyelesaikan yang sudah dibayar.
 
@@ -648,13 +648,13 @@ Tombol pada area profil yang memanggil `POST /api/auth/logout-all`, dan aksi ser
 
 ---
 
-### Tahap 12 — Kebenaran tampilan dan identitas (P1–P2)
+### Tahap 12: Kebenaran tampilan dan identitas (P1–P2)
 
 **12.1 Kembalikan palet ke identitas merek**
 
 Tetapkan `--md-sys-color-primary` ke emas logo `#E7B10C`, dan seluruh keluarga netral ke charcoal `#363638` beserta turunannya. Hijau `--md-sys-color-tertiary` dipindahkan menjadi token sukses saja, bukan warna tersier umum.
 
-Ambil nilai emas dari berkas logo, jangan menebak. Setelah token berubah, **setiap pasangan teks/latar harus diukur ulang** — mengubah primary tanpa mengukur kontras akan memindahkan masalah, bukan menyelesaikannya.
+Ambil nilai emas dari berkas logo, jangan menebak. Setelah token berubah, **setiap pasangan teks/latar harus diukur ulang**, mengubah primary tanpa mengukur kontras akan memindahkan masalah, bukan menyelesaikannya.
 
 **12.2 Batalkan override outline yang merusak kontras**
 
@@ -677,7 +677,7 @@ Hapus atau persempit aturan di `website.css:2943–2954`. Badge yang berada di a
 
 ---
 
-### Tahap 13 — Perbaiki alat uji sebelum menambah klaim (P1–P2)
+### Tahap 13: Perbaiki alat uji sebelum menambah klaim (P1–P2)
 
 Tahap ini diletakkan sebelum tahap performa dan SEO dengan sengaja: tanpa alat yang benar, hasil tahap berikutnya tidak dapat dibuktikan.
 
@@ -711,11 +711,11 @@ Setelah 9.1 selesai, tidak boleh ada lagi elemen yang dipertahankan semata agar 
 
 ---
 
-### Tahap 14 — Skalabilitas (P1–P2)
+### Tahap 14: Skalabilitas (P1–P2)
 
 **14.1 Tulis ulang daftar pendaftaran sebagai satu query berpaginasi**
 
-Ganti `store.list()` dengan `store.list({ search, status, page, pageSize })` yang menjalankan satu query dengan `WHERE`, `ORDER BY`, `LIMIT`, `OFFSET`, plus satu query `COUNT`. Daftar tidak perlu memuat dokumen, catatan, dan tindak lanjut — itu hanya diperlukan saat satu pendaftar dibuka.
+Ganti `store.list()` dengan `store.list({ search, status, page, pageSize })` yang menjalankan satu query dengan `WHERE`, `ORDER BY`, `LIMIT`, `OFFSET`, plus satu query `COUNT`. Daftar tidak perlu memuat dokumen, catatan, dan tindak lanjut, itu hanya diperlukan saat satu pendaftar dibuka.
 
 Rapikan juga tipe kembalian `listForStaff` menjadi satu bentuk konsisten.
 
@@ -741,7 +741,7 @@ Pindahkan state rate limit dan kuota AI ke penyimpanan bersama jika deployment a
 
 ---
 
-### Tahap 15 — Distribusi dan konten (P1–P2)
+### Tahap 15: Distribusi dan konten (P1–P2)
 
 **15.1 Open Graph dan Twitter Card**
 
@@ -763,7 +763,7 @@ Sediakan HTML awal untuk `article.html` dari server, minimal judul, deskripsi, d
 
 ---
 
-### Tahap 16 — Pengerasan dan keputusan sisa (P2–P3)
+### Tahap 16: Pengerasan dan keputusan sisa (P2–P3)
 
 - **Prototipe lama.** Putuskan nasib `/proposal/` dan `/hamasah/`. Jika dihapus, hapus juga rutenya, `index.html`/`styles.css`/`app.js`/`cinematic.css`/`proposal.css` di root, dan perbarui `.vercelignore` supaya Vercel men-deploy aplikasi yang sebenarnya.
 - **Worker visa.** Sambungkan `scripts/visa-reminder-worker.js` ke `operationsService` dan notification service nyata. Ubah default `notify` supaya **tidak** menandai terkirim ketika tidak ada pengirim. Berikan `stateStore` yang persisten.
@@ -785,7 +785,7 @@ Supaya perbaikan tidak merusak yang sudah benar:
 - **Nomor dokumen atomik** lewat `document_counters` dengan `INSERT` tanpa `ON CONFLICT`, sehingga tabrakan gagal keras alih-alih menimpa data.
 - **Migrasi berversi** dengan penolakan berkas yang sudah diterapkan lalu diubah, plus mode baseline.
 - **Row Level Security aktif di semua tabel**, menutup Data API Supabase.
-- **Header keamanan** lengkap dan disusun dari konfigurasi, bukan string panjang. CSP-nya ketat — itu justru yang mengungkap A-01, dan kekuatannya harus dipertahankan.
+- **Header keamanan** lengkap dan disusun dari konfigurasi, bukan string panjang. CSP-nya ketat, itu justru yang mengungkap A-01, dan kekuatannya harus dipertahankan.
 - **Payload notifikasi terenkripsi** dan token tidak pernah dicetak ke log.
 - **Koreksi berjejak** untuk invoice dan rekam jejak santri, dengan alasan wajib minimal 5 karakter di level database.
 - **Validasi formulir pendaftaran** menampilkan error inline dan memindahkan fokus ke field bermasalah.

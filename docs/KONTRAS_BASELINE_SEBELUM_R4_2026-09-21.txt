@@ -502,4 +502,4 @@ TINJAU MANUAL: 7 temuan unik (latar foto atau gradien, atau bergantung pada piks
 Diperiksa 11141 elemen teks: 7860 lulus, 117 pelanggaran unik, 7 tinjau manual unik.
 
 1 langkah data contoh gagal (jalankan --verbose untuk rinciannya). Halaman terkait mungkin terukur dengan lebih sedikit data.
-Hasil lengkap ditulis ke C:/Users/ASUS/AppData/Local/Temp/claude/C--Users-ASUS-OneDrive-Documents-Hamasah-International/d0871f1e-3470-49fb-832b-83715c6a7391/scratchpad/kontras-baseline-sebelum-R4.json
+Hasil lengkap ditulis ke kontras-baseline-sebelum-R4.json

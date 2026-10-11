@@ -1,4 +1,4 @@
-# Remediasi R4 — Hasil (21 September 2026)
+# Remediasi R4: Hasil (21 September 2026)
 
 Cabang: `remediasi-r1-render` (lokal, belum di-push). Setiap tugas satu atau lebih commit dengan id tugas di subjek.
 
@@ -34,7 +34,7 @@ Cabang: `remediasi-r1-render` (lokal, belum di-push). Setiap tugas satu atau leb
 
 Codemod: 391 penggantian mekanis hex Slate/amber → token (warna teks vs isi ditentukan per konteks), lalu 32 aturan teks emas → gold-dark/gold-large dan 10 putih-di-atas-emas → on-primary. Jumlah kurung kurawal diverifikasi tidak berubah. Kesalahan yang ditemukan alat dan diperbaiki: judul hero portal charcoal di atas charcoal (1,18:1) akibat spesifisitas, dan subjudul hero yang menjadi 2,54:1.
 
-## R4.7 — mengapa 12.000 px tidak tercapai
+## R4.7: mengapa 12.000 px tidak tercapai
 
 Semua penghematan yang aman (jarak, padding seksi, kartu pintasan ringkas, kartu kegiatan satu kolom, footer 2 kolom) sudah diambil tanpa mengubah ukuran huruf. Sisanya butuh keputusan editorial/UX: karusel (perkiraan hemat 2.000–2.500 px), menggabung bagian program yang berulang, akordeon. Pengguna memilih berhenti di 16.001 px. Tidak ada overflow horizontal pada 360/390/768/1024/1440.
 

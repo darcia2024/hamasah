@@ -1,4 +1,4 @@
-# Phase R2 — Hasil dan bukti
+# Phase R2: Hasil dan bukti
 
 Tanggal: 21 September 2026
 Rencana: `docs/RENCANA_REMEDIASI_PHASE_R1_R8_2026-09-20.md` Bagian 4
@@ -25,7 +25,7 @@ Karena itu R2.2 dikerjakan sebagai **daftar-izin ekstensi**, bukan sekadar dafta
 
 ## Perubahan per task
 
-### R2.1 — Berkas server keluar dari folder publik
+### R2.1: Berkas server keluar dari folder publik
 
 Yang dipindah atau dihapus:
 
@@ -40,7 +40,7 @@ Yang dipindah atau dihapus:
 
 Konsekuensinya `registration-domain.test.js` me-require modulnya lewat `../website/`, bukan berada di sampingnya. Itu lebih baik daripada meninggalkan berkas test di folder publik.
 
-### R2.2 — Gerbang penyajian statis
+### R2.2: Gerbang penyajian statis
 
 Dua lapis, dipasang setelah `normalizedPath` final (yaitu sesudah pemetaan ulang permintaan tanpa awalan `/website/`) dan sebelum berkas dicari di disk:
 
@@ -49,7 +49,7 @@ Dua lapis, dipasang setelah `normalizedPath` final (yaitu sesudah pemetaan ulang
 
 Jawabannya **404, bukan 403**. Test membuktikan status dan isi respons untuk berkas yang ada tetapi dilarang persis sama dengan berkas yang tidak ada, sehingga server tidak membocorkan keberadaan berkas lewat selisih jawaban.
 
-### R2.3 — Kebijakan privasi: yang selesai dan yang belum
+### R2.3: Kebijakan privasi: yang selesai dan yang belum
 
 **Selesai:**
 
@@ -79,7 +79,7 @@ Selama itu, halaman diberi `meta robots noindex`, blok draf ditampilkan mencolok
 
 **Catatan untuk tinjauan hukum:** yang tercatat saat ini adalah **versi** dokumen yang disetujui, bukan stempel waktu persetujuannya sendiri. `guardian_consent_at` ada; padanan untuk persetujuan pemrosesan data belum. Tambahkan bila pihak yang meninjau menghendakinya.
 
-### R2.4 — Jejak pelaku pada rekam jejak santri
+### R2.4: Jejak pelaku pada rekam jejak santri
 
 Migrasi `033_student_record_actor.sql` menambahkan `recorded_by_account_id` ke `student_activities`, `student_attendance`, `student_achievements`, `student_evaluations`, dan `student_violations`. Nullable, `ON DELETE SET NULL`, mengikuti pola migrasi 005.
 
@@ -113,11 +113,11 @@ node database/validate-schema.js    lulus
 
 Test baru dan yang diperluas:
 
-- `server/http/static.test.js` — tujuh pola terlarang memakai berkas yang benar-benar dibuat di sandbox, jadi yang diuji adalah gerbangnya menolak dan bukan berkasnya kebetulan tidak ada; ditambah pemeriksaan bahwa 404 "dilarang" identik dengan 404 "tidak ada".
-- `server/postgres-student-store.test.js` — pencatat tersimpan, namanya terbaca lewat JOIN, baris tanpa pencatat tetap terbaca, catatan bertahan setelah akun staf dihapus.
-- `server/student-portal-service.test.js` — body yang menitipkan pencatat kalah dari actor sesi.
-- `server/app-postgres.test.js` — `privacyPolicyVersion` palsu di body diabaikan, dan kiriman tanpa `dataProcessingConsent` ditolak 422.
-- `server/registration-domain.test.js` dan `server/registration-service.test.js` — kedua persetujuan berdiri sendiri; versi distempel saat create dan dipertahankan saat penyuntingan profil.
+- `server/http/static.test.js`, tujuh pola terlarang memakai berkas yang benar-benar dibuat di sandbox, jadi yang diuji adalah gerbangnya menolak dan bukan berkasnya kebetulan tidak ada; ditambah pemeriksaan bahwa 404 "dilarang" identik dengan 404 "tidak ada".
+- `server/postgres-student-store.test.js`, pencatat tersimpan, namanya terbaca lewat JOIN, baris tanpa pencatat tetap terbaca, catatan bertahan setelah akun staf dihapus.
+- `server/student-portal-service.test.js`, body yang menitipkan pencatat kalah dari actor sesi.
+- `server/app-postgres.test.js`, `privacyPolicyVersion` palsu di body diabaikan, dan kiriman tanpa `dataProcessingConsent` ditolak 422.
+- `server/registration-domain.test.js` dan `server/registration-service.test.js`, kedua persetujuan berdiri sendiri; versi distempel saat create dan dipertahankan saat penyuntingan profil.
 
 ### Server lokal
 

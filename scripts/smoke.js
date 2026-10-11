@@ -3,7 +3,7 @@
 // Nama berkas sengaja BUKAN smoke-test.js atau smoke.test.js: node --test
 // mendeteksi otomatis berkas apa pun yang berakhiran -test.js/.test.js sebagai
 // file test, dan skrip ini keluar dengan exit code bukan-nol kalau env var
-// wajibnya kosong — itu akan membuat `npm test` ikut gagal setiap saat.
+// wajibnya kosong, itu akan membuat `npm test` ikut gagal setiap saat.
 //
 // Berbeda dengan npm test: skrip ini TIDAK memakai PGlite dan TIDAK dijalankan
 // otomatis. Skrip ini mengetuk API sungguhan lewat HTTP, persis seperti browser,
@@ -109,7 +109,7 @@ async function main() {
 
   await langkah('GET /api/ready membalas 200 dengan database siap', async () => {
     const hasil = await permintaan('GET', '/api/ready');
-    pastikan(hasil.status === 200, `Status: ${hasil.status} — ${JSON.stringify(hasil.body)}`);
+    pastikan(hasil.status === 200, `Status: ${hasil.status}, ${JSON.stringify(hasil.body)}`);
     pastikan(hasil.body.database === 'siap', `database: ${hasil.body.database}`);
   });
 

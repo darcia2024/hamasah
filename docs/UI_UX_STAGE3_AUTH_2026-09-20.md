@@ -1,4 +1,4 @@
-# Tahap 3 — Auth dan pendaftaran
+# Tahap 3: Auth dan pendaftaran
 
 Tanggal: 2026-09-20
 
@@ -16,9 +16,9 @@ Tanggal: 2026-09-20
 
 ## Validasi
 
-- `node --test server/identity-service.test.js` — lulus.
-- `npm run test:browser-contract` — lulus, 16 halaman.
-- `git diff --check` — lulus; peringatan yang muncul hanya konversi akhir baris Git.
+- `node --test server/identity-service.test.js`, lulus.
+- `npm run test:browser-contract`, lulus, 16 halaman.
+- `git diff --check`, lulus; peringatan yang muncul hanya konversi akhir baris Git.
 
 ---
 

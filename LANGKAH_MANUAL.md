@@ -42,18 +42,18 @@ Isi commit tersebut: mode dev PGlite, konversi tiga service menjadi async, store
 
 > **Status per 16 Sep 2026:**
 > - **Production**: migrasi 001–007 diterapkan (7 migrasi, 21 tabel, semua ber-RLS). Migrasi 008–011 **belum** diterapkan ke production.
-> - **Staging**: migrasi 001–011 sudah diterapkan dan diverifikasi (11 migrasi, 25 tabel aplikasi, semua ber-RLS). Ini mencakup `008_dormitories.sql` (asrama dan penugasan musyrif), `009_audit_events.sql` (catatan audit), `010_session_last_seen.sql` (durasi sesi per role), dan `011_file_objects.sql` (penyimpanan berkas). Semuanya aditif — tidak ada data lama yang berubah.
+> - **Staging**: migrasi 001–011 sudah diterapkan dan diverifikasi (11 migrasi, 25 tabel aplikasi, semua ber-RLS). Ini mencakup `008_dormitories.sql` (asrama dan penugasan musyrif), `009_audit_events.sql` (catatan audit), `010_session_last_seen.sql` (durasi sesi per role), dan `011_file_objects.sql` (penyimpanan berkas). Semuanya aditif, tidak ada data lama yang berubah.
 >
-> Langkah-langkah di bagian ini (3) sudah selesai untuk staging. **Smoke test staging di bagian 4 sudah lulus 12/12** lewat `npm run smoke-test`, termasuk unggah-unduh berkas ke Supabase Storage sungguhan — driver storage-nya terbukti benar-benar tersambung, bukan cuma lolos test lawan server tiruan. Lanjut ke migrasi 008–011 ke **production** di bagian 5.
+> Langkah-langkah di bagian ini (3) sudah selesai untuk staging. **Smoke test staging di bagian 4 sudah lulus 12/12** lewat `npm run smoke-test`, termasuk unggah-unduh berkas ke Supabase Storage sungguhan, driver storage-nya terbukti benar-benar tersambung, bukan cuma lolos test lawan server tiruan. Lanjut ke migrasi 008–011 ke **production** di bagian 5.
 >
-> **Sempat gagal, sudah diperbaiki:** `npm run verify:database` awalnya menolak dengan pesan "SUPABASE_URL harus diisi", padahal skrip migrasi tidak ada urusan dengan penyimpanan berkas sama sekali. Itu bug di sisi kode (perbaikan sudah di-commit) — bukan sesuatu yang perlu Anda ubah di konfigurasi.
+> **Sempat gagal, sudah diperbaiki:** `npm run verify:database` awalnya menolak dengan pesan "SUPABASE_URL harus diisi", padahal skrip migrasi tidak ada urusan dengan penyimpanan berkas sama sekali. Itu bug di sisi kode (perbaikan sudah di-commit), bukan sesuatu yang perlu Anda ubah di konfigurasi.
 >
 > **Variabel environment yang wajib diisi sebelum `npm start` di staging atau production** (migrasi sendiri tidak butuh ini, tapi menjalankan aplikasinya butuh):
-> - `IP_HASH_SECRET`, minimal 32 karakter acak, dipakai mengacak alamat IP di catatan audit. Anda sudah membuat satu nilai di terminal — **simpan nilai itu ke `.env` staging sekarang juga** sebelum hilang, dan buat nilai terpisah untuk `.env` production nanti:
+> - `IP_HASH_SECRET`, minimal 32 karakter acak, dipakai mengacak alamat IP di catatan audit. Anda sudah membuat satu nilai di terminal, **simpan nilai itu ke `.env` staging sekarang juga** sebelum hilang, dan buat nilai terpisah untuk `.env` production nanti:
 >   ```bash
 >   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 >   ```
-> - `STORAGE_DRIVER`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `STORAGE_BUCKET`, `STORAGE_PUBLIC_BUCKET` — lihat bagian 9 di bawah. Belum diisi berarti `npm start` (bukan `npm run migrate`) akan berhenti dengan pesan jelas di staging dan production.
+> - `STORAGE_DRIVER`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `STORAGE_BUCKET`, `STORAGE_PUBLIC_BUCKET`, lihat bagian 9 di bawah. Belum diisi berarti `npm start` (bukan `npm run migrate`) akan berhenti dengan pesan jelas di staging dan production.
 >
 > **Perhatikan ini soal asrama:** musyrif yang belum ditugaskan ke asrama tidak akan melihat santri mana pun. Begitu ada akun musyrif, admin harus membuat daftar asrama dan menugaskan musyrifnya lewat halaman Monitoring, lalu menempatkan setiap santri ke asramanya.
 
@@ -88,7 +88,7 @@ $env:APP_ENV="staging"; npm start
 
 ### Cara cepat: skrip otomatis
 
-`scripts/smoke.js` (dipanggil lewat `npm run smoke-test`) menjalankan seluruh daftar periksa di bawah lewat HTTP, termasuk uji unggah/unduh berkas. Skrip ini **tidak pernah dijalankan otomatis oleh Sonnet** — menjalankannya berarti membuat data sungguhan (akun, santri, invoice, pendaftaran, berkas) di lingkungan target, jadi ini murni tugas Anda. Di terminal lain (server staging tetap menyala di terminal pertama):
+`scripts/smoke.js` (dipanggil lewat `npm run smoke-test`) menjalankan seluruh daftar periksa di bawah lewat HTTP, termasuk uji unggah/unduh berkas. Skrip ini **tidak pernah dijalankan otomatis oleh Sonnet**, menjalankannya berarti membuat data sungguhan (akun, santri, invoice, pendaftaran, berkas) di lingkungan target, jadi ini murni tugas Anda. Di terminal lain (server staging tetap menyala di terminal pertama):
 
 ```bash
 $env:SMOKE_BASE_URL="http://127.0.0.1:4273"
@@ -103,7 +103,7 @@ Kalau akun admin ini belum pernah dibuat di staging (baru pertama kali), tambahk
 $env:SMOKE_BOOTSTRAP_KEY="<HAMASAH_BOOTSTRAP_KEY dari .env staging>"
 ```
 
-Skrip mencetak ✔/✖ per langkah dan berhenti dengan exit code bukan-nol kalau ada yang gagal — sudah diuji berperilaku benar di kedua arah (lulus semua, dan sengaja digagalkan dengan kata sandi salah) terhadap server dev lokal sebelum diserahkan.
+Skrip mencetak ✔/✖ per langkah dan berhenti dengan exit code bukan-nol kalau ada yang gagal, sudah diuji berperilaku benar di kedua arah (lulus semua, dan sengaja digagalkan dengan kata sandi salah) terhadap server dev lokal sebelum diserahkan.
 
 ### Atau manual lewat browser
 
@@ -127,7 +127,7 @@ Kalau ada yang gagal (lewat skrip atau manual), hentikan di sini dan jangan lanj
 
 ## 5. Terapkan migrasi ke production
 
-> Migrasi 001–007 sudah diterapkan ke production (terakhir 16 Sep 2026). Migrasi **008–011 belum**. Perintah di bawah ini yang sama dipakai lagi untuk menyusulkan 008–011, setelah smoke test staging di bagian 4 lulus — jangan lewati smoke test, karena 008–011 mengubah otorisasi (asrama), audit, sesi, dan penyimpanan berkas sekaligus.
+> Migrasi 001–007 sudah diterapkan ke production (terakhir 16 Sep 2026). Migrasi **008–011 belum**. Perintah di bawah ini yang sama dipakai lagi untuk menyusulkan 008–011, setelah smoke test staging di bagian 4 lulus, jangan lewati smoke test, karena 008–011 mengubah otorisasi (asrama), audit, sesi, dan penyimpanan berkas sekaligus.
 
 1. **Backup dulu.** Dashboard Supabase > Database > Backups, atau `supabase db dump` dengan Supabase CLI. Jangan lewati langkah ini.
 2. Isi `.env` dengan connection string production.
@@ -187,8 +187,8 @@ Badge status di README akan menampilkan hasil run terakhir di `main`. Selama bel
 Paspor, ijazah, dan surat kesehatan santri disimpan di object storage, bukan di database dan bukan di disk server.
 
 1. Di project Supabase, buka **Storage** lalu buat dua bucket:
-   - `hamasah-private` — **Public bucket: OFF**. Berisi dokumen pribadi.
-   - `hamasah-public` — Public bucket: ON. Hanya untuk gambar sampul artikel.
+   - `hamasah-private`, **Public bucket: OFF**. Berisi dokumen pribadi.
+   - `hamasah-public`, Public bucket: ON. Hanya untuk gambar sampul artikel.
 2. Pada masing-masing bucket, atur batas ukuran berkas (20 MB cukup) dan daftar tipe MIME yang diizinkan.
 3. Salin **Project URL** dan **service_role key** dari Settings > API.
 4. Isi `.env` server dengan:

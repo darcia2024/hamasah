@@ -925,7 +925,7 @@ Ia memeriksa `styles.css` dan `cinematic.css` **di root**, berkas milik prototip
 
 Skrip ini dikutip sebagai bukti lulus di Tahap 2, 3, 4, 5, 6, 7, dan 8 dengan kalimat "lulus, 16 halaman". Ia tidak mungkin menangkap A-01, A-02, C-01, D-02, atau D-08.
 
-**Baca dulu:** `scripts/browser-contract.test.js`, `scripts/http-performance.test.js` sebagai contoh skrip yang menjalankan server, `.claude/launch.json`.
+**Baca dulu:** `scripts/browser-contract.test.js`, `scripts/http-performance.test.js` sebagai contoh skrip yang menjalankan server.
 
 **Langkah:**
 1. Tulis rencana lebih dulu: bagaimana browser dijalankan di CI dan di mesin lokal, dan berapa lama test akan makan waktu. Ajukan sebelum mengubah kode.
@@ -1537,7 +1537,7 @@ Tanpa ketiganya, situs menampilkan layout yang rusak, tidak punya kanal masuk ya
 
 Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan hash commit. Contoh: `- [x] R1.3 Style inline halaman internal (a1b2c3d)`.
 
-**Phase R1: Fondasi Render dan Kanal Masuk** — selesai 20 September 2026, kecuali R1.0
+**Phase R1: Fondasi Render dan Kanal Masuk**, selesai 20 September 2026, kecuali R1.0
 - [ ] R1.0 `[MANUSIA]` Putar kredensial yang tersaji publik
 - [x] R1.1 Cabut blok kredensial pengujian dari portal
 - [x] R1.2 `[KOMPLEKS]` Hapus elemen DOM mati di portal dan perbaiki test
@@ -1586,7 +1586,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [ ] R6.5 Index database
 - [ ] R6.6 Rate limit dan kuota bersama
 
-**Phase R7: Distribusi dan Konten** — 22 September 2026, kecuali R7.6 (lihat `docs/REMEDIASI_R7_HASIL_2026-09-22.md`)
+**Phase R7: Distribusi dan Konten**, 22 September 2026, kecuali R7.6 (lihat `docs/REMEDIASI_R7_HASIL_2026-09-22.md`)
 - [x] R7.1 Open Graph dan Twitter Card (b6d9e7d)
 - [x] R7.2 Sitemap dan robots yang benar (725bcc5)
 - [x] R7.3 `[KOMPLEKS]` Artikel dapat ditemukan dan dibagikan (12756ff)
@@ -1594,7 +1594,7 @@ Sonnet mencentang task setelah Definition of Done terpenuhi, lalu menambahkan ha
 - [x] R7.5 `[KEPUTUSAN KR5]` Format isi artikel, opsi a (2a84bbc)
 - [ ] R7.6 `[KLIEN]` Isi konten nyata (kerangka permintaan di dokumen hasil R7)
 
-**Phase R8: Pengerasan dan Keputusan Sisa** — 22 September 2026, kecuali R8.7 (lihat `docs/REMEDIASI_R8_HASIL_2026-09-22.md`)
+**Phase R8: Pengerasan dan Keputusan Sisa**, 22 September 2026, kecuali R8.7 (lihat `docs/REMEDIASI_R8_HASIL_2026-09-22.md`)
 - [x] R8.1 `[KEPUTUSAN KR6]` Nasib prototipe lama, opsi a (70752a9)
 - [x] R8.2 Sambungkan worker pengingat visa (4ed1c2e; scheduler di hosting menunggu K2)
 - [x] R8.3 `[KEPUTUSAN K10]` Notifikasi peristiwa penting, email (bb33661; WhatsApp di Phase 16)

@@ -1,4 +1,4 @@
-# Phase R1 — Hasil dan bukti
+# Phase R1: Hasil dan bukti
 
 Tanggal: 20 September 2026
 Rencana: `docs/RENCANA_REMEDIASI_PHASE_R1_R8_2026-09-20.md` Bagian 3
@@ -33,13 +33,13 @@ Catatan teknis: penulisan properti satu per satu (`element.style.width = '...'`)
 
 ## Perubahan per task
 
-### R1.1 — Kredensial pengujian dicabut
+### R1.1: Kredensial pengujian dicabut
 
 - Blok `Coba Cepat Akun Pengujian` dihapus dari `website/portal.html`.
 - Empat handler beserta `tester@hamasah.test` / `TestingHamasah2026!` dan `kata-sandi-dev-hamasah` dihapus dari `website/portal.js`.
 - Tidak diganti dengan versi "hanya development": berkas ini tetap ter-deploy. Kredensial akun contoh sudah dicetak ke terminal oleh `npm run dev`.
 
-### R1.2 — Elemen mati dihapus, bukan disembunyikan
+### R1.2: Elemen mati dihapus, bukan disembunyikan
 
 Komentar di `portal.html` menyatakan elemen dipertahankan untuk assertion test. **Pemeriksaan menunjukkan tidak ada satu pun test yang menyebut keempat id tersebut.**
 
@@ -52,7 +52,7 @@ Komentar di `portal.html` menyatakan elemen dipertahankan untuk assertion test. 
 
 Ditemukan juga bahwa `#crm-page-title` **tidak ada di berkas HTML mana pun**, sehingga enam assignment `crmPageTitle.textContent` menulis ke `null`. Variabel dan seluruh assignment-nya dihapus.
 
-### R1.3 dan R1.4 — Style inline ke kelas
+### R1.3 dan R1.4: Style inline ke kelas
 
 Kelas ditambahkan di `website/staff.css` (dimuat keenam halaman internal) dan `website/website.css` (halaman publik).
 
@@ -63,15 +63,15 @@ Yang perlu diperhatikan saat meninjau:
 - **Textarea masuk sistem field.** `.field-group input, .field-group select` diperluas dengan `textarea`. Sebelumnya textarea tidak pernah tercakup selector itu; itulah sebabnya dulu ditulis inline.
 - Tinggi kontrol yang dulu ditulis `height: 44px` / `46px` menjadi `min-height`, karena `.button` sudah menyediakan `min-height: 44px`.
 
-### R1.5 dan R1.6 — Kanal masuk publik
+### R1.5 dan R1.6: Kanal masuk publik
 
 Keputusan KR1: opsi (c), formulir dan WhatsApp.
 
 Backend baru:
 
-- `database/032_inquiries.sql` — tabel `inquiries` dengan constraint nama, topik, panjang pesan, status, dan RLS aktif.
-- `server/postgres-inquiry-store.js` — validasi, normalisasi nomor ke E.164 memakai aturan yang sama dengan pendaftaran, dan **pagination sejak awal** supaya tidak mengulang temuan E-02.
-- `server/routes/inquiries.js` — `POST /api/inquiries` publik dengan rate limit per IP, `GET /api/inquiries` dan `PATCH /api/inquiries/:id/status` dengan izin `inquiries.read` / `inquiries.manage`.
+- `database/032_inquiries.sql`, tabel `inquiries` dengan constraint nama, topik, panjang pesan, status, dan RLS aktif.
+- `server/postgres-inquiry-store.js`, validasi, normalisasi nomor ke E.164 memakai aturan yang sama dengan pendaftaran, dan **pagination sejak awal** supaya tidak mengulang temuan E-02.
+- `server/routes/inquiries.js`, `POST /api/inquiries` publik dengan rate limit per IP, `GET /api/inquiries` dan `PATCH /api/inquiries/:id/status` dengan izin `inquiries.read` / `inquiries.manage`.
 - Aturan rate limit baru `inquiry-create` (8 per jam per IP), terpisah dari `registration-create`.
 - Aksi audit `inquiry.received` dan `inquiry.status-changed`. **Nama, nomor, dan isi pesan tidak masuk metadata audit**; hanya topik.
 
@@ -84,7 +84,7 @@ Frontend:
 
 Slot WhatsApp: konstanta `WHATSAPP_NUMBER` di `website/kontak.js`, saat ini kosong. Tombol tidak ditampilkan selama kosong. **Satu-satunya tempat nomor itu perlu ditulis.**
 
-### R1.7 — Gerbang otomatis
+### R1.7: Gerbang otomatis
 
 `scripts/csp-contract.test.js` menolak, pada `website/`:
 
@@ -108,8 +108,8 @@ node --check                   portal.js, lms.js, staff.js, kontak.js
 
 Test baru:
 
-- `server/postgres-inquiry-store.test.js` — validasi, normalisasi nomor, pagination, batas `pageSize`, perubahan status, 404.
-- `server/inquiries-api.test.js` — pengiriman publik tanpa sesi, penolakan isian tidak valid, **401 tanpa sesi**, **403 untuk role tidak berhak**, alur petugas, dan pemeriksaan bahwa nomor serta isi pesan tidak bocor ke jejak audit.
+- `server/postgres-inquiry-store.test.js`, validasi, normalisasi nomor, pagination, batas `pageSize`, perubahan status, 404.
+- `server/inquiries-api.test.js`, pengiriman publik tanpa sesi, penolakan isian tidak valid, **401 tanpa sesi**, **403 untuk role tidak berhak**, alur petugas, dan pemeriksaan bahwa nomor serta isi pesan tidak bocor ke jejak audit.
 - `server/access-matrix.test.js` diperbarui dengan dua izin baru. Gerbang di berkas itu menolak izin yang belum diuji, dan gerbang itu memang menangkap kekurangan ini saat pertama kali dijalankan.
 
 ### Browser

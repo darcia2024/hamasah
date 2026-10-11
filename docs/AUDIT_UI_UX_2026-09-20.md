@@ -1,4 +1,4 @@
-# Audit UI/UX dan rencana perbaikan — 20 September 2026
+# Audit UI/UX dan rencana perbaikan: 20 September 2026
 
 ## Kesimpulan
 
@@ -21,10 +21,10 @@ Audit ini hanya menghasilkan dokumentasi. Tidak ada perubahan kode aplikasi, dat
 
 | Level | Arti | Target penanganan |
 |---|---|---|
-| P0 — kritis | Alur utama tidak dapat dipakai sama sekali atau dampak serius terkonfirmasi | Blokir rilis; tidak ditemukan dari cakupan visual ini |
-| P1 — tinggi | Navigasi sulit, informasi penting sulit dibaca, atau tampilan berpotensi menyesatkan | Selesaikan sebelum UAT visual final |
-| P2 — sedang | Spacing, hierarki, konsistensi kontrol, atau efisiensi alur bermasalah | Selesaikan sebelum rilis |
-| P3 — ringan | Polesan estetika tanpa hambatan utama | Setelah P1/P2 |
+| P0, kritis | Alur utama tidak dapat dipakai sama sekali atau dampak serius terkonfirmasi | Blokir rilis; tidak ditemukan dari cakupan visual ini |
+| P1, tinggi | Navigasi sulit, informasi penting sulit dibaca, atau tampilan berpotensi menyesatkan | Selesaikan sebelum UAT visual final |
+| P2, sedang | Spacing, hierarki, konsistensi kontrol, atau efisiensi alur bermasalah | Selesaikan sebelum rilis |
+| P3, ringan | Polesan estetika tanpa hambatan utama | Setelah P1/P2 |
 
 Prioritas halaman di bawah adalah temuan tertinggi pada halaman, bukan ukuran kerusakan backend.
 
@@ -53,61 +53,61 @@ Jumlah: 12 halaman dengan P1, 4 dengan P2. Tidak ada P0 yang terkonfirmasi. Enam
 
 ## Temuan lintas halaman dan bukti
 
-### UI-01 — Navigasi publik mobile hilang — P1
+### UI-01: Navigasi publik mobile hilang: P1
 
 Pada 390 px, landing page menampilkan tombol Menu. Halaman biaya, kontak, katalog artikel, detail artikel, dan cek status hanya menampilkan logo di header. Pengguna tidak memperoleh akses navigasi yang setara tanpa kembali atau mencari footer.
 
 Perbaikan: satu header responsif bersama, halaman aktif, toggle berlabel, status expanded, tutup dengan Escape, pengembalian fokus. Uji keyboard dan jangan mengandalkan logo sebagai satu-satunya jalan keluar.
 
-### UI-02 — Shell internal tidak efektif di mobile — P1
+### UI-02: Shell internal tidak efektif di mobile: P1
 
 Pada seluruh enam halaman internal, logo, profil, menu, dan keluar sesi menghabiskan sekitar 550 px pertama. Konten inti baru dimulai dekat bagian bawah layar. Topbar menjadi sempit dan teks refresh membungkus.
 
 Perbaikan: drawer tertutup sebagai kondisi awal mobile, topbar ringkas, backdrop dan fokus yang benar. Pertahankan sidebar desktop. Konten utama harus sudah mulai terlihat tanpa melewati daftar navigasi panjang.
 
-### UI-03 — Overflow portal — P1
+### UI-03: Overflow portal: P1
 
 DOM pada viewport 390 px menunjukkan `document.documentElement.scrollWidth = 403`. Screenshot juga menunjukkan scrollbar horizontal halaman. Tab panjang berada jauh di kanan viewport; bedakan scroll lokal tab yang disengaja dari overflow seluruh halaman.
 
 Perbaikan: audit min-width/grid/flex, pembungkus tab dengan scroll lokal dan indikator lanjutan, kontrol topbar tidak memaksa lebar dokumen. Jangan menyembunyikan masalah dengan overflow-x hidden global.
 
-### UI-04 — Kontras teks sekunder — P1
+### UI-04: Kontras teks sekunder: P1
 
 Portal: teks “Program akan muncul setelah maddah dan materi dipublikasikan oleh pembina.” memiliki computed color `rgb(214, 207, 190)` dan ukuran 13 px pada permukaan hampir putih. Secara visual sulit dibaca. Masalah serupa terlihat pada kartu statistik, empty state, metadata artikel, dan detail kontak. Belum ada perhitungan rasio seluruh pasangan warna, sehingga laporan ini tidak mengklaim sertifikasi WCAG.
 
 Perbaikan: token teks sekunder yang lebih gelap, body Regular 400 dan judul SemiBold 600 sesuai arahan pengguna. Target rasio teks normal minimal 4.5:1 dan teks besar 3:1. Jangan membuat empty state tampak disabled jika pesannya masih penting dibaca.
 
-### UI-05 — Status dan identitas yang tidak dapat dipercaya — P1
+### UI-05: Status dan identitas yang tidak dapat dipercaya: P1
 
 Topbar portal Tester Hamasah tidak sama dengan Admin Dev di sidebar; literal nama ditemukan di `website/portal.html`. Badge sidebar Pendaftaran 4 berbeda dari tab daftar masuk 3. Perbedaan angka belum membuktikan bug perhitungan karena definisinya bisa berbeda, tetapi UI tidak menjelaskan artinya.
 
 Perbaikan: identitas berasal dari sesi yang sama; badge diberi arti yang jelas dan sumber aktual atau dihilangkan. Jangan tampilkan sinkronisasi lengkap, realtime, arsip permanen, atau jaminan resmi sebagai fakta tanpa dasar yang sesuai. Angka 98.4% pada gambaran portal harus diberi penanda ilustrasi atau diganti penjelasan nonnumerik.
 
-### UI-06 — Kontrol dan jarak form tidak konsisten — P2, P1 pada CTA cek status mobile
+### UI-06: Kontrol dan jarak form tidak konsisten: P2, P1 pada CTA cek status mobile
 
 Refresh internal tampil seperti kontrol native abu-abu. Cek status memadukan input modern dan field recovery native. CMS menunjukkan label slug dekat sekali ke select sebelumnya; daftar editorial menempelkan judul dan slug tanpa pemisahan yang cukup. Audit filter menumpuk field tanpa ritme label yang jelas.
 
 Perbaikan: satu spesifikasi input/select/textarea/button, tinggi kontrol minimum praktis 44 px, label 6–8 px dari field terkait, grup 16–24 px, feedback dekat field. Tinggi tombol harus mengakomodasi teks; jangan mengunci tinggi pill saat label membungkus.
 
-### UI-07 — Hierarki internal terlalu berat di bagian pembuka — P2
+### UI-07: Hierarki internal terlalu berat di bagian pembuka: P2
 
 Monitoring, LMS, staff, operations, dan audit mengulang panel judul plus banyak metadata sebelum tugas utama. Pada mobile masalahnya berlipat dengan sidebar panjang. Operations menaruh kartu form di dalam kartu, dengan field penuh lebar desktop.
 
 Perbaikan: judul, konteks penting, dan satu aksi utama; metadata tambahan dapat disingkat atau dibuka bila dibutuhkan. Form desktop dua kolom hanya untuk pasangan data yang relevan; mobile satu kolom. Kurangi border/radius/shadow bertingkat.
 
-### UI-08 — Editorial berisiko salah tindakan — P1/P2
+### UI-08: Editorial berisiko salah tindakan: P1/P2
 
 CMS yang diamati membuka status editorial Terbitkan dan CTA Terbitkan Artikel Sekarang; hanya input URL HTTPS untuk cover yang tampak pada form. Tidak terlihat upload lokal atau preview cover di state ini. Daftar menampilkan status bahasa Inggris `published` di tengah UI Indonesia.
 
 Perbaikan: default draft, preview dan status tersimpan jelas, label tombol mengikuti status, Bahasa Indonesia konsisten. Rencanakan preview media, validasi tipe/ukuran, alt text, dan hasil upload. Keberadaan backend media tidak membuktikan kelengkapan UI; perlu cek terpisah saat implementasi.
 
-### UI-09 — Error autentikasi belum mengarahkan pengguna — P2
+### UI-09: Error autentikasi belum mengarahkan pengguna: P2
 
 Aktivasi/reset tanpa token menampilkan pesan error dan tombol submit tampak nonaktif, namun masih mengajak membuat password di bagian paling dominan. Ini kondisi tautan tidak lengkap, bukan bukti bahwa token kedaluwarsa/valid telah diuji.
 
 Perbaikan: pesan invalid di awal, sebab umum tanpa detail sensitif, CTA konkret meminta tautan baru/menghubungi petugas. Pisahkan state valid, invalid, expired, used, loading, dan success. Jangan meminta pengguna mengisi form yang tidak dapat diproses.
 
-### UI-10 — Estetika publik dan kepadatan informasi — P2/P3
+### UI-10: Estetika publik dan kepadatan informasi: P2/P3
 
 Hero badge terpotong frame lengkung. Banyak permukaan kecil memiliki shadow dan border sekaligus. Katalog satu artikel tidak memanfaatkan area desktop. Artikel pendek diberi dekorasi metadata berlebihan. Halaman 404 sebaliknya hampir tidak memiliki komposisi ruang.
 

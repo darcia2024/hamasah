@@ -191,7 +191,7 @@ Invoice sah → bukti bayar privat → finance verifikasi → transaksi atomik/i
 
 Setiap task mencakup schema bila diperlukan, service, API, UI, test, dan dokumentasi. Jangan menutup task hanya karena endpoint berhasil lewat curl. Penomoran di bawah merupakan urutan eksekusi audit, bukan mengganti penomoran phase lama.
 
-### Tahap 0 — Stabilkan fondasi (koreksi Phase 6–8)
+### Tahap 0: Stabilkan fondasi (koreksi Phase 6–8)
 
 - [x] T00.1 Buat baseline test yang dapat direproduksi dan simpan temuan gagal A01. Jangan menghapus izin/test tanpa menuntaskan kebutuhan konversi.
 - [x] T00.2 Perbaiki CSP/initializer halaman akun; pastikan aktivasi, lupa, reset dapat disubmit dari browser.
@@ -201,7 +201,7 @@ Setiap task mencakup schema bila diperlukan, service, API, UI, test, dan dokumen
 
 Gate: regresi keamanan lulus, alur akun berfungsi di browser; kegagalan matriks konversi tetap dilacak sampai Tahap 3 selesai. Tidak boleh rilis dengan suite masih merah.
 
-### Tahap 1 — Notifikasi yang dapat diandalkan (Phase 8)
+### Tahap 1: Notifikasi yang dapat diandalkan (Phase 8)
 
 Dependensi: T00.3.
 
@@ -213,7 +213,7 @@ Dependensi: T00.3.
 
 Gate: crash/retry tidak menggandakan undangan atau kehilangan pekerjaan; test adapter lulus. Integrasi email nyata tetap menjadi gate sebelum fitur akun diluncurkan.
 
-### Tahap 2 — Pendaftaran lengkap (Phase 9)
+### Tahap 2: Pendaftaran lengkap (Phase 9)
 
 Dependensi: Tahap 0; notifikasi memakai Tahap 1.
 
@@ -226,7 +226,7 @@ Dependensi: Tahap 0; notifikasi memakai Tahap 1.
 
 Gate: orang baru dapat mendaftar sampai lolos review tanpa edit database/manual API; berkas keluarga lain selalu ditolak; perubahan paralel tidak hilang.
 
-### Tahap 3 — Konversi pendaftar menjadi santri (sambungan Phase 9–11)
+### Tahap 3: Konversi pendaftar menjadi santri (sambungan Phase 9–11)
 
 Dependensi: Tahap 1–2.
 
@@ -238,7 +238,7 @@ Dependensi: Tahap 1–2.
 
 Gate: pertama membuat satu santri; retry tidak menggandakan; seluruh `npm test` hijau termasuk matriks akses. Undangan bisa diproses sesudah commit.
 
-### Tahap 4 — Rilis A: publik, artikel, pendaftaran (Phase 9)
+### Tahap 4: Rilis A: publik, artikel, pendaftaran (Phase 9)
 
 - [ ] T04.1 Audit konten asli Hamasah bersama pemilik; program, biaya, syarat, kontak dan jadwal mempunyai penanggung jawab.
 - [~] T04.2 CMS draft/edit/publish/archive dan cover media sudah tersedia secara lokal; upload media berizin dan UAT editorial masih perlu ditutup.
@@ -249,7 +249,7 @@ Gate: pertama membuat satu santri; retry tidak menggandakan; seluruh `npm test` 
 
 Gate: publik → daftar → dokumen → review → akun teruji. Fitur di luar Rilis A tidak ditampilkan seolah sudah tersedia. Rilis A bukan akhir seluruh proyek.
 
-### Tahap 5 — Operasional dan keuangan (Phase 10)
+### Tahap 5: Operasional dan keuangan (Phase 10)
 
 - [~] T05.1 Invoice/payment/status transisi dan koreksi ter-audit tersedia; bukti pembayaran dan verifikasi provider masih belum diputuskan.
 - [~] T05.2 Generator PDF kuitansi dan nomor kuitansi server-side tersedia; format final dan verifikasi bisnis masih manual.
@@ -260,7 +260,7 @@ Gate: publik → daftar → dokumen → review → akun teruji. Fitur di luar Ri
 
 Gate: finance tidak bisa mengambil data di luar wewenang; bukti/kuitansi keluarga terisolasi; pembatalan dan retry tidak merusak saldo/status.
 
-### Tahap 6 — Rilis B: keluarga dan rekam jejak (Phase 11)
+### Tahap 6: Rilis B: keluarga dan rekam jejak (Phase 11)
 
 - [~] T06.1 Definisikan visibility per catatan; DTO wali/santri/staf, izin media dan retensi.
 - [x] T06.2 Kehadiran unik menurut sesi/hari, kegiatan, prestasi, pelanggaran dan evaluasi dengan koreksi berjejak.
@@ -270,7 +270,7 @@ Gate: finance tidak bisa mengambil data di luar wewenang; bukti/kuitansi keluarg
 
 Gate: dua keluarga tidak bisa saling melihat data; pengawas dibatasi penugasan; seluruh ringkasan cocok dengan catatan sumber. Terapkan gate deployment kembali untuk Rilis B.
 
-### Tahap 7 — Akademik/LMS (Phase 12)
+### Tahap 7: Akademik/LMS (Phase 12)
 
 - [x] T07.1 Kelola course/materi/archive/enrollment dan hak guru atas course melalui API, ownership, dan route archive.
 - [~] T07.2 Media materi nyata dan akses provider sesuai keputusan privasi/biaya, bukan pemutar dekoratif.
@@ -280,7 +280,7 @@ Gate: dua keluarga tidak bisa saling melihat data; pengawas dibatasi penugasan; 
 
 Gate: satu pembelajaran lengkap dari enrollment sampai nilai/kelulusan dapat dilakukan lewat UI dan hasilnya benar.
 
-### Tahap 8 — Rilis C: AI (Phase 13)
+### Tahap 8: Rilis C: AI (Phase 13)
 
 - [ ] T08.1 Pilih provider/model yang benar-benar tersedia saat implementasi, biaya dan aturan data; jangan memakai nama/model/harga lama tanpa verifikasi.
 - [~] T08.2 FAQ publik memakai sumber lokal yang disetujui dan handoff pembina untuk ketidakpastian; persetujuan konten masih manual.
@@ -290,7 +290,7 @@ Gate: satu pembelajaran lengkap dari enrollment sampai nilai/kelulusan dapat dil
 
 Gate: evaluasi mutu disetujui pengajar; tidak ada akses lintas akun/materi; kegagalan AI tidak menghalangi belajar. Terapkan gate deployment untuk Rilis C.
 
-### Tahap 9 — Penutupan dan serah terima (Phase 14–15)
+### Tahap 9: Penutupan dan serah terima (Phase 14–15)
 
 - [~] T09.1 Regression otomatis 49 file, kontrak browser publik, HTTP performance smoke, dan local security check lulus; browser interaktif berbeban serta review dependency/security eksternal masih perlu dijalankan.
 - [x] T09.2 Runbook deployment, backup/restore, rollback, incident response, monitoring, retensi dan rotasi akses tersedia.
@@ -333,7 +333,7 @@ Sebelum **setiap** rilis A/B/C:
 
 Pekerjaan manual user/pemilik layanan, dikerjakan ketika tahapnya membutuhkan:
 
-1. **Email — ditunda sesuai instruksi user.** Tentukan domain pengirim dan provider; buat credential terbatas; pasang record DNS yang diberikan provider; tunggu verifikasi; isi env privat di deployment; lakukan pengiriman uji aktivasi/reset dan cek link/expired/retry. Jangan kirim credential lewat chat atau masukkan ke Git.
+1. **Email, ditunda sesuai instruksi user.** Tentukan domain pengirim dan provider; buat credential terbatas; pasang record DNS yang diberikan provider; tunggu verifikasi; isi env privat di deployment; lakukan pengiriman uji aktivasi/reset dan cek link/expired/retry. Jangan kirim credential lewat chat atau masukkan ke Git.
 2. **Storage.** Pastikan bucket `hamasah-private-documents` privat; pasang konfigurasi server melalui secret manager/env; uji upload dan download sebagai dua pengguna berbeda. Bucket tersedia saja belum membuktikan flow berfungsi.
 3. **Database.** Siapkan lingkungan staging terpisah, kebijakan backup dan akses terbatas; lakukan restore uji; baru terapkan migrasi produksi mengikuti runbook. Audit ini tidak memverifikasi backup lama.
 4. **Akses/rahasia.** Pastikan credential yang pernah dibagikan di chat sudah diganti; perbarui env privat; cabut akses lama. Jangan tampilkan nilainya dalam laporan.
@@ -439,15 +439,15 @@ Recovery kode akses sudah dibuktikan lewat unit test applicant/notification, int
 
 Snapshot ini menjadi acuan progres setelah UAT lokal terakhir; checklist tahap di atas mempertahankan rencana awal agar scope tidak hilang.
 
-- **Tahap 0 — fondasi:** selesai untuk baseline, CSP, lifecycle token, escaping, dan penghilangan metrik palsu utama. T00.5 masih parsial karena beberapa kartu aktivitas/dashboard non-inti masih berupa empty state atau data contoh.
-- **Tahap 1 — notifikasi:** worker durable untuk undangan sudah selesai dengan claim, lease, retry, timeout, recovery, dan payload terenkripsi. UI status/resend undangan serta izin khusus petugas pendaftaran sudah tersedia. Recovery calon sekarang ikut antrean terenkripsi dan diproses worker; email provider nyata belum diuji, dan tipe schema masih memakai `password-reset` sampai enum notifikasi dipisahkan.
-- **Tahap 2 — pendaftaran:** alur inti selesai dan lulus UAT lokal: kontrak profil per program, validasi tanggal/umur/consent, auth calon, edit data, upload/download terotorisasi, review, revisi, penghapusan dokumen pending/rejected, catatan, next steps, recovery, locking, dan optimistic concurrency. Data legacy tetap dapat dibaca, sedangkan pendaftaran baru wajib memenuhi kontrak profil. Verifikasi storage provider nyata dan uji retensi terjadwal masih menjadi pekerjaan environment sebelum staging/production.
-- **Tahap 3 — konversi:** selesai di local. Konversi hanya menerima status siap keberangkatan/selesai, mengunci pendaftaran, memakai akun student satu kali, memakai ulang akun parent yang emailnya sama untuk saudara, menolak konflik role/email, dan hanya mengantrekan undangan untuk akun baru atau akun inactive tanpa undangan aktif. Retry idempotent, audit, outbox transaksional, permission matrix, dan hasil konversi di workspace petugas sudah diuji.
-- **Tahap 4 — Rilis A publik:** fondasi lokal selesai untuk editorial CMS draft/publish/archive, filter artikel publik, canonical metadata, sitemap, robots, dan halaman 404. Rilis belum boleh dibuka sebelum audit konten pada `docs/CONTENT_AUDIT_HAMASAH_2026-09-20.md` disahkan pemilik, media artikel/consent selesai, serta browser UAT responsive/keyboard dan form publik dilakukan.
-- **Tahap 5 — operasional/keuangan:** fondasi kontrol lokal sudah bertambah lewat migrasi 022 dan 023: koreksi/pembatalan invoice berjejak, dokumen serta histori status visa, mutasi inventaris dengan penolakan stok negatif, kapasitas asrama, histori perpindahan placement, serta batch import inventory/visa dengan preview, validasi, deteksi duplikat, commit idempotent, rollback sebelum commit, audit event, dan histori batch berfilter/pagination di workspace staf. Endpoint reminder visa berbasis tenggat juga tersedia. Tahap ini masih parsial karena bukti pembayaran/PDF dan nomor verifikasi final belum disepakati, reminder belum dijalankan sebagai job terjadwal, dan UAT peran finance/operations belum dijalankan.
-- **Tahap 6 — keluarga/rekam jejak:** akses wali/pengawas, DTO dashboard, presensi unik per sesi/tanggal, koreksi beralasan, filter periode dashboard/CSV, sibling selector melalui daftar anak wali, dan kontrol periode di portal sudah tersedia melalui migrasi 024. Visibility media/retensi, galeri/komunikasi bila masuk kontrak, serta UAT pengawas/wali realistis masih perlu ditutup.
-- **Tahap 7 — LMS:** course, materi, enrollment, progress, dan study-help dasar tersedia. Migrasi 025 menambah attempt kuis, scoring server-side, batas tiga percobaan, dan completion hanya saat nilai lulus. Migrasi 026 menambah submission tugas dan review guru melalui endpoint submission/review, dengan satu submission aktif per materi. Migrasi 027 menambah versi materi; edit guru menaikkan nomor versi dan review tugas lulus otomatis mencatat completion. Migrasi 028 menambah owner course; guru hanya dapat mengelola course miliknya, admin tetap dapat mengelola semuanya. Status course `completed` dihitung server-side saat seluruh materi selesai. Policy course-file membatasi akses lampiran PDF ke course yang diikuti. Provider media nyata, aturan kelulusan lanjutan/sertifikat, dan UAT LMS masih perlu ditutup.
-- **Tahap 8 — AI:** Fondasi adapter AI lokal sudah tersedia. Study-help meneruskan hanya judul/rangkuman/key points/panduan materi yang boleh diakses santri, membatasi quota per akun, menolak pola prompt injection, memberi timeout provider, dan selalu jatuh kembali ke panduan/rangkuman deterministik. Test adapter mencakup provider berhasil/gagal, quota, dan konteks terbatas. Provider/model, biaya, persetujuan sumber FAQ, dataset evaluasi pengajar, dan konfigurasi produksi masih menjadi keputusan/manual gate.
-- **Tahap 9 — penutupan:** fondasi runbook rilis/rollback/insiden/monitoring/retensi tersedia melalui `docs/RUNBOOK_RELEASE_DAN_RESTORE_2026-09-20.md`, dan `npm run release:check` memvalidasi artefak serta env staging/production secara read-only. Regression otomatis 49 file, kontrak browser, HTTP performance smoke, dan local security check lulus. Restore rehearsal nyata, browser interaktif berbeban, audit dependency eksternal, UAT sign-off, pemilik operasional, dan keputusan launch masih manual.
+- **Tahap 0, fondasi:** selesai untuk baseline, CSP, lifecycle token, escaping, dan penghilangan metrik palsu utama. T00.5 masih parsial karena beberapa kartu aktivitas/dashboard non-inti masih berupa empty state atau data contoh.
+- **Tahap 1, notifikasi:** worker durable untuk undangan sudah selesai dengan claim, lease, retry, timeout, recovery, dan payload terenkripsi. UI status/resend undangan serta izin khusus petugas pendaftaran sudah tersedia. Recovery calon sekarang ikut antrean terenkripsi dan diproses worker; email provider nyata belum diuji, dan tipe schema masih memakai `password-reset` sampai enum notifikasi dipisahkan.
+- **Tahap 2, pendaftaran:** alur inti selesai dan lulus UAT lokal: kontrak profil per program, validasi tanggal/umur/consent, auth calon, edit data, upload/download terotorisasi, review, revisi, penghapusan dokumen pending/rejected, catatan, next steps, recovery, locking, dan optimistic concurrency. Data legacy tetap dapat dibaca, sedangkan pendaftaran baru wajib memenuhi kontrak profil. Verifikasi storage provider nyata dan uji retensi terjadwal masih menjadi pekerjaan environment sebelum staging/production.
+- **Tahap 3, konversi:** selesai di local. Konversi hanya menerima status siap keberangkatan/selesai, mengunci pendaftaran, memakai akun student satu kali, memakai ulang akun parent yang emailnya sama untuk saudara, menolak konflik role/email, dan hanya mengantrekan undangan untuk akun baru atau akun inactive tanpa undangan aktif. Retry idempotent, audit, outbox transaksional, permission matrix, dan hasil konversi di workspace petugas sudah diuji.
+- **Tahap 4, Rilis A publik:** fondasi lokal selesai untuk editorial CMS draft/publish/archive, filter artikel publik, canonical metadata, sitemap, robots, dan halaman 404. Rilis belum boleh dibuka sebelum audit konten pada `docs/CONTENT_AUDIT_HAMASAH_2026-09-20.md` disahkan pemilik, media artikel/consent selesai, serta browser UAT responsive/keyboard dan form publik dilakukan.
+- **Tahap 5, operasional/keuangan:** fondasi kontrol lokal sudah bertambah lewat migrasi 022 dan 023: koreksi/pembatalan invoice berjejak, dokumen serta histori status visa, mutasi inventaris dengan penolakan stok negatif, kapasitas asrama, histori perpindahan placement, serta batch import inventory/visa dengan preview, validasi, deteksi duplikat, commit idempotent, rollback sebelum commit, audit event, dan histori batch berfilter/pagination di workspace staf. Endpoint reminder visa berbasis tenggat juga tersedia. Tahap ini masih parsial karena bukti pembayaran/PDF dan nomor verifikasi final belum disepakati, reminder belum dijalankan sebagai job terjadwal, dan UAT peran finance/operations belum dijalankan.
+- **Tahap 6, keluarga/rekam jejak:** akses wali/pengawas, DTO dashboard, presensi unik per sesi/tanggal, koreksi beralasan, filter periode dashboard/CSV, sibling selector melalui daftar anak wali, dan kontrol periode di portal sudah tersedia melalui migrasi 024. Visibility media/retensi, galeri/komunikasi bila masuk kontrak, serta UAT pengawas/wali realistis masih perlu ditutup.
+- **Tahap 7, LMS:** course, materi, enrollment, progress, dan study-help dasar tersedia. Migrasi 025 menambah attempt kuis, scoring server-side, batas tiga percobaan, dan completion hanya saat nilai lulus. Migrasi 026 menambah submission tugas dan review guru melalui endpoint submission/review, dengan satu submission aktif per materi. Migrasi 027 menambah versi materi; edit guru menaikkan nomor versi dan review tugas lulus otomatis mencatat completion. Migrasi 028 menambah owner course; guru hanya dapat mengelola course miliknya, admin tetap dapat mengelola semuanya. Status course `completed` dihitung server-side saat seluruh materi selesai. Policy course-file membatasi akses lampiran PDF ke course yang diikuti. Provider media nyata, aturan kelulusan lanjutan/sertifikat, dan UAT LMS masih perlu ditutup.
+- **Tahap 8, AI:** Fondasi adapter AI lokal sudah tersedia. Study-help meneruskan hanya judul/rangkuman/key points/panduan materi yang boleh diakses santri, membatasi quota per akun, menolak pola prompt injection, memberi timeout provider, dan selalu jatuh kembali ke panduan/rangkuman deterministik. Test adapter mencakup provider berhasil/gagal, quota, dan konteks terbatas. Provider/model, biaya, persetujuan sumber FAQ, dataset evaluasi pengajar, dan konfigurasi produksi masih menjadi keputusan/manual gate.
+- **Tahap 9, penutupan:** fondasi runbook rilis/rollback/insiden/monitoring/retensi tersedia melalui `docs/RUNBOOK_RELEASE_DAN_RESTORE_2026-09-20.md`, dan `npm run release:check` memvalidasi artefak serta env staging/production secara read-only. Regression otomatis 49 file, kontrak browser, HTTP performance smoke, dan local security check lulus. Restore rehearsal nyata, browser interaktif berbeban, audit dependency eksternal, UAT sign-off, pemilik operasional, dan keputusan launch masih manual.
 
 Untuk staging, jalankan `npm run worker:notifications -- --once` setelah env email, `NOTIFICATION_PAYLOAD_KEY`, dan migrasi 020 siap. Untuk daemon gunakan `npm run worker:notifications` di service manager dengan restart policy; jangan menjalankannya dari browser atau proses web request.

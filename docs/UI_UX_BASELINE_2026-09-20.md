@@ -1,4 +1,4 @@
-# Baseline visual UI/UX — Tahap 0
+# Baseline visual UI/UX: Tahap 0
 
 Tanggal pemeriksaan: 20 September 2026  
 Server: `http://127.0.0.1:4273`  
@@ -40,16 +40,16 @@ Angka `scrollWidth` yang lebih kecil dari viewport pada halaman publik terjadi k
 | articles | 2.413 px | tidak ada | tidak terkonfirmasi | 1.449 px |
 | article | 2.660 px | tidak ada | tidak terkonfirmasi | 1.690 px |
 | cek-status | 4.146 px | tidak ada | tidak terkonfirmasi | 2.432 px |
-| portal | 2.931 px | — | **403 px > 390 px** | 1.120 px |
-| staff | 3.969 px | — | tidak terkonfirmasi | 1.923 px |
-| monitoring | 1.459 px | — | tidak terkonfirmasi | 900 px |
-| lms | 1.475 px | — | tidak terkonfirmasi | 900 px |
-| operations | 1.892 px | — | tidak terkonfirmasi | 948 px |
-| audit | 6.461 px | — | **443 px > 390 px** | 2.855 px |
-| aktivasi | 844 px | — | tidak terkonfirmasi | 900 px |
-| lupa-password | 844 px | — | tidak terkonfirmasi | 900 px |
-| reset-password | 844 px | — | tidak terkonfirmasi | 900 px |
-| 404 | 844 px | — | tidak terkonfirmasi | 900 px |
+| portal | 2.931 px | - | **403 px > 390 px** | 1.120 px |
+| staff | 3.969 px | - | tidak terkonfirmasi | 1.923 px |
+| monitoring | 1.459 px | - | tidak terkonfirmasi | 900 px |
+| lms | 1.475 px | - | tidak terkonfirmasi | 900 px |
+| operations | 1.892 px | - | tidak terkonfirmasi | 948 px |
+| audit | 6.461 px | - | **443 px > 390 px** | 2.855 px |
+| aktivasi | 844 px | - | tidak terkonfirmasi | 900 px |
+| lupa-password | 844 px | - | tidak terkonfirmasi | 900 px |
+| reset-password | 844 px | - | tidak terkonfirmasi | 900 px |
+| 404 | 844 px | - | tidak terkonfirmasi | 900 px |
 
 Catatan: halaman internal menggunakan sidebar, bukan menu publik. Pada mobile kondisi awal sidebar masih terbuka dan menghabiskan area layar sebelum konten utama.
 

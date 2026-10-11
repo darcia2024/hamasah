@@ -1,4 +1,4 @@
-# Tahap 5 — Shell internal mobile
+# Tahap 5: Shell internal mobile
 
 Tanggal: 2026-09-20
 
@@ -18,9 +18,9 @@ Pada viewport 390×844, keenam halaman internal memiliki satu tombol drawer, sat
 
 ## Validasi otomatis
 
-- `npm run test:browser-contract` — lulus, 16 halaman.
-- `node --check website/internal-shell.js` — lulus.
-- `git diff --check` — lulus; peringatan yang muncul hanya konversi akhir baris Git.
+- `npm run test:browser-contract`, lulus, 16 halaman.
+- `node --check website/internal-shell.js`, lulus.
+- `git diff --check`, lulus; peringatan yang muncul hanya konversi akhir baris Git.
 
 ---
 

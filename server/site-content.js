@@ -28,7 +28,8 @@ const FOTO_TESTIMONI = Object.freeze([
   { berkas: 'testimoni-wali-aruna.webp', label: 'Ayah dan ibu wali Aruna', lebar: 1091, tinggi: 1280 },
   { berkas: 'cairo-arches.jpg', label: 'Lengkung bangunan Kairo', lebar: 2000, tinggi: 1333 },
   { berkas: 'cairo-skyline.jpg', label: 'Pemandangan kota Kairo', lebar: 2200, tinggi: 1469 },
-  { berkas: 'hero-student.jpg', label: 'Pelajar membaca kitab', lebar: 1200, tinggi: 800 },
+  { berkas: 'kelas-daring-kitab.jpg', label: 'Santri belajar kitab dari rumah', lebar: 1200, tinggi: 800 },
+  { berkas: 'hero-student.jpg', label: 'Belajar dengan laptop', lebar: 1200, tinggi: 800 },
   { berkas: 'subcard-student.jpg', label: 'Santri di Kairo', lebar: 500, tinggi: 333 },
   { berkas: '', label: 'Tanpa foto (logo Hamasah)', lebar: 512, tinggi: 512 }
 ]);
@@ -593,29 +594,30 @@ const RENDER = Object.freeze({
     return hasil;
   },
 
+  // Zig-zag: satu testimoni satu baris, foto dan teks lengkap berdampingan, sisi foto
+  // bergantian (diatur landing.css). Testimoni tanpa foto tampil sebagai kartu kutipan.
   testimoni(daftarTestimoni) {
     const kartu = daftarTestimoni.map((t) => {
-      const foto = FOTO_TESTIMONI.find((item) => item.berkas === t.foto) || FOTO_TESTIMONI[FOTO_TESTIMONI.length - 1];
-      const figur = t.foto
-        ? `<figure class="lp-testi__photo${foto.tinggi > foto.lebar ? ' lp-testi__photo--portrait' : ''}">
+      const foto = FOTO_TESTIMONI.find((item) => item.berkas === t.foto);
+      const figur = t.foto && foto
+        ? `
+              <figure class="lp-testi__photo">
                 <img src="../assets/${esc(t.foto)}" alt="${esc(t.alt)}" width="${foto.lebar}" height="${foto.tinggi}" loading="lazy" decoding="async" />
               </figure>`
-        : `<figure class="lp-testi__photo lp-testi__photo--emblem">
-                <img src="../assets/avatar-hamasah.png" alt="" width="512" height="512" loading="lazy" decoding="async" />
-              </figure>`;
+        : '';
       const lengkap = t.isi
         ? `
-              <details class="lp-testi__more">
-                <summary>Baca testimoni lengkap</summary>
-${paragraf(t.isi, '                ')}
-              </details>`
+                <div class="lp-testi__full">
+${paragraf(t.isi, '                  ')}
+                </div>`
         : '';
-      return `            <article class="lp-testi">
-              ${figur}
-              <blockquote class="lp-testi__quote">
-                <p>&ldquo;${nb(t.kutipan)}&rdquo;</p>
-              </blockquote>${lengkap}
-              <p class="lp-testi__who"><strong>${nb(t.nama)}</strong>${t.keterangan ? `<span>${nb(t.keterangan)}</span>` : ''}</p>
+      return `            <article class="lp-testi${figur ? '' : ' lp-testi--tanpa-foto'}">${figur}
+              <div class="lp-testi__body">
+                <blockquote class="lp-testi__quote">
+                  <p class="lp-testi__lead">&ldquo;${nb(t.kutipan)}&rdquo;</p>${lengkap}
+                </blockquote>
+                <p class="lp-testi__who"><strong>${nb(t.nama)}</strong>${t.keterangan ? `<span>${nb(t.keterangan)}</span>` : ''}</p>
+              </div>
             </article>`;
     });
     return [wilayah('testimoni', `\n${kartu.join('\n\n')}\n          `)];

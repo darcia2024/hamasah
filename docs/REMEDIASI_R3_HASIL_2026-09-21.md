@@ -1,4 +1,4 @@
-# Phase R3 — Hasil dan bukti
+# Phase R3: Hasil dan bukti
 
 Tanggal: 21 September 2026
 Rencana: `docs/RENCANA_REMEDIASI_PHASE_R1_R8_2026-09-20.md` Bagian 5
@@ -34,15 +34,15 @@ Ketiganya melewati review, punya migrasi, punya constraint, dan sebagian punya i
 
 Dua task punya kriteria selesai yang mustahil dipenuhi tanpa menambah sesuatu yang tidak tertulis di rencana.
 
-**R3.1 — kuitansi hanya terbit untuk invoice lunas, tetapi konsol tidak punya cara menandai lunas.** `PATCH /api/operations/invoices/:id/paid` ada dan tidak pernah dipanggil. Tanpa aksi itu, tidak ada satu pun invoice yang bisa mencapai status yang membuat tombol kuitansi muncul. Aksi "Tandai Lunas" karena itu ikut dikerjakan, lengkap dengan konfirmasi yang menyebut nomor invoice dan nominalnya.
+**R3.1, kuitansi hanya terbit untuk invoice lunas, tetapi konsol tidak punya cara menandai lunas.** `PATCH /api/operations/invoices/:id/paid` ada dan tidak pernah dipanggil. Tanpa aksi itu, tidak ada satu pun invoice yang bisa mencapai status yang membuat tombol kuitansi muncul. Aksi "Tandai Lunas" karena itu ikut dikerjakan, lengkap dengan konfirmasi yang menyebut nomor invoice dan nominalnya.
 
-**R3.3 — panel peringatan visa membaca tanggal kedaluwarsa yang tidak punya isian di mana pun.** `saveVisa` menerima `passportExpiresAt` dan `visaExpiresAt`, dan `visaReminders` membacanya, tetapi formulir status visa tidak punya kedua isian itu. Panel peringatan karena itu tidak akan pernah berisi apa pun. Dua isian tanggal ditambahkan.
+**R3.3, panel peringatan visa membaca tanggal kedaluwarsa yang tidak punya isian di mana pun.** `saveVisa` menerima `passportExpiresAt` dan `visaExpiresAt`, dan `visaReminders` membacanya, tetapi formulir status visa tidak punya kedua isian itu. Panel peringatan karena itu tidak akan pernah berisi apa pun. Dua isian tanggal ditambahkan.
 
 **R3.3 juga tidak punya purpose unggahan untuk berkas visa.** `upload-policies.js` hanya mengenal enam purpose, tidak satu pun untuk visa. Purpose `visa-document` ditambahkan: entityType `student`, private, PDF/JPG/PNG, batas 5 MB, unggah untuk `operations.manage`, unduh untuk `operations.read`. **Wali dan santri sengaja tidak diberi akses**; memperlihatkan berkas keimigrasian kepada mereka adalah keputusan pihak Hamasah, bukan efek samping sebuah task.
 
 ## Catatan per task
 
-### R3.5 — otorisasi diperiksa lebih dulu, dan hasilnya sudah benar
+### R3.5: otorisasi diperiksa lebih dulu, dan hasilnya sudah benar
 
 Rencana melarang memasang UI sebelum otorisasi per berkas terbukti benar. Pemeriksaan menunjukkan otorisasinya **sudah** per berkas: `prepareDownload` meneruskan `record.entityId` milik berkas itu sendiri ke `policy.canDownload`, dan `isCandidate` mencocokkan token pendaftaran terhadap pendaftaran pemilik berkas.
 
@@ -50,11 +50,11 @@ Yang belum ada adalah buktinya. Test lama hanya menutup peran yang salah dan per
 
 PDF sengaja diunduh, bukan dipratinjau dalam `<iframe>` atau `<object>`: CSP halaman ini tidak punya `frame-src` sehingga `blob:` jatuh ke `default-src 'self'`, dan `object-src` bernilai `'none'`. Melonggarkan keduanya demi pratinjau berarti membatalkan sebagian pengetatan Phase R1. Gambar tetap dipratinjau di tempat karena `img-src` memang sudah mengizinkan `blob:`.
 
-### R3.6 — yang dicabut hanya pilihannya, bukan dukungannya
+### R3.6: yang dicabut hanya pilihannya, bukan dukungannya
 
 `MATERIAL_TYPES` di `server/lms-service.js` tetap memuat `assignment` dan `quiz`, API tetap menerimanya, dan materi lama bertipe itu tetap terbaca. Yang dicabut hanya pilihannya di formulir, sehingga alurnya tinggal dipasang kembali tanpa migrasi data. Keterangan di bawah field menjelaskan alasannya, bukan menghilang tanpa penjelasan.
 
-### R3.7 — label mengikuti apa yang benar-benar dilakukan
+### R3.7: label mengikuti apa yang benar-benar dilakukan
 
 Akun internal memakai `logout-all` yang mencabut seluruh sesi akun. Sesi pendaftar memakai `applicantService.logout` yang **hanya** mencabut token yang sedang dipakai. Karena itu labelnya berbeda: "Keluar dari Semua Perangkat" untuk yang pertama, "Keluar dari Sesi Ini" untuk yang kedua. Menyeragamkan labelnya akan menjanjikan sesuatu yang tidak dilakukan.
 
@@ -93,8 +93,8 @@ npm run test:csp-contract           17 halaman + 18 skrip, 0 style/script inline
 
 Test baru dan yang diperluas:
 
-- `server/postgres-operations-store.test.js` — riwayat koreksi invoice lengkap dengan nilai sebelum dan sesudah, penolakan koreksi pada invoice lunas dan yang sudah dibatalkan, daftar berkas visa per santri, serta ledger inventaris termasuk mutasi keluar melebihi stok yang ditolak dan tidak meninggalkan jejak.
-- `server/file-upload.test.js` — kebijakan berkas visa (admin boleh, wali dan santri 403), dan dua test silang pendaftar: membuka berkas pendaftar lain ditolak 403, mengunggah ke pendaftaran orang lain ditolak 403.
+- `server/postgres-operations-store.test.js`, riwayat koreksi invoice lengkap dengan nilai sebelum dan sesudah, penolakan koreksi pada invoice lunas dan yang sudah dibatalkan, daftar berkas visa per santri, serta ledger inventaris termasuk mutasi keluar melebihi stok yang ditolak dan tidak meninggalkan jejak.
+- `server/file-upload.test.js`, kebijakan berkas visa (admin boleh, wali dan santri 403), dan dua test silang pendaftar: membuka berkas pendaftar lain ditolak 403, mengunggah ke pendaftaran orang lain ditolak 403.
 
 ### Server lokal
 
