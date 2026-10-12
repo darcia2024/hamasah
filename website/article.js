@@ -3,42 +3,38 @@
 // tombol bagikan dan cover yang gagal dimuat.
 document.addEventListener('DOMContentLoaded', () => {
   const articleContent = document.querySelector('#article-content');
-  const btnShareWa = document.querySelector('#btn-share-wa');
-  const btnCopyUrl = document.querySelector('#btn-copy-url');
   const canonical = document.querySelector('link[rel="canonical"]');
   const pageUrl = () => (canonical && canonical.href) || window.location.href;
 
   const cover = articleContent && articleContent.querySelector('.article-cover[src]');
   if (cover) {
+    // Sampul yang gagal dimuat dibuang beserta bingkainya, bukan diganti kotak kosong.
     const replaceCover = () => {
-      const failed = document.createElement('div');
-      failed.className = 'article-cover article-cover--empty';
-      failed.setAttribute('role', 'img');
-      failed.setAttribute('aria-label', 'Cover artikel tidak tersedia');
-      failed.textContent = 'Belum ada gambar sampul';
-      cover.replaceWith(failed);
+      const bingkai = cover.closest('figure');
+      (bingkai || cover).remove();
     };
     if (cover.complete && cover.naturalWidth === 0) replaceCover();
     else cover.addEventListener('error', replaceCover, { once: true });
   }
 
-  if (btnShareWa) {
-    btnShareWa.addEventListener('click', () => {
+  document.querySelectorAll('[data-share="wa"]').forEach((tombol) => {
+    tombol.addEventListener('click', () => {
       const text = encodeURIComponent(`Baca wawasan resmi Al-Azhar di Pena Hamasah: ${document.title}\n${pageUrl()}`);
       window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener');
     });
-  }
+  });
 
-  if (btnCopyUrl) {
-    btnCopyUrl.addEventListener('click', async () => {
+  document.querySelectorAll('[data-share="copy"]').forEach((tombol) => {
+    const label = tombol.querySelector('[data-share-label]') || tombol;
+    const asli = label.textContent;
+    tombol.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(pageUrl());
-        const originalText = btnCopyUrl.innerHTML;
-        btnCopyUrl.innerHTML = '<span>Tautan Disalin!</span> <span aria-hidden="true"><svg class="m3-icon m3-icon--sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>';
-        setTimeout(() => { btnCopyUrl.innerHTML = originalText; }, 2500);
+        label.textContent = 'Tautan disalin';
+        setTimeout(() => { label.textContent = asli; }, 2500);
       } catch {
         alert('Tautan artikel: ' + pageUrl());
       }
     });
-  }
+  });
 });

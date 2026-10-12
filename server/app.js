@@ -542,7 +542,9 @@ function createHamasahApp(options) {
         const slug = url.searchParams.get('slug') || '';
         await articleSeedService.pastikan();
         const article = /^[a-z0-9-]{1,160}$/.test(slug) ? await articleStore.get(slug) : null;
-        const page = articlePage.renderArticlePage({ template: articlePage.readTemplate(rootDirectory), article, origin });
+        // "Tulisan lain" di akhir halaman: empat terbaru, supaya tersisa tiga setelah artikel ini disaring.
+        const related = article ? (await articleStore.list({ limit: 4 })).items : [];
+        const page = articlePage.renderArticlePage({ template: articlePage.readTemplate(rootDirectory), article, origin, related });
         response.writeHead(page.status, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff' });
         response.end(page.html);
         return;

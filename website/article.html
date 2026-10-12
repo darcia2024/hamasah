@@ -9,9 +9,9 @@
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website-core.css?v=2d72a1bd8f" />
-    <link rel="stylesheet" href="website-public.css?v=4c1ac48d6b" />
+    <link rel="stylesheet" href="website-public.css?v=80f495bb4f" />
     <link rel="stylesheet" href="fields.css?v=048ab326e1" />
   </head>
   <body class="article-page">
@@ -46,26 +46,9 @@
       </div>
     </header>
 
-    <main class="article-main-container shell" id="main-article">
-      <!-- Breadcrumb -->
-      <nav class="article-breadcrumb" aria-label="Breadcrumb">
-        <a href="index.html">Beranda</a>
-        <span aria-hidden="true">/</span>
-        <a href="articles.html">Pena Hamasah</a>
-        <span aria-hidden="true">/</span>
-        <span id="breadcrumb-current-title">Memuat...</span>
-      </nav>
-
-      <!-- Back to Catalog Link -->
-      <div class="article-top-action">
-        <a class="article-back-link" href="articles.html">
-          <span aria-hidden="true" class="btn-arrow btn-arrow--back"></span>
-          <span>Kembali ke semua tulisan</span>
-        </a>
-      </div>
-
-      <!-- Main Article Card -->
-      <article id="article-content" class="article-reader-card" aria-live="polite">
+    <main class="article-main-container story-page shell" id="main-article">
+      <!-- Isi artikel dirender server (server/article-page.js). -->
+      <article id="article-content" class="story">
         <div class="article-loading-state">
           <p class="eyebrow">Pena Hamasah</p>
           <h1>Memuat artikel...</h1>
@@ -73,22 +56,8 @@
         </div>
       </article>
 
-      <!-- Article Action Bar: Share & Consultation -->
-      <div class="article-share-bar">
-        <div class="share-label">
-          <strong>Bagikan tulisan ini</strong>
-        </div>
-        <div class="share-buttons">
-          <button id="btn-share-wa" class="button button--secondary" type="button">
-            <span>Bagikan via WhatsApp</span>
-            <span aria-hidden="true" class="btn-arrow"></span>
-          </button>
-          <button id="btn-copy-url" class="button button--secondary" type="button">
-            <span>Salin tautan</span>
-            <span aria-hidden="true"><svg class="m3-icon m3-icon--sm" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
-          </button>
-        </div>
-      </div>
+      <!-- Tulisan lain, diisi server. -->
+      <section id="article-related" class="story-related" aria-label="Tulisan lain dari Pena Hamasah"></section>
 
       <!-- Consultation Callout -->
       <div class="article-cta-box">
@@ -162,7 +131,7 @@
       </div>
     </footer>
 
-    <script src="public-header.js?v=af5a025609"></script>
-    <script src="article.js?v=956b4be66a"></script>
+    <script src="public-header.js?v=220a54cd11"></script>
+    <script src="article.js?v=777416d209"></script>
   </body>
 </html>

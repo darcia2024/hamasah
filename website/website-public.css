@@ -5509,3 +5509,401 @@ img.article-cover {
   aspect-ratio: 16 / 9;
   height: auto;
 }
+
+/* ==========================================================================
+   Halaman baca artikel (article.html), gaya editorial.
+
+   Satu kolom baca selebar 680 px tanpa kartu: kategori, judul besar, ringkasan sebagai
+   subjudul, baris penulis, bilah bagikan tipis, sampul yang sedikit lebih lebar dari
+   kolom teks, lalu isi berhuruf serif 20 px supaya nyaman dibaca panjang.
+   Markup dibuat server/article-page.js.
+   ========================================================================== */
+
+.story-page {
+  --story-kolom: 680px;
+  max-width: 920px;
+  margin: 32px auto 88px;
+}
+
+.story {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, var(--story-kolom)) minmax(0, 1fr);
+}
+
+.story > * {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.story-kicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 20px;
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.story-kicker a {
+  color: var(--gold-dark);
+  text-decoration: none;
+}
+
+.story-kicker a:hover {
+  text-decoration: underline;
+}
+
+.story-title {
+  margin: 0;
+  font-size: clamp(var(--fs-32), 4.6vw, var(--fs-40));
+  line-height: 1.18;
+  letter-spacing: -0.02em !important;
+  text-wrap: balance;
+}
+
+.story-subtitle {
+  margin: 16px 0 0;
+  font-size: var(--fs-20);
+  line-height: 1.45;
+  color: var(--md-sys-color-on-surface-variant);
+  text-wrap: pretty;
+}
+
+.story-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.story-author__avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  font-size: var(--fs-18);
+  font-weight: 600 !important;
+}
+
+.story-author__info {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.story-author__info strong {
+  font-size: var(--fs-16);
+  color: var(--md-sys-color-on-surface);
+}
+
+.story-author__info small {
+  font-size: var(--fs-14);
+  line-height: 1.45;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.story-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 28px;
+  padding: 6px 0;
+  border-block: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.story-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9999px;
+  background: none;
+  color: var(--md-sys-color-on-surface-variant);
+  font: inherit;
+  font-size: var(--fs-14);
+  font-weight: 500 !important;
+  cursor: pointer;
+}
+
+.story-action:first-child {
+  margin-left: -12px;
+}
+
+.story-action:hover {
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+}
+
+/* Sampul sedikit lebih lebar dari kolom teks di layar lebar. */
+.story-cover {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: 100%;
+  max-width: 880px;
+  margin: 40px 0 0;
+}
+
+.story .story-cover .article-cover {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  margin: 0;
+  border: 0;
+  border-radius: 6px;
+}
+
+/* Isi: serif untuk bacaan panjang; judul bagian tetap sans seperti judul halaman. */
+.story-body {
+  margin-top: 40px;
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  font-size: var(--fs-20);
+  line-height: 1.7;
+  color: #242424;
+}
+
+.story-body p {
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  text-wrap: pretty;
+}
+
+/* Irama vertikal isi. Selektor dua kelas supaya menang atas aturan .article-prose lama. */
+.story .story-body > * {
+  margin: 0;
+}
+
+.story .story-body > * + * {
+  margin-top: 1.4em;
+}
+
+.story-body h2,
+.story-body h3 {
+  font-family: "Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.25;
+  color: var(--md-sys-color-on-surface);
+  text-wrap: balance;
+}
+
+.story .story-body > h2 {
+  margin-top: 2em;
+  font-size: var(--fs-24);
+}
+
+.story .story-body > h3 {
+  margin-top: 1.7em;
+  font-size: var(--fs-20);
+}
+
+.story .story-body > :is(h2, h3) + * {
+  margin-top: 0.6em;
+}
+
+.story-body ul,
+.story-body ol {
+  padding-left: 1.4em;
+  color: inherit;
+}
+
+.story-body li {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.story-body li + li {
+  margin-top: 0.5em;
+}
+
+.story-body blockquote {
+  padding: 0 0 0 22px;
+  border: 0;
+  border-left: 3px solid var(--md-sys-color-on-surface);
+  border-radius: 0;
+  background: none;
+  font-style: italic;
+}
+
+.story-body blockquote p {
+  font-size: inherit;
+  color: inherit;
+}
+
+.story-body a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.story-body a:hover {
+  color: var(--gold-dark);
+}
+
+.story-body strong {
+  color: inherit;
+}
+
+.story-footer {
+  margin-top: 48px;
+}
+
+.story-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+}
+
+.story-tag {
+  padding: 8px 16px;
+  border-radius: 9999px;
+  background: var(--md-sys-color-surface-container);
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-on-surface);
+}
+
+.story-signature {
+  margin: 24px 0 0;
+  font-size: var(--fs-14);
+  line-height: 1.6;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.story-footer .story-actions {
+  margin-top: 24px;
+}
+
+/* Tulisan lain: daftar, bukan kartu, selebar kolom baca. */
+.story-related {
+  max-width: var(--story-kolom);
+  margin: 56px auto 0;
+}
+
+.story-related:empty {
+  display: none;
+}
+
+.story-related__title {
+  margin: 0 0 8px;
+  font-size: var(--fs-20);
+}
+
+.story-related__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.story-related__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  color: inherit;
+  text-decoration: none;
+}
+
+.story-related__media {
+  order: 2;
+}
+
+.story-related__media img,
+.story-related__blank {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 4px;
+  background: var(--md-sys-color-surface-container);
+}
+
+.story-related__text {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.story-related__text strong {
+  font-size: var(--fs-18);
+  line-height: 1.3;
+  color: var(--md-sys-color-on-surface);
+}
+
+.story-related__item:hover strong {
+  text-decoration: underline;
+}
+
+.story-related__text > span {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--fs-14);
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface-variant);
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.story-related__text small {
+  font-size: var(--fs-13);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.story-related__all {
+  display: inline-block;
+  margin-top: 20px;
+  font-size: var(--fs-14);
+  color: var(--gold-dark);
+}
+
+.story-page .article-cta-box {
+  max-width: var(--story-kolom);
+  margin: 56px auto 0;
+}
+
+.story .article-error-state,
+.story .article-loading-state {
+  padding: 48px 0;
+}
+
+@media (max-width: 640px) {
+  .story-page {
+    margin-top: 20px;
+  }
+
+  .story-subtitle {
+    font-size: var(--fs-18);
+  }
+
+  .story-cover {
+    margin-top: 28px;
+  }
+
+  .story .story-cover .article-cover {
+    border-radius: 4px;
+  }
+
+  .story-body {
+    margin-top: 28px;
+    font-size: var(--fs-18);
+    line-height: 1.65;
+  }
+
+  .story-related__item {
+    grid-template-columns: minmax(0, 1fr) 104px;
+    gap: 16px;
+  }
+}

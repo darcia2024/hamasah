@@ -64,6 +64,9 @@
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const main = document.querySelector('main');
   if (!main) return;
+  // Halaman baca artikel tidak dianimasikan: pembaca datang untuk membaca, dan isinya satu
+  // blok panjang.
+  if (main.classList.contains('story-page')) return;
 
   // Wadah yang anak-anaknya muncul satu per satu.
   const GROUPS = [
@@ -96,7 +99,11 @@
   const fold = window.innerHeight;
   const pending = targets.filter((element) => {
     if (getComputedStyle(element).display === 'none') return false;
-    return element.getBoundingClientRect().top > fold * 0.9;
+    const kotak = element.getBoundingClientRect();
+    // Blok yang lebih tinggi dari layar tidak dianimasikan. Ambang 8% dari tingginya bisa
+    // melebihi tinggi layar, sehingga blok itu tidak akan pernah muncul.
+    if (kotak.height > fold) return false;
+    return kotak.top > fold * 0.9;
   });
   if (!pending.length) return;
 
