@@ -8,6 +8,33 @@
 
 :root {
   /* ------------------------------------------------------------------------
+     Skala ukuran huruf (satu-satunya sumber). Semua font-size di situs memakai
+     salah satu langkah ini, jadi hierarkinya tetap: judul besar > judul bagian >
+     judul kartu > teks > keterangan.
+       12  label kecil berhuruf besar, lencana (bukan teks kalimat)
+       13  keterangan dan meta
+       14  teks konsol, teks kecil situs publik, tombol konsol
+       16  teks utama situs publik, tombol publik
+       18  teks pembuka (lead), judul kartu
+       20/24  judul kartu besar dan sub-bagian
+       28  judul halaman konsol
+       32-64  judul bagian dan judul halaman publik
+     ------------------------------------------------------------------------ */
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-16: 16px;
+  --fs-18: 18px;
+  --fs-20: 20px;
+  --fs-24: 24px;
+  --fs-28: 28px;
+  --fs-32: 32px;
+  --fs-36: 36px;
+  --fs-40: 40px;
+  --fs-48: 48px;
+  --fs-56: 56px;
+  --fs-64: 64px;
+  /* ------------------------------------------------------------------------
      1. M3 Dynamic Color Tokens (Gold-Seeded Palette: #E7B10C)
      ------------------------------------------------------------------------ */
   /* Primary Role: emas Hamasah #E7B10C, diukur dari piksel assets/logo-emblem-gold.png.
@@ -195,7 +222,7 @@ button, input, select, textarea {
 
 .eyebrow {
   display: inline-block;
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -223,7 +250,7 @@ h1, h2, h3, h4 {
   height: auto;
   padding: 0 24px;
   border-radius: var(--md-shape-corner-full);
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   letter-spacing: 0.1px;
   line-height: 1;
@@ -310,7 +337,7 @@ section[id], main[id], [tabindex="-1"] { scroll-margin-top: 88px; }
 }
 
 .field-error {
-  font-size: 11.5px;
+  font-size: var(--fs-12);
   color: var(--md-sys-color-error);
   font-weight: 600;
   min-height: 16px;
@@ -319,7 +346,7 @@ section[id], main[id], [tabindex="-1"] { scroll-margin-top: 88px; }
 
 .form-status {
   min-height: 24px;
-  font-size: 13.5px;
+  font-size: var(--fs-14);
   font-weight: 600;
   text-align: center;
   margin-top: 12px;
@@ -412,7 +439,7 @@ h4 {
 
 .file-preview__title {
   margin: 0 0 12px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   word-break: break-word;
@@ -482,8 +509,9 @@ h4 {
   clip-path: inset(50%);
 }
 
-/* Plus Jakarta Sans regular (400) untuk teks, label, dan tombol. Hanya judul yang
-   tebal (lihat di bawah). */
+/* Tiga tingkat bobot huruf: regular (400) untuk teks, medium (500) untuk tombol, tab,
+   navigasi, dan label isian (diatur di fields.css, lapisan hamasah-tombol), dan
+   SemiBold (600) untuk judul (lihat di bawah). */
 *,
 *::before,
 *::after {
@@ -527,6 +555,7 @@ dt,
 .file-preview__title,
 .res-title,
 .coursue-stat-count,
+.eyebrow,
 :is(h1, h2, h3, h4, strong, b, dt) * {
   font-weight: 600 !important;
 }

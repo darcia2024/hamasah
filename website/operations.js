@@ -703,7 +703,7 @@ function invoiceRow(invoice) {
   if (invoice.status === 'unpaid') {
     const bayar = document.createElement('button');
     bayar.type = 'button';
-    bayar.className = 'button button--secondary op-action';
+    bayar.className = 'button button--primary op-action';
     bayar.textContent = 'Tandai lunas';
     bayar.addEventListener('click', () => tandaiLunas(invoice).catch((error) => feedback('#invoice-list-status', error.message, true)));
     const ingat = document.createElement('button');

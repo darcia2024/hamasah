@@ -18,9 +18,9 @@
    ========================================================================== */
 @layer hamasah-bidang {
   :root {
-    --bidang-tinggi: 42px;
+    --bidang-tinggi: 44px;
     --bidang-huruf: 14px;
-    --bidang-sudut: 10px;
+    --bidang-sudut: 12px;
     --bidang-garis: #8F8B84;
     --bidang-garis-fokus: #856000;
     --bidang-cincin: rgba(231, 177, 12, 0.28);
@@ -108,5 +108,117 @@
       --bidang-tinggi: 44px;
       --bidang-huruf: 16px;
     }
+  }
+}
+
+/* ==========================================================================
+   Sistem tombol dan elemen interaktif untuk seluruh situs.
+
+   Sebelumnya tinggi tombol 30 sampai 52 px dalam enam varian, hurufnya 13 sampai 16 px,
+   dan bobotnya sama dengan teks biasa, sehingga tombol tidak menonjol dari teks di
+   sekitarnya. Kini hanya ada tiga ukuran:
+     kecil  36 px, huruf 13 px  (aksi di dalam baris daftar: .op-action, .button--sm)
+     biasa  44 px konsol / 48 px situs publik, huruf 14 / 16 px (bawaan .button)
+     besar  52 px, huruf 16 px  (ajakan utama: .lp-cta, .button--lg)
+   Semua berbobot medium (500) dan bersudut penuh. Ukuran konsol dan publik dibedakan
+   lewat variabel, bukan aturan terpisah: website-public.css menaikkan variabelnya.
+
+   Seperti lapisan hamasah-bidang di atas, aturan di sini !important di dalam cascade
+   layer, sehingga menang atas aturan lama yang tersebar tanpa perang selektor.
+   ========================================================================== */
+@layer hamasah-tombol {
+  :root {
+    --tombol-tinggi: 44px;
+    --tombol-huruf: var(--fs-14, 14px);
+    --tombol-isi: 20px;
+  }
+
+  .button,
+  a.nav-cta,
+  .coursue-hero-cta {
+    box-sizing: border-box !important;
+    min-height: var(--tombol-tinggi) !important;
+    height: auto !important;
+    padding: 10px var(--tombol-isi) !important;
+    font-size: var(--tombol-huruf) !important;
+    font-weight: 500 !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0 !important;
+    border-radius: 9999px !important;
+  }
+
+  /* Kecil: aksi di dalam baris daftar dan kartu. */
+  .button.op-action,
+  .button.button--sm {
+    min-height: 36px !important;
+    padding: 6px 14px !important;
+    font-size: var(--fs-13, 13px) !important;
+  }
+
+  /* Besar: ajakan utama halaman. */
+  .button.lp-cta,
+  .button.button--lg {
+    min-height: 52px !important;
+    padding: 12px 28px !important;
+    font-size: var(--fs-16, 16px) !important;
+  }
+
+  /* Navigasi situs publik: satu tingkat di bawah teks utama, dan tombol ajakan di
+     header tidak lebih besar dari tombol di isi halaman. */
+  .site-nav a {
+    font-size: var(--fs-14, 14px) !important;
+  }
+
+  a.nav-cta {
+    min-height: 44px !important;
+    padding: 8px 20px !important;
+  }
+
+  /* Tombol ikon konsol: tidak lebih kecil dari 36 px supaya mudah diklik dan diketuk. */
+  .crm-collapse-btn {
+    min-width: 36px !important;
+    min-height: 36px !important;
+  }
+
+  .crm-logout-btn,
+  .crm-topbar-action-btn {
+    font-weight: 500 !important;
+  }
+
+  /* Pesan galat isian adalah teks kalimat: tidak lebih kecil dari 13 px. */
+  .field-error {
+    font-size: var(--fs-13, 13px) !important;
+  }
+
+  /* Tombol teks: tanpa isi tepi lebar, tetap setinggi tombol biasa supaya mudah diketuk. */
+  .button.button--text {
+    padding-inline: 12px !important;
+  }
+
+  /* Tab pil konsol, navigasi, dan label isian: bobot medium, satu ukuran. */
+  .crm-pill-btn {
+    min-height: 40px !important;
+    height: auto !important;
+    font-size: var(--fs-14, 14px) !important;
+    font-weight: 500 !important;
+  }
+
+  .site-nav a,
+  .crm-nav a,
+  .crm-nav-link,
+  .footer-col-title,
+  label,
+  th,
+  summary,
+  .crm-role-chip,
+  .op-status {
+    font-weight: 500 !important;
+  }
+
+  .site-nav a.is-active,
+  .crm-nav a[aria-current="page"],
+  .crm-nav-link.is-active,
+  .crm-pill-btn.is-active {
+    font-weight: 600 !important;
   }
 }

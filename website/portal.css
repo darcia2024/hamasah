@@ -13,7 +13,7 @@
 .portal-students h2,
 .portal-admin h2 {
   margin: 0 0 8px;
-  font-size: 22px;
+  font-size: var(--fs-24);
   font-weight: 600;
   letter-spacing: -0.03em;
   color: var(--md-sys-color-on-surface, #1E1B16);
@@ -27,7 +27,7 @@
 
 .portal-list-title {
   margin: 0 0 16px;
-  font-size: 18px;
+  font-size: var(--fs-18);
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--md-sys-color-on-surface, #1E1B16);
@@ -66,7 +66,7 @@
 
 .portal-student-card h3 {
   margin: 0;
-  font-size: 17px;
+  font-size: var(--fs-18);
   font-weight: 600;
   color: var(--md-sys-color-on-surface, #1E1B16);
   letter-spacing: -0.02em;
@@ -75,7 +75,7 @@
 .portal-student-card p {
   margin: 0;
   color: var(--md-sys-color-on-surface-variant, #4B4639);
-  font-size: 13px;
+  font-size: var(--fs-14);
   line-height: 1.55;
 }
 
@@ -84,7 +84,7 @@
   height: 38px;
   margin-top: 8px;
   padding: 0 16px;
-  font-size: 12px;
+  font-size: var(--fs-13);
 }
 
 /* --------------------------------------------------------------------------
@@ -116,7 +116,7 @@
    paragraf krem di atas putih (1,55:1). Kelas apa pun kini menang atasnya. */
 :where(.portal-dashboard) h2 {
   margin: 0;
-  font-size: 24px;
+  font-size: var(--fs-24);
   font-weight: 600;
   letter-spacing: -0.03em;
   color: #FFFFFF;
@@ -125,7 +125,7 @@
 :where(.portal-dashboard) p {
   margin: 0;
   color: #D6CFBE;
-  font-size: 13px;
+  font-size: var(--fs-14);
   line-height: 1.6;
 }
 
@@ -151,7 +151,7 @@
 .portal-metric strong {
   display: block;
   color: #FFE086;
-  font-size: 26px;
+  font-size: var(--fs-28);
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.1;
@@ -161,7 +161,7 @@
   display: block;
   margin-top: 6px;
   color: #D6CFBE;
-  font-size: 12px;
+  font-size: var(--fs-13);
   font-weight: 500;
 }
 
@@ -226,7 +226,7 @@
 
 .portal-account strong {
   display: block;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   margin-bottom: 2px;
@@ -235,7 +235,7 @@
 .portal-account span {
   display: block;
   color: var(--md-sys-color-outline);
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 500;
 }
 
@@ -244,7 +244,7 @@
   min-height: 44px;
   height: auto;
   padding: 0 12px;
-  font-size: 12px;
+  font-size: var(--fs-12);
   border-radius: 8px;
 }
 
@@ -265,7 +265,7 @@
   background: var(--md-sys-color-surface, #FEF9EE);
   color: var(--md-sys-color-on-surface, #1E1B16);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   outline: none;
 }
@@ -280,11 +280,11 @@
   margin-top: 14px;
   min-height: 44px;
   height: auto;
-  font-size: 13px;
+  font-size: var(--fs-14);
 }
 
 .monitoring-hint {
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface-variant, #4B4639);
   line-height: 1.6;
   margin: 6px 0 0;
@@ -313,7 +313,7 @@
   border: 1px solid var(--md-sys-color-outline, #7F7667);
   border-radius: var(--md-shape-corner-small, 8px);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface, #1E1B16);
   background: var(--md-sys-color-surface, #FEF9EE);
   outline: none;
@@ -328,7 +328,7 @@
   min-height: 44px;
   height: auto;
   padding: 0 16px;
-  font-size: 12px;
+  font-size: var(--fs-13);
   flex-shrink: 0;
 }
 
@@ -379,7 +379,7 @@
   border-radius: var(--md-shape-corner-small, 8px);
   background: var(--md-sys-color-surface-container, #F2EDE2);
   color: var(--md-sys-color-on-surface, #1E1B16);
-  font-size: 13px;
+  font-size: var(--fs-14);
   line-height: 1.6;
   border-left: 3px solid var(--md-sys-color-primary, #785A00);
 }
@@ -394,12 +394,12 @@
 }
 
 .portal-dashboard .portal-account strong {
-  font-size: 16px;
+  font-size: var(--fs-16);
   color: var(--md-sys-color-on-surface, #1E1B16);
 }
 
 .portal-dashboard .portal-account span {
-  font-size: 14px;
+  font-size: var(--fs-14);
   line-height: 1.6;
   color: var(--md-sys-color-on-surface-variant, #4B4639);
 }
@@ -581,7 +581,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-brand-title {
-  font-size: 15px;
+  font-size: var(--fs-16);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   line-height: 1.2;
@@ -593,7 +593,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-brand-sub {
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 500;
   color: var(--md-sys-color-outline);
   letter-spacing: 0.02em;
@@ -637,7 +637,7 @@ body.in-crm #portal-students-status,
   border-radius: 9999px;
   background: var(--md-sys-color-primary);
   color: var(--md-sys-color-on-primary);
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -652,7 +652,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-user-name {
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   white-space: nowrap;
@@ -667,7 +667,7 @@ body.in-crm #portal-students-status,
   margin-top: 2px;
   padding: 2px 8px;
   border-radius: 9999px;
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -695,7 +695,7 @@ body.in-crm #portal-students-status,
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -721,7 +721,7 @@ body.in-crm #portal-students-status,
   padding: 10px 14px;
   border-radius: 14px;
   text-decoration: none;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 500;
   color: var(--md-sys-color-outline);
   font-family: var(--apple-font-stack);
@@ -776,7 +776,7 @@ body.in-crm #portal-students-status,
 
 /* Sidebar Badges */
 .crm-badge-counter {
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 9999px;
@@ -806,7 +806,7 @@ body.in-crm #portal-students-status,
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   color: var(--success);
   margin-bottom: 10px;
@@ -833,7 +833,7 @@ body.in-crm #portal-students-status,
   border: 1px solid #FECACA;
   border-radius: 12px;
   color: var(--md-sys-color-error);
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   cursor: pointer;
   font-family: var(--apple-font-stack);
@@ -880,7 +880,7 @@ body.in-crm #portal-students-status,
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 500;
   color: var(--md-sys-color-outline);
   font-family: var(--apple-font-stack);
@@ -942,7 +942,7 @@ body.in-crm #portal-students-status,
   border-radius: 9999px;
   background: var(--md-sys-color-primary);
   color: var(--md-sys-color-on-primary);
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 700;
   line-height: 18px;
   text-align: center;
@@ -976,11 +976,11 @@ body.in-crm #portal-students-status,
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--fs-14);
 }
 
 .crm-profile-pill-name {
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   font-family: var(--apple-font-stack);
@@ -989,7 +989,7 @@ body.in-crm #portal-students-status,
 .crm-role-chip {
   padding: 3px 10px;
   border-radius: 9999px;
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   background: #FEF3C7;
   color: var(--gold-dark);
@@ -1063,7 +1063,7 @@ body.in-crm #portal-students-status,
   border: 1px solid #FDE68A;
   color: var(--md-sys-color-on-primary-container);
   border-radius: 9999px;
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -1074,7 +1074,7 @@ body.in-crm #portal-students-status,
    `.portal-students h2` (0,1,1) mengalahkan kelas tunggal, sehingga judul menjadi
    charcoal di atas panel charcoal (1,18:1). */
 .coursue-hero-banner .coursue-hero-title {
-  font-size: 24px;
+  font-size: var(--fs-24);
   font-weight: 600;
   letter-spacing: -0.01em;
   margin: 0 0 8px;
@@ -1086,7 +1086,7 @@ body.in-crm #portal-students-status,
 /* Teks muted di atas panel GELAP: harus terang. Nilai lama (#94A3B8) berasal dari
    panel Slate gelap; pemetaan mekanis ke abu-abu gelap membuatnya 2,54:1. */
 .coursue-hero-banner .coursue-hero-subtitle {
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 400;
   line-height: 1.6;
   margin: 0 0 20px;
@@ -1104,7 +1104,7 @@ body.in-crm #portal-students-status,
   padding: 10px 22px;
   border-radius: 9999px;
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--fs-14);
   text-decoration: none;
   cursor: pointer;
   border: none;
@@ -1162,7 +1162,7 @@ body.in-crm #portal-students-status,
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 20px;
+  font-size: var(--fs-20);
 }
 
 .coursue-stat-icon--gold,
@@ -1191,7 +1191,7 @@ body.in-crm #portal-students-status,
 }
 
 .coursue-stat-count {
-  font-size: 15px;
+  font-size: var(--fs-16);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   margin: 0;
@@ -1202,7 +1202,7 @@ body.in-crm #portal-students-status,
 }
 
 .coursue-stat-label {
-  font-size: 12px;
+  font-size: var(--fs-13);
   font-weight: 400;
   color: var(--md-sys-color-outline);
   margin: 0;
@@ -1223,7 +1223,7 @@ body.in-crm #portal-students-status,
 }
 
 .coursue-section-title {
-  font-size: 16px;
+  font-size: var(--fs-16);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   margin: 0;
@@ -1305,7 +1305,7 @@ body.in-crm #portal-students-status,
   left: 10px;
   padding: 3px 8px;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -1325,7 +1325,7 @@ body.in-crm #portal-students-status,
 }
 
 .coursue-card-title {
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   line-height: 1.4;
@@ -1349,13 +1349,13 @@ body.in-crm #portal-students-status,
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   color: var(--gold-dark);
 }
 
 .coursue-mentor-name {
-  font-size: 12px;
+  font-size: var(--fs-13);
   font-weight: 600;
   color: var(--md-sys-color-on-surface-variant);
 }
@@ -1379,7 +1379,7 @@ body.in-crm #portal-students-status,
 }
 
 .coursue-table-header h3 {
-  font-size: 16px;
+  font-size: var(--fs-16);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   margin: 0;
@@ -1387,7 +1387,7 @@ body.in-crm #portal-students-status,
 }
 
 .coursue-table-seeall {
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--gold-dark);
   text-decoration: none;
@@ -1404,7 +1404,7 @@ body.in-crm #portal-students-status,
 
 .coursue-table th {
   text-align: left;
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -1415,7 +1415,7 @@ body.in-crm #portal-students-status,
 
 .coursue-table td {
   padding: 14px 12px;
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface);
   border-bottom: 1px solid var(--md-sys-color-surface-container-low);
   vertical-align: middle;
@@ -1451,7 +1451,7 @@ body.in-crm #portal-students-status,
 }
 
 .coursue-stat-card-header h3 {
-  font-size: 16px;
+  font-size: var(--fs-16);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   margin: 0;
@@ -1500,7 +1500,7 @@ body.in-crm #portal-students-status,
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
+  font-size: var(--fs-32);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
@@ -1509,7 +1509,7 @@ body.in-crm #portal-students-status,
 }
 
 .coursue-user-greeting {
-  font-size: 16px;
+  font-size: var(--fs-16);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   margin: 0 0 4px;
@@ -1517,7 +1517,7 @@ body.in-crm #portal-students-status,
 }
 
 .coursue-user-subtext {
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-outline);
   margin: 0 0 20px;
   line-height: 1.45;
@@ -1563,7 +1563,7 @@ body.in-crm #portal-students-status,
 }
 
 .coursue-bar-label {
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   color: var(--md-sys-color-outline);
 }
@@ -1591,7 +1591,7 @@ body.in-crm #portal-students-status,
 }
 
 .coursue-mentor-header h3 {
-  font-size: 16px;
+  font-size: var(--fs-16);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   margin: 0;
@@ -1628,7 +1628,7 @@ body.in-crm #portal-students-status,
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   flex-shrink: 0;
   border: 1px solid rgba(231, 177, 12, 0.2);
@@ -1640,7 +1640,7 @@ body.in-crm #portal-students-status,
 }
 
 .coursue-mentor-title {
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   margin: 0;
@@ -1650,7 +1650,7 @@ body.in-crm #portal-students-status,
 }
 
 .coursue-mentor-role {
-  font-size: 11px;
+  font-size: var(--fs-12);
   color: var(--md-sys-color-outline);
   margin: 2px 0 0;
 }
@@ -1658,7 +1658,7 @@ body.in-crm #portal-students-status,
 .coursue-mentor-action {
   padding: 5px 14px;
   border-radius: 9999px;
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   background: #FEF3C7;
   color: var(--gold-dark);
@@ -1683,7 +1683,7 @@ body.in-crm #portal-students-status,
   background: var(--md-sys-color-surface-container-low);
   border: 1px solid rgba(226, 222, 214, 0.85);
   color: var(--md-sys-color-outline);
-  font-size: 12px;
+  font-size: var(--fs-13);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -1731,7 +1731,7 @@ body.in-crm #portal-students-status,
 
 .crm-summary-title {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--fs-20);
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--md-sys-color-on-surface);
@@ -1752,7 +1752,7 @@ body.in-crm #portal-students-status,
 
 .crm-summary-subtitle {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 500;
   color: var(--md-sys-color-outline);
   line-height: 1.5;
@@ -1760,7 +1760,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-field-label {
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1773,7 +1773,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-field-value {
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   display: flex;
@@ -1783,7 +1783,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-balance-value {
-  font-size: 15px;
+  font-size: var(--fs-16);
   font-weight: 600;
   color: var(--success);
   display: flex;
@@ -1814,7 +1814,7 @@ body.in-crm #portal-students-status,
   border-radius: 9999px;
   background: #FEF3C7;
   color: var(--gold-dark);
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -1825,7 +1825,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-person-name {
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   font-family: var(--apple-font-stack);
@@ -1833,7 +1833,7 @@ body.in-crm #portal-students-status,
 
 .crm-summary-note {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   line-height: 1.55;
   color: var(--md-sys-color-on-surface-variant);
   display: -webkit-box;
@@ -1847,7 +1847,7 @@ body.in-crm #portal-students-status,
   display: inline-block;
   margin-top: 5px;
   color: var(--gold-dark);
-  font-size: 12px;
+  font-size: var(--fs-13);
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
@@ -1885,7 +1885,7 @@ body.in-crm #portal-students-status,
   border: 1px solid rgba(226, 222, 214, 0.85);
   color: var(--md-sys-color-outline);
   font-family: var(--apple-font-stack);
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   letter-spacing: -0.01em;
   cursor: pointer;
@@ -1913,7 +1913,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-pill-count {
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 9999px;
@@ -1975,7 +1975,7 @@ body.in-crm #portal-students-status,
 
 .crm-date-display {
   padding: 8px 16px;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   display: flex;
@@ -1994,7 +1994,7 @@ body.in-crm #portal-students-status,
   border: 1px solid #EEF0F6;
   border-radius: 9999px;
   padding: 8px 16px;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   cursor: pointer;
@@ -2013,7 +2013,7 @@ body.in-crm #portal-students-status,
   gap: 8px;
   background: #FDC537;
   color: var(--md-sys-color-on-surface);
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   padding: 0 18px;
   height: 38px;
@@ -2092,7 +2092,7 @@ body.in-crm #portal-students-status,
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 18px;
+  font-size: var(--fs-18);
   font-weight: 600;
   box-shadow: var(--crm-shadow-sm);
 }
@@ -2122,7 +2122,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-activity-card__name {
-  font-size: 16px;
+  font-size: var(--fs-16);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   margin: 0;
@@ -2132,7 +2132,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-activity-card__subtitle {
-  font-size: 12px;
+  font-size: var(--fs-13);
   font-weight: 500;
   color: var(--md-sys-color-outline);
   margin-top: 3px;
@@ -2163,7 +2163,7 @@ body.in-crm #portal-students-status,
 
 .crm-col-block label {
   display: block;
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -2175,7 +2175,7 @@ body.in-crm #portal-students-status,
 .crm-col-block span,
 .crm-col-block strong {
   display: block;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   line-height: 1.4;
@@ -2186,7 +2186,7 @@ body.in-crm #portal-students-status,
   display: inline-flex;
   flex-wrap: wrap;
   gap: 4px;
-  font-size: 12px;
+  font-size: var(--fs-13);
   font-weight: 600;
   color: var(--success);
 }
@@ -2197,7 +2197,7 @@ body.in-crm #portal-students-status,
   border-left: 3px solid var(--md-sys-color-primary);
   border-radius: 10px;
   padding: 11px 15px;
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-on-primary-container);
   line-height: 1.5;
   display: flex;
@@ -2233,7 +2233,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-meta-item label {
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -2241,7 +2241,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-meta-item span {
-  font-size: 12px;
+  font-size: var(--fs-13);
   font-weight: 600;
   color: #4A4A4D;
   display: flex;
@@ -2256,7 +2256,7 @@ body.in-crm #portal-students-status,
   gap: 6px;
   padding: 4px 12px;
   border-radius: 9999px;
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   font-family: var(--apple-font-stack);
   white-space: nowrap;
@@ -2291,7 +2291,7 @@ body.in-crm #portal-students-status,
   padding: 8px 18px;
   background: #FEF3C7;
   color: var(--gold-dark);
-  font-size: 12px;
+  font-size: var(--fs-13);
   font-weight: 600;
   border-radius: 9999px;
   border: 1px solid rgba(231, 177, 12, 0.2);
@@ -2355,7 +2355,7 @@ body.in-crm #portal-students-status,
 
 .crm-popover-header {
   padding: 6px 14px 2px;
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -2370,7 +2370,7 @@ body.in-crm #portal-students-status,
   padding: 9px 14px;
   background: transparent;
   border: none;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 500;
   color: var(--md-sys-color-on-surface);
   cursor: pointer;
@@ -2450,7 +2450,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-student-compact-name {
-  font-size: 16px;
+  font-size: var(--fs-16);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   margin: 0;
@@ -2463,7 +2463,7 @@ body.in-crm #portal-students-status,
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-outline);
   line-height: 1.4;
 }
@@ -2478,7 +2478,7 @@ body.in-crm #portal-students-status,
   align-items: center;
   background: var(--md-sys-color-surface-container);
   color: #4A4A4D;
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   padding: 1px 8px;
   border-radius: 6px;
@@ -2500,7 +2500,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-student-compact-cta-label {
-  font-size: 12px;
+  font-size: var(--fs-13);
   font-weight: 600;
   color: var(--gold-dark);
   transition: color 0.15s ease;
@@ -2589,7 +2589,7 @@ body.in-crm #portal-students-status,
 
 .crm-white-card-header h3 {
   margin: 0;
-  font-size: 17px;
+  font-size: var(--fs-18);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   letter-spacing: -0.015em;
@@ -2598,7 +2598,7 @@ body.in-crm #portal-students-status,
 
 .crm-white-card-header p {
   margin: 3px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-outline);
   line-height: 1.5;
   font-family: var(--apple-font-stack);
@@ -2635,7 +2635,7 @@ body.in-crm #portal-students-status,
 
 .crm-feature-box strong {
   display: block;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   font-family: var(--apple-font-stack);
@@ -2643,7 +2643,7 @@ body.in-crm #portal-students-status,
 
 .crm-feature-box p {
   margin: 3px 0 0;
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-outline);
   line-height: 1.5;
   font-family: var(--apple-font-stack);
@@ -2715,12 +2715,12 @@ body.in-crm #portal-students-status,
     background: var(--md-sys-color-surface-container-low);
     color: var(--md-sys-color-on-surface);
     font: inherit;
-    font-size: 18px;
+    font-size: var(--fs-18);
     cursor: pointer;
   }
 
   .crm-drawer-toggle-label {
-    font-size: 12px;
+    font-size: var(--fs-13);
     font-weight: 600;
   }
 
@@ -2738,7 +2738,7 @@ body.in-crm #portal-students-status,
   .crm-topbar-action-btn span { display: none; }
   .crm-icon-circle-btn { width: 40px; height: 40px; }
   .crm-profile-pill { max-width: 148px; padding-right: 8px; gap: 6px; }
-  .crm-profile-pill-name { max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+  .crm-profile-pill-name { max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-12); }
   .crm-role-chip { display: none; }
   .crm-canvas { padding: 16px 12px 40px; min-width: 0; overflow-x: clip; }
   .coursue-table-card { overflow-x: auto; }
@@ -2784,7 +2784,7 @@ body.in-crm #portal-students-status,
 
 .crm-canvas .staff-form label {
   display: block;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface-variant, #4D4639);
   margin: 14px 0 6px;
@@ -2806,7 +2806,7 @@ body.in-crm #portal-students-status,
   border-radius: var(--md-shape-corner-medium, 14px) !important;
   color: var(--md-sys-color-on-surface, #1E1B16) !important;
   font-family: var(--apple-font-stack) !important;
-  font-size: 14px !important;
+  font-size: var(--fs-14) !important;
   font-weight: 400 !important;
   padding: 11px 16px !important;
   width: 100% !important;
@@ -2833,7 +2833,7 @@ body.in-crm #portal-students-status,
   border-radius: var(--md-shape-corner-full, 9999px) !important;
   height: 44px !important;
   padding: 0 24px !important;
-  font-size: 14px !important;
+  font-size: var(--fs-14) !important;
   font-weight: 400 !important;
   letter-spacing: -0.01em !important;
   box-shadow: var(--md-sys-elevation-1) !important;
@@ -2855,7 +2855,7 @@ body.in-crm #portal-students-status,
   border-radius: var(--md-shape-corner-full, 9999px) !important;
   height: 42px !important;
   padding: 0 20px !important;
-  font-size: 13px !important;
+  font-size: var(--fs-14) !important;
   font-weight: 400 !important;
   letter-spacing: -0.01em !important;
   transition: background 0.2s ease, transform 0.15s ease !important;
@@ -2895,7 +2895,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-canvas .staff-registration h2 {
-  font-size: 17px !important;
+  font-size: var(--fs-18) !important;
   font-weight: 600 !important;
   color: var(--md-sys-color-on-surface, #1E1B16) !important;
   letter-spacing: -0.015em !important;
@@ -2912,7 +2912,7 @@ body.in-crm #portal-students-status,
 
 .crm-canvas .staff-registration__meta p {
   margin: 0 !important;
-  font-size: 13px !important;
+  font-size: var(--fs-14) !important;
   color: var(--md-sys-color-on-surface-variant, #4D4639) !important;
   background: var(--md-sys-color-surface-container-low, #F8F3E8) !important;
   padding: 8px 12px !important;
@@ -3096,7 +3096,7 @@ body.in-crm #portal-students-status,
 
 .lms-course-title {
   margin: 0;
-  font-size: 22px;
+  font-size: var(--fs-24);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   letter-spacing: -0.02em;
@@ -3105,7 +3105,7 @@ body.in-crm #portal-students-status,
 .lms-course-category-pill {
   display: inline-flex;
   align-items: center;
-  font-size: 11px;
+  font-size: var(--fs-12);
   font-weight: 600;
   color: var(--gold-dark);
   background: #FEF3C7;
@@ -3118,7 +3118,7 @@ body.in-crm #portal-students-status,
   display: flex;
   align-items: center;
   gap: 14px;
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-outline);
   margin-top: 4px;
   flex-wrap: wrap;
@@ -3144,7 +3144,7 @@ body.in-crm #portal-students-status,
   background: #FFFFFF;
   border: 1px solid var(--md-sys-color-outline-variant);
   color: var(--md-sys-color-on-surface);
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   display: inline-flex;
   align-items: center;
@@ -3165,7 +3165,7 @@ body.in-crm #portal-students-status,
   background: var(--md-sys-color-primary);
   color: var(--md-sys-color-on-primary);
   border: none;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   display: inline-flex;
   align-items: center;
@@ -3235,7 +3235,7 @@ body.in-crm #portal-students-status,
   color: #FFFFFF;
   padding: 4px 12px;
   border-radius: 9999px;
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
@@ -3269,7 +3269,7 @@ body.in-crm #portal-students-status,
   align-items: center;
   justify-content: space-between;
   color: #FFFFFF;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
@@ -3287,7 +3287,7 @@ body.in-crm #portal-students-status,
   border-radius: 8px;
   background: transparent;
   border: none;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-outline);
   cursor: pointer;
@@ -3318,13 +3318,13 @@ body.in-crm #portal-students-status,
 
 .lms-content-card h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--fs-16);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
 }
 
 .lms-about-text {
-  font-size: 14px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface-variant);
   line-height: 1.6;
   margin: 0;
@@ -3340,7 +3340,7 @@ body.in-crm #portal-students-status,
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: #4A4A4D;
   line-height: 1.45;
 }
@@ -3376,13 +3376,13 @@ body.in-crm #portal-students-status,
 
 .lms-curriculum-header h3 {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--fs-16);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
 }
 
 .lms-curriculum-header span {
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-outline);
 }
 
@@ -3422,7 +3422,7 @@ body.in-crm #portal-students-status,
 }
 
 .lms-module-title {
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
 }
@@ -3431,7 +3431,7 @@ body.in-crm #portal-students-status,
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-outline);
 }
 
@@ -3448,7 +3448,7 @@ body.in-crm #portal-students-status,
   justify-content: space-between;
   padding: 10px 16px;
   gap: 10px;
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: #4A4A4D;
   cursor: pointer;
   transition: background 0.12s ease;
@@ -3498,7 +3498,7 @@ body.in-crm #portal-students-status,
 }
 
 .lms-lesson-duration {
-  font-size: 11px;
+  font-size: var(--fs-12);
   color: var(--md-sys-color-outline);
   flex-shrink: 0;
 }
@@ -3523,7 +3523,7 @@ body.in-crm #portal-students-status,
 
 .lms-author-header h4 {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -3546,7 +3546,7 @@ body.in-crm #portal-students-status,
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: var(--fs-16);
   border: 1px solid rgba(231, 177, 12, 0.25);
   flex-shrink: 0;
 }
@@ -3563,7 +3563,7 @@ body.in-crm #portal-students-status,
 }
 
 .lms-author-name {
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   margin: 0;
@@ -3574,19 +3574,19 @@ body.in-crm #portal-students-status,
 }
 
 .lms-author-role {
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-outline);
   margin: 2px 0 0;
 }
 
 .lms-author-rating {
-  font-size: 12px;
+  font-size: var(--fs-13);
   font-weight: 600;
   color: var(--gold-dark);
 }
 
 .lms-author-bio {
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-outline);
   line-height: 1.5;
   margin: 0;
@@ -3673,7 +3673,7 @@ body.in-crm #portal-students-status,
 
 .crm-empty-state strong {
   color: var(--md-sys-color-on-surface, #1E1B16);
-  font-size: 15px;
+  font-size: var(--fs-16);
   font-weight: 600;
 }
 
@@ -3681,7 +3681,7 @@ body.in-crm #portal-students-status,
 .crm-empty-state p {
   margin: 0;
   color: inherit;
-  font-size: 13px;
+  font-size: var(--fs-14);
   line-height: 1.5;
 }
 
@@ -3731,7 +3731,7 @@ body.in-crm #portal-students-status,
   border-radius: 999px;
   background: rgba(120, 90, 0, 0.08);
   color: var(--crm-gold-dark, #785A00) !important;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -3743,7 +3743,7 @@ body.in-crm #portal-students-status,
 
 .crm-canvas .staff-registration__meta--compact p {
   padding: 7px 10px !important;
-  font-size: 12px !important;
+  font-size: var(--fs-13) !important;
 }
 
 .crm-canvas .staff-registration__controls--primary {
@@ -3842,7 +3842,7 @@ body.in-crm #portal-students-status,
   background: var(--md-sys-color-surface);
   color: var(--md-sys-color-on-surface);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--fs-14);
 }
 
 .student-picker__search {
@@ -3858,7 +3858,7 @@ body.in-crm #portal-students-status,
 .portal-student-hint,
 .student-picker__hint {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   line-height: 1.5;
   color: var(--md-sys-color-on-surface-variant);
 }
@@ -3895,7 +3895,7 @@ body.in-crm #portal-students-status,
 /* Rekap sholat berjamaah terstruktur di portal. */
 .prayer-recap h3 {
   margin: 0 0 6px;
-  font-size: 16px;
+  font-size: var(--fs-16);
   color: var(--md-sys-color-on-surface);
 }
 
@@ -3912,7 +3912,7 @@ body.in-crm #portal-students-status,
 .prayer-recap__table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--fs-14);
 }
 
 .prayer-recap__table th,
@@ -3977,7 +3977,7 @@ body.in-crm #portal-students-status,
   background: var(--md-sys-color-surface-container-lowest);
   color: var(--md-sys-color-on-surface);
   font-family: var(--main-font);
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   line-height: 1;
   cursor: pointer;
@@ -4008,7 +4008,7 @@ body.in-crm #portal-students-status,
   border: 1px solid var(--md-sys-color-outline-variant);
   color: var(--md-sys-color-on-surface);
   height: 42px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
@@ -4022,7 +4022,7 @@ body.in-crm #portal-students-status,
   background: transparent;
   border: 1px dashed var(--md-sys-color-outline-variant);
   color: var(--md-sys-color-on-surface-variant);
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 500;
 }
 
@@ -4042,7 +4042,7 @@ body.in-crm #portal-students-status,
 
 .coursue-stat-label {
   color: var(--md-sys-color-on-surface-variant);
-  font-size: 13px;
+  font-size: var(--fs-14);
 }
 
 .coursue-stat-icon--pink,
@@ -4060,7 +4060,7 @@ body.in-crm #portal-students-status,
 }
 
 .crm-white-card-header p {
-  font-size: 14px;
+  font-size: var(--fs-14);
   line-height: 1.55;
   color: var(--md-sys-color-on-surface-variant);
   max-width: 70ch;
@@ -4083,7 +4083,7 @@ table,
 
 .crm-page-header .crm-summary-title {
   margin: 0;
-  font-size: clamp(22px, 2.2vw, 28px);
+  font-size: clamp(var(--fs-24), 2.2vw, var(--fs-28));
   font-weight: 600;
   line-height: 1.2;
   color: var(--md-sys-color-on-surface);
@@ -4091,7 +4091,7 @@ table,
 
 .crm-page-header .crm-summary-subtitle {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--fs-16);
   line-height: 1.55;
   color: var(--md-sys-color-on-surface-variant);
   max-width: 70ch;
@@ -4099,7 +4099,7 @@ table,
 
 .crm-page-header__status {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--gold-dark);
 }
@@ -4114,21 +4114,21 @@ table,
 
 .portal-greeting h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--fs-18);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
 }
 
 .portal-greeting__role {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--gold-dark);
 }
 
 .portal-greeting__count {
   margin: 6px 0 0;
-  font-size: 15px;
+  font-size: var(--fs-16);
   color: var(--md-sys-color-on-surface);
 }
 
@@ -4136,7 +4136,7 @@ table,
   margin: 14px 0 0;
   padding-top: 14px;
   border-top: 1px solid var(--md-sys-color-outline-variant);
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -4157,7 +4157,7 @@ table,
   min-height: 40px;
   padding: 0 12px;
   border-radius: 10px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   background: var(--md-sys-color-surface-container-low);
@@ -4193,7 +4193,7 @@ table,
   padding: 0;
   background: none;
   color: var(--md-sys-color-on-surface);
-  font-size: 16px;
+  font-size: var(--fs-16);
   font-weight: 600;
   text-transform: none;
   letter-spacing: -0.01em;
@@ -4253,7 +4253,7 @@ table,
   }
 
   .staff-header--shell .staff-brand .staff-brand__name {
-    font-size: 15px;
+    font-size: var(--fs-16);
   }
 
   .staff-header--shell .staff-brand span:not(.staff-brand__name) {
@@ -4292,7 +4292,7 @@ table,
 /* Kontrol periode rekam jejak: label kecil dan tebal seperti label formulir lain.
    (Kelas sr-only tidak pernah didefinisikan, jadi labelnya memang tampil.) */
 .crm-toolbar-filters label[for^="record-period"] {
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface-variant);
 }
@@ -4303,7 +4303,7 @@ table,
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 10px;
   background: var(--md-sys-color-surface-container-lowest);
-  font-size: 14px;
+  font-size: var(--fs-14);
 }
 
 /* ==========================================================================
@@ -4361,7 +4361,7 @@ table,
   border-radius: 9999px;
   min-height: 42px;
   height: auto;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
@@ -4410,14 +4410,14 @@ table,
   border: 0;
   padding: 0;
   color: var(--gold-dark);
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   letter-spacing: 0.08em;
   margin-bottom: 10px;
 }
 
 .coursue-hero-banner .coursue-hero-title {
-  font-size: 30px;
+  font-size: var(--fs-28);
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--md-sys-color-on-surface);
@@ -4425,7 +4425,7 @@ table,
 }
 
 .coursue-hero-banner .coursue-hero-subtitle {
-  font-size: 15px;
+  font-size: var(--fs-16);
   color: var(--md-sys-color-on-surface-variant);
   margin-bottom: 20px;
 }
@@ -4433,7 +4433,7 @@ table,
 .coursue-hero-banner .coursue-hero-cta {
   min-height: 46px;
   padding: 0 24px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
@@ -4481,7 +4481,7 @@ table,
 }
 
 .lms-content-card__header h3 {
-  font-size: 17px;
+  font-size: var(--fs-18);
 }
 
 .lms-note-box {
@@ -4490,7 +4490,7 @@ table,
   border: 0;
   background: var(--md-sys-color-surface-container-low);
   color: var(--md-sys-color-on-surface-variant);
-  font-size: 14px;
+  font-size: var(--fs-14);
   line-height: 1.6;
 }
 
@@ -4500,7 +4500,7 @@ table,
 
 .lms-subheading {
   margin: 4px 0 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
 }
@@ -4522,7 +4522,7 @@ table,
   border-radius: 14px;
   background: var(--md-sys-color-surface-container);
   color: var(--md-sys-color-on-surface-variant);
-  font-size: 14px;
+  font-size: var(--fs-14);
 }
 
 .lms-course-item {
@@ -4545,14 +4545,14 @@ table,
 
 .lms-course-item__title {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--fs-16);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
 }
 
 .lms-course-item__desc {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   line-height: 1.55;
   color: var(--md-sys-color-on-surface-variant);
 }
@@ -4561,7 +4561,7 @@ table,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface-variant);
 }
 
@@ -4634,7 +4634,7 @@ table,
   border-radius: 9999px;
   background: var(--md-sys-color-surface-container-high);
   color: var(--md-sys-color-on-surface-variant);
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -4647,7 +4647,7 @@ table,
 .portal-account__action {
   min-height: 40px;
   padding-inline: 18px;
-  font-size: 13px;
+  font-size: var(--fs-14);
 }
 
 @media (max-width: 600px) {
@@ -4675,7 +4675,7 @@ table,
 
 .lms-material-manager h4 {
   margin: 0 0 12px;
-  font-size: 15px;
+  font-size: var(--fs-16);
   font-weight: 600;
 }
 
@@ -4696,12 +4696,12 @@ table,
 
 .lms-material-row strong {
   display: block;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
 .lms-material-row span {
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-on-surface-variant);
   text-transform: capitalize;
 }
@@ -4714,7 +4714,7 @@ table,
 .lms-material-row__action {
   min-height: 38px;
   padding-inline: 16px;
-  font-size: 13px;
+  font-size: var(--fs-14);
 }
 
 /* Manajemen akun: dua formulir berdampingan, daftar akun melebar di bawahnya. */
@@ -4757,14 +4757,14 @@ table,
 
 .lms-quiz-builder__head h4 {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--fs-16);
   font-weight: 600;
 }
 
 .lms-quiz-builder__head .button {
   min-height: 38px;
   padding-inline: 16px;
-  font-size: 13px;
+  font-size: var(--fs-14);
 }
 
 .lms-quiz-builder__list {
@@ -4782,14 +4782,14 @@ table,
 .lms-quiz-question label {
   display: block;
   margin-bottom: 6px;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
 .lms-quiz-question__remove {
   min-height: 46px;
   padding-inline: 14px;
-  font-size: 13px;
+  font-size: var(--fs-14);
 }
 
 .lms-task {
@@ -4802,7 +4802,7 @@ table,
 
 .lms-task__note {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface-variant);
 }
 
@@ -4819,7 +4819,7 @@ table,
 .lms-task__field label {
   display: block;
   margin-bottom: 6px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
@@ -4832,13 +4832,13 @@ table,
   border-radius: 12px;
   background: var(--md-sys-color-surface);
   font-family: inherit;
-  font-size: 15px;
+  font-size: var(--fs-16);
   color: var(--md-sys-color-on-surface);
 }
 
 .lms-task__result {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface-variant);
 }
@@ -4859,7 +4859,7 @@ table,
 
 .lms-review-manager h4 {
   margin: 0 0 12px;
-  font-size: 15px;
+  font-size: var(--fs-16);
   font-weight: 600;
 }
 
@@ -4888,25 +4888,25 @@ table,
 }
 
 .lms-submission__head strong {
-  font-size: 15px;
+  font-size: var(--fs-16);
   font-weight: 600;
 }
 
 .lms-submission__head span {
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface-variant);
 }
 
 .lms-submission__body {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   line-height: 1.6;
   white-space: pre-wrap;
 }
 
 .lms-submission__verdict {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-tertiary);
 }
@@ -4921,7 +4921,7 @@ table,
 .lms-submission__form label {
   display: block;
   margin-bottom: 6px;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
@@ -4933,7 +4933,7 @@ table,
   border-radius: 12px;
   background: var(--md-sys-color-surface);
   font-family: inherit;
-  font-size: 15px;
+  font-size: var(--fs-16);
 }
 
 .lms-submission__form .button {
@@ -5030,7 +5030,7 @@ table,
   }
 
   .staff-header--shell .staff-brand .staff-brand__name {
-    font-size: 14px;
+    font-size: var(--fs-14);
     white-space: nowrap;
   }
 
@@ -5041,7 +5041,7 @@ table,
   .staff-header--shell .button {
     min-height: 40px;
     padding-inline: 12px;
-    font-size: 13px;
+    font-size: var(--fs-14);
     white-space: nowrap;
   }
 
@@ -5058,7 +5058,7 @@ table,
   }
 
   .staff-header--shell .staff-brand .staff-brand__name {
-    font-size: 13px;
+    font-size: var(--fs-14);
   }
 
   .staff-header--shell .staff-brand .brand-logo-icon {
@@ -5137,13 +5137,13 @@ table,
 .admin-kpi__note,
 .admin-kpi-detail {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface-variant);
 }
 
 .admin-kpi__value {
   margin: 4px 0 2px;
-  font-size: 26px;
+  font-size: var(--fs-28);
   font-weight: 600;
   line-height: 1.2;
   color: var(--md-sys-color-on-surface);
@@ -5176,13 +5176,13 @@ table,
 
 .admin-section-title {
   margin: 0;
-  font-size: 17px;
+  font-size: var(--fs-18);
   font-weight: 600;
 }
 
 .admin-section-note {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-outline);
 }
 
@@ -5219,7 +5219,7 @@ table,
 
 .admin-alert__level {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--fs-12);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--md-sys-color-outline);
@@ -5235,20 +5235,20 @@ table,
 
 .admin-alert__title {
   margin: 2px 0 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
 .admin-alert__detail {
   margin: 2px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface-variant);
 }
 
 .admin-link {
   padding: 0;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface);
   text-align: left;
   text-decoration: underline;
@@ -5274,7 +5274,7 @@ table,
 
 .admin-empty {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-outline);
 }
 
@@ -5298,7 +5298,7 @@ table,
 .admin-filter {
   display: grid;
   gap: 4px;
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-on-surface-variant);
 }
 
@@ -5307,12 +5307,12 @@ table,
   align-items: center;
   gap: 8px;
   min-height: 40px;
-  font-size: 13px;
+  font-size: var(--fs-14);
 }
 
 .admin-table-info {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface-variant);
 }
 
@@ -5328,12 +5328,12 @@ table,
   width: 100%;
   min-width: 980px;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--fs-14);
 }
 
 .admin-table th {
   padding: 10px 12px;
-  font-size: 12px;
+  font-size: var(--fs-13);
   font-weight: 600;
   color: var(--md-sys-color-on-surface-variant);
   text-align: left;
@@ -5373,7 +5373,7 @@ table,
 
 .admin-cell-sub {
   margin-top: 2px;
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-outline);
 }
 
@@ -5409,20 +5409,20 @@ table,
 
 .admin-card__title {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--fs-16);
   font-weight: 600;
 }
 
 .admin-card__meta,
 .admin-card__line {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface-variant);
 }
 
 .admin-card__label {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -5436,7 +5436,7 @@ table,
 
 .admin-occupancy__text {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
@@ -5475,7 +5475,7 @@ table,
   grid-template-columns: auto 1fr;
   gap: 6px 14px;
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
 }
 
 .admin-facts dt {
@@ -5504,7 +5504,7 @@ table,
   }
 
   .admin-kpi__value {
-    font-size: 22px;
+    font-size: var(--fs-24);
   }
 
   .admin-alert {
@@ -5545,7 +5545,7 @@ table,
   display: block;
   padding: 10px 12px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 15px;
+  font-size: var(--fs-16);
   user-select: all;
   overflow-wrap: anywhere;
   background: var(--md-sys-color-surface-container-low);
@@ -5559,7 +5559,7 @@ table,
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 13px;
+  font-size: var(--fs-14);
 }
 
 /* Kotak catatan dan tindak lanjut di kartu pendaftar: selalu selebar kartu. Kotak isian
@@ -5637,12 +5637,12 @@ table,
 }
 
 .staff-reg-card__name {
-  font-size: 16px;
+  font-size: var(--fs-16);
   font-weight: 600;
 }
 
 .staff-reg-card__status {
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface-variant);
 }
@@ -5665,7 +5665,7 @@ table,
 }
 
 .staff-reg-card__meta {
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface-variant);
   overflow-wrap: anywhere;
 }
@@ -5691,7 +5691,7 @@ table,
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-outline);
 }
 
@@ -5700,7 +5700,7 @@ table,
   flex-shrink: 0;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
 }
@@ -5745,20 +5745,20 @@ table,
 
 .staff-reg-dialog__title {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--fs-20);
   font-weight: 600;
 }
 
 .staff-reg-dialog__sub {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface-variant);
 }
 
 .staff-reg-dialog__status {
   min-height: 1.4em;
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-tertiary);
 }
@@ -5790,7 +5790,7 @@ table,
   min-height: 42px;
   padding-inline: 18px;
   border-radius: 9999px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
@@ -5803,7 +5803,7 @@ table,
 .staff-reg-section__title,
 .staff-reg-dialog .staff-whatsapp > strong {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -5819,7 +5819,7 @@ table,
   grid-template-columns: auto minmax(0, 1fr);
   gap: 6px 14px;
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
 }
 
 .staff-reg-facts dt {
@@ -5857,20 +5857,20 @@ table,
 
 .staff-reg-list__body {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .staff-reg-list__meta {
   margin: 2px 0 0;
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-outline);
 }
 
 .staff-reg-empty {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-outline);
 }
 
@@ -5956,14 +5956,14 @@ table,
 }
 
 .admin-dorm-card__title {
-  font-size: 15px;
+  font-size: var(--fs-16);
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 
 .admin-dorm-card__meta,
 .admin-dorm-card__line {
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-on-surface-variant);
   overflow-wrap: anywhere;
 }
@@ -5974,7 +5974,7 @@ table,
 
 .admin-dorm-card__occupancy {
   margin-top: 4px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
@@ -5983,7 +5983,7 @@ table,
   align-items: center;
   gap: 8px;
   margin-top: 6px;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
@@ -6025,7 +6025,7 @@ table,
 
 .admin-dorm-dialog__title {
   margin: 0 0 4px;
-  font-size: 19px;
+  font-size: var(--fs-20);
   font-weight: 600;
 }
 
@@ -6033,7 +6033,7 @@ table,
   min-height: 42px;
   padding-inline: 18px;
   border-radius: 9999px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
@@ -6075,7 +6075,7 @@ table,
   display: grid;
   gap: 2px;
   min-width: 0;
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-on-surface-variant);
 }
 
@@ -6095,13 +6095,13 @@ table,
 
 .admin-activity-list__title {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
 .admin-activity-list__desc {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface-variant);
 }
 
@@ -6138,7 +6138,7 @@ table,
 }
 
 .admin-resident .admin-student-name {
-  font-size: 14px;
+  font-size: var(--fs-14);
 }
 
 /* Tombol aksi akun (Ubah, Nonaktifkan, Kata sandi sementara) berjajar di area aksi. */
@@ -6182,14 +6182,14 @@ table,
 
 .santri-card__title {
   margin: 0;
-  font-size: 17px;
+  font-size: var(--fs-18);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
 }
 
 .santri-card__note {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   line-height: 1.5;
   color: var(--md-sys-color-outline);
 }
@@ -6203,7 +6203,7 @@ table,
 
 .santri-today__label {
   margin: 0 0 8px;
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -6218,7 +6218,7 @@ table,
 .santri-today__meta,
 .santri-today__date {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   line-height: 1.5;
   color: var(--md-sys-color-on-surface-variant);
 }
@@ -6229,7 +6229,7 @@ table,
 
 .santri-today__strong {
   margin: 0 0 2px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
 }
@@ -6258,7 +6258,7 @@ table,
 }
 
 .santri-task__link {
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
   text-decoration: none;
@@ -6270,7 +6270,7 @@ table,
 }
 
 .santri-task__meta {
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-on-surface-variant);
 }
 
@@ -6281,7 +6281,7 @@ table,
   padding: 6px 10px;
   border-radius: 8px;
   background: var(--md-sys-color-surface-container-low);
-  font-size: 13px;
+  font-size: var(--fs-14);
 }
 
 .santri-prayer__status {
@@ -6323,21 +6323,21 @@ table,
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 700;
   background: var(--md-sys-color-surface-container);
   color: var(--md-sys-color-on-surface-variant);
 }
 
 .santri-roadmap__title {
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   line-height: 1.4;
   color: var(--md-sys-color-on-surface);
 }
 
 .santri-roadmap__state {
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-outline);
 }
 
@@ -6370,7 +6370,7 @@ table,
   justify-self: start;
   padding: 2px 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   background: var(--md-sys-color-primary);
   color: var(--md-sys-color-on-primary);
@@ -6378,18 +6378,18 @@ table,
 
 .santri-honors__name {
   margin-top: 4px;
-  font-size: 15px;
+  font-size: var(--fs-16);
   color: var(--md-sys-color-on-surface);
 }
 
 .santri-honors__program {
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-on-surface-variant);
 }
 
 .santri-honors__reason {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   line-height: 1.5;
   color: var(--md-sys-color-on-primary-container);
 }
@@ -6421,13 +6421,13 @@ table,
 }
 
 .santri-announce__title {
-  font-size: 15px;
+  font-size: var(--fs-16);
   color: var(--md-sys-color-on-surface);
 }
 
 .santri-announce__body {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   line-height: 1.6;
   white-space: pre-line;
   color: var(--md-sys-color-on-surface-variant);
@@ -6435,7 +6435,7 @@ table,
 
 .santri-announce__meta,
 .santri-leave__meta {
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-outline);
 }
 
@@ -6450,7 +6450,7 @@ table,
 .santri-leave-form__field {
   display: grid;
   gap: 4px;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   color: var(--md-sys-color-on-surface);
 }
@@ -6484,13 +6484,13 @@ table,
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  font-size: 14px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface);
 }
 
 .santri-leave__status {
   flex: none;
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   padding: 2px 10px;
   border-radius: 999px;
@@ -6516,7 +6516,7 @@ table,
 .santri-leave__reason,
 .santri-leave__note {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-14);
   line-height: 1.5;
   color: var(--md-sys-color-on-surface-variant);
 }
@@ -6544,7 +6544,7 @@ table,
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 8px;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   background: var(--md-sys-color-surface-container-lowest);
   color: var(--md-sys-color-outline);
@@ -6576,7 +6576,7 @@ button.santri-juz__cell:focus-visible {
   flex-wrap: wrap;
   gap: 14px;
   margin-top: 10px;
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-on-surface-variant);
 }
 
@@ -6618,7 +6618,7 @@ button.santri-juz__cell:focus-visible {
 }
 
 .santri-indicator__label {
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -6626,13 +6626,13 @@ button.santri-juz__cell:focus-visible {
 }
 
 .santri-indicator__value {
-  font-size: 26px;
+  font-size: var(--fs-28);
   line-height: 1.2;
   color: var(--md-sys-color-on-surface);
 }
 
 .santri-indicator__note {
-  font-size: 12px;
+  font-size: var(--fs-13);
   line-height: 1.5;
   color: var(--md-sys-color-on-surface-variant);
 }
@@ -6684,14 +6684,14 @@ button.santri-juz__cell:focus-visible {
 
 .santri-doa__body {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   line-height: 1.6;
   white-space: pre-line;
   color: var(--md-sys-color-on-surface);
 }
 
 .santri-doa__meta {
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-outline);
 }
 
@@ -6701,14 +6701,14 @@ button.santri-juz__cell:focus-visible {
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 8px;
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-outline);
 }
 
 .crm-summary-chip {
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--fs-12);
   font-weight: 600;
   background: var(--md-sys-color-surface-container);
   color: var(--md-sys-color-on-surface-variant);
@@ -6746,7 +6746,7 @@ button.santri-juz__cell:focus-visible {
   padding: 10px 14px;
   border-radius: 12px;
   border: 1px solid var(--md-sys-color-outline-variant);
-  font-size: 14px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface);
 }
 
@@ -6776,7 +6776,7 @@ button.santri-juz__cell:focus-visible {
 .lms-progress-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: var(--fs-14);
 }
 
 .lms-progress-table th,
@@ -6788,7 +6788,7 @@ button.santri-juz__cell:focus-visible {
 }
 
 .lms-progress-table thead th {
-  font-size: 12px;
+  font-size: var(--fs-13);
   font-weight: 600;
   color: var(--md-sys-color-on-surface-variant);
 }
@@ -6826,7 +6826,7 @@ button.santri-juz__cell:focus-visible {
 
 .lms-enroll h4 {
   margin: 0 0 12px;
-  font-size: 15px;
+  font-size: var(--fs-16);
   font-weight: 600;
 }
 
@@ -6854,12 +6854,12 @@ button.santri-juz__cell:focus-visible {
   border-radius: 12px;
   background: var(--md-sys-color-surface-container-low);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--fs-14);
 }
 
 .lms-enroll .lms-enroll__option small {
   margin-left: auto;
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-on-surface-variant);
 }
 
@@ -6874,7 +6874,7 @@ button.santri-juz__cell:focus-visible {
 
 .lms-enroll__empty {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface-variant);
 }
 
@@ -6903,7 +6903,7 @@ button.santri-juz__cell:focus-visible {
 
 .op-row__main .op-row__date {
   margin-top: 4px;
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-on-surface-variant);
 }
 
@@ -6917,7 +6917,7 @@ button.santri-juz__cell:focus-visible {
   align-items: center;
   gap: 8px;
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 400;
   cursor: pointer;
 }
@@ -6936,7 +6936,7 @@ button.santri-juz__cell:focus-visible {
   align-items: center;
   gap: 10px;
   margin: 8px 0 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
@@ -6946,7 +6946,7 @@ button.santri-juz__cell:focus-visible {
   align-items: center;
   gap: 8px;
   margin-top: 8px;
-  font-size: 13px;
+  font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface-variant);
 }
 
@@ -7020,7 +7020,7 @@ button.santri-juz__cell:focus-visible {
   background: var(--md-sys-color-primary-container, #FDF3D3);
   color: var(--md-sys-color-on-surface);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--fs-14);
   font-weight: 600;
   cursor: pointer;
 }
@@ -7029,7 +7029,7 @@ button.santri-juz__cell:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: var(--fs-14);
   white-space: nowrap;
 }
 
@@ -7044,7 +7044,7 @@ button.santri-juz__cell:focus-visible {
   align-items: center;
   gap: 10px;
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-14);
   font-weight: 600;
 }
 
@@ -7052,7 +7052,7 @@ button.santri-juz__cell:focus-visible {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 12px;
-  font-size: 12px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-on-surface-variant);
 }
 
@@ -7096,19 +7096,19 @@ button.santri-juz__cell:focus-visible {
 
 .manual-result h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--fs-16);
 }
 
 .manual-result__code {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--fs-16);
 }
 
 .manual-result__code strong {
-  font-size: 20px;
+  font-size: var(--fs-20);
   letter-spacing: 0.08em;
 }
 
 .registration-home-kpis .admin-kpi__value {
-  font-size: 24px;
+  font-size: var(--fs-24);
 }
