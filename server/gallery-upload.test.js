@@ -84,7 +84,7 @@ async function run() {
     const beranda = await (await fetch(`${baseUrl}/website/index.html`)).text();
     const pertama = beranda.indexOf(`/media/galeri/${id}.jpg`);
     assert.ok(pertama > 0, 'Foto unggahan tampil di beranda.');
-    assert.ok(pertama < beranda.indexOf('../assets/galeri/founder-rektor-al-azhar.jpg'), 'Urutan mengikuti isian admin.');
+    assert.ok(pertama < beranda.indexOf('../assets/galeri/founder-rektor-al-azhar.webp'), 'Urutan mengikuti isian admin.');
     assert.ok(beranda.includes('Wisuda santri angkatan 2026'));
 
     // Id karangan dan foto di luar daftar ditolak.

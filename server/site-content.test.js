@@ -72,6 +72,19 @@ function ujiValidasi() {
   const kontak = salin(BAWAAN.kontak);
   assert.equal(periksaBlok('kontak', { ...kontak, whatsapp: '0812-3456-7890' }).nilai.whatsapp, '6281234567890', 'Awalan 0 menjadi 62.');
   assert.equal(periksaBlok('kontak', { ...kontak, whatsapp: '12' }).ok, false);
+
+  // Konten yang disimpan sebelum foto bawaan pindah ke WebP masih memuat nama .jpg.
+  // Nama itu dipetakan ke berkas WebP-nya, bukan ditolak (yang membuat blok kembali ke bawaan).
+  const galeriLama = salin(BAWAAN.galeri).map((item) => ({ ...item, foto: item.foto.replace(/\.webp$/, '.jpg') }));
+  assert.ok(galeriLama.every((item) => item.foto.endsWith('.jpg')));
+  const galeriBaru = periksaBlok('galeri', galeriLama);
+  assert.equal(galeriBaru.ok, true);
+  assert.deepEqual(galeriBaru.nilai.map((item) => item.foto), BAWAAN.galeri.map((item) => item.foto));
+  assert.equal(periksaBlok('galeri', [{ ...BAWAAN.galeri[0], foto: 'galeri/tidak-ada.jpg' }]).ok, false);
+  const testiLama = salin(BAWAAN.testimoni);
+  testiLama[0].foto = 'cairo-arches.jpg';
+  assert.equal(periksaBlok('testimoni', testiLama).nilai[0].foto, 'cairo-arches.webp');
+  for (const item of BAWAAN.galeri) assert.ok(fs.existsSync(path.join(__dirname, '..', 'assets', item.foto)), `${item.foto} ada.`);
   assert.equal(periksaBlok('kontak', { ...kontak, email: 'bukan-email' }).bidang, 'email');
   assert.equal(periksaBlok('kontak', { ...kontak, instagram: 'https://www.instagram.com/hamasah.intl/' }).nilai.instagram, 'hamasah.intl');
   assert.equal(periksaBlok('kontak', { ...kontak, youtube: 'https://contoh.test/kanal' }).ok, false);

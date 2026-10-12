@@ -32,8 +32,8 @@ ENERGY 3 / RHYTHM 3 / MOTION 2.
 
 ## Foto
 
-- `assets/cairo-skyline.jpg`: waa towaw, [Mosque with minarets against a cityscape](https://unsplash.com/photos/mosque-with-minarets-against-a-cityscape-APACUJ5_plQ), Unsplash License.
-- `assets/cairo-arches.jpg`: BassemSaad saad, [Muhammad Ali Mosque, Old Cairo](https://unsplash.com/photos/a-large-building-with-many-arches-glbXDxOAYzQ), Unsplash License.
+- `assets/cairo-skyline.webp`: waa towaw, [Mosque with minarets against a cityscape](https://unsplash.com/photos/mosque-with-minarets-against-a-cityscape-APACUJ5_plQ), Unsplash License.
+- `assets/cairo-arches.webp`: BassemSaad saad, [Muhammad Ali Mosque, Old Cairo](https://unsplash.com/photos/a-large-building-with-many-arches-glbXDxOAYzQ), Unsplash License.
 - Referensi komposisi: [SpaceX](https://www.spacex.com/).
 
 Foto arsitektur bersifat ilustrasi lokasi. Data, harga, artikel, dan testimoni dalam prototype lama belum diverifikasi untuk publikasi.

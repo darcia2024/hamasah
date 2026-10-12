@@ -271,6 +271,17 @@ function serveStaticFile(response, { pathname, rootDirectory, request, search, t
     filePath = path.join(filePath, 'index.html');
   }
   if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+    // Foto di assets/ yang dulu JPEG/PNG dan kini WebP: alamat lama (halaman yang masih
+    // ter-cache, tautan lama, hasil pencarian gambar) dialihkan ke berkas WebP-nya.
+    const penggantiWebp = /^assets\/.+\.(jpe?g|png)$/i.test(normalizedPath) ? filePath.replace(/\.(jpe?g|png)$/i, '.webp') : null;
+    if (penggantiWebp && fs.existsSync(penggantiWebp) && fs.statSync(penggantiWebp).isFile()) {
+      response.writeHead(301, {
+        Location: `/${normalizedPath.replace(/\.(jpe?g|png)$/i, '.webp')}`,
+        'Cache-Control': 'public, max-age=86400'
+      });
+      response.end();
+      return;
+    }
     notFound(response, rootDirectory);
     return;
   }

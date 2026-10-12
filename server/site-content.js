@@ -26,11 +26,11 @@ const NOMOR_WA_BAWAAN = '6287897591978';
 const FOTO_TESTIMONI = Object.freeze([
   { berkas: 'testimoni-wali-ghazalba.webp', label: 'Keluarga wali Ghazalba', lebar: 1280, tinggi: 853 },
   { berkas: 'testimoni-wali-aruna.webp', label: 'Ayah dan ibu wali Aruna', lebar: 1091, tinggi: 1280 },
-  { berkas: 'cairo-arches.jpg', label: 'Lengkung bangunan Kairo', lebar: 2000, tinggi: 1333 },
-  { berkas: 'cairo-skyline.jpg', label: 'Pemandangan kota Kairo', lebar: 2200, tinggi: 1469 },
-  { berkas: 'kelas-daring-kitab.jpg', label: 'Santri belajar kitab dari rumah', lebar: 1200, tinggi: 800 },
-  { berkas: 'hero-student.jpg', label: 'Belajar dengan laptop', lebar: 1200, tinggi: 800 },
-  { berkas: 'subcard-student.jpg', label: 'Santri di Kairo', lebar: 500, tinggi: 333 },
+  { berkas: 'cairo-arches.webp', label: 'Lengkung bangunan Kairo', lebar: 1600, tinggi: 1066 },
+  { berkas: 'cairo-skyline.webp', label: 'Pemandangan kota Kairo', lebar: 1600, tinggi: 1068 },
+  { berkas: 'kelas-daring-kitab.webp', label: 'Santri belajar kitab dari rumah', lebar: 1200, tinggi: 800 },
+  { berkas: 'hero-student.webp', label: 'Belajar dengan laptop', lebar: 1200, tinggi: 800 },
+  { berkas: 'subcard-student.webp', label: 'Santri di Kairo', lebar: 500, tinggi: 333 },
   { berkas: '', label: 'Tanpa foto (logo Hamasah)', lebar: 512, tinggi: 512 }
 ]);
 
@@ -45,6 +45,16 @@ const FOTO_GALERI_ASET = Object.freeze((() => {
     return [];
   }
 })());
+
+// Foto bawaan dulu berformat JPEG dan kini WebP. Konten yang sudah disimpan admin masih
+// memuat nama lama ("galeri/x.jpg", "cairo-arches.jpg"); nama itu dipetakan ke berkas
+// WebP yang sama supaya isi tersimpan tidak dianggap rusak lalu kembali ke bawaan.
+function namaFotoTerkini(foto, dikenal) {
+  const nama = String(foto || '');
+  if (dikenal(nama) || nama.startsWith('unggah/')) return nama;
+  const webp = nama.replace(/\.(jpe?g|png)$/i, '.webp');
+  return webp !== nama && dikenal(webp) ? webp : nama;
+}
 
 function srcFotoGaleri(foto) {
   return foto.startsWith('unggah/') ? `/media/galeri/${foto.slice('unggah/'.length)}` : `../assets/${foto}`;
@@ -214,37 +224,37 @@ const BAWAAN = Object.freeze({
 
   galeri: [
     {
-      foto: 'galeri/founder-rektor-al-azhar.jpg', lebar: 1108, tinggi: 1280,
+      foto: 'galeri/founder-rektor-al-azhar.webp', lebar: 1108, tinggi: 1280,
       keterangan: 'Founder Hamasah International bersama Rektor Universitas Al-Azhar, Prof. Dr. Salamah Dawud',
       alt: 'Founder Hamasah International berdiri berdampingan dengan Rektor Universitas Al-Azhar di sebuah ruang pertemuan'
     },
     {
-      foto: 'galeri/pimpinan-markaz-tatwir.jpg', lebar: 1600, tinggi: 1324,
+      foto: 'galeri/pimpinan-markaz-tatwir.webp', lebar: 1600, tinggi: 1324,
       keterangan: 'Pertemuan dengan Pimpinan Markaz Tatwir, lembaga pengembangan pendidikan Al-Azhar untuk pelajar asing',
       alt: 'Perwakilan Hamasah International berfoto bersama Pimpinan Markaz Tatwir'
     },
     {
-      foto: 'galeri/wakil-pimpinan-markaz-tatwir.jpg', lebar: 960, tinggi: 1280,
+      foto: 'galeri/wakil-pimpinan-markaz-tatwir.webp', lebar: 960, tinggi: 1280,
       keterangan: 'Pertemuan dengan Wakil Pimpinan Markaz Tatwir, lembaga pengembangan pendidikan Al-Azhar untuk pelajar asing',
       alt: 'Perwakilan Hamasah International menyerahkan plakat penghargaan kepada Wakil Pimpinan Markaz Tatwir'
     },
     {
-      foto: 'galeri/keberangkatan-santri.jpg', lebar: 1280, tinggi: 960,
+      foto: 'galeri/keberangkatan-santri.webp', lebar: 1280, tinggi: 960,
       keterangan: 'Keberangkatan rombongan santri menuju Kairo',
       alt: 'Rombongan santri Hamasah berfoto di area keberangkatan internasional bandara sebelum berangkat ke Kairo'
     },
     {
-      foto: 'galeri/idul-fitri-kairo.jpg', lebar: 1280, tinggi: 960,
+      foto: 'galeri/idul-fitri-kairo.webp', lebar: 1280, tinggi: 960,
       keterangan: 'Suasana Hari Raya Idul Fitri di Kairo',
       alt: 'Santri Hamasah berfoto bersama di depan masjid berkubah putih seusai salat Idul Fitri di Kairo'
     },
     {
-      foto: 'galeri/family-gathering-kairo.jpg', lebar: 1280, tinggi: 960,
+      foto: 'galeri/family-gathering-kairo.webp', lebar: 1280, tinggi: 960,
       keterangan: 'Family gathering Hamasah International di Kairo',
       alt: 'Santri Hamasah berfoto bersama di depan spanduk Hamasah International dalam acara family gathering'
     },
     {
-      foto: 'galeri/cairo-international-book-fair.jpg', lebar: 1280, tinggi: 960,
+      foto: 'galeri/cairo-international-book-fair.webp', lebar: 1280, tinggi: 960,
       keterangan: 'Mengunjungi Cairo International Book Fair',
       alt: 'Santri putra dan putri Hamasah berfoto di depan gedung pameran Cairo International Book Fair'
     }
@@ -419,7 +429,7 @@ const PERIKSA = Object.freeze({
     const izin = new Set(FOTO_TESTIMONI.map((foto) => foto.berkas));
     return daftar(nilai, 'testimoni', 'Testimoni', { maks: 8 }).map((item, i) => {
       const v = objek(item);
-      const foto = String(v.foto || '');
+      const foto = namaFotoTerkini(v.foto, (nama) => izin.has(nama));
       if (!izin.has(foto)) throw new KesalahanKonten(`${i}.foto`, `Foto testimoni ke-${i + 1} tidak dikenal.`);
       return {
         kutipan: teks(v.kutipan, `${i}.kutipan`, `Kutipan testimoni ke-${i + 1}`, { min: 10, maks: 200 }),
@@ -471,7 +481,7 @@ const PERIKSA = Object.freeze({
 // Foto galeri: berkas bawaan di assets/galeri/, atau unggahan admin "unggah/<uuid>.<ext>".
 // Apakah unggahannya benar-benar ada diperiksa route (server/routes/site-content.js).
 function fotoGaleri(nilai, bidang, urutan) {
-  const foto = String(nilai || '').trim();
+  const foto = namaFotoTerkini(String(nilai || '').trim(), (nama) => FOTO_GALERI_ASET.includes(nama));
   if (!foto) throw new KesalahanKonten(bidang, `Foto ke-${urutan} belum diunggah.`);
   if (/^unggah\/[0-9a-f-]{36}\.(jpg|png|webp)$/.test(foto) || FOTO_GALERI_ASET.includes(foto)) return foto;
   throw new KesalahanKonten(bidang, `Foto ke-${urutan} tidak dikenal. Unggah ulang fotonya.`);

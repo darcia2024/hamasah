@@ -16,6 +16,8 @@ fs.mkdirSync(path.join(SANDBOX, 'assets'), { recursive: true });
 fs.writeFileSync(path.join(SANDBOX, 'website', 'index.html'), '<h1>Beranda uji</h1>', 'utf8');
 fs.writeFileSync(path.join(SANDBOX, 'website', 'gaya.css'), 'body { color: #363638; }', 'utf8');
 fs.writeFileSync(path.join(SANDBOX, 'assets', 'logo.png'), 'bukan-png-sungguhan', 'utf8');
+fs.mkdirSync(path.join(SANDBOX, 'assets', 'tim'), { recursive: true });
+fs.writeFileSync(path.join(SANDBOX, 'assets', 'tim', 'foto.webp'), 'bukan-webp-sungguhan', 'utf8');
 fs.writeFileSync(path.join(SANDBOX, '.env'), ISI_RAHASIA_PALSU, 'utf8');
 fs.writeFileSync(path.join(SANDBOX, 'package.json'), '{ "name": "rahasia-palsu" }', 'utf8');
 
@@ -71,6 +73,15 @@ async function run() {
     const logo = await serve('/assets/logo.png');
     assert.equal(logo.status, 200);
     assert.equal(logo.headers['Content-Type'], 'image/png');
+
+    // Foto yang dulu JPEG dan kini WebP: alamat lama dialihkan, bukan 404. Hanya bila
+    // berkas WebP-nya memang ada, dan hanya di dalam assets/.
+    const fotoLama = await serve('/assets/tim/foto.jpg');
+    assert.equal(fotoLama.status, 301);
+    assert.equal(fotoLama.headers.Location, '/assets/tim/foto.webp');
+    assert.equal((await serve('/assets/tim/foto.webp')).status, 200);
+    assert.equal((await serve('/assets/tim/tidak-ada.jpg')).status, 404);
+    assert.equal((await serve('/website/foto.jpg')).status, 404);
 
     // Keluar dari folder yang diizinkan harus gagal. Ini yang menjaga .env dan
     // berkas konfigurasi lain tidak bisa diambil lewat URL.
