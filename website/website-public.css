@@ -5496,3 +5496,10 @@ main .eyebrow + h1 {
   font-weight: 600;
   color: var(--gold-dark);
 }
+
+/* Sampul artikel 16:9: ruangnya disediakan sebelum gambar selesai dimuat. */
+img.article-card-cover,
+img.article-cover {
+  aspect-ratio: 16 / 9;
+  height: auto;
+}

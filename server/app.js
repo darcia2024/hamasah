@@ -196,10 +196,10 @@ function createHamasahApp(options) {
     database,
     otomatis: config.autoSeedArticles === undefined ? ['staging', 'production'].includes(appEnvironment) : Boolean(config.autoSeedArticles),
     logger: config.logger || console,
-    saatDitambahkan: (slug) => auditService.record({
+    saatDitambahkan: (slug, sampul = []) => auditService.record({
       action: ACTIONS.ARTICLES_SEEDED,
       entityType: 'article', entityId: 'bawaan',
-      metadata: { jumlah: slug.length, slug, otomatis: true }
+      metadata: { jumlah: slug.length, slug, sampulDiisi: sampul, otomatis: true }
     })
   });
   const kesehatanAktif = () => settingsService.ambil('kesehatan.aktif');

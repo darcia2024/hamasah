@@ -48,14 +48,31 @@ function createArticleSeedService({ database, filePath = DEFAULT_FILE, now = () 
       // ON CONFLICT DO NOTHING: bila slug yang sama dibuat bersamaan dari tempat lain,
       // versi yang sudah tersimpan yang dipertahankan.
       const { rowCount } = await database.query(
-        `INSERT INTO articles (id, slug, title, excerpt, body, category, published_at, status, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, 'published', $8)
+        `INSERT INTO articles (id, slug, title, excerpt, body, category, published_at, status, updated_at, cover_url, cover_alt_text)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'published', $8, $9, $10)
          ON CONFLICT (slug) DO NOTHING`,
-        [crypto.randomUUID(), article.slug, article.title, article.excerpt, article.body, article.category, article.publishedAt, now()]
+        [crypto.randomUUID(), article.slug, article.title, article.excerpt, article.body, article.category, article.publishedAt, now(), article.coverUrl, article.coverAltText]
       );
       if (rowCount) ditambahkan.push(article.slug);
     }
-    return { ditambahkan, status: await status() };
+    const sampul = await lengkapiSampul(daftar);
+    return { ditambahkan, sampul, status: await status() };
+  }
+
+  // Artikel bawaan yang sudah ada tetapi belum punya sampul diberi sampul bawaannya.
+  // Hanya mengisi yang kosong: sampul yang dipasang admin tidak pernah diganti, dan judul
+  // serta isi artikel tidak disentuh.
+  async function lengkapiSampul(daftar) {
+    const diisi = [];
+    for (const article of daftar.filter((item) => item.coverUrl)) {
+      const { rowCount } = await database.query(
+        `UPDATE articles SET cover_url = $2, cover_alt_text = $3
+          WHERE slug = $1 AND (cover_url IS NULL OR cover_url = '')`,
+        [article.slug, article.coverUrl, article.coverAltText]
+      );
+      if (rowCount) diisi.push(article.slug);
+    }
+    return diisi;
   }
 
   // Sekali per instance. Ditunggu oleh rute daftar artikel (di serverless, pekerjaan yang
@@ -66,7 +83,9 @@ function createArticleSeedService({ database, filePath = DEFAULT_FILE, now = () 
     if (!sudahDipastikan) {
       sudahDipastikan = tambahkan()
         .then(async (hasil) => {
-          if (hasil.ditambahkan.length && typeof saatDitambahkan === 'function') await saatDitambahkan(hasil.ditambahkan);
+          if ((hasil.ditambahkan.length || hasil.sampul.length) && typeof saatDitambahkan === 'function') {
+            await saatDitambahkan(hasil.ditambahkan, hasil.sampul);
+          }
           return hasil.ditambahkan;
         })
         .catch((error) => {

@@ -246,9 +246,9 @@
                 <small id="article-body-help" class="field-help">Format: pisahkan paragraf dengan baris kosong. <code>## Subjudul</code>, <code>### Sub-subjudul</code>, <code>- daftar</code>, <code>1. daftar bernomor</code>, <code>&gt; kutipan</code>, <code>**tebal**</code>, <code>*miring*</code>, <code>[teks](https://alamat)</code>. HTML tidak didukung.</small>
                 <div class="article-cover-fields">
                   <div>
-                    <label for="article-cover-url">Cover media (URL HTTPS opsional)</label>
-                    <input id="article-cover-url" type="url" inputmode="url" placeholder="https://..." pattern="https://.*" maxlength="500" aria-describedby="article-cover-help article-cover-error" />
-                    <small id="article-cover-help" class="field-help">Upload lokal belum tersedia di backend. Gunakan URL HTTPS yang dapat diakses pembaca.</small>
+                    <label for="article-cover-url">Gambar sampul (opsional)</label>
+                    <input id="article-cover-url" type="text" inputmode="url" placeholder="/assets/artikel/nama-berkas.jpg" pattern="(https://.*|/(assets|media)/.+)" maxlength="500" aria-describedby="article-cover-help article-cover-error" />
+                    <small id="article-cover-help" class="field-help">Pakai alamat gambar di situs ini, misalnya /assets/artikel/nama-berkas.jpg atau foto galeri /media/galeri/... Gambar dari situs lain tidak akan tampil di halaman publik.</small>
                   </div>
                   <div>
                     <label for="article-cover-alt">Alt text cover</label>
@@ -403,7 +403,7 @@
     <script src="nav.js?v=1505d1fc5f"></script>
     <script src="file-open.js?v=23834ad36d"></script>
     <script src="whatsapp-message.js?v=3b88db5a93"></script>
-    <script src="staff.js?v=7abfb6a00c"></script>
+    <script src="staff.js?v=a9b40e16c8"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>

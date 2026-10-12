@@ -1246,7 +1246,7 @@ function renderCoverPreview() {
     articleCoverPreview.replaceChildren();
     const failed = document.createElement('span');
     failed.className = 'article-cover-failed';
-    failed.textContent = 'Cover gagal dimuat. Periksa URL HTTPS atau lanjut tanpa cover.';
+    failed.textContent = 'Cover gagal dimuat. Periksa alamat gambarnya atau lanjut tanpa cover.';
     articleCoverPreview.append(failed);
   }, { once: true });
   articleCoverPreview.append(image);
@@ -1301,7 +1301,7 @@ articleForm.addEventListener('submit', async (event) => {
     const editing = articleSlug.value.trim();
     const coverUrl = articleCoverUrl.value.trim();
     const coverAltText = articleCoverAlt.value.trim();
-    if (coverUrl && !/^https:\/\//i.test(coverUrl)) throw new Error('Cover media harus memakai URL HTTPS.');
+    if (coverUrl && !/^(https:\/\/|\/(assets|media)\/)/i.test(coverUrl)) throw new Error('Cover harus berupa alamat gambar di situs ini (diawali /assets/ atau /media/) atau URL HTTPS.');
     if (coverUrl && !coverAltText) {
       if (articleCoverError) articleCoverError.textContent = 'Alt text wajib diisi saat memakai cover media.';
       articleCoverAlt.focus();

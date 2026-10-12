@@ -33,6 +33,15 @@ const PENULIS_BELUM_AKTIF = 'Isian nama penulis belum aktif karena migrasi 042 b
 
 // columnRecheckMs: selama kolom author_display_name belum ada, keberadaannya diperiksa
 // ulang paling sering sekali per jeda ini.
+// Sampul artikel: gambar di situs ini (/assets/... atau /media/...) atau URL HTTPS.
+// Catatan: CSP img-src hanya mengizinkan 'self', jadi gambar dari domain lain tidak akan
+// tampil di halaman publik. Alamat di situs sendiri adalah pilihan yang pasti tampil.
+const COVER_URL_ERROR = 'Cover harus berupa alamat gambar di situs ini (diawali /assets/ atau /media/) atau URL HTTPS.';
+function isCoverUrlAllowed(value) {
+  const url = String(value || '');
+  return /^https:\/\//i.test(url) || (/^\/(?:assets|media)\/[A-Za-z0-9._\-/]+$/.test(url) && !url.includes('..'));
+}
+
 function createPostgresArticleStore({ database, columnRecheckMs = 60 * 1000 } = {}) {
   if (!database) {
     throw new Error('createPostgresArticleStore membutuhkan database.');
@@ -120,7 +129,7 @@ function createPostgresArticleStore({ database, columnRecheckMs = 60 * 1000 } = 
       const coverUrl = String(input.coverUrl || '').trim().slice(0, 500) || null;
       const coverAltText = String(input.coverAltText || '').trim().slice(0, 160) || null;
       const authorDisplayName = cleanAuthorName(input.authorDisplayName);
-      if (coverUrl && !/^https:\/\//i.test(coverUrl)) return { ok: false, error: 'Cover media harus memakai URL HTTPS.' };
+      if (coverUrl && !isCoverUrlAllowed(coverUrl)) return { ok: false, error: COVER_URL_ERROR };
       if (coverUrl && !coverAltText) return { ok: false, error: 'Alt text wajib diisi saat artikel memakai cover media.' };
       if (title.length < 8 || title.length > 140 || !excerpt || !body || !slug || !['draft', 'published'].includes(status)) {
         return { ok: false, error: 'Judul, ringkasan, dan isi artikel belum valid.' };
@@ -156,7 +165,7 @@ function createPostgresArticleStore({ database, columnRecheckMs = 60 * 1000 } = 
       const coverUrl = String(source.coverUrl === undefined ? (current.coverUrl || '') : source.coverUrl).trim().slice(0, 500) || null;
       const coverAltText = String(source.coverAltText === undefined ? (current.coverAltText || '') : source.coverAltText).trim().slice(0, 160) || null;
       const authorDisplayName = source.authorDisplayName === undefined ? current.authorDisplayName : cleanAuthorName(source.authorDisplayName);
-      if (coverUrl && !/^https:\/\//i.test(coverUrl)) return { ok: false, error: 'Cover media harus memakai URL HTTPS.' };
+      if (coverUrl && !isCoverUrlAllowed(coverUrl)) return { ok: false, error: COVER_URL_ERROR };
       if (coverUrl && !coverAltText) return { ok: false, error: 'Alt text wajib diisi saat artikel memakai cover media.' };
       if (title.length < 8 || title.length > 140 || !excerpt || !body || !category || !['draft', 'published', 'archived'].includes(status)) {
         return { ok: false, error: 'Judul, ringkasan, isi, kategori, atau status artikel belum valid.' };
@@ -178,4 +187,4 @@ function createPostgresArticleStore({ database, columnRecheckMs = 60 * 1000 } = 
   };
 }
 
-module.exports = { createPostgresArticleStore, toArticle };
+module.exports = { COVER_URL_ERROR, createPostgresArticleStore, isCoverUrlAllowed, toArticle };

@@ -29,6 +29,21 @@ async function run() {
     assert.deepEqual(hasil.ditambahkan, bawaan.slice(1).map((item) => item.slug));
     assert.deepEqual(hasil.status.belumAda, []);
 
+    // Sampul: semua artikel bawaan punya sampul di repo. Artikel lama yang belum bersampul
+    // diisi (tanpa menyentuh judulnya), dan artikel baru langsung bersampul.
+    assert.ok(bawaan.every((item) => /^\/assets\/artikel\/[a-z0-9-]+\.jpg$/.test(item.coverUrl) && item.coverAltText));
+    for (const item of bawaan) assert.ok(fs.existsSync(path.join(__dirname, '..', item.coverUrl)), `Berkas sampul ${item.coverUrl} ada.`);
+    assert.deepEqual(hasil.sampul, [pertama.slug]);
+    const sampul = await database.query('SELECT slug, cover_url, cover_alt_text FROM articles ORDER BY slug');
+    for (const row of sampul.rows) {
+      const asal = bawaan.find((item) => item.slug === row.slug);
+      assert.deepEqual([row.cover_url, row.cover_alt_text], [asal.coverUrl, asal.coverAltText]);
+    }
+    // Sampul yang dipasang admin tidak diganti.
+    await database.query("UPDATE articles SET cover_url = '/media/galeri/pilihan-admin.jpg', cover_alt_text = 'Pilihan admin' WHERE slug = $1", [bawaan[1].slug]);
+    assert.deepEqual((await layanan.tambahkan()).sampul, []);
+    assert.equal((await database.query('SELECT cover_url FROM articles WHERE slug = $1', [bawaan[1].slug])).rows[0].cover_url, '/media/galeri/pilihan-admin.jpg');
+
     // Artikel yang sudah ada tidak ditimpa.
     const tersimpan = await database.query('SELECT title, body FROM articles WHERE slug = $1', [pertama.slug]);
     assert.equal(tersimpan.rows[0].title, 'Judul hasil suntingan admin');

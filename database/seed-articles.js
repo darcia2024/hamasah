@@ -16,13 +16,19 @@ function readSeedArticles(filePath) {
     excerpt: String(article.excerpt || '').trim(),
     body: String(article.body || '').trim(),
     category: String(article.category || 'Kegiatan').trim(),
-    publishedAt: new Date(article.publishedAt || Date.now()).toISOString()
+    publishedAt: new Date(article.publishedAt || Date.now()).toISOString(),
+    coverUrl: String(article.coverUrl || '').trim() || null,
+    coverAltText: String(article.coverAltText || '').trim() || null
   }));
 }
 
 function validateArticle(article) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(article.slug) || article.title.length < 8 || !article.excerpt || !article.body) {
     throw new Error(`Artikel seed tidak valid: ${article.slug || '(tanpa slug)'}.`);
+  }
+  // Sampul bawaan selalu gambar di repo ini, dan wajib punya teks alternatif.
+  if (article.coverUrl && (!/^\/assets\/[A-Za-z0-9._\-/]+$/.test(article.coverUrl) || !article.coverAltText)) {
+    throw new Error(`Sampul artikel seed tidak valid: ${article.slug}.`);
   }
 }
 
@@ -40,16 +46,18 @@ async function seedArticles({ environment = { ...process.env }, Client, articles
     await client.query('BEGIN');
     for (const article of seedArticles) {
       await client.query(
-        `INSERT INTO articles (id, slug, title, excerpt, body, category, published_at, status, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, 'published', $7)
+        `INSERT INTO articles (id, slug, title, excerpt, body, category, published_at, status, updated_at, cover_url, cover_alt_text)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'published', $7, $8, $9)
          ON CONFLICT (slug) DO UPDATE SET
            title = EXCLUDED.title,
            excerpt = EXCLUDED.excerpt,
            body = EXCLUDED.body,
            category = EXCLUDED.category,
            published_at = EXCLUDED.published_at,
+           cover_url = COALESCE(articles.cover_url, EXCLUDED.cover_url),
+           cover_alt_text = COALESCE(articles.cover_alt_text, EXCLUDED.cover_alt_text),
            status = 'published', updated_at = EXCLUDED.updated_at`,
-        [crypto.randomUUID(), article.slug, article.title, article.excerpt, article.body, article.category, article.publishedAt]
+        [crypto.randomUUID(), article.slug, article.title, article.excerpt, article.body, article.category, article.publishedAt, article.coverUrl, article.coverAltText]
       );
     }
     await client.query('COMMIT');

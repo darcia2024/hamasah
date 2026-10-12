@@ -110,8 +110,9 @@ function renderArticlePage({ template, article, origin }) {
   const title = String(article.title || 'Artikel Hamasah');
   const description = String(article.excerpt || '').trim() || `${title}, Pena Hamasah.`;
   let html = replaceHead(template, { title: `${title} | Hamasah International`, description });
+  // Sampul di situs sendiri disimpan sebagai path (/assets/...); tag bagikan butuh URL absolut.
   const image = article.coverUrl
-    ? { url: article.coverUrl, alt: article.coverAltText || title }
+    ? { url: article.coverUrl.startsWith('/') ? `${origin}${article.coverUrl}` : article.coverUrl, alt: article.coverAltText || title }
     : null;
   html = seo.decorateHead(html, { origin, canonicalPath: seo.articlePath(article.slug), type: 'article', image });
   if (article.publishedAt) {

@@ -56,6 +56,13 @@ async function run() {
     assert.equal(invalid.ok, false);
     assert.equal((await store.create({ title: 'Artikel Dengan Cover', excerpt: 'Ringkasan.', body: 'Isi.', coverUrl: 'http://example.test/image.jpg', coverAltText: 'Cover' }, PUBLISHED_AT)).ok, false);
     assert.equal((await store.create({ title: 'Artikel Tanpa Alt', excerpt: 'Ringkasan.', body: 'Isi.', coverUrl: 'https://example.test/image.jpg' }, PUBLISHED_AT)).ok, false);
+    // Sampul boleh berupa gambar di situs sendiri (/assets/... atau /media/...), tidak boleh path lain.
+    const { isCoverUrlAllowed } = require('./postgres-article-store.js');
+    for (const baik of ['/assets/artikel/contoh.jpg', '/media/galeri/abc-123.jpg', 'https://example.test/image.jpg']) assert.equal(isCoverUrlAllowed(baik), true, baik);
+    for (const buruk of ['/api/accounts', '//evil.test/x.jpg', 'javascript:alert(1)', '/assets/../server/app.js', '/assets/a.jpg?x=1', 'http://example.test/a.jpg', 'assets/a.jpg']) {
+      assert.equal(isCoverUrlAllowed(buruk), false, buruk);
+      assert.equal((await store.create({ title: 'Artikel Sampul Buruk', excerpt: 'Ringkasan.', body: 'Isi.', coverUrl: buruk, coverAltText: 'x' }, PUBLISHED_AT)).ok, false, buruk);
+    }
     assert.equal((await store.list()).items.length, 1);
 
     // Nama penulis dari isian CMS (migrasi 042): dirapikan, dipotong 120 karakter, dan

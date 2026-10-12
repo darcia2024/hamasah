@@ -47,6 +47,11 @@ assert.ok(html.includes('<meta property="article:published_time" content="2026-0
 assert.equal((html.match(/<title>/g) || []).length, 1);
 
 // Tanpa cover: gambar bagikan default. Tanpa penulis: fallback redaksi yang menyebut dirinya fallback.
+// Sampul di situs sendiri (path) menjadi URL absolut di tag bagikan, dan tetap path di <img>.
+const lokal = renderArticlePage({ template, article: { ...artikel, coverUrl: '/assets/artikel/contoh.jpg' }, origin: ORIGIN }).html;
+assert.ok(lokal.includes(`content="${ORIGIN}/assets/artikel/contoh.jpg"`), 'og:image absolut.');
+assert.ok(lokal.includes('src="/assets/artikel/contoh.jpg"'));
+
 const lama = renderArticlePage({ template, article: { ...artikel, coverUrl: null, authorName: null, publishedAt: null }, origin: ORIGIN }).html;
 assert.ok(lama.includes(`<meta property="og:image" content="${ORIGIN}/assets/og-default.jpg" />`));
 assert.ok(lama.includes('<strong>Tim Redaksi Hamasah International</strong><small>Penulis tidak tercatat · Tanggal terbit belum tercatat</small>'));
