@@ -7,7 +7,9 @@
   --lp-line: var(--md-sys-color-outline-variant);
   --lp-ink: var(--md-sys-color-on-surface);
   --lp-soft: var(--md-sys-color-on-surface-variant);
-  --lp-tint: var(--md-sys-color-surface-container-low);
+  /* Krem hangat yang benar-benar terlihat berbeda dari putih. Sebelumnya #FAF9F7, selisihnya
+     dari putih terlalu kecil sehingga dua belas bagian berturut-turut tampak putih semua. */
+  --lp-tint: #F5F1E8;
   --lp-card-shadow: 0 0 0 1px rgba(54, 54, 56, 0.07), 0 1px 2px rgba(54, 54, 56, 0.05), 0 12px 32px -18px rgba(54, 54, 56, 0.18);
   color: var(--lp-ink);
 }
@@ -22,6 +24,69 @@
 .lp-section--tint {
   background: var(--lp-tint);
   border-block: 1px solid rgba(54, 54, 56, 0.05);
+}
+
+/* Bagian gelap: titik berat halaman. Dipakai hemat (satu di beranda, ajakan penutup di
+   halaman program), supaya irama putih, krem, gelap terasa tanpa membuat halaman berat.
+   Teks terang di atas charcoal #363638: putih 12,0:1, teks sekunder 8,6:1, emas terang 8,0:1. */
+.lp-section--dark {
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+}
+
+.lp-section--dark :is(h2, h3, .lp-h2, .lp-statement) {
+  color: #FFFFFF;
+}
+
+.lp-section--dark :is(.lp-lede, p:not(.lp-statement):not(.eyebrow)) {
+  color: rgba(245, 243, 238, 0.82);
+}
+
+.lp-section--dark .eyebrow,
+.lp-section--dark a:not(.button) {
+  color: var(--md-sys-color-inverse-primary);
+}
+
+.lp-section--dark .lp-mission li {
+  border-color: rgba(255, 255, 255, 0.16);
+  color: rgba(245, 243, 238, 0.92);
+}
+
+.lp-section--dark .lp-mission li::before {
+  color: var(--md-sys-color-inverse-primary);
+}
+
+/* Bagian emas muda: ajakan penutup halaman program. Tidak memakai varian gelap karena
+   langsung disusul footer yang juga gelap, dan keduanya akan melebur jadi satu blok.
+   Tombol utamanya charcoal, sebab tombol emas di atas emas muda tidak menonjol. */
+.lp-section--gold {
+  background: var(--md-sys-color-primary-container);
+}
+
+.lp-section--gold .lp-lede {
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.lp-section--gold .button--primary {
+  background-color: var(--md-sys-color-inverse-surface);
+  color: #FFFFFF;
+}
+
+.lp-section--gold .button--primary:hover {
+  background-color: #1F1F21;
+}
+
+/* Tombol garis di atas latar gelap: garis dan teks terang, isi transparan. */
+.lp-section--dark .button--secondary {
+  background-color: transparent;
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.lp-section--dark .button--secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+  border-color: #FFFFFF;
 }
 
 .lp-head {
