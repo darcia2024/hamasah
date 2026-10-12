@@ -111,6 +111,15 @@
   }
 }
 
+/* Kotak cari artikel punya ikon kaca pembesar di kiri: isi tepinya dilebarkan supaya teks
+   tidak menimpa ikon. Ditulis di lapisan yang sama, dengan selektor yang lebih spesifik
+   dari aturan umum di atas. */
+@layer hamasah-bidang {
+  html body .articles-search-bar input[type]:not(.assistant__form input) {
+    padding-left: 48px !important;
+  }
+}
+
 /* ==========================================================================
    Sistem tombol dan elemen interaktif untuk seluruh situs.
 
