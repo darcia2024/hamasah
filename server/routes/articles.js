@@ -7,6 +7,8 @@ module.exports = [
     pattern: /^\/api\/articles$/,
     async handler({ response, services, url }) {
       const query = url.searchParams;
+      // Artikel bawaan rilis ini dipastikan ada lebih dulu (sekali per instance).
+      await services.articleSeedService.pastikan();
       json(response, 200, await services.articleStore.list({
         category: query.get('category') || undefined,
         search: query.get('search') || undefined,
@@ -20,6 +22,7 @@ module.exports = [
     method: 'GET',
     pattern: /^\/api\/articles\/([a-z0-9-]+)$/,
     async handler({ response, services, params }) {
+      await services.articleSeedService.pastikan();
       const article = await services.articleStore.get(params[0]);
       if (!article) {
         json(response, 404, { error: 'Artikel tidak ditemukan.' });

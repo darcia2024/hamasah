@@ -13,8 +13,12 @@ const { readSeedArticles, validateArticle } = require('../database/seed-articles
 
 const DEFAULT_FILE = path.join(__dirname, '..', 'data', 'articles.json');
 
-function createArticleSeedService({ database, filePath = DEFAULT_FILE, now = () => new Date().toISOString() } = {}) {
+// otomatis: artikel bawaan yang belum ada ditambahkan sendiri saat daftar artikel pertama
+// kali diminta pada instance ini (lihat pastikan). Diaktifkan app.js untuk staging dan
+// production, supaya rilis yang membawa artikel baru tidak menunggu admin menekan tombol.
+function createArticleSeedService({ database, filePath = DEFAULT_FILE, now = () => new Date().toISOString(), otomatis = false, saatDitambahkan = null, logger = console } = {}) {
   if (!database) throw new Error('createArticleSeedService membutuhkan database.');
+  let sudahDipastikan = null;
 
   function bawaan() {
     const daftar = readSeedArticles(filePath);
@@ -54,7 +58,26 @@ function createArticleSeedService({ database, filePath = DEFAULT_FILE, now = () 
     return { ditambahkan, status: await status() };
   }
 
-  return Object.freeze({ status, tambahkan });
+  // Sekali per instance. Ditunggu oleh rute daftar artikel (di serverless, pekerjaan yang
+  // tidak ditunggu bisa terhenti sebelum selesai). Gagal tidak menggagalkan permintaan:
+  // dicatat di log, dan tombol di halaman Pengaturan tetap bisa dipakai.
+  function pastikan() {
+    if (!otomatis) return Promise.resolve([]);
+    if (!sudahDipastikan) {
+      sudahDipastikan = tambahkan()
+        .then(async (hasil) => {
+          if (hasil.ditambahkan.length && typeof saatDitambahkan === 'function') await saatDitambahkan(hasil.ditambahkan);
+          return hasil.ditambahkan;
+        })
+        .catch((error) => {
+          logger.error(`[artikel] Artikel bawaan gagal ditambahkan otomatis: ${error.message}`);
+          return [];
+        });
+    }
+    return sudahDipastikan;
+  }
+
+  return Object.freeze({ pastikan, status, tambahkan });
 }
 
 module.exports = { createArticleSeedService };

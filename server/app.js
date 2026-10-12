@@ -27,7 +27,7 @@ const { createOperationsImportService } = require('./operations-import-service.j
 const { createPostgresOperationsStore } = require('./postgres-operations-store.js');
 const { createDormitoryService } = require('./dormitory-service.js');
 const { createPostgresDormitoryStore } = require('./postgres-dormitory-store.js');
-const { createAuditService } = require('./audit-service.js');
+const { ACTIONS, createAuditService } = require('./audit-service.js');
 const { createPostgresAuditStore } = require('./postgres-audit-store.js');
 const { createFileService } = require('./file-service.js');
 const { createRegistrationConversionService } = require('./registration-conversion-service.js');
@@ -192,7 +192,16 @@ function createHamasahApp(options) {
   const databaseUpdateService = config.databaseUpdateService || createDatabaseUpdateService({ database });
   const siteContentService = config.siteContentService || createSiteContentService({ database });
   const templateService = config.templateService || createTemplateService({ database });
-  const articleSeedService = config.articleSeedService || createArticleSeedService({ database });
+  const articleSeedService = config.articleSeedService || createArticleSeedService({
+    database,
+    otomatis: config.autoSeedArticles === undefined ? ['staging', 'production'].includes(appEnvironment) : Boolean(config.autoSeedArticles),
+    logger: config.logger || console,
+    saatDitambahkan: (slug) => auditService.record({
+      action: ACTIONS.ARTICLES_SEEDED,
+      entityType: 'article', entityId: 'bawaan',
+      metadata: { jumlah: slug.length, slug, otomatis: true }
+    })
+  });
   const kesehatanAktif = () => settingsService.ambil('kesehatan.aktif');
   const studentCareService = config.studentCareService || createStudentCareService({
     store: createPostgresStudentCareStore({ database }),
@@ -531,6 +540,7 @@ function createHamasahApp(options) {
       // Halaman artikel dirender server dari database (Task R7.3). URL lama dipertahankan.
       if ((url.pathname === '/website/article.html' || url.pathname === '/article.html') && ['GET', 'HEAD'].includes(request.method)) {
         const slug = url.searchParams.get('slug') || '';
+        await articleSeedService.pastikan();
         const article = /^[a-z0-9-]{1,160}$/.test(slug) ? await articleStore.get(slug) : null;
         const page = articlePage.renderArticlePage({ template: articlePage.readTemplate(rootDirectory), article, origin });
         response.writeHead(page.status, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff' });

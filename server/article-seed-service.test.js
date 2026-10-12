@@ -50,7 +50,50 @@ async function run() {
       fs.unlinkSync(rusak);
     }
 
+    await otomatis(bawaan);
+
     console.log('article seed service tests passed');
+  } finally {
+    await database.close();
+  }
+}
+
+// Mode otomatis: artikel bawaan masuk sendiri saat daftar artikel pertama kali diminta.
+async function otomatis(bawaan) {
+  const database = await createTestDatabase();
+  const { createHamasahApp } = require('./app.js');
+  try {
+    // Tanpa otomatis (bawaan untuk development dan test): tidak melakukan apa-apa.
+    assert.deepEqual(await createArticleSeedService({ database }).pastikan(), []);
+    assert.equal((await database.query('SELECT count(*)::int AS n FROM articles')).rows[0].n, 0);
+
+    // Gagal membaca berkas tidak melempar galat; dicatat di log dan mengembalikan daftar kosong.
+    const log = [];
+    const rusak = createArticleSeedService({ database, otomatis: true, filePath: path.join(__dirname, 'tidak-ada.json'), logger: { error: (pesan) => log.push(pesan) } });
+    assert.deepEqual(await rusak.pastikan(), []);
+    assert.equal(log.length, 1);
+
+    // Lewat HTTP, seperti di production: permintaan pertama ke daftar artikel mengisi semuanya,
+    // sekali saja, dan tercatat di jejak audit sebagai penambahan otomatis.
+    const app = createHamasahApp({ rootDirectory: path.resolve(__dirname, '..'), database, bootstrapKey: 'kunci-uji-artikel', autoSeedArticles: true });
+    const server = app.createServer();
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const baseUrl = `http://127.0.0.1:${server.address().port}`;
+    try {
+      const pertama = await (await fetch(`${baseUrl}/api/articles?limit=50`)).json();
+      assert.equal(pertama.total, bawaan.length);
+      const kedua = await (await fetch(`${baseUrl}/api/articles?limit=50`)).json();
+      assert.equal(kedua.total, bawaan.length);
+      const audit = await database.query("SELECT metadata FROM audit_events WHERE action = 'article.defaults-added'");
+      assert.equal(audit.rows.length, 1, 'Dicatat sekali, bukan setiap permintaan.');
+      assert.equal(audit.rows[0].metadata.otomatis, true);
+      assert.equal(audit.rows[0].metadata.jumlah, bawaan.length);
+      const halaman = await fetch(`${baseUrl}/website/article.html?slug=${bawaan[1].slug}`);
+      assert.equal(halaman.status, 200);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+      await app.close();
+    }
   } finally {
     await database.close();
   }
