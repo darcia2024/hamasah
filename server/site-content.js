@@ -26,6 +26,7 @@ const NOMOR_WA_BAWAAN = '6287897591978';
 const FOTO_TESTIMONI = Object.freeze([
   { berkas: 'testimoni-wali-ghazalba.webp', label: 'Keluarga wali Ghazalba', lebar: 1280, tinggi: 853 },
   { berkas: 'testimoni-wali-aruna.webp', label: 'Ayah dan ibu wali Aruna', lebar: 1091, tinggi: 1280 },
+  { berkas: 'testimoni-wali-khafidzah.webp', label: 'Wali Khafidzah bersama putrinya', lebar: 720, tinggi: 900 },
   { berkas: 'cairo-arches.webp', label: 'Lengkung bangunan Kairo', lebar: 1600, tinggi: 1066 },
   { berkas: 'cairo-skyline.webp', label: 'Pemandangan kota Kairo', lebar: 1600, tinggi: 1068 },
   { berkas: 'kelas-daring-kitab.webp', label: 'Santri belajar kitab dari rumah', lebar: 1200, tinggi: 800 },
@@ -175,8 +176,8 @@ const BAWAAN = Object.freeze({
       isi: "Terima kasih untuk Hamasah International yang telah membantu proses anak kami, Khafidzah Khoirunnisa, untuk melanjutkan pendidikannya ke Al-Azhar Mesir. Mulai dari pengurusan dokumen dan persiapan belajar untuk masuk Ma'had, semuanya sangat mempermudah anak kami, dengan biaya yang cukup terjangkau. Dan yang pasti, pengurus semua cepat tanggap kalau ada situasi darurat.",
       nama: 'Wali dari Khafidzah Khoirunnisa',
       keterangan: "Santri Ma'had Al-Azhar",
-      foto: '',
-      alt: ''
+      foto: 'testimoni-wali-khafidzah.webp',
+      alt: 'Wali santri berfoto bersama putrinya'
     }
   ],
 
