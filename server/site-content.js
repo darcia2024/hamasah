@@ -653,7 +653,7 @@ ${paragraf(t.isi, '                  ')}
   },
 
   galeri(daftarFoto) {
-    const butir = daftarFoto.map((f) => `            <li>
+    const butir = daftarFoto.map((f) => `            <li${f.tinggi > f.lebar ? ' class="lp-photos__tegak"' : ''}>
               <button class="lp-photos__item" type="button" aria-label="Perbesar foto: ${esc(f.keterangan)}">
                 <img src="${esc(srcFotoGaleri(f.foto))}" alt="${esc(f.alt)}" width="${f.lebar}" height="${f.tinggi}" loading="lazy" decoding="async" />
                 <span class="lp-photos__caption">${nb(f.keterangan)}</span>

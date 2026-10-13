@@ -1477,25 +1477,44 @@ main .lp-doc-groups h3 {
   margin: 0;
   padding: 0;
   list-style: none;
-  column-count: 3;
-  column-gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: clamp(170px, 17vw, 230px);
+  grid-auto-flow: dense;
+  gap: 12px;
 }
 
+/* Susunan mosaik: foto pertama besar, foto tegak dua baris, sesekali satu foto melebar.
+   Berlaku untuk jumlah foto berapa pun karena diatur dari halaman Konten Website. */
 .lp-photos li {
-  margin: 0 0 16px;
-  break-inside: avoid;
+  position: relative;
+  min-width: 0;
+}
+
+.lp-photos li:first-child {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.lp-photos .lp-photos__tegak {
+  grid-row: span 2;
+}
+
+.lp-photos li:nth-child(6n + 4):not(.lp-photos__tegak) {
+  grid-column: span 2;
 }
 
 .lp-photos__item {
+  position: relative;
   display: block;
   width: 100%;
+  height: 100%;
   margin: 0;
   padding: 0;
   border: 0;
-  border-radius: var(--lp-radius);
+  border-radius: 14px;
   overflow: hidden;
-  background: var(--md-sys-color-surface);
-  box-shadow: var(--lp-card-shadow);
+  background: var(--md-sys-color-surface-container);
   color: inherit;
   font: inherit;
   text-align: left;
@@ -1505,7 +1524,9 @@ main .lp-doc-groups h3 {
 .lp-photos__item img {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
   transition: transform 0.35s ease;
 }
 
@@ -1518,15 +1539,23 @@ main .lp-doc-groups h3 {
   outline-offset: 3px;
 }
 
+/* Keterangan di atas foto, dengan lapisan gelap supaya teks putih tetap terbaca. */
 .lp-photos__caption {
+  position: absolute;
+  inset: auto 0 0;
   display: block;
-  position: relative;
-  padding: 14px 18px 16px;
-  background: var(--md-sys-color-surface);
-  font-size: var(--fs-14);
+  padding: 44px 16px 14px;
+  background: linear-gradient(180deg, rgba(28, 28, 30, 0) 0%, rgba(28, 28, 30, 0.85) 70%);
+  font-size: var(--fs-13);
+  font-weight: 500;
+  line-height: 1.45;
+  color: #FFFFFF;
+}
+
+.lp-photos li:first-child .lp-photos__caption {
+  padding: 64px 22px 20px;
+  font-size: var(--fs-16);
   font-weight: 600;
-  line-height: 1.5;
-  color: var(--lp-ink);
 }
 
 /* Foto yang dibuka besar. */
@@ -1623,11 +1652,16 @@ main .lp-doc-groups h3 {
 }
 
 @media (max-width: 980px) {
-  .lp-photos { column-count: 2; }
+  .lp-photos { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: clamp(170px, 24vw, 240px); }
 }
 
 @media (max-width: 560px) {
-  .lp-photos { column-count: 1; }
+  .lp-photos { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 42vw; gap: 8px; }
+  .lp-photos__item { border-radius: 10px; }
+  /* Di ponsel petak terlalu kecil untuk keterangan; tetap terbaca saat foto dibuka
+     (lightbox membaca teksnya) dan lewat aria-label tombol. */
+  .lp-photos li:not(:first-child) .lp-photos__caption { display: none; }
+  .lp-photos li:first-child .lp-photos__caption { padding: 48px 14px 12px; font-size: var(--fs-14); }
   .lp-lightbox { width: calc(100vw - 16px); }
   .lp-lightbox__figure figcaption { padding: 12px 16px 0; font-size: var(--fs-14); }
 }
