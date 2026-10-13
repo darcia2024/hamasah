@@ -1885,6 +1885,15 @@ main .lp-doc-groups h3 {
   border-radius: 24px;
 }
 
+/* Gedung ma'had: papan nama ada di sisi kanan, jadi potongan di ponsel digeser ke kanan. */
+.lp-figure--banner img[src*="mahad-gedung"] {
+  object-position: 74% center;
+}
+
+.lp-split > .lp-checks {
+  margin-top: 0;
+}
+
 @media (max-width: 640px) {
   .lp-figure--banner img {
     aspect-ratio: 16 / 10;

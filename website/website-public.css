@@ -5904,3 +5904,38 @@ img.article-cover {
     gap: 16px;
   }
 }
+
+/* ==========================================================================
+   Logo kepala situs: lambang dan nama lembaga dua baris ("Hamasah" di atas,
+   "International" di bawah), tanpa baris keterangan kota. Footer tidak berubah.
+   ========================================================================== */
+
+.site-header .brand-logo {
+  width: 44px;
+  height: 44px;
+}
+
+.site-header .brand-name {
+  display: block;
+  width: min-content;
+  white-space: normal;
+  font-size: var(--fs-18);
+  font-weight: 600 !important;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.site-header .brand-tag {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .site-header .brand-logo {
+    width: 38px;
+    height: 38px;
+  }
+
+  .site-header .brand-name {
+    font-size: var(--fs-16);
+  }
+}
