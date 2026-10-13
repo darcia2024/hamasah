@@ -5354,8 +5354,8 @@ main .eyebrow + h1 {
   }
 
   .assistant__launcher {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     padding: 0;
     justify-content: center;
   }

@@ -2317,3 +2317,163 @@ main h1.lp-h2 {
     font-size: var(--fs-18);
   }
 }
+
+/* ==========================================================================
+   Audit tampilan ponsel (13 Oktober 2026). Di layar 375 px tidak ada objek yang
+   mendominasi: judul satu tingkat lebih kecil, kartu program ringkas, galeri
+   digeser ke samping, dan daftar dua kolom menjadi satu kolom.
+   ========================================================================== */
+
+@media (max-width: 640px) {
+  /* Tipografi: judul halaman 30, judul bagian 26, pengantar 16. */
+  main .lp-hero h1,
+  main .lp-page-hero h1,
+  main h1.lp-h2 {
+    font-size: var(--fs-28);
+    line-height: 1.15;
+  }
+
+  .lp-hero__lede,
+  .lp .lp-lede,
+  main .eyebrow + h2 + p.lp-lede,
+  main .lp-page-hero h1 + p {
+    font-size: var(--fs-16);
+    line-height: 1.65;
+  }
+
+  main h2.lp-h2 {
+    font-size: var(--fs-24);
+    line-height: 1.18;
+    margin-bottom: 12px;
+  }
+
+  .lp-head {
+    margin-bottom: 28px;
+  }
+
+  .lp > .lp-section {
+    padding-block: 44px;
+  }
+
+  /* Kartu program: foto kecil di kiri, teks di kanan, untuk ketiganya. */
+  .lp-paths {
+    gap: 12px;
+  }
+
+  .lp-path--feature,
+  .lp-path--media {
+    display: grid;
+    grid-template-columns: 104px minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .lp-path--feature img,
+  .lp-path--media img {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    aspect-ratio: auto;
+    object-fit: cover;
+  }
+
+  .lp-path--feature .lp-path__body,
+  .lp-path--media .lp-path__body {
+    padding: 16px 16px 14px;
+    gap: 4px;
+  }
+
+  .lp-path__title,
+  .lp-path--feature .lp-path__title {
+    font-size: var(--fs-18);
+  }
+
+  .lp-path__text {
+    font-size: var(--fs-14);
+    line-height: 1.5;
+  }
+
+  .lp-path__more {
+    padding-top: 6px;
+  }
+
+  /* Daftar centang dua kolom terlalu sempit di ponsel: satu kolom. */
+  .lp-checks--two {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Galeri: satu baris yang digeser ke samping, bukan sebelas foto bertumpuk. */
+  .lp-photos {
+    flex-wrap: nowrap;
+    gap: 12px;
+    margin-inline: -24px;
+    padding-inline: 24px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 24px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .lp-photos::-webkit-scrollbar {
+    display: none;
+  }
+
+  .lp-photos li {
+    flex: 0 0 68%;
+    scroll-snap-align: start;
+  }
+
+  .lp-photos__item img {
+    height: 44vw;
+  }
+
+  .lp-photos__caption {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  /* Kutipan Tentang dan butir misi lebih rapat. */
+  .lp-about > .lp-statement {
+    font-size: var(--fs-20);
+    line-height: 1.4;
+  }
+
+  .lp-mission li {
+    padding: 14px 0;
+  }
+
+  /* Artikel utama Pena Hamasah. */
+  .pena-item--utama .pena-item__title {
+    font-size: var(--fs-20);
+  }
+
+  /* Rincian biaya: keterangan di atas, angka di bawahnya. */
+  .lp-fee-list div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+    padding: 12px 0;
+  }
+
+  /* Halaman formulir: judul, lalu formulir, baru penjelasan "Setelah Anda mengirim". */
+  .lp-register__grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .lp-register__copy {
+    display: contents;
+  }
+
+  .lp-register__copy > .eyebrow { order: 1; }
+  .lp-register__copy > h1,
+  .lp-register__copy > h2 { order: 2; }
+  .lp-register__copy > .lp-lede { order: 3; margin-bottom: 24px; }
+  .lp-register__grid > :not(.lp-register__copy) { order: 4; }
+  .lp-register__copy > .lp-after-title { order: 5; margin-top: 32px; }
+  .lp-register__copy > .lp-after { order: 6; }
+  .lp-register__copy > .lp-note { order: 7; }
+}
