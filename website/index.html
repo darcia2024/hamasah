@@ -9,9 +9,9 @@
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Alatsi&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website-core.css?v=2d72a1bd8f" />
-    <link rel="stylesheet" href="website-public.css?v=743f39d88f" />
+    <link rel="stylesheet" href="website-public.css?v=ef4b0cd030" />
     <link rel="stylesheet" href="landing.css?v=de046d85c4" />
     <link rel="stylesheet" href="fields.css?v=048ab326e1" />
   </head>
@@ -20,11 +20,10 @@
     <header class="site-header">
       <div class="shell nav-wrap">
         <a class="brand" href="#beranda" aria-label="Hamasah International, kembali ke beranda">
-          <img src="../assets/logo-emblem-gold.png" alt="Logo Hamasah International" width="36" height="36" class="brand-logo" />
-          <div class="brand-text">
-            <span class="brand-name">Hamasah International</span>
-            <span class="brand-tag">Kairo · Indonesia</span>
-          </div>
+          <picture>
+            <source media="(min-width: 769px) and (max-width: 1279px)" srcset="../assets/logo-emblem-gold.png" />
+            <img src="../assets/logo-hamasah.webp" alt="Hamasah International" width="572" height="168" class="brand-logo" />
+          </picture>
         </a>
 
         <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Buka menu navigasi">
