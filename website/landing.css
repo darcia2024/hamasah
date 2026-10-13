@@ -1706,21 +1706,19 @@ main .lp-doc-groups h3 {
   background: var(--md-sys-color-primary-container);
 }
 
-/* ---------- Keseharian: satu foto besar, lalu teks polos ---------- */
+/* ---------- Keseharian: teks di kiri, foto di kanan ---------- */
 
 .lp-wide {
-  width: min(100% - 32px, 1320px);
-  margin: 0 auto clamp(40px, 6vw, 72px);
+  margin: 0;
 }
 
 .lp-wide img {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 2 / 1;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
-  object-position: center 62%;
-  border-radius: 12px;
+  border-radius: 16px;
 }
 
 .lp-wide figcaption {
@@ -1731,9 +1729,13 @@ main .lp-doc-groups h3 {
 
 .lp-days {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 32px clamp(40px, 6vw, 88px);
-  align-items: start;
+  align-items: center;
+}
+
+.lp-days .lp-lede {
+  margin-bottom: 28px;
 }
 
 .lp-days h2.lp-h2 {
@@ -1802,17 +1804,47 @@ main .lp-doc-groups h3 {
   .lp-photo {
     box-shadow: 8px 8px 0 var(--md-sys-color-primary);
   }
+}
 
-  .lp-wide {
-    width: 100%;
+/* Kartu program pendamping dengan foto: foto di kiri, teks di kanan; di ponsel foto di atas. */
+.lp-path--media {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.lp-path--media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  object-fit: cover;
+  object-position: 70% center;
+}
+
+/* Tampilan LMS: yang penting ada di sisi kiri gambar. */
+.lp-path--media[href*="courses"] img {
+  object-position: 8% center;
+}
+
+.lp-path--media .lp-path__body {
+  padding: 24px 28px;
+}
+
+@media (max-width: 640px) {
+  .lp-path--media {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .lp-wide img {
-    aspect-ratio: 4 / 3;
-    border-radius: 0;
+  .lp-path--media img {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
   }
 
-  .lp-wide figcaption {
-    padding: 0 16px;
+  .lp-path--media .lp-path__body {
+    padding: 24px;
   }
 }
