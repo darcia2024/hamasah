@@ -5910,6 +5910,10 @@ img.article-cover {
    "International" di bawah), tanpa baris keterangan kota. Footer tidak berubah.
    ========================================================================== */
 
+.site-header .brand {
+  gap: 14px;
+}
+
 .site-header .brand-logo {
   width: 44px;
   height: 44px;
@@ -5919,10 +5923,12 @@ img.article-cover {
   display: block;
   width: min-content;
   white-space: normal;
-  font-size: var(--fs-18);
-  font-weight: 600 !important;
-  line-height: 1.08;
-  letter-spacing: -0.02em;
+  /* Huruf logo resmi (Alatsi, satu ketebalan). Dimuat lewat tautan Google Fonts di tiap halaman. */
+  font-family: "Alatsi", "Plus Jakarta Sans", -apple-system, "Segoe UI", sans-serif;
+  font-size: var(--fs-20);
+  font-weight: 400 !important;
+  line-height: 1.05;
+  letter-spacing: 0;
 }
 
 .site-header .brand-tag {
@@ -5936,6 +5942,6 @@ img.article-cover {
   }
 
   .site-header .brand-name {
-    font-size: var(--fs-16);
+    font-size: var(--fs-18);
   }
 }
