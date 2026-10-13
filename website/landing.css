@@ -2482,3 +2482,153 @@ main h1.lp-h2 {
 .lp-steps__note {
   margin: clamp(28px, 4vw, 40px) 0 0;
 }
+
+/* ==========================================================================
+   Testimoni (14 Oktober 2026): kolom berdampingan, bukan baris bertumpuk.
+   Tiap testimoni: kutipan di atas, lalu baris penulis dengan foto bulat kecil,
+   nama, dan keterangan. Jumlah kolom menyesuaikan lebar layar dan jumlah
+   testimoni yang diatur dari halaman Konten Website. Aturan ini menggantikan
+   tata letak foto besar di samping kutipan.
+   ========================================================================== */
+
+.lp-testimonials {
+  max-width: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 40px clamp(28px, 4vw, 56px);
+  align-items: start;
+}
+
+.lp-testimonials .lp-testi,
+.lp-testimonials .lp-testi:nth-child(even):not(.lp-testi--tanpa-foto),
+.lp-testimonials .lp-testi + .lp-testi,
+.lp-testimonials .lp-testi--tanpa-foto {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 20px 14px;
+  align-items: center;
+  justify-items: stretch;
+  padding: 28px 0 0;
+  border: 0;
+  border-top: 2px solid var(--lp-ink);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* Isi badan menjadi butir kisi langsung: kutipan di baris pertama, penulis di baris kedua. */
+.lp-testimonials .lp-testi__body {
+  display: contents;
+}
+
+.lp-testimonials .lp-testi__quote {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  margin: 0;
+}
+
+.lp-testimonials .lp-testi__lead {
+  margin: 0 0 6px;
+  font-size: var(--fs-20);
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  text-align: left;
+  color: var(--lp-ink);
+  text-wrap: pretty;
+}
+
+.lp-testimonials .lp-testi__photo,
+.lp-testimonials .lp-testi:nth-child(even):not(.lp-testi--tanpa-foto) .lp-testi__photo {
+  grid-column: 1;
+  grid-row: 2;
+  order: 0;
+  position: static;
+  width: 56px;
+  height: 56px;
+  aspect-ratio: 1;
+  margin: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--md-sys-color-surface-container);
+}
+
+.lp-testimonials .lp-testi__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+}
+
+.lp-testimonials .lp-testi__who {
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: var(--fs-14);
+  line-height: 1.4;
+  text-align: left;
+  color: var(--lp-ink);
+}
+
+.lp-testimonials .lp-testi__who strong {
+  font-weight: 600;
+}
+
+.lp-testimonials .lp-testi__who span {
+  font-size: var(--fs-13);
+  color: var(--lp-soft);
+}
+
+/* Tanpa foto: nama mengisi lebar penuh. */
+.lp-testimonials .lp-testi--tanpa-foto .lp-testi__who {
+  grid-column: 1 / -1;
+}
+
+.lp-testimonials .lp-testi--tanpa-foto .lp-testi__lead,
+.lp-testimonials .lp-testi--tanpa-foto .lp-testi__who,
+.lp-testimonials .lp-testi--tanpa-foto .lp-testi__who span {
+  color: inherit;
+}
+
+.lp-testimonials .lp-testi__more .lp-testi__full {
+  max-width: none;
+  margin: 6px 0 4px;
+  padding-left: 14px;
+  border-left: 2px solid var(--gold-border);
+}
+
+.lp-testimonials .lp-testi__full p {
+  font-size: var(--fs-14);
+  line-height: 1.65;
+  text-align: left;
+  color: var(--lp-soft);
+}
+
+@media (max-width: 640px) {
+  .lp-testimonials {
+    gap: 28px;
+  }
+
+  .lp-testimonials .lp-testi,
+  .lp-testimonials .lp-testi:nth-child(even):not(.lp-testi--tanpa-foto),
+  .lp-testimonials .lp-testi + .lp-testi,
+  .lp-testimonials .lp-testi--tanpa-foto {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 16px 12px;
+    padding-top: 22px;
+  }
+
+  .lp-testimonials .lp-testi__lead {
+    font-size: var(--fs-18);
+  }
+
+  .lp-testimonials .lp-testi__photo,
+  .lp-testimonials .lp-testi:nth-child(even):not(.lp-testi--tanpa-foto) .lp-testi__photo {
+    width: 48px;
+    height: 48px;
+  }
+}
