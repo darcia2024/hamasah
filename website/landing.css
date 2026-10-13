@@ -2261,3 +2261,59 @@ main h1.lp-h2 {
     display: none;
   }
 }
+
+/* ==========================================================================
+   Foto testimoni: ukuran seragam dan lebih kecil. Semua foto dipotong ke rasio
+   potret 4:5 dengan lebar tetap, selalu di kiri, jadi tiga testimoni tampil
+   sejajar dan foto tidak lagi mendominasi kutipan.
+   ========================================================================== */
+
+.lp-testimonials {
+  max-width: 920px;
+}
+
+.lp-testi,
+.lp-testi:nth-child(even):not(.lp-testi--tanpa-foto) {
+  grid-template-columns: 184px minmax(0, 1fr);
+  gap: clamp(24px, 3.4vw, 44px);
+  align-items: start;
+}
+
+.lp-testi:nth-child(even):not(.lp-testi--tanpa-foto) .lp-testi__photo {
+  order: 0;
+}
+
+.lp-testi__photo {
+  position: static;
+  aspect-ratio: 4 / 5;
+  border-radius: 14px;
+  background: var(--md-sys-color-surface-container);
+}
+
+.lp-testi__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 22%;
+}
+
+.lp-testi--tanpa-foto,
+.lp-testi + .lp-testi--tanpa-foto {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 640px) {
+  .lp-testi,
+  .lp-testi:nth-child(even):not(.lp-testi--tanpa-foto) {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .lp-testi__photo {
+    border-radius: 10px;
+  }
+
+  .lp-testi__lead {
+    font-size: var(--fs-18);
+  }
+}

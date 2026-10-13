@@ -40,7 +40,9 @@ const PAGES = Object.freeze([
   { file: 'program-mahad.html', url: 'program-mahad.html', name: "Program Ma'had" },
   { file: 'program-courses.html', url: 'program-courses.html', name: 'Hamasah Courses' },
   { file: 'biaya.html', url: 'biaya.html', name: 'Biaya & fasilitas' },
-  { file: 'kontak.html', url: 'kontak.html', name: 'Kontak' }
+  { file: 'kontak.html', url: 'kontak.html', name: 'Kontak' },
+  { file: 'daftar.html', url: 'daftar.html', name: 'Daftar konsultasi' },
+  { file: 'tim.html', url: 'tim.html', name: 'Tim Hamasah' }
 ]);
 
 // Testimoni adalah pendapat wali, bukan pernyataan lembaga, jadi tidak dipakai sebagai jawaban.
@@ -58,7 +60,13 @@ const SYNONYMS = Object.freeze({
   umur: 'usia', harga: 'biaya', ongkos: 'biaya', tarif: 'biaya', wa: 'whatsapp', hp: 'whatsapp',
   telp: 'whatsapp', nomer: 'nomor', kampus: 'universitas', mondok: 'mahad', pesantren: 'pesantren',
   syaratnya: 'syarat', berkas: 'dokumen', dokumennya: 'dokumen', tinggal: 'asrama', ortu: 'orang tua',
-  tahili: 'tahili', tahily: 'tahili', karantina: 'dauroh karantina'
+  tahili: 'tahili', tahily: 'tahili', karantina: 'dauroh karantina',
+  biayanya: 'biaya', duit: 'biaya', bayarnya: 'biaya', kos: 'asrama', kost: 'asrama', kosan: 'asrama',
+  umurnya: 'usia', syaratnya: 'syarat', alurnya: 'alur', caranya: 'cara', gimana: 'bagaimana',
+  dikembalikan: 'kembali', balik: 'kembali', lompat: 'akselerasi', loncat: 'akselerasi',
+  ortu: 'orang tua', anaknya: 'anak', ig: 'instagram', perbulan: 'bulan', bulanan: 'bulan',
+  asramanya: 'asrama', perempuan: 'putri', wanita: 'putri', cewek: 'putri', akhwat: 'putri',
+  laki: 'putra', pria: 'putra', cowok: 'putra', ikhwan: 'putra', pendiri: 'founder'
 });
 
 // Jawaban FAQ ringkas diberi tautan ke halaman yang membahasnya lebih lengkap.
@@ -67,6 +75,7 @@ const FAQ_LINKS = Object.freeze({
   biaya: { title: 'Biaya & fasilitas', url: 'biaya.html' },
   status: { title: 'Cek status', url: 'cek-status.html' },
   bahasa: { title: 'Tahdid Mustawa dan kelas bahasa', url: 'program-kuliah.html' },
+  tahdid: { title: 'Tahdid Mustawa dan kelas bahasa', url: 'program-kuliah.html' },
   'program-kuliah': { title: 'Program Kuliah S1', url: 'program-kuliah.html' },
   'program-mahad': { title: "Program Ma'had", url: 'program-mahad.html' },
   courses: { title: 'Hamasah Courses', url: 'program-courses.html' },
@@ -75,7 +84,28 @@ const FAQ_LINKS = Object.freeze({
   kontak: { title: 'Kontak & lokasi', url: 'kontak.html' },
   kairo: { title: 'Biaya & fasilitas', url: 'biaya.html' },
   fasilitas: { title: 'Fasilitas asrama Kairo', url: 'biaya.html' },
-  wali: { title: 'Portal wali', url: 'index.html#santri' }
+  wali: { title: 'Portal wali', url: 'index.html#santri' },
+  cicilan: { title: 'Biaya & fasilitas', url: 'biaya.html' },
+  jadwal: { title: 'Formulir pendaftaran', url: 'daftar.html' },
+  paspor: { title: 'Program Kuliah S1', url: 'program-kuliah.html' },
+  'biaya-kuliah': { title: 'Rincian biaya jalur kuliah', url: 'program-kuliah.html#biaya' },
+  'biaya-mesir': { title: 'Rincian biaya jalur kuliah', url: 'program-kuliah.html#biaya' },
+  'biaya-mahad': { title: "Rincian biaya jalur ma'had", url: 'program-mahad.html#biaya' },
+  'biaya-asrama': { title: "Rincian biaya jalur ma'had", url: 'program-mahad.html#biaya' },
+  cakupan: { title: 'Rincian biaya jalur kuliah', url: 'program-kuliah.html#biaya' },
+  'level-bahasa': { title: 'Tahdid Mustawa dan kelas bahasa', url: 'program-kuliah.html' },
+  dauroh: { title: 'Program Kuliah S1', url: 'program-kuliah.html' },
+  'markaz-tatwir': { title: 'Program Kuliah S1', url: 'program-kuliah.html' },
+  'syarat-kuliah': { title: 'Program Kuliah S1', url: 'program-kuliah.html' },
+  'syarat-mahad': { title: "Program Ma'had", url: 'program-mahad.html#alur' },
+  'alur-mahad': { title: "Program Ma'had", url: 'program-mahad.html#alur' },
+  akselerasi: { title: "Program Ma'had", url: 'program-mahad.html' },
+  lembaga: { title: 'Tentang Hamasah', url: 'index.html#tentang' },
+  'visi-misi': { title: 'Tentang Hamasah', url: 'index.html#tentang' },
+  beasiswa: { title: 'Kontak & lokasi', url: 'kontak.html' },
+  kegiatan: { title: 'Keseharian santri', url: 'index.html#kegiatan' },
+  mesir: { title: 'Pena Hamasah', url: 'articles.html' },
+  sejarah: { title: 'Pena Hamasah', url: 'articles.html' }
 });
 
 const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', nbsp: ' ', ldquo: '"', rdquo: '"', lsquo: "'", rsquo: "'", middot: '·', '#39': "'" };
@@ -300,6 +330,13 @@ function localAnswer(rawQuestion) {
   // Artikel yang judulnya memuat semua kata penting pertanyaan ("apa itu Al-Azhar",
   // "tips lulus tes") dijawab dengan ringkasan artikelnya.
   // Bila beberapa artikel cocok, judul yang paling ringkas (paling khusus) dipilih.
+  // Rangkuman pengurus yang kata kuncinya memuat semua kata penting pertanyaan ("apa itu
+  // dauroh tahili", "mesir itu dimana") didahulukan: lebih lengkap daripada satu kalimat
+  // halaman atau ringkasan artikel.
+  const faqKeywords = faq ? new Set(tokens(faq.studyGuide[0].question)) : null;
+  const faqCoversAll = Boolean(faq) && queryTokens.length > 0 && queryTokens.every((token) => faqKeywords.has(token));
+  if (faqCoversAll) return faqReply(faq);
+
   const articleGuide = queryTokens.length && ranked
     .filter((entry) => entry.item.kind === 'guide')
     .map((entry) => ({ entry, titleTokens: new Set(tokens(entry.item.material.title)) }))
