@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website-core.css?v=2d72a1bd8f" />
     <link rel="stylesheet" href="website-public.css?v=025116cd07" />
-    <link rel="stylesheet" href="landing.css?v=35a53fd161" />
+    <link rel="stylesheet" href="landing.css?v=9709ca36ac" />
     <link rel="stylesheet" href="fields.css?v=8b2a97dcc4" />
   </head>
   <body>
@@ -114,34 +114,49 @@
         <div class="shell">
           <header class="lp-head">
             <h2 class="lp-h2" id="alur-title">Alur pendaftaran jalur kuliah</h2>
-            <p class="lp-lede">Ini alur bagi pelajar yang berangkat dari Indonesia. Setiap tahap tercatat, sehingga Anda dan keluarga selalu tahu posisi pendaftaran.</p>
+            <p class="lp-lede">Delapan tahap bagi pelajar yang berangkat dari Indonesia. Seluruhnya didampingi tim kami, dan setiap tahap tercatat sehingga keluarga selalu tahu posisi pendaftaran.</p>
           </header>
 
-          <ol class="lp-steps">
+          <ol class="lp-steps lp-steps--empat">
             <li>
               <span class="lp-steps__num" aria-hidden="true">1</span>
-              <h3>Formulir dan konsultasi</h3>
-              <p>Isi formulir pendaftaran, lalu kami bantu memahami alur, fakultas, jurusan, dan dokumen yang dibutuhkan.</p>
+              <h3>Formulir pendaftaran</h3>
+              <p>Isi formulir lewat tautan resmi Hamasah, lalu unggah pindaian dokumen yang diminta.</p>
             </li>
             <li>
               <span class="lp-steps__num" aria-hidden="true">2</span>
-              <h3>Verifikasi berkas</h3>
-              <p>Berkas Anda kami periksa, lalu diteruskan untuk diverifikasi Markaz Tatwir <span class="lp-nb">Al-Azhar</span>.</p>
+              <h3>Verifikasi dokumen</h3>
+              <p>Berkas kami periksa lebih dulu, lalu diteruskan untuk diverifikasi Markaz Tatwir <span class="lp-nb">Al-Azhar</span>.</p>
             </li>
             <li>
               <span class="lp-steps__num" aria-hidden="true">3</span>
-              <h3>Tahdid Mustawa</h3>
-              <p>Tes penempatan bahasa Arab. Bila levelnya belum mencukupi, Anda mengikuti kelas bahasa terlebih dahulu.</p>
+              <h3>Hasil seleksi administrasi</h3>
+              <p>Hasil verifikasi berkas diumumkan sebelum masuk ke tahap ujian.</p>
             </li>
             <li>
               <span class="lp-steps__num" aria-hidden="true">4</span>
-              <h3>Dauroh Ta'hili dan muadalah</h3>
-              <p>Karantina daring sekitar 30 hari dari Markaz Tatwir, lalu ujian muadalah untuk penyetaraan ijazah. Hasilnya diumumkan sekitar dua minggu kemudian.</p>
+              <h3>Tahdid Mustawa</h3>
+              <p>Ujian penempatan bahasa Arab yang menentukan level Anda, dari Mubtadi sampai Mutaqaddim.</p>
             </li>
             <li>
               <span class="lp-steps__num" aria-hidden="true">5</span>
-              <h3>Berkas dan keberangkatan</h3>
-              <p>Visa pelajar, tiket, penjemputan di Kairo, lalu pemberkasan dan daftar ulang per fakultas.</p>
+              <h3>Kelas bahasa</h3>
+              <p>Jenjang bahasa diselesaikan sampai tingkat Mutaqaddim Awal sesuai hasil penempatan.</p>
+            </li>
+            <li>
+              <span class="lp-steps__num" aria-hidden="true">6</span>
+              <h3>Karantina daring</h3>
+              <p>Dauroh Ta'hili sekitar 30 hari dari Markaz Tatwir sebagai bekal menghadapi ujian.</p>
+            </li>
+            <li>
+              <span class="lp-steps__num" aria-hidden="true">7</span>
+              <h3>Ujian seleksi</h3>
+              <p>Ujian muadalah untuk penyetaraan ijazah. Hasilnya diumumkan sekitar dua minggu kemudian.</p>
+            </li>
+            <li>
+              <span class="lp-steps__num" aria-hidden="true">8</span>
+              <h3>Pemberkasan dan daftar ulang</h3>
+              <p>Pemberkasan akhir, keberangkatan ke Kairo, dan daftar ulang di fakultas masing-masing.</p>
             </li>
           </ol>
 
@@ -153,10 +168,11 @@
             <ul class="lp-checks lp-checks--two">
               <li>Isi formulir dan kirim berkas</li>
               <li>Verifikasi berkas oleh <span class="lp-nb">Al-Azhar</span></li>
-              <li>Menyelesaikan dirosah khossoh sampai mutawasith awal</li>
-              <li>Ujian dan pengumuman kelulusan</li>
-              <li>Karantina daring atau luring</li>
-              <li>Pemberkasan dan daftar ulang per fakultas</li>
+              <li>Pengumuman hasil verifikasi administrasi</li>
+              <li>Kelas matrikulasi bahasa (dirosah khossoh mutawasith awal)</li>
+              <li>Karantina daring atau luring di Kairo</li>
+              <li>Ujian seleksi dan pengumuman kelulusan</li>
+              <li>Pemberkasan akhir dan daftar ulang per fakultas</li>
             </ul>
           </aside>
         </div>
@@ -224,6 +240,63 @@
         </div>
       </section>
 
+      <section class="lp-section" id="biaya" aria-labelledby="biaya-title">
+        <div class="shell">
+          <header class="lp-head">
+            <h2 class="lp-h2" id="biaya-title">Rincian biaya jalur kuliah</h2>
+            <p class="lp-lede">Estimasi tahun akademik 2026/2027. Pembayaran dilakukan bertahap, mengikuti tahap yang sedang berjalan.</p>
+          </header>
+
+          <div class="lp-fees">
+            <div class="lp-panel">
+              <div class="lp-panel__row">
+                <h3>Berangkat dari Indonesia</h3>
+                <dl class="lp-fee-list">
+                  <div><dt>Pendaftaran, verifikasi dokumen, dan Tahdid Mustawa</dt><dd>Rp 1.100.000</dd></div>
+                  <div><dt>Karantina daring bersama <span class="lp-nb">Al-Azhar</span> dan ujian muadalah</dt><dd>Rp 2.800.000</dd></div>
+                  <div><dt>Keberangkatan ke Kairo, program asrama</dt><dd>Rp 20.000.000</dd></div>
+                  <div><dt>Keberangkatan ke Kairo, program non-asrama</dt><dd>Rp 18.500.000</dd></div>
+                </dl>
+              </div>
+            </div>
+            <div class="lp-panel">
+              <div class="lp-panel__row">
+                <h3>Sudah berada di Mesir</h3>
+                <dl class="lp-fee-list">
+                  <div><dt>Pendaftaran dan verifikasi dokumen</dt><dd>Rp 500.000</dd></div>
+                  <div><dt>Karantina daring bersama <span class="lp-nb">Al-Azhar</span> dan ujian muadalah</dt><dd>Rp 2.800.000</dd></div>
+                  <div><dt>Pemberkasan dan administrasi kuliah</dt><dd>Rp 5.000.000</dd></div>
+                </dl>
+              </div>
+            </div>
+          </div>
+
+          <aside class="lp-docs">
+            <div>
+              <h3>Yang termasuk biaya keberangkatan</h3>
+              <p>Berlaku untuk pelajar yang berangkat dari Indonesia.</p>
+            </div>
+            <ul class="lp-checks lp-checks--two">
+              <li>Tiket pesawat Jakarta ke Kairo</li>
+              <li>Pemberkasan di Jakarta dan rekomendasi Kemenag</li>
+              <li>Pengurusan visa di Kedutaan Besar Mesir, Jakarta</li>
+              <li>Pendampingan keberangkatan</li>
+              <li>Penjemputan di bandara Kairo</li>
+              <li>Sewa apartemen di Kairo untuk bulan pertama</li>
+              <li>Perlengkapan pribadi dan fasilitas apartemen</li>
+              <li>Pemberkasan di Kairo sampai terdaftar di fakultas</li>
+              <li>Seragam keberangkatan</li>
+              <li>Infak lembaga</li>
+            </ul>
+          </aside>
+
+          <ul class="lp-fee-notes">
+            <li>Biaya bersifat estimasi dan dapat berubah mengikuti regulasi <span class="lp-nb">Al-Azhar</span> serta kebijakan pemerintah Mesir dan Indonesia.</li>
+            <li>Biaya pendaftaran dan verifikasi dokumen tidak dapat ditarik kembali.</li>
+          </ul>
+        </div>
+      </section>
+
       <section class="lp-section lp-section--tint" aria-labelledby="ajakan-title">
         <div class="shell lp-closing">
           <div>
@@ -286,7 +359,7 @@
       </div>
 
       <div class="shell footer-bottom">
-        <p>&copy; 2026 Hamasah International. Ketentuan penerimaan mengikuti otoritas resmi Al-Azhar Kairo.</p>
+        <p>&copy; 2026 Hamasah International, didukung oleh PT Visi Berkah International. Ketentuan penerimaan mengikuti otoritas resmi Al-Azhar Kairo.</p>
         <div class="footer-legal-links">
           <a href="kebijakan-privasi.html">Kebijakan Privasi</a>
         </div>

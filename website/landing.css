@@ -1991,3 +1991,85 @@ main h1.lp-h2 {
     padding: 16px 0;
   }
 }
+
+/* ==========================================================================
+   Isi dari brosur Panduan Kuliah S1 2026: delapan tahap dan rincian biaya.
+   ========================================================================== */
+
+/* Delapan tahap: empat kolom, dua baris. */
+.lp-steps--empat {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  row-gap: 48px;
+}
+
+.lp-fees {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 32px clamp(32px, 5vw, 72px);
+  align-items: start;
+  margin-bottom: clamp(32px, 4vw, 48px);
+}
+
+.lp-fee-list {
+  margin: 0;
+}
+
+.lp-fee-list div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: baseline;
+  padding: 14px 0;
+  border-top: 1px solid var(--lp-line);
+}
+
+.lp-fee-list div:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.lp-fee-list dt {
+  font-size: var(--fs-16);
+  line-height: 1.5;
+  color: var(--lp-soft);
+}
+
+.lp-fee-list dd {
+  margin: 0;
+  font-size: var(--fs-18);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--lp-ink);
+}
+
+.lp-fee-notes {
+  margin: 28px 0 0;
+  padding-left: 20px;
+  font-size: var(--fs-14);
+  line-height: 1.6;
+  color: var(--lp-soft);
+}
+
+.lp-fee-notes li + li {
+  margin-top: 6px;
+}
+
+@media (max-width: 1024px) {
+  .lp-steps--empat {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .lp-fees {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .lp-steps--empat {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0;
+  }
+}

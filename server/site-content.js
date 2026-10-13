@@ -73,12 +73,12 @@ const BAWAAN = Object.freeze({
   },
 
   biaya: {
-    pengantar: 'Halaman ini merinci komponen dan fasilitas tiap program. Nominalnya disampaikan saat konsultasi karena mengikuti program dan periode keberangkatan, dan konsultasinya tanpa biaya.',
+    pengantar: 'Halaman ini merinci komponen dan fasilitas tiap program. Rincian biaya jalur kuliah ada di halaman programnya; untuk jalur lain nominalnya disampaikan saat konsultasi, dan konsultasinya tanpa biaya.',
     program: {
       kuliah: {
-        label: 'SPP Asrama & Hidup',
-        harga: 'Dikonfirmasi saat konsultasi',
-        keterangan: 'Mengikuti program dan periode keberangkatan',
+        label: 'Biaya awal mulai',
+        harga: 'Rp 1.100.000',
+        keterangan: 'Pendaftaran, verifikasi dokumen, dan Tahdid Mustawa. Tahap berikutnya dibayar bertahap.',
         fasilitas: [
           'Konsultasi pemilihan fakultas & pemetaan jurusan',
           'Bimbingan persiapan Ujian Bahasa (Tahdid Mustawa)',
@@ -257,6 +257,26 @@ const BAWAAN = Object.freeze({
       foto: 'galeri/cairo-international-book-fair.webp', lebar: 1280, tinggi: 960,
       keterangan: 'Mengunjungi Cairo International Book Fair',
       alt: 'Santri putra dan putri Hamasah berfoto di depan gedung pameran Cairo International Book Fair'
+    },
+    {
+      foto: 'galeri/kajian-sore.webp', lebar: 469, tinggi: 313,
+      keterangan: 'Kajian sore di asrama',
+      alt: 'Santri duduk melingkar di lantai menghadap papan tulis saat kajian sore'
+    },
+    {
+      foto: 'galeri/maulid-nabi.webp', lebar: 468, tinggi: 312,
+      keterangan: 'Peringatan Maulid Nabi Muhammad SAW',
+      alt: 'Santri menabuh rebana bersama saat peringatan Maulid Nabi'
+    },
+    {
+      foto: 'galeri/tur-tempat-bersejarah.webp', lebar: 423, tinggi: 282,
+      keterangan: 'Tur tempat bersejarah di Kairo',
+      alt: 'Rombongan santri berfoto di halaman masjid bersejarah berkubah di Kairo'
+    },
+    {
+      foto: 'galeri/dewan-masyayikh-al-azhar.webp', lebar: 490, tinggi: 275,
+      keterangan: 'Bersama Dewan Masyayikh Al-Azhar, Dr. Nakhlah dan Dr. Syahidah',
+      alt: 'Santri Hamasah berfoto bersama Dewan Masyayikh Al-Azhar di sebuah aula'
     }
   ]
 });
