@@ -6094,3 +6094,90 @@ img.article-cover {
     transition: none;
   }
 }
+
+/* ==========================================================================
+   Audit tampilan ponsel, halaman Biaya, Kontak, Tim, dan Pena Hamasah
+   (13 Oktober 2026). Skala yang sama dengan beranda: judul halaman 28, judul
+   bagian 24, pengantar 16, jarak antarbagian 44. Berkas ini dimuat sebelum
+   landing.css, jadi aturan di sini tidak mengubah beranda dan halaman program.
+   ========================================================================== */
+
+@media (max-width: 640px) {
+  main .eyebrow + h1,
+  main .section-heading h1,
+  main .section-intro h1 {
+    font-size: var(--fs-28);
+    line-height: 1.15;
+  }
+
+  main .eyebrow + h2,
+  main .section-heading h2,
+  main .section-intro h2,
+  main .team-group h2 {
+    font-size: var(--fs-24);
+    line-height: 1.18;
+  }
+
+  main .eyebrow + h1 + p,
+  main .eyebrow + h2 + p,
+  main .section-heading--center .eyebrow + h1 + p,
+  main .section-heading--center .eyebrow + h2 + p,
+  main .section-intro--center .eyebrow + h2 + p,
+  main .team-hero p:not(.eyebrow) {
+    font-size: var(--fs-16);
+    line-height: 1.65;
+  }
+
+  /* Biaya: jarak antarbagian 96 px terlalu lapang di ponsel. */
+  .biaya-programs-section,
+  .biaya-breakdown-section,
+  .biaya-faq-section {
+    padding-block: 44px;
+  }
+
+  /* Kartu fasilitas: ikon di kiri, teks di kanan, supaya tiap kartu tidak setinggi layar. */
+  .breakdown-item {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    column-gap: 14px;
+    align-items: start;
+    padding: 18px;
+  }
+
+  .breakdown-item .breakdown-icon {
+    grid-row: span 2;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+  }
+
+  .breakdown-grid {
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .breakdown-item strong {
+    margin-bottom: 4px;
+  }
+
+  .breakdown-item p {
+    margin: 0;
+    font-size: var(--fs-14);
+    line-height: 1.5;
+  }
+
+  .biaya-cta-section h3,
+  .office-card h3 {
+    font-size: var(--fs-20);
+    line-height: 1.25;
+  }
+
+  /* Pena Hamasah: ruang kosong di atas judul halaman dipangkas. */
+  .articles-page-main {
+    padding-top: 24px;
+  }
+
+  .articles-hero {
+    padding-top: 8px;
+  }
+}
