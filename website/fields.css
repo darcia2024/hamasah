@@ -183,6 +183,19 @@
     padding: 8px 20px !important;
   }
 
+  /* Menu ponsel selayar penuh: tautan besar, dua tombol aksi di dasar panel. */
+  @media (max-width: 768px) {
+    .site-nav a:not(.nav-cta):not(.nav-portal) {
+      font-size: var(--fs-18, 18px) !important;
+    }
+
+    .site-nav a.nav-cta,
+    .site-nav a.nav-portal {
+      min-height: 52px !important;
+      font-size: var(--fs-16, 16px) !important;
+    }
+  }
+
   /* Tombol ikon konsol: tidak lebih kecil dari 36 px supaya mudah diklik dan diketuk. */
   .crm-collapse-btn {
     min-width: 36px !important;

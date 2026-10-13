@@ -5933,3 +5933,164 @@ img.article-cover {
     height: 40px;
   }
 }
+
+/* ==========================================================================
+   Menu ponsel (13 Oktober 2026): panel selayar penuh di bawah kepala situs.
+   Tombol bulat tanpa label; garisnya berubah jadi silang. Tautan besar muncul
+   bergiliran, dua tombol aksi menempel di dasar panel. Panel memakai
+   visibility + opacity (bukan display) supaya buka-tutupnya bisa dianimasikan.
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .menu-toggle {
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    gap: 0;
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: 50%;
+    background: transparent;
+    transition: background-color 200ms ease, border-color 200ms ease;
+  }
+
+  .menu-toggle[aria-expanded="true"] {
+    border-color: var(--md-sys-color-on-surface);
+    background: var(--md-sys-color-on-surface);
+  }
+
+  .menu-toggle__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .menu-toggle__lines {
+    gap: 5px;
+  }
+
+  .menu-toggle__lines i {
+    width: 18px;
+  }
+
+  .menu-toggle__lines i:nth-child(2) {
+    display: none;
+  }
+
+  .menu-toggle[aria-expanded="true"] .menu-toggle__lines i {
+    background: #FFFFFF;
+  }
+
+  .menu-toggle[aria-expanded="true"] .menu-toggle__lines i:nth-child(1) {
+    transform: translateY(3.5px) rotate(45deg);
+  }
+
+  .menu-toggle[aria-expanded="true"] .menu-toggle__lines i:nth-child(3) {
+    transform: translateY(-3.5px) rotate(-45deg);
+  }
+
+  .site-nav {
+    display: flex;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-8px);
+    height: calc(100dvh - 100%);
+    max-height: none;
+    padding: 12px 24px calc(24px + env(safe-area-inset-bottom));
+    border-bottom: 0;
+    background: #FBFAF6;
+    box-shadow: none;
+    transition: opacity 220ms ease, transform 260ms cubic-bezier(0.2, 0.7, 0.2, 1), visibility 0s linear 260ms;
+  }
+
+  .site-nav.is-open {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition-delay: 0s;
+  }
+
+  .site-nav a {
+    justify-content: space-between;
+    flex: none;
+    height: 60px;
+    padding: 0;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    font-size: var(--fs-20);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  /* Panah kecil di kanan tiap tautan; tautan halaman aktif berwarna emas. */
+  .site-nav a:not(.nav-cta):not(.nav-portal)::after,
+  .site-nav a.is-active::after {
+    content: "";
+    flex: none;
+    width: 8px;
+    height: 8px;
+    margin: 0 4px 0 0;
+    border: 0;
+    border-top: 2px solid currentColor;
+    border-right: 2px solid currentColor;
+    border-radius: 0;
+    background: none;
+    transform: rotate(45deg);
+    opacity: 0.45;
+  }
+
+  .site-nav a.is-active::after {
+    opacity: 1;
+  }
+
+  .site-nav.is-open a {
+    opacity: 1;
+    transform: none;
+    transition: opacity 320ms ease, transform 360ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .site-nav.is-open a:nth-child(1) { transition-delay: 60ms; }
+  .site-nav.is-open a:nth-child(2) { transition-delay: 100ms; }
+  .site-nav.is-open a:nth-child(3) { transition-delay: 140ms; }
+  .site-nav.is-open a:nth-child(4) { transition-delay: 180ms; }
+  .site-nav.is-open a:nth-child(5) { transition-delay: 220ms; }
+  .site-nav.is-open a:nth-child(6) { transition-delay: 260ms; }
+  .site-nav.is-open a:nth-child(n + 7) { transition-delay: 300ms; }
+
+  /* Dua tombol aksi di dasar panel. */
+  .site-nav a.nav-portal,
+  .site-nav a.nav-cta {
+    justify-content: center;
+    height: 52px;
+    border-radius: var(--md-shape-corner-full);
+    font-size: var(--fs-16);
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+
+  .site-nav a.nav-portal {
+    margin-top: auto;
+    border: 1px solid var(--md-sys-color-on-surface);
+    color: var(--md-sys-color-on-surface);
+  }
+
+  .site-nav a.nav-cta {
+    margin-top: 12px;
+    border-bottom: 0;
+  }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .site-nav,
+  .site-nav.is-open,
+  .site-nav a,
+  .site-nav.is-open a {
+    transform: none;
+    transition: none;
+  }
+}
