@@ -617,9 +617,12 @@ const RENDER = Object.freeze({
         : '';
       const lengkap = t.isi
         ? `
-                <div class="lp-testi__full">
-${paragraf(t.isi, '                  ')}
-                </div>`
+                <details class="lp-testi__more">
+                  <summary>Baca cerita lengkapnya</summary>
+                  <div class="lp-testi__full">
+${paragraf(t.isi, '                    ')}
+                  </div>
+                </details>`
         : '';
       return `            <article class="lp-testi${figur ? '' : ' lp-testi--tanpa-foto'}">${figur}
               <div class="lp-testi__body">

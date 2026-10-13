@@ -30,6 +30,7 @@ const PUBLIC_PAGES = Object.freeze({
   'tim.html': '/website/tim.html',
   'articles.html': '/website/articles.html',
   'cek-status.html': '/website/cek-status.html',
+  'daftar.html': '/website/daftar.html',
   'program-kuliah.html': '/website/program-kuliah.html',
   'program-mahad.html': '/website/program-mahad.html',
   'program-courses.html': '/website/program-courses.html',

@@ -63,7 +63,7 @@ const SYNONYMS = Object.freeze({
 
 // Jawaban FAQ ringkas diberi tautan ke halaman yang membahasnya lebih lengkap.
 const FAQ_LINKS = Object.freeze({
-  pendaftaran: { title: 'Formulir pendaftaran', url: 'index.html#pendaftaran' },
+  pendaftaran: { title: 'Formulir pendaftaran', url: 'daftar.html' },
   biaya: { title: 'Biaya & fasilitas', url: 'biaya.html' },
   status: { title: 'Cek status', url: 'cek-status.html' },
   bahasa: { title: 'Tahdid Mustawa dan kelas bahasa', url: 'program-kuliah.html' },

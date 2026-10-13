@@ -1899,3 +1899,95 @@ main .lp-doc-groups h3 {
     aspect-ratio: 16 / 10;
   }
 }
+
+/* ==========================================================================
+   Beranda yang dipangkas (13 Oktober 2026): keseharian dan galeri satu bagian,
+   cerita lengkap testimoni dilipat, formulir pindah ke daftar.html.
+   ========================================================================== */
+
+/* Empat butir keseharian berjajar di atas galeri. */
+.lp-days__list--baris {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px 32px;
+  margin: 0 0 clamp(36px, 5vw, 56px);
+}
+
+.lp-days__list--baris div,
+.lp-days__list--baris div:first-child {
+  padding: 18px 0 0;
+  border-top: 1px solid var(--lp-line);
+}
+
+/* Cerita lengkap wali: tertutup dulu, dibuka pembaca yang ingin membacanya. */
+.lp-testi__more summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--gold-dark);
+  cursor: pointer;
+  list-style: none;
+}
+
+.lp-testi__more summary::-webkit-details-marker {
+  display: none;
+}
+
+.lp-testi__more summary::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 200ms ease;
+}
+
+.lp-testi__more[open] summary::after {
+  transform: translateY(2px) rotate(-135deg);
+}
+
+.lp-testi__more summary:focus-visible {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.lp-testi__more .lp-testi__full {
+  margin: 8px 0 18px;
+}
+
+.lp-testi__lead {
+  margin-bottom: 10px;
+}
+
+/* Halaman formulir: judul halaman memakai skala judul bagian. */
+main h1.lp-h2 {
+  font-size: clamp(var(--fs-32), 3.4vw, var(--fs-40));
+  line-height: 1.12;
+  letter-spacing: -0.028em;
+  font-weight: 600 !important;
+  margin: 0 0 18px;
+  text-wrap: balance;
+}
+
+@media (max-width: 900px) {
+  .lp-days__list--baris {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .lp-days__list--baris {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .lp-days__list--baris div,
+  .lp-days__list--baris div:first-child {
+    padding: 16px 0;
+  }
+}
