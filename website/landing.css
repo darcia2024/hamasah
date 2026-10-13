@@ -796,71 +796,6 @@ main .lp-docs h3 {
 
 /* ---------- Keseharian di Kairo ---------- */
 
-.lp-gallery {
-  display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-  grid-template-rows: repeat(3, auto);
-  gap: 16px;
-}
-
-.lp-gallery__photo {
-  position: relative;
-  grid-row: span 3;
-  margin: 0;
-  min-height: 460px;
-  border-radius: var(--lp-radius);
-  overflow: hidden;
-}
-
-.lp-gallery__photo img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.lp-gallery__photo figcaption {
-  position: absolute;
-  inset: auto 0 0;
-  display: grid;
-  gap: 6px;
-  padding: 72px 28px 26px;
-  background: linear-gradient(180deg, rgba(28, 28, 30, 0) 0%, rgba(28, 28, 30, 0.82) 62%);
-  color: #FFFFFF;
-  font-size: var(--fs-18);
-  font-weight: 600;
-  line-height: 1.45;
-}
-
-.lp-gallery__photo .lp-label {
-  color: #F2C94C;
-  margin: 0;
-}
-
-.lp-gallery__tile {
-  padding: 24px 26px;
-  border-radius: var(--lp-radius);
-  background: var(--md-sys-color-surface);
-  box-shadow: var(--lp-card-shadow);
-}
-
-.lp-gallery__tile p {
-  margin: 0;
-  font-size: var(--fs-16);
-  line-height: 1.6;
-}
-
-.lp-gallery__tile--gold {
-  background: var(--md-sys-color-primary-container);
-  box-shadow: none;
-}
-
-.lp-gallery__tile--gold .lp-label,
-.lp-gallery__tile--gold p {
-  color: var(--md-sys-color-on-primary-container);
-}
-
 /* ---------- Portal wali ---------- */
 
 .lp-portal {
@@ -1148,19 +1083,8 @@ main .lp-after-title {
     grid-row: auto;
   }
 
-  .lp-gallery {
-    grid-template-columns: 1fr 1fr;
-  }
 
-  .lp-gallery__photo {
-    grid-column: 1 / -1;
-    grid-row: auto;
-    min-height: 340px;
-  }
 
-  .lp-gallery__tile--gold {
-    grid-column: 1 / -1;
-  }
 
   .lp-register__copy {
     position: static;
@@ -1200,9 +1124,6 @@ main .lp-after-title {
   .lp-faculties,
   .lp-checks--two,
   .lp-courses li,
-  .lp-gallery {
-    grid-template-columns: 1fr;
-  }
 
   .lp-panel__row,
   .lp-docs,
@@ -1224,14 +1145,6 @@ main .lp-after-title {
     padding: 0;
   }
 
-  .lp-gallery__photo {
-    min-height: 300px;
-  }
-
-  .lp-gallery__photo figcaption {
-    font-size: var(--fs-16);
-    padding: 64px 22px 22px;
-  }
 
   .lp-stages div {
     grid-template-columns: 96px 1fr;
@@ -1720,12 +1633,11 @@ main .lp-doc-groups h3 {
 }
 
 /* ==========================================================================
-   Aksen emas. Latar tetap putih; warna emas merek (#E7B10C) hanya dipakai pada
-   elemen kecil: garis, penanda, nomor, dan bingkai. Emas terang tidak dipakai
-   sebagai warna teks (kontrasnya di atas putih kurang), teks tetap --gold-dark.
+   Aksen emas, dipakai hemat. Latar tetap putih; emas merek (#E7B10C) hanya di
+   tempat yang memang perlu ditonjolkan: nomor langkah, garis bawah tautan,
+   blok di belakang foto, dan garis kutipan. Teks emas tetap --gold-dark.
    ========================================================================== */
 
-/* Nomor langkah: lingkaran emas penuh, garis penghubung ikut emas. */
 .lp-steps li {
   border-top-color: var(--gold-border);
 }
@@ -1735,145 +1647,10 @@ main .lp-doc-groups h3 {
   color: var(--md-sys-color-on-primary);
 }
 
-/* Daftar centang: bulatan emas dengan centang gelap. */
-.lp-checks li::before {
-  left: 0;
-  top: 3px;
-  width: 20px;
-  height: 20px;
-  border: 0;
-  border-radius: 50%;
-  background: var(--md-sys-color-primary);
-  transform: none;
-}
-
-.lp-checks li::after {
-  content: "";
-  position: absolute;
-  left: 6px;
-  top: 9px;
-  width: 8px;
-  height: 4px;
-  border-left: 2px solid var(--md-sys-color-on-primary);
-  border-bottom: 2px solid var(--md-sys-color-on-primary);
-  transform: rotate(-45deg);
-}
-
-/* Tiga jaminan di bawah hero: garis emas pendek di atas tiap butir. */
-.lp-assure strong::before {
-  content: "";
-  display: block;
-  width: 32px;
-  height: 3px;
-  margin-bottom: 14px;
-  border-radius: 2px;
-  background: var(--md-sys-color-primary);
-}
-
-/* Kartu: garis emas di tepi atas. */
-.lp-panel,
-.lp-portal__list,
-.lp .journal-item,
-.lp-faq .faq-answer {
-  box-shadow: inset 0 3px 0 var(--md-sys-color-primary), var(--lp-card-shadow);
-}
-
-/* Kartu program: garis emas di bawah yang memanjang saat disorot. */
-.lp-path {
-  position: relative;
-  overflow: hidden;
-}
-
-.lp-path::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 4px;
-  background: var(--md-sys-color-primary);
-  transform: scaleX(0.16);
-  transform-origin: left;
-  transition: transform 320ms ease;
-}
-
-.lp-path:hover::after,
-.lp-path:focus-visible::after {
-  transform: scaleX(1);
-}
-
-/* Jenjang: garis kapsul dan panah penghubung emas. */
-.lp-levels li {
-  border-color: var(--md-sys-color-primary);
-}
-
-.lp-levels li + li::before {
-  border-color: var(--md-sys-color-primary);
-}
-
-/* Tahapan dan daftar kelas: titik emas di depan judul butir. */
-.lp-stages dt::before,
-.lp-courses strong::before {
-  content: "";
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 10px;
-  border-radius: 50%;
-  background: var(--md-sys-color-primary);
-  vertical-align: 2px;
-}
-
-/* Foto: blok emas tergeser di belakang foto. */
 .lp-photo {
   box-shadow: 12px 12px 0 var(--md-sys-color-primary);
 }
 
-/* Misi: nomor dalam cincin emas. */
-.lp-mission li {
-  grid-template-columns: 44px 1fr;
-  align-items: start;
-}
-
-.lp-mission li::before {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: 2px solid var(--md-sys-color-primary);
-  border-radius: 50%;
-  font-size: var(--fs-13);
-  color: var(--lp-ink);
-}
-
-.lp-statement {
-  border-left-width: 4px;
-}
-
-/* Testimoni: tanda kutip emas besar dan garis kutipan yang lebih tegas. */
-.lp-testi__quote::before {
-  content: "\201C";
-  display: block;
-  height: 36px;
-  font-size: var(--fs-64);
-  line-height: 1;
-  font-weight: 600;
-  color: var(--md-sys-color-primary);
-}
-
-.lp-testi__full {
-  border-left-width: 3px;
-}
-
-.lp-testi__who {
-  border-top-color: var(--gold-border);
-}
-
-/* Galeri: bingkai emas saat disorot. */
-.lp-photos__item:hover {
-  box-shadow: 0 0 0 3px var(--md-sys-color-primary);
-}
-
-/* Tautan teks: garis bawah emas. */
 .lp-link {
   text-decoration: underline;
   text-decoration-color: var(--md-sys-color-primary);
@@ -1881,8 +1658,161 @@ main .lp-doc-groups h3 {
   text-underline-offset: 6px;
 }
 
+.lp-photos__item:hover {
+  box-shadow: 0 0 0 3px var(--md-sys-color-primary);
+}
+
+/* ==========================================================================
+   Tanpa kotak. Panel, daftar portal, dan testimoni tidak lagi berupa kartu
+   putih berbayang; cukup garis pemisah, supaya halaman tidak terasa deretan
+   kartu yang sama dari atas sampai bawah.
+   ========================================================================== */
+
+.lp-panel,
+.lp-portal__list {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  border-top: 2px solid var(--lp-ink);
+}
+
+.lp-panel__row {
+  padding: 28px 0;
+}
+
+.lp-testi {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.lp-testi + .lp-testi {
+  padding-top: clamp(28px, 4vw, 48px);
+  border-top: 1px solid var(--lp-line);
+}
+
+.lp-testi__photo {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.lp-testi--tanpa-foto,
+.lp-testi + .lp-testi--tanpa-foto {
+  padding: clamp(24px, 4vw, 48px);
+  border: 0;
+  border-radius: 20px;
+  background: var(--md-sys-color-primary-container);
+}
+
+/* ---------- Keseharian: satu foto besar, lalu teks polos ---------- */
+
+.lp-wide {
+  width: min(100% - 32px, 1320px);
+  margin: 0 auto clamp(40px, 6vw, 72px);
+}
+
+.lp-wide img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  object-position: center 62%;
+  border-radius: 12px;
+}
+
+.lp-wide figcaption {
+  margin-top: 12px;
+  font-size: var(--fs-14);
+  color: var(--lp-soft);
+}
+
+.lp-days {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 32px clamp(40px, 6vw, 88px);
+  align-items: start;
+}
+
+.lp-days h2.lp-h2 {
+  margin-bottom: 18px;
+}
+
+.lp-days__list {
+  margin: 0;
+}
+
+.lp-days__list div {
+  padding: 18px 0;
+  border-top: 1px solid var(--lp-line);
+}
+
+.lp-days__list div:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.lp-days__list dt {
+  margin-bottom: 4px;
+  font-size: var(--fs-18);
+  font-weight: 600;
+}
+
+.lp-days__list dd {
+  margin: 0;
+  font-size: var(--fs-16);
+  line-height: 1.6;
+  color: var(--lp-soft);
+}
+
+/* ---------- Tentang: kutipan besar selebar halaman ---------- */
+
+.lp-about > h2.lp-h2,
+.lp-about > .lp-statement {
+  grid-column: 1 / -1;
+  max-width: none;
+}
+
+.lp-about > h2.lp-h2 {
+  margin: 0;
+  font-size: var(--fs-18);
+  letter-spacing: 0;
+  color: var(--lp-soft);
+}
+
+.lp-about > .lp-statement {
+  margin: 0 0 8px;
+  padding-left: clamp(18px, 2.4vw, 32px);
+  border-left-width: 4px;
+  font-size: clamp(var(--fs-24), 3.2vw, var(--fs-40));
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  max-width: 28ch;
+}
+
+@media (max-width: 900px) {
+  .lp-days {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media (max-width: 720px) {
   .lp-photo {
     box-shadow: 8px 8px 0 var(--md-sys-color-primary);
+  }
+
+  .lp-wide {
+    width: 100%;
+  }
+
+  .lp-wide img {
+    aspect-ratio: 4 / 3;
+    border-radius: 0;
+  }
+
+  .lp-wide figcaption {
+    padding: 0 16px;
   }
 }

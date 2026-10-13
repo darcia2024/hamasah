@@ -70,7 +70,7 @@
 
   // Wadah yang anak-anaknya muncul satu per satu.
   const GROUPS = [
-    '.lp-paths', '.lp-steps', '.lp-gallery', '.lp-portal__list', '.lp-mission', '.lp-checks',
+    '.lp-paths', '.lp-steps', '.lp-days__list', '.lp-portal__list', '.lp-mission', '.lp-checks',
     '.pricing-cards-grid', '.breakdown-grid', '.biaya-faq-grid', '.biaya-trust-grid',
     '.offices-cards-grid', '.articles-catalog-grid', '.journal-list'
   ].join(', ');
