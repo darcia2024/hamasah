@@ -72,7 +72,7 @@
   const GROUPS = [
     '.lp-paths', '.lp-steps', '.lp-days__list', '.lp-portal__list', '.lp-mission', '.lp-checks',
     '.pricing-cards-grid', '.breakdown-grid', '.biaya-faq-grid', '.biaya-trust-grid',
-    '.offices-cards-grid', '.articles-catalog-grid', '.journal-list'
+    '.offices-cards-grid', '.articles-catalog-grid', '.pena-list'
   ].join(', ');
   // Blok teks yang barisnya (eyebrow, judul, paragraf) muncul bergiliran.
   const COPY = 'header, .lp-head, .section-heading, .section-intro, .lp-split__copy, .lp-register__copy, .subscribe-text, div:not([class])';

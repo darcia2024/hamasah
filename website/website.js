@@ -62,34 +62,59 @@ faqForm.addEventListener('submit', async (event) => {
 
 const journalList = document.querySelector('#journal-list');
 
+// Pena Hamasah di beranda: artikel pertama tampil besar dengan sampul, tiga berikutnya
+// sebagai daftar bersampul kecil. Tiap butir memuat kategori, tanggal, judul, dan ajakan
+// "Baca artikel", supaya jelas bahwa ini tulisan yang bisa dibuka.
+const tanggalArtikel = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
 function renderArticles(items) {
   const fragment = document.createDocumentFragment();
-  items.slice(0, 6).forEach((article, index) => {
+  items.slice(0, 4).forEach((article, index) => {
+    const utama = index === 0;
     const item = document.createElement('a');
-    item.className = 'journal-item';
+    item.className = utama ? 'pena-item pena-item--utama' : 'pena-item';
     item.href = `article.html?slug=${encodeURIComponent(article.slug)}`;
-    const number = document.createElement('span');
-    number.textContent = String(index + 1).padStart(2, '0');
-    const copy = document.createElement('div');
-    const category = document.createElement('p');
-    category.className = 'card-label';
-    category.textContent = article.category;
-    const title = document.createElement('h3');
+
+    if (article.coverUrl) {
+      const cover = document.createElement('img');
+      cover.className = 'pena-item__cover';
+      cover.src = article.coverUrl;
+      cover.alt = '';
+      cover.loading = 'lazy';
+      cover.decoding = 'async';
+      cover.addEventListener('error', () => cover.remove());
+      item.append(cover);
+    }
+
+    const body = document.createElement('span');
+    body.className = 'pena-item__body';
+    const meta = document.createElement('span');
+    meta.className = 'pena-item__meta';
+    const tanggal = article.publishedAt ? new Date(article.publishedAt) : null;
+    const bagianMeta = [article.category];
+    if (tanggal && !Number.isNaN(tanggal.getTime())) bagianMeta.push(tanggalArtikel.format(tanggal));
+    meta.textContent = bagianMeta.filter(Boolean).join(' · ');
+    const title = document.createElement('strong');
+    title.className = 'pena-item__title';
     title.textContent = article.title;
-    const excerpt = document.createElement('p');
-    excerpt.textContent = article.excerpt;
-    copy.append(category, title, excerpt);
-    const arrow = document.createElement('b');
-    arrow.setAttribute('aria-hidden', 'true');
-    arrow.textContent = '';
-    arrow.classList.add('btn-arrow');
-    item.append(number, copy, arrow);
+    body.append(meta, title);
+    if (utama && article.excerpt) {
+      const excerpt = document.createElement('span');
+      excerpt.className = 'pena-item__excerpt';
+      excerpt.textContent = article.excerpt;
+      body.append(excerpt);
+    }
+    const more = document.createElement('span');
+    more.className = 'pena-item__more';
+    more.textContent = 'Baca artikel';
+    body.append(more);
+    item.append(body);
     fragment.append(item);
   });
   journalList.replaceChildren(fragment);
 }
 
-fetch('/api/articles?limit=6')
+fetch('/api/articles?limit=4')
   .then((response) => response.ok ? response.json() : Promise.reject(new Error('Artikel belum tersedia.')))
   .then((result) => {
     if (Array.isArray(result.items) && result.items.length) renderArticles(result.items);

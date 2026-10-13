@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website-core.css?v=2d72a1bd8f" />
     <link rel="stylesheet" href="website-public.css?v=025116cd07" />
-    <link rel="stylesheet" href="landing.css?v=2040a3679d" />
+    <link rel="stylesheet" href="landing.css?v=c92fa57bf9" />
     <link rel="stylesheet" href="fields.css?v=8b2a97dcc4" />
   </head>
   <body>
@@ -424,21 +424,24 @@
       </section>
 
       <section class="lp-section" id="artikel" aria-labelledby="artikel-title">
-        <div class="shell lp-journal">
-          <div>
-            <h2 class="lp-h2" id="artikel-title">Pena Hamasah</h2>
-            <p class="lp-lede">Panduan tahapan seleksi, mengenal Ma'had dan <span class="lp-nb">Al-Azhar</span>, dan cerita hidup di Mesir.</p>
-            <a class="lp-link" href="articles.html">Semua tulisan</a>
-          </div>
-          <div class="journal-list" id="journal-list" aria-live="polite">
-            <a href="articles.html" class="journal-item">
-              <span class="journal-num">01</span>
-              <div>
-                <p class="card-label">Pena Hamasah</p>
-                <h3>Baca tulisan terbaru</h3>
-                <p>Kabar, panduan, dan cerita santri dari Kairo.</p>
-              </div>
-              <b class="journal-arrow" aria-hidden="true"></b>
+        <div class="shell">
+          <header class="lp-head lp-head--row pena-head">
+            <div>
+              <h2 class="lp-h2" id="artikel-title">Artikel terbaru dari Pena Hamasah</h2>
+              <p class="lp-lede">Panduan tahapan seleksi, mengenal Ma'had dan <span class="lp-nb">Al-Azhar</span>, dan cerita hidup di Mesir.</p>
+            </div>
+            <a class="lp-link" href="articles.html">Semua artikel</a>
+          </header>
+
+          <!-- Diisi website.js dari /api/articles: satu artikel utama dan tiga artikel lain. -->
+          <div class="pena-list" id="journal-list" aria-live="polite">
+            <a class="pena-item pena-item--utama" href="articles.html">
+              <span class="pena-item__body">
+                <span class="pena-item__meta">Pena Hamasah</span>
+                <strong class="pena-item__title">Baca artikel terbaru</strong>
+                <span class="pena-item__excerpt">Kabar, panduan, dan cerita santri dari Kairo.</span>
+                <span class="pena-item__more">Baca artikel</span>
+              </span>
             </a>
           </div>
         </div>
@@ -576,9 +579,9 @@
       </div>
     </footer>
 
-    <script src="public-header.js?v=1b0cce9924"></script>
+    <script src="public-header.js?v=98a4d4074f"></script>
 
     <script src="assistant.js?v=dfdb2acff7"></script>
-    <script src="website.js?v=461761e50f"></script>
+    <script src="website.js?v=c45564c0d7"></script>
   </body>
 </html>
