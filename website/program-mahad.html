@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website-core.css?v=2d72a1bd8f" />
     <link rel="stylesheet" href="website-public.css?v=025116cd07" />
-    <link rel="stylesheet" href="landing.css?v=9709ca36ac" />
+    <link rel="stylesheet" href="landing.css?v=2040a3679d" />
     <link rel="stylesheet" href="fields.css?v=8b2a97dcc4" />
   </head>
   <body>
@@ -134,7 +134,7 @@
               <li>Surat keterangan sehat berupa hasil tes darah (tahlil dam)</li>
               <li>Surat rekomendasi Kemenag daerah</li>
               <li>Kartu keluarga, akta kelahiran, dan KTP bila ada</li>
-              <li>Pasfoto 4x6 latar putih</li>
+              <li>Pasfoto 4x6 latar putih, 10 lembar</li>
               <li>Surat pernyataan orang tua</li>
             </ul>
           </aside>
@@ -158,7 +158,61 @@
         </div>
       </section>
 
-      <section class="lp-section" aria-labelledby="tanya-title">
+      <section class="lp-section" id="biaya" aria-labelledby="biaya-title">
+        <div class="shell">
+          <header class="lp-head">
+            <h2 class="lp-h2" id="biaya-title">Rincian biaya jalur ma'had</h2>
+            <p class="lp-lede">Ada dua komponen: biaya keberangkatan yang dibayar sekali, dan biaya asrama yang dibayar setiap bulan selama di Kairo.</p>
+          </header>
+
+          <div class="lp-fees">
+            <div class="lp-panel">
+              <div class="lp-panel__row">
+                <h3>Keberangkatan</h3>
+                <dl class="lp-fee-list">
+                  <div><dt>Biaya keberangkatan, sekali bayar</dt><dd>Rp 22.000.000</dd></div>
+                </dl>
+                <ul class="lp-checks">
+                  <li>Tiket pesawat Jakarta ke Kairo</li>
+                  <li>Visa masuk Mesir</li>
+                  <li>Pendampingan di bandara Jakarta</li>
+                  <li>Pemberkasan di Jakarta</li>
+                  <li>Bimbingan lapor diri ke KBRI Kairo</li>
+                  <li>Bimbingan pendaftaran dan pemberkasan di Kairo</li>
+                  <li>Biaya asrama bulan pertama</li>
+                  <li>Perlengkapan pribadi: selimut musim dingin, lemari, kasur, dan bantal</li>
+                </ul>
+              </div>
+            </div>
+            <div class="lp-panel">
+              <div class="lp-panel__row">
+                <h3>Asrama di Kairo</h3>
+                <dl class="lp-fee-list">
+                  <div><dt>Biaya asrama, per bulan</dt><dd>Rp 1.800.000</dd></div>
+                </dl>
+                <ul class="lp-checks">
+                  <li>Makan dua kali sehari</li>
+                  <li>Lokasi strategis di lingkungan pelajar dan mahasiswa</li>
+                  <li>Tempat belajar yang aman dan nyaman</li>
+                  <li>Gas, air, dan listrik sudah termasuk</li>
+                  <li>Kulkas, mesin cuci, pemanas air, dan filter air</li>
+                  <li>Peralatan dapur lengkap</li>
+                  <li>Kajian harian bersama guru yang kompeten</li>
+                  <li>Program persiapan bahasa Arab</li>
+                  <li>Pembimbing setoran <span class="lp-nb">Al-Qur'an</span></li>
+                  <li>Musyrif dan musyrifah 24 jam di asrama</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <ul class="lp-fee-notes">
+            <li>Biaya bersifat estimasi tahun 2026 dan dapat berubah mengikuti regulasi <span class="lp-nb">Al-Azhar</span> serta kebijakan pemerintah Mesir dan Indonesia.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="lp-section lp-section--tint" aria-labelledby="tanya-title">
         <div class="shell lp-split">
           <div class="lp-split__copy">
             <h2 class="lp-h2" id="tanya-title">Yang sering ditanyakan</h2>
@@ -172,7 +226,15 @@
             </div>
             <div class="lp-panel__row">
               <h3>Berapa lama masa pendidikannya?</h3>
-              <p class="lp-note">Hampir sama dengan sekolah di Indonesia. Pelajar berprestasi berpeluang akselerasi, misalnya dari kelas 2 I'dadi langsung ke Tsanawi. Akselerasi bukan jalan pintas: kesungguhan belajar tetap kuncinya.</p>
+              <p class="lp-note">Umumnya sama dengan sekolah formal di Indonesia, dan bisa lebih singkat lewat program akselerasi.</p>
+            </div>
+            <div class="lp-panel__row">
+              <h3>Bagaimana program akselerasinya?</h3>
+              <p class="lp-note">Dari kelas 2 I'dadi (SMP), pelajar bisa langsung naik ke Tsanawi (SMA). Dari kelas 2 Tsanawi, pelajar bisa langsung memperoleh ijazah dan melanjutkan ke Universitas <span class="lp-nb">Al-Azhar</span>. Syaratnya nilai tes yang tinggi, jadi kesungguhan belajar tetap kuncinya.</p>
+            </div>
+            <div class="lp-panel__row">
+              <h3>Kenapa alurnya sama untuk lulusan SD, SMP, dan SMA?</h3>
+              <p class="lp-note">Karena semua calon mendapat kesempatan yang sama. Setiap pelajar mengikuti tes bahasa, menyelesaikan kelas bahasa, lalu tes qobul. Yang membedakan penempatan kelas adalah kemampuan, bukan ijazah.</p>
             </div>
             <div class="lp-panel__row">
               <h3>Apakah Hamasah membantu belajar setelah tiba di Kairo?</h3>
@@ -186,7 +248,7 @@
         </div>
       </section>
 
-      <section class="lp-section lp-section--tint" aria-labelledby="ajakan-title">
+      <section class="lp-section" aria-labelledby="ajakan-title">
         <div class="shell lp-closing">
           <div>
             <h2 class="lp-h2" id="ajakan-title">Konsultasi gratis sebelum mendaftar</h2>

@@ -2073,3 +2073,10 @@ main h1.lp-h2 {
     row-gap: 0;
   }
 }
+
+/* Daftar cakupan di bawah angka biaya (halaman ma'had). */
+.lp-fee-list + .lp-checks {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--lp-line);
+}

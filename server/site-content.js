@@ -73,7 +73,7 @@ const BAWAAN = Object.freeze({
   },
 
   biaya: {
-    pengantar: 'Halaman ini merinci komponen dan fasilitas tiap program. Rincian biaya jalur kuliah ada di halaman programnya; untuk jalur lain nominalnya disampaikan saat konsultasi, dan konsultasinya tanpa biaya.',
+    pengantar: 'Halaman ini merinci komponen dan fasilitas tiap program. Rincian biaya jalur kuliah dan ma\'had ada di halaman programnya masing-masing; untuk kelas daring nominalnya disampaikan saat konsultasi, dan konsultasinya tanpa biaya.',
     program: {
       kuliah: {
         label: 'Biaya awal mulai',
@@ -90,9 +90,9 @@ const BAWAAN = Object.freeze({
         ]
       },
       mahad: {
-        label: 'SPP Asrama & Hidup',
-        harga: 'Dikonfirmasi saat konsultasi',
-        keterangan: 'Mengikuti program dan periode keberangkatan',
+        label: 'Biaya keberangkatan',
+        harga: 'Rp 22.000.000',
+        keterangan: 'Sekali bayar. Asrama di Kairo Rp 1.800.000 per bulan, termasuk makan dua kali sehari.',
         fasilitas: [
           'Jalur ijazah mengikuti ketentuan lembaga pendidikan terkait',
           "Pembimbing setoran Al-Qur'an dan adab harian",
