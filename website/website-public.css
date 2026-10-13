@@ -1789,7 +1789,7 @@
   background: var(--md-sys-color-inverse-surface);
   color: var(--md-sys-color-inverse-on-surface);
   padding: 76px 0 38px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 4px solid var(--md-sys-color-primary);
 }
 
 .footer-wrap {
@@ -4141,6 +4141,18 @@ main .eyebrow {
   font-weight: 600;
   letter-spacing: 0.14em;
   margin-bottom: 12px;
+}
+
+/* Aksen emas: garis pendek di depan setiap eyebrow. */
+main .eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 28px;
+  height: 3px;
+  margin-right: 10px;
+  border-radius: 2px;
+  background: var(--md-sys-color-primary);
+  vertical-align: 0.3em;
 }
 
 main .eyebrow + h2,

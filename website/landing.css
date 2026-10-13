@@ -1718,3 +1718,171 @@ main .lp-doc-groups h3 {
   .lp-lightbox { width: calc(100vw - 16px); }
   .lp-lightbox__figure figcaption { padding: 12px 16px 0; font-size: var(--fs-14); }
 }
+
+/* ==========================================================================
+   Aksen emas. Latar tetap putih; warna emas merek (#E7B10C) hanya dipakai pada
+   elemen kecil: garis, penanda, nomor, dan bingkai. Emas terang tidak dipakai
+   sebagai warna teks (kontrasnya di atas putih kurang), teks tetap --gold-dark.
+   ========================================================================== */
+
+/* Nomor langkah: lingkaran emas penuh, garis penghubung ikut emas. */
+.lp-steps li {
+  border-top-color: var(--gold-border);
+}
+
+.lp-steps__num {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+/* Daftar centang: bulatan emas dengan centang gelap. */
+.lp-checks li::before {
+  left: 0;
+  top: 3px;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--md-sys-color-primary);
+  transform: none;
+}
+
+.lp-checks li::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 9px;
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid var(--md-sys-color-on-primary);
+  border-bottom: 2px solid var(--md-sys-color-on-primary);
+  transform: rotate(-45deg);
+}
+
+/* Tiga jaminan di bawah hero: garis emas pendek di atas tiap butir. */
+.lp-assure strong::before {
+  content: "";
+  display: block;
+  width: 32px;
+  height: 3px;
+  margin-bottom: 14px;
+  border-radius: 2px;
+  background: var(--md-sys-color-primary);
+}
+
+/* Kartu: garis emas di tepi atas. */
+.lp-panel,
+.lp-portal__list,
+.lp .journal-item,
+.lp-faq .faq-answer {
+  box-shadow: inset 0 3px 0 var(--md-sys-color-primary), var(--lp-card-shadow);
+}
+
+/* Kartu program: garis emas di bawah yang memanjang saat disorot. */
+.lp-path {
+  position: relative;
+  overflow: hidden;
+}
+
+.lp-path::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 4px;
+  background: var(--md-sys-color-primary);
+  transform: scaleX(0.16);
+  transform-origin: left;
+  transition: transform 320ms ease;
+}
+
+.lp-path:hover::after,
+.lp-path:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* Jenjang: garis kapsul dan panah penghubung emas. */
+.lp-levels li {
+  border-color: var(--md-sys-color-primary);
+}
+
+.lp-levels li + li::before {
+  border-color: var(--md-sys-color-primary);
+}
+
+/* Tahapan dan daftar kelas: titik emas di depan judul butir. */
+.lp-stages dt::before,
+.lp-courses strong::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 10px;
+  border-radius: 50%;
+  background: var(--md-sys-color-primary);
+  vertical-align: 2px;
+}
+
+/* Foto: blok emas tergeser di belakang foto. */
+.lp-photo {
+  box-shadow: 12px 12px 0 var(--md-sys-color-primary);
+}
+
+/* Misi: nomor dalam cincin emas. */
+.lp-mission li {
+  grid-template-columns: 44px 1fr;
+  align-items: start;
+}
+
+.lp-mission li::before {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 2px solid var(--md-sys-color-primary);
+  border-radius: 50%;
+  font-size: var(--fs-13);
+  color: var(--lp-ink);
+}
+
+.lp-statement {
+  border-left-width: 4px;
+}
+
+/* Testimoni: tanda kutip emas besar dan garis kutipan yang lebih tegas. */
+.lp-testi__quote::before {
+  content: "\201C";
+  display: block;
+  height: 36px;
+  font-size: var(--fs-64);
+  line-height: 1;
+  font-weight: 600;
+  color: var(--md-sys-color-primary);
+}
+
+.lp-testi__full {
+  border-left-width: 3px;
+}
+
+.lp-testi__who {
+  border-top-color: var(--gold-border);
+}
+
+/* Galeri: bingkai emas saat disorot. */
+.lp-photos__item:hover {
+  box-shadow: 0 0 0 3px var(--md-sys-color-primary);
+}
+
+/* Tautan teks: garis bawah emas. */
+.lp-link {
+  text-decoration: underline;
+  text-decoration-color: var(--md-sys-color-primary);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+
+@media (max-width: 720px) {
+  .lp-photo {
+    box-shadow: 8px 8px 0 var(--md-sys-color-primary);
+  }
+}
