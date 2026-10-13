@@ -150,7 +150,7 @@
             <div class="section-heading">
             <p class="eyebrow">Pertanyaan</p>
               <h2>Mau bertanya soal apa?</h2>
-            <p>Pilih topik, lalu tulis pertanyaan Anda di formulir. Admin meneruskannya ke petugas yang menangani.</p>
+            <p>Pilih topik, lalu tulis pertanyaan Anda di formulir. Pertanyaan dikirim ke WhatsApp admin, yang meneruskannya ke petugas yang menangani.</p>
             </div>
 
             <div class="division-buttons-list">
@@ -187,19 +187,14 @@
           <div class="inquiry-form-card">
             <div class="form-heading">
               <span class="card-label">Formulir pertanyaan</span>
-              <h3>Kirim pertanyaan</h3>
-              <p>Jawaban dikirim ke nomor WhatsApp Anda. Formulir ini bukan pendaftaran; untuk mendaftar pakai <a href="daftar.html">formulir pendaftaran</a>.</p>
+              <h3>Tanya lewat WhatsApp</h3>
+              <p>Isi nama dan pertanyaan Anda. Tombol di bawah membuka WhatsApp dengan pesan yang sudah tersusun, tinggal tekan kirim. Formulir ini bukan pendaftaran; untuk mendaftar pakai <a href="daftar.html">formulir pendaftaran</a>.</p>
             </div>
 
             <form method="post" id="contact-inquiry-form" class="inquiry-form">
               <div class="field-group">
                 <label for="inquiry-name">Nama Lengkap <span aria-hidden="true">*</span></label>
                 <input id="inquiry-name" type="text" placeholder="Nama Anda" required />
-              </div>
-
-              <div class="field-group">
-                <label for="inquiry-phone">Nomor WhatsApp Aktif <span aria-hidden="true">*</span></label>
-                <input id="inquiry-phone" type="tel" placeholder="08xxxxxxxxxx" required />
               </div>
 
               <div class="field-group">
@@ -218,11 +213,11 @@
 
               <div class="field-group">
                 <label for="inquiry-message">Pesan / Pertanyaan <span aria-hidden="true">*</span></label>
-                <textarea id="inquiry-message" rows="4" placeholder="Tuliskan pertanyaan Anda secara spesifik..." required></textarea>
+                <textarea id="inquiry-message" rows="4" maxlength="1000" placeholder="Tuliskan pertanyaan Anda secara spesifik..." required></textarea>
               </div>
 
               <button class="button button--primary submit-button" type="submit">
-                <span>Kirim pertanyaan</span>
+                <span>Lanjut ke WhatsApp</span>
                 <span class="btn-arrow" aria-hidden="true"></span>
               </button>
               <p id="inquiry-status" class="form-status" role="status" aria-live="polite"></p>
@@ -298,6 +293,6 @@
     </footer>
 
     <script src="public-header.js?v=a9a1014788"></script>
-    <script src="kontak.js?v=16c3dff524" defer></script>
+    <script src="kontak.js?v=9117132b25" defer></script>
   </body>
 </html>

@@ -1,11 +1,9 @@
-// Formulir konsultasi halaman kontak (Task R1.5 dan R1.6).
+// Formulir pertanyaan halaman kontak.
 //
-// Sebelumnya handler ini ditulis sebagai <script> inline di kontak.html dan
-// diblokir Content Security Policy, sehingga penekanan tombol memicu submit
-// native: halaman memuat ulang dan isian hilang tanpa pesan apa pun. Bahkan
-// ketika berjalan, handler lama hanya membaca isian lalu membuangnya dan
-// menampilkan pesan sukses. Sekarang pesan benar-benar dikirim ke
-// POST /api/inquiries dan disimpan untuk ditindaklanjuti petugas.
+// Sejak 14 Oktober 2026 formulir ini tidak lagi menyimpan pertanyaan ke server. Isian
+// disusun menjadi satu pesan, lalu WhatsApp admin dibuka dengan pesan itu sudah terisi;
+// pengunjung tinggal menekan kirim. Jadi semua pertanyaan masuk lewat satu pintu, yaitu
+// WhatsApp admin, dan nomor pengunjung sudah terbawa oleh WhatsApp sehingga tidak ditanya.
 
 // ---------------------------------------------------------------------------
 // Nomor WhatsApp resmi.
@@ -47,13 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const status = document.querySelector('#inquiry-status');
   if (!form || !status) return;
 
-  const submitButton = form.querySelector('button[type="submit"]');
-  const submitLabel = submitButton ? submitButton.querySelector('span') : null;
-  const labelAwal = submitLabel ? submitLabel.textContent : '';
-
   const fields = {
     name: document.querySelector('#inquiry-name'),
-    phone: document.querySelector('#inquiry-phone'),
     topic: document.querySelector('#inquiry-topic'),
     message: document.querySelector('#inquiry-message')
   };
@@ -76,13 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
     field.focus();
   }
 
-  function setBusy(busy) {
-    if (!submitButton) return;
-    submitButton.disabled = busy;
-    submitButton.setAttribute('aria-busy', busy ? 'true' : 'false');
-    if (submitLabel) submitLabel.textContent = busy ? 'Mengirim...' : labelAwal;
-  }
-
   // Tautan dari halaman lain boleh membawa ?topic=biaya dan sejenisnya.
   const requestedTopic = new URLSearchParams(window.location.search).get('topic');
   if (fields.topic && requestedTopic && [...fields.topic.options].some((option) => option.value === requestedTopic)) {
@@ -97,47 +83,56 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  form.addEventListener('submit', async (event) => {
+  // Pesan yang dibuka di WhatsApp: salam, nama, topik, lalu pertanyaannya.
+  function susunPesan() {
+    const nama = fields.name.value.trim().replace(/\s+/g, ' ');
+    const topik = fields.topic ? fields.topic.options[fields.topic.selectedIndex].textContent.trim() : '';
+    const pertanyaan = fields.message.value.trim();
+    return [
+      "Assalamu'alaikum, admin Hamasah International.",
+      '',
+      `Nama: ${nama}`,
+      topik ? `Topik: ${topik}` : null,
+      '',
+      'Pertanyaan:',
+      pertanyaan
+    ].filter((baris) => baris !== null).join('\n');
+  }
+
+  form.addEventListener('submit', (event) => {
     event.preventDefault();
     clearFieldErrors();
-    setBusy(true);
-    setStatus('Mengirim pertanyaan...', null);
 
-    let response;
-    let result;
-    try {
-      response = await fetch('/api/inquiries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: fields.name ? fields.name.value : '',
-          phone: fields.phone ? fields.phone.value : '',
-          topic: fields.topic ? fields.topic.value : '',
-          message: fields.message ? fields.message.value : ''
-        })
-      });
-      result = await response.json().catch(() => ({}));
-    } catch {
-      // Jaringan gagal berarti pesan tidak tersimpan. Jangan pernah menampilkan
-      // sukses untuk keadaan ini.
-      setBusy(false);
-      setStatus('Pesan belum terkirim. Periksa koneksi Anda lalu coba lagi.', 'error');
+    if (!fields.name || fields.name.value.trim().length < 2) {
+      setStatus('Tulis nama Anda terlebih dahulu.', 'error');
+      markField('name');
+      return;
+    }
+    if (!fields.message || fields.message.value.trim().length < 5) {
+      setStatus('Tulis pertanyaan Anda terlebih dahulu.', 'error');
+      markField('message');
       return;
     }
 
-    setBusy(false);
-
-    if (response.status === 429) {
-      setStatus('Terlalu banyak pengiriman dari perangkat ini. Silakan coba lagi dalam beberapa saat.', 'error');
-      return;
-    }
-    if (!response.ok) {
-      setStatus(result.error || 'Pesan belum dapat dikirim. Silakan periksa kembali isian Anda.', 'error');
-      if (result.field) markField(result.field);
+    const nomor = String(WHATSAPP_NUMBER || '').replace(/\D/g, '');
+    if (!nomor) {
+      setStatus('Nomor WhatsApp admin belum tersedia. Silakan coba lagi nanti.', 'error');
       return;
     }
 
-    form.reset();
-    setStatus('Pertanyaan Anda sudah kami terima. Admin Hamasah akan menjawab lewat nomor WhatsApp yang Anda tuliskan.', 'success');
+    const url = `https://wa.me/${nomor}?text=${encodeURIComponent(susunPesan())}`;
+    // Dibuka di tab baru supaya isian tidak hilang bila pengunjung kembali. Bila peramban
+    // memblokir tab baru, tautan di bawah tombol tetap bisa diketuk.
+    const jendela = window.open(url, '_blank', 'noopener');
+    status.className = 'form-status is-success';
+    status.textContent = jendela === null
+      ? 'WhatsApp belum terbuka. '
+      : 'WhatsApp dibuka dengan pesan Anda, tinggal tekan kirim. Belum terbuka? ';
+    const tautan = document.createElement('a');
+    tautan.href = url;
+    tautan.target = '_blank';
+    tautan.rel = 'noopener';
+    tautan.textContent = 'Buka WhatsApp';
+    status.append(tautan, '.');
   });
 });
