@@ -608,10 +608,10 @@ const RENDER = Object.freeze({
       // Tanpa nb(): CSS kartu biaya mewarnai setiap <span> di dalam butir (ikon centang).
       hasil.push(wilayah(`biaya.${kunci}.fasilitas`, `\n${p.fasilitas.map((item) => `                <li>${CENTANG} ${esc(item)}</li>`).join('\n')}\n              `));
     }
-    hasil.push(wilayah('biaya.faq', `\n${b.faq.map((item) => `            <div class="faq-item-card">
-              <h4>${nb(item.tanya)}</h4>
+    hasil.push(wilayah('biaya.faq', `\n${b.faq.map((item) => `            <details class="faq-item-card" data-buka-desktop>
+              <summary>${nb(item.tanya)}</summary>
               <p>${nb(item.jawab)}</p>
-            </div>`).join('\n\n')}\n          `));
+            </details>`).join('\n\n')}\n          `));
     return hasil;
   },
 

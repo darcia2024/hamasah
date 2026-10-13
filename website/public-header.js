@@ -131,3 +131,10 @@
     observer.observe(element);
   });
 })();
+
+// Daftar yang dilipat supaya halaman tidak panjang di ponsel (fasilitas tiap program dan
+// tanya-jawab biaya) langsung terbuka di layar lebar, tempat ruangnya cukup.
+(function bukaLipatanDiLayarLebar() {
+  if (!window.matchMedia('(min-width: 769px)').matches) return;
+  document.querySelectorAll('details[data-buka-desktop]').forEach((lipatan) => { lipatan.open = true; });
+})();

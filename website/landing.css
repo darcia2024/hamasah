@@ -2477,3 +2477,8 @@ main h1.lp-h2 {
   .lp-register__copy > .lp-after { order: 6; }
   .lp-register__copy > .lp-note { order: 7; }
 }
+
+/* Catatan di bawah alur pendaftaran beranda (daftar dokumen ada di halaman program). */
+.lp-steps__note {
+  margin: clamp(28px, 4vw, 40px) 0 0;
+}

@@ -6181,3 +6181,79 @@ img.article-cover {
     padding-top: 8px;
   }
 }
+
+/* ==========================================================================
+   Halaman Biaya: daftar fasilitas tiap program dan tanya-jawab dilipat
+   (<details>). Di ponsel tertutup dulu; di layar lebar dibuka public-header.js.
+   ========================================================================== */
+
+.pricing-more {
+  flex: 1;
+  margin-bottom: 24px;
+}
+
+.pricing-more .pricing-features {
+  margin: 14px 0 0;
+}
+
+.pricing-more summary,
+.faq-item-card summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 44px;
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--fs-16);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--md-sys-color-on-surface);
+}
+
+.pricing-more summary {
+  font-size: var(--fs-14);
+  color: var(--gold-dark);
+}
+
+.pricing-more summary::-webkit-details-marker,
+.faq-item-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.pricing-more summary::after,
+.faq-item-card summary::after {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 200ms ease;
+}
+
+.pricing-more[open] summary::after,
+.faq-item-card[open] summary::after {
+  transform: translateY(2px) rotate(-135deg);
+}
+
+.pricing-more summary:focus-visible,
+.faq-item-card summary:focus-visible {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.faq-item-card[open] summary {
+  margin-bottom: 8px;
+}
+
+details.faq-item-card {
+  padding: 12px 20px;
+}
+
+details.faq-item-card[open] {
+  padding-bottom: 20px;
+}
