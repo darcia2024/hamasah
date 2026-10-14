@@ -6378,3 +6378,741 @@ main .biaya-cta-section {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ==========================================================================
+   Halaman Cek status (desain ulang 15 Oktober 2026). Semua kelas berawalan cs-.
+   Sebelum masuk: penjelasan di kiri, kartu masuk di kanan. Setelah masuk: ringkasan
+   pendaftaran selebar halaman, lalu rincian dua kolom.
+   ========================================================================== */
+.cs-main {
+  background: var(--md-sys-color-surface);
+}
+
+.cs-main > section {
+  padding-block: clamp(40px, 6vw, 80px) clamp(56px, 7vw, 96px) !important;
+}
+
+.cs-main > section[hidden] {
+  display: none !important;
+}
+
+.cs-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 440px);
+  gap: clamp(32px, 6vw, 96px);
+  align-items: start;
+}
+
+.cs-hero__copy h1 {
+  margin: 0 0 16px;
+}
+
+.cs-hero__lede {
+  margin: 0 0 24px;
+  max-width: 46ch;
+  font-size: var(--fs-18);
+  line-height: 1.6;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.cs-hero__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.cs-hero__list li {
+  position: relative;
+  padding-left: 26px;
+  font-size: var(--fs-16);
+  line-height: 1.5;
+}
+
+.cs-hero__list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.3em;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+.cs-hero__list li::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: calc(0.3em + 3px);
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.cs-login {
+  padding: clamp(22px, 3vw, 32px);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(54, 54, 56, 0.05), 0 18px 40px -24px rgba(54, 54, 56, 0.25);
+}
+
+.cs-login__form {
+  display: grid;
+  gap: 16px;
+}
+
+.cs-login__title {
+  margin: 0;
+  font-family: inherit !important;
+  font-size: var(--fs-20) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+.cs-login__submit {
+  width: 100%;
+  justify-content: center;
+}
+
+.cs-login__form .form-status:empty,
+.cs-recovery__form .form-status:empty {
+  display: none;
+}
+
+.cs-login__recovery-link {
+  font-size: var(--fs-14);
+  color: var(--gold-dark);
+}
+
+.cs-recovery {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.cs-recovery summary {
+  cursor: pointer;
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--gold-dark);
+}
+
+.cs-recovery__form {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.cs-recovery__form > p {
+  margin: 0;
+  font-size: var(--fs-14);
+  line-height: 1.55;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* ---------- Setelah masuk ---------- */
+.cs-summary {
+  padding: clamp(22px, 3vw, 36px);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 20px;
+  background: #fff;
+}
+
+.cs-summary__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cs-summary__id {
+  margin: 4px 0 6px !important;
+  font-size: clamp(var(--fs-24), 3vw, var(--fs-32)) !important;
+}
+
+.cs-summary__meta {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: var(--fs-15, 15px);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.cs-summary__name:empty {
+  display: none;
+}
+
+.cs-summary__side {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cs-chip {
+  display: inline-flex;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #fdf3d3;
+  color: var(--gold-dark);
+  font-size: var(--fs-14);
+  font-weight: 600;
+}
+
+.cs-chip[data-status="completed"] { background: #e6f2ea; color: #1e6b3a; }
+.cs-chip[data-status="needs-revision"],
+.cs-chip[data-status="cancelled"] { background: #fbe9e7; color: #a3261e; }
+
+.cs-logout {
+  padding: 6px 14px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  font-size: var(--fs-14);
+  cursor: pointer;
+}
+
+.cs-progress {
+  margin-top: 24px;
+}
+
+.cs-progress__label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.cs-progress__label strong {
+  color: var(--md-sys-color-on-surface);
+}
+
+.cs-progress__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #f1efe9;
+  overflow: hidden;
+}
+
+.cs-progress__fill {
+  width: 0;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--gold);
+  transition: width 400ms ease;
+}
+
+.cs-steps {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cs-step {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+/* Garis penghubung antartahap. */
+.cs-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 15px;
+  left: 40px;
+  right: -6px;
+  height: 2px;
+  background: var(--md-sys-color-outline-variant);
+}
+
+.cs-step.is-done:not(:last-child)::after {
+  background: var(--gold);
+}
+
+.cs-step__dot {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--md-sys-color-outline-variant);
+  border-radius: 50%;
+  background: #fff;
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.cs-step.is-done .cs-step__dot {
+  border-color: var(--gold);
+  background: var(--gold);
+  color: #363638;
+}
+
+.cs-step.is-current .cs-step__dot {
+  border-color: var(--gold);
+  color: var(--gold-dark);
+  box-shadow: 0 0 0 4px rgba(231, 177, 12, 0.18);
+}
+
+.cs-step .step-desc {
+  display: grid;
+  gap: 2px;
+}
+
+.cs-step .step-desc strong {
+  font-size: var(--fs-14);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.cs-step .step-desc small {
+  font-size: var(--fs-13);
+  line-height: 1.4;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.cs-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  margin-top: 20px;
+}
+
+.cs-col {
+  display: grid;
+  gap: 20px;
+}
+
+.cs-card {
+  padding: clamp(20px, 2.5vw, 28px);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.cs-card[hidden] {
+  display: none;
+}
+
+.cs-card__title {
+  margin: 0 0 14px !important;
+  font-family: inherit !important;
+  font-size: var(--fs-18) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+.cs-note {
+  margin: 0;
+  font-size: var(--fs-14);
+  line-height: 1.55;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.cs-empty {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #f7f6f2;
+  font-size: var(--fs-14);
+  line-height: 1.55;
+  color: var(--md-sys-color-on-surface-variant);
+  list-style: none;
+}
+
+.cs-docs {
+  display: grid;
+  gap: 10px;
+}
+
+.cs-doc {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 12px;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 12px;
+}
+
+.cs-doc__text {
+  display: grid;
+  gap: 2px;
+}
+
+.cs-doc__text strong {
+  font-size: var(--fs-15, 15px);
+}
+
+.cs-doc__text small {
+  font-size: var(--fs-13);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.cs-doc__text .cs-doc__note {
+  color: #a3261e;
+}
+
+.cs-doc__status {
+  justify-self: end;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #fdf3d3;
+  color: var(--gold-dark);
+  font-size: var(--fs-13);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cs-doc.is-accepted .cs-doc__status { background: #e6f2ea; color: #1e6b3a; }
+.cs-doc.is-rejected { border-color: #f1c8c3; background: #fffaf9; }
+.cs-doc.is-rejected .cs-doc__status { background: #fbe9e7; color: #a3261e; }
+
+.cs-doc__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 16px;
+}
+
+.cs-doc__actions:empty {
+  display: none;
+}
+
+.cs-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--gold-dark);
+  cursor: pointer;
+}
+
+.cs-upload {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.cs-upload h3 {
+  margin: 0;
+  font-family: inherit !important;
+  font-size: var(--fs-16) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+.cs-upload__fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.cs-upload input[type="file"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px dashed var(--md-sys-color-outline);
+  border-radius: 12px;
+  font-size: var(--fs-14);
+}
+
+.cs-upload input[type="file"]::file-selector-button {
+  margin-right: 10px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: #fdf3d3;
+  color: var(--gold-dark);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cs-upload .button {
+  justify-self: start;
+}
+
+.cs-upload .form-status:empty,
+.cs-edit .form-status:empty {
+  display: none;
+}
+
+.cs-edit summary {
+  margin: 0 !important;
+  cursor: pointer;
+  list-style: none;
+}
+
+.cs-edit summary::-webkit-details-marker {
+  display: none;
+}
+
+.cs-edit summary::after {
+  content: "+";
+  float: right;
+  font-weight: 400;
+  color: var(--gold-dark);
+}
+
+.cs-edit[open] summary::after {
+  content: "\2212";
+}
+
+.cs-edit__form {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.cs-edit__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+.cs-edit__grid label {
+  display: grid;
+  gap: 6px;
+  font-size: var(--fs-14);
+  font-weight: 500;
+}
+
+.cs-edit .button {
+  justify-self: start;
+}
+
+.cs-todo {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.cs-todo li {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding-left: 28px;
+  font-size: var(--fs-15, 15px);
+}
+
+.cs-todo li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--gold);
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.cs-todo li.is-done span {
+  color: var(--md-sys-color-on-surface-variant);
+  text-decoration: line-through;
+}
+
+.cs-todo li.is-done::before {
+  background: var(--gold);
+}
+
+.cs-todo small {
+  font-size: var(--fs-13);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.cs-notes {
+  display: grid;
+  gap: 10px;
+}
+
+.cs-notes__item {
+  padding: 12px 14px;
+  border-left: 3px solid var(--gold);
+  border-radius: 0 10px 10px 0;
+  background: #fbf7ea;
+}
+
+.cs-notes__item p {
+  margin: 0 0 4px;
+  font-size: var(--fs-14);
+  line-height: 1.55;
+}
+
+.cs-notes__item small {
+  font-size: var(--fs-13);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.cs-departure .departure-schedule__list {
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.cs-departure .departure-schedule__list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: var(--fs-14);
+}
+
+.cs-departure dt {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.cs-departure dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+
+.cs-departure .departure-schedule__empty,
+.cs-departure .departure-schedule__note {
+  margin: 0;
+  font-size: var(--fs-14);
+  line-height: 1.55;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.cs-departure .departure-schedule__note {
+  margin-top: 10px;
+}
+
+.cs-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.cs-history__item {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  margin-left: 5px;
+  padding: 0 0 16px 22px;
+  border-left: 2px solid var(--md-sys-color-outline-variant);
+}
+
+.cs-history__item:last-child {
+  padding-bottom: 0;
+  border-left-color: transparent;
+}
+
+.cs-history__item::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 3px #fff;
+}
+
+.cs-history__item strong {
+  font-size: var(--fs-15, 15px);
+}
+
+.cs-history__item small {
+  font-size: var(--fs-13);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.cs-history__item p {
+  margin: 4px 0 0;
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+
+.cs-help {
+  display: grid;
+  gap: 8px;
+  padding: 20px 22px;
+  border-radius: 18px;
+  background: #fbf7ea;
+}
+
+.cs-help p {
+  margin: 0;
+  font-size: var(--fs-14);
+  line-height: 1.55;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.cs-help .button {
+  justify-self: start;
+  margin-top: 4px;
+}
+
+@media (max-width: 900px) {
+  .cs-hero__grid,
+  .cs-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cs-steps {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .cs-step {
+    grid-template-columns: 32px 1fr;
+    gap: 12px;
+    padding-bottom: 14px;
+  }
+
+  .cs-step:last-child {
+    padding-bottom: 0;
+  }
+
+  .cs-step:not(:last-child)::after {
+    top: 34px;
+    bottom: 0;
+    left: 15px;
+    right: auto;
+    width: 2px;
+    height: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .cs-upload__fields,
+  .cs-edit__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cs-upload .button,
+  .cs-edit .button,
+  .cs-help .button {
+    justify-self: stretch;
+    justify-content: center;
+  }
+}
+
+.cs-login .field-error:empty,
+.cs-recovery .field-error:empty {
+  display: none;
+}

@@ -31,6 +31,10 @@ const RULES = Object.freeze({
   'inquiry-create': Object.freeze({ limit: 8, windowMs: 1 * JAM }),
   // Membuat akun pembeli kelas daring dari halaman kelas.html.
   'learner-signup': Object.freeze({ limit: 5, windowMs: 1 * JAM }),
+  // Membaca data pendaftaran dengan token sesi (halaman Cek status memuat ulang data setiap
+  // kali berkas diunggah, dihapus, atau data diubah). Token sesi panjang dan acak, jadi
+  // batasnya longgar; batas menebak Kode Akses tetap applicant-login.
+  'registration-read': Object.freeze({ limit: 60, windowMs: 15 * MENIT }),
   // Menebak token akses pendaftaran.
   'applicant-login': Object.freeze({ limit: 5, windowMs: 15 * MENIT }),
   // Meminta kode akses baru harus lebih ketat karena selalu mengirim email.

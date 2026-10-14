@@ -56,6 +56,9 @@ module.exports = [
         return;
       }
       const loggedIn = await services.applicantService.login(registrationId, body.accessCode);
+      // Seperti login petugas: kode yang benar mengosongkan hitungan, supaya masuk dari
+      // beberapa perangkat tidak menghabiskan jatah percobaan.
+      if (loggedIn.ok) await rateLimit.reset('applicant-login', registrationId);
       json(response, loggedIn.ok ? 200 : 401, loggedIn.ok ? loggedIn.value : publicError(loggedIn));
     }
   },
@@ -217,7 +220,7 @@ module.exports = [
     method: 'GET',
     pattern: new RegExp(`^/api/registrations/(${REGISTRATION_ID})$`),
     // Dibatasi per nomor pendaftaran, karena yang mungkin ditebak adalah tokennya.
-    rateLimit: { rule: 'applicant-login', identity: ({ params }) => params[0] },
+    rateLimit: { rule: 'registration-read', identity: ({ params }) => params[0] },
     async handler({ response, services, auth, params }) {
       const registrationId = params[0];
       if (!(await auth.isCandidate(registrationId))) {

@@ -93,6 +93,9 @@
     };
   }
 
+  // Kolom data diri yang boleh disunting pendaftar sendiri (dipakai juga updateApplicant).
+  const APPLICANT_EDITABLE = Object.freeze(['applicantName', 'phone', 'guardianName', 'guardianPhone', 'guardianEmail', 'email', 'birthDate', 'gender', 'schoolOrigin', 'city']);
+
   function toPublicRegistration(record) {
     return {
       registrationId: record.registrationId,
@@ -119,12 +122,16 @@
         return {
           from: entry.from,
           to: entry.to,
+          toLabel: domain.STATUS_LABELS[entry.to] || entry.to,
           at: entry.changedAt,
           note: entry.note
         };
       }),
       notes: (record.notes || []).filter((entry) => entry.visibility === 'applicant').map((entry) => ({ body: entry.body, createdAt: entry.createdAt })),
-      nextSteps: (record.nextSteps || []).map((entry) => ({ id: entry.id, title: entry.title, dueOn: entry.dueOn, doneAt: entry.doneAt }))
+      nextSteps: (record.nextSteps || []).map((entry) => ({ id: entry.id, title: entry.title, dueOn: entry.dueOn, doneAt: entry.doneAt })),
+      // Data diri yang boleh disunting pendaftar sendiri di halaman Cek status. Hanya
+      // dikirim ke pemilik pendaftaran (getPublic dipakai rute yang memeriksa token akses).
+      applicant: Object.fromEntries(APPLICANT_EDITABLE.map((field) => [field, record.applicant[field] == null ? '' : String(record.applicant[field])]))
     };
   }
 
@@ -359,7 +366,7 @@
         return { ok: false, error: 'Data pendaftaran sudah dikunci pada tahap ini.' };
       }
       const source = input || {};
-      const editable = ['applicantName', 'phone', 'guardianName', 'guardianPhone', 'guardianEmail', 'email', 'birthDate', 'gender', 'schoolOrigin', 'city'];
+      const editable = APPLICANT_EDITABLE;
       const nextApplicant = { ...record.applicant };
       for (const field of editable) {
         if (Object.prototype.hasOwnProperty.call(source, field)) nextApplicant[field] = source[field];

@@ -36,6 +36,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentRegId = '';
   let currentToken = '';
+  const heroSection = document.querySelector('#cs-hero');
+  const resName = document.querySelector('#res-name');
+  const notesCard = document.querySelector('#res-notes-card');
+  const notesBox = document.querySelector('#res-notes');
+  const nextStepsCard = document.querySelector('#res-next-steps-card');
+  const nextStepsList = document.querySelector('#res-next-steps');
+  const helpWa = document.querySelector('#cs-help-wa');
+  const recoveryDetails = document.querySelector('#cs-recovery');
+  const KUNCI_SESI = 'hamasahRegistration';
+
+  // Sesi pendaftar disimpan di tab ini (sessionStorage) supaya halaman bisa dimuat ulang
+  // tanpa memasukkan Kode Akses lagi. Hilang sendiri saat tab ditutup atau saat Keluar.
+  function simpanSesi(registrationId, accessToken) {
+    try { sessionStorage.setItem(KUNCI_SESI, JSON.stringify({ registrationId, accessToken })); } catch { /* mode privat */ }
+  }
+  function hapusSesi() {
+    try { sessionStorage.removeItem(KUNCI_SESI); } catch { /* mode privat */ }
+  }
+  if (recoveryCta && recoveryDetails) {
+    recoveryCta.addEventListener('click', () => { recoveryDetails.open = true; });
+  }
 
   function setLookupState(state, message) {
     form.dataset.lookupState = state;
@@ -96,25 +117,25 @@ document.addEventListener('DOMContentLoaded', () => {
   // program (status di server tidak berubah); yang berbeda hanya apa arti tiap tahap.
   const STEP_LABELS = {
     'kuliah-al-azhar': [
-      ['Pendaftaran Masuk', 'Data formulir tersimpan'],
-      ['Pemeriksaan Berkas', 'Validasi ijazah & paspor'],
-      ['Persiapan Bahasa', 'Tahdid Mustawa / Dauroh'],
-      ['Visa & Tiket', 'Legalisasi & kloter terbang'],
+      ['Pendaftaran masuk', 'Data formulir tersimpan'],
+      ['Pemeriksaan berkas', 'Validasi ijazah & paspor'],
+      ['Persiapan bahasa', 'Tahdid Mustawa / Dauroh'],
+      ['Visa & tiket', 'Legalisasi & kloter terbang'],
       ['Tiba di Kairo', 'Asrama Hamasah, Nasr City']
     ],
     'mahad-al-azhar': [
-      ['Pendaftaran Masuk', 'Data formulir tersimpan'],
-      ['Pemeriksaan Berkas', 'KK, akta, rekomendasi Kemenag'],
-      ['Persiapan Berangkat', 'Paspor & jadwal rombongan'],
-      ['Visa & Tiket', 'Legalisasi & kloter terbang'],
+      ['Pendaftaran masuk', 'Data formulir tersimpan'],
+      ['Pemeriksaan berkas', 'KK, akta, rekomendasi Kemenag'],
+      ['Persiapan berangkat', 'Paspor & jadwal rombongan'],
+      ['Visa & tiket', 'Legalisasi & kloter terbang'],
       ['Tiba di Kairo', "Pendaftaran ma'had & tes bahasa"]
     ],
     'hamasah-courses': [
-      ['Pendaftaran Masuk', 'Data formulir tersimpan'],
-      ['Konfirmasi Tim', 'Kelas dan paket yang dipilih'],
-      ['Penempatan Kelas', 'Jadwal dan tingkat materi'],
-      ['Akun Belajar', 'Akses portal santri disiapkan'],
-      ['Mulai Belajar', 'Kelas daring aktif']
+      ['Pendaftaran masuk', 'Data formulir tersimpan'],
+      ['Konfirmasi tim', 'Kelas dan paket yang dipilih'],
+      ['Penempatan kelas', 'Jadwal dan tingkat materi'],
+      ['Akun belajar', 'Akses portal santri disiapkan'],
+      ['Mulai belajar', 'Kelas daring aktif']
     ]
   };
 
@@ -126,10 +147,10 @@ document.addEventListener('DOMContentLoaded', () => {
       item.querySelector('.step-desc strong').textContent = labels[index][0];
       item.querySelector('.step-desc small').textContent = labels[index][1];
     });
-    const stepper = document.querySelector('.departure-stepper');
+    const stepper = document.querySelector('.cs-steps');
     if (stepper) stepper.setAttribute('aria-label', program === 'hamasah-courses' ? 'Tahapan pendaftaran kelas daring' : 'Tahapan pendaftaran hingga keberangkatan');
     // Kelas daring tidak berangkat ke Kairo, jadi jadwal kloter tidak ditampilkan.
-    const departureSection = document.querySelector('.departure-schedule');
+    const departureSection = document.querySelector('.cs-departure');
     if (departureSection) departureSection.hidden = program === 'hamasah-courses';
   }
 
@@ -156,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderDocuments(docs) {
     if (!Array.isArray(docs) || docs.length === 0) {
-      docListContainer.innerHTML = '<p class="empty-docs-note">Belum ada dokumen yang terlampir. Anda dapat mengunggah berkas menggunakan formulir di bawah.</p>';
+      docListContainer.innerHTML = '<p class="cs-empty">Belum ada berkas. Unggah berkas pertama Anda lewat formulir di bawah.</p>';
       return;
     }
 
@@ -164,29 +185,46 @@ document.addEventListener('DOMContentLoaded', () => {
       const label = DOC_TYPE_LABELS[d.type] || d.type;
       const dateStr = d.uploadedAt ? new Date(d.uploadedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
       const reviewStatus = d.reviewStatus || 'pending';
-      const statusLabel = reviewStatus === 'rejected' ? 'Perlu diunggah ulang' : reviewStatus === 'accepted' ? 'Diterima' : 'Menunggu review';
-      const note = reviewStatus === 'rejected' && d.reviewNote ? `<small class="doc-review-note">Catatan petugas: ${escapeHtml(d.reviewNote)}</small>` : '';
-      const deleteAction = reviewStatus === 'accepted' ? '' : `<button type="button" class="button button--text doc-delete-button" data-document-id="${escapeHtml(d.id)}">Hapus & unggah ulang</button>`;
+      const statusLabel = reviewStatus === 'rejected' ? 'Perlu diunggah ulang' : reviewStatus === 'accepted' ? 'Diterima' : 'Menunggu pemeriksaan';
+      const note = reviewStatus === 'rejected' && d.reviewNote ? `<small class="cs-doc__note">Catatan petugas: ${escapeHtml(d.reviewNote)}</small>` : '';
+      const deleteAction = reviewStatus === 'accepted' ? '' : `<button type="button" class="cs-link doc-delete-button" data-document-id="${escapeHtml(d.id)}">Hapus</button>`;
       // Pendaftar hanya dapat membuka berkasnya sendiri: endpoint memeriksa token
       // pendaftaran terhadap pendaftaran pemilik berkas, bukan sekadar peran.
       const openAction = d.fileObjectId
-        ? `<button type="button" class="button button--text doc-open-button" data-file-id="${escapeHtml(d.fileObjectId)}" data-file-name="${escapeHtml(label)}">Lihat berkas</button>`
+        ? `<button type="button" class="cs-link doc-open-button" data-file-id="${escapeHtml(d.fileObjectId)}" data-file-name="${escapeHtml(label)}">Lihat</button>`
         : '';
       return `
-        <div class="doc-item-row">
-          <div class="doc-icon-badge" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
-          <div class="doc-text">
-            <strong>${label}</strong>
-            <small>Diunggah: ${escapeHtml(dateStr)}</small>${note}
+        <div class="cs-doc is-${reviewStatus}">
+          <div class="cs-doc__text">
+            <strong>${escapeHtml(label)}</strong>
+            <small>Diunggah ${escapeHtml(dateStr)}</small>${note}
           </div>
-          <span class="m3-chip-status ${reviewStatus === 'rejected' ? 'is-rejected' : reviewStatus === 'accepted' ? 'is-approved' : ''}">${statusLabel}</span>
-          ${openAction}
-          ${deleteAction}
+          <span class="cs-doc__status">${statusLabel}</span>
+          <div class="cs-doc__actions">${openAction}${deleteAction}</div>
         </div>
       `;
     }).join('');
 
     docListContainer.innerHTML = html;
+  }
+
+  // Catatan petugas yang ditujukan ke pendaftar, dan langkah yang perlu dikerjakan.
+  function renderNotes(notes) {
+    const daftar = Array.isArray(notes) ? notes : [];
+    notesCard.hidden = daftar.length === 0;
+    notesBox.innerHTML = daftar.slice().reverse().map((n) => {
+      const tanggal = n.createdAt ? new Date(n.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+      return `<div class="cs-notes__item"><p>${escapeHtml(n.body)}</p><small>${escapeHtml(tanggal)}</small></div>`;
+    }).join('');
+  }
+
+  function renderNextSteps(steps) {
+    const daftar = Array.isArray(steps) ? steps : [];
+    nextStepsCard.hidden = daftar.length === 0;
+    nextStepsList.innerHTML = daftar.map((s) => {
+      const batas = s.dueOn ? new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${s.dueOn}T00:00:00Z`)) : '';
+      return `<li class="${s.doneAt ? 'is-done' : ''}"><span>${escapeHtml(s.title)}</span>${s.doneAt ? '<small>Selesai</small>' : batas ? `<small>Batas ${escapeHtml(batas)}</small>` : ''}</li>`;
+    }).join('');
   }
 
   // Task R3.7. POST /api/applicant/logout tidak pernah dipanggil. Berbeda dengan
@@ -213,7 +251,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       currentToken = '';
       currentRegId = '';
-      window.location.reload();
+      hapusSesi();
+      window.location.href = window.location.pathname;
     });
   }
 
@@ -250,6 +289,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || 'Dokumen belum dapat dihapus.');
+      docUploadStatus.textContent = 'Berkas dihapus. Anda bisa mengunggah versi barunya.';
+      docUploadStatus.className = 'form-status is-success';
       await fetchRegistration(currentRegId, currentToken);
     } catch (error) {
       docUploadStatus.textContent = error.message;
@@ -301,29 +342,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderHistory(history) {
     if (!Array.isArray(history) || history.length === 0) {
-      historyTimeline.innerHTML = '<p class="empty-docs-note">Belum ada catatan pembaruan status.</p>';
+      historyTimeline.innerHTML = '<li class="cs-empty">Belum ada catatan pembaruan status.</li>';
       return;
     }
 
-    const html = history.slice().reverse().map((h) => {
+    historyTimeline.innerHTML = history.slice().reverse().map((h) => {
       const dateStr = h.at ? new Date(h.at).toLocaleDateString('id-ID', {
         day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
       }) : '';
       return `
-        <div class="history-item">
-          <div class="history-dot"></div>
-          <div class="history-body">
-            <div class="history-header">
-            <strong>${escapeHtml(h.to || 'Pembaruan')}</strong>
-            <small>${escapeHtml(dateStr)}</small>
-            </div>
-            <p>${escapeHtml(h.note || 'Pembaruan otomatis dari sistem pendaftaran.')}</p>
-          </div>
-        </div>
+        <li class="cs-history__item">
+          <strong>${escapeHtml(h.toLabel || h.to || 'Pembaruan')}</strong>
+          <small>${escapeHtml(dateStr)}</small>
+          ${h.note ? `<p>${escapeHtml(h.note)}</p>` : ''}
+        </li>
       `;
     }).join('');
-
-    historyTimeline.innerHTML = html;
   }
 
   async function fetchRegistration(regId, token) {
@@ -345,11 +379,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const reg = data.registration;
       currentRegId = reg.registrationId;
       currentToken = token;
+      simpanSesi(currentRegId, currentToken);
 
       // Fill result data
       resRegId.textContent = reg.registrationId;
       resProgram.textContent = PROGRAM_NAMES[reg.program] || reg.program || 'Program Studi Al-Azhar';
       resStatusBadge.textContent = reg.statusLabel || reg.status;
+      resStatusBadge.dataset.status = reg.status;
+      resName.textContent = reg.applicant && reg.applicant.applicantName ? `Atas nama ${reg.applicant.applicantName}` : '';
+      if (helpWa) {
+        const nomor = (helpWa.getAttribute('href').match(/wa\.me\/(\d+)/) || [])[1] || '6281288489997';
+        helpWa.href = `https://wa.me/${nomor}?text=${encodeURIComponent(`Assalamu'alaikum, admin Hamasah International. Saya ingin bertanya tentang pendaftaran ${reg.registrationId}.`)}`;
+      }
       
       const progress = typeof reg.progress === 'number' ? reg.progress : 15;
       resProgressPct.textContent = `${progress}%`;
@@ -375,14 +416,17 @@ document.addEventListener('DOMContentLoaded', () => {
         docUploadStatus.className = 'form-status is-error';
       }
       renderHistory(reg.history);
+      renderNotes(reg.notes);
+      renderNextSteps(reg.nextSteps);
 
       resultArea.hidden = false;
+      if (heroSection) heroSection.hidden = true;
       setLookupState('valid', 'Kode Akses valid. Data pendaftaran berhasil ditemukan.');
-
-      // Scroll smoothly to results
-      resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollTo({ top: 0 });
     } catch (err) {
       resultArea.hidden = true;
+      if (heroSection) heroSection.hidden = false;
+      hapusSesi();
       setLookupState(classifyLookupError(err), err.message);
     } finally {
       submitBtn.disabled = false;
@@ -559,7 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(data.error || 'Gagal menambahkan berkas.');
       }
 
-      docUploadStatus.textContent = 'Berkas berhasil dicatat ke sistem!';
+      docUploadStatus.textContent = 'Berkas terunggah dan menunggu pemeriksaan petugas.';
       docUploadStatus.className = 'form-status is-success';
       docFileInput.value = '';
 
@@ -583,15 +627,16 @@ document.addEventListener('DOMContentLoaded', () => {
     savedSession = null;
   }
   const sessionToken = urlParams.get('token')
-    || (savedSession && savedSession.registrationId === paramId ? savedSession.accessToken : '');
+    || (savedSession && (!paramId || savedSession.registrationId === paramId) ? savedSession.accessToken : '');
+  const sessionId = paramId || (savedSession && savedSession.accessToken ? savedSession.registrationId : '');
   if (urlParams.has('token')) {
     urlParams.delete('token');
     const query = urlParams.toString();
     history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`);
   }
-  if (paramId) regIdInput.value = paramId;
-  if (paramId && sessionToken) {
-    fetchRegistration(paramId, sessionToken);
+  if (sessionId) regIdInput.value = sessionId;
+  if (sessionId && sessionToken) {
+    fetchRegistration(sessionId, sessionToken);
   } else if (paramId) {
     tokenInput.focus();
   }

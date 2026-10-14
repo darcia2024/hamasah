@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Philosopher:wght@700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website-core.css?v=2d72a1bd8f" />
-    <link rel="stylesheet" href="website-public.css?v=19975ccf69" />
+    <link rel="stylesheet" href="website-public.css?v=0ab75f4fdc" />
     <link rel="stylesheet" href="fields.css?v=8b2a97dcc4" />
   </head>
   <body>
@@ -44,166 +44,99 @@
       </div>
     </header>
 
-    <main id="status-content" class="status-page-main">
-      <section class="status-hero">
-        <div class="shell">
-          <div class="section-intro section-heading--center">
-            <p class="eyebrow">Layanan Pelacakan Mandiri</p>
-            <h1>Cek status & perkembangan pendaftaran</h1>
-            <p>Masukkan nomor registrasi dan Kode Akses pendaftaran untuk memeriksa tahapan verifikasi berkas, persiapan bahasa Arab, status visa, dan mengunggah berkas susulan.</p>
+    <main id="status-content" class="cs-main">
+      <!-- Sebelum masuk: penjelasan singkat dan kartu masuk. Disembunyikan setelah data tampil. -->
+      <section class="cs-hero" id="cs-hero">
+        <div class="shell cs-hero__grid">
+          <div class="cs-hero__copy">
+            <p class="eyebrow">Cek status</p>
+            <h1>Pantau pendaftaran Anda</h1>
+            <p class="cs-hero__lede">Masuk dengan nomor registrasi dan Kode Akses yang Anda terima saat mendaftar.</p>
+            <ul class="cs-hero__list">
+              <li>Lihat tahap pendaftaran dan langkah berikutnya</li>
+              <li>Unggah berkas susulan dan lihat hasil pemeriksaannya</li>
+              <li>Perbarui data diri dan pantau jadwal keberangkatan</li>
+            </ul>
           </div>
 
-          <!-- Lookup Card -->
-          <div class="lookup-card-wrap">
-            <form method="post" id="lookup-form" class="lookup-card">
-              <div class="lookup-grid">
-                <div class="field-group">
-                  <label for="reg-id">Nomor Registrasi <span aria-hidden="true">*</span></label>
-                  <input id="reg-id" name="regId" type="text" placeholder="Contoh: HI-REG-2026-00001" required autocomplete="off" spellcheck="false" />
-                </div>
-                <div class="field-group">
-                  <label for="access-token">Kode Akses <span aria-hidden="true">*</span></label>
-                  <input id="access-token" name="token" type="password" placeholder="Kode Akses dari email pendaftaran" required autocomplete="one-time-code" aria-describedby="access-token-error" />
-                  <p class="field-error" id="access-token-error"></p>
-                </div>
+          <div class="cs-login" id="lookup-panel">
+            <form method="post" id="lookup-form" class="cs-login__form" novalidate>
+              <h2 class="cs-login__title">Masuk ke pendaftaran</h2>
+              <div class="field-group">
+                <label for="reg-id">Nomor registrasi</label>
+                <input id="reg-id" name="regId" type="text" placeholder="HI-REG-2026-00001" required autocomplete="off" spellcheck="false" />
               </div>
-              <div class="lookup-actions">
-                <button id="btn-submit-lookup" class="button button--primary" type="submit">
-                  <span>Lacak pendaftaran</span>
-                  <span class="btn-arrow" aria-hidden="true"></span>
-                </button>
+              <div class="field-group">
+                <label for="access-token">Kode Akses</label>
+                <input id="access-token" name="token" type="password" placeholder="10 huruf dan angka" required autocomplete="one-time-code" aria-describedby="access-token-error" />
+                <p class="field-error" id="access-token-error"></p>
               </div>
+              <button id="btn-submit-lookup" class="button button--primary cs-login__submit" type="submit">Lihat status</button>
               <p id="lookup-status-msg" class="form-status" role="status" aria-live="polite"></p>
-              <a id="lookup-recovery-cta" class="lookup-recovery-cta" href="#recovery-form" hidden>Minta Kode Akses baru</a>
+              <a id="lookup-recovery-cta" class="cs-login__recovery-link" href="#cs-recovery" hidden>Minta Kode Akses baru</a>
             </form>
-            <form method="post" id="recovery-form" class="recovery-card">
-              <div>
-                <span class="card-label">Kode akses hilang?</span>
-                <h3>Minta kode akses baru</h3>
-                <p>Masukkan nomor pendaftaran dan email yang dipakai saat mendaftar. Jika cocok, kode baru dikirim ke email tersebut.</p>
-              </div>
-              <div class="recovery-fields">
-                <label for="recovery-email">Email pendaftaran<input id="recovery-email" name="email" type="email" autocomplete="email" required aria-describedby="recovery-email-error" /><span class="field-error" id="recovery-email-error"></span></label>
-                <button class="button button--secondary" type="submit">Kirim kode baru</button>
-              </div>
-              <p id="recovery-status" class="form-status" role="status" aria-live="polite"></p>
-            </form>
+
+            <details class="cs-recovery" id="cs-recovery">
+              <summary>Lupa Kode Akses?</summary>
+              <form method="post" id="recovery-form" class="cs-recovery__form" novalidate>
+                <p>Isi nomor registrasi di atas dan email yang dipakai saat mendaftar. Bila cocok, Kode Akses baru dikirim ke email tersebut.</p>
+                <div class="field-group">
+                  <label for="recovery-email">Email pendaftaran</label>
+                  <input id="recovery-email" name="email" type="email" autocomplete="email" required aria-describedby="recovery-email-error" />
+                  <p class="field-error" id="recovery-email-error"></p>
+                </div>
+                <button class="button button--secondary" type="submit">Kirim Kode Akses baru</button>
+                <p id="recovery-status" class="form-status" role="status" aria-live="polite"></p>
+              </form>
+            </details>
           </div>
+        </div>
+      </section>
 
-          <!-- Result Container (Hidden until found) -->
-          <div id="status-result" class="status-result-area" hidden>
-            <!-- Card Summary -->
-            <div class="result-summary-card">
-              <div class="result-header">
-                <div>
-                  <span class="card-label">Nomor Registrasi Resmi</span>
-                  <h2 id="res-reg-id" class="res-title">HI-REG-2026-XXXXX</h2>
-                  <p id="res-program" class="res-program-tag">Program Kuliah S1 Al-Azhar</p>
-                </div>
-                <div class="result-badge-wrap">
-                  <span id="res-status-badge" class="m3-status-chip">Memuat...</span>
+      <!-- Setelah masuk: ringkasan, tahapan, lalu rincian dua kolom. -->
+      <section id="status-result" class="cs-result" hidden>
+        <div class="shell">
+          <div class="cs-summary">
+            <div class="cs-summary__top">
+              <div>
+                <p class="eyebrow">Pendaftaran Anda</p>
+                <h1 id="res-reg-id" class="cs-summary__id">HI-REG-2026-XXXXX</h1>
+                <p class="cs-summary__meta"><span id="res-program">Program</span><span id="res-name" class="cs-summary__name"></span></p>
+              </div>
+              <div class="cs-summary__side">
+                <span id="res-status-badge" class="cs-chip">Memuat...</span>
+                <div id="applicant-session-actions" hidden>
+                  <button type="button" class="cs-logout" id="applicant-logout">Keluar</button>
                 </div>
               </div>
-
-              <!-- Progress Bar -->
-              <div class="progress-track-wrap">
-                <div class="progress-labels">
-                  <span>Progres keberangkatan</span>
-                  <strong id="res-progress-pct">0%</strong>
-                </div>
-                <div class="m3-progress-bar">
-                  <div id="res-progress-fill" class="m3-progress-fill"></div>
-                </div>
-              </div>
-
-              <!-- Stepper Timeline -->
-              <div class="departure-stepper" aria-label="Tahapan pendaftaran hingga keberangkatan">
-                <div class="step-item" id="step-submitted">
-                  <div class="step-dot">1</div>
-                  <div class="step-desc">
-                    <strong>Pendaftaran Masuk</strong>
-                    <small>Data formulir tersimpan</small>
-                  </div>
-                </div>
-                <div class="step-connector"></div>
-                <div class="step-item" id="step-review">
-                  <div class="step-dot">2</div>
-                  <div class="step-desc">
-                    <strong>Pemeriksaan Berkas</strong>
-                    <small>Validasi ijazah & paspor</small>
-                  </div>
-                </div>
-                <div class="step-connector"></div>
-                <div class="step-item" id="step-academic">
-                  <div class="step-dot">3</div>
-                  <div class="step-desc">
-                    <strong>Persiapan Bahasa</strong>
-                    <small>Tahdid Mustawa / Dauroh</small>
-                  </div>
-                </div>
-                <div class="step-connector"></div>
-                <div class="step-item" id="step-departure">
-                  <div class="step-dot">4</div>
-                  <div class="step-desc">
-                    <strong>Visa & Tiket</strong>
-                    <small>Legalisasi & kloter terbang</small>
-                  </div>
-                </div>
-                <div class="step-connector"></div>
-                <div class="step-item" id="step-completed">
-                  <div class="step-dot">5</div>
-                  <div class="step-desc">
-                    <strong>Tiba di Kairo</strong>
-                    <small>Asrama Hamasah, Nasr City</small>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Jadwal keberangkatan per kloter. Diisi dari data petugas; tanpa kloter tampil "belum ditetapkan". -->
-              <section class="departure-schedule" aria-labelledby="departure-schedule-title">
-                <h3 id="departure-schedule-title">Jadwal Keberangkatan</h3>
-                <div id="res-departure"><p class="departure-schedule__empty">Memuat jadwal...</p></div>
-              </section>
             </div>
 
-            <!-- 2-Column Detail Grid: Document Upload & Status History -->
-            <div class="detail-columns-grid">
-              <div class="detail-card applicant-edit-card" id="applicant-edit-card" hidden>
-                <div class="card-heading-row"><span class="card-label">Perbarui Data</span><h3>Edit data pendaftaran</h3></div>
-                <p class="form-subnote">Perbarui data yang masih diperbolehkan selama pendaftaran belum dikunci.</p>
-                <form method="post" id="applicant-edit-form" class="applicant-edit-form">
-                  <div class="edit-grid">
-                    <label>Nama lengkap<input name="applicantName" required></label><label>Nomor WhatsApp<input name="phone" required></label>
-                    <label>Nama wali<input name="guardianName"></label><label>WhatsApp wali<input name="guardianPhone"></label>
-                    <label>Email calon<input name="email" type="email"></label><label>Email wali<input name="guardianEmail" type="email"></label>
-                    <label>Tanggal lahir<input name="birthDate" type="date"></label><label>Jenis kelamin<select name="gender"><option value="">Pilih</option><option value="putra">Putra</option><option value="putri">Putri</option></select></label>
-                    <label>Sekolah asal<input name="schoolOrigin"></label><label>Kota domisili<input name="city"></label>
-                  </div>
-                  <button class="button button--secondary" type="submit">Simpan perubahan</button>
-                  <p id="applicant-edit-status" class="form-status" role="status" aria-live="polite"></p>
-                </form>
-              </div>
-              <!-- Left: Document List & Upload -->
-              <div class="detail-card">
-                <div class="card-heading-row">
-                  <span class="card-label">Kelengkapan Dokumen</span>
-                  <h3>Daftar berkas terlampir</h3>
-                </div>
+            <div class="cs-progress">
+              <div class="cs-progress__label"><span>Progres pendaftaran</span><strong id="res-progress-pct">0%</strong></div>
+              <div class="cs-progress__bar"><div id="res-progress-fill" class="cs-progress__fill"></div></div>
+            </div>
 
-                <div id="applicant-session-actions" class="applicant-session-actions" hidden>
-                  <button type="button" class="button button--text" id="applicant-logout">Keluar dari sesi ini</button>
-                </div>
-                <div id="doc-list-container" class="doc-list-box">
-                  <p class="empty-docs-note">Belum ada dokumen yang diunggah.</p>
-                </div>
+            <ol class="cs-steps" aria-label="Tahapan pendaftaran hingga keberangkatan">
+              <li class="cs-step" id="step-submitted"><span class="cs-step__dot">1</span><span class="step-desc"><strong>Pendaftaran masuk</strong><small>Data formulir tersimpan</small></span></li>
+              <li class="cs-step" id="step-review"><span class="cs-step__dot">2</span><span class="step-desc"><strong>Pemeriksaan berkas</strong><small>Validasi ijazah dan paspor</small></span></li>
+              <li class="cs-step" id="step-academic"><span class="cs-step__dot">3</span><span class="step-desc"><strong>Persiapan bahasa</strong><small>Tahdid Mustawa dan dauroh</small></span></li>
+              <li class="cs-step" id="step-departure"><span class="cs-step__dot">4</span><span class="step-desc"><strong>Visa dan tiket</strong><small>Legalisasi dan kloter</small></span></li>
+              <li class="cs-step" id="step-completed"><span class="cs-step__dot">5</span><span class="step-desc"><strong>Tiba di Kairo</strong><small>Asrama Hamasah, Nasr City</small></span></li>
+            </ol>
+          </div>
 
-                <form method="post" id="doc-upload-form" class="doc-upload-box">
-                  <h4>Unggah berkas susulan</h4>
-                  <p class="form-subnote">Pilih jenis dokumen lalu unggah berkas PDF atau gambar. Berkas diperiksa sebelum ditautkan ke pendaftaran.</p>
-                  
-                  <div class="field-group">
-                    <label for="doc-type-select">Jenis Berkas</label>
-                    <div class="select-wrapper">
+          <div class="cs-grid">
+            <div class="cs-col">
+              <section class="cs-card" aria-labelledby="cs-berkas-title">
+                <h2 class="cs-card__title" id="cs-berkas-title">Berkas pendaftaran</h2>
+                <div id="doc-list-container" class="cs-docs"></div>
+
+                <form method="post" id="doc-upload-form" class="cs-upload">
+                  <h3>Unggah berkas</h3>
+                  <p class="cs-note">PDF, JPG, atau PNG. Berkas diperiksa petugas sebelum diterima.</p>
+                  <div class="cs-upload__fields">
+                    <div class="field-group">
+                      <label for="doc-type-select">Jenis berkas</label>
                       <select id="doc-type-select" required>
                         <option value="passport">Paspor (berlaku minimal 18 bulan)</option>
                         <option value="diploma">Ijazah (asli, terjemah, atau legalisir)</option>
@@ -213,42 +146,63 @@
                         <option value="other">Dokumen lain: akta, KK, rekomendasi Kemenag, surat pernyataan wali</option>
                       </select>
                     </div>
+                    <div class="field-group">
+                      <label for="doc-file-input">Berkas</label>
+                      <input id="doc-file-input" type="file" accept="application/pdf,image/jpeg,image/png" required />
+                    </div>
                   </div>
-
-                  <div class="field-group">
-                    <label for="doc-file-input">Berkas</label>
-                    <input id="doc-file-input" type="file" accept="application/pdf,image/jpeg,image/png" required />
-                  </div>
-
-                  <button id="btn-upload-doc" class="button button--secondary" type="submit">
-                    <span>Unggah dokumen</span>
-                    <span class="btn-arrow btn-arrow--up" aria-hidden="true"></span>
-                  </button>
+                  <button id="btn-upload-doc" class="button button--primary" type="submit">Unggah berkas</button>
                   <p id="doc-upload-status" class="form-status" role="status" aria-live="polite"></p>
                 </form>
-              </div>
+              </section>
 
-              <!-- Right: Status History Timeline -->
-              <div class="detail-card">
-                <div class="card-heading-row">
-                  <span class="card-label">Rekam Jejak Proses</span>
-                  <h3>Riwayat pembaruan status</h3>
-                </div>
-
-                <div id="history-timeline" class="history-timeline-box">
-                  <!-- Injected via JS -->
-                </div>
-
-                <div class="help-box-callout">
-                  <div class="callout-icon" aria-hidden="true"><svg class="m3-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg></div>
-                  <div>
-                    <strong>Ada yang ingin ditanyakan soal berkas?</strong>
-                    <p>Hubungi admin lewat WhatsApp dan sebutkan nomor registrasi Anda.</p>
-                    <a class="button button--primary" href="https://wa.me/6281288489997" target="_blank" rel="noopener">
-                      Chat WhatsApp admin
-                    </a>
+              <details class="cs-card cs-edit" id="applicant-edit-card" hidden>
+                <summary class="cs-card__title">Perbarui data diri</summary>
+                <p class="cs-note">Bisa diubah selama pendaftaran belum dikunci.</p>
+                <form method="post" id="applicant-edit-form" class="cs-edit__form">
+                  <div class="cs-edit__grid">
+                    <label>Nama lengkap<input name="applicantName" required autocomplete="name"></label>
+                    <label>Nomor WhatsApp<input name="phone" required inputmode="tel" autocomplete="tel"></label>
+                    <label>Email<input name="email" type="email" autocomplete="email"></label>
+                    <label>Kota domisili<input name="city" autocomplete="address-level2"></label>
+                    <label>Tanggal lahir<input name="birthDate" type="date"></label>
+                    <label>Jenis kelamin<select name="gender"><option value="">Pilih</option><option value="putra">Putra</option><option value="putri">Putri</option></select></label>
+                    <label>Sekolah asal<input name="schoolOrigin"></label>
+                    <label>Nama wali<input name="guardianName"></label>
+                    <label>WhatsApp wali<input name="guardianPhone" inputmode="tel"></label>
+                    <label>Email wali<input name="guardianEmail" type="email"></label>
                   </div>
-                </div>
+                  <button class="button button--secondary" type="submit">Simpan perubahan</button>
+                  <p id="applicant-edit-status" class="form-status" role="status" aria-live="polite"></p>
+                </form>
+              </details>
+            </div>
+
+            <div class="cs-col">
+              <section class="cs-card" id="res-next-steps-card" aria-labelledby="cs-langkah-title" hidden>
+                <h2 class="cs-card__title" id="cs-langkah-title">Langkah berikutnya</h2>
+                <ul id="res-next-steps" class="cs-todo"></ul>
+              </section>
+
+              <section class="cs-card" id="res-notes-card" aria-labelledby="cs-catatan-title" hidden>
+                <h2 class="cs-card__title" id="cs-catatan-title">Catatan dari petugas</h2>
+                <div id="res-notes" class="cs-notes"></div>
+              </section>
+
+              <section class="cs-card cs-departure" aria-labelledby="departure-schedule-title">
+                <h2 class="cs-card__title" id="departure-schedule-title">Jadwal keberangkatan</h2>
+                <div id="res-departure"><p class="cs-note">Memuat jadwal...</p></div>
+              </section>
+
+              <section class="cs-card" aria-labelledby="cs-riwayat-title">
+                <h2 class="cs-card__title" id="cs-riwayat-title">Riwayat status</h2>
+                <ol id="history-timeline" class="cs-history"></ol>
+              </section>
+
+              <div class="cs-help">
+                <strong>Ada pertanyaan soal pendaftaran?</strong>
+                <p>Hubungi admin lewat WhatsApp dan sebutkan nomor registrasi Anda.</p>
+                <a class="button button--secondary" id="cs-help-wa" href="https://wa.me/6281288489997" target="_blank" rel="noopener">Chat WhatsApp admin</a>
               </div>
             </div>
           </div>
@@ -325,6 +279,6 @@
 
     <script src="public-header.js?v=d48d96ec7e"></script>
     <script src="file-open.js?v=23834ad36d"></script>
-    <script src="cek-status.js?v=f37c944a1b"></script>
+    <script src="cek-status.js?v=c29c180947"></script>
   </body>
 </html>
