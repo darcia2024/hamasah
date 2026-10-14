@@ -7,7 +7,10 @@ const path = require('node:path');
 
 const ASSETS = path.join(__dirname, '..', 'assets');
 const BATAS_PER_BERKAS = 230 * 1024;
-const BATAS_TOTAL = 4 * 1024 * 1024;
+// Total repo dinaikkan dari 4 MB ke 5 MB (15 Oktober 2026) untuk galeri kegiatan Kairo dan
+// Hamasah Indonesia. Yang dimuat pengunjung tetap kecil: galeri memuat versi 640 px secara
+// lazy, dan batas per berkas di atas tidak berubah.
+const BATAS_TOTAL = 5 * 1024 * 1024;
 const GAMBAR = /\.(jpe?g|png|webp|gif|avif)$/i;
 
 function daftar(direktori) {
