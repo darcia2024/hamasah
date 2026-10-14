@@ -1,9 +1,9 @@
 // Formulir pertanyaan halaman kontak.
 //
-// Sejak 14 Oktober 2026 formulir ini tidak lagi menyimpan pertanyaan ke server. Isian
-// disusun menjadi satu pesan, lalu WhatsApp admin dibuka dengan pesan itu sudah terisi;
-// pengunjung tinggal menekan kirim. Jadi semua pertanyaan masuk lewat satu pintu, yaitu
-// WhatsApp admin, dan nomor pengunjung sudah terbawa oleh WhatsApp sehingga tidak ditanya.
+// Sejak 14 Oktober 2026: isian dicatat ke POST /api/inquiries (kotak masuk konsol petugas)
+// dan pada saat yang sama WhatsApp Admin 1 dibuka dengan pesan yang sudah tersusun, jadi
+// pengunjung tinggal menekan kirim. WhatsApp dibuka langsung saat tombol ditekan (tidak
+// menunggu server) supaya tidak diblokir peramban sebagai jendela munculan.
 
 // ---------------------------------------------------------------------------
 // Nomor WhatsApp resmi.
@@ -15,7 +15,7 @@
 // Nomor bawaan dikonfirmasi pengurus 24 September 2026 (butir A2): satu admin untuk
 // Indonesia dan Mesir.
 // ---------------------------------------------------------------------------
-const WHATSAPP_NUMBER = (document.querySelector('meta[name="hamasah-whatsapp"]') || {}).content || '6287897591978';
+const WHATSAPP_NUMBER = (document.querySelector('meta[name="hamasah-whatsapp"]') || {}).content || '6281288489997';
 
 function whatsappUrl() {
   const nomor = String(WHATSAPP_NUMBER || '').replace(/\D/g, '');
@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const fields = {
     name: document.querySelector('#inquiry-name'),
+    phone: document.querySelector('#inquiry-phone'),
     topic: document.querySelector('#inquiry-topic'),
     message: document.querySelector('#inquiry-message')
   };
@@ -108,6 +109,11 @@ document.addEventListener('DOMContentLoaded', () => {
       markField('name');
       return;
     }
+    if (!fields.phone || fields.phone.value.replace(/\D/g, '').length < 9) {
+      setStatus('Tulis nomor WhatsApp Anda, contoh 0812xxxxxxxx.', 'error');
+      markField('phone');
+      return;
+    }
     if (!fields.message || fields.message.value.trim().length < 5) {
       setStatus('Tulis pertanyaan Anda terlebih dahulu.', 'error');
       markField('message');
@@ -121,6 +127,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const url = `https://wa.me/${nomor}?text=${encodeURIComponent(susunPesan())}`;
+    // Catatan untuk konsol petugas. keepalive: tetap terkirim walau pengunjung pindah ke WhatsApp.
+    const catatan = fetch('/api/inquiries', {
+      method: 'POST',
+      keepalive: true,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: fields.name.value,
+        phone: fields.phone.value,
+        topic: fields.topic ? fields.topic.value : '',
+        message: fields.message.value
+      })
+    }).then((response) => response.ok).catch(() => false);
     // Dibuka di tab baru supaya isian tidak hilang bila pengunjung kembali. Bila peramban
     // memblokir tab baru, tautan di bawah tombol tetap bisa diketuk.
     const jendela = window.open(url, '_blank', 'noopener');
@@ -134,5 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tautan.rel = 'noopener';
     tautan.textContent = 'Buka WhatsApp';
     status.append(tautan, '.');
+    // Isian dikosongkan hanya bila catatan tersimpan, supaya bisa dikirim ulang bila gagal.
+    catatan.then((tersimpan) => { if (tersimpan) form.reset(); });
   });
 });

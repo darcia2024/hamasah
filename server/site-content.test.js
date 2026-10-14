@@ -88,7 +88,7 @@ function ujiValidasi() {
   assert.equal(periksaBlok('kontak', { ...kontak, email: 'bukan-email' }).bidang, 'email');
   assert.equal(periksaBlok('kontak', { ...kontak, instagram: 'https://www.instagram.com/hamasah.intl/' }).nilai.instagram, 'hamasah.intl');
   assert.equal(periksaBlok('kontak', { ...kontak, youtube: 'https://contoh.test/kanal' }).ok, false);
-  assert.equal(formatWhatsapp('6287897591978'), '+62 878-9759-1978');
+  assert.equal(formatWhatsapp('6281288489997'), '+62 812-8848-9997');
 
   const pengumuman = { aktif: true, teks: 'Gelombang 2 dibuka.', tautanTeks: 'Daftar', tautanUrl: 'javascript:alert(1)', mulai: '', selesai: '' };
   assert.equal(periksaBlok('pengumuman', pengumuman).bidang, 'tautanUrl', 'Tautan javascript: ditolak.');
@@ -112,7 +112,7 @@ function ujiRender() {
   const asli = halaman('biaya.html');
   const tanpaSimpan = { nilai: salin(BAWAAN), tersimpan: Object.fromEntries(BLOK.map((b) => [b, false])) };
   const polos = renderHalaman(asli, tanpaSimpan);
-  assert.equal(polos.replace('<meta name="hamasah-whatsapp" content="6287897591978" />', ''), asli, 'Tanpa konten tersimpan, halaman tidak berubah selain meta nomor.');
+  assert.equal(polos.replace('<meta name="hamasah-whatsapp" content="6281288489997" />', ''), asli, 'Tanpa konten tersimpan, halaman tidak berubah selain meta nomor.');
 
   const biaya = salin(BAWAAN.biaya);
   biaya.program.kuliah.harga = 'Rp 45 juta <script>alert(1)</script>';
@@ -125,13 +125,13 @@ function ujiRender() {
   assert.ok(hasil.includes(`${'</svg></span>'} Asrama Al-Azhar &amp; katering</li>`), 'Butir fasilitas tanpa span tambahan.');
   assert.ok(!hasil.includes('Pengurusan berkas Kemenag'), 'Fasilitas lama diganti.');
   assert.ok(!hasil.includes('Apakah biaya pendaftaran awal dapat diangsur?'), 'FAQ biaya kosong berarti tidak ada kartu.');
-  assert.ok(!hasil.includes('6287897591978'), 'Nomor WhatsApp lama tidak tersisa.');
+  assert.ok(!hasil.includes('6281288489997'), 'Nomor WhatsApp lama tidak tersisa.');
   const kontakBaru = renderHalaman(halaman('kontak.html'), konten);
-  assert.ok(kontakBaru.includes('wa.me/6281234567890') && !kontakBaru.includes('6287897591978'), 'Nomor WhatsApp diganti di seluruh halaman.');
+  assert.ok(kontakBaru.includes('wa.me/6281234567890') && !kontakBaru.includes('6281288489997'), 'Nomor WhatsApp diganti di seluruh halaman.');
   assert.ok(hasil.includes('<meta name="hamasah-whatsapp" content="6281234567890" />'));
   assert.ok(hasil.includes('Dikonfirmasi saat konsultasi'), 'Program lain tetap.');
 
-  const teks = sesuaikanTeksKontak('WhatsApp admin: +62 878-9759-1978. Kantor Mesir: Sheikh Taha Dinary, Imarah 32, Lantai 1, Syaqqah 3, Hay Sabi, Nasr City, Kairo.', {
+  const teks = sesuaikanTeksKontak('WhatsApp admin: +62 812-8848-9997. Kantor Mesir: Sheikh Taha Dinary, Imarah 32, Lantai 1, Syaqqah 3, Hay Sabi, Nasr City, Kairo.', {
     ...BAWAAN.kontak, whatsapp: '6281234567890', alamatMesir: 'Jalan Baru 5\nKairo'
   });
   assert.equal(teks, 'WhatsApp admin: +62 812-3456-7890. Kantor Mesir: Jalan Baru 5, Kairo.');
@@ -175,12 +175,12 @@ async function ujiHttp() {
     assert.equal(awal.status, 200);
     assert.equal(awal.body.tersedia, true);
     assert.deepEqual(awal.body.nilai, awal.body.bawaan);
-    assert.equal(awal.body.whatsappTampil, '+62 878-9759-1978');
+    assert.equal(awal.body.whatsappTampil, '+62 812-8848-9997');
     assert.equal((await api('GET', '/api/admin/content', petugas)).status, 403);
 
     const halamanAwal = await html('/website/biaya.html');
     assert.ok(halamanAwal.includes('Dikonfirmasi saat konsultasi'));
-    assert.ok(halamanAwal.includes('name="hamasah-whatsapp" content="6287897591978"'));
+    assert.ok(halamanAwal.includes('name="hamasah-whatsapp" content="6281288489997"'));
 
     // Simpan biaya: halaman langsung memakai nilai baru.
     const biaya = salin(BAWAAN.biaya);
@@ -208,7 +208,7 @@ async function ujiHttp() {
     // Kontak: nomor baru tampil di semua halaman publik dan jawaban FAQ.
     await api('PUT', '/api/admin/content/kontak', admin, { nilai: { ...BAWAAN.kontak, whatsapp: '6281111222333', instagram: '@hamasah.intl' } });
     const kontak = await html('/website/kontak.html');
-    assert.ok(kontak.includes('wa.me/6281111222333') && !kontak.includes('wa.me/6287897591978'));
+    assert.ok(kontak.includes('wa.me/6281111222333') && !kontak.includes('wa.me/6281288489997'));
     assert.ok(kontak.includes('+62 811-1122-2333'));
     assert.ok(kontak.includes('instagram.com/hamasah.intl/'));
     assert.ok((await html('/website/kebijakan-privasi.html')).includes('wa.me/6281111222333'));

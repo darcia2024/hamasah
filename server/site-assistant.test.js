@@ -30,7 +30,7 @@ const cases = [
   ['biaya asrama per bulan berapa', /1\.800\.000/],
   ['apa itu program akselerasi', /kelas 2 I'dadi/],
   ['apakah hamasah lembaga resmi', /PT Visi Berkah International/],
-  ['nomor wa admin', /878-9759-1978/],
+  ['nomor wa admin', /812-8848-9997/],
   ['laporan ke orang tua gimana', /tanggal 1/],
   ['tips lulus tes al azhar', /bahasa Arab dan Al-Qur'an/],
   ['berapa lama pengumuman muadalah', /dua minggu/]
@@ -114,7 +114,7 @@ test('OpenRouter gagal atau kuota harian habis: kembali ke jawaban lokal', async
   const gagal = createAssistant({ env: { OPENROUTER_API_KEY: 'uji' }, fetchImpl: fakeOpenRouter('', { status: 500 }), logger: null });
   const hasilGagal = await gagal.ask('nomor wa admin');
   assert.equal(hasilGagal.mode, 'lokal');
-  assert.match(hasilGagal.answer, /878-9759-1978/);
+  assert.match(hasilGagal.answer, /812-8848-9997/);
 
   let calls = 0;
   const hemat = createAssistant({

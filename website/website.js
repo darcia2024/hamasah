@@ -49,7 +49,7 @@ faqForm.addEventListener('submit', async (event) => {
     followUp.className = 'faq-answer__handoff';
     const link = document.createElement('a');
     const nomorWa = document.querySelector('meta[name="hamasah-whatsapp"]');
-    link.href = `https://wa.me/${(nomorWa && nomorWa.content) || '6287897591978'}`;
+    link.href = `https://wa.me/${(nomorWa && nomorWa.content) || '6281288489997'}`;
     link.target = '_blank';
     link.rel = 'noopener';
     link.textContent = 'Tanya admin lewat WhatsApp';

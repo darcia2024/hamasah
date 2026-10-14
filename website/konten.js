@@ -252,7 +252,7 @@ const SKEMA_TEMPLATE = {
     isi: [
       { k: 'namaLembaga', label: 'Nama lembaga', jenis: 'teks', maks: 80 },
       { k: 'alamat', label: 'Alamat (tidak wajib)', jenis: 'area', baris: 2, maks: 300, petunjuk: 'Ditulis satu baris di bawah nama lembaga.' },
-      { k: 'kontak', label: 'Kontak (tidak wajib)', jenis: 'teks', maks: 160, petunjuk: 'Misalnya: WhatsApp +62 878-9759-1978 · admin@hamasah.id' },
+      { k: 'kontak', label: 'Kontak (tidak wajib)', jenis: 'teks', maks: 160, petunjuk: 'Misalnya: WhatsApp +62 812-8848-9997 · admin@hamasah.id' },
       {
         k: 'rekening', label: 'Rekening resmi pembayaran', jenis: 'daftar', batas: 4, tambah: 'Tambah rekening', nama: 'Rekening',
         isi: [

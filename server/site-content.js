@@ -18,7 +18,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const NOMOR_WA_BAWAAN = '6287897591978';
+const NOMOR_WA_BAWAAN = '6281288489997';
 
 // Foto testimoni hanya boleh dipilih dari berkas yang ada di assets/. CSP situs hanya
 // mengizinkan gambar dari domain sendiri, jadi URL luar tidak akan tampil. Foto baru
@@ -350,7 +350,7 @@ function nomorWhatsapp(nilai) {
   return angka;
 }
 
-// 6287897591978 menjadi +62 878-9759-1978 (kode negara, lalu tiga angka, lalu kelompok empat).
+// 6281288489997 menjadi +62 812-8848-9997 (kode negara, lalu tiga angka, lalu kelompok empat).
 function formatWhatsapp(nomor) {
   const kode = nomor.startsWith('62') ? '62' : nomor.startsWith('20') ? '20' : nomor.slice(0, 2);
   const sisa = nomor.slice(kode.length);

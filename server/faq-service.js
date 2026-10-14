@@ -15,7 +15,7 @@ const KNOWLEDGE_BASE = Object.freeze([
     id: 'cicilan',
     label: 'Cicilan dan pengembalian biaya',
     keywords: ['cicil', 'dicicil', 'cicilan', 'angsur', 'diangsur', 'bertahap', 'refund', 'kembali', 'dikembalikan', 'batal', 'hangus'],
-    answer: 'Pembayaran bisa dicicil: dilakukan bertahap mengikuti tahap pendaftaran yang sedang berjalan. Biaya pendaftaran dan verifikasi dokumen tidak dapat ditarik kembali. Semua angka bersifat estimasi dan bisa berubah mengikuti regulasi Al-Azhar serta kebijakan pemerintah Mesir dan Indonesia.'
+    answer: 'Pembayaran bisa dicicil: dilakukan bertahap mengikuti tahap pendaftaran yang sedang berjalan. Uang yang sudah dibayar bisa dikembalikan dengan ketentuan: DP pemberkasan tidak dikembalikan (Rp 5 juta untuk Ma\'had dan Rp 4,5 juta untuk Kuliah), sedangkan kelebihan pembayaran di atas DP dikembalikan. Semua angka bersifat estimasi dan bisa berubah mengikuti regulasi Al-Azhar serta kebijakan pemerintah Mesir dan Indonesia.'
   },
   {
     id: 'fasilitas',
@@ -177,7 +177,7 @@ const KNOWLEDGE_BASE = Object.freeze([
     id: 'kontak',
     label: 'Alamat dan kontak',
     keywords: ['alamat', 'dimana', 'kantor', 'lokasi', 'whatsapp', 'nomor', 'kontak', 'hubungi', 'admin', 'telepon', 'telpon', 'instagram'],
-    answer: 'WhatsApp admin: +62 878-9759-1978, satu admin untuk Indonesia dan Mesir. Instagram: @hamasah_international. Kantor Indonesia: Jl. Karakal RT 003/RW 003, Desa Banjar Sari, Kec. Ciawi, Kab. Bogor, Jawa Barat. Kantor Mesir: Sheikh Taha Dinary, Imarah 32, Lantai 1, Syaqqah 3, Hay Sabi, Nasr City, Kairo.'
+    answer: 'WhatsApp Admin 1: +62 812-8848-9997, Admin 2: +62 877-5861-9337. Instagram: @hamasah_international. Kantor Indonesia: Jl. Karakal RT 003/RW 003, Desa Banjar Sari, Kec. Ciawi, Kab. Bogor, Jawa Barat. Kantor Mesir: Sheikh Taha Dinary, Imarah 32, Lantai 1, Syaqqah 3, Hay Sabi, Nasr City, Kairo.'
   },
   {
     id: 'visi-misi',

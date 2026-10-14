@@ -3,7 +3,7 @@
 // hanya ikon statis yang memakai innerHTML.
 (function initSiteAssistant() {
   // Nomor diisi server lewat <meta name="hamasah-whatsapp"> (bisa diubah di Konten Website).
-const WHATSAPP_URL = `https://wa.me/${(document.querySelector('meta[name="hamasah-whatsapp"]') || {}).content || '6287897591978'}`;
+const WHATSAPP_URL = `https://wa.me/${(document.querySelector('meta[name="hamasah-whatsapp"]') || {}).content || '6281288489997'}`;
   const SUGGESTIONS = [
     'Berapa biayanya, bisa dicicil?',
     'Syarat daftar kuliah apa saja?',
