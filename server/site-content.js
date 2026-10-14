@@ -417,7 +417,7 @@ function tautanAman(nilai, bidang, label) {
     if (bersih.length > 300) throw new KesalahanKonten(bidang, `${label} terlalu panjang.`);
     return bersih;
   }
-  throw new KesalahanKonten(bidang, `${label} harus alamat https:// atau halaman di situs ini, misalnya biaya.html.`);
+  throw new KesalahanKonten(bidang, `${label} harus alamat https:// atau halaman di situs ini, misalnya biaya.`);
 }
 
 function tanggal(nilai, bidang, label) {

@@ -85,7 +85,7 @@
 
   function tautanMonitoring() {
     const link = el('a', 'admin-link', 'Buka Monitoring');
-    link.href = 'monitoring.html';
+    link.href = 'monitoring';
     return link;
   }
 
@@ -490,11 +490,11 @@
   function teksUntukDisalin({ kataSandi, akunDemo, pendaftar }) {
     const baris = [];
     if (kataSandi) {
-      baris.push(`Kata sandi semua akun demo: ${kataSandi}`, '', 'Akun demo (masuk lewat /portal.html):');
+      baris.push(`Kata sandi semua akun demo: ${kataSandi}`, '', 'Akun demo (masuk lewat /website/portal):');
       akunDemo.forEach((akun) => baris.push(`${akun.email}  ${akun.peran}`));
     }
     if (pendaftar.length) {
-      baris.push('', 'Kode akses pendaftar (cek status di /cek-status.html):');
+      baris.push('', 'Kode akses pendaftar (cek status di /website/cek-status):');
       pendaftar.forEach((p) => baris.push(`${p.nomor}  ${p.kode}  ${p.nama}`));
     }
     return baris.join('\n');

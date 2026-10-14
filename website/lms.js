@@ -56,7 +56,7 @@ const ICONS = {
 };
 
 
-// Alamat langsung ke satu materi: lms.html#maddah=<id>&materi=<id>.
+// Alamat langsung ke satu materi: lms#maddah=<id>&materi=<id>.
 function alamatMateri(courseId, materialId) {
   const params = new URLSearchParams({ maddah: courseId });
   if (materialId) params.set('materi', materialId);
@@ -1127,7 +1127,7 @@ if (editCourseButton) {
   });
 }
 
-// Penjualan kelas daring (kelas.html): harga dan apakah maddah ini tampil di halaman Kelas.
+// Penjualan kelas daring (kelas): harga dan apakah maddah ini tampil di halaman Kelas.
 // Hanya admin. Pembeli yang tagihannya ditandai lunas di Keuangan otomatis terdaftar.
 const sellCourseButton = document.querySelector('#sell-course');
 if (sellCourseButton) {

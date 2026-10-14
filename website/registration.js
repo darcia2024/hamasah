@@ -1,4 +1,4 @@
-// Formulir konsultasi (daftar.html): validasi, pengiriman, dan tanda terima pendaftaran.
+// Formulir konsultasi (daftar): validasi, pengiriman, dan tanda terima pendaftaran.
 // Dipisah dari website.js sejak formulir pindah dari beranda ke halaman sendiri.
 
 const form = document.querySelector('#registration-form');
@@ -119,7 +119,7 @@ async function refreshRegistrationStatus() {
   if (openFullTracker) {
     // Token sesi tidak ditaruh di URL (bisa bocor lewat riwayat browser, tangkapan layar,
     // atau tautan yang dibagikan). cek-status.js membacanya dari sessionStorage yang sama.
-    openFullTracker.href = `cek-status.html?id=${encodeURIComponent(saved.registrationId)}`;
+    openFullTracker.href = `cek-status?id=${encodeURIComponent(saved.registrationId)}`;
   }
   registrationTrackerCopy.textContent = `Memeriksa status ${saved.registrationId}...`;
   try {
@@ -190,7 +190,7 @@ function showRegistrationReceipt(registrationId, accessCode, urlAdmin) {
     'Pendaftaran Hamasah International',
     `Nomor registrasi: ${registrationId}`,
     `Kode Akses: ${accessCode}`,
-    `Cek status: ${new URL('cek-status.html', window.location.href).href}`
+    `Cek status: ${new URL('cek-status', window.location.href).href}`
   ].join('\n');
   registrationReceipt.querySelector('#receipt-registration-id').textContent = registrationId;
   registrationReceipt.querySelector('#receipt-access-code').textContent = accessCode;

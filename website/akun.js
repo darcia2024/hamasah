@@ -1,5 +1,5 @@
-// Halaman Kelola Akun super admin (akun.html). Dulu bagian ini menumpang di dashboard
-// portal.html; dipindah ke halaman sendiri supaya daftar akun punya tempat lebar.
+// Halaman Kelola Akun super admin (akun). Dulu bagian ini menumpang di dashboard
+// portal; dipindah ke halaman sendiri supaya daftar akun punya tempat lebar.
 // Endpoint: GET/POST /api/accounts, POST /api/accounts/invitations,
 // PATCH /api/accounts/:id, PATCH /api/accounts/:id/active,
 // POST /api/accounts/:id/password-reset (server/routes/accounts.js).

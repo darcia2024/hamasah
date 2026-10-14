@@ -2,7 +2,7 @@
 //
 // Sebelumnya article.html hanya kerangka "Memuat artikel..." dan isinya disuntik article.js
 // lewat fetch, jadi crawler dan pratinjau tautan WhatsApp hanya melihat halaman kosong
-// bertajuk umum. Sekarang /website/article.html?slug=<slug> (URL yang sudah beredar, tidak
+// bertajuk umum. Sekarang /website/article?slug=<slug> (alamat lama article.html dialihkan ke sini, tidak
 // diubah) dijawab server dengan <title>, description, canonical, tag bagikan, dan isi artikel
 // yang sudah terisi. Tidak ada build step: template tetap website/article.html.
 //
@@ -76,7 +76,7 @@ function renderArticle(article) {
     : '';
   return `
       <header class="story-header">
-        <p class="story-kicker"><a href="articles.html">Pena Hamasah</a><span aria-hidden="true">·</span><span>${escapeHtml(category)}</span></p>
+        <p class="story-kicker"><a href="articles">Pena Hamasah</a><span aria-hidden="true">·</span><span>${escapeHtml(category)}</span></p>
         <h1 class="story-title">${escapeHtml(title)}</h1>
         ${excerpt ? `<p class="story-subtitle">${escapeHtml(excerpt)}</p>` : ''}
         ${renderByline(article)}
@@ -122,7 +122,7 @@ function renderRelated(related) {
         <h2 class="story-related__title">Tulisan lain dari Pena Hamasah</h2>
         <ul class="story-related__list">${cards}
         </ul>
-        <a class="story-related__all" href="articles.html">Lihat semua tulisan</a>
+        <a class="story-related__all" href="articles">Lihat semua tulisan</a>
       `;
 }
 
@@ -132,7 +132,7 @@ function renderMissing() {
           <p class="eyebrow">Pena Hamasah</p>
           <h1>Artikel Tidak Ditemukan</h1>
           <p>Artikel ini tidak ada atau belum diterbitkan. Silakan kembali ke daftar artikel untuk memilih bacaan lainnya.</p>
-          <a class="button button--primary" href="articles.html">Lihat Semua Artikel</a>
+          <a class="button button--primary" href="articles">Lihat Semua Artikel</a>
         </div>
       `;
 }

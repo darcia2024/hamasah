@@ -25,17 +25,17 @@ const DEFAULT_IMAGE = Object.freeze({
 // dirender per artikel (server/article-page.js) dan tiap artikel masuk sitemap sendiri.
 const PUBLIC_PAGES = Object.freeze({
   'index.html': '/website/',
-  'biaya.html': '/website/biaya.html',
-  'kontak.html': '/website/kontak.html',
-  'tim.html': '/website/tim.html',
-  'articles.html': '/website/articles.html',
-  'cek-status.html': '/website/cek-status.html',
-  'daftar.html': '/website/daftar.html',
-  'program-kuliah.html': '/website/program-kuliah.html',
-  'program-mahad.html': '/website/program-mahad.html',
-  'program-courses.html': '/website/program-courses.html',
-  'kelas.html': '/website/kelas.html',
-  'kebijakan-privasi.html': '/website/kebijakan-privasi.html'
+  'biaya.html': '/website/biaya',
+  'kontak.html': '/website/kontak',
+  'tim.html': '/website/tim',
+  'articles.html': '/website/articles',
+  'cek-status.html': '/website/cek-status',
+  'daftar.html': '/website/daftar',
+  'program-kuliah.html': '/website/program-kuliah',
+  'program-mahad.html': '/website/program-mahad',
+  'program-courses.html': '/website/program-courses',
+  'kelas.html': '/website/kelas',
+  'kebijakan-privasi.html': '/website/kebijakan-privasi'
 });
 
 function escapeHtml(value) {
@@ -156,7 +156,7 @@ function sitemapXml({ origin, websiteDirectory, articles = [] }) {
 // URL kanonis satu artikel. Bentuk lama (article.html?slug=...) dipertahankan supaya tautan
 // yang sudah beredar tidak putus; server yang merender isinya (Task R7.3).
 function articlePath(slug) {
-  return `/website/article.html?slug=${encodeURIComponent(slug)}`;
+  return `/website/article?slug=${encodeURIComponent(slug)}`;
 }
 
 module.exports = {

@@ -49,7 +49,7 @@ async function run() {
   const pesanKloter = eventMessage('departure-assigned', { name: 'Calon', registrationId: 'HI-REG-2026-00001', departureName: 'Kloter 1 <Jakarta>', plannedDate: '2026-10-15', origin: 'Jakarta (CGK)', statusLabel: 'Terkonfirmasi', note: '<script>x</script>' }, 'https://app.test');
   assert.ok(pesanKloter.html.includes('Kamis, 15 Oktober 2026'));
   assert.ok(pesanKloter.html.includes('Kloter 1 &lt;Jakarta&gt;') && !pesanKloter.html.includes('<script>'));
-  assert.ok(pesanKloter.html.includes('https://app.test/website/cek-status.html'));
+  assert.ok(pesanKloter.html.includes('https://app.test/website/cek-status'));
   assert.ok(eventMessage('departure-assigned', { registrationId: 'X', departureName: 'K', plannedDate: null }, '').html.includes('Rencana berangkat: belum ditetapkan'));
 
   // Kloter berubah: satu email per penerima anggota; pendaftaran dibatalkan dilewati.
@@ -68,7 +68,7 @@ async function run() {
   // Isi email di-escape.
   const pesan = eventMessage('document-revision', { name: 'Calon <b>Uji</b>', registrationId: 'HI-REG-2026-00001', note: '<script>x</script>' }, 'https://app.test');
   assert.ok(!pesan.html.includes('<script>') && !pesan.html.includes('<b>Uji'));
-  assert.ok(pesan.html.includes('https://app.test/website/cek-status.html'));
+  assert.ok(pesan.html.includes('https://app.test/website/cek-status'));
   const bayar = eventMessage('payment-received', { name: 'Wali', studentName: 'Santri', invoiceNumber: 'INV/HI/2026/00001', receiptNumber: 'KWT/HI/2026/00001', amount: 1500000 }, 'https://app.test');
   assert.match(bayar.html, /Rp\s?1\.500\.000/);
   const tagihan = eventMessage('invoice-issued', { name: 'Wali', studentName: 'Santri <i>', invoiceNumber: 'INV/HI/2026/00002', description: 'SPP Oktober', amount: 1500000 }, 'https://app.test');

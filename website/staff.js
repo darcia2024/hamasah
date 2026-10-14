@@ -641,7 +641,7 @@ function createWhatsappControl(registration) {
   const keterangan = document.createElement('small');
   keterangan.textContent = 'Pesan mengikuti status yang sudah disimpan. Simpan status dulu bila baru diubah.';
   box.append(judul, keterangan);
-  const statusUrl = `${window.location.origin}/website/cek-status.html`;
+  const statusUrl = `${window.location.origin}/website/cek-status`;
   const tujuan = [
     ['applicant', 'WA calon santri', registration.applicant.phone],
     ['guardian', 'WA wali', registration.applicant.guardianPhone]
@@ -874,7 +874,7 @@ function showConsole(account) {
     window.hamasahSaatDataSegar(muatData);
   }
   muatData();
-  // Datang dari ikon surat di topbar Portal (portal.html).
+  // Datang dari ikon surat di topbar Portal (portal).
   if (window.location.hash === '#pesan-konsultasi') {
     const tabPesan = STAFF_TABS.find((tab) => tab.button === tabBtnInquiries);
     if (tabPesan) openStaffTab(tabPesan);
@@ -1679,7 +1679,7 @@ function tampilkanHasilManual(registration, accessCode) {
   const salin = elemen('button', 'button button--secondary op-action', 'Salin nomor dan kode');
   salin.type = 'button';
   salin.addEventListener('click', () => {
-    const teks = `Nomor pendaftaran: ${registration.registrationId}\nKode akses: ${accessCode}\nCek status: ${window.location.origin}/website/cek-status.html`;
+    const teks = `Nomor pendaftaran: ${registration.registrationId}\nKode akses: ${accessCode}\nCek status: ${window.location.origin}/website/cek-status`;
     navigator.clipboard.writeText(teks).then(() => { salin.textContent = 'Tersalin'; }).catch(() => { salin.textContent = 'Salin manual dari layar'; });
   });
   const tutup = elemen('button', 'button button--text op-action', 'Tutup');

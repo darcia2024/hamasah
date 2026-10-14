@@ -1,4 +1,4 @@
-// Halaman kelas daring (kelas.html): katalog, daftar atau masuk, membeli kelas, dan pesanan.
+// Halaman kelas daring (kelas): katalog, daftar atau masuk, membeli kelas, dan pesanan.
 //
 // Sesi disimpan di kunci yang sama dengan portal dan LMS (hamasahPortalSession), jadi setelah
 // masuk di sini pembeli langsung bisa membuka Ruang belajar tanpa masuk lagi. Pembayaran
@@ -78,7 +78,7 @@ function renderAkun() {
     nama.textContent = `Masuk sebagai ${keadaan.akun.name}`;
     const belajar = document.createElement('a');
     belajar.className = 'button button--primary';
-    belajar.href = 'lms.html';
+    belajar.href = 'lms';
     belajar.textContent = 'Buka Ruang belajar';
     const keluar = document.createElement('button');
     keluar.type = 'button';
@@ -142,7 +142,7 @@ function renderKatalog() {
     if (status === 'aktif') {
       aksi = document.createElement('a');
       aksi.className = 'button button--secondary';
-      aksi.href = 'lms.html';
+      aksi.href = 'lms';
       aksi.textContent = 'Mulai belajar';
     } else {
       aksi = document.createElement('button');
@@ -222,7 +222,7 @@ function renderPesanan() {
     } else if (order.status === 'paid') {
       const belajar = document.createElement('a');
       belajar.className = 'button button--secondary';
-      belajar.href = 'lms.html';
+      belajar.href = 'lms';
       belajar.textContent = 'Mulai belajar';
       li.append(belajar);
     }

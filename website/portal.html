@@ -21,12 +21,12 @@
   <body class="staff-page">
     <!-- Header saat Belum Login -->
     <header class="staff-header staff-header--shell" id="public-header">
-      <a href="index.html" class="staff-brand">
+      <a href="./" class="staff-brand">
         <img class="brand-logo-icon" src="../assets/logo-emblem-gold.png" alt="" width="30" height="33" />
         <span class="staff-brand__name">Hamasah International</span> <span>Portal</span>
       </a>
       <div class="staff-header-actions">
-        <a href="index.html" class="button button--secondary" aria-label="Kembali ke beranda">
+        <a href="./" class="button button--secondary" aria-label="Kembali ke beranda">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           <span>Beranda</span>
         </a>
@@ -64,7 +64,7 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </button>
           <p id="portal-login-status" class="form-status" role="status" aria-live="polite"></p>
-          <p class="staff-login__help"><a href="lupa-password.html">Lupa kata sandi?</a></p>
+          <p class="staff-login__help"><a href="lupa-password">Lupa kata sandi?</a></p>
         </form>
 
       </div>
@@ -75,7 +75,7 @@
       <!-- CRM Left Sidebar -->
       <aside class="crm-sidebar" id="crm-sidebar">
         <div class="crm-sidebar-header">
-          <a href="portal.html" class="crm-brand">
+          <a href="portal" class="crm-brand">
             <img src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" class="crm-brand-logo" width="34" height="34" />
             <div class="crm-brand-text">
               <span class="crm-brand-title">Hamasah <strong>Portal</strong></span>
@@ -120,7 +120,7 @@
           <div class="crm-topbar-actions">
             <!-- Disembunyikan sampai portal.js tahu perannya: pesan konsultasi untuk admin dan
                  petugas pendaftaran, "Perlu perhatian" hanya untuk admin. -->
-            <a href="staff.html#pesan-konsultasi" class="crm-icon-circle-btn" id="topbar-inquiries" title="Pesan konsultasi" aria-label="Pesan konsultasi" hidden>
+            <a href="staff#pesan-konsultasi" class="crm-icon-circle-btn" id="topbar-inquiries" title="Pesan konsultasi" aria-label="Pesan konsultasi" hidden>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
               <span class="crm-icon-badge" id="topbar-inquiries-count" hidden></span>
             </a>
@@ -155,10 +155,10 @@
     </section>
 
     <script src="internal-shell.js?v=af5d3d7d4c"></script>
-    <script src="nav.js?v=4b983e8076"></script>
-    <script src="admin-overview.js?v=192c57a8c8"></script>
-    <script src="perjalanan-santri.js?v=be2fefc7b3"></script>
-    <script src="portal.js?v=9b0e435d6a"></script>
+    <script src="nav.js?v=bf0426e95e"></script>
+    <script src="admin-overview.js?v=a819abf8f0"></script>
+    <script src="perjalanan-santri.js?v=b00c16df87"></script>
+    <script src="portal.js?v=db09cde896"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>

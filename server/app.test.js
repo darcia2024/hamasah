@@ -685,16 +685,16 @@ async function run() {
     const publicPage = await request(baseUrl, '/website/');
     assert.equal(publicPage.status, 200);
     assert.match(publicPage.body, /Hamasah International/);
-    const portalPage = await request(baseUrl, '/website/portal.html');
+    const portalPage = await request(baseUrl, '/website/portal');
     assert.equal(portalPage.status, 200);
     assert.match(portalPage.body, /Portal Hamasah/);
-    const staffPage = await request(baseUrl, '/website/staff.html');
+    const staffPage = await request(baseUrl, '/website/staff');
     assert.equal(staffPage.status, 200);
     assert.match(staffPage.body, /Konsol pendaftaran/);
 
     // Halaman konsol membawa aturan penyiapan halaman (Speculation Rules); halaman
     // publik tidak. Aturannya JSON dengan tipe khusus dan hanya menunjuk halaman konsol.
-    for (const halaman of ['/portal.html', '/website/monitoring.html', '/operations.html']) {
+    for (const halaman of ['/portal.html', '/website/monitoring', '/operations.html']) {
       assert.equal((await fetch(`${baseUrl}${halaman}`)).headers.get('speculation-rules'), '"/konsol-spekulasi.json"', halaman);
     }
     assert.equal((await fetch(`${baseUrl}/website/`)).headers.get('speculation-rules'), null);
@@ -703,23 +703,23 @@ async function run() {
     assert.equal(aturan.headers.get('content-type'), 'application/speculationrules+json');
     const isiAturan = await aturan.json();
     assert.equal(isiAturan.prerender[0].eagerness, 'moderate');
-    assert.ok(isiAturan.prerender[0].where.and[0].href_matches.every((pola) => /^\/(website\/)?(portal|staff|monitoring|operations|lms|audit|pengaturan|akun|konten|template)\.html$/.test(pola)));
+    assert.ok(isiAturan.prerender[0].where.and[0].href_matches.every((pola) => /^\/(website\/)?(portal|staff|monitoring|operations|lms|audit|pengaturan|akun|konten|template)$/.test(pola)));
     // Artikel dirender server (Task R7.3): judul artikel sudah ada tanpa JavaScript.
-    const articlePage = await request(baseUrl, `/website/article.html?slug=${articleCreated.body.item.slug}`);
+    const articlePage = await request(baseUrl, `/website/article?slug=${articleCreated.body.item.slug}`);
     assert.equal(articlePage.status, 200);
     assert.ok(articlePage.body.includes(`<h1 class="story-title">${articleCreated.body.item.title}</h1>`));
-    assert.equal((await request(baseUrl, '/website/article.html?slug=tidak-ada')).status, 404);
-    const monitoringPage = await request(baseUrl, '/website/monitoring.html');
+    assert.equal((await request(baseUrl, '/website/article?slug=tidak-ada')).status, 404);
+    const monitoringPage = await request(baseUrl, '/website/monitoring');
     assert.equal(monitoringPage.status, 200);
     assert.match(monitoringPage.body, /Monitoring santri/);
-    const lmsPage = await request(baseUrl, '/website/lms.html');
+    const lmsPage = await request(baseUrl, '/website/lms');
     assert.equal(lmsPage.status, 200);
     assert.match(lmsPage.body, /LMS Hamasah/);
-    const operationsPage = await request(baseUrl, '/website/operations.html');
+    const operationsPage = await request(baseUrl, '/website/operations');
     assert.equal(operationsPage.status, 200);
     assert.match(operationsPage.body, /Keuangan, visa, dan inventaris/);
 
-    const auditPage = await request(baseUrl, '/website/audit.html');
+    const auditPage = await request(baseUrl, '/website/audit');
     assert.equal(auditPage.status, 200);
     assert.match(auditPage.body, /Jejak audit/);
 

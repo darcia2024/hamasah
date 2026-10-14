@@ -254,6 +254,23 @@ function serveStaticFile(response, { pathname, rootDirectory, request, search, t
     }
   }
 
+  // Alamat halaman tanpa .html. /website/biaya.html dialihkan permanen ke /website/biaya
+  // (tautan lama di email, WhatsApp, dan hasil pencarian tetap jalan), lalu /website/biaya
+  // menyajikan website/biaya.html. index.html dialihkan ke /website/.
+  if (/^website\/[a-z0-9-]+\.html$/i.test(normalizedPath) && (!request || ['GET', 'HEAD'].includes(request.method))) {
+    const nama = normalizedPath.slice('website/'.length, -'.html'.length);
+    if (nama !== '404' && fs.existsSync(path.resolve(rootDirectory, normalizedPath))) {
+      response.writeHead(301, { Location: `/website/${nama === 'index' ? '' : nama}${search || ''}`, 'Cache-Control': 'public, max-age=86400' });
+      response.end();
+      return;
+    }
+  }
+  if (/^website\/[a-z0-9-]+$/i.test(normalizedPath)) {
+    const halaman = `${normalizedPath}.html`;
+    const lokasi = path.resolve(rootDirectory, halaman);
+    if (fs.existsSync(lokasi) && fs.statSync(lokasi).isFile() && !normalizedPath.endsWith('/404')) normalizedPath = halaman;
+  }
+
   if (!isServablePath(normalizedPath)) {
     notFound(response, rootDirectory);
     return;

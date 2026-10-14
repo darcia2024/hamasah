@@ -40,7 +40,7 @@ function tautkanHalaman(panel) {
     const sisa = node.splitText(awal);
     sisa.splitText(frasa.length);
     const tautan = document.createElement('a');
-    tautan.href = 'biaya.html';
+    tautan.href = 'biaya';
     tautan.textContent = frasa;
     sisa.replaceWith(tautan);
   });
@@ -91,7 +91,7 @@ function renderArticles(items) {
     const utama = index === 0;
     const item = document.createElement('a');
     item.className = utama ? 'pena-item pena-item--utama' : 'pena-item';
-    item.href = `article.html?slug=${encodeURIComponent(article.slug)}`;
+    item.href = `article?slug=${encodeURIComponent(article.slug)}`;
 
     if (article.coverUrl) {
       const cover = document.createElement('img');

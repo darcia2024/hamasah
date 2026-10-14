@@ -44,7 +44,7 @@ assert.ok(!html.includes('<b>tebal'));
 assert.ok(html.includes('&lt;img src=x onerror=alert(1)&gt;'));
 
 // Tag bagikan mencerminkan artikel yang dibuka.
-const url = `${ORIGIN}/website/article.html?slug=kabar-kairo`;
+const url = `${ORIGIN}/website/article?slug=kabar-kairo`;
 assert.ok(html.includes(`<link rel="canonical" href="${url}" />`));
 assert.ok(html.includes(`<meta property="og:url" content="${url}" />`));
 assert.ok(html.includes('<meta property="og:type" content="article" />'));
@@ -76,7 +76,7 @@ const lain = [
 const denganLain = renderArticlePage({ template, article: artikel, origin: ORIGIN, related: lain }).html;
 assert.equal((denganLain.match(/class="story-related__item"/g) || []).length, 3);
 assert.ok(!denganLain.includes('Artikel ini sendiri'));
-assert.ok(denganLain.includes('href="article.html?slug=satu"'));
+assert.ok(denganLain.includes('href="article?slug=satu"'));
 assert.ok(denganLain.includes('Tulisan &lt;b&gt;satu&lt;/b&gt;') && !denganLain.includes('Tulisan <b>satu'));
 assert.ok(denganLain.includes('Kegiatan · 2 September 2026'));
 assert.ok(!denganLain.includes('Tulisan empat'));

@@ -43,7 +43,7 @@
 
   function tautanMateri(course, material) {
     const params = new URLSearchParams({ maddah: course.id, materi: material.id });
-    return `lms.html#${params.toString()}`;
+    return `lms#${params.toString()}`;
   }
 
   // --------------------------------------------------------- Indikator utama

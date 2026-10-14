@@ -81,7 +81,7 @@ Konten yang pernah diubah lewat **Konten Website** menimpa teks bawaan. Setelah 
 Setelah migrasi 049 diterapkan:
 
 1. **Isi rekening tujuan.** Buka **Pengaturan**, isi *Rekening pembayaran kelas daring*, misalnya `BSI 1234567890 a.n. PT Visi Berkah International`. Bila dikosongkan, pembeli diminta menanyakan rekening ke admin lewat WhatsApp.
-2. **Terbitkan kelas.** Buka **LMS**, pilih maddah, tekan **Atur penjualan**. Isi harga, lalu pilih *Ya, bisa dibeli umum*. Kelas langsung tampil di `hamasah.vercel.app/website/kelas.html`.
+2. **Terbitkan kelas.** Buka **LMS**, pilih maddah, tekan **Atur penjualan**. Isi harga, lalu pilih *Ya, bisa dibeli umum*. Kelas langsung tampil di `hamasah.vercel.app/website/kelas`.
 3. **Alur pembeli:** daftar akun dengan email, lalu tekan *Beli kelas*. Sistem menerbitkan tagihan (INV/HI/…). Pembeli transfer, lalu menekan *Konfirmasi lewat WhatsApp*. Pesan berisi nama, kelas, nomor tagihan, dan jumlah otomatis terkirim ke WA Admin 1.
 4. **Konfirmasi pembayaran.** Setelah bukti transfer dicek, buka **Keuangan**, cari nomor tagihannya, lalu **Tandai lunas**. Pembeli otomatis terdaftar di kelas itu dan bisa langsung belajar di **Ruang belajar**. Kuitansi terbit seperti tagihan biasa.
 

@@ -4,14 +4,16 @@
   if (!menuButton || !navigation) return;
 
   const navLinks = Array.from(navigation.querySelectorAll('a'));
-  const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+  // Alamat halaman tanpa .html (mis. /website/biaya); alamat lama ber-.html tetap dikenali.
+  const namaHalaman = (pathname) => (pathname.split('/').pop() || 'index').replace(/\.html$/, '');
+  const currentPath = namaHalaman(window.location.pathname);
   const currentHash = window.location.hash;
 
   navLinks.forEach((link) => {
     const url = new URL(link.href, window.location.href);
-    const linkPath = url.pathname.split('/').pop() || 'index.html';
+    const linkPath = namaHalaman(url.pathname);
     const samePage = linkPath === currentPath;
-    const articleDetail = currentPath === 'article.html' && linkPath === 'articles.html';
+    const articleDetail = currentPath === 'article' && linkPath === 'articles';
     const sameSection = samePage && url.hash && url.hash === currentHash;
     if ((samePage && !url.hash) || articleDetail || sameSection) {
       link.classList.add('is-active');
@@ -24,7 +26,7 @@
   const sectionLinks = navLinks
     .map((link) => ({ link, hash: new URL(link.href, window.location.href).hash }))
     .filter(({ link, hash }) => {
-      const linkPath = new URL(link.href, window.location.href).pathname.split('/').pop() || 'index.html';
+      const linkPath = namaHalaman(new URL(link.href, window.location.href).pathname);
       return hash && linkPath === currentPath && document.getElementById(hash.slice(1));
     });
   if (sectionLinks.length && 'IntersectionObserver' in window) {

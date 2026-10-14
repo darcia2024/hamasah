@@ -1,7 +1,7 @@
 // Editor isian super admin, dipakai dua halaman:
-// - Konten Website (konten.html, <body data-editor="konten">): isi website publik.
+// - Konten Website (konten, <body data-editor="konten">): isi website publik.
 //   Endpoint /api/admin/content (server/routes/site-content.js, server/site-content.js).
-// - Template (template.html, <body data-editor="template">): pesan WhatsApp, email,
+// - Template (template, <body data-editor="template">): pesan WhatsApp, email,
 //   kop PDF, dan dokumen pendaftar. Endpoint /api/admin/templates (server/routes/templates.js,
 //   server/templates.js).
 //
@@ -54,7 +54,7 @@ const PROGRAM = [['kuliah', 'Kuliah S1 Al-Azhar'], ['mahad', "Ma'had Al-Azhar"],
 const SKEMA_KONTEN = {
   kontak: {
     keterangan: 'Nomor WhatsApp admin, alamat kantor, dan akun media sosial. Nomor baru langsung dipakai di semua tombol WhatsApp di website.',
-    tautan: 'kontak.html',
+    tautan: 'kontak',
     isi: [
       { k: 'whatsapp', label: 'Nomor WhatsApp admin', jenis: 'teks', maks: 20, petunjuk: 'Dengan kode negara, misalnya 6281234567890. Awalan 0 diubah otomatis menjadi 62.', format: 'whatsapp' },
       { k: 'alamatIndonesia', label: 'Alamat kantor Indonesia', jenis: 'area', baris: 3, maks: 300, petunjuk: 'Satu baris per baris alamat.' },
@@ -68,7 +68,7 @@ const SKEMA_KONTEN = {
   },
   biaya: {
     keterangan: 'Kartu biaya tiap program dan tanya-jawab seputar biaya di halaman Biaya & fasilitas.',
-    tautan: 'biaya.html',
+    tautan: 'biaya',
     isi: [
       { k: 'pengantar', label: 'Pengantar halaman biaya', jenis: 'area', baris: 3, maks: 500 },
       ...PROGRAM.map(([kunci, nama]) => ({
@@ -92,7 +92,7 @@ const SKEMA_KONTEN = {
   },
   program: {
     keterangan: 'Sasaran dan ringkasan tiap program di beranda, serta paragraf pembuka di halaman programnya.',
-    tautan: 'index.html#program',
+    tautan: './#program',
     isi: PROGRAM.map(([kunci, nama]) => ({
       grup: nama,
       k: kunci,
@@ -105,7 +105,7 @@ const SKEMA_KONTEN = {
   },
   testimoni: {
     keterangan: 'Kartu testimoni wali di beranda. Urutan di sini sama dengan urutan tampil.',
-    tautan: 'index.html#testimoni',
+    tautan: './#testimoni',
     akar: {
       jenis: 'daftar', batas: 8, tambah: 'Tambah testimoni', nama: 'Testimoni',
       isi: [
@@ -120,7 +120,7 @@ const SKEMA_KONTEN = {
   },
   faq: {
     keterangan: 'Pertanyaan umum di beranda. Asisten website juga menjawab dari isi ini.',
-    tautan: 'index.html#bantuan',
+    tautan: './#bantuan',
     akar: {
       jenis: 'daftar', batas: 10, minimal: 1, tambah: 'Tambah pertanyaan', nama: 'Pertanyaan',
       isi: [
@@ -133,7 +133,7 @@ const SKEMA_KONTEN = {
   },
   galeri: {
     keterangan: 'Foto dokumentasi di bagian Galeri beranda. Urutan di sini sama dengan urutan tampil. Foto otomatis dikecilkan sebelum diunggah, jadi foto langsung dari HP pun boleh.',
-    tautan: 'index.html#galeri',
+    tautan: './#galeri',
     akar: {
       jenis: 'daftar', batas: 40, minimal: 1, tambah: 'Tambah foto', nama: 'Foto',
       isi: [
@@ -145,12 +145,12 @@ const SKEMA_KONTEN = {
   },
   pengumuman: {
     keterangan: 'Pita pengumuman di bagian atas beranda. Bisa diberi tanggal mulai dan selesai supaya hilang sendiri.',
-    tautan: 'index.html',
+    tautan: './',
     isi: [
       { k: 'aktif', label: 'Tampilkan pengumuman', jenis: 'saklar', petunjuk: 'Pengumuman hanya tampil bila saklar ini menyala dan hari ini berada di rentang tanggalnya.' },
       { k: 'teks', label: 'Isi pengumuman', jenis: 'area', baris: 2, maks: 200, petunjuk: 'Misalnya: Gelombang 2 dibuka sampai 30 November 2026.' },
       { k: 'tautanTeks', label: 'Teks tautan (tidak wajib)', jenis: 'teks', maks: 40, petunjuk: 'Misalnya: Daftar sekarang.' },
-      { k: 'tautanUrl', label: 'Alamat tautan (tidak wajib)', jenis: 'teks', maks: 300, petunjuk: 'Halaman di situs ini (misalnya #pendaftaran atau biaya.html) atau alamat https://.' },
+      { k: 'tautanUrl', label: 'Alamat tautan (tidak wajib)', jenis: 'teks', maks: 300, petunjuk: 'Halaman di situs ini (misalnya #pendaftaran atau biaya) atau alamat https://.' },
       { k: 'mulai', label: 'Tampil mulai tanggal (tidak wajib)', jenis: 'tanggal' },
       { k: 'selesai', label: 'Tampil sampai tanggal (tidak wajib)', jenis: 'tanggal' }
     ]
@@ -214,7 +214,7 @@ const SKEMA_TEMPLATE = {
     pratinjau(draf) {
       return window.HamasahWhatsappMessage.registrationMessage(CONTOH_PENDAFTAR, {
         recipient: 'guardian',
-        statusUrl: `${window.location.origin}/website/cek-status.html`,
+        statusUrl: `${window.location.origin}/website/cek-status`,
         template: draf,
         dokumen: data.nilai.dokumen
       });

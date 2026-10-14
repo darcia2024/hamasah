@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <time class="article-card-date" datetime="${a.publishedAt || ''}">${dateStr}</time>
           </div>
           <h2 class="article-card-title">
-            <a href="article.html?slug=${encodeURIComponent(a.slug)}">${escapeHtml(a.title)}</a>
+            <a href="article?slug=${encodeURIComponent(a.slug)}">${escapeHtml(a.title)}</a>
           </h2>
           ${a.coverUrl ? `<img class="article-card-cover" src="${escapeHtml(a.coverUrl)}" alt="${escapeHtml(a.coverAltText || a.title || 'Cover artikel') }" loading="lazy" />` : `<div class="article-card-cover article-card-cover--empty" role="img" aria-label="Cover artikel tidak tersedia">Belum ada gambar sampul</div>`}
           <p class="article-card-excerpt">${escapeHtml(a.excerpt || '')}</p>
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="author-dot"></span>
               <span>${escapeHtml(a.authorName || 'Tim Redaksi Hamasah International')}</span>
             </div>
-            <a class="article-read-link" href="article.html?slug=${encodeURIComponent(a.slug)}" aria-label="Baca artikel ${escapeHtml(a.title)}">
+            <a class="article-read-link" href="article?slug=${encodeURIComponent(a.slug)}" aria-label="Baca artikel ${escapeHtml(a.title)}">
               <span>Baca Artikel</span>
               <span aria-hidden="true" class="btn-arrow"></span>
             </a>

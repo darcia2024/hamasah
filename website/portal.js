@@ -288,7 +288,7 @@ function createStudentCompactCard(student, idx, account, onOpen) {
       <div class="crm-student-compact-arrow">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
       </div>
-      <a href="portal.html?studentId=${encodeURIComponent(student.id)}" target="_blank" rel="noopener" class="crm-student-compact-newtab" title="Buka di tab baru" aria-label="Buka di tab baru">
+      <a href="portal?studentId=${encodeURIComponent(student.id)}" target="_blank" rel="noopener" class="crm-student-compact-newtab" title="Buka di tab baru" aria-label="Buka di tab baru">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
       </a>
     </div>
@@ -549,7 +549,7 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
   if (canRecord) {
     const actions = document.createElement('div');
     actions.className = 'crm-toolbar-actions';
-    actions.innerHTML = '<a class="crm-btn-primary-yellow" href="monitoring.html"><span>Catat di Monitoring</span></a>';
+    actions.innerHTML = '<a class="crm-btn-primary-yellow" href="monitoring"><span>Catat di Monitoring</span></a>';
     toolbar.append(actions);
   }
 
@@ -638,7 +638,7 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
         <h3>Maddah yang Diikuti</h3>
         <p>Daftar maddah dan progres belajar santri ini.</p>
       </div>
-      <a href="lms.html" class="crm-btn-primary-yellow js-btn-sm">
+      <a href="lms" class="crm-btn-primary-yellow js-btn-sm">
         <span>Buka Ruang Belajar (LMS)</span>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </a>
@@ -649,7 +649,7 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
   `;
   // Wali hanya melihat ringkasan progres; ruang belajar LMS bukan untuknya.
   if (currentAccount && currentAccount.role === 'parent') {
-    const lmsLink = panelLms.querySelector('a[href="lms.html"]');
+    const lmsLink = panelLms.querySelector('a[href="lms"]');
     if (lmsLink) lmsLink.remove();
     const subjudul = panelLms.querySelector('.crm-white-card-header p');
     if (subjudul) subjudul.textContent = 'Ringkasan progres belajar ananda per maddah.';
@@ -1082,39 +1082,39 @@ function kartuSapaan(account, ringkasan, allTotal) {
   const PINTASAN = {
     // Urutannya sama dengan menu samping (nav.js).
     admin: [
-      ['staff.html', 'Pendaftaran calon santri'],
-      ['monitoring.html', 'Monitoring santri & asrama'],
-      ['lms.html', 'LMS: maddah dan materi'],
-      ['operations.html', 'Keuangan, visa, dan inventaris'],
-      ['akun.html', 'Kelola akun'],
-      ['audit.html', 'Jejak audit'],
-      ['pengaturan.html', 'Pengaturan aplikasi']
+      ['staff', 'Pendaftaran calon santri'],
+      ['monitoring', 'Monitoring santri & asrama'],
+      ['lms', 'LMS: maddah dan materi'],
+      ['operations', 'Keuangan, visa, dan inventaris'],
+      ['akun', 'Kelola akun'],
+      ['audit', 'Jejak audit'],
+      ['pengaturan', 'Pengaturan aplikasi']
     ],
     'registration-officer': [
-      ['staff.html', 'Pendaftaran calon santri'],
-      ['staff.html#tambah-manual', 'Tambah pendaftar manual'],
-      ['staff.html#agenda', 'Agenda tindak lanjut'],
-      ['staff.html#pesan-konsultasi', 'Pesan konsultasi']
+      ['staff', 'Pendaftaran calon santri'],
+      ['staff#tambah-manual', 'Tambah pendaftar manual'],
+      ['staff#agenda', 'Agenda tindak lanjut'],
+      ['staff#pesan-konsultasi', 'Pesan konsultasi']
     ],
     supervisor: [
-      ['monitoring.html#presensi', 'Presensi asrama (sholat dan kegiatan)'],
-      ['monitoring.html', 'Catat pembinaan per santri'],
-      ['monitoring.html#izin', 'Izin santri'],
-      ['monitoring.html#pesan-wali', 'Pesan wali'],
-      ['lms.html', 'Progres maddah santri']
+      ['monitoring#presensi', 'Presensi asrama (sholat dan kegiatan)'],
+      ['monitoring', 'Catat pembinaan per santri'],
+      ['monitoring#izin', 'Izin santri'],
+      ['monitoring#pesan-wali', 'Pesan wali'],
+      ['lms', 'Progres maddah santri']
     ],
     teacher: [
-      ['lms.html', 'Kelola maddah dan materi'],
-      ['lms.html#kelola=kiriman', 'Nilai kiriman tugas'],
-      ['lms.html#kelola=progres', 'Progres dan pendaftaran santri']
+      ['lms', 'Kelola maddah dan materi'],
+      ['lms#kelola=kiriman', 'Nilai kiriman tugas'],
+      ['lms#kelola=progres', 'Progres dan pendaftaran santri']
     ],
     finance: [
-      ['operations.html', 'Terbitkan tagihan dan kuitansi'],
-      ['operations.html#menunggak', 'Tagihan menunggak'],
-      ['operations.html#tunggakan', 'Tunggakan per santri'],
-      ['operations.html#visa', 'Visa dan paspor']
+      ['operations', 'Terbitkan tagihan dan kuitansi'],
+      ['operations#menunggak', 'Tagihan menunggak'],
+      ['operations#tunggakan', 'Tunggakan per santri'],
+      ['operations#visa', 'Visa dan paspor']
     ],
-    student: [['lms.html', 'Buka ruang belajar']]
+    student: [['lms', 'Buka ruang belajar']]
   };
   const statCard = document.createElement('div');
   statCard.className = 'coursue-statistic-card portal-greeting';
@@ -1158,9 +1158,9 @@ function kartuSapaan(account, ringkasan, allTotal) {
 // mengajar), dan kartu sapaan. Keuangan dan petugas pendaftaran langsung diarahkan ke
 // halaman kerjanya lewat tombol banner dan pintasan.
 const BERANDA_PERAN = {
-  teacher: { tag: 'RUANG ASATIDZ', judul: 'Konsol pengajar', sub: 'Maddah yang Anda ampu, kiriman tugas, dan progres santri.', cta: 'Buka maddah saya', href: 'lms.html' },
-  finance: { tag: 'KONSOL KEUANGAN', judul: 'Konsol keuangan', sub: 'Tagihan, pembayaran, dan kuitansi santri.', cta: 'Buka tagihan', href: 'operations.html' },
-  'registration-officer': { tag: 'KONSOL PENDAFTARAN', judul: 'Konsol pendaftaran', sub: 'Calon santri, berkas, dan pesan konsultasi.', cta: 'Buka pendaftaran', href: 'staff.html' }
+  teacher: { tag: 'RUANG ASATIDZ', judul: 'Konsol pengajar', sub: 'Maddah yang Anda ampu, kiriman tugas, dan progres santri.', cta: 'Buka maddah saya', href: 'lms' },
+  finance: { tag: 'KONSOL KEUANGAN', judul: 'Konsol keuangan', sub: 'Tagihan, pembayaran, dan kuitansi santri.', cta: 'Buka tagihan', href: 'operations' },
+  'registration-officer': { tag: 'KONSOL PENDAFTARAN', judul: 'Konsol pendaftaran', sub: 'Calon santri, berkas, dan pesan konsultasi.', cta: 'Buka pendaftaran', href: 'staff' }
 };
 
 function renderBerandaPeran(account) {
@@ -1260,22 +1260,22 @@ function kartuTugasGuru(subjudul) {
       daftar.className = 'musyrif-task-list';
       const butir = [];
       if (!courses.length) {
-        butir.push(tugas('Belum ada maddah yang Anda ampu. Buat maddah baru atau minta admin menugaskan Anda.', 'lms.html', 'Buat maddah', 'info'));
+        butir.push(tugas('Belum ada maddah yang Anda ampu. Buat maddah baru atau minta admin menugaskan Anda.', 'lms', 'Buat maddah', 'info'));
       }
       courses.filter((course) => course.pending).forEach((course) => {
-        butir.push(tugas(`${course.title}: ${course.pending} kiriman menunggu dinilai`, `lms.html#kelola=kiriman&maddah=${encodeURIComponent(course.id)}`, 'Nilai', 'perlu'));
+        butir.push(tugas(`${course.title}: ${course.pending} kiriman menunggu dinilai`, `lms#kelola=kiriman&maddah=${encodeURIComponent(course.id)}`, 'Nilai', 'perlu'));
       });
       courses.filter((course) => !course.students).forEach((course) => {
-        butir.push(tugas(`${course.title}: belum ada santri terdaftar`, `lms.html#kelola=progres&maddah=${encodeURIComponent(course.id)}`, 'Daftarkan', 'perlu'));
+        butir.push(tugas(`${course.title}: belum ada santri terdaftar`, `lms#kelola=progres&maddah=${encodeURIComponent(course.id)}`, 'Daftarkan', 'perlu'));
       });
       courses.filter((course) => !course.materials).forEach((course) => {
-        butir.push(tugas(`${course.title}: belum ada materi aktif`, 'lms.html', 'Tambah materi', 'perlu'));
+        butir.push(tugas(`${course.title}: belum ada materi aktif`, 'lms', 'Tambah materi', 'perlu'));
       });
       if (courses.length && !butir.length) {
         butir.push(tugas('Semua kiriman tugas sudah dinilai.', null, '', 'selesai'));
       }
       courses.forEach((course) => {
-        butir.push(tugas(`${course.title}: ${course.materials} materi, ${course.students} santri`, `lms.html#kelola=progres&maddah=${encodeURIComponent(course.id)}`, 'Progres', 'info'));
+        butir.push(tugas(`${course.title}: ${course.materials} materi, ${course.students} santri`, `lms#kelola=progres&maddah=${encodeURIComponent(course.id)}`, 'Progres', 'info'));
       });
       daftar.append(...butir);
       memuat.replaceWith(daftar);
@@ -1348,16 +1348,16 @@ function kartuTugasKeuangan(subjudul) {
       const namaBulan = new Intl.DateTimeFormat('id-ID', { month: 'long', timeZone: 'UTC' }).format(new Date(`${r.month}-01T00:00:00Z`));
       if (subjudul) subjudul.textContent = `Tunggakan ${rp(r.outstanding.total)} dari ${r.outstanding.count} tagihan. Terkumpul ${namaBulan}: ${rp(r.collectedThisMonth.total)}.`;
       angka.append(
-        kartu('Tunggakan', rpRingkas(r.outstanding.total), `${r.outstanding.count} tagihan, ${rp(r.outstanding.total)}`, 'operations.html#belum-dibayar', r.outstanding.count ? 'warn' : ''),
-        kartu(`Terkumpul ${namaBulan}`, rpRingkas(r.collectedThisMonth.total), `${r.collectedThisMonth.count} pembayaran, ${rp(r.collectedThisMonth.total)}`, 'operations.html', ''),
-        kartu(`Terbit ${namaBulan}`, rpRingkas(r.issuedThisMonth.total), `${r.issuedThisMonth.count} tagihan, ${rp(r.issuedThisMonth.total)}`, 'operations.html', '')
+        kartu('Tunggakan', rpRingkas(r.outstanding.total), `${r.outstanding.count} tagihan, ${rp(r.outstanding.total)}`, 'operations#belum-dibayar', r.outstanding.count ? 'warn' : ''),
+        kartu(`Terkumpul ${namaBulan}`, rpRingkas(r.collectedThisMonth.total), `${r.collectedThisMonth.count} pembayaran, ${rp(r.collectedThisMonth.total)}`, 'operations', ''),
+        kartu(`Terbit ${namaBulan}`, rpRingkas(r.issuedThisMonth.total), `${r.issuedThisMonth.count} tagihan, ${rp(r.issuedThisMonth.total)}`, 'operations', '')
       );
       const daftar = document.createElement('ul');
       daftar.className = 'musyrif-task-list';
       const butir = [];
-      if (r.overdue.count) butir.push(tugas(`${r.overdue.count} tagihan belum dibayar lebih dari ${r.overdueDays} hari (${rp(r.overdue.total)})`, 'operations.html#menunggak', 'Tagih', 'perlu'));
-      if (r.visa.expired) butir.push(tugas(`${r.visa.expired} visa atau paspor sudah lewat masa berlaku`, 'operations.html#visa', 'Periksa', 'perlu'));
-      if (r.visa.expiring) butir.push(tugas(`${r.visa.expiring} visa atau paspor habis dalam 30 hari`, 'operations.html#visa', 'Periksa', 'perlu'));
+      if (r.overdue.count) butir.push(tugas(`${r.overdue.count} tagihan belum dibayar lebih dari ${r.overdueDays} hari (${rp(r.overdue.total)})`, 'operations#menunggak', 'Tagih', 'perlu'));
+      if (r.visa.expired) butir.push(tugas(`${r.visa.expired} visa atau paspor sudah lewat masa berlaku`, 'operations#visa', 'Periksa', 'perlu'));
+      if (r.visa.expiring) butir.push(tugas(`${r.visa.expiring} visa atau paspor habis dalam 30 hari`, 'operations#visa', 'Periksa', 'perlu'));
       if (!butir.length) butir.push(tugas('Tidak ada tunggakan lama dan tidak ada visa yang segera habis.', null, '', 'selesai'));
       daftar.append(...butir);
       memuat.replaceWith(angka, daftar);
@@ -1433,14 +1433,14 @@ function kartuTugasPendaftaran(subjudul) {
       if (subjudul) subjudul.textContent = `${berjalan} pendaftaran sedang berjalan, ${per.submitted || 0} di antaranya data baru masuk.`;
       const angka = document.createElement('div');
       angka.className = 'admin-kpi-grid finance-home-kpis registration-home-kpis';
-      TAHAP.forEach(([status, label]) => angka.append(kartu(label, per[status] || 0, 'staff.html', status === 'needs-revision' && per[status] ? 'warn' : '')));
+      TAHAP.forEach(([status, label]) => angka.append(kartu(label, per[status] || 0, 'staff', status === 'needs-revision' && per[status] ? 'warn' : '')));
       const daftar = document.createElement('ul');
       daftar.className = 'musyrif-task-list';
       const butir = [];
-      if (r.stale) butir.push(tugas(`${r.stale} pendaftar baru belum disentuh lebih dari ${r.staleDays || 3} hari`, 'staff.html#baru-tertunda', 'Periksa', 'perlu'));
-      if (r.overdueSteps) butir.push(tugas(`${r.overdueSteps} tindak lanjut lewat tenggat (${r.overdueRegistrations} pendaftar)`, 'staff.html#agenda', 'Buka agenda', 'perlu'));
-      if (r.pendingDocuments) butir.push(tugas(`${r.pendingDocuments} berkas menunggu review (${r.pendingDocumentRegistrations} pendaftar)`, 'staff.html#berkas-menunggu', 'Review', 'perlu'));
-      if (r.newInquiries) butir.push(tugas(`${r.newInquiries} pesan konsultasi baru`, 'staff.html#pesan-konsultasi', 'Balas', 'perlu'));
+      if (r.stale) butir.push(tugas(`${r.stale} pendaftar baru belum disentuh lebih dari ${r.staleDays || 3} hari`, 'staff#baru-tertunda', 'Periksa', 'perlu'));
+      if (r.overdueSteps) butir.push(tugas(`${r.overdueSteps} tindak lanjut lewat tenggat (${r.overdueRegistrations} pendaftar)`, 'staff#agenda', 'Buka agenda', 'perlu'));
+      if (r.pendingDocuments) butir.push(tugas(`${r.pendingDocuments} berkas menunggu review (${r.pendingDocumentRegistrations} pendaftar)`, 'staff#berkas-menunggu', 'Review', 'perlu'));
+      if (r.newInquiries) butir.push(tugas(`${r.newInquiries} pesan konsultasi baru`, 'staff#pesan-konsultasi', 'Balas', 'perlu'));
       if (!butir.length) butir.push(tugas('Tidak ada pendaftar tertunda, tindak lanjut lewat tenggat, atau berkas yang menunggu.', null, '', 'selesai'));
       daftar.append(...butir);
       memuat.replaceWith(angka, daftar);
@@ -1564,7 +1564,7 @@ async function loadStudents(account) {
   } else {
     if (account && account.role === 'admin') {
       // Ringkasan santri, asrama, dan musyrif. Bila gagal, dashboard tetap tampil dengan
-      // daftar santri biasa. Akun dikelola di halaman sendiri (akun.html).
+      // daftar santri biasa. Akun dikelola di halaman sendiri (akun).
       try {
         adminOverview = window.HamasahAdminOverview ? await window.HamasahAdminOverview.muat(requestHeaders()) : null;
       } catch {
@@ -1635,7 +1635,7 @@ async function showPortal() {
 let dataSegarTerpasang = false;
 
 // Ikon di topbar. Surat: pesan konsultasi baru dari formulir kontak (admin dan petugas
-// pendaftaran), membuka tab Pesan konsultasi di staff.html. Lonceng: jumlah "Perlu
+// pendaftaran), membuka tab Pesan konsultasi di staff. Lonceng: jumlah "Perlu
 // perhatian" di dashboard admin, menggulir ke daftarnya.
 function isiAngkaIkon(id, jumlah) {
   const badge = document.querySelector(id);
@@ -1728,12 +1728,12 @@ function kartuTugasMusyrif() {
       if (!data.students) {
         butir.push(tugas('Anda belum memegang asrama. Hubungi admin untuk penugasan.', null, '', 'info'));
       } else if (data.sholatBelum.length) {
-        data.sholatBelum.forEach((item) => butir.push(tugas(`Sholat ${NAMA_SHOLAT[item.prayer] || item.prayer}: ${item.belum} dari ${data.students} santri belum dicatat`, `monitoring.html#presensi-${item.prayer}`, 'Catat', 'perlu')));
+        data.sholatBelum.forEach((item) => butir.push(tugas(`Sholat ${NAMA_SHOLAT[item.prayer] || item.prayer}: ${item.belum} dari ${data.students} santri belum dicatat`, `monitoring#presensi-${item.prayer}`, 'Catat', 'perlu')));
       } else {
         butir.push(tugas(`Semua waktu sholat hari ini sudah dicatat untuk ${data.students} santri.`, null, '', 'selesai'));
       }
-      if (data.izinMenunggu) butir.push(tugas(`${data.izinMenunggu} izin menunggu keputusan`, 'monitoring.html#izin', 'Putuskan', 'perlu'));
-      if (data.pesanBelumDibaca) butir.push(tugas(`${data.pesanBelumDibaca} pesan wali belum dibaca`, 'monitoring.html#pesan-wali', 'Baca', 'perlu'));
+      if (data.izinMenunggu) butir.push(tugas(`${data.izinMenunggu} izin menunggu keputusan`, 'monitoring#izin', 'Putuskan', 'perlu'));
+      if (data.pesanBelumDibaca) butir.push(tugas(`${data.pesanBelumDibaca} pesan wali belum dibaca`, 'monitoring#pesan-wali', 'Baca', 'perlu'));
       (data.kesehatan || []).forEach((item) => butir.push(tugas(`${item.name}: ${KONDISI[item.condition] || item.condition} (${formatTanggalPanjang(item.date)})`, null, '', 'perlu')));
       daftar.replaceChildren(...butir);
       memuat.replaceWith(daftar);

@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="auth-pages.css?v=229494029c">
   <link rel="stylesheet" href="fields.css?v=8b2a97dcc4" />
 </head>
-<body data-password-endpoint="/api/auth/invitations/accept" data-password-success="Akun aktif. Silakan masuk ke portal dengan kata sandi baru Anda." data-password-redirect="portal.html?activated=1">
+<body data-password-endpoint="/api/auth/invitations/accept" data-password-success="Akun aktif. Silakan masuk ke portal dengan kata sandi baru Anda." data-password-redirect="portal?activated=1">
   <main>
     <p class="eyebrow">Hamasah International</p>
     <h1>Aktivasi akun</h1>
@@ -20,7 +20,7 @@
     <div class="token-state" data-token-state="loading" role="status" aria-live="polite">
       <strong data-token-state-title>Memeriksa tautan aktivasi…</strong>
       <span data-token-state-message>Jangan tutup halaman ini.</span>
-      <a class="token-recovery-link" href="lupa-password.html">Minta tautan baru</a>
+      <a class="token-recovery-link" href="lupa-password">Minta tautan baru</a>
     </div>
     <form method="post" data-password-form novalidate hidden>
       <div class="password-control"><label for="activation-password">Kata sandi baru</label><span class="password-field"><input id="activation-password" name="password" type="password" autocomplete="new-password" required minlength="12"><button type="button" class="password-toggle" data-password-toggle="activation-password" aria-label="Tampilkan kata sandi">Tampilkan</button></span></div>
@@ -28,7 +28,7 @@
       <button type="submit" data-label="Aktifkan akun">Aktifkan akun</button>
     </form>
     <p class="status" data-status aria-live="polite"></p>
-    <p><a href="portal.html">Kembali ke halaman masuk</a></p>
+    <p><a href="portal">Kembali ke halaman masuk</a></p>
   </main>
   <script src="auth-pages.js?v=67cf604fac" defer></script>
 </body>

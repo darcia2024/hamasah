@@ -6,10 +6,10 @@ const { localAnswer: ask, createAssistant, buildContext, htmlToLines, knowledge,
 
 test('basis pengetahuan dibangun dari halaman publik, artikel, dan FAQ', () => {
   const { materials } = knowledge();
-  assert.ok(materials.some((material) => material.url && material.url.startsWith('program-kuliah.html')));
+  assert.ok(materials.some((material) => material.url && material.url.startsWith('program-kuliah')));
   assert.ok(materials.some((material) => material.id.startsWith('article:')));
   assert.ok(materials.some((material) => material.type === 'faq'));
-  assert.ok(!materials.some((material) => material.url === 'index.html#testimoni'), 'Testimoni bukan sumber jawaban.');
+  assert.ok(!materials.some((material) => material.url === './#testimoni'), 'Testimoni bukan sumber jawaban.');
 });
 
 test('HTML menjadi baris teks tanpa isi formulir dan ikon', () => {

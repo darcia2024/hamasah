@@ -23,7 +23,7 @@ async function run() {
   const result = await worker.runOnce();
   assert.equal(result.claimed, 1);
   assert.equal(delivered.id, 'outbox-1');
-  assert.match(sentMessage.html, /aktivasi\.html#token=token-rahasia-aman-1234567890/);
+  assert.match(sentMessage.html, /aktivasi#token=token-rahasia-aman-1234567890/);
 
   const recoveryPayload = encryptNotificationPayload({ kind: 'applicant-recovery', name: 'Calon', registrationId: 'HI-REG-2026-00001', accessCode: 'ABCD234567' }, 'worker-test-key');
   let recoveryMessage = null;
