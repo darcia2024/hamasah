@@ -369,6 +369,8 @@ main .eyebrow + h2 + p.lp-lede {
 
 .lp-hero .lp-assure {
   margin-top: 0;
+  /* Jarak bawah sudah diberi bagian hero sendiri; tanpa ini ada ruang kosong ganda. */
+  padding-bottom: 0;
   text-align: left;
 }
 
@@ -444,6 +446,9 @@ main .eyebrow + h2 + p.lp-lede {
 
 .lp-assure li {
   display: grid;
+  /* Baris tidak ikut meregang mengikuti kolom tertinggi, supaya judul dan teks ketiga
+     kolom sejajar di atas. */
+  align-content: start;
   gap: 6px;
   padding: 0 28px;
   border-left: 1px solid var(--lp-line);
@@ -2691,3 +2696,327 @@ main h1.lp-h2 {
   .lp-card:nth-child(4) { --x: 67.5; --y: 90; --r: -4.5deg; }
   .lp-card:nth-child(5) { --x: 85; --y: 61; --r: -8.5deg; }
 }
+
+/* ---------- Tentang: kutipan bergaya quote ---------- */
+/* Judul bagian jadi label kecil di tengah, kutipan besar berhuruf Philosopher (senada logo)
+   dengan tanda kutip emas, dan nama lembaga sebagai pengutip. */
+.lp-about > h2.lp-h2 {
+  text-align: center;
+  font-family: "Plus Jakarta Sans", -apple-system, "Segoe UI", sans-serif;
+  font-size: var(--fs-13);
+  font-weight: 600 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+}
+
+.lp-about > .lp-quote {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: 100%;
+  max-width: 820px;
+  /* Label dan kutipan satu kesatuan: jarak baris grid bagian ini dipangkas. */
+  margin: calc(-1 * clamp(20px, 4vw, 56px)) 0 clamp(8px, 2vw, 24px);
+  text-align: center;
+}
+
+.lp-quote::before {
+  content: "\201C";
+  display: block;
+  height: 0.5em;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: clamp(88px, 9vw, 128px);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--gold);
+}
+
+.lp-quote blockquote {
+  margin: 0;
+}
+
+.lp-quote p {
+  max-width: 34ch;
+  margin: 0 auto;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: clamp(var(--fs-24), 3vw, 38px);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0;
+  color: var(--lp-ink);
+}
+
+.lp-quote figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 22px;
+  font-size: var(--fs-13);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lp-soft);
+}
+
+.lp-quote figcaption::before,
+.lp-quote figcaption::after {
+  content: "";
+  width: 32px;
+  height: 1px;
+  background: var(--gold);
+}
+
+@media (max-width: 640px) {
+  .lp-quote p {
+    font-size: var(--fs-24);
+  }
+}
+
+/* ---------- Portal wali: daftar ringkas dan mockup ponsel ---------- */
+/* Mockup dibuat dari HTML (bukan gambar) supaya tajam di semua layar. Isinya mengikuti
+   portal sungguhan: rekap sholat per waktu (Berjamaah/Munfarid/Izin), penilaian hafalan
+   (Lancar), rapor PDF, dan kuitansi. */
+.lp-portal__points {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.lp-portal__points li {
+  position: relative;
+  padding-left: 22px;
+  font-size: var(--fs-16);
+  line-height: 1.5;
+  color: var(--lp-ink);
+}
+
+.lp-portal__points li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.55em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+.lp-phone-wrap {
+  position: relative;
+  margin: 0;
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+}
+
+/* Cahaya emas lembut di belakang ponsel. */
+.lp-phone-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 8% 4% 14%;
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(231, 177, 12, 0.22), transparent);
+  filter: blur(8px);
+}
+
+.lp-phone-wrap figcaption {
+  position: relative;
+  font-size: var(--fs-13);
+  color: var(--lp-soft);
+}
+
+.lp-phone {
+  position: relative;
+  z-index: 1;
+  width: min(300px, 100%);
+  padding: 10px;
+  border-radius: 44px;
+  background: #363638;
+  box-shadow: 0 30px 60px -28px rgba(54, 54, 56, 0.55), inset 0 0 0 2px #4a4a4d;
+}
+
+.lp-phone__screen {
+  display: grid;
+  gap: 10px;
+  padding: 14px 12px 18px;
+  border-radius: 34px;
+  background: #faf9f7;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--lp-ink);
+  text-align: left;
+}
+
+.lp-phone__bar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 4px 2px;
+  font-size: 12.5px;
+}
+
+.lp-phone__bar b {
+  font-weight: 700;
+}
+
+.lp-phone__avatar,
+.lp-phone__photo {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-weight: 700;
+}
+
+.lp-phone__avatar {
+  width: 26px;
+  height: 26px;
+  margin-left: auto;
+  background: #fdf3d3;
+  color: var(--gold-dark);
+  font-size: 10px;
+}
+
+.lp-phone__student {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 16px;
+  background: #363638;
+  color: #fff;
+}
+
+.lp-phone__student b {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.lp-phone__student small {
+  display: block;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.lp-phone__photo {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  background: var(--gold);
+  color: #363638;
+  font-size: 12px;
+}
+
+.lp-phone__card {
+  display: grid;
+  gap: 8px;
+  padding: 11px 12px;
+  border: 1px solid rgba(54, 54, 56, 0.07);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.lp-phone__card b {
+  font-weight: 700;
+}
+
+.lp-phone__card small {
+  font-size: 11px;
+  color: var(--lp-soft);
+}
+
+.lp-phone__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.lp-phone__head span {
+  font-size: 10.5px;
+  color: var(--lp-soft);
+}
+
+.lp-phone__pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e6f2ea;
+  color: #1e6b3a !important;
+  font-weight: 700;
+}
+
+.lp-phone__prayer {
+  display: grid;
+  grid-template-columns: 30px repeat(5, 1fr);
+  gap: 5px 4px;
+  align-items: center;
+  justify-items: center;
+  font-size: 10px;
+  color: var(--lp-soft);
+}
+
+.lp-phone__day {
+  justify-self: start;
+}
+
+.lp-phone__prayer i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.lp-phone__prayer .is-berjamaah {
+  background: #1e6b3a;
+}
+
+.lp-phone__prayer .is-munfarid {
+  background: #fff;
+  box-shadow: inset 0 0 0 2px var(--gold);
+}
+
+.lp-phone__prayer .is-izin {
+  background: #d9d6cf;
+}
+
+.lp-phone__pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.lp-phone__pair .lp-phone__card {
+  gap: 2px;
+}
+
+@media (max-width: 900px) {
+  .lp-phone {
+    width: min(280px, 100%);
+  }
+}
+
+.lp-phone__legend {
+  display: flex;
+  gap: 10px;
+  font-size: 10px;
+  color: var(--lp-soft);
+}
+
+.lp-phone__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lp-phone__legend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.lp-phone__legend .is-berjamaah { background: #1e6b3a; }
+.lp-phone__legend .is-munfarid { box-shadow: inset 0 0 0 1.5px var(--gold); }
+.lp-phone__legend .is-izin { background: #d9d6cf; }
