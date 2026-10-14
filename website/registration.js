@@ -154,11 +154,36 @@ fields.program.addEventListener('change', syncProgramFields);
 })();
 syncProgramFields();
 
+// Setelah data tersimpan, WhatsApp admin dibuka dengan pesan yang sudah terisi, supaya
+// pendaftar langsung tersambung dengan admin. Nomor admin diisi server lewat
+// <meta name="hamasah-whatsapp"> (bisa diubah dari Konten Website). Kode Akses tidak ikut
+// dikirim ke admin karena itu rahasia pendaftar.
+const NOMOR_ADMIN = String((document.querySelector('meta[name="hamasah-whatsapp"]') || {}).content || '6281288489997').replace(/\D/g, '');
+
+function pesanUntukAdmin(isian, registrationId) {
+  const opsi = fields.program.querySelector(`option[value="${isian.program}"]`);
+  const baris = [
+    "Assalamu'alaikum, admin Hamasah International.",
+    '',
+    'Saya baru mengisi formulir konsultasi di website.',
+    `Nama: ${isian.applicantName.trim()}`,
+    `Program: ${opsi ? opsi.textContent.trim() : isian.program}`
+  ];
+  if (isian.city.trim()) baris.push(`Kota: ${isian.city.trim()}`);
+  baris.push(`Nomor registrasi: ${registrationId}`, '', 'Mohon info langkah selanjutnya. Terima kasih.');
+  return `https://wa.me/${NOMOR_ADMIN}?text=${encodeURIComponent(baris.join('\n'))}`;
+}
+
 // Kode Akses hanya dikirim server sekali, saat pendaftaran dibuat (yang disimpan hanya
 // hash-nya). Tanpa kode ini pendaftar tidak bisa membuka Cek status di perangkat lain atau
 // setelah tab ditutup, jadi kode ditampilkan jelas dan bisa disalin atau dikirim ke WA sendiri.
-function showRegistrationReceipt(registrationId, accessCode) {
+function showRegistrationReceipt(registrationId, accessCode, urlAdmin) {
   if (!registrationReceipt || !accessCode) return;
+  const tombolAdmin = registrationReceipt.querySelector('#receipt-admin');
+  if (tombolAdmin && urlAdmin) {
+    tombolAdmin.href = urlAdmin;
+    tombolAdmin.hidden = false;
+  }
   const lines = [
     'Pendaftaran Hamasah International',
     `Nomor registrasi: ${registrationId}`,
@@ -217,11 +242,15 @@ form.addEventListener('submit', async (event) => {
   submitButton.disabled = true;
   submitButton.textContent = 'Mengirim data...';
   status.textContent = '';
+  const isian = readRegistrationForm();
+  // Tab WhatsApp dibuka sekarang, selagi masih dalam klik pengguna, lalu diarahkan setelah
+  // server menjawab. Bila dibuka sesudah menunggu server, peramban memblokirnya.
+  const tabWa = window.open('', '_blank');
   try {
     const response = await fetch('/api/registrations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(readRegistrationForm())
+      body: JSON.stringify(isian)
     });
     const contentType = response.headers.get('content-type') || '';
     const result = contentType.includes('application/json') ? await response.json() : {};
@@ -233,11 +262,19 @@ form.addEventListener('submit', async (event) => {
       registrationId: result.registration.registrationId,
       accessToken: result.accessToken
     }));
-    status.textContent = 'Pendaftaran awal berhasil dibuat. Tim kami akan menghubungi Anda lewat WhatsApp.';
+    const urlAdmin = pesanUntukAdmin(isian, result.registration.registrationId);
+    if (tabWa && !tabWa.closed) {
+      tabWa.opener = null;
+      tabWa.location.href = urlAdmin;
+      status.textContent = 'Data tersimpan. WhatsApp admin sudah terbuka di tab baru, tinggal tekan kirim.';
+    } else {
+      status.textContent = 'Data tersimpan. Tekan "Kirim pesan ke admin" untuk melanjutkan lewat WhatsApp.';
+    }
     form.reset();
-    showRegistrationReceipt(result.registration.registrationId, result.accessCode);
+    showRegistrationReceipt(result.registration.registrationId, result.accessCode, urlAdmin);
     refreshRegistrationStatus();
   } catch (error) {
+    if (tabWa && !tabWa.closed) tabWa.close();
     status.textContent = error.message || 'Layanan formulir belum dapat dihubungi.';
     status.classList.add('is-error');
   } finally {
