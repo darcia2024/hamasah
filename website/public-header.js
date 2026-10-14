@@ -13,12 +13,40 @@
     const samePage = linkPath === currentPath;
     const articleDetail = currentPath === 'article.html' && linkPath === 'articles.html';
     const sameSection = samePage && url.hash && url.hash === currentHash;
-    const isIndexProgram = currentPath === 'index.html' && url.hash === '#program' && (!currentHash || currentHash === '#beranda');
-    if ((samePage && !url.hash) || articleDetail || sameSection || isIndexProgram) {
+    if ((samePage && !url.hash) || articleDetail || sameSection) {
       link.classList.add('is-active');
       link.setAttribute('aria-current', 'page');
     }
   });
+
+  // Tautan ke bagian di halaman yang sama (di beranda: Program, Tentang) disorot sesuai
+  // bagian yang sedang ada di tengah layar. Di luar bagian itu, tidak ada yang disorot.
+  const sectionLinks = navLinks
+    .map((link) => ({ link, hash: new URL(link.href, window.location.href).hash }))
+    .filter(({ link, hash }) => {
+      const linkPath = new URL(link.href, window.location.href).pathname.split('/').pop() || 'index.html';
+      return hash && linkPath === currentPath && document.getElementById(hash.slice(1));
+    });
+  if (sectionLinks.length && 'IntersectionObserver' in window) {
+    const terlihat = new Set();
+    const sorot = () => {
+      const aktif = sectionLinks.find(({ hash }) => terlihat.has(hash.slice(1)));
+      sectionLinks.forEach((item) => {
+        const nyala = item === aktif;
+        item.link.classList.toggle('is-active', nyala);
+        if (nyala) item.link.setAttribute('aria-current', 'location');
+        else item.link.removeAttribute('aria-current');
+      });
+    };
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) terlihat.add(entry.target.id);
+        else terlihat.delete(entry.target.id);
+      });
+      sorot();
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    sectionLinks.forEach(({ hash }) => observer.observe(document.getElementById(hash.slice(1))));
+  }
 
   function closeMenu({ returnFocus = false } = {}) {
     menuButton.setAttribute('aria-expanded', 'false');

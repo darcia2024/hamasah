@@ -209,8 +209,8 @@ const BAWAAN = Object.freeze({
     {
       tanya: 'Berapa biayanya?',
       topik: 'Tentang biaya',
-      judul: 'Rincian biaya disampaikan saat konsultasi, sesuai program dan periode keberangkatan.',
-      jawab: "Pembayaran bisa dicicil. Ma'had: DP Rp 5 juta, sisanya dilunasi sebelum berangkat. Kuliah: dicicil selama rangkaian tes. Komponen yang tercakup ada di halaman Biaya & fasilitas, dan nominal terbaru dikonfirmasi saat konsultasi."
+      judul: "Ma'had Rp 22 juta untuk keberangkatan, Kuliah S1 dibayar bertahap mulai Rp 1,1 juta.",
+      jawab: "Ma'had: keberangkatan Rp 22.000.000 sekali bayar, lalu asrama Rp 1.800.000 per bulan, sudah termasuk makan, listrik, dan pendampingan musyrif. Kuliah S1 dari Indonesia: Rp 1.100.000 untuk pendaftaran, Rp 2.800.000 untuk karantina dan ujian muadalah, lalu Rp 18.500.000 sampai Rp 20.000.000 untuk keberangkatan. Uang yang sudah dibayar bisa dikembalikan dengan ketentuan: DP pemberkasan tidak dikembalikan (Rp 5 juta untuk Ma'had dan Rp 4,5 juta untuk Kuliah), sedangkan kelebihan di atas DP dikembalikan. Rincian lengkap ada di halaman Biaya & fasilitas."
     }
   ],
 

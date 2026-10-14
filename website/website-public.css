@@ -1824,7 +1824,7 @@
 
 .footer-links-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 0.9fr 1.1fr 0.9fr 1.5fr;
   gap: 32px;
 }
 
@@ -6271,4 +6271,18 @@ main h2,
   font-family: "Philosopher", "Plus Jakarta Sans", -apple-system, "Segoe UI", sans-serif;
   font-weight: 700 !important;
   letter-spacing: -0.005em !important;
+}
+
+/* Empat kolom tautan: kolom merek dipersempit supaya tautan tidak patah dua baris. */
+@media (min-width: 1025px) {
+  .footer-wrap {
+    grid-template-columns: 1fr 2.6fr;
+    gap: 48px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .footer-links-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }

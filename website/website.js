@@ -25,8 +25,26 @@ questionButtons.forEach((button) => {
       item.setAttribute('aria-pressed', String(active));
     });
     answerPanel.replaceChildren(...[...source.children].map((node) => node.cloneNode(true)));
+    tautkanHalaman(answerPanel);
   });
 });
+
+// Jawaban disunting admin sebagai teks polos. Sebutan "halaman Biaya & fasilitas" dijadikan
+// tautan di sini, supaya pembaca bisa langsung membuka rinciannya.
+function tautkanHalaman(panel) {
+  panel.querySelectorAll('p').forEach((paragraf) => {
+    const frasa = 'Biaya & fasilitas';
+    const node = [...paragraf.childNodes].find((n) => n.nodeType === Node.TEXT_NODE && n.textContent.includes(`halaman ${frasa}`));
+    if (!node) return;
+    const awal = node.textContent.indexOf(`halaman ${frasa}`) + 'halaman '.length;
+    const sisa = node.splitText(awal);
+    sisa.splitText(frasa.length);
+    const tautan = document.createElement('a');
+    tautan.href = 'biaya.html';
+    tautan.textContent = frasa;
+    sisa.replaceWith(tautan);
+  });
+}
 
 const faqForm = document.querySelector('#faq-form');
 const faqInput = document.querySelector('#faq-question-input');
