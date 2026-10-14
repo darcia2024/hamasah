@@ -247,7 +247,7 @@ const BAWAAN = Object.freeze({
       alt: 'Founder Hamasah International berdiri berdampingan dengan Rektor Universitas Al-Azhar di sebuah ruang pertemuan'
     },
     {
-      foto: 'galeri/pimpinan-markaz-tatwir.webp', lebar: 1600, tinggi: 1324,
+      foto: 'galeri/pimpinan-markaz-tatwir.webp', lebar: 1024, tinggi: 847,
       keterangan: 'Pertemuan dengan Pimpinan Markaz Tatwir, lembaga pengembangan pendidikan Al-Azhar untuk pelajar asing',
       alt: 'Perwakilan Hamasah International berfoto bersama Pimpinan Markaz Tatwir'
     },
@@ -257,44 +257,69 @@ const BAWAAN = Object.freeze({
       alt: 'Perwakilan Hamasah International menyerahkan plakat penghargaan kepada Wakil Pimpinan Markaz Tatwir'
     },
     {
-      foto: 'galeri/keberangkatan-santri.webp', lebar: 1280, tinggi: 960,
+      foto: 'galeri/keberangkatan-santri.webp', lebar: 1024, tinggi: 768,
       keterangan: 'Keberangkatan rombongan santri menuju Kairo',
       alt: 'Rombongan santri Hamasah berfoto di area keberangkatan internasional bandara sebelum berangkat ke Kairo'
     },
     {
-      foto: 'galeri/idul-fitri-kairo.webp', lebar: 1280, tinggi: 960,
+      foto: 'galeri/idul-fitri-kairo.webp', lebar: 1024, tinggi: 768,
       keterangan: 'Suasana Hari Raya Idul Fitri di Kairo',
       alt: 'Santri Hamasah berfoto bersama di depan masjid berkubah putih seusai salat Idul Fitri di Kairo'
     },
     {
-      foto: 'galeri/family-gathering-kairo.webp', lebar: 1280, tinggi: 960,
+      foto: 'galeri/family-gathering-kairo.webp', lebar: 1024, tinggi: 768,
       keterangan: 'Family gathering Hamasah International di Kairo',
       alt: 'Santri Hamasah berfoto bersama di depan spanduk Hamasah International dalam acara family gathering'
     },
     {
-      foto: 'galeri/cairo-international-book-fair.webp', lebar: 1280, tinggi: 960,
+      foto: 'galeri/cairo-international-book-fair.webp', lebar: 1024, tinggi: 768,
       keterangan: 'Mengunjungi Cairo International Book Fair',
       alt: 'Santri putra dan putri Hamasah berfoto di depan gedung pameran Cairo International Book Fair'
     },
     {
-      foto: 'galeri/kajian-sore-asrama.webp', lebar: 1280, tinggi: 853,
+      foto: 'galeri/kajian-sore-asrama.webp', lebar: 1024, tinggi: 682,
       keterangan: 'Kajian sore di asrama',
       alt: 'Santri duduk melingkar di lantai menghadap papan tulis saat kajian sore'
     },
     {
-      foto: 'galeri/maulid-nabi-hadrah.webp', lebar: 1280, tinggi: 853,
+      foto: 'galeri/maulid-nabi-hadrah.webp', lebar: 1024, tinggi: 682,
       keterangan: 'Peringatan Maulid Nabi Muhammad SAW',
       alt: 'Santri menabuh rebana bersama saat peringatan Maulid Nabi'
     },
     {
-      foto: 'galeri/tur-tempat-bersejarah.webp', lebar: 423, tinggi: 282,
+      foto: 'galeri/tur-masjid-ibnu-thulun.webp', lebar: 1024, tinggi: 683,
       keterangan: 'Tur tempat bersejarah di Kairo',
-      alt: 'Rombongan santri berfoto di halaman masjid bersejarah berkubah di Kairo'
+      alt: 'Rombongan santri putra Hamasah berfoto di halaman Masjid Ibnu Thulun, Kairo'
     },
     {
-      foto: 'galeri/dewan-masyayikh-al-azhar.webp', lebar: 490, tinggi: 275,
-      keterangan: 'Bersama Dewan Masyayikh Al-Azhar, Dr. Nakhlah dan Dr. Syahidah',
-      alt: 'Santri Hamasah berfoto bersama Dewan Masyayikh Al-Azhar di sebuah aula'
+      foto: 'galeri/acara-mingguan-asrama.webp', lebar: 1024, tinggi: 683,
+      keterangan: 'Acara mingguan bersama para pembina Hamasah',
+      alt: 'Santri putra dan para pembina Hamasah duduk bersama di aula asrama, di depan spanduk Hamasah International'
+    },
+    {
+      foto: 'galeri/belajar-sore-musyrif.webp', lebar: 1024, tinggi: 683,
+      keterangan: 'Belajar sore bersama musyrif di asrama',
+      alt: 'Santri putra duduk di karpet mendengarkan musyrif di depan papan tulis'
+    },
+    {
+      foto: 'galeri/kajian-sore-santriwati.webp', lebar: 1024, tinggi: 683,
+      keterangan: 'Kajian sore santriwati di asrama',
+      alt: 'Santriwati Hamasah duduk di karpet mengikuti kajian sore di asrama'
+    },
+    {
+      foto: 'galeri/makan-bersama-asrama.webp', lebar: 1024, tinggi: 683,
+      keterangan: 'Makan bersama di asrama',
+      alt: 'Santri putra duduk lesehan bersama di aula asrama'
+    },
+    {
+      foto: 'galeri/tur-santriwati-kairo.webp', lebar: 1024, tinggi: 683,
+      keterangan: 'Jalan-jalan santriwati di Kairo',
+      alt: 'Santriwati Hamasah berfoto bersama di sebuah jalan di Kairo'
+    },
+    {
+      foto: 'galeri/badminton-bersama.webp', lebar: 1024, tinggi: 683,
+      keterangan: 'Olahraga badminton bersama',
+      alt: 'Santri bermain badminton di lapangan olahraga dalam ruangan'
     }
   ]
 });
@@ -534,8 +559,14 @@ function ukuranFoto(nilai, bidang, urutan) {
 // Foto bawaan yang diganti dengan foto baru (nama berkas baru supaya tidak tertahan cache).
 // Galeri yang sudah disimpan admin dengan foto lama ikut memakai foto baru beserta ukurannya.
 const FOTO_GALERI_DIGANTI = Object.freeze({
-  'galeri/kajian-sore.webp': Object.freeze({ foto: 'galeri/kajian-sore-asrama.webp', lebar: 1280, tinggi: 853 }),
-  'galeri/maulid-nabi.webp': Object.freeze({ foto: 'galeri/maulid-nabi-hadrah.webp', lebar: 1280, tinggi: 853 })
+  'galeri/kajian-sore.webp': Object.freeze({ foto: 'galeri/kajian-sore-asrama.webp', lebar: 1024, tinggi: 682 }),
+  'galeri/maulid-nabi.webp': Object.freeze({ foto: 'galeri/maulid-nabi-hadrah.webp', lebar: 1024, tinggi: 682 }),
+  'galeri/tur-tempat-bersejarah.webp': Object.freeze({ foto: 'galeri/tur-masjid-ibnu-thulun.webp', lebar: 1024, tinggi: 683, alt: 'Rombongan santri putra Hamasah berfoto di halaman Masjid Ibnu Thulun, Kairo' }),
+  'galeri/dewan-masyayikh-al-azhar.webp': Object.freeze({
+    foto: 'galeri/acara-mingguan-asrama.webp', lebar: 1024, tinggi: 683,
+    keterangan: 'Acara mingguan bersama para pembina Hamasah',
+    alt: 'Santri putra dan para pembina Hamasah duduk bersama di aula asrama, di depan spanduk Hamasah International'
+  })
 });
 
 function periksaGaleri(nilai) {
