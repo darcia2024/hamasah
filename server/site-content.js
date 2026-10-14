@@ -282,7 +282,7 @@ const BAWAAN = Object.freeze({
       alt: 'Santri duduk melingkar di lantai menghadap papan tulis saat kajian sore'
     },
     {
-      foto: 'galeri/maulid-nabi.webp', lebar: 468, tinggi: 312,
+      foto: 'galeri/maulid-nabi-hadrah.webp', lebar: 1280, tinggi: 853,
       keterangan: 'Peringatan Maulid Nabi Muhammad SAW',
       alt: 'Santri menabuh rebana bersama saat peringatan Maulid Nabi'
     },
@@ -534,7 +534,8 @@ function ukuranFoto(nilai, bidang, urutan) {
 // Foto bawaan yang diganti dengan foto baru (nama berkas baru supaya tidak tertahan cache).
 // Galeri yang sudah disimpan admin dengan foto lama ikut memakai foto baru beserta ukurannya.
 const FOTO_GALERI_DIGANTI = Object.freeze({
-  'galeri/kajian-sore.webp': Object.freeze({ foto: 'galeri/kajian-sore-asrama.webp', lebar: 1280, tinggi: 853 })
+  'galeri/kajian-sore.webp': Object.freeze({ foto: 'galeri/kajian-sore-asrama.webp', lebar: 1280, tinggi: 853 }),
+  'galeri/maulid-nabi.webp': Object.freeze({ foto: 'galeri/maulid-nabi-hadrah.webp', lebar: 1280, tinggi: 853 })
 });
 
 function periksaGaleri(nilai) {
