@@ -6257,3 +6257,18 @@ details.faq-item-card {
 details.faq-item-card[open] {
   padding-bottom: 20px;
 }
+
+/* ==========================================================================
+   Huruf judul (14 Oktober 2026): Philosopher, sehuruf dengan tulisan pada logo
+   resmi (ujung huruf melebar, "l" berekor). Hanya judul halaman dan judul bagian
+   di situs publik; teks isi, tombol, dan judul kecil tetap Plus Jakarta Sans.
+   Philosopher hanya dimuat tebal 700, jadi semua bobot judul memakai 700.
+   ========================================================================== */
+
+main h1,
+main h2,
+.story-title {
+  font-family: "Philosopher", "Plus Jakarta Sans", -apple-system, "Segoe UI", sans-serif;
+  font-weight: 700 !important;
+  letter-spacing: -0.005em !important;
+}
