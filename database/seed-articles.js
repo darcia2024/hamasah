@@ -18,7 +18,10 @@ function readSeedArticles(filePath) {
     category: String(article.category || 'Kegiatan').trim(),
     publishedAt: new Date(article.publishedAt || Date.now()).toISOString(),
     coverUrl: String(article.coverUrl || '').trim() || null,
-    coverAltText: String(article.coverAltText || '').trim() || null
+    coverAltText: String(article.coverAltText || '').trim() || null,
+    // Sampul bawaan versi lama. Artikel yang sampulnya masih salah satu dari ini boleh
+    // diganti ke sampul bawaan terbaru; sampul pilihan admin tidak pernah tersentuh.
+    previousCoverUrls: Array.isArray(article.previousCoverUrls) ? article.previousCoverUrls.map((url) => String(url).trim()).filter(Boolean) : []
   }));
 }
 

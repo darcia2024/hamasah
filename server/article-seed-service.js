@@ -59,16 +59,17 @@ function createArticleSeedService({ database, filePath = DEFAULT_FILE, now = () 
     return { ditambahkan, sampul, status: await status() };
   }
 
-  // Artikel bawaan yang sudah ada tetapi belum punya sampul diberi sampul bawaannya.
-  // Hanya mengisi yang kosong: sampul yang dipasang admin tidak pernah diganti, dan judul
-  // serta isi artikel tidak disentuh.
+  // Artikel bawaan yang sudah ada tetapi belum punya sampul diberi sampul bawaannya. Sampul
+  // yang masih berupa sampul bawaan versi lama (previousCoverUrls) juga diganti ke versi
+  // terbaru. Sampul yang dipasang admin tidak pernah diganti, dan judul serta isi artikel
+  // tidak disentuh.
   async function lengkapiSampul(daftar) {
     const diisi = [];
     for (const article of daftar.filter((item) => item.coverUrl)) {
       const { rowCount } = await database.query(
         `UPDATE articles SET cover_url = $2, cover_alt_text = $3
-          WHERE slug = $1 AND (cover_url IS NULL OR cover_url = '')`,
-        [article.slug, article.coverUrl, article.coverAltText]
+          WHERE slug = $1 AND (cover_url IS NULL OR cover_url = '' OR cover_url = ANY($4::text[]))`,
+        [article.slug, article.coverUrl, article.coverAltText, article.previousCoverUrls || []]
       );
       if (rowCount) diisi.push(article.slug);
     }

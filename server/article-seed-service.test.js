@@ -44,6 +44,13 @@ async function run() {
     assert.deepEqual((await layanan.tambahkan()).sampul, []);
     assert.equal((await database.query('SELECT cover_url FROM articles WHERE slug = $1', [bawaan[1].slug])).rows[0].cover_url, '/media/galeri/pilihan-admin.jpg');
 
+    // Sampul bawaan versi lama (previousCoverUrls) diganti ke sampul bawaan terbaru.
+    const berganti = bawaan.find((item) => item.previousCoverUrls.length);
+    assert.ok(berganti, 'Ada artikel bawaan dengan sampul lama yang perlu diganti.');
+    await database.query('UPDATE articles SET cover_url = $2 WHERE slug = $1', [berganti.slug, berganti.previousCoverUrls[0]]);
+    assert.deepEqual((await layanan.tambahkan()).sampul, [berganti.slug]);
+    assert.equal((await database.query('SELECT cover_url FROM articles WHERE slug = $1', [berganti.slug])).rows[0].cover_url, berganti.coverUrl);
+
     // Artikel yang sudah ada tidak ditimpa.
     const tersimpan = await database.query('SELECT title, body FROM articles WHERE slug = $1', [pertama.slug]);
     assert.equal(tersimpan.rows[0].title, 'Judul hasil suntingan admin');
