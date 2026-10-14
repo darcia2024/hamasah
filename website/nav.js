@@ -105,6 +105,26 @@ const STAFF_NAV_LINKS = Object.freeze([
     badgeType: null,
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/><path d="M5 15h4M13 15h2"/></svg>'
   },
+  // Visa dan inventaris berada di halaman Keuangan, tetapi diberi menu sendiri supaya tidak
+  // tersembunyi di balik tab. Kunci page dibedakan agar tidak ikut tersorot di halaman Keuangan.
+  {
+    href: 'operations.html#visa',
+    label: 'Visa & Paspor',
+    page: 'operations-visa',
+    roles: ['admin', 'finance'],
+    badge: null,
+    badgeType: null,
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M8 17h8"/></svg>'
+  },
+  {
+    href: 'operations.html#inventaris',
+    label: 'Inventaris',
+    page: 'operations-inventaris',
+    roles: ['admin', 'finance'],
+    badge: null,
+    badgeType: null,
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>'
+  },
   {
     href: 'akun.html',
     label: 'Kelola Akun',

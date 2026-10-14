@@ -1093,7 +1093,7 @@ async function loadOperations() {
   renderInventory(result.inventory);
 }
 
-// Tautan dari beranda Portal: #belum-dibayar, #menunggak, #tunggakan, #visa.
+// Tautan dari beranda Portal dan menu samping: #belum-dibayar, #menunggak, #tunggakan, #visa, #inventaris.
 function bukaDariAlamat() {
   const alamat = window.location.hash.slice(1);
   if (!alamat) return;
@@ -1105,6 +1105,7 @@ function bukaDariAlamat() {
     if (bagian) { bagian.focus({ preventScroll: true }); bagian.scrollIntoView({ block: 'start' }); }
   }
   if (alamat === 'visa') switchOpTab(document.querySelector('#tab-btn-visa'));
+  if (alamat === 'inventaris') switchOpTab(document.querySelector('#tab-btn-inventory'));
   try { history.replaceState(null, '', window.location.pathname); } catch {}
 }
 
