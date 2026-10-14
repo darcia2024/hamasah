@@ -2893,7 +2893,7 @@ main h1.lp-h2 {
 /* Gradasi emas lembut di bagian atas layar. */
 .lp-phone__glow {
   position: relative;
-  flex: 0 0 38%;
+  flex: 0 0 25%;
   padding: 50px 18px 0;
   background:
     radial-gradient(60% 55% at 30% 32%, rgba(231, 177, 12, 0.85), transparent 70%),
@@ -2915,11 +2915,13 @@ main h1.lp-h2 {
 }
 
 .lp-phone__body {
+  position: relative;
+  z-index: 1;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 9px;
-  padding: 0 18px;
+  gap: 8px;
+  padding: 0 16px;
 }
 
 .lp-phone__chip {
@@ -2970,42 +2972,115 @@ main h1.lp-h2 {
   color: #6b6b70;
 }
 
-.lp-phone__card-row,
-.lp-phone__card--row {
+/* Profil santri: foto (inisial) menumpuk di tepi bawah gradasi. */
+.lp-phone__profile {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 10px;
+  margin-top: -34px;
 }
 
-.lp-phone__card-row strong {
-  font-size: 24px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
+.lp-phone__avatar {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border: 3px solid #f7f7f5;
+  border-radius: 50%;
+  background: linear-gradient(140deg, #f3c64a, #b98a06);
+  color: #fff;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: 22px;
+  font-weight: 700;
+  box-shadow: 0 6px 14px -8px rgba(133, 96, 0, 0.6);
 }
 
-.lp-phone__bar {
+.lp-phone__profile .lp-phone__chip {
+  align-self: flex-end;
+  margin-bottom: 6px;
+}
+
+.lp-phone__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 9px 4px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 16px -10px rgba(0, 0, 0, 0.18);
+  text-align: center;
+}
+
+.lp-phone__stats span + span {
+  border-left: 1px solid #ececee;
+}
+
+.lp-phone__stats strong {
   display: block;
-  height: 3px;
-  border-radius: 3px;
-  background: #e6e6e8;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
-.lp-phone__bar i {
+.lp-phone__stats small {
   display: block;
-  width: 92%;
-  height: 100%;
-  border-radius: 3px;
-  background: var(--gold);
+  font-size: 8.5px;
+  color: #6b6b70;
 }
 
-.lp-phone__pill {
-  padding: 3px 8px;
+.lp-phone__report {
+  gap: 6px;
+  padding: 10px 12px;
+}
+
+.lp-phone__report-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.lp-phone__report-head small {
+  margin: 0;
+}
+
+.lp-phone__report ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.lp-phone__report li {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 0;
+  font-size: 10px;
+}
+
+.lp-phone__report li + li {
+  border-top: 1px solid #f0f0f2;
+}
+
+.lp-phone__report time {
+  font-size: 9px;
+  color: #8a8a8f;
+  font-variant-numeric: tabular-nums;
+}
+
+.lp-phone__report i {
+  padding: 1px 7px;
   border-radius: 999px;
   background: #e6f2ea;
   color: #1e6b3a;
-  font-size: 10px;
+  font-size: 8.5px;
+  font-style: normal;
   font-weight: 700;
+}
+
+.lp-phone__report i.is-nanti {
+  background: #f1f1f3;
+  color: #8a8a8f;
 }
 
 .lp-phone__tabs {
