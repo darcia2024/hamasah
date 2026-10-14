@@ -2,7 +2,7 @@
 //
 // Sebelumnya article.html hanya kerangka "Memuat artikel..." dan isinya disuntik article.js
 // lewat fetch, jadi crawler dan pratinjau tautan WhatsApp hanya melihat halaman kosong
-// bertajuk umum. Sekarang /website/article?slug=<slug> (alamat lama article.html dialihkan ke sini, tidak
+// bertajuk umum. Sekarang /article?slug=<slug> (alamat lama /website/article.html dialihkan ke sini, tidak
 // diubah) dijawab server dengan <title>, description, canonical, tag bagikan, dan isi artikel
 // yang sudah terisi. Tidak ada build step: template tetap website/article.html.
 //
@@ -108,7 +108,7 @@ function renderRelated(related) {
     const meta = [item.category, item.publishedAt ? formatDate(item.publishedAt) : ''].filter(Boolean).map(escapeHtml).join(' · ');
     return `
           <li>
-            <a class="story-related__item" href="${escapeHtml(seo.articlePath(item.slug).replace(/^\/website\//, ''))}">
+            <a class="story-related__item" href="${escapeHtml(seo.articlePath(item.slug))}">
               <span class="story-related__media">${gambar}</span>
               <span class="story-related__text">
                 <strong>${judul}</strong>

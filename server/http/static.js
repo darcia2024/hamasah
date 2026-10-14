@@ -216,14 +216,37 @@ function notFound(response, rootDirectory) {
 
 // `transformHtml(relativePath, html)` (opsional) boleh mengembalikan isi pengganti untuk
 // satu halaman HTML, atau null untuk menyajikannya apa adanya.
-function serveStaticFile(response, { pathname, rootDirectory, request, search, transformHtml }) {
-  if (pathname === '/website') {
-    response.writeHead(301, { Location: '/website/' });
-    response.end();
-    return;
-  }
+// Halaman publik dan konsol disajikan di akar tanpa .html: /biaya menyajikan
+// website/biaya.html. Alamat lama (/website/biaya, /website/biaya.html, /biaya.html,
+// /website/) dialihkan permanen ke alamat baru beserta parameternya, supaya tautan di
+// email, WhatsApp, dan hasil pencarian tetap jalan.
+function halamanAda(rootDirectory, nama) {
+  if (!/^[a-z0-9-]+$/i.test(nama) || nama === '404') return false;
+  const lokasi = path.resolve(rootDirectory, 'website', `${nama}.html`);
+  return fs.existsSync(lokasi) && fs.statSync(lokasi).isFile();
+}
 
-  const requestedPath = pathname === '/' ? '/website/' : pathname;
+function alihkan(response, lokasi) {
+  response.writeHead(301, { Location: lokasi, 'Cache-Control': 'public, max-age=86400' });
+  response.end();
+}
+
+function serveStaticFile(response, { pathname, rootDirectory, request, search, transformHtml }) {
+  const ambil = !request || ['GET', 'HEAD'].includes(request.method);
+  let requestedPath = pathname === '/' ? '/website/' : pathname;
+  if (ambil) {
+    if (['/website', '/website/', '/website/index.html', '/index.html', '/index'].includes(pathname)) {
+      alihkan(response, `/${search || ''}`);
+      return;
+    }
+    const lama = /^\/(?:website\/)?([a-z0-9-]+)\.html$/i.exec(pathname) || /^\/website\/([a-z0-9-]+)$/i.exec(pathname);
+    if (lama && halamanAda(rootDirectory, lama[1])) {
+      alihkan(response, `/${lama[1]}${search || ''}`);
+      return;
+    }
+    const bersih = /^\/([a-z0-9-]+)$/i.exec(pathname);
+    if (bersih && halamanAda(rootDirectory, bersih[1])) requestedPath = `/website/${bersih[1]}.html`;
+  }
   // Backslash disamakan dengan garis miring lebih dulu. Di Windows path.resolve
   // memperlakukan "\" sebagai pemisah folder, sedangkan path.posix.normalize tidak,
   // jadi "/website/..\.env" bisa lolos pemeriksaan awalan lalu keluar dari folder.
@@ -252,23 +275,6 @@ function serveStaticFile(response, { pathname, rootDirectory, request, search, t
       notFound(response, rootDirectory);
       return;
     }
-  }
-
-  // Alamat halaman tanpa .html. /website/biaya.html dialihkan permanen ke /website/biaya
-  // (tautan lama di email, WhatsApp, dan hasil pencarian tetap jalan), lalu /website/biaya
-  // menyajikan website/biaya.html. index.html dialihkan ke /website/.
-  if (/^website\/[a-z0-9-]+\.html$/i.test(normalizedPath) && (!request || ['GET', 'HEAD'].includes(request.method))) {
-    const nama = normalizedPath.slice('website/'.length, -'.html'.length);
-    if (nama !== '404' && fs.existsSync(path.resolve(rootDirectory, normalizedPath))) {
-      response.writeHead(301, { Location: `/website/${nama === 'index' ? '' : nama}${search || ''}`, 'Cache-Control': 'public, max-age=86400' });
-      response.end();
-      return;
-    }
-  }
-  if (/^website\/[a-z0-9-]+$/i.test(normalizedPath)) {
-    const halaman = `${normalizedPath}.html`;
-    const lokasi = path.resolve(rootDirectory, halaman);
-    if (fs.existsSync(lokasi) && fs.statSync(lokasi).isFile() && !normalizedPath.endsWith('/404')) normalizedPath = halaman;
   }
 
   if (!isServablePath(normalizedPath)) {

@@ -123,15 +123,15 @@ async function run() {
     // /website dialihkan ke /website/
     const redirectWebsite = await serve('/website');
     assert.equal(redirectWebsite.status, 301);
-    assert.equal(redirectWebsite.headers.Location, '/website/');
+    assert.equal(redirectWebsite.headers.Location, '/');
 
     // Halaman sungguhan di repo tetap tersaji.
-    const portal = await serve('/website/portal', path.resolve(__dirname, '..', '..'));
+    const portal = await serve('/portal', path.resolve(__dirname, '..', '..'));
     assert.equal(portal.status, 200);
     // Alamat lama ber-.html dialihkan permanen ke alamat tanpa .html, parameter ikut.
     const portalLama = await serve('/website/portal.html', path.resolve(__dirname, '..', '..'));
     assert.equal(portalLama.status, 301);
-    assert.equal(portalLama.headers.Location, '/website/portal');
+    assert.equal(portalLama.headers.Location, '/portal');
 
 
     // Task R2.2. Berkas-berkas ini ADA di sandbox, jadi yang diuji bukan

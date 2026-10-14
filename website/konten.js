@@ -214,7 +214,7 @@ const SKEMA_TEMPLATE = {
     pratinjau(draf) {
       return window.HamasahWhatsappMessage.registrationMessage(CONTOH_PENDAFTAR, {
         recipient: 'guardian',
-        statusUrl: `${window.location.origin}/website/cek-status`,
+        statusUrl: `${window.location.origin}/cek-status`,
         template: draf,
         dokumen: data.nilai.dokumen
       });

@@ -490,11 +490,11 @@
   function teksUntukDisalin({ kataSandi, akunDemo, pendaftar }) {
     const baris = [];
     if (kataSandi) {
-      baris.push(`Kata sandi semua akun demo: ${kataSandi}`, '', 'Akun demo (masuk lewat /website/portal):');
+      baris.push(`Kata sandi semua akun demo: ${kataSandi}`, '', 'Akun demo (masuk lewat /portal):');
       akunDemo.forEach((akun) => baris.push(`${akun.email}  ${akun.peran}`));
     }
     if (pendaftar.length) {
-      baris.push('', 'Kode akses pendaftar (cek status di /website/cek-status):');
+      baris.push('', 'Kode akses pendaftar (cek status di /cek-status):');
       pendaftar.forEach((p) => baris.push(`${p.nomor}  ${p.kode}  ${p.nama}`));
     }
     return baris.join('\n');

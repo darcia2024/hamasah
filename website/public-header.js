@@ -4,7 +4,7 @@
   if (!menuButton || !navigation) return;
 
   const navLinks = Array.from(navigation.querySelectorAll('a'));
-  // Alamat halaman tanpa .html (mis. /website/biaya); alamat lama ber-.html tetap dikenali.
+  // Alamat halaman tanpa .html (mis. /biaya); alamat lama ber-.html tetap dikenali.
   const namaHalaman = (pathname) => (pathname.split('/').pop() || 'index').replace(/\.html$/, '');
   const currentPath = namaHalaman(window.location.pathname);
   const currentHash = window.location.hash;

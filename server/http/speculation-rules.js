@@ -17,7 +17,7 @@ const CONTENT_TYPE = 'application/speculationrules+json';
 // Nilai header berupa daftar string terstruktur (RFC 8941), jadi wajib berkutip.
 const HEADER_VALUE = `"${RULES_PATH}"`;
 
-const HREF_PATTERNS = Object.freeze(CONSOLE_PAGES.flatMap((page) => [`/${page}`, `/website/${page}`]));
+const HREF_PATTERNS = Object.freeze(CONSOLE_PAGES.map((page) => `/${page}`));
 
 // Tautan ke halaman yang sedang dibuka (aria-current) tidak perlu disiapkan.
 const CONSOLE_LINKS = Object.freeze({

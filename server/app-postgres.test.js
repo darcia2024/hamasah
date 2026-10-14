@@ -316,11 +316,11 @@ async function run() {
       const xml = await sitemap.text();
       const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
       assert.ok(locs.length > 0 && locs.every((loc) => loc.startsWith('https://app.hamasah.test/')), 'Semua URL sitemap absolut.');
-      assert.ok(locs.includes(`https://app.hamasah.test/website/article?slug=${article.body.item.slug}`), 'Artikel terbit masuk sitemap.');
+      assert.ok(locs.includes(`https://app.hamasah.test/article?slug=${article.body.item.slug}`), 'Artikel terbit masuk sitemap.');
       assert.ok(!xml.includes(draftArticle.body.item.slug), 'Artikel arsip tidak masuk sitemap.');
       assert.ok(!xml.includes(draftOnly.body.item.slug), 'Artikel draf tidak masuk sitemap.');
       // Kebijakan privasi disahkan pengurus 30 September 2026: noindex dicabut, masuk sitemap.
-      assert.ok(locs.includes('https://app.hamasah.test/website/kebijakan-privasi'), 'Kebijakan privasi yang berlaku masuk sitemap.');
+      assert.ok(locs.includes('https://app.hamasah.test/kebijakan-privasi'), 'Kebijakan privasi yang berlaku masuk sitemap.');
       assert.match(xml, /<lastmod>\d{4}-\d{2}-\d{2}T/);
     }
     // Halaman artikel dirender server dari URL lama (Task R7.3).
@@ -329,7 +329,7 @@ async function run() {
     const halamanHtml = await halaman.text();
     assert.ok(halamanHtml.includes('<title>Kegiatan Santri Hamasah | Hamasah International</title>'));
     assert.ok(halamanHtml.includes('<p>Isi kegiatan lengkap.</p>'));
-    assert.ok(halamanHtml.includes(`<meta property="og:url" content="https://app.hamasah.test/website/article?slug=${article.body.item.slug}" />`));
+    assert.ok(halamanHtml.includes(`<meta property="og:url" content="https://app.hamasah.test/article?slug=${article.body.item.slug}" />`));
     assert.ok(halamanHtml.includes('<strong>Admin Uji</strong>'));
     assert.equal((await fetch(`${baseUrl}/website/article?slug=${draftOnly.body.item.slug}`)).status, 404, 'Draf tidak dirender untuk publik.');
     assert.equal((await fetch(`${baseUrl}/website/article.html`)).status, 404);

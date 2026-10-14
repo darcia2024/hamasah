@@ -83,7 +83,7 @@ function eventMessage(type, payload, appBaseUrl, templates = {}) {
   const penutup = `<p>${escapeHtml(email.penutup)}</p>`;
   const pembuka = `<p>${kalimatHtml(jenis.pembuka, nilai)}</p>`;
   const subject = isiTeks(jenis.judul, nilai);
-  const cekStatus = `${appBaseUrl}/website/cek-status`;
+  const cekStatus = `${appBaseUrl}/cek-status`;
 
   if (type === EVENT_TYPES.REGISTRATION_STATUS) {
     const revisi = payload.status === 'needs-revision'
@@ -121,7 +121,7 @@ function eventMessage(type, payload, appBaseUrl, templates = {}) {
   if (type === EVENT_TYPES.PAYMENT_RECEIVED) {
     return {
       subject,
-      html: `${salam}${pembuka}<p>Nomor kuitansi: <strong>${escapeHtml(payload.receiptNumber)}</strong>. Kuitansi dapat diunduh di <a href="${escapeHtml(`${appBaseUrl}/website/portal`)}">portal wali</a>.</p>${penutup}`
+      html: `${salam}${pembuka}<p>Nomor kuitansi: <strong>${escapeHtml(payload.receiptNumber)}</strong>. Kuitansi dapat diunduh di <a href="${escapeHtml(`${appBaseUrl}/portal`)}">portal wali</a>.</p>${penutup}`
     };
   }
   if (type === EVENT_TYPES.LEAVE_DECIDED) {
@@ -129,7 +129,7 @@ function eventMessage(type, payload, appBaseUrl, templates = {}) {
     const catatan = payload.note ? `<li>Catatan musyrif: ${escapeHtml(payload.note)}</li>` : '';
     return {
       subject,
-      html: `${salam}${pembuka}<ul><li>Jenis izin: ${escapeHtml(payload.leaveKind || '-')}</li><li>Waktu: ${escapeHtml(waktu)}</li><li>Keputusan: <strong>${escapeHtml(payload.decisionLabel || '')}</strong></li>${catatan}</ul><p>Riwayat izin dapat dilihat di <a href="${escapeHtml(`${appBaseUrl}/website/portal`)}">portal wali</a>.</p>${penutup}`
+      html: `${salam}${pembuka}<ul><li>Jenis izin: ${escapeHtml(payload.leaveKind || '-')}</li><li>Waktu: ${escapeHtml(waktu)}</li><li>Keputusan: <strong>${escapeHtml(payload.decisionLabel || '')}</strong></li>${catatan}</ul><p>Riwayat izin dapat dilihat di <a href="${escapeHtml(`${appBaseUrl}/portal`)}">portal wali</a>.</p>${penutup}`
     };
   }
   if (type === EVENT_TYPES.ANNOUNCEMENT) {
@@ -137,11 +137,11 @@ function eventMessage(type, payload, appBaseUrl, templates = {}) {
       .map((paragraf) => `<p>${escapeHtml(paragraf).replace(/\n/g, '<br />')}</p>`).join('');
     return {
       subject,
-      html: `${salam}${pembuka}<h2 style="font-size:18px">${escapeHtml(payload.title || '')}</h2>${isi}<p>Pengumuman ini juga tampil di <a href="${escapeHtml(`${appBaseUrl}/website/portal`)}">portal wali</a>.</p>${penutup}`
+      html: `${salam}${pembuka}<h2 style="font-size:18px">${escapeHtml(payload.title || '')}</h2>${isi}<p>Pengumuman ini juga tampil di <a href="${escapeHtml(`${appBaseUrl}/portal`)}">portal wali</a>.</p>${penutup}`
     };
   }
   // INVOICE_ISSUED dan INVOICE_REMINDER
-  const portal = `${appBaseUrl}/website/portal`;
+  const portal = `${appBaseUrl}/portal`;
   const sudahBayar = type === EVENT_TYPES.INVOICE_REMINDER
     ? '<p>Bila pembayaran sudah dilakukan, mohon abaikan email ini atau kabari bagian keuangan agar segera kami catat.</p>'
     : '';

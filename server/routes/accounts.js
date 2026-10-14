@@ -17,7 +17,7 @@ module.exports = [
         return;
       }
       const value = invited.value;
-      const activationUrl = `${config.appBaseUrl || 'http://localhost:4273'}/website/aktivasi#token=${encodeURIComponent(value.invitationToken)}`;
+      const activationUrl = `${config.appBaseUrl || 'http://localhost:4273'}/aktivasi#token=${encodeURIComponent(value.invitationToken)}`;
       const sent = await services.notificationService.sendInvitation({ email: value.account.email, name: value.account.name, activationUrl });
       await services.auditService.record({
         action: ACTIONS.ACCOUNT_INVITED, actor: await auth.actor(), ip,
@@ -48,7 +48,7 @@ module.exports = [
         return;
       }
       const value = renewed.value;
-      const activationUrl = `${config.appBaseUrl || 'http://localhost:4273'}/website/aktivasi#token=${encodeURIComponent(value.invitationToken)}`;
+      const activationUrl = `${config.appBaseUrl || 'http://localhost:4273'}/aktivasi#token=${encodeURIComponent(value.invitationToken)}`;
       const sent = await services.notificationService.sendInvitation({ email: value.account.email, name: value.account.name, activationUrl });
       await services.auditService.record({
         action: ACTIONS.ACCOUNT_INVITATION_RENEWED, actor: await auth.actor(), ip,

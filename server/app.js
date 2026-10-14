@@ -557,7 +557,7 @@ function createHamasahApp(options) {
         response.setHeader('Speculation-Rules', speculationRules.HEADER_VALUE);
       }
       // Halaman artikel dirender server dari database (Task R7.3). URL lama dipertahankan.
-      if (/^\/(?:website\/)?article$/.test(url.pathname) && ['GET', 'HEAD'].includes(request.method)) {
+      if (url.pathname === '/article' && ['GET', 'HEAD'].includes(request.method)) {
         const slug = url.searchParams.get('slug') || '';
         await articleSeedService.pastikan();
         const article = /^[a-z0-9-]{1,160}$/.test(slug) ? await articleStore.get(slug) : null;
@@ -570,7 +570,7 @@ function createHamasahApp(options) {
       }
       // Konten website yang diubah admin (halaman Konten Website) disisipkan sebelum halaman
       // publik dikirim. Hanya dibaca untuk permintaan halaman, bukan untuk CSS, JS, atau gambar.
-      // Alamat halaman: diakhiri / atau tanpa ekstensi (mis. /website/biaya).
+      // Alamat halaman: diakhiri / atau tanpa ekstensi (mis. /biaya).
       const mintaHalaman = /(?:\/|\/[^/.]+)$/.test(url.pathname);
       const konten = mintaHalaman ? await siteContentService.untukHalaman() : null;
       serveStaticFile(response, {
