@@ -277,7 +277,7 @@ const BAWAAN = Object.freeze({
       alt: 'Santri putra dan putri Hamasah berfoto di depan gedung pameran Cairo International Book Fair'
     },
     {
-      foto: 'galeri/kajian-sore.webp', lebar: 469, tinggi: 313,
+      foto: 'galeri/kajian-sore-asrama.webp', lebar: 1280, tinggi: 853,
       keterangan: 'Kajian sore di asrama',
       alt: 'Santri duduk melingkar di lantai menghadap papan tulis saat kajian sore'
     },
@@ -531,9 +531,17 @@ function ukuranFoto(nilai, bidang, urutan) {
   return angka;
 }
 
+// Foto bawaan yang diganti dengan foto baru (nama berkas baru supaya tidak tertahan cache).
+// Galeri yang sudah disimpan admin dengan foto lama ikut memakai foto baru beserta ukurannya.
+const FOTO_GALERI_DIGANTI = Object.freeze({
+  'galeri/kajian-sore.webp': Object.freeze({ foto: 'galeri/kajian-sore-asrama.webp', lebar: 1280, tinggi: 853 })
+});
+
 function periksaGaleri(nilai) {
   return daftar(nilai, 'galeri', 'Galeri', { min: 1, maks: 40 }).map((item, i) => {
-    const v = objek(item);
+    const asli = objek(item);
+    const pengganti = FOTO_GALERI_DIGANTI[String(asli.foto || '').trim()];
+    const v = pengganti ? { ...asli, ...pengganti } : asli;
     return {
       foto: fotoGaleri(v.foto, `${i}.foto`, i + 1),
       lebar: ukuranFoto(v.lebar, `${i}.foto`, i + 1),
