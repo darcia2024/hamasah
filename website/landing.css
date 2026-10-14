@@ -3020,3 +3020,14 @@ main h1.lp-h2 {
 .lp-phone__legend .is-berjamaah { background: #1e6b3a; }
 .lp-phone__legend .is-munfarid { box-shadow: inset 0 0 0 1.5px var(--gold); }
 .lp-phone__legend .is-izin { background: #d9d6cf; }
+
+/* Label di atas kolom keuntungan pada hero. */
+.lp-assure__label {
+  margin: 8px 0 14px;
+  font-size: var(--fs-13);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--gold-dark);
+}
