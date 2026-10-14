@@ -2,7 +2,7 @@
 
 Langkah ini harus dikerjakan admin sendiri, karena butuh login produksi, akses Vercel, dan akun email. Urutannya penting: kerjakan dari atas ke bawah.
 
-## 1. Terapkan pembaruan database (migrasi 043 sampai 048)
+## 1. Terapkan pembaruan database (migrasi 043 sampai 049)
 
 Fitur baru belum aktif penuh sebelum migrasi ini diterapkan:
 
@@ -14,6 +14,7 @@ Fitur baru belum aktif penuh sebelum migrasi ini diterapkan:
 | 046 | Pesan keluarga (wali) |
 | 047 | Pembayaran tagihan |
 | 048 | Jenis email baru: keputusan izin dan pengumuman untuk wali |
+| 049 | Toko kelas daring: harga kelas dan pesanan (halaman Kelas) |
 
 **Cara termudah (dari aplikasi):**
 
@@ -75,7 +76,18 @@ Konten yang pernah diubah lewat **Konten Website** menimpa teks bawaan. Setelah 
 - **Biaya** dan **Testimoni**: bila pernah disunting, pastikan isinya sesuai brosur 2026 dan ketentuan pengembalian dana (DP pemberkasan tidak dikembalikan: Rp 5 juta Ma'had, Rp 4,5 juta Kuliah; kelebihan di atas DP dikembalikan).
 - **Template email**: di **Template**, ada dua jenis baru, *Izin santri diputuskan* dan *Pengumuman baru untuk wali*. Teks bawaannya sudah siap dipakai, boleh disesuaikan.
 
-## 5. Cek akhir
+## 5. Menjual kelas daring (halaman Kelas)
+
+Setelah migrasi 049 diterapkan:
+
+1. **Isi rekening tujuan.** Buka **Pengaturan**, isi *Rekening pembayaran kelas daring*, misalnya `BSI 1234567890 a.n. PT Visi Berkah International`. Bila dikosongkan, pembeli diminta menanyakan rekening ke admin lewat WhatsApp.
+2. **Terbitkan kelas.** Buka **LMS**, pilih maddah, tekan **Atur penjualan**. Isi harga, lalu pilih *Ya, bisa dibeli umum*. Kelas langsung tampil di `hamasah.vercel.app/website/kelas.html`.
+3. **Alur pembeli:** daftar akun dengan email, lalu tekan *Beli kelas*. Sistem menerbitkan tagihan (INV/HI/…). Pembeli transfer, lalu menekan *Konfirmasi lewat WhatsApp*. Pesan berisi nama, kelas, nomor tagihan, dan jumlah otomatis terkirim ke WA Admin 1.
+4. **Konfirmasi pembayaran.** Setelah bukti transfer dicek, buka **Keuangan**, cari nomor tagihannya, lalu **Tandai lunas**. Pembeli otomatis terdaftar di kelas itu dan bisa langsung belajar di **Ruang belajar**. Kuitansi terbit seperti tagihan biasa.
+
+Pembeli tercatat sebagai santri dengan program *Hamasah Courses*, jadi muncul juga di daftar santri. Login dengan Google belum tersedia; butuh OAuth Client ID dari Google Cloud Console.
+
+## 6. Cek akhir
 
 - [ ] Pengaturan, bagian Pembaruan database: tidak ada migrasi tertunda.
 - [ ] Undang satu akun uji ke email sendiri; email undangan sampai dalam 5 menit.

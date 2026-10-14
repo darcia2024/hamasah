@@ -66,6 +66,8 @@ function readRegistrationForm() {
 
 function syncProgramFields() {
   const hanyaKursus = fields.program.value === registrationDomain.PROGRAMS.COURSES;
+  const catatanKelas = document.querySelector('#program-courses-note');
+  if (catatanKelas) catatanKelas.hidden = !hanyaKursus;
   const profileFields = [fields.birthDate, fields.gender, fields.schoolOrigin, fields.guardianEmail, fields.guardianConsent];
   guardianFields.concat(profileFields).forEach((field) => {
     const group = field.closest('.field-group') || field.closest('.field-consent-wrap');

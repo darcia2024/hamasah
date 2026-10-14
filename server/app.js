@@ -64,6 +64,7 @@ const { clientIp } = require('./http/client-ip.js');
 const { applyHeaders, createSecurityHeaders } = require('./http/security-headers.js');
 const { createRequestId, errorFields, logEvent } = require('./http/request-log.js');
 const { readAppEnvironment } = require('./environment.js');
+const { createCourseShopService } = require('./course-shop-service.js');
 
 // Urutan berpengaruh: route pertama yang cocok yang dipakai.
 const ROUTES = Object.freeze([
@@ -86,6 +87,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/students.js'),
   ...require('./routes/student-care.js'),
   ...require('./routes/lms.js'),
+  ...require('./routes/course-shop.js'),
   ...require('./routes/articles.js'),
   ...require('./routes/inquiries.js'),
   ...require('./routes/faq.js'),
@@ -315,6 +317,9 @@ function createHamasahApp(options) {
       return (await studentPortalService.accessFor(studentId, actor)).view;
     }
   });
+  const courseShop = config.courseShop || createCourseShopService({
+    database, identityService, studentStore, operationsService, lmsStore, settingsService
+  });
   const operationsImportService = config.operationsImportService || createOperationsImportService({
     store: operationsStore,
     inventoryWriter: (row, actor) => operationsService.saveInventory(row, actor),
@@ -416,6 +421,7 @@ function createHamasahApp(options) {
     notificationService,
     operationsService,
     operationsImportService,
+    courseShop,
     registrationService,
     registrationConversionService,
     studentPortalService

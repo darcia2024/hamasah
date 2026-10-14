@@ -6286,3 +6286,11 @@ main h2,
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* Catatan di bawah pilihan program formulir daftar (mis. arahan ke halaman Kelas). */
+.registration-form .field-note {
+  margin: 8px 0 0;
+  font-size: var(--fs-13);
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface-variant);
+}

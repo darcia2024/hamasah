@@ -3031,3 +3031,198 @@ main h1.lp-h2 {
   text-align: left;
   color: var(--gold-dark);
 }
+
+/* ---------- Kelas daring (kelas.html) ---------- */
+.kelas-akun {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-top: 28px;
+}
+
+.kelas-akun__nama {
+  font-size: var(--fs-14);
+  color: var(--lp-soft);
+}
+
+.kelas-keluar {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.kelas-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.kelas-kartu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px;
+  border-radius: var(--lp-radius);
+  background: var(--md-sys-color-surface);
+  box-shadow: var(--lp-card-shadow);
+}
+
+.kelas-kartu h3 {
+  margin: 0;
+  font-size: var(--fs-18);
+  font-weight: 600;
+}
+
+.kelas-kartu p {
+  margin: 0;
+  font-size: var(--fs-14);
+  line-height: 1.6;
+  color: var(--lp-soft);
+}
+
+.kelas-kartu .kelas-kartu__info {
+  font-size: var(--fs-13);
+  color: var(--gold-dark);
+}
+
+.kelas-kartu__kaki {
+  display: grid;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--lp-line);
+}
+
+.kelas-kartu__harga {
+  font-size: var(--fs-20);
+  font-weight: 700;
+}
+
+.kelas-kartu__kaki .button {
+  width: 100%;
+  justify-content: center;
+}
+
+.kelas-pesanan {
+  list-style: none;
+  margin: 0 0 24px;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.kelas-pesanan__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: var(--md-sys-color-surface);
+  box-shadow: var(--lp-card-shadow);
+}
+
+.kelas-pesanan__item > div {
+  display: grid;
+  gap: 4px;
+}
+
+.kelas-pesanan__item span {
+  font-size: var(--fs-14);
+  color: var(--lp-soft);
+}
+
+.kelas-pesanan__item .kelas-pesanan__status {
+  font-size: var(--fs-13);
+  font-weight: 600;
+  color: var(--gold-dark);
+}
+
+.kelas-pesanan__item.is-paid .kelas-pesanan__status {
+  color: #1e6b3a;
+}
+
+.kelas-akun-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 72px);
+  align-items: start;
+}
+
+.kelas-form-card {
+  padding: clamp(20px, 3vw, 32px);
+  border-radius: var(--lp-radius);
+  background: var(--md-sys-color-surface);
+  box-shadow: var(--lp-card-shadow);
+}
+
+.kelas-form-card form {
+  display: grid;
+  gap: 16px;
+}
+
+.kelas-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--lp-tint);
+}
+
+.kelas-tabs button {
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  color: var(--lp-soft);
+  cursor: pointer;
+}
+
+.kelas-tabs button[aria-selected="true"] {
+  background: var(--md-sys-color-surface);
+  color: var(--lp-ink);
+  box-shadow: 0 1px 3px rgba(54, 54, 56, 0.12);
+}
+
+.kelas-hint,
+.kelas-opsional {
+  font-size: var(--fs-13);
+  color: var(--lp-soft);
+}
+
+.kelas-hint {
+  margin: 6px 0 0;
+}
+
+.kelas-setuju {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+
+.kelas-setuju input {
+  margin-top: 3px;
+}
+
+.kelas-lupa {
+  justify-self: start;
+  font-size: var(--fs-14);
+}
+
+@media (max-width: 900px) {
+  .kelas-akun-wrap {
+    grid-template-columns: 1fr;
+  }
+}

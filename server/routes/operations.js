@@ -271,7 +271,17 @@ module.exports = [
           entityType: 'invoice', entityId: paid.value.id,
           metadata: { number: paid.value.number, receiptNumber: paid.value.receiptNumber, amount: paid.value.amount, metode: paid.value.payment ? paid.value.payment.method : null }
         });
-        if (paid.changed) await services.eventNotifier.invoicePaid(paid.value);
+        if (paid.changed) {
+          await services.eventNotifier.invoicePaid(paid.value);
+          // Tagihan pembelian kelas daring: pembelinya langsung terdaftar di maddah itu.
+          const kelasDibuka = await services.courseShop.onInvoicePaid(paid.value.id);
+          if (kelasDibuka) {
+            await services.auditService.record({
+              action: ACTIONS.COURSE_UNLOCKED, actor: await auth.actor(), ip,
+              entityType: 'course', entityId: kelasDibuka, metadata: { number: paid.value.number }
+            });
+          }
+        }
       }
       json(response, paid.ok ? 200 : 422, paid.ok ? { invoice: paid.value, paymentDetailSaved: paid.paymentDetailSaved } : publicError(paid));
     }

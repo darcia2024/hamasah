@@ -333,6 +333,11 @@ async function run() {
       { permission: 'articles.write', method: 'POST', path: '/api/staff/articles/preview', body: () => ({ body: '## Uji' }) },
       { permission: 'articles.write', method: 'GET', path: '/api/staff/articles/artikel-matriks-tidak-ada' },
       { permission: 'inquiries.read', method: 'GET', path: '/api/inquiries' },
+      // Toko kelas daring (migrasi 049). Kelas yang tidak ada dan harga kosong: tidak ada yang tersimpan.
+      { permission: 'shop.buy', method: 'GET', path: '/api/kelas/saya' },
+      { permission: 'shop.buy', method: 'POST', path: '/api/kelas/00000000-0000-4000-8000-000000000000/beli' },
+      { permission: 'shop.manage', method: 'GET', path: '/api/admin/kelas' },
+      { permission: 'shop.manage', method: 'PUT', path: () => `/api/admin/kelas/${courseId}`, body: () => ({ price: 0 }) },
       {
         permission: 'inquiries.manage', method: 'PATCH',
         path: '/api/inquiries/00000000-0000-4000-8000-000000000000/status',

@@ -206,6 +206,13 @@ function createOperationsService(options) {
     return { ok: true, value: await terbitkanInvoice(studentId, description, amount) };
   }
 
+  // Tagihan pembelian kelas daring (server/course-shop-service.js). Tidak lewat route dan
+  // tidak memeriksa peran: pemanggilnya sudah memastikan pembeli dan harga kelasnya.
+  async function issueCourseInvoice(studentId, description, amount) {
+    if (!Number.isInteger(amount) || amount <= 0 || amount > MAX_INVOICE_AMOUNT) throw new Error('Harga kelas tidak valid.');
+    return terbitkanInvoice(studentId, clean(description), amount);
+  }
+
   // Pilihan santri untuk formulir tagihan satuan dan visa. Keuangan tidak punya izin
   // students.read, jadi yang dikirim hanya santri aktif dengan id, nama, dan program.
   async function studentOptions(actor) {
@@ -655,7 +662,7 @@ function createOperationsService(options) {
     return { ok: true, value: items.sort((a, b) => a.expiresAt.localeCompare(b.expiresAt)) };
   }
 
-  return Object.freeze({ arrears, financeSummary, invoiceReport, prepareReminder, recordReminder, studentOptions, bulkInvoiceOptions, bulkInvoices, createInvoice, createMemoryOperationsStore, correctInvoice, getInvoice, list, listInvoicesPage, listStudentInvoices, studentReceiptInvoice, overview, listInventoryMovements, listInvoiceCorrections, listVisaDocuments, markInvoicePaid, moveInventory, saveInventory, saveVisa, saveVisaDocument, visaReminders, voidInvoice });
+  return Object.freeze({ issueCourseInvoice, arrears, financeSummary, invoiceReport, prepareReminder, recordReminder, studentOptions, bulkInvoiceOptions, bulkInvoices, createInvoice, createMemoryOperationsStore, correctInvoice, getInvoice, list, listInvoicesPage, listStudentInvoices, studentReceiptInvoice, overview, listInventoryMovements, listInvoiceCorrections, listVisaDocuments, markInvoicePaid, moveInventory, saveInventory, saveVisa, saveVisaDocument, visaReminders, voidInvoice });
 }
 
 module.exports = { MAX_BULK_INVOICES, MAX_INVOICE_AMOUNT, PAYMENT_METHODS, VISA_STATUSES, monthRange, createMemoryOperationsStore, createOperationsService, documentNumber, yearInJakarta };

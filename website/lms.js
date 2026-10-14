@@ -1127,6 +1127,50 @@ if (editCourseButton) {
   });
 }
 
+// Penjualan kelas daring (kelas.html): harga dan apakah maddah ini tampil di halaman Kelas.
+// Hanya admin. Pembeli yang tagihannya ditandai lunas di Keuangan otomatis terdaftar.
+const sellCourseButton = document.querySelector('#sell-course');
+if (sellCourseButton) {
+  sellCourseButton.addEventListener('click', async () => {
+    const course = staffCourses.find((item) => item.id === materialCourse.value);
+    if (!course) {
+      staffMaterialStatus.textContent = 'Pilih maddah lebih dulu.';
+      return;
+    }
+    const response = await fetch('/api/admin/kelas', { headers: headers() });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      staffMaterialStatus.textContent = result.error || 'Pengaturan penjualan belum dapat dimuat.';
+      return;
+    }
+    const sekarang = (result.items || []).find((item) => item.courseId === course.id);
+    const hasil = await window.HamasahDialog.formulir({
+      judul: `Penjualan ${course.title}`,
+      bidang: [
+        { nama: 'price', label: 'Harga (rupiah)', jenis: 'number', nilai: sekarang ? String(sekarang.price) : '', wajib: true, petunjuk: 'Angka saja, contoh 150000.' },
+        {
+          nama: 'published', label: 'Tampil di halaman Kelas', jenis: 'select', nilai: sekarang && sekarang.published ? 'ya' : 'tidak',
+          pilihan: [['ya', 'Ya, bisa dibeli umum'], ['tidak', 'Tidak, disembunyikan']],
+          petunjuk: 'Pembeli yang sudah terdaftar tetap bisa belajar walau kelas disembunyikan.'
+        }
+      ],
+      async kirim(nilai) {
+        const simpan = await fetch(`/api/admin/kelas/${encodeURIComponent(course.id)}`, {
+          method: 'PUT', headers: { ...headers(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ price: Number(String(nilai.price).replace(/\D/g, '')), published: nilai.published === 'ya' })
+        });
+        const isi = await simpan.json().catch(() => ({}));
+        if (!simpan.ok) throw new Error(isi.error || 'Pengaturan penjualan belum dapat disimpan.');
+        return isi;
+      }
+    });
+    if (!hasil) return;
+    staffMaterialStatus.textContent = hasil.listing.published
+      ? `${course.title} tampil di halaman Kelas dengan harga Rp ${hasil.listing.price.toLocaleString('id-ID')}.`
+      : `${course.title} disembunyikan dari halaman Kelas.`;
+  });
+}
+
 materialCourse.addEventListener('change', () => {
   renderStaffMaterials();
   loadSubmissions().catch(() => {});
@@ -1405,6 +1449,7 @@ if (logoutButton) {
     if (!me.ok) throw Object.assign(new Error('Sesi Anda belum ada atau sudah berakhir. Masuk lewat Portal Hamasah untuk membuka LMS.'), { judul: 'Masuk untuk membuka LMS' });
     if (!LMS_VIEW_ROLES.includes(result.account.role)) throw Object.assign(new Error('Halaman ini hanya tersedia untuk santri, guru, pengawas, atau admin.'), { judul: 'LMS tidak tersedia untuk akun ini' });
     role = result.account.role;
+    if (sellCourseButton) sellCourseButton.hidden = role !== 'admin';
     guard.hidden = true;
     consoleSection.hidden = false;
     document.body.classList.add('in-crm');

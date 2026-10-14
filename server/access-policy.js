@@ -74,6 +74,12 @@ const PERMISSIONS = Object.freeze({
   // Membuka isi maddah. Santri hanya maddah yang diikutinya sendiri.
   'courses.read': Object.freeze([ROLES.ADMIN, ROLES.TEACHER, ROLES.SUPERVISOR, ROLES.STUDENT]),
 
+  // Toko kelas daring (kelas.html): pembeli melihat pesanannya dan membeli kelas; admin
+  // mengatur harga dan kelas mana yang dijual. Admin ikut memegang shop.buy karena admin
+  // memegang semua izin baca; layanannya tetap hanya melayani akun santri/pembeli.
+  'shop.buy': Object.freeze([ROLES.ADMIN, ROLES.STUDENT]),
+  'shop.manage': Object.freeze([ROLES.ADMIN]),
+
   // Tagihan dan kuitansi.
   'finance.manage': Object.freeze([ROLES.ADMIN, ROLES.FINANCE]),
   // Visa dan inventaris berada di konsol yang sama dengan keuangan.

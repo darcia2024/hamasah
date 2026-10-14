@@ -29,6 +29,8 @@ const RULES = Object.freeze({
   // Formulir konsultasi publik. Lebih longgar dari pendaftaran karena tidak
   // membuat nomor dokumen, tetapi tetap dibatasi supaya antrean petugas tidak dibanjiri.
   'inquiry-create': Object.freeze({ limit: 8, windowMs: 1 * JAM }),
+  // Membuat akun pembeli kelas daring dari halaman kelas.html.
+  'learner-signup': Object.freeze({ limit: 5, windowMs: 1 * JAM }),
   // Menebak token akses pendaftaran.
   'applicant-login': Object.freeze({ limit: 5, windowMs: 15 * MENIT }),
   // Meminta kode akses baru harus lebih ketat karena selalu mengirim email.
@@ -147,6 +149,7 @@ const DATABASE_RULES = Object.freeze([
   'password-change',
   'password-reset-request',
   'registration-create',
+  'learner-signup',
   'inquiry-create',
   'applicant-login',
   'applicant-recovery',

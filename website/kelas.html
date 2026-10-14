@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Beli kelas daring Hamasah Courses: nahwu, sharaf, adab, dan balaghah berbasis kitab rujukan. Daftar akun, bayar lewat transfer, lalu langsung belajar di Ruang belajar." />
+    <link rel="canonical" href="/website/kelas.html" />
+    <title>Kelas daring Hamasah Courses | Hamasah International</title>
+    <link rel="icon" href="../assets/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Philosopher:wght@700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="website-core.css?v=2d72a1bd8f" />
+    <link rel="stylesheet" href="website-public.css?v=e9f3c1173d" />
+    <link rel="stylesheet" href="landing.css?v=650852214c" />
+    <link rel="stylesheet" href="fields.css?v=8b2a97dcc4" />
+  </head>
+  <body>
+    <a class="skip-link" href="#konten">Lewati ke konten utama</a>
+    <header class="site-header">
+      <div class="shell nav-wrap">
+        <a class="brand" href="index.html" aria-label="Hamasah International, kembali ke beranda">
+          <picture>
+            <source media="(min-width: 769px) and (max-width: 1279px)" srcset="../assets/logo-emblem-gold.png" />
+            <img src="../assets/logo-hamasah-300.webp" alt="Hamasah International" width="300" height="88" class="brand-logo" />
+          </picture>
+        </a>
+
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Buka menu navigasi">
+          <span class="menu-toggle__label">Menu</span>
+          <span class="menu-toggle__lines" aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+
+        <nav class="site-nav" id="site-nav" aria-label="Navigasi utama">
+          <a href="index.html#program">Program</a>
+          <a href="index.html#tentang">Tentang</a>
+          <a href="biaya.html">Biaya &amp; fasilitas</a>
+          <a href="articles.html">Pena Hamasah</a>
+          <a href="cek-status.html">Cek status</a>
+          <a href="kontak.html">Kontak</a>
+          <a href="portal.html" class="nav-portal">Masuk portal</a>
+          <a class="nav-cta" href="daftar.html">Daftar konsultasi</a>
+        </nav>
+      </div>
+    </header>
+    <main id="konten" class="lp">
+      <section class="lp-section lp-page-hero" aria-labelledby="judul-halaman">
+        <div class="shell">
+          <p class="eyebrow">Hamasah Courses · Kelas daring</p>
+          <h1 id="judul-halaman">Pilih kelas, lalu mulai belajar dari rumah</h1>
+          <p>Kelas berbasis kitab rujukan, disusun dari dasar ke lanjutan, dan bisa diulang kapan saja. Daftar akun, bayar lewat transfer, dan kelas terbuka di Ruang belajar setelah pembayaran dikonfirmasi admin.</p>
+          <div class="kelas-akun" id="kelas-akun" aria-live="polite">
+            <a class="button button--primary" href="#akun" data-tab="daftar">Daftar akun</a>
+            <a class="lp-link" href="#akun" data-tab="masuk">Sudah punya akun? Masuk</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="lp-section" aria-labelledby="katalog-title">
+        <div class="shell">
+          <header class="lp-head">
+            <h2 class="lp-h2" id="katalog-title">Kelas yang tersedia</h2>
+            <p class="lp-lede">Harga sekali bayar per kelas. Setelah terbuka, materi bisa dipelajari dan diulang kapan saja.</p>
+          </header>
+          <p class="form-status" id="katalog-status" role="status" aria-live="polite">Memuat daftar kelas...</p>
+          <ul class="kelas-grid" id="katalog"></ul>
+        </div>
+      </section>
+
+      <section class="lp-section lp-section--tint" id="pesanan" aria-labelledby="pesanan-title" hidden>
+        <div class="shell">
+          <header class="lp-head">
+            <h2 class="lp-h2" id="pesanan-title">Pesanan saya</h2>
+            <p class="lp-lede" id="pesanan-rekening"></p>
+          </header>
+          <ul class="kelas-pesanan" id="daftar-pesanan"></ul>
+          <a class="button button--secondary" href="lms.html">Buka Ruang belajar</a>
+        </div>
+      </section>
+
+      <section class="lp-section lp-section--tint" id="akun" aria-labelledby="akun-title">
+        <div class="shell kelas-akun-wrap">
+          <div>
+            <h2 class="lp-h2" id="akun-title">Akun belajar</h2>
+            <p class="lp-lede">Satu akun untuk membeli kelas dan belajar di Ruang belajar. Login dengan Google segera hadir.</p>
+          </div>
+          <div class="kelas-form-card">
+            <div class="kelas-tabs" role="tablist" aria-label="Daftar atau masuk">
+              <button type="button" role="tab" id="tab-daftar" aria-controls="form-daftar" aria-selected="true">Daftar</button>
+              <button type="button" role="tab" id="tab-masuk" aria-controls="form-masuk" aria-selected="false">Masuk</button>
+            </div>
+
+            <form id="form-daftar" role="tabpanel" aria-labelledby="tab-daftar" novalidate>
+              <div class="field-group">
+                <label for="daftar-nama">Nama lengkap</label>
+                <input id="daftar-nama" name="name" autocomplete="name" required />
+              </div>
+              <div class="field-group">
+                <label for="daftar-email">Email</label>
+                <input id="daftar-email" name="email" type="email" autocomplete="email" required />
+              </div>
+              <div class="field-group">
+                <label for="daftar-kota">Kota <span class="kelas-opsional">(opsional)</span></label>
+                <input id="daftar-kota" name="city" autocomplete="address-level2" />
+              </div>
+              <div class="field-group">
+                <label for="daftar-sandi">Kata sandi</label>
+                <input id="daftar-sandi" name="password" type="password" autocomplete="new-password" minlength="12" required aria-describedby="daftar-sandi-ket" />
+                <p class="kelas-hint" id="daftar-sandi-ket">Minimal 12 karakter.</p>
+              </div>
+              <label class="kelas-setuju">
+                <input type="checkbox" id="daftar-setuju" />
+                <span>Saya menyetujui pemrosesan data sesuai <a href="kebijakan-privasi.html" target="_blank" rel="noopener">Kebijakan Privasi</a>.</span>
+              </label>
+              <button class="button button--primary" type="submit">Daftar dan masuk</button>
+              <p class="form-status" id="daftar-status" role="status" aria-live="polite"></p>
+            </form>
+
+            <form id="form-masuk" role="tabpanel" aria-labelledby="tab-masuk" novalidate hidden>
+              <div class="field-group">
+                <label for="masuk-email">Email</label>
+                <input id="masuk-email" name="email" type="email" autocomplete="email" required />
+              </div>
+              <div class="field-group">
+                <label for="masuk-sandi">Kata sandi</label>
+                <input id="masuk-sandi" name="password" type="password" autocomplete="current-password" required />
+              </div>
+              <button class="button button--primary" type="submit">Masuk</button>
+              <a class="lp-link kelas-lupa" href="lupa-password.html">Lupa kata sandi?</a>
+              <p class="form-status" id="masuk-status" role="status" aria-live="polite"></p>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell footer-wrap">
+        <div class="footer-brand-col">
+          <a class="brand brand--footer" href="index.html" aria-label="Kembali ke beranda Hamasah International">
+            <img src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" width="38" height="38" />
+            <div class="brand-text">
+              <span class="brand-name">Hamasah International</span>
+              <span class="brand-tag">Kairo · Mesir &amp; Indonesia</span>
+            </div>
+          </a>
+          <p class="footer-desc">
+            Konsultan pendidikan luar negeri menuju Universitas Al-Azhar Kairo. Amanah dan profesional, dari konsultasi pertama sampai kehidupan belajar di Mesir.
+          </p>
+        </div>
+
+        <div class="footer-links-grid">
+          <div class="footer-col">
+            <p class="footer-col-title">Program</p>
+            <ul class="footer-links">
+              <li><a href="program-kuliah.html">Kuliah S1 Al-Azhar</a></li>
+              <li><a href="program-mahad.html">Ma'had Al-Azhar</a></li>
+              <li><a href="program-courses.html">Hamasah Courses</a></li>
+              <li><a href="biaya.html">Biaya &amp; fasilitas</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <p class="footer-col-title">Layanan</p>
+            <ul class="footer-links">
+              <li><a href="cek-status.html">Cek status pendaftaran</a></li>
+              <li><a href="articles.html">Pena Hamasah</a></li>
+              <li><a href="index.html#bantuan">Tanya jawab</a></li>
+              <li><a href="tim.html">Tim Hamasah</a></li>
+              <li><a href="kontak.html">Kontak &amp; lokasi</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <p class="footer-col-title">Akun</p>
+            <ul class="footer-links">
+              <li><a href="portal.html">Portal santri &amp; wali</a></li>
+              <li><a href="staff.html">Portal petugas</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <p class="footer-col-title">Hubungi kami</p>
+            <ul class="footer-links footer-contact">
+              <li><a href="https://wa.me/6281288489997" target="_blank" rel="noopener">WA Admin 1: 0812-8848-9997</a></li>
+              <li><a href="https://wa.me/6287758619337" target="_blank" rel="noopener">WA Admin 2: 0877-5861-9337</a></li>
+              <li><a href="https://www.instagram.com/hamasah_international/" target="_blank" rel="noopener">Instagram @hamasah_international</a></li>
+              <li><a href="kontak.html">Kantor Bogor, Jawa Barat</a></li>
+              <li><a href="kontak.html">Kantor Nasr City, Kairo</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="shell footer-bottom">
+        <p>&copy; 2026 Hamasah International, didukung oleh PT Visi Berkah International. Ketentuan penerimaan mengikuti otoritas resmi Al-Azhar Kairo.</p>
+        <div class="footer-legal-links">
+          <a href="kebijakan-privasi.html">Kebijakan Privasi</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="public-header.js?v=d48d96ec7e"></script>
+    <script src="kelas.js?v=2130a3cc7f"></script>
+  </body>
+</html>

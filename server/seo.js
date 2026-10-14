@@ -34,6 +34,7 @@ const PUBLIC_PAGES = Object.freeze({
   'program-kuliah.html': '/website/program-kuliah.html',
   'program-mahad.html': '/website/program-mahad.html',
   'program-courses.html': '/website/program-courses.html',
+  'kelas.html': '/website/kelas.html',
   'kebijakan-privasi.html': '/website/kebijakan-privasi.html'
 });
 

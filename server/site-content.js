@@ -322,7 +322,7 @@ const HALAMAN_BLOK = Object.freeze({
   galeri: ['index.html']
 });
 
-const HALAMAN_PUBLIK = Object.freeze([...new Set(Object.values(HALAMAN_BLOK).flat().concat(['articles.html', 'cek-status.html', 'tim.html']))]);
+const HALAMAN_PUBLIK = Object.freeze([...new Set(Object.values(HALAMAN_BLOK).flat().concat(['articles.html', 'cek-status.html', 'tim.html', 'kelas.html']))]);
 
 // ---------------------------------------------------------------------------- validasi
 
