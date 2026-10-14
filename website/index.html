@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Philosopher:wght@700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website-core.css?v=2d72a1bd8f" />
     <link rel="stylesheet" href="website-public.css?v=e9f3c1173d" />
-    <link rel="stylesheet" href="landing.css?v=650852214c" />
+    <link rel="stylesheet" href="landing.css?v=bae18fd37c" />
     <link rel="stylesheet" href="fields.css?v=8b2a97dcc4" />
   </head>
   <body>
@@ -326,38 +326,36 @@
           </div>
 
           <figure class="lp-phone-wrap">
-            <div class="lp-phone" role="img" aria-label="Contoh tampilan portal wali di ponsel: rekap sholat berjamaah sepekan, setoran hafalan, rapor, dan kuitansi pembayaran">
+            <div class="lp-phone" role="img" aria-label="Contoh tampilan portal wali di ponsel: laporan pekan ini untuk santri, dengan sholat berjamaah 92 persen dan setoran hafalan lancar">
+              <span class="lp-phone__side lp-phone__side--kiri" aria-hidden="true"></span>
+              <span class="lp-phone__side lp-phone__side--kanan" aria-hidden="true"></span>
               <div class="lp-phone__screen" aria-hidden="true">
-                <div class="lp-phone__bar">
-                  <img src="../assets/logo-emblem-gold.png" alt="" width="22" height="22" />
-                  <span>Hamasah <b>Portal</b></span>
-                  <span class="lp-phone__avatar">WS</span>
+                <span class="lp-phone__island"></span>
+                <div class="lp-phone__glow">
+                  <span class="lp-phone__back">&larr;</span>
                 </div>
-                <div class="lp-phone__student">
-                  <span class="lp-phone__photo">AF</span>
-                  <span><b>Ahmad Fauzan</b><small>Ma'had Al-Azhar · Asrama Putra</small></span>
-                </div>
-                <div class="lp-phone__card">
-                  <div class="lp-phone__head"><b>Sholat berjamaah</b><span>Pekan ini</span></div>
-                  <div class="lp-phone__prayer">
-                  <span></span><span>S</span><span>D</span><span>A</span><span>M</span><span>I</span>
-                  <span class="lp-phone__day">Sen</span><i class="is-berjamaah"></i><i class="is-berjamaah"></i><i class="is-berjamaah"></i><i class="is-berjamaah"></i><i class="is-berjamaah"></i>
-                  <span class="lp-phone__day">Sel</span><i class="is-berjamaah"></i><i class="is-berjamaah"></i><i class="is-berjamaah"></i><i class="is-berjamaah"></i><i class="is-berjamaah"></i>
-                  <span class="lp-phone__day">Rab</span><i class="is-berjamaah"></i><i class="is-munfarid"></i><i class="is-berjamaah"></i><i class="is-berjamaah"></i><i class="is-berjamaah"></i>
-                  <span class="lp-phone__day">Kam</span><i class="is-berjamaah"></i><i class="is-berjamaah"></i><i class="is-berjamaah"></i><i class="is-berjamaah"></i><i class="is-berjamaah"></i>
-                  <span class="lp-phone__day">Jum</span><i class="is-berjamaah"></i><i class="is-berjamaah"></i><i class="is-izin"></i><i class="is-berjamaah"></i><i class="is-berjamaah"></i>
+                <div class="lp-phone__body">
+                  <span class="lp-phone__chip">Pekan ini</span>
+                  <p class="lp-phone__title">Ahmad Fauzan</p>
+                  <p class="lp-phone__text">Ma'had Al-Azhar · Asrama Putra. Ringkasan ibadah, hafalan, dan rapor ananda dari musyrif.</p>
+                  <div class="lp-phone__card">
+                    <div class="lp-phone__card-row">
+                      <span><b>Sholat berjamaah</b><small>23 dari 25 waktu tercatat</small></span>
+                      <strong>92%</strong>
+                    </div>
+                    <span class="lp-phone__bar"><i></i></span>
                   </div>
-                  <span class="lp-phone__legend"><span><i class="is-berjamaah"></i>Berjamaah</span><span><i class="is-munfarid"></i>Munfarid</span><span><i class="is-izin"></i>Izin</span></span>
-                  <small>23 dari 25 waktu berjamaah (92%)</small>
+                  <div class="lp-phone__card lp-phone__card--row">
+                    <span><b>Setoran hafalan</b><small>Juz 30 · An-Naba' 1-40</small></span>
+                    <span class="lp-phone__pill">Lancar</span>
+                  </div>
                 </div>
-                <div class="lp-phone__card">
-                  <div class="lp-phone__head"><b>Setoran hafalan</b><span class="lp-phone__pill">Lancar</span></div>
-                  <small>Juz 30 · An-Naba' ayat 1 sampai 40</small>
-                </div>
-                <div class="lp-phone__pair">
-                  <div class="lp-phone__card"><b>Rapor</b><small>Unduh PDF</small></div>
-                  <div class="lp-phone__card"><b>Kuitansi</b><small>Asrama · Lunas</small></div>
-                </div>
+                <nav class="lp-phone__tabs">
+                  <span class="is-active"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Beranda</span>
+                  <span><svg viewBox="0 0 24 24"><path d="M12 3c2.5 2 4 4.2 4 6.5V11H8V9.5C8 7.2 9.5 5 12 3z"/><path d="M5 21V11h14v10"/><path d="M10 21v-4a2 2 0 0 1 4 0v4"/></svg>Ibadah</span>
+                  <span><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M9 13h7M9 17h5"/></svg>Rapor</span>
+                  <span><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg>Tagihan</span>
+                </nav>
               </div>
             </div>
             <figcaption>Contoh tampilan portal wali. Nama santri fiktif.</figcaption>

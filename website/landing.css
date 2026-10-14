@@ -2829,197 +2829,221 @@ main h1.lp-h2 {
   color: var(--lp-soft);
 }
 
+/* Bingkai ponsel: tepi perak tipis, bezel hitam, dynamic island, dan tombol samping. */
 .lp-phone {
   position: relative;
   z-index: 1;
-  width: min(300px, 100%);
-  padding: 10px;
-  border-radius: 44px;
-  background: #363638;
-  box-shadow: 0 30px 60px -28px rgba(54, 54, 56, 0.55), inset 0 0 0 2px #4a4a4d;
+  width: min(290px, 100%);
+  aspect-ratio: 9 / 19;
+  padding: 9px;
+  border-radius: 48px;
+  background: #0d0d0e;
+  box-shadow:
+    0 0 0 2px #d9d9dc,
+    0 0 0 3px #bdbdc1,
+    0 40px 70px -34px rgba(54, 54, 56, 0.55);
+}
+
+.lp-phone__side {
+  position: absolute;
+  width: 3px;
+  border-radius: 2px;
+  background: #c9c9cd;
+}
+
+.lp-phone__side--kiri {
+  left: -5px;
+  top: 22%;
+  height: 12%;
+  box-shadow: 0 -40px 0 -0.5px #c9c9cd;
+}
+
+.lp-phone__side--kanan {
+  right: -5px;
+  top: 28%;
+  height: 16%;
 }
 
 .lp-phone__screen {
-  display: grid;
-  gap: 10px;
-  padding: 14px 12px 18px;
-  border-radius: 34px;
-  background: #faf9f7;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 40px;
+  background: #f7f7f5;
   font-size: 12px;
-  line-height: 1.35;
-  color: var(--lp-ink);
+  line-height: 1.45;
+  color: #1c1c1e;
   text-align: left;
 }
 
-.lp-phone__bar {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 4px 4px 2px;
-  font-size: 12.5px;
+.lp-phone__island {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  z-index: 2;
+  width: 84px;
+  height: 24px;
+  margin-left: -42px;
+  border-radius: 999px;
+  background: #0d0d0e;
 }
 
-.lp-phone__bar b {
-  font-weight: 700;
+/* Gradasi emas lembut di bagian atas layar. */
+.lp-phone__glow {
+  position: relative;
+  flex: 0 0 38%;
+  padding: 50px 18px 0;
+  background:
+    radial-gradient(60% 55% at 30% 32%, rgba(231, 177, 12, 0.85), transparent 70%),
+    radial-gradient(55% 45% at 62% 48%, rgba(240, 200, 90, 0.7), transparent 72%),
+    radial-gradient(70% 60% at 40% 20%, rgba(255, 236, 180, 0.9), transparent 75%),
+    linear-gradient(180deg, #fbf3dc 0%, #f7f7f5 100%);
+  filter: saturate(1.05);
 }
 
-.lp-phone__avatar,
-.lp-phone__photo {
+.lp-phone__back {
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  font-weight: 700;
-}
-
-.lp-phone__avatar {
-  width: 26px;
-  height: 26px;
-  margin-left: auto;
-  background: #fdf3d3;
-  color: var(--gold-dark);
-  font-size: 10px;
-}
-
-.lp-phone__student {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border-radius: 16px;
-  background: #363638;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(133, 96, 0, 0.75);
   color: #fff;
+  font-size: 14px;
 }
 
-.lp-phone__student b {
-  display: block;
-  font-size: 13.5px;
+.lp-phone__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 0 18px;
+}
+
+.lp-phone__chip {
+  align-self: flex-start;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #fbefcb;
+  color: #856000;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.lp-phone__title {
+  margin: 0;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: 25px;
   font-weight: 700;
+  line-height: 1.1;
+  color: #111;
 }
 
-.lp-phone__student small {
-  display: block;
+.lp-phone__text {
+  margin: 0;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.lp-phone__photo {
-  flex: none;
-  width: 36px;
-  height: 36px;
-  background: var(--gold);
-  color: #363638;
-  font-size: 12px;
+  line-height: 1.55;
+  color: #3a3a3c;
 }
 
 .lp-phone__card {
   display: grid;
-  gap: 8px;
-  padding: 11px 12px;
-  border: 1px solid rgba(54, 54, 56, 0.07);
-  border-radius: 14px;
+  gap: 10px;
+  padding: 12px 13px;
+  border-radius: 10px;
   background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 16px -10px rgba(0, 0, 0, 0.18);
 }
 
 .lp-phone__card b {
+  display: block;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .lp-phone__card small {
-  font-size: 11px;
-  color: var(--lp-soft);
+  display: block;
+  margin-top: 2px;
+  font-size: 9.5px;
+  color: #6b6b70;
 }
 
-.lp-phone__head {
+.lp-phone__card-row,
+.lp-phone__card--row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-}
-
-.lp-phone__head span {
-  font-size: 10.5px;
-  color: var(--lp-soft);
-}
-
-.lp-phone__pill {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #e6f2ea;
-  color: #1e6b3a !important;
-  font-weight: 700;
-}
-
-.lp-phone__prayer {
-  display: grid;
-  grid-template-columns: 30px repeat(5, 1fr);
-  gap: 5px 4px;
-  align-items: center;
-  justify-items: center;
-  font-size: 10px;
-  color: var(--lp-soft);
-}
-
-.lp-phone__day {
-  justify-self: start;
-}
-
-.lp-phone__prayer i {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-}
-
-.lp-phone__prayer .is-berjamaah {
-  background: #1e6b3a;
-}
-
-.lp-phone__prayer .is-munfarid {
-  background: #fff;
-  box-shadow: inset 0 0 0 2px var(--gold);
-}
-
-.lp-phone__prayer .is-izin {
-  background: #d9d6cf;
-}
-
-.lp-phone__pair {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
 
-.lp-phone__pair .lp-phone__card {
-  gap: 2px;
+.lp-phone__card-row strong {
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.lp-phone__bar {
+  display: block;
+  height: 3px;
+  border-radius: 3px;
+  background: #e6e6e8;
+}
+
+.lp-phone__bar i {
+  display: block;
+  width: 92%;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--gold);
+}
+
+.lp-phone__pill {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #e6f2ea;
+  color: #1e6b3a;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.lp-phone__tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 9px 8px 16px;
+  border-top: 1px solid #ececee;
+  background: #fff;
+}
+
+.lp-phone__tabs span {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  font-size: 8.5px;
+  font-weight: 600;
+  color: #c4c4c8;
+}
+
+.lp-phone__tabs svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lp-phone__tabs .is-active {
+  color: #111;
 }
 
 @media (max-width: 900px) {
   .lp-phone {
-    width: min(280px, 100%);
+    width: min(270px, 100%);
   }
 }
-
-.lp-phone__legend {
-  display: flex;
-  gap: 10px;
-  font-size: 10px;
-  color: var(--lp-soft);
-}
-
-.lp-phone__legend span {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.lp-phone__legend i {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.lp-phone__legend .is-berjamaah { background: #1e6b3a; }
-.lp-phone__legend .is-munfarid { box-shadow: inset 0 0 0 1.5px var(--gold); }
-.lp-phone__legend .is-izin { background: #d9d6cf; }
 
 /* Label di atas kolom keuntungan pada hero. */
 .lp-assure__label {
