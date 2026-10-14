@@ -72,6 +72,7 @@ module.exports = [
           entityType: 'announcement', entityId: hasil.value.id,
           metadata: { penerima: hasil.value.audience, asrama: hasil.value.dormitoryId || 'semua' }
         });
+        if (services.eventNotifier && services.eventNotifier.announcementPublished) await services.eventNotifier.announcementPublished(hasil.value);
       }
       balas(response, hasil, 201, (value) => ({ announcement: value }));
     }
@@ -145,6 +146,7 @@ module.exports = [
           entityType: 'leave', entityId: params[0],
           metadata: { studentId: hasil.value.studentId, keputusan: hasil.value.status }
         });
+        if (services.eventNotifier && services.eventNotifier.leaveDecided) await services.eventNotifier.leaveDecided(hasil.value);
       }
       balas(response, hasil, 200, (value) => ({ leave: value }));
     }

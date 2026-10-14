@@ -1,5 +1,6 @@
 // Notifikasi peristiwa penting (Task R8.3).
 const assert = require('node:assert/strict');
+const test = require('node:test');
 const { createEventNotifier } = require('./event-notifications.js');
 const { eventMessage } = require('./notification-templates.js');
 
@@ -81,3 +82,30 @@ async function run() {
   console.log('event notification tests passed');
 }
 run().catch((error) => { console.error(error); process.exitCode = 1; });
+
+test('keputusan izin dan pengumuman diantrekan ke wali', async () => {
+  const antre = [];
+  const notificationService = { canSend: () => true, async queueEvent(item) { antre.push(item); } };
+  const database = {
+    async query(sql, params) {
+      if (/FROM student_parent_accounts pa\s+JOIN accounts/.test(sql)) return { rows: [{ email: 'wali@contoh.test', name: 'Bu Wali', student_name: 'Ahmad' }] };
+      if (/SELECT title, body FROM announcements/.test(sql)) return { rows: [{ title: 'Libur Idul Adha', body: 'Kegiatan diliburkan.' }] };
+      if (/FROM accounts a\s+JOIN student_parent_accounts/.test(sql)) {
+        assert.equal(params[0], null, 'Pengumuman tanpa asrama dikirim ke semua wali.');
+        return { rows: [{ email: 'wali@contoh.test', name: 'Bu Wali' }, { email: 'wali2@contoh.test', name: 'Pak Wali' }] };
+      }
+      throw new Error(`kueri tak terduga: ${sql}`);
+    }
+  };
+  const notifier = createEventNotifier({ notificationService, registrationStore: { async get() { return null; } }, database, logger: { error() {} } });
+
+  assert.equal(await notifier.leaveDecided({ studentId: 's1', status: 'disetujui', kindLabel: 'Izin pulang', startsAt: '2026-10-20T06:00:00Z', endsAt: '2026-10-21T06:00:00Z' }), 1);
+  assert.equal(antre[0].notificationType, 'leave-decided');
+  assert.equal(antre[0].payload.studentName, 'Ahmad');
+  assert.equal(await notifier.leaveDecided({ studentId: 's1', status: 'menunggu' }), 0, 'Izin yang belum diputuskan tidak dikirim.');
+
+  assert.equal(await notifier.announcementPublished({ id: 'p1', audience: 'semua', dormitoryId: null }), 2);
+  assert.equal(antre[1].notificationType, 'announcement-published');
+  assert.equal(antre[1].payload.title, 'Libur Idul Adha');
+  assert.equal(await notifier.announcementPublished({ id: 'p2', audience: 'santri' }), 0, 'Pengumuman khusus santri tidak dikirim ke wali.');
+});

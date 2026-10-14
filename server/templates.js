@@ -17,7 +17,7 @@ const STATUS_PENDAFTARAN = Object.freeze([
 
 const JENIS_EMAIL = Object.freeze([
   'registration-status', 'document-revision', 'departure-assigned', 'departure-updated',
-  'payment-received', 'invoice-issued', 'invoice-reminder'
+  'payment-received', 'invoice-issued', 'invoice-reminder', 'leave-decided', 'announcement-published'
 ]);
 
 const JENIS_DOKUMEN = Object.freeze(['passport', 'diploma', 'transcript', 'health-certificate', 'photo', 'other']);
@@ -30,7 +30,9 @@ const ISIAN_EMAIL = Object.freeze({
   'departure-updated': ['nomor', 'kloter'],
   'payment-received': ['tagihan', 'atasNama', 'jumlah', 'kuitansi'],
   'invoice-issued': ['tagihan', 'atasNama', 'keterangan', 'jumlah'],
-  'invoice-reminder': ['tagihan', 'atasNama', 'keterangan', 'jumlah']
+  'invoice-reminder': ['tagihan', 'atasNama', 'keterangan', 'jumlah'],
+  'leave-decided': ['atasNama', 'izin', 'keputusan'],
+  'announcement-published': ['judul']
 });
 
 const BAWAAN = Object.freeze({
@@ -61,7 +63,9 @@ const BAWAAN = Object.freeze({
       'departure-updated': { judul: 'Perubahan jadwal {kloter} ({nomor})', pembuka: 'Ada perubahan pada kloter keberangkatan {kloter} untuk pendaftaran {nomor}:' },
       'payment-received': { judul: 'Pembayaran diterima: {tagihan}', pembuka: 'Pembayaran untuk tagihan {tagihan}{atasNama} sebesar {jumlah} sudah kami terima.' },
       'invoice-issued': { judul: 'Tagihan baru {tagihan}', pembuka: 'Tagihan baru telah diterbitkan{atasNama}: {keterangan} sebesar {jumlah} (nomor {tagihan}).' },
-      'invoice-reminder': { judul: 'Pengingat tagihan {tagihan}', pembuka: 'Kami mengingatkan bahwa tagihan {tagihan}{atasNama} untuk {keterangan} sebesar {jumlah} belum tercatat lunas.' }
+      'invoice-reminder': { judul: 'Pengingat tagihan {tagihan}', pembuka: 'Kami mengingatkan bahwa tagihan {tagihan}{atasNama} untuk {keterangan} sebesar {jumlah} belum tercatat lunas.' },
+      'leave-decided': { judul: 'Keputusan {izin}: {keputusan}', pembuka: 'Pengajuan {izin}{atasNama} telah {keputusan} oleh musyrif asrama.' },
+      'announcement-published': { judul: 'Pengumuman: {judul}', pembuka: 'Ada pengumuman baru dari Hamasah International: {judul}.' }
     }
   },
 

@@ -9,7 +9,10 @@
 //   - pendaftaran: email pendaftar dan email wali pada formulir (tanpa duplikat);
 //   - pendaftaran berstatus dibatalkan tidak dikirimi apa pun;
 //   - pembayaran, tagihan baru, dan pengingat tagihan: akun wali aktif yang terhubung ke
-//     santri pemilik tagihan.
+//     santri pemilik tagihan;
+//   - keputusan izin: akun wali aktif yang terhubung ke santri yang mengajukan izin;
+//   - pengumuman untuk wali atau semua: akun wali aktif; bila pengumuman khusus satu asrama,
+//     hanya wali dari santri di asrama itu.
 // Belum ada preferensi penerima di sistem; bila ditambahkan, periksa di sini.
 const registrationDomain = require('../website/registration-domain.js');
 const { EVENT_TYPES } = require('./notification-templates.js');
@@ -134,6 +137,44 @@ function createEventNotifier({ notificationService, registrationStore, database,
         let jumlah = 0;
         for (const wali of await waliTagihan(invoice)) {
           jumlah += await queueAll(EVENT_TYPES.INVOICE_REMINDER, [wali.email], payloadTagihan(invoice, wali));
+        }
+        return jumlah;
+      });
+    },
+
+    // Izin disetujui atau ditolak musyrif. leave adalah bentuk toLeave dari student-life-service.
+    leaveDecided(leave) {
+      return guarded('keputusan izin', async () => {
+        if (!leave || !leave.studentId || !['disetujui', 'ditolak'].includes(leave.status)) return 0;
+        let jumlah = 0;
+        for (const wali of await waliTagihan({ studentId: leave.studentId })) {
+          jumlah += await queueAll(EVENT_TYPES.LEAVE_DECIDED, [wali.email], {
+            name: wali.name, studentName: wali.student_name, leaveKind: leave.kindLabel,
+            decisionLabel: leave.status, startsAt: leave.startsAt, endsAt: leave.endsAt, note: leave.decisionNote || ''
+          });
+        }
+        return jumlah;
+      });
+    },
+
+    // Pengumuman baru. Hanya untuk penerima wali atau semua; pengumuman khusus santri tidak dikirim.
+    announcementPublished(announcement) {
+      return guarded('pengumuman baru', async () => {
+        if (!announcement || !announcement.id || !['wali', 'semua'].includes(announcement.audience)) return 0;
+        const { rows: isi } = await database.query('SELECT title, body FROM announcements WHERE id = $1', [announcement.id]);
+        if (!isi.length) return 0;
+        const { rows } = await database.query(
+          `SELECT DISTINCT a.email, a.name
+             FROM accounts a
+             JOIN student_parent_accounts pa ON pa.parent_account_id = a.id
+             JOIN students s ON s.id = pa.student_id
+            WHERE a.active = TRUE AND a.role = 'parent'
+              AND ($1::uuid IS NULL OR s.dormitory_id = $1::uuid)`,
+          [announcement.dormitoryId || null]
+        );
+        let jumlah = 0;
+        for (const wali of rows) {
+          jumlah += await queueAll(EVENT_TYPES.ANNOUNCEMENT, [wali.email], { name: wali.name, title: isi[0].title, body: isi[0].body });
         }
         return jumlah;
       });

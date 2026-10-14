@@ -174,7 +174,9 @@ const JENIS_EMAIL = [
   ['departure-updated', 'Jadwal kloter berubah', '{nomor}, {kloter}'],
   ['payment-received', 'Pembayaran diterima', '{tagihan}, {atasNama}, {jumlah}, {kuitansi}'],
   ['invoice-issued', 'Tagihan baru', '{tagihan}, {atasNama}, {keterangan}, {jumlah}'],
-  ['invoice-reminder', 'Pengingat tagihan', '{tagihan}, {atasNama}, {keterangan}, {jumlah}']
+  ['invoice-reminder', 'Pengingat tagihan', '{tagihan}, {atasNama}, {keterangan}, {jumlah}'],
+  ['leave-decided', 'Izin santri diputuskan', '{atasNama}, {izin}, {keputusan}'],
+  ['announcement-published', 'Pengumuman baru untuk wali', '{judul}']
 ];
 
 const JENIS_DOKUMEN = [

@@ -14,7 +14,9 @@ const EVENT_TYPES = Object.freeze({
   DEPARTURE_ASSIGNED: 'departure-assigned',
   DEPARTURE_UPDATED: 'departure-updated',
   INVOICE_ISSUED: 'invoice-issued',
-  INVOICE_REMINDER: 'invoice-reminder'
+  INVOICE_REMINDER: 'invoice-reminder',
+  LEAVE_DECIDED: 'leave-decided',
+  ANNOUNCEMENT: 'announcement-published'
 });
 
 const LABEL_PERUBAHAN = Object.freeze({ plannedDate: 'Rencana berangkat', origin: 'Berangkat dari', status: 'Status kloter' });
@@ -31,6 +33,12 @@ function tanggalPanjang(value) {
   return new Intl.DateTimeFormat('id-ID', { dateStyle: 'full', timeZone: 'UTC' }).format(new Date(value + 'T00:00:00Z'));
 }
 
+function waktuPendek(value) {
+  const tanggal = new Date(value);
+  if (Number.isNaN(tanggal.getTime())) return '-';
+  return new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Africa/Cairo' }).format(tanggal) + ' waktu Kairo';
+}
+
 function rupiah(amount) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(amount) || 0);
 }
@@ -45,7 +53,10 @@ function nilaiIsian(payload) {
     kuitansi: payload.receiptNumber || '',
     keterangan: payload.description || '',
     jumlah: rupiah(payload.amount),
-    atasNama: payload.studentName ? ` atas nama ${payload.studentName}` : ''
+    atasNama: payload.studentName ? ` atas nama ${payload.studentName}` : '',
+    izin: payload.leaveKind || 'izin',
+    keputusan: payload.decisionLabel || '',
+    judul: payload.title || ''
   };
 }
 
@@ -63,7 +74,8 @@ function kalimatHtml(template, nilai) {
 function eventMessage(type, payload, appBaseUrl, templates = {}) {
   const email = templates.email || BAWAAN.email;
   const kop = templates.kop || BAWAAN.kop;
-  const jenis = email.jenis && email.jenis[type];
+  // Template yang disimpan sebelum suatu jenis email ada tidak memuat jenis itu: pakai bawaan.
+  const jenis = (email.jenis && email.jenis[type]) || BAWAAN.email.jenis[type];
   if (!jenis) return null;
 
   const nilai = nilaiIsian(payload);
@@ -110,6 +122,22 @@ function eventMessage(type, payload, appBaseUrl, templates = {}) {
     return {
       subject,
       html: `${salam}${pembuka}<p>Nomor kuitansi: <strong>${escapeHtml(payload.receiptNumber)}</strong>. Kuitansi dapat diunduh di <a href="${escapeHtml(`${appBaseUrl}/website/portal.html`)}">portal wali</a>.</p>${penutup}`
+    };
+  }
+  if (type === EVENT_TYPES.LEAVE_DECIDED) {
+    const waktu = [payload.startsAt, payload.endsAt].map((nilai) => (nilai ? waktuPendek(nilai) : '-')).join(' sampai ');
+    const catatan = payload.note ? `<li>Catatan musyrif: ${escapeHtml(payload.note)}</li>` : '';
+    return {
+      subject,
+      html: `${salam}${pembuka}<ul><li>Jenis izin: ${escapeHtml(payload.leaveKind || '-')}</li><li>Waktu: ${escapeHtml(waktu)}</li><li>Keputusan: <strong>${escapeHtml(payload.decisionLabel || '')}</strong></li>${catatan}</ul><p>Riwayat izin dapat dilihat di <a href="${escapeHtml(`${appBaseUrl}/website/portal.html`)}">portal wali</a>.</p>${penutup}`
+    };
+  }
+  if (type === EVENT_TYPES.ANNOUNCEMENT) {
+    const isi = String(payload.body || '').split(/\n{2,}/).map((paragraf) => paragraf.trim()).filter(Boolean)
+      .map((paragraf) => `<p>${escapeHtml(paragraf).replace(/\n/g, '<br />')}</p>`).join('');
+    return {
+      subject,
+      html: `${salam}${pembuka}<h2 style="font-size:18px">${escapeHtml(payload.title || '')}</h2>${isi}<p>Pengumuman ini juga tampil di <a href="${escapeHtml(`${appBaseUrl}/website/portal.html`)}">portal wali</a>.</p>${penutup}`
     };
   }
   // INVOICE_ISSUED dan INVOICE_REMINDER
