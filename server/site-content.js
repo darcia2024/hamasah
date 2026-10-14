@@ -102,7 +102,7 @@ const BAWAAN = Object.freeze({
           'Bimbingan persiapan Ujian Bahasa (Tahdid Mustawa)',
           'Pengurusan berkas Kemenag, Kemlu, & Kedubes Mesir',
           'Penerbitan visa pelajar & penjemputan bandara Kairo',
-          'Kamar asrama ber-AC di Nasr City & makan 2x sehari',
+          'Asrama di Nasr City & makan 2x sehari',
           'Setoran hafalan dan kajian harian bersama musyrif',
           'Presensi sholat dan hafalan tercatat di portal santri & wali'
         ]
@@ -115,7 +115,7 @@ const BAWAAN = Object.freeze({
           'Jalur ijazah mengikuti ketentuan lembaga pendidikan terkait',
           "Pembimbing setoran Al-Qur'an dan adab harian",
           'Bahasa Arab aktif, lisan dan tulisan',
-          'Asrama aman ber-AC di Nasr City dengan musyrif 24 jam',
+          'Asrama di Nasr City dengan musyrif 24 jam',
           'Katering makanan nusantara halal & bergizi 2x sehari',
           'Laporan bulanan musyrif/ah ke wali lewat rapat daring setiap tanggal 1'
         ]

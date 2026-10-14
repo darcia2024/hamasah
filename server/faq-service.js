@@ -20,8 +20,8 @@ const KNOWLEDGE_BASE = Object.freeze([
   {
     id: 'fasilitas',
     label: 'Fasilitas asrama',
-    keywords: ['fasilitas', 'asrama', 'kamar', 'ac', 'wifi', 'cuci', 'katering', 'makan', 'musyrif', 'musyrifah', 'dapur', 'kulkas'],
-    answer: "Asrama Hamasah di Nasr City, Kairo, berada di lingkungan pelajar dan mahasiswa, dengan kamar ber-AC. Fasilitasnya: makan dua kali sehari, tempat belajar yang aman dan nyaman, Wi-Fi, gas, air, dan listrik sudah termasuk, kulkas, mesin cuci, pemanas air, filter air, dan peralatan dapur lengkap. Ada juga kajian harian, persiapan bahasa Arab, pembimbing setoran Al-Qur'an, serta musyrif dan musyrifah 24 jam."
+    keywords: ['fasilitas', 'asrama', 'kamar', 'wifi', 'cuci', 'katering', 'makan', 'musyrif', 'musyrifah', 'dapur', 'kulkas'],
+    answer: "Asrama Hamasah di Nasr City, Kairo, berada di lingkungan pelajar dan mahasiswa. Fasilitasnya: makan dua kali sehari, tempat belajar yang aman dan nyaman, Wi-Fi, gas, air, dan listrik sudah termasuk, kulkas, mesin cuci, pemanas air, filter air, dan peralatan dapur lengkap. Ada juga kajian harian, persiapan bahasa Arab, pembimbing setoran Al-Qur'an, serta musyrif dan musyrifah 24 jam."
   },
   {
     id: 'biaya-kuliah',
