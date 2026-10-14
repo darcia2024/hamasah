@@ -91,7 +91,7 @@ const BAWAAN = Object.freeze({
   },
 
   biaya: {
-    pengantar: 'Halaman ini merinci komponen dan fasilitas tiap program. Rincian biaya jalur kuliah dan ma\'had ada di halaman programnya masing-masing; untuk kelas daring nominalnya disampaikan saat konsultasi, dan konsultasinya tanpa biaya.',
+    pengantar: 'Halaman ini merinci komponen dan fasilitas tiap program. Rincian biaya jalur kuliah dan ma\'had ada di halaman programnya masing-masing, harga kelas daring tertera di halaman Kelas, dan konsultasinya tanpa biaya.',
     program: {
       kuliah: {
         label: 'Biaya awal mulai',
@@ -121,9 +121,9 @@ const BAWAAN = Object.freeze({
         ]
       },
       courses: {
-        label: 'Biaya Program',
-        harga: 'Dikonfirmasi saat konsultasi',
-        keterangan: 'Mengikuti materi dan paket yang dipilih',
+        label: 'Biaya program',
+        harga: 'Per kelas',
+        keterangan: 'Sekali bayar per kelas. Harga tiap kelas tertera di halaman Kelas.',
         fasilitas: [
           'Seluruh mata pelajaran Dirasah Khassah (DK)',
           "Mata pelajaran Ma'had I'dadi dan Tsanawi, serta kuliah tingkat 1",

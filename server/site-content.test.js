@@ -129,7 +129,7 @@ function ujiRender() {
   const kontakBaru = renderHalaman(halaman('kontak.html'), konten);
   assert.ok(kontakBaru.includes('wa.me/6281234567890') && !kontakBaru.includes('6281288489997'), 'Nomor WhatsApp diganti di seluruh halaman.');
   assert.ok(hasil.includes('<meta name="hamasah-whatsapp" content="6281234567890" />'));
-  assert.ok(hasil.includes('Dikonfirmasi saat konsultasi'), 'Program lain tetap.');
+  assert.ok(hasil.includes('<strong class="cost-figure">Per kelas</strong>'), 'Program lain tetap.');
 
   const teks = sesuaikanTeksKontak('WhatsApp admin: +62 812-8848-9997. Kantor Mesir: Sheikh Taha Dinary, Imarah 32, Lantai 1, Syaqqah 3, Hay Sabi, Nasr City, Kairo.', {
     ...BAWAAN.kontak, whatsapp: '6281234567890', alamatMesir: 'Jalan Baru 5\nKairo'
@@ -179,7 +179,7 @@ async function ujiHttp() {
     assert.equal((await api('GET', '/api/admin/content', petugas)).status, 403);
 
     const halamanAwal = await html('/website/biaya.html');
-    assert.ok(halamanAwal.includes('Dikonfirmasi saat konsultasi'));
+    assert.ok(halamanAwal.includes('<strong class="cost-figure">Per kelas</strong>'));
     assert.ok(halamanAwal.includes('name="hamasah-whatsapp" content="6281288489997"'));
 
     // Simpan biaya: halaman langsung memakai nilai baru.

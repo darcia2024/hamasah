@@ -6294,3 +6294,87 @@ main h2,
   line-height: 1.5;
   color: var(--md-sys-color-on-surface-variant);
 }
+
+/* ---------- Halaman Biaya & fasilitas: kerapian (15 Oktober 2026) ----------
+   1. Kepala bagian rata kiri sejajar tepi kartu di bawahnya (sebelumnya blok menjorok).
+   2. Tiga kartu jaminan di hero selebar halaman, sejajar dengan judul.
+   3. Kartu paket berbagi baris (subgrid): label, harga, fasilitas, dan tombol sejajar
+      antarkartu; dua tombol selebar kartu di bagian paling bawah.
+   4. Jarak berlebih antara tanya-jawab dan kotak konsultasi dipangkas. */
+main .biaya-hero .section-intro,
+main .biaya-programs-section .section-heading--center,
+main .biaya-faq-section .section-heading--center {
+  max-width: 720px !important;
+  margin-left: 0 !important;
+  margin-right: auto !important;
+  text-align: left !important;
+}
+
+main .biaya-hero .biaya-trust-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  max-width: none !important;
+  margin: 32px 0 0 !important;
+  justify-content: stretch !important;
+}
+
+main .biaya-hero .trust-pill-item {
+  align-items: center !important;
+  padding: 16px 18px !important;
+}
+
+main .biaya-hero .trust-pill-item strong {
+  font-size: var(--fs-15, 15px) !important;
+}
+
+main .biaya-hero .trust-pill-item small {
+  font-size: var(--fs-13) !important;
+  line-height: 1.5 !important;
+}
+
+@supports (grid-template-rows: subgrid) {
+  @media (min-width: 900px) {
+    main .pricing-cards-grid {
+      align-items: stretch !important;
+    }
+
+    main .pricing-cards-grid .pricing-card {
+      display: grid !important;
+      grid-row: span 4;
+      grid-template-rows: subgrid !important;
+      gap: 0 !important;
+      align-content: stretch;
+    }
+
+    main .pricing-card .pricing-action {
+      align-self: end;
+    }
+  }
+}
+
+main .pricing-card .pricing-action {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
+}
+
+main .pricing-card .pricing-action .button {
+  width: 100% !important;
+  justify-content: center !important;
+  margin: 0 !important;
+}
+
+main .biaya-faq-section {
+  padding-bottom: clamp(40px, 5vw, 64px) !important;
+}
+
+main .biaya-cta-section {
+  padding-top: 0 !important;
+}
+
+@media (max-width: 899px) {
+  main .biaya-hero .biaya-trust-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
