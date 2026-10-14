@@ -356,15 +356,28 @@ function createHamasahApp(options) {
 
   // Dipakai rute perawatan (POST /api/tasks/maintenance) pada platform yang tidak
   // menjalankan proses menyala terus, sehingga timer di bawah tidak pernah jalan.
+  // Di serverless tidak ada worker yang menyala terus, jadi antrean email (undangan,
+  // tagihan, email ke wali) ikut dikirim setiap kali rute perawatan dipanggil.
+  async function kirimAntreanNotifikasi() {
+    try {
+      const hasil = await notificationWorker.runOnce({ limit: 50 });
+      return hasil.claimed;
+    } catch (error) {
+      console.error(`[notifikasi] Pengiriman antrean gagal: ${error.message}`);
+      return 0;
+    }
+  }
+
   const maintenanceService = {
     async run() {
-      const [sesi, audit, unggahan, pembatas] = await Promise.all([
+      const [sesi, audit, unggahan, pembatas, notifikasi] = await Promise.all([
         bersihkanSesi(),
         bersihkanAudit(),
         bersihkanUnggahanTertunda(),
-        typeof rateLimiter.sweep === 'function' ? rateLimiter.sweep() : 0
+        typeof rateLimiter.sweep === 'function' ? rateLimiter.sweep() : 0,
+        kirimAntreanNotifikasi()
       ]);
-      return { sesi, audit, unggahan, pembatas };
+      return { sesi, audit, unggahan, pembatas, notifikasi };
     },
     // Kunci diambil dari environment. Tanpa kunci, endpointnya tertutup.
     secret() {

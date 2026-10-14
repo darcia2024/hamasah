@@ -9,8 +9,9 @@
 //   - Timer di dalam proses tidak pernah jalan. Pembersihan sesi, catatan audit,
 //     unggahan tertunda, dan baris pembatas laju dikerjakan cron yang memanggil
 //     POST /api/tasks/maintenance. Lihat vercel.json.
-//   - Worker notifikasi juga tidak jalan. Kalau email diaktifkan, jalankan
-//     `npm run worker:notifications` di tempat lain atau panggil lewat cron.
+//   - Worker notifikasi juga tidak jalan. Antrean email dikirim oleh rute perawatan
+//     yang sama, jadi bila email diaktifkan, panggil rute itu lebih sering (mis. tiap
+//     5 menit dari penjadwal luar); cron Vercel Hobby hanya sekali sehari.
 //   - Hitungan pembatas laju untuk kredensial disimpan di database (migrasi 041),
 //     karena memori proses hilang setiap instance mati.
 
