@@ -245,7 +245,7 @@ main .eyebrow + h2 + p.lp-lede {
    --r mengikuti kemiringan tali di titik itu. */
 .lp-line {
   --line-h: clamp(110px, 12vw, 170px);
-  --card-w: clamp(180px, 17vw, 232px);
+  --card-w: clamp(150px, 17vw, 232px);
   position: relative;
   height: calc(var(--line-h) * 0.5 + var(--card-w) * 1.18 + 40px);
   margin-top: clamp(28px, 4vw, 48px);
@@ -284,11 +284,13 @@ main .eyebrow + h2 + p.lp-lede {
   transform-origin: 50% 14px;
 }
 
-.lp-card:nth-child(1) { --x: 6; --y: 35; --r: 11deg; }
-.lp-card:nth-child(2) { --x: 28; --y: 84; --r: 5deg; }
+/* Kartu tepi ditaruh cukup ke dalam supaya utuh di layar, termasuk saat miring.
+   --y = 20 + 320 * t * (1 - t) dengan t = --x / 100 (tinggi tali di titik itu). */
+.lp-card:nth-child(1) { --x: 13; --y: 56; --r: 9deg; }
+.lp-card:nth-child(2) { --x: 31; --y: 88; --r: 4.5deg; }
 .lp-card:nth-child(3) { --x: 50; --y: 100; --r: 0deg; z-index: 1; }
-.lp-card:nth-child(4) { --x: 72; --y: 84; --r: -5deg; }
-.lp-card:nth-child(5) { --x: 94; --y: 35; --r: -11deg; }
+.lp-card:nth-child(4) { --x: 69; --y: 88; --r: -4.5deg; }
+.lp-card:nth-child(5) { --x: 87; --y: 56; --r: -9deg; }
 
 .lp-card a {
   position: relative;
@@ -402,7 +404,7 @@ main .eyebrow + h2 + p.lp-lede {
 @media (max-width: 768px) {
   .lp-line {
     --line-h: 90px;
-    --card-w: 150px;
+    --card-w: 136px;
   }
 
   .lp-card:nth-child(1),
@@ -410,8 +412,8 @@ main .eyebrow + h2 + p.lp-lede {
     display: none;
   }
 
-  .lp-card:nth-child(2) { --x: 14; --y: 57; --r: 9deg; }
-  .lp-card:nth-child(4) { --x: 86; --y: 57; --r: -9deg; }
+  .lp-card:nth-child(2) { --x: 25; --y: 80; --r: 6deg; }
+  .lp-card:nth-child(4) { --x: 75; --y: 80; --r: -6deg; }
 
   .lp-card a {
     padding: 7px 7px 12px;
@@ -2631,4 +2633,61 @@ main h1.lp-h2 {
     width: 48px;
     height: 48px;
   }
+}
+
+/* Dua bagian berlatar sama yang berurutan tidak perlu jarak ganda (bawah + atas):
+   cukup jarak bawah bagian sebelumnya ditambah sedikit. */
+.lp-section:not(.lp-section--tint) + .lp-section:not(.lp-section--tint) {
+  padding-top: clamp(8px, 2vw, 24px);
+}
+
+/* Penanda geser galeri: hanya saat galeri berupa satu baris (ponsel). */
+.lp-photos__nav {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .lp-photos__nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .lp-photos__hint {
+    font-size: var(--fs-13);
+    color: var(--lp-soft);
+  }
+
+  .lp-photos__hint::after {
+    content: " \2192";
+  }
+
+  .lp-photos__dots {
+    display: flex;
+    gap: 5px;
+  }
+
+  .lp-photos__dots i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(54, 54, 56, 0.18);
+    transition: width 200ms ease, background-color 200ms ease;
+  }
+
+  .lp-photos__dots i.is-active {
+    width: 16px;
+    border-radius: 3px;
+    background: var(--gold);
+  }
+}
+
+/* Tablet: kartu lebih sempit dibanding miringnya, jadi kartu tepi digeser sedikit lagi ke dalam. */
+@media (min-width: 769px) and (max-width: 1100px) {
+  .lp-card:nth-child(1) { --x: 15; --y: 61; --r: 8.5deg; }
+  .lp-card:nth-child(2) { --x: 32.5; --y: 90; --r: 4.5deg; }
+  .lp-card:nth-child(4) { --x: 67.5; --y: 90; --r: -4.5deg; }
+  .lp-card:nth-child(5) { --x: 85; --y: 61; --r: -8.5deg; }
 }

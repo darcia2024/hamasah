@@ -154,7 +154,8 @@ fetch('/api/articles?limit=4')
   function tampilkan(indeks) {
     aktif = (indeks + items.length) % items.length;
     const foto = items[aktif].querySelector('img');
-    gambar.src = foto.currentSrc || foto.src;
+    // Versi asli (src), bukan versi kecil yang dimuat galeri (srcset).
+    gambar.src = foto.src;
     gambar.alt = foto.alt;
     keterangan.textContent = items[aktif].querySelector('.lp-photos__caption').textContent;
     hitungan.textContent = `${aktif + 1} dari ${items.length}`;
@@ -180,3 +181,26 @@ fetch('/api/articles?limit=4')
     if (pemicu) pemicu.focus();
   });
 }());
+
+// Galeri di ponsel berupa satu baris yang digeser. Titik di bawahnya menunjukkan jumlah foto
+// dan posisi yang sedang tampil.
+(function penandaGeserGaleri() {
+  const daftar = document.querySelector('#galeri');
+  const titik = document.querySelector('.lp-photos__dots');
+  if (!daftar || !titik) return;
+  const butir = [...daftar.children];
+  titik.replaceChildren(...butir.map(() => document.createElement('i')));
+  const semua = [...titik.children];
+  function tandai() {
+    const awal = daftar.getBoundingClientRect().left;
+    let aktif = 0;
+    butir.forEach((li, i) => {
+      if (li.getBoundingClientRect().left - awal < li.offsetWidth / 2) aktif = i;
+    });
+    // Foto terakhir tidak pernah sampai ke tepi kiri; di ujung geseran, titik terakhir yang menyala.
+    if (daftar.scrollLeft + daftar.clientWidth >= daftar.scrollWidth - 4) aktif = butir.length - 1;
+    semua.forEach((el, i) => el.classList.toggle('is-active', i === aktif));
+  }
+  daftar.addEventListener('scroll', tandai, { passive: true });
+  tandai();
+})();

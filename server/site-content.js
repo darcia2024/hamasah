@@ -57,6 +57,23 @@ function namaFotoTerkini(foto, dikenal) {
   return webp !== nama && dikenal(webp) ? webp : nama;
 }
 
+// Versi lebar 640px untuk foto bawaan yang besar (assets/galeri/kecil/). Beranda menampilkan
+// foto galeri sekitar 300px, jadi yang dimuat versi kecil; versi asli tetap dipakai saat
+// foto diperbesar.
+const FOTO_GALERI_KECIL = Object.freeze(new Set((() => {
+  try {
+    return fs.readdirSync(path.join(__dirname, '..', 'assets', 'galeri', 'kecil')).map((nama) => `galeri/${nama}`);
+  } catch {
+    return [];
+  }
+})()));
+
+function srcsetFotoGaleri(f) {
+  if (!FOTO_GALERI_KECIL.has(f.foto)) return '';
+  const kecil = `../assets/galeri/kecil/${f.foto.slice('galeri/'.length)}`;
+  return ` srcset="${kecil} 640w, ${srcFotoGaleri(f.foto)} ${f.lebar}w" sizes="(max-width: 640px) 68vw, 320px"`;
+}
+
 function srcFotoGaleri(foto) {
   return foto.startsWith('unggah/') ? `/media/galeri/${foto.slice('unggah/'.length)}` : `../assets/${foto}`;
 }
@@ -679,7 +696,7 @@ ${paragraf(t.isi, '                    ')}
   galeri(daftarFoto) {
     const butir = daftarFoto.map((f) => `            <li${f.tinggi > f.lebar ? ' class="lp-photos__tegak"' : ''}>
               <button class="lp-photos__item" type="button" aria-label="Perbesar foto: ${esc(f.keterangan)}">
-                <img src="${esc(srcFotoGaleri(f.foto))}" alt="${esc(f.alt)}" width="${f.lebar}" height="${f.tinggi}" loading="lazy" decoding="async" />
+                <img src="${esc(srcFotoGaleri(f.foto))}"${srcsetFotoGaleri(f)} alt="${esc(f.alt)}" width="${f.lebar}" height="${f.tinggi}" loading="lazy" decoding="async" />
                 <span class="lp-photos__caption">${nb(f.keterangan)}</span>
               </button>
             </li>`);
