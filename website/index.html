@@ -11,8 +11,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Philosopher:wght@700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website-core.css?v=2d72a1bd8f" />
-    <link rel="stylesheet" href="website-public.css?v=307ac14ab1" />
-    <link rel="stylesheet" href="landing.css?v=ed0e2f104a" />
+    <link rel="stylesheet" href="website-public.css?v=2bc10fc9e0" />
+    <link rel="stylesheet" href="landing.css?v=3902e7992d" />
     <link rel="stylesheet" href="fields.css?v=9cd65bf0c8" />
   </head>
   <body>
@@ -49,7 +49,7 @@
       <section class="lp-hero" id="beranda" aria-labelledby="hero-title">
         <div class="shell">
           <div class="lp-hero__copy">
-            <h1 id="hero-title">Selamat datang di <em class="lp-nb">Hamasah International</em></h1>
+            <h1 id="hero-title"><span class="lp-hero__salam">Selamat datang di</span> <em class="lp-nb"><span class="lp-hero__nama">Hamasah</span> <span class="lp-hero__sub">International</span></em></h1>
             <p class="lp-hero__lede">Kami mendampingi Anda menuju <span class="lp-nb">Al-Azhar</span>, dari memilih jalur, menyiapkan bahasa Arab, mengurus berkas dan visa, sampai tinggal nyaman di asrama kami di Kairo. Satu tim yang sama, di Indonesia dan di Mesir.</p>
             <div class="lp-hero__actions">
               <a class="button button--primary lp-cta" href="daftar">
@@ -380,7 +380,7 @@
         <div class="shell lp-portal">
           <div>
             <h2 class="lp-h2" id="santri-title">Pantau perkembangan ananda dari ponsel</h2>
-            <p class="lp-lede">Setiap tanggal 1, musyrif menyampaikan laporan bulanan lewat rapat daring. Di sela itu, Anda bisa memantau perkembangan ananda kapan saja dari ponsel.</p>
+            <p class="lp-lede">Sebagai wali santri, Anda punya halaman sendiri untuk memantau perkembangan ananda kapan saja, tanpa perlu bertanya-tanya dahulu.</p>
             <ul class="lp-portal__points">
               <li>Presensi sholat berjamaah lima waktu, tercatat per hari</li>
               <li>Setoran hafalan dan penilaian musyrif</li>
@@ -391,33 +391,42 @@
           </div>
 
           <figure class="lp-phone-wrap">
-            <div class="lp-phone" role="img" aria-label="Contoh tampilan portal wali di ponsel: profil santri dengan ringkasan sholat berjamaah, hafalan, dan kehadiran, serta laporan kegiatan hari ini">
+            <div class="lp-phone" role="img" aria-label="Contoh tampilan portal wali di ponsel: profil santri, progres hafalan Al-Qur'an, persentase sholat berjamaah dan kehadiran kelas, serta kegiatan hari ini">
               <span class="lp-phone__side lp-phone__side--kiri" aria-hidden="true"></span>
               <span class="lp-phone__side lp-phone__side--kanan" aria-hidden="true"></span>
               <div class="lp-phone__screen" aria-hidden="true">
                 <span class="lp-phone__island"></span>
-                <div class="lp-phone__glow">
-                  <span class="lp-phone__back">&larr;</span>
+                <div class="lp-phone__hero">
+                  <div class="lp-phone__status"><span>09.41</span><span class="lp-phone__signal"><i></i><i></i><i></i></span></div>
+                  <p class="lp-phone__salam">Assalamu'alaikum, Ayah &amp; Bunda</p>
+                  <div class="lp-phone__profile">
+                    <span class="lp-phone__avatar">MR</span>
+                    <div>
+                      <p class="lp-phone__title">Muhammad Rayyan Al-Fatih</p>
+                      <p class="lp-phone__text">Ma'had Al-Azhar · 2 I'dadi</p>
+                    </div>
+                  </div>
                 </div>
                 <div class="lp-phone__body">
-                  <div class="lp-phone__profile">
-                    <span class="lp-phone__avatar">AF</span>
-                    <span class="lp-phone__chip">Kelas 2 I'dadi</span>
+                  <div class="lp-phone__card lp-phone__hafalan">
+                    <span class="lp-phone__ring"><b>78%</b></span>
+                    <div>
+                      <small>Hafalan Al-Qur'an</small>
+                      <b>Juz 30 · An-Naba'</b>
+                      <span class="lp-phone__note">Dinilai lancar oleh Ust. Hilmi</span>
+                    </div>
                   </div>
-                  <p class="lp-phone__title">Ahmad Fauzan</p>
-                  <p class="lp-phone__text">Ma'had Al-Azhar · Asrama Putra · Musyrif Ust. Hilmi</p>
                   <div class="lp-phone__stats">
                     <span><strong>92%</strong><small>Sholat berjamaah</small></span>
-                    <span><strong>Juz 30</strong><small>Hafalan</small></span>
                     <span><strong>96%</strong><small>Hadir kelas</small></span>
                   </div>
                   <div class="lp-phone__card lp-phone__report">
-                    <div class="lp-phone__report-head"><b>Laporan kegiatan</b><small>Hari ini</small></div>
+                    <div class="lp-phone__report-head"><b>Kegiatan hari ini</b><small>Kamis</small></div>
                     <ul>
                       <li><time>04.30</time><span>Subuh berjamaah</span><i>Hadir</i></li>
-                      <li><time>07.00</time><span>Setoran An-Naba' 1-40</span><i>Lancar</i></li>
+                      <li><time>07.00</time><span>Setoran hafalan</span><i>Lancar</i></li>
                       <li><time>08.00</time><span>Kelas Ma'had</span><i>Hadir</i></li>
-                      <li><time>16.30</time><span>Kajian sore asrama</span><i class="is-nanti">Nanti</i></li>
+                      <li class="is-nanti"><time>16.30</time><span>Kajian sore</span><i>Nanti</i></li>
                     </ul>
                   </div>
                 </div>
@@ -698,6 +707,6 @@
     <script src="public-header.js?v=b528017ed5"></script>
 
     <script src="assistant.js?v=af4d99f3a9"></script>
-    <script src="website.js?v=0bd0bf621b"></script>
+    <script src="website.js?v=1c16f9b66c"></script>
   </body>
 </html>

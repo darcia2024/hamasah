@@ -103,6 +103,8 @@ const journalList = document.querySelector('#journal-list');
 // sebagai daftar bersampul kecil. Tiap butir memuat kategori, tanggal, judul, dan ajakan
 // "Baca artikel", supaya jelas bahwa ini tulisan yang bisa dibuka.
 const tanggalArtikel = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+// Artikel di daftar samping memakai bulan singkat (30 Sep 2026) supaya keterangan muat satu baris.
+const tanggalSingkat = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 
 function renderArticles(items) {
   const fragment = document.createDocumentFragment();
@@ -129,7 +131,7 @@ function renderArticles(items) {
     meta.className = 'pena-item__meta';
     const tanggal = article.publishedAt ? new Date(article.publishedAt) : null;
     const bagianMeta = [article.category];
-    if (tanggal && !Number.isNaN(tanggal.getTime())) bagianMeta.push(tanggalArtikel.format(tanggal));
+    if (tanggal && !Number.isNaN(tanggal.getTime())) bagianMeta.push((utama ? tanggalArtikel : tanggalSingkat).format(tanggal));
     meta.textContent = bagianMeta.filter(Boolean).join(' · ');
     const title = document.createElement('strong');
     title.className = 'pena-item__title';

@@ -7196,3 +7196,67 @@ main .biaya-cta-section {
 .assistant.is-open .assistant__launcher svg {
   display: block;
 }
+
+/* ==========================================================================
+   Footer ringkas di ponsel (15 Oktober 2026): jarak dipangkas, huruf 13 px, empat
+   kolom tautan jadi dua, kolom "Hubungi kami" selebar penuh supaya nomor WA tidak patah.
+   ========================================================================== */
+@media (max-width: 640px) {
+  .site-footer {
+    padding: 36px 0 24px;
+  }
+
+  .site-footer .footer-wrap {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .site-footer .brand--footer {
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .site-footer .brand--footer img {
+    width: 32px;
+    height: 32px;
+  }
+
+  .site-footer .brand--footer .brand-name {
+    font-size: var(--fs-16);
+  }
+
+  .site-footer .footer-desc {
+    font-size: var(--fs-13);
+    line-height: 1.55;
+  }
+
+  .site-footer .footer-links-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 16px;
+  }
+
+  .site-footer .footer-col:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .site-footer .footer-col-title {
+    margin-bottom: 4px;
+    font-size: 11px;
+  }
+
+  .site-footer .footer-links a {
+    padding-block: 6px;
+    font-size: var(--fs-13);
+    line-height: 1.35;
+  }
+
+  .site-footer .footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 24px;
+    padding-top: 16px;
+    font-size: var(--fs-12);
+    line-height: 1.5;
+  }
+}
