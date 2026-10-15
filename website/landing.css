@@ -3625,3 +3625,112 @@ main h1.lp-h2 {
     font-size: var(--fs-14) !important;
   }
 }
+
+/* Kartu jemuran di ponsel (15 Oktober 2026): tiga kartu tidak lagi saling tumpuk.
+   Lebar kartu mengikuti layar (maks. 112 px) dan ketiganya berjarak, sudutnya lebih
+   landai, teks lebih ringkas. */
+@media (max-width: 640px) {
+  .lp .lp-line {
+    --line-h: 80px;
+    --card-w: min(112px, 28vw);
+    height: calc(var(--line-h) * 0.5 + var(--card-w) * 1.55 + 40px);
+  }
+
+  .lp .lp-card:nth-child(2) { --x: 20.5; --y: 72; --r: 5deg; }
+  .lp .lp-card:nth-child(3) { --x: 50; --y: 100; --r: 0deg; }
+  .lp .lp-card:nth-child(4) { --x: 79.5; --y: 72; --r: -5deg; }
+
+  .lp .lp-card a {
+    gap: 2px;
+    padding: 6px 6px 10px;
+    border-radius: 16px;
+  }
+
+  .lp .lp-card img {
+    margin-bottom: 6px;
+    border-radius: 11px;
+  }
+
+  .lp .lp-card__title {
+    padding-inline: 4px;
+    font-size: var(--fs-13);
+    line-height: 1.25;
+  }
+
+  .lp .lp-card__text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    padding-inline: 4px;
+    font-size: var(--fs-12);
+    line-height: 1.35;
+  }
+}
+
+/* Keuntungan di bagian pembuka, ponsel (15 Oktober 2026): tiap poin jadi kartu putih
+   dengan nomor emas di kiri, bukan daftar bergaris panjang. */
+@media (max-width: 640px) {
+  .lp .lp-hero .lp-assure__label {
+    margin: 4px 0 14px;
+    font-size: var(--fs-12);
+    letter-spacing: 0.12em;
+    text-align: center;
+  }
+
+  .lp .lp-hero .lp-assure {
+    counter-reset: assure;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px;
+    margin: 0;
+    padding: 0 0 48px;
+    border-top: 0;
+  }
+
+  .lp .lp-hero .lp-assure li,
+  .lp .lp-hero .lp-assure li:first-child {
+    counter-increment: assure;
+    position: relative;
+    display: block;
+    padding: 16px 16px 16px 64px !important;
+    border: 1px solid rgba(54, 54, 56, 0.07) !important;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(54, 54, 56, 0.04), 0 10px 24px -16px rgba(54, 54, 56, 0.22);
+  }
+
+  .lp .lp-hero .lp-assure li::before {
+    content: counter(assure);
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #fbefc4;
+    color: var(--gold-dark);
+    font-size: var(--fs-14);
+    font-weight: 700;
+  }
+
+  .lp .lp-hero .lp-assure strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: var(--fs-16) !important;
+    line-height: 1.35;
+  }
+
+  .lp .lp-hero .lp-assure span {
+    display: block;
+    font-size: var(--fs-14) !important;
+    line-height: 1.55;
+  }
+
+  /* Kartu jemuran: keterangan sampai tiga baris, tanpa elipsis di tengah kata. */
+  .lp .lp-card__text {
+    -webkit-line-clamp: 3;
+  }
+}
