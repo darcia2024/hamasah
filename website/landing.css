@@ -3563,16 +3563,32 @@ main h1.lp-h2 {
   }
 }
 
-/* Judul utama dan teks di ponsel satu tingkat lebih besar (15 Oktober 2026). */
+/* Teks isi di ponsel satu tingkat lebih besar (15 Oktober 2026). Bagian pembuka tetap
+   ringkas: judul 28 px, pengantar 15 px, tombol ukuran biasa (fields.css), supaya muat satu layar. */
 @media (max-width: 640px) {
+  .lp .lp-hero {
+    padding-top: 28px;
+  }
+
   main .lp-hero h1 {
-    font-size: var(--fs-36);
-    line-height: 1.12;
-    margin-bottom: 18px;
+    font-size: var(--fs-28);
+    line-height: 1.15;
+    margin-bottom: 12px;
   }
 
   .lp-hero__lede {
-    font-size: 17px;
+    max-width: 36ch;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .lp .lp-hero__actions {
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .lp .lp-hero .lp-link {
+    font-size: var(--fs-14);
   }
 
   main h2.lp-h2 {

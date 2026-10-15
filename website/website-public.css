@@ -7118,8 +7118,8 @@ main .biaya-cta-section {
 }
 
 /* ==========================================================================
-   Kepala situs di ponsel (15 Oktober 2026): bilah tepat 64 px, logo dan tombol menu
-   sama-sama 44 px dan segaris di tengah, tepi kiri-kanan mengikuti konten (24 px).
+   Kepala situs di ponsel (15 Oktober 2026): bilah tepat 60 px, logo 36 px dan tombol
+   menu 40 px segaris di tengah, tepi kiri-kanan mengikuti konten (24 px).
    Ukuran tautan menu (20 px) diatur di fields.css.
    ========================================================================== */
 @media (max-width: 768px) {
@@ -7128,25 +7128,26 @@ main .biaya-cta-section {
   }
 
   .site-header .nav-wrap {
-    height: 64px;
-    min-height: 64px;
+    height: 60px;
+    min-height: 60px;
     align-items: center;
   }
 
   .site-header .brand {
     display: flex;
     align-items: center;
-    height: 44px;
+    height: 40px;
   }
 
   .site-header .brand-logo {
-    height: 44px;
+    height: 36px;
   }
 
   .site-header .menu-toggle {
     flex: none;
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
     margin: 0;
   }
 
@@ -7163,8 +7164,8 @@ main .biaya-cta-section {
 .assistant__launcher,
 .assistant.is-open .assistant__launcher {
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 0;
   background: var(--gold, #e7b10c);
@@ -7174,8 +7175,8 @@ main .biaya-cta-section {
 
 .assistant__icon {
   display: block;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   flex: none;
 }
 

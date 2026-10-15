@@ -172,6 +172,15 @@
     font-size: var(--fs-16, 16px) !important;
   }
 
+  /* Di ponsel ajakan utama turun ke ukuran biasa supaya bagian pembuka tidak sesak. */
+  @media (max-width: 640px) {
+    .button.lp-cta {
+      min-height: var(--tombol-tinggi) !important;
+      padding: 10px 24px !important;
+      font-size: var(--tombol-huruf) !important;
+    }
+  }
+
   /* Navigasi situs publik: satu tingkat di bawah teks utama, dan tombol ajakan di
      header tidak lebih besar dari tombol di isi halaman. */
   .site-nav a {
