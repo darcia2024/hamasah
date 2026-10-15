@@ -21,7 +21,10 @@ function readSeedArticles(filePath) {
     coverAltText: String(article.coverAltText || '').trim() || null,
     // Sampul bawaan versi lama. Artikel yang sampulnya masih salah satu dari ini boleh
     // diganti ke sampul bawaan terbaru; sampul pilihan admin tidak pernah tersentuh.
-    previousCoverUrls: Array.isArray(article.previousCoverUrls) ? article.previousCoverUrls.map((url) => String(url).trim()).filter(Boolean) : []
+    previousCoverUrls: Array.isArray(article.previousCoverUrls) ? article.previousCoverUrls.map((url) => String(url).trim()).filter(Boolean) : [],
+    // Sidik SHA-256 isi bawaan versi lama. Artikel yang isinya masih persis salah satu versi
+    // ini diperbarui ke judul, ringkasan, dan isi terbaru; suntingan admin tidak tersentuh.
+    previousBodyHashes: Array.isArray(article.previousBodyHashes) ? article.previousBodyHashes.map((hash) => String(hash).trim().toLowerCase()).filter(Boolean) : []
   }));
 }
 

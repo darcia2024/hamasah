@@ -8,6 +8,10 @@
 // ditimpa: suntingan admin di Pena Hamasah tetap aman, yang ditambahkan hanya yang belum ada.
 
 const crypto = require('node:crypto');
+
+function sidikIsi(teks) {
+  return crypto.createHash('sha256').update(String(teks || '').trim()).digest('hex');
+}
 const path = require('node:path');
 const { readSeedArticles, validateArticle } = require('../database/seed-articles.js');
 
@@ -56,7 +60,8 @@ function createArticleSeedService({ database, filePath = DEFAULT_FILE, now = () 
       if (rowCount) ditambahkan.push(article.slug);
     }
     const sampul = await lengkapiSampul(daftar);
-    return { ditambahkan, sampul, status: await status() };
+    const diperbarui = await perbaruiIsiBawaan(daftar);
+    return { ditambahkan, sampul, diperbarui, status: await status() };
   }
 
   // Artikel bawaan yang sudah ada tetapi belum punya sampul diberi sampul bawaannya. Sampul
@@ -76,6 +81,23 @@ function createArticleSeedService({ database, filePath = DEFAULT_FILE, now = () 
     return diisi;
   }
 
+  // Artikel bawaan yang isinya masih persis versi bawaan lama (previousBodyHashes) diperbarui
+  // ke judul, ringkasan, dan isi terbaru. Isi yang pernah disunting admin sidiknya berbeda,
+  // jadi tidak pernah tertimpa.
+  async function perbaruiIsiBawaan(daftar) {
+    const diperbarui = [];
+    for (const article of daftar.filter((item) => item.previousBodyHashes && item.previousBodyHashes.length)) {
+      const { rows } = await database.query('SELECT body FROM articles WHERE slug = $1', [article.slug]);
+      if (!rows.length || !article.previousBodyHashes.includes(sidikIsi(rows[0].body))) continue;
+      await database.query(
+        'UPDATE articles SET title = $2, excerpt = $3, body = $4, updated_at = $5 WHERE slug = $1',
+        [article.slug, article.title, article.excerpt, article.body, now()]
+      );
+      diperbarui.push(article.slug);
+    }
+    return diperbarui;
+  }
+
   // Sekali per instance. Ditunggu oleh rute daftar artikel (di serverless, pekerjaan yang
   // tidak ditunggu bisa terhenti sebelum selesai). Gagal tidak menggagalkan permintaan:
   // dicatat di log, dan tombol di halaman Pengaturan tetap bisa dipakai.
@@ -84,7 +106,7 @@ function createArticleSeedService({ database, filePath = DEFAULT_FILE, now = () 
     if (!sudahDipastikan) {
       sudahDipastikan = tambahkan()
         .then(async (hasil) => {
-          if ((hasil.ditambahkan.length || hasil.sampul.length) && typeof saatDitambahkan === 'function') {
+          if ((hasil.ditambahkan.length || hasil.sampul.length || hasil.diperbarui.length) && typeof saatDitambahkan === 'function') {
             await saatDitambahkan(hasil.ditambahkan, hasil.sampul);
           }
           return hasil.ditambahkan;

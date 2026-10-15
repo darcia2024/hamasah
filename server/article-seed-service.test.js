@@ -51,6 +51,19 @@ async function run() {
     assert.deepEqual((await layanan.tambahkan()).sampul, [berganti.slug]);
     assert.equal((await database.query('SELECT cover_url FROM articles WHERE slug = $1', [berganti.slug])).rows[0].cover_url, berganti.coverUrl);
 
+    // Isi bawaan versi lama (previousBodyHashes) diperbarui ke versi terbaru; isi yang
+    // disunting admin tidak tertimpa.
+    const isiBaru = bawaan.find((item) => item.previousBodyHashes.length);
+    assert.ok(isiBaru, 'Ada artikel bawaan dengan isi versi lama.');
+    const isiLama = 'Hamasah International mendampingi santri sejak persiapan keberangkatan hingga penyesuaian awal di Kairo. Informasi kegiatan diperbarui oleh pengurus sesuai dokumentasi lapangan.';
+    await database.query("UPDATE articles SET title = 'Judul lama', body = $2 WHERE slug = $1", [isiBaru.slug, isiLama]);
+    assert.deepEqual((await layanan.tambahkan()).diperbarui, [isiBaru.slug]);
+    const sesudah = await database.query('SELECT title, body FROM articles WHERE slug = $1', [isiBaru.slug]);
+    assert.deepEqual(sesudah.rows[0], { title: isiBaru.title, body: isiBaru.body });
+    await database.query("UPDATE articles SET body = 'Isi hasil suntingan admin.' WHERE slug = $1", [isiBaru.slug]);
+    assert.deepEqual((await layanan.tambahkan()).diperbarui, []);
+    assert.equal((await database.query('SELECT body FROM articles WHERE slug = $1', [isiBaru.slug])).rows[0].body, 'Isi hasil suntingan admin.');
+
     // Artikel yang sudah ada tidak ditimpa.
     const tersimpan = await database.query('SELECT title, body FROM articles WHERE slug = $1', [pertama.slug]);
     assert.equal(tersimpan.rows[0].title, 'Judul hasil suntingan admin');
