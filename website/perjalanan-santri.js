@@ -180,11 +180,12 @@
   }
 
   // ------------------------------------------------------------------- Roadmap
-  function kartuRoadmap(roadmap) {
+  // keluarga: wali dan santri tidak perlu membaca catatan untuk admin.
+  function kartuRoadmap(roadmap, keluarga = false) {
     if (!roadmap) return null;
     const keterangan = roadmap.current
       ? `${roadmap.program}. Fase ${roadmap.current} dari ${roadmap.phases.length}.`
-      : `${roadmap.program}. Fase saat ini belum diisi admin.`;
+      : (keluarga ? roadmap.program : `${roadmap.program}. Fase saat ini belum diisi admin.`);
     const wadah = kartu('Roadmap studi', keterangan, 'santri-roadmap');
     const daftar = el('ol', 'santri-roadmap__list');
     roadmap.phases.forEach((fase) => {
@@ -350,8 +351,15 @@
     status.setAttribute('role', 'status');
 
     if (santri) {
+      // Formulir dilipat di balik tombol "Ajukan izin" supaya tidak memanjangkan halaman.
+      const buka = el('button', 'button button--primary santri-leave-open', 'Ajukan izin');
+      buka.type = 'button';
+      buka.setAttribute('aria-expanded', 'false');
       const form = el('form', 'santri-leave-form');
       form.noValidate = true;
+      form.hidden = true;
+      form.id = `form-izin-${studentId}`;
+      buka.setAttribute('aria-controls', form.id);
       function bidang(label, kontrol) {
         const wadahBidang = el('label', 'santri-leave-form__field');
         wadahBidang.append(el('span', '', label), kontrol);
@@ -367,9 +375,25 @@
       alasan.rows = 2;
       alasan.maxLength = 500;
       alasan.placeholder = 'Contoh: mengurus perpanjangan iqamah di Abbasiyah.';
-      const kirimTombol = el('button', 'button button--primary', 'Ajukan izin');
+      const kirimTombol = el('button', 'button button--primary', 'Kirim pengajuan');
       kirimTombol.type = 'submit';
-      form.append(bidang('Jenis izin', jenis), bidang('Mulai', mulai), bidang('Selesai', selesai), bidang('Alasan', alasan), kirimTombol);
+      const batalTombol = el('button', 'button button--secondary', 'Batal');
+      batalTombol.type = 'button';
+      const aksi = el('div', 'santri-leave-form__actions');
+      aksi.append(kirimTombol, batalTombol);
+      form.append(bidang('Jenis izin', jenis), bidang('Mulai', mulai), bidang('Selesai', selesai), bidang('Alasan', alasan), aksi);
+      const lipat = (terbuka) => {
+        form.hidden = !terbuka;
+        buka.hidden = terbuka;
+        buka.setAttribute('aria-expanded', String(terbuka));
+        if (terbuka) jenis.focus();
+      };
+      buka.addEventListener('click', () => lipat(true));
+      batalTombol.addEventListener('click', () => {
+        status.textContent = '';
+        lipat(false);
+        buka.focus();
+      });
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
         status.classList.remove('is-error');
@@ -393,7 +417,7 @@
           kirimTombol.disabled = false;
         }
       });
-      wadah.append(form);
+      wadah.append(buka, form);
     }
     wadah.append(status);
 
@@ -472,8 +496,10 @@
   }
 
   // wadah: elemen kosong di bawah kartu profil. role: peran akun yang membuka dashboard.
-  async function isi(wadah, { studentId, role, care, headers }) {
-    if (!wadah || !studentId) return;
+  // ringkas: wali dan santri. Angka utama sudah ada di kartu profil portal.js, jadi kartu
+  // indikator tidak dibuat. Mengembalikan { juz } untuk angka hafalan di kartu profil.
+  async function isi(wadah, { studentId, role, care, headers, ringkas = false }) {
+    if (!wadah || !studentId) return null;
     const id = encodeURIComponent(studentId);
     const santri = role === 'student';
     const keluarga = santri || role === 'parent';
@@ -500,17 +526,18 @@
       if (lama && baru) lama.replaceWith(baru);
     };
     const kartuKartu = [
-      kartuIndikator(care, juz),
+      ringkas ? null : kartuIndikator(care, juz),
       santri ? kartuHariIni(courses && courses.items, care) : null,
       keluarga ? kartuPengumuman(pengumuman) : null,
       keluarga ? kartuIzin(izin, { studentId, headers, santri, muatUlang: muatUlangIzin }) : null,
       wali ? kartuDoa(doa, { studentId, headers, muatUlang: muatUlangDoa }) : null,
-      kartuRoadmap(roadmap && roadmap.roadmap),
+      kartuRoadmap(roadmap && roadmap.roadmap, keluarga),
       kartuJuz(juz),
       keluarga ? kartuTeladan(honors) : null
     ].filter(Boolean);
     wadah.replaceChildren(...kartuKartu);
     wadah.hidden = !kartuKartu.length;
+    return { juz };
   }
 
   window.HamasahPerjalanan = Object.freeze({ isi, daftarTugas, kartuJuz });

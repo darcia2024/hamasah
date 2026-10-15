@@ -323,30 +323,113 @@ function createStudentCompactCard(student, idx, account, onOpen) {
   return card;
 }
 
-function buildTabs(definitions, panels, container) {
+// awal: indeks tab yang terbuka saat tampil. onChange(def): dipanggil tiap kali tab berganti.
+function buildTabs(definitions, panels, container, { awal = 0, onChange } = {}) {
   const buttons = definitions.map((def, index) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = `crm-pill-btn ${index === 0 ? 'is-active' : ''}`;
+    button.className = `crm-pill-btn ${index === awal ? 'is-active' : ''}`;
     // Hitungan hanya ditampilkan bila diketahui dari data. Tidak ada angka bawaan.
     const count = def.count === undefined ? '' : ` <span class="crm-pill-count" id="tab-count-${def.id}">${def.count}</span>`;
     button.innerHTML = `${def.icon} <span>${def.label}</span>${count}`;
     container.append(button);
     return button;
   });
+  // Di ponsel baris tab digeser ke samping; tab yang dipilih digeser ke tengah baris
+  // supaya selalu terlihat (dulu tab di ujung kanan tetap di luar layar).
+  const geserKeLayar = (button) => {
+    const kiri = button.offsetLeft - (container.clientWidth - button.offsetWidth) / 2;
+    container.scrollTo({ left: Math.max(0, kiri), behavior: 'smooth' });
+  };
   buttons.forEach((button, index) => {
+    button.setAttribute('aria-pressed', index === awal ? 'true' : 'false');
     button.addEventListener('click', () => {
-      buttons.forEach((other) => other.classList.remove('is-active'));
+      buttons.forEach((other) => {
+        other.classList.remove('is-active');
+        other.setAttribute('aria-pressed', 'false');
+      });
       panels.forEach((panel) => {
         panel.hidden = true;
         panel.classList.remove('crm-tab-enter');
       });
       button.classList.add('is-active');
+      button.setAttribute('aria-pressed', 'true');
       panels[index].hidden = false;
       panels[index].classList.add('crm-tab-enter');
+      geserKeLayar(button);
+      if (onChange) onChange(definitions[index]);
     });
   });
+  panels.forEach((panel, index) => { panel.hidden = index !== awal; });
+  if (buttons[awal]) requestAnimationFrame(() => geserKeLayar(buttons[awal]));
   return buttons;
+}
+
+// Tab yang terakhir dibuka per santri, supaya mengganti periode tidak melempar kembali ke
+// tab pertama. Hanya tab yang memakai periode yang menampilkan pilihan periode.
+const tabTerakhir = new Map();
+const TAB_BERPERIODE = new Set(['mutabaah', 'sholat', 'talaqqi', 'kesehatan']);
+
+function inisialNama(nama) {
+  const kata = String(nama || '').trim().split(/\s+/).filter(Boolean);
+  return ((kata[0] || '?')[0] + (kata.length > 1 ? kata[kata.length - 1][0] : '')).toUpperCase();
+}
+
+// Kartu profil wali dan santri: kepala gelap berisi inisial, nama, program, asrama, dan
+// tiga angka utama (sholat berjamaah, hafalan, kehadiran). Angka hafalan diisi setelah
+// data juz dimuat oleh perjalanan-santri.js.
+function kartuProfilKeluarga(dashboard, care, account) {
+  const student = dashboard.student;
+  const kartu = document.createElement('section');
+  kartu.className = 'ananda-hero';
+  kartu.setAttribute('aria-label', `Profil ${student.name}`);
+  const statusLabel = STUDENT_STATUS_LABELS[student.status] || student.status || '';
+  const meta = [student.program, student.city].filter(Boolean).join(' · ');
+  const musyrif = student.dormitory && student.dormitory.supervisors && student.dormitory.supervisors.length
+    ? student.dormitory.supervisors.join(', ') : '';
+  const sapaan = account && account.role === 'student' ? "Assalamu'alaikum" : 'Rekam jejak ananda';
+  const p = care && care.prayers;
+  const sholat = p && p.berjamaahRate !== null && p.berjamaahRate !== undefined ? `${p.berjamaahRate}%` : '-';
+  const sholatKet = p && p.recorded ? `${p.totals.berjamaah} dari ${p.recorded} waktu` : 'Belum dicatat';
+  const rate = dashboard.attendance.rate;
+  const hadir = rate === null || rate === undefined ? '-' : `${rate}%`;
+  const hadirKet = dashboard.attendance.total ? `${dashboard.attendance.present || 0} dari ${dashboard.attendance.total} kegiatan` : 'Belum dicatat';
+  kartu.innerHTML = `
+    <div class="ananda-hero__head">
+      <span class="ananda-hero__avatar" aria-hidden="true">${escapeHtml(inisialNama(student.name))}</span>
+      <div class="ananda-hero__id">
+        <p class="ananda-hero__salam">${escapeHtml(sapaan)}</p>
+        <h2 class="ananda-hero__name">${escapeHtml(student.name)}</h2>
+        ${meta ? `<p class="ananda-hero__meta">${escapeHtml(meta)}</p>` : ''}
+      </div>
+      ${statusLabel ? `<span class="ananda-hero__status">${escapeHtml(statusLabel)}</span>` : ''}
+    </div>
+    <dl class="ananda-hero__info">
+      <div><dt>Asrama</dt><dd>${escapeHtml(dormitoryLabel(student))}</dd></div>
+      ${musyrif ? `<div><dt>Musyrif</dt><dd>${escapeHtml(musyrif)}</dd></div>` : ''}
+      ${student.joinDate ? `<div><dt>Bergabung</dt><dd>${escapeHtml(formatTanggalPanjang(student.joinDate))}</dd></div>` : ''}
+    </dl>
+    <div class="ananda-hero__stats">
+      <div class="ananda-stat"><span class="ananda-stat__label">Sholat berjamaah</span><strong class="ananda-stat__value">${escapeHtml(sholat)}</strong><span class="ananda-stat__note">${escapeHtml(sholatKet)}</span></div>
+      <div class="ananda-stat" id="ananda-stat-hafalan"><span class="ananda-stat__label">Hafalan</span><strong class="ananda-stat__value">-</strong><span class="ananda-stat__note">Memuat...</span></div>
+      <div class="ananda-stat"><span class="ananda-stat__label">Kehadiran</span><strong class="ananda-stat__value">${escapeHtml(hadir)}</strong><span class="ananda-stat__note">${escapeHtml(hadirKet)}</span></div>
+    </div>
+  `;
+  return kartu;
+}
+
+function isiStatHafalan(kartu, juz) {
+  const kotak = kartu && kartu.querySelector('#ananda-stat-hafalan');
+  if (!kotak) return;
+  const nilai = kotak.querySelector('.ananda-stat__value');
+  const ket = kotak.querySelector('.ananda-stat__note');
+  if (!juz || !juz.tersedia) {
+    nilai.textContent = '-';
+    ket.textContent = 'Belum dicatat';
+    return;
+  }
+  nilai.textContent = `${juz.hafal} juz`;
+  ket.textContent = juz.sedang ? `${juz.sedang} juz sedang dihafal` : (juz.hafal ? 'Sudah hafal' : 'Belum ada juz ditandai');
 }
 
 const TAB_ICONS = Object.freeze({
@@ -416,6 +499,9 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
   if (studentList) studentList.hidden = true;
   const student = dashboard.student;
   const canRecord = Boolean(account) && ['admin', 'supervisor'].includes(account.role);
+  // Wali dan santri: profil ringkas lalu langsung tab; doa, izin, roadmap, dan santri teladan
+  // pindah ke tab Ringkasan. Staf tetap melihat kartu ringkasan lengkap di atas tab.
+  const keluarga = Boolean(account) && ['parent', 'student'].includes(account.role);
 
   if (onBack) {
     const backBar = document.createElement('div');
@@ -493,6 +579,7 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
   const prayerEntries = attendanceEntries.filter((entry) => PRAYER_PATTERN.test(entry.category || ''));
 
   const tabDefs = [
+    ...(keluarga ? [{ id: 'ringkasan', label: 'Ringkasan', icon: TAB_ICONS.home }] : []),
     { id: 'mutabaah', label: "Mutaba'ah & ibadah", icon: TAB_ICONS.clock, count: attendanceEntries.length },
     { id: 'sholat', label: 'Sholat berjamaah', icon: TAB_ICONS.mosque, count: care ? care.prayers.recorded : prayerEntries.length },
     { id: 'talaqqi', label: 'Talaqqi & tahfidz', icon: TAB_ICONS.award, count: dashboard.achievements.length + (care ? care.memorization.length : 0) },
@@ -745,6 +832,31 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
 
   const panels = [panelMutabaah, panelSholat, panelTalaqqi, panelDorm, panelLms, panelAdmin];
 
+  // Tab Ringkasan (wali dan santri): catatan pembina terbaru, lalu kartu dari
+  // perjalanan-santri.js (pengumuman, hari ini, izin, doa, roadmap, peta juz, teladan).
+  let panelRingkasan = null;
+  if (keluarga) {
+    panelRingkasan = document.createElement('div');
+    panelRingkasan.className = 'crm-card-stack ananda-ringkasan';
+    if (dashboard.evaluations.length) {
+      const evaluasi = dashboard.evaluations[0];
+      const catatan = document.createElement('section');
+      catatan.className = 'crm-white-card santri-card ananda-catatan';
+      const kepala = document.createElement('div');
+      kepala.className = 'santri-card__head';
+      const judul = document.createElement('h3');
+      judul.className = 'santri-card__title';
+      judul.textContent = 'Catatan pembina terbaru';
+      kepala.append(judul);
+      const isiCatatan = document.createElement('p');
+      isiCatatan.className = 'ananda-catatan__isi';
+      isiCatatan.textContent = evaluasi.note;
+      catatan.append(kepala, isiCatatan);
+      panelRingkasan.append(catatan);
+    }
+    panels.unshift(panelRingkasan);
+  }
+
   // Panel Kesehatan: hanya bila fitur kesehatan aktif (care.health bukan null). Wali dan santri
   // menerima kondisi dan catatan untuk wali; keluhan dan tindakan hanya ada pada data staf.
   if (care && care.health !== null) {
@@ -836,20 +948,42 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
     panels.push(panelBilling);
   }
 
-  buildTabs(tabDefs, panels, subtabsRow);
+  const idxTerakhir = tabDefs.findIndex((def) => def.id === tabTerakhir.get(student.id));
+  const awal = idxTerakhir >= 0 ? idxTerakhir : 0;
+  const aturToolbar = (def) => { toolbar.hidden = !TAB_BERPERIODE.has(def.id); };
+  subtabsRow.setAttribute('aria-label', 'Bagian rekam jejak');
+  buildTabs(tabDefs, panels, subtabsRow, {
+    awal,
+    onChange(def) {
+      tabTerakhir.set(student.id, def.id);
+      aturToolbar(def);
+    }
+  });
+  aturToolbar(tabDefs[awal]);
   panelsContainer.append(...panels);
 
   // Hari ini, roadmap studi, dan santri teladan (perjalanan-santri.js). Diisi setelah
-  // dashboard tampil; kartu yang datanya kosong tidak muncul.
+  // dashboard tampil; kartu yang datanya kosong tidak muncul. Untuk wali dan santri
+  // kartu-kartu ini masuk ke tab Ringkasan.
   const perjalanan = document.createElement('div');
-  perjalanan.className = 'santri-journey';
+  perjalanan.className = keluarga ? 'santri-journey santri-journey--ringkasan' : 'santri-journey';
   perjalanan.hidden = true;
 
-  studentDashboard.append(summaryCard, perjalanan, subtabsRow, toolbar, panelsContainer);
+  const profil = keluarga ? kartuProfilKeluarga(dashboard, care, account) : summaryCard;
+  if (keluarga) {
+    panelRingkasan.append(perjalanan);
+    studentDashboard.append(profil, subtabsRow, toolbar, panelsContainer);
+  } else {
+    studentDashboard.append(summaryCard, perjalanan, subtabsRow, toolbar, panelsContainer);
+  }
   studentDashboard.classList.add('crm-view-enter');
   studentDashboard.hidden = false;
   if (window.HamasahPerjalanan) {
-    window.HamasahPerjalanan.isi(perjalanan, { studentId: student.id, role: account && account.role, care, headers: requestHeaders() }).catch(() => {});
+    window.HamasahPerjalanan.isi(perjalanan, { studentId: student.id, role: account && account.role, care, headers: requestHeaders(), ringkas: keluarga })
+      .then((hasil) => { if (keluarga) isiStatHafalan(profil, hasil && hasil.juz); })
+      .catch(() => { if (keluarga) isiStatHafalan(profil, null); });
+  } else if (keluarga) {
+    isiStatHafalan(profil, null);
   }
 }
 

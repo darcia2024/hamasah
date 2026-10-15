@@ -7112,3 +7112,250 @@ button.santri-juz__cell:focus-visible {
 .registration-home-kpis .admin-kpi__value {
   font-size: var(--fs-24);
 }
+
+/* ==========================================================================
+   Rekam jejak santri untuk wali dan santri (15 Oktober 2026). Profil ringkas berkepala
+   gelap dengan tiga angka utama, lalu langsung tab. Doa, izin, roadmap, dan santri
+   teladan ada di tab Ringkasan. Pilihan periode hanya muncul di tab yang memakainya.
+   ========================================================================== */
+.crm-toolbar[hidden] {
+  display: none !important;
+}
+
+.ananda-hero {
+  display: grid;
+  gap: 18px;
+  padding: 22px 24px 20px;
+  border-radius: 22px;
+  background:
+    radial-gradient(80% 90% at 100% 0%, rgba(231, 177, 12, 0.32), transparent 60%),
+    linear-gradient(160deg, #3d3d40 0%, #262628 100%);
+  color: #fff;
+  box-shadow: 0 18px 40px -24px rgba(30, 27, 22, 0.55);
+}
+
+.ananda-hero__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ananda-hero__avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 2px solid #f3c64a;
+  border-radius: 50%;
+  background: linear-gradient(140deg, #f3c64a, #b98a06);
+  box-shadow: 0 0 0 4px rgba(243, 198, 74, 0.22);
+  color: #262628;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.ananda-hero__id {
+  flex: 1;
+  min-width: 0;
+}
+
+.ananda-hero__salam {
+  margin: 0 0 2px;
+  font-size: var(--fs-12);
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* !important: aturan judul konsol (h2 berwarna gelap) tidak boleh menimpa nama di atas latar gelap. */
+.ananda-hero .ananda-hero__name {
+  margin: 0 !important;
+  font-family: "Philosopher", Georgia, serif !important;
+  font-size: var(--fs-24) !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+  letter-spacing: 0 !important;
+  color: #fff !important;
+}
+
+.ananda-hero__meta {
+  margin: 4px 0 0;
+  font-size: var(--fs-13);
+  color: #f3c64a;
+}
+
+.ananda-hero__status {
+  flex: none;
+  align-self: flex-start;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  font-size: var(--fs-12);
+  font-weight: 600;
+  color: #fff;
+}
+
+.ananda-hero__info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 0;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.ananda-hero__info dt {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.ananda-hero__info dd {
+  margin: 2px 0 0;
+  font-size: var(--fs-14);
+  color: #fff;
+}
+
+.ananda-hero__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.ananda-stat {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #fff;
+  color: #1c1c1e;
+}
+
+.ananda-stat__label {
+  font-size: var(--fs-12);
+  font-weight: 600;
+  color: #6b6b70;
+}
+
+.ananda-stat__value {
+  font-size: var(--fs-24);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.ananda-stat__note {
+  font-size: var(--fs-12);
+  line-height: 1.35;
+  color: #8a8a8f;
+}
+
+.ananda-hero + .crm-subtabs-row {
+  margin-top: 16px;
+}
+
+/* Tab Ringkasan: kartu perjalanan langsung di dalam panel, tanpa jarak ganda. */
+.santri-journey--ringkasan {
+  margin: 0;
+}
+
+.ananda-catatan__isi {
+  margin: 0;
+  font-size: var(--fs-16);
+  line-height: 1.6;
+  color: var(--md-sys-color-on-surface);
+}
+
+/* Izin santri: tombol pembuka, formulir terlipat, aksi kirim dan batal sebaris. */
+.santri-leave-open {
+  justify-self: start;
+  margin-bottom: 8px;
+}
+
+.santri-leave-form[hidden] {
+  display: none;
+}
+
+.santri-leave-form__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .ananda-hero {
+    gap: 14px;
+    padding: 18px 16px 16px;
+    border-radius: 20px;
+  }
+
+  .ananda-hero__avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 17px;
+  }
+
+  .ananda-hero .ananda-hero__name {
+    font-size: var(--fs-20) !important;
+  }
+
+  .ananda-hero__info {
+    gap: 8px 20px;
+    padding-top: 12px;
+  }
+
+  .ananda-hero__info dd {
+    font-size: var(--fs-13);
+  }
+
+  .ananda-hero__stats {
+    gap: 6px;
+  }
+
+  .ananda-stat {
+    padding: 10px 10px;
+    border-radius: 12px;
+  }
+
+  .ananda-stat__label {
+    font-size: 11px;
+  }
+
+  .ananda-stat__value {
+    font-size: var(--fs-18);
+  }
+
+  .ananda-stat__note {
+    font-size: 11px;
+  }
+
+  /* Roadmap ringkas: linimasa bernomor, bukan lima kotak bertumpuk. */
+  .santri-journey--ringkasan .santri-roadmap__list {
+    gap: 0;
+  }
+
+  .santri-journey--ringkasan .santri-roadmap__step {
+    padding: 8px 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+  }
+
+  .santri-journey--ringkasan .santri-roadmap__step + .santri-roadmap__step {
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+  }
+
+  .santri-journey--ringkasan .santri-roadmap__step.is-current {
+    background: none;
+  }
+
+  .santri-journey--ringkasan .santri-roadmap__dot {
+    width: 24px;
+    height: 24px;
+    font-size: var(--fs-12);
+  }
+}
