@@ -381,7 +381,7 @@ function srcFotoGaleri(foto) {
 }
 
 // Foto dari HP bisa 4000 px dan 5 MB. Dikecilkan ke sisi terpanjang 1600 px dan JPEG
-// kualitas 0,85 (sekitar 200 sampai 400 KB), cukup tajam untuk galeri dan foto besar.
+// kualitas 0,8 (sekitar 150 sampai 350 KB), cukup tajam untuk galeri dan foto besar.
 async function kecilkanFoto(file) {
   let gambar;
   try {
@@ -400,7 +400,7 @@ async function kecilkanFoto(file) {
   konteks.fillRect(0, 0, lebar, tinggi);
   konteks.drawImage(gambar, 0, 0, lebar, tinggi);
   if (typeof gambar.close === 'function') gambar.close();
-  const blob = await new Promise((resolve) => kanvas.toBlob(resolve, 'image/jpeg', 0.85));
+  const blob = await new Promise((resolve) => kanvas.toBlob(resolve, 'image/jpeg', 0.8));
   if (!blob) throw new Error('Foto belum dapat diproses. Coba foto lain.');
   return { blob, lebar, tinggi };
 }

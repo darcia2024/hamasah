@@ -71,7 +71,7 @@ function renderArticle(article) {
   const cover = article.coverUrl
     ? `
       <figure class="story-cover">
-        <img class="article-cover" src="${escapeHtml(article.coverUrl)}" alt="${escapeHtml(article.coverAltText || title)}" width="1200" height="675" decoding="async" />
+        <img class="article-cover" src="${escapeHtml(article.coverUrl)}" alt="${escapeHtml(article.coverAltText || title)}" width="1000" height="562" decoding="async" />
       </figure>`
     : '';
   return `
@@ -103,7 +103,7 @@ function renderRelated(related) {
   const cards = items.map((item) => {
     const judul = escapeHtml(item.title || '');
     const gambar = item.coverUrl
-      ? `<img src="${escapeHtml(item.coverUrl)}" alt="" width="1200" height="675" loading="lazy" decoding="async" />`
+      ? `<img src="${escapeHtml(item.coverUrl)}" alt="" width="1000" height="562" loading="lazy" decoding="async" />`
       : '<span class="story-related__blank" aria-hidden="true"></span>';
     const meta = [item.category, item.publishedAt ? formatDate(item.publishedAt) : ''].filter(Boolean).map(escapeHtml).join(' · ');
     return `

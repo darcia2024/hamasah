@@ -510,22 +510,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Foto dokumen dari HP bisa 3 sampai 5 MB. Sebelum dikirim, foto JPG/PNG di atas 800 KB
+  // dikecilkan ke sisi terpanjang 2200 px dan JPEG kualitas 0,85: tulisan ijazah dan paspor
+  // tetap terbaca, ukurannya biasanya di bawah 1 MB. PDF dikirim apa adanya.
+  async function kecilkanFoto(file) {
+    if (!/^image\/(jpeg|png)$/.test(file.type) || file.size <= 800 * 1024) return file;
+    try {
+      const gambar = await createImageBitmap(file);
+      const skala = Math.min(1, 2200 / Math.max(gambar.width, gambar.height));
+      const kanvas = document.createElement('canvas');
+      kanvas.width = Math.round(gambar.width * skala);
+      kanvas.height = Math.round(gambar.height * skala);
+      const ctx = kanvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, kanvas.width, kanvas.height);
+      ctx.drawImage(gambar, 0, 0, kanvas.width, kanvas.height);
+      const blob = await new Promise((resolve) => kanvas.toBlob(resolve, 'image/jpeg', 0.85));
+      if (!blob || blob.size >= file.size) return file;
+      return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
+    } catch {
+      return file;
+    }
+  }
+
   // Handle document upload
   docUploadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!currentRegId || !currentToken) return;
 
     const docType = docTypeSelect.value;
-    const file = docFileInput.files && docFileInput.files[0];
+    const pilihan = docFileInput.files && docFileInput.files[0];
 
-    if (!file) {
+    if (!pilihan) {
       docUploadStatus.textContent = 'Pilih berkas yang akan diunggah.';
       docUploadStatus.className = 'form-status is-error';
       return;
     }
 
-    docUploadStatus.textContent = 'Mengirim catatan berkas...';
+    docUploadStatus.textContent = 'Menyiapkan berkas...';
     docUploadStatus.className = 'form-status';
+    const file = await kecilkanFoto(pilihan);
 
     try {
       const uploadRequest = await fetch('/api/uploads', {
