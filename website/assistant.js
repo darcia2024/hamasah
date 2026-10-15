@@ -24,7 +24,8 @@ const WHATSAPP_URL = `https://wa.me/${(document.querySelector('meta[name="hamasa
   launcher.className = 'assistant__launcher';
   launcher.setAttribute('aria-expanded', 'false');
   launcher.setAttribute('aria-controls', 'assistant-panel');
-  launcher.innerHTML = `${ICONS.chat}<span>Tanya Hamasah</span>`;
+  // Ikon asisten: lambang Hamasah dengan gelembung obrolan. Saat panel terbuka diganti silang.
+  launcher.innerHTML = `<img class="assistant__icon" src="/assets/asisten-hamasah.webp" alt="" width="36" height="36" />${ICONS.close}<span>Tanya Hamasah</span>`;
 
   const panel = document.createElement('section');
   panel.className = 'assistant__panel';
