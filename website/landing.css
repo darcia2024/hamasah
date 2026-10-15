@@ -3564,21 +3564,26 @@ main h1.lp-h2 {
 }
 
 /* Teks isi di ponsel satu tingkat lebih besar (15 Oktober 2026). Bagian pembuka tetap
-   ringkas: judul 28 px, pengantar 15 px, tombol ukuran biasa (fields.css), supaya muat satu layar. */
+   ringkas: judul 32 px dua baris, pengantar 16 px, tombol ukuran biasa (fields.css), supaya muat satu layar. */
 @media (max-width: 640px) {
   .lp .lp-hero {
     padding-top: 28px;
   }
 
   main .lp-hero h1 {
-    font-size: var(--fs-28);
+    font-size: var(--fs-32);
     line-height: 1.15;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
+  }
+
+  /* Dua baris tetap: "Selamat datang di" di atas, nama lembaga di bawah. */
+  main .lp-hero h1 em {
+    display: block;
   }
 
   .lp-hero__lede {
     max-width: 36ch;
-    font-size: 15px;
+    font-size: var(--fs-16);
     line-height: 1.6;
   }
 
