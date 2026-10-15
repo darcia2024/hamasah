@@ -3659,37 +3659,9 @@ main h1.lp-h2 {
     margin-bottom: 14px;
   }
 
-  /* Susunan judul: "Selamat datang di" kecil dan lembut, "Hamasah" besar berwarna
-     emas, "International" di bawahnya lebih kecil dengan spasi huruf wajar. */
+  /* Dua baris tetap: "Selamat datang di" di atas, nama lembaga di bawah. */
   main .lp-hero h1 .lp-hero__salam {
     display: block;
-    margin-bottom: 4px;
-    font-size: var(--fs-18);
-    font-weight: 400 !important;
-    line-height: 1.3;
-    letter-spacing: 0.01em;
-    color: var(--lp-soft);
-  }
-
-  main .lp-hero h1 em {
-    display: block;
-  }
-
-  main .lp-hero h1 .lp-hero__nama {
-    display: block;
-    font-size: 52px;
-    line-height: 1;
-    letter-spacing: -0.015em;
-  }
-
-  main .lp-hero h1 .lp-hero__sub {
-    display: block;
-    margin-top: 2px;
-    font-size: var(--fs-24);
-    font-weight: 400 !important;
-    line-height: 1.2;
-    letter-spacing: 0.04em;
-    color: var(--lp-ink);
   }
 
   .lp-hero__lede {
