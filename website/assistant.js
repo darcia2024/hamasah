@@ -25,8 +25,8 @@ const WHATSAPP_URL = `https://wa.me/${(document.querySelector('meta[name="hamasa
   launcher.setAttribute('aria-label', 'Tanya Hamasah');
   launcher.setAttribute('aria-expanded', 'false');
   launcher.setAttribute('aria-controls', 'assistant-panel');
-  // Ikon asisten: lambang Hamasah gelap dengan gelembung obrolan. Saat panel terbuka diganti silang.
-  launcher.innerHTML = `<img class="assistant__icon" src="/assets/asisten-hamasah-gelap.webp" alt="" width="28" height="28" />${ICONS.close}`;
+  // Ikon asisten: lambang Hamasah gelap dengan gelembung obrolan putih. Saat panel terbuka diganti silang.
+  launcher.innerHTML = `<img class="assistant__icon" src="/assets/asisten-hamasah-ai.webp" alt="" width="28" height="28" />${ICONS.close}`;
 
   const panel = document.createElement('section');
   panel.className = 'assistant__panel';
