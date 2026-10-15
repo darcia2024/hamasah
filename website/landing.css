@@ -3362,3 +3362,203 @@ main h1.lp-h2 {
     gap: 14px 12px;
   }
 }
+
+/* ==========================================================================
+   Beranda di ponsel (rombak 15 Oktober 2026). Halaman tidak lagi sepanjang 14 layar:
+   kartu program dan cerita wali digeser ke samping, alur pendaftaran jadi linimasa
+   ringkas, keseharian santri jadi kisi 2 x 2, dan teks dirapatkan. Tanya jawab menjadi
+   akordeon (jawaban pindah ke bawah pertanyaan yang diketuk, lihat website.js).
+   ========================================================================== */
+@media (max-width: 640px) {
+  /* Kolom keuntungan di hero: lebih rapat. */
+  .lp .lp-hero .lp-assure li {
+    padding: 14px 0;
+  }
+
+  .lp .lp-assure strong {
+    font-size: var(--fs-15, 15px);
+  }
+
+  .lp .lp-assure span {
+    font-size: var(--fs-14);
+    line-height: 1.55;
+  }
+
+  /* Penggeser horizontal bersama: program dan cerita wali. */
+  .lp .lp-paths,
+  .lp .lp-testimonials {
+    display: flex !important;
+    gap: 12px !important;
+    margin-inline: -24px;
+    padding: 4px 24px 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 24px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .lp .lp-paths::-webkit-scrollbar,
+  .lp .lp-testimonials::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Kartu program: foto di atas, teks di bawah, kartu berikutnya mengintip. */
+  .lp .lp-path--feature,
+  .lp .lp-path--media {
+    flex: 0 0 80%;
+    display: flex !important;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+    scroll-snap-align: start;
+  }
+
+  .lp .lp-path--feature img,
+  .lp .lp-path--media img {
+    width: 100%;
+    height: 150px !important;
+    min-height: 0 !important;
+    flex: none !important;
+    aspect-ratio: auto !important;
+    object-fit: cover;
+  }
+
+  .lp .lp-path--feature .lp-path__body,
+  .lp .lp-path--media .lp-path__body {
+    flex: 1;
+    padding: 16px 18px 18px !important;
+  }
+
+  /* Alur pendaftaran: linimasa vertikal ringkas, nomor di kiri, garis menyambung. */
+  .lp .lp-steps {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0 !important;
+  }
+
+  .lp .lp-steps li {
+    position: relative;
+    padding: 0 0 22px 52px !important;
+    border-top: 0 !important;
+  }
+
+  .lp .lp-steps li::after {
+    content: none !important;
+  }
+
+  .lp .lp-steps li:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 17px;
+    top: 38px;
+    bottom: 4px;
+    width: 2px;
+    border-radius: 2px;
+    background: rgba(231, 177, 12, 0.35);
+  }
+
+  .lp .lp-steps li:last-child {
+    padding-bottom: 0 !important;
+  }
+
+  .lp .lp-steps__num {
+    top: 0 !important;
+    left: 0 !important;
+    width: 36px !important;
+    height: 36px !important;
+    box-shadow: none !important;
+  }
+
+  .lp main .lp-steps h3,
+  main .lp .lp-steps h3,
+  .lp .lp-steps h3 {
+    margin: 6px 0 4px !important;
+    font-size: var(--fs-16) !important;
+  }
+
+  .lp .lp-steps p {
+    font-size: var(--fs-14) !important;
+    line-height: 1.55 !important;
+  }
+
+  /* Keseharian santri: kisi 2 x 2. */
+  .lp .lp-days__list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 18px 14px !important;
+  }
+
+  .lp .lp-days__list > div {
+    padding: 12px 0 0 !important;
+    border-top: 2px solid rgba(231, 177, 12, 0.45) !important;
+    border-bottom: 0 !important;
+  }
+
+  .lp .lp-days__list dt {
+    margin-bottom: 4px;
+    font-size: var(--fs-15, 15px) !important;
+  }
+
+  .lp .lp-days__list dd {
+    font-size: var(--fs-13) !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Portal wali: poin lebih rapat, ponsel sedikit lebih kecil. */
+  .lp .lp-portal__points {
+    gap: 8px;
+    margin-top: 18px;
+  }
+
+  .lp .lp-portal__points li {
+    font-size: var(--fs-15, 15px);
+  }
+
+  .lp .lp-phone {
+    width: min(250px, 78%) !important;
+  }
+
+  /* Tentang: kutipan dan misi lebih rapat. */
+  .lp .lp-quote p {
+    font-size: 22px !important;
+  }
+
+  .lp .lp-mission li {
+    padding: 12px 0 !important;
+    font-size: var(--fs-15, 15px) !important;
+    line-height: 1.5;
+  }
+
+  /* Cerita wali: kartu yang digeser, kartu berikutnya mengintip. */
+  .lp .lp-testimonials .lp-testi,
+  .lp .lp-testimonials .lp-testi:nth-child(even):not(.lp-testi--tanpa-foto),
+  .lp .lp-testimonials .lp-testi + .lp-testi,
+  .lp .lp-testimonials .lp-testi--tanpa-foto {
+    flex: 0 0 84%;
+    align-content: start;
+    padding: 20px 18px !important;
+    border: 1px solid var(--lp-line) !important;
+    border-top: 3px solid var(--gold) !important;
+    border-radius: 16px !important;
+    background: #fff !important;
+    scroll-snap-align: start;
+  }
+
+  .lp .lp-testimonials .lp-testi__lead {
+    font-size: var(--fs-17, 17px) !important;
+  }
+
+  /* Tanya jawab sebagai akordeon: jawaban tepat di bawah pertanyaan terpilih. */
+  .lp .faq-questions .faq-answer {
+    margin: 0 0 12px;
+    padding: 16px 16px 18px;
+    border-radius: 12px;
+    box-shadow: none;
+    background: #fbf7ea;
+  }
+
+  .lp .faq-questions .faq-answer h3 {
+    font-size: var(--fs-16) !important;
+  }
+}

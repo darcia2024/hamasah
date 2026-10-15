@@ -26,8 +26,27 @@ questionButtons.forEach((button) => {
     });
     answerPanel.replaceChildren(...[...source.children].map((node) => node.cloneNode(true)));
     tautkanHalaman(answerPanel);
+    letakkanJawaban();
   });
 });
+
+// Di ponsel, jawaban dipindah tepat di bawah pertanyaan yang diketuk (akordeon), supaya
+// pembaca tidak perlu menggulir melewati semua pertanyaan. Di layar lebar kembali ke kolom kanan.
+const layarPonsel = window.matchMedia('(max-width: 640px)');
+const daftarPertanyaan = document.querySelector('.faq-questions');
+
+function letakkanJawaban() {
+  if (!answerPanel || !daftarPertanyaan) return;
+  const aktif = daftarPertanyaan.querySelector('.faq-question.is-active');
+  if (layarPonsel.matches && aktif) {
+    if (aktif.nextElementSibling !== answerPanel) aktif.after(answerPanel);
+  } else if (answerPanel.parentElement === daftarPertanyaan) {
+    daftarPertanyaan.after(answerPanel);
+  }
+}
+
+letakkanJawaban();
+layarPonsel.addEventListener('change', letakkanJawaban);
 
 // Jawaban disunting admin sebagai teks polos. Sebutan "halaman Biaya & fasilitas" dijadikan
 // tautan di sini, supaya pembaca bisa langsung membuka rinciannya.
