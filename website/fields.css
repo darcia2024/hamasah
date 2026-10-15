@@ -186,7 +186,7 @@
   /* Menu ponsel selayar penuh: tautan besar, dua tombol aksi di dasar panel. */
   @media (max-width: 768px) {
     .site-nav a:not(.nav-cta):not(.nav-portal) {
-      font-size: var(--fs-18, 18px) !important;
+      font-size: var(--fs-20, 20px) !important;
     }
 
     .site-nav a.nav-cta,

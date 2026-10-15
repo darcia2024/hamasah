@@ -3562,3 +3562,45 @@ main h1.lp-h2 {
     font-size: var(--fs-16) !important;
   }
 }
+
+/* Judul utama dan teks di ponsel satu tingkat lebih besar (15 Oktober 2026). */
+@media (max-width: 640px) {
+  main .lp-hero h1 {
+    font-size: var(--fs-36);
+    line-height: 1.12;
+    margin-bottom: 18px;
+  }
+
+  .lp-hero__lede {
+    font-size: 17px;
+  }
+
+  main h2.lp-h2 {
+    font-size: var(--fs-28);
+  }
+
+  .lp .lp-lede {
+    font-size: 17px;
+  }
+
+  .lp .lp-assure strong,
+  .lp .lp-steps h3,
+  .lp main .lp-steps h3 {
+    font-size: var(--fs-18) !important;
+  }
+
+  .lp .lp-assure span,
+  .lp .lp-steps p,
+  .lp .lp-mission li,
+  .lp .lp-portal__points li {
+    font-size: var(--fs-16) !important;
+  }
+
+  .lp .lp-days__list dt {
+    font-size: var(--fs-16) !important;
+  }
+
+  .lp .lp-days__list dd {
+    font-size: var(--fs-14) !important;
+  }
+}
