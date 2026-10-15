@@ -153,6 +153,10 @@
     return new Set(data.alerts.filter((a) => a.studentId).map((a) => a.studentId));
   }
 
+  function judulKolomSantri(data) {
+    return ['Santri', 'Asrama', 'Kehadiran 7 hari', 'Sholat 7 hari', 'Hafalan terakhir', ...(data.healthEnabled ? ['Kesehatan'] : []), 'Tagihan', 'Visa', 'Wali'];
+  }
+
   function barisSantri(data, s, onOpenStudent) {
     const tr = el('tr');
     const nama = el('button', 'admin-student-name', s.name);
@@ -190,6 +194,9 @@
     }
 
     sel(tr, s.parentAccounts ? 'Terhubung' : 'Belum', s.parentAccounts ? '' : 'muted');
+    // Di ponsel tabel tampil sebagai kartu; tiap sel membawa judul kolomnya sendiri.
+    const judul = judulKolomSantri(data);
+    [...tr.children].forEach((td, i) => td.setAttribute('data-label', judul[i] || ''));
     return tr;
   }
 
@@ -222,8 +229,7 @@
     const gulir = el('div', 'admin-table-scroll');
     const tabel = el('table', 'admin-table');
     const kepala = el('tr');
-    ['Santri', 'Asrama', 'Kehadiran 7 hari', 'Sholat 7 hari', 'Hafalan terakhir', ...(data.healthEnabled ? ['Kesehatan'] : []), 'Tagihan', 'Visa', 'Wali']
-      .forEach((judul) => { const th = el('th', '', judul); th.scope = 'col'; kepala.append(th); });
+    judulKolomSantri(data).forEach((judul) => { const th = el('th', '', judul); th.scope = 'col'; kepala.append(th); });
     const thead = el('thead');
     thead.append(kepala);
     const tbody = el('tbody');
@@ -231,23 +237,36 @@
     gulir.append(tabel);
 
     const ditandai = perluPerhatian(data);
+    const BATAS_AWAL = 5;
+    let semua = false;
+    const lihatSemua = el('button', 'button button--secondary admin-show-all');
+    lihatSemua.type = 'button';
+    lihatSemua.addEventListener('click', () => {
+      semua = !semua;
+      gambar();
+      if (!semua) wadah.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
     function gambar() {
       const kata = cari.value.trim().toLocaleLowerCase('id-ID');
+      const disaring = Boolean(kata || asrama.select.value || program.select.value || centang.checked);
       const hasil = data.students.filter((s) => (!kata || s.name.toLocaleLowerCase('id-ID').includes(kata))
         && (!asrama.select.value || (asrama.select.value === '-' ? !s.dormitory : s.dormitory && s.dormitory.id === asrama.select.value))
         && (!program.select.value || s.programGroup === program.select.value)
         && (!centang.checked || ditandai.has(s.id)));
-      tbody.replaceChildren(...hasil.map((s) => barisSantri(data, s, onOpenStudent)));
-      info.textContent = hasil.length === data.students.length
-        ? `${hasil.length} santri aktif.`
-        : `Menampilkan ${hasil.length} dari ${data.students.length} santri.`;
+      const tampil = semua || disaring ? hasil : hasil.slice(0, BATAS_AWAL);
+      tbody.replaceChildren(...tampil.map((s) => barisSantri(data, s, onOpenStudent)));
+      info.textContent = tampil.length === data.students.length
+        ? `${tampil.length} santri aktif.`
+        : `Menampilkan ${tampil.length} dari ${disaring ? hasil.length : data.students.length} santri.`;
       gulir.hidden = !hasil.length;
+      lihatSemua.hidden = disaring || hasil.length <= BATAS_AWAL;
+      lihatSemua.textContent = semua ? 'Tampilkan lebih sedikit' : `Lihat semua ${hasil.length} santri`;
     }
     cari.addEventListener('input', gambar);
     [asrama.select, program.select, centang].forEach((kontrol) => kontrol.addEventListener('change', gambar));
     gambar();
 
-    wadah.append(alat, info, gulir);
+    wadah.append(alat, info, gulir, lihatSemua);
     return wadah;
   }
 

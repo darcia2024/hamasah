@@ -1950,7 +1950,28 @@ function kartuTugasMusyrif() {
       if (!data.students) {
         butir.push(tugas('Anda belum memegang asrama. Hubungi admin untuk penugasan.', null, '', 'info'));
       } else if (data.sholatBelum.length) {
-        data.sholatBelum.forEach((item) => butir.push(tugas(`Sholat ${NAMA_SHOLAT[item.prayer] || item.prayer}: ${item.belum} dari ${data.students} santri belum dicatat`, `monitoring#presensi-${item.prayer}`, 'Catat', 'perlu')));
+        // Satu baris untuk presensi sholat: chip per waktu (emas = belum lengkap, hijau =
+        // sudah), dulu lima baris terpisah dengan kalimat yang sama.
+        const belum = new Map(data.sholatBelum.map((item) => [item.prayer, item.belum]));
+        const baris = tugas(`Presensi sholat hari ini: ${data.sholatBelum.length} dari 5 waktu belum lengkap untuk ${data.students} santri.`, `monitoring#presensi-${data.sholatBelum[0].prayer}`, 'Catat', 'perlu');
+        baris.classList.add('musyrif-task--sholat');
+        const chips = document.createElement('span');
+        chips.className = 'musyrif-prayer-chips';
+        Object.entries(NAMA_SHOLAT).forEach(([kunci, nama]) => {
+          const sisa = belum.get(kunci);
+          const chip = document.createElement(sisa ? 'a' : 'span');
+          chip.className = `musyrif-prayer-chip ${sisa ? 'is-belum' : 'is-sudah'}`;
+          chip.textContent = sisa ? `${nama} · ${sisa} belum` : `${nama} ✓`;
+          if (sisa) {
+            chip.href = `monitoring#presensi-${kunci}`;
+            chip.setAttribute('aria-label', `Catat sholat ${nama}, ${sisa} santri belum dicatat`);
+          } else {
+            chip.setAttribute('aria-label', `Sholat ${nama} sudah dicatat`);
+          }
+          chips.append(chip);
+        });
+        baris.querySelector('span').after(chips);
+        butir.push(baris);
       } else {
         butir.push(tugas(`Semua waktu sholat hari ini sudah dicatat untuk ${data.students} santri.`, null, '', 'selesai'));
       }
