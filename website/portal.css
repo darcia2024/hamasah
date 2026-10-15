@@ -7359,3 +7359,75 @@ button.santri-juz__cell:focus-visible {
     font-size: var(--fs-12);
   }
 }
+
+/* Petunjuk pembayaran pada tagihan yang belum dibayar (portal wali dan santri). */
+.crm-pay-guide {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(231, 177, 12, 0.35);
+  border-radius: 14px;
+  background: #fffaeb;
+}
+
+.crm-pay-guide__title {
+  margin: 0;
+  font-size: var(--fs-14);
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+}
+
+.crm-pay-guide__text,
+.crm-pay-guide__note {
+  margin: 0;
+  font-size: var(--fs-13);
+  line-height: 1.55;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.crm-pay-guide__note {
+  font-size: var(--fs-12);
+}
+
+.crm-pay-guide__account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff;
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  overflow-wrap: anywhere;
+}
+
+.crm-pay-guide__copy {
+  flex: none;
+  padding: 6px 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  font-size: var(--fs-12);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.crm-pay-guide__wa {
+  justify-self: start;
+  text-decoration: none;
+}
+
+.crm-pay-guide__wa[hidden] {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .crm-pay-guide__wa {
+    justify-self: stretch;
+    justify-content: center;
+  }
+}

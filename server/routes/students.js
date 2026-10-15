@@ -3,6 +3,24 @@ const { csv, json, publicError } = require('../http/respond.js');
 const { ACTIONS } = require('../audit-service.js');
 const { createStudentReportPdf } = require('../student-report-pdf.js');
 const { createReceiptPdf, receiptFileName } = require('../receipt-pdf.js');
+const { NOMOR_WA_BAWAAN } = require('../site-content.js');
+
+// Petunjuk pembayaran untuk tagihan santri: rekening dari Pengaturan (tagihan.rekening) dan
+// nomor WhatsApp admin dari Konten Website. Keduanya opsional; kegagalan membaca tidak
+// menggagalkan daftar tagihan.
+async function petunjukPembayaran(services) {
+  let bankAccount = '';
+  let whatsapp = NOMOR_WA_BAWAAN;
+  try {
+    if (services.settingsService) bankAccount = String(await services.settingsService.ambil('tagihan.rekening') || '');
+  } catch { bankAccount = ''; }
+  try {
+    const konten = services.siteContentService ? await services.siteContentService.untukHalaman() : null;
+    const nomor = konten && konten.nilai && konten.nilai.kontak && konten.nilai.kontak.whatsapp;
+    if (nomor) whatsapp = nomor;
+  } catch { /* nomor bawaan */ }
+  return { bankAccount, whatsapp };
+}
 
 // Rapor ditujukan ke wali: kesehatan selalu versi wali meskipun diunduh staf.
 function forParent(care) {
@@ -190,7 +208,11 @@ module.exports = [
     permission: 'students.read',
     async handler({ response, services, auth, params }) {
       const result = await services.operationsService.listStudentInvoices(params[0], await auth.actor());
-      json(response, result.ok ? 200 : 403, result.ok ? { items: result.value } : publicError(result));
+      if (!result.ok) {
+        json(response, 403, publicError(result));
+        return;
+      }
+      json(response, 200, { items: result.value, payment: await petunjukPembayaran(services) });
     }
   },
 

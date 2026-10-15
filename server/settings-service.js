@@ -23,6 +23,9 @@ const DEFINISI = Object.freeze({
   },
   // Rekening tujuan transfer pembelian kelas daring, tampil di halaman kelas.html.
   'kelas.rekening': { jenis: 'teks', bawaan: '', min: 0, maks: 300 },
+  // Rekening tujuan pembayaran tagihan santri (SPP, asrama, dll.), tampil di portal wali dan
+  // santri pada tagihan yang belum dibayar. Kosong: wali diarahkan meminta rekening lewat WA.
+  'tagihan.rekening': { jenis: 'teks', bawaan: '', min: 0, maks: 300 },
   'kesehatan.aktif': { jenis: 'saklar', bawaan: false },
   'asisten.situs': { jenis: 'saklar', bawaan: true },
   'asisten.belajar': { jenis: 'saklar', bawaan: true },
@@ -35,6 +38,7 @@ const LABEL = Object.freeze({
   'pendaftaran.periode': 'Periode penerimaan',
   'pendaftaran.pesanTutup': 'Pesan saat pendaftaran ditutup',
   'kelas.rekening': 'Rekening pembayaran kelas daring',
+  'tagihan.rekening': 'Rekening pembayaran tagihan santri',
   'kesehatan.aktif': 'Catatan kesehatan',
   'asisten.situs': 'Asisten di website',
   'asisten.belajar': 'Asisten belajar LMS',

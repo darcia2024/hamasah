@@ -160,6 +160,10 @@ async function run() {
     assert.equal(tagihanWali.body.items.length, 1);
     assert.equal(tagihanWali.body.items[0].status, 'paid');
     assert.equal('voidReason' in tagihanWali.body.items[0] || 'version' in tagihanWali.body.items[0], false, 'Wali tidak menerima data internal tagihan.');
+    // Petunjuk pembayaran ikut terkirim: rekening dari Pengaturan (kosong bila belum diisi)
+    // dan nomor WhatsApp admin untuk tombol konfirmasi.
+    assert.equal(tagihanWali.body.payment.bankAccount, '');
+    assert.match(tagihanWali.body.payment.whatsapp, /^62\d{8,13}$/);
     const kuitansiWali = await fetch(`${baseUrl}/api/students/${studentId}/invoices/${invoice.body.invoice.id}/receipt.pdf`, { headers: waliHeaders });
     assert.equal(kuitansiWali.status, 200);
     assert.ok(Buffer.from(await kuitansiWali.arrayBuffer()).toString('latin1').includes('(Atas nama santri: Fikri Santri)'));

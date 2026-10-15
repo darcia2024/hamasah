@@ -365,6 +365,69 @@ function buildTabs(definitions, panels, container, { awal = 0, onChange } = {}) 
   return buttons;
 }
 
+// Petunjuk pembayaran pada tagihan yang belum dibayar: rekening resmi dari Pengaturan (bila
+// diisi admin) dan tombol WhatsApp ke admin dengan pesan yang sudah berisi nama santri,
+// nomor tagihan, dan jumlahnya. Bukti transfer dilampirkan pengirim di WhatsApp.
+function petunjukBayar(invoice, student, payment, rupiah) {
+  const wadah = document.createElement('div');
+  wadah.className = 'crm-pay-guide';
+  const judul = document.createElement('p');
+  judul.className = 'crm-pay-guide__title';
+  judul.textContent = 'Cara membayar';
+  wadah.append(judul);
+  const rekening = String(payment.bankAccount || '').trim();
+  const teks = document.createElement('p');
+  teks.className = 'crm-pay-guide__text';
+  if (rekening) {
+    teks.textContent = 'Transfer ke rekening resmi Hamasah berikut, lalu kirim bukti transfer lewat WhatsApp admin.';
+    const kotak = document.createElement('div');
+    kotak.className = 'crm-pay-guide__account';
+    const nomor = document.createElement('span');
+    nomor.textContent = rekening;
+    const salin = document.createElement('button');
+    salin.type = 'button';
+    salin.className = 'crm-pay-guide__copy';
+    salin.textContent = 'Salin';
+    salin.setAttribute('aria-label', 'Salin rekening pembayaran');
+    salin.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(rekening);
+        salin.textContent = 'Tersalin';
+      } catch {
+        salin.textContent = 'Salin manual';
+      }
+      setTimeout(() => { salin.textContent = 'Salin'; }, 2000);
+    });
+    kotak.append(nomor, salin);
+    wadah.append(teks, kotak);
+  } else {
+    teks.textContent = 'Hubungi admin lewat WhatsApp untuk mendapatkan rekening resmi, lalu kirim bukti transfer di percakapan yang sama.';
+    wadah.append(teks);
+  }
+  const catatan = document.createElement('p');
+  catatan.className = 'crm-pay-guide__note';
+  catatan.textContent = 'Bayar hanya ke rekening yang tertulis di sini atau yang dikonfirmasi langsung oleh admin Hamasah.';
+  const pesan = [
+    "Assalamu'alaikum, admin Hamasah.",
+    `Saya ingin mengonfirmasi pembayaran tagihan santri ${student.name}.`,
+    `Tagihan: ${invoice.description}`,
+    `Nomor tagihan: ${invoice.number}`,
+    `Jumlah: ${rupiah(invoice.amount)}`,
+    'Bukti transfer saya lampirkan di pesan ini.'
+  ].join('\n');
+  const nomorWa = String(payment.whatsapp || '').replace(/\D/g, '');
+  const tombol = document.createElement('a');
+  tombol.className = 'crm-btn-primary-yellow crm-pay-guide__wa';
+  tombol.target = '_blank';
+  tombol.rel = 'noopener';
+  tombol.href = `https://wa.me/${nomorWa}?text=${encodeURIComponent(pesan)}`;
+  tombol.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12z"/></svg><span>Konfirmasi via WhatsApp</span>';
+  tombol.setAttribute('aria-label', `Konfirmasi pembayaran ${invoice.number} via WhatsApp`);
+  if (!nomorWa) tombol.hidden = true;
+  wadah.append(tombol, catatan);
+  return wadah;
+}
+
 // Tab yang terakhir dibuka per santri, supaya mengganti periode tidak melempar kembali ke
 // tab pertama. Hanya tab yang memakai periode yang menampilkan pilihan periode.
 const tabTerakhir = new Map();
@@ -899,9 +962,9 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
       .then(async (res) => {
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || 'Tagihan belum dapat dimuat.');
-        return data.items || [];
+        return data;
       })
-      .then((items) => {
+      .then(({ items = [], payment = {} }) => {
         list.replaceChildren();
         if (!items.length) {
           list.append(createEmptyState('Belum ada tagihan untuk santri ini.'));
@@ -938,6 +1001,7 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
             });
             card.append(button);
           }
+          if (invoice.status === 'unpaid') card.append(petunjukBayar(invoice, student, payment, rupiah));
           list.append(card);
         });
       })
