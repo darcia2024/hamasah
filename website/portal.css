@@ -7431,3 +7431,163 @@ button.santri-juz__cell:focus-visible {
     justify-content: center;
   }
 }
+
+/* ==========================================================================
+   Menu profil di pojok kanan atas (internal-shell.js, 15 Oktober 2026). Ganti kata
+   sandi, Keluar dari semua perangkat, dan Keluar ada di sini; kaki menu samping hanya
+   menyisakan status sesi.
+   ========================================================================== */
+.has-profile-menu .crm-sidebar-footer .crm-logout-btn {
+  display: none !important;
+}
+
+.crm-profile-wrap {
+  position: relative;
+}
+
+.crm-profile-trigger {
+  font: inherit;
+  color: inherit;
+}
+
+.crm-profile-trigger__caret {
+  width: 7px;
+  height: 7px;
+  margin: -3px 2px 0 2px;
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  transform: rotate(45deg);
+  opacity: 0.55;
+  transition: transform 0.15s ease;
+}
+
+.crm-profile-trigger[aria-expanded="true"] .crm-profile-trigger__caret {
+  margin-top: 3px;
+  transform: rotate(-135deg);
+}
+
+.crm-profile-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  display: grid;
+  min-width: 248px;
+  padding: 8px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 18px 40px -16px rgba(30, 27, 22, 0.35);
+}
+
+.crm-profile-menu[hidden] {
+  display: none;
+}
+
+.crm-profile-menu__head {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.crm-profile-menu__head strong {
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-on-surface);
+}
+
+.crm-profile-menu__head span {
+  font-size: var(--fs-12);
+  color: var(--md-sys-color-outline);
+}
+
+.crm-profile-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 42px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font: inherit;
+  font-size: var(--fs-14);
+  font-weight: 500;
+  text-align: left;
+  color: var(--md-sys-color-on-surface);
+  cursor: pointer;
+}
+
+.crm-profile-menu__item:hover,
+.crm-profile-menu__item:focus-visible {
+  background: var(--md-sys-color-surface-container-low);
+  outline: none;
+}
+
+.crm-profile-menu__item--keluar {
+  color: #b3261e;
+}
+
+.crm-profile-menu__sep {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--md-sys-color-outline-variant);
+}
+
+@media (max-width: 640px) {
+  .crm-profile-menu {
+    position: fixed;
+    top: 64px;
+    right: 12px;
+    left: 12px;
+    min-width: 0;
+  }
+}
+
+/* Beranda wali (15 Oktober 2026): sapaan di judul, satu kolom, kartu ananda satu aksi. */
+.coursue-layout--tunggal {
+  grid-template-columns: minmax(0, 1fr) !important;
+  max-width: 880px;
+}
+
+.portal-ananda-heading {
+  margin: 4px 0 -6px;
+  font-size: var(--fs-13);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-outline);
+}
+
+.crm-student-compact-card--wali {
+  cursor: pointer;
+}
+
+.crm-student-compact-card--wali:focus-visible {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .crm-student-compact-card--wali .crm-student-compact-action {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    transform: translateY(-50%);
+  }
+
+  .crm-student-compact-card--wali {
+    position: relative;
+    padding-right: 52px !important;
+  }
+}
+
+.crm-profile-pill .crm-role-chip:empty,
+.crm-profile-menu__head span:empty {
+  display: none;
+}

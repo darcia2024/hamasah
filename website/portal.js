@@ -260,6 +260,9 @@ function createStudentCompactCard(student, idx, account, onOpen) {
 
   const colors = ['yellow', 'orange', 'green', 'purple'];
   const badgeColor = colors[idx % colors.length];
+  // Wali: seluruh kartu adalah satu tombol. "Buka detail" dan "buka di tab baru" dulu
+  // dua aksi untuk tujuan yang sama.
+  const wali = Boolean(account) && account.role === 'parent';
   // Tanpa NIM: nomor induk tidak ada di data, dan sebelumnya dikarang dari indeks
   // baris (dibuat dari nomor urut), sehingga berganti setiap urutan daftar berubah.
   const statusLabel = STUDENT_STATUS_LABELS[student.status] || student.status || '';
@@ -284,19 +287,20 @@ function createStudentCompactCard(student, idx, account, onOpen) {
       </div>
     </div>
     <div class="crm-student-compact-action">
-      <span class="crm-student-compact-cta-label">Buka detail</span>
-      <div class="crm-student-compact-arrow">
+      ${wali ? '' : '<span class="crm-student-compact-cta-label">Buka detail</span>'}
+      <div class="crm-student-compact-arrow" aria-hidden="true">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
       </div>
-      <a href="portal?studentId=${encodeURIComponent(student.id)}" target="_blank" rel="noopener" class="crm-student-compact-newtab" title="Buka di tab baru" aria-label="Buka di tab baru">
+      ${wali ? '' : `<a href="portal?studentId=${encodeURIComponent(student.id)}" target="_blank" rel="noopener" class="crm-student-compact-newtab" title="Buka di tab baru" aria-label="Buka di tab baru">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-      </a>
+      </a>`}
     </div>
   `;
+  if (wali) card.classList.add('crm-student-compact-card--wali');
 
   // Wali: ringkasan singkat per ananda supaya yang perlu ditindaklanjuti terlihat tanpa
   // membuka satu per satu. Dimuat setelah kartu tampil.
-  if (account && account.role === 'parent') {
+  if (wali) {
     const ringkas = document.createElement('div');
     ringkas.className = 'crm-student-compact-summary';
     ringkas.id = `ringkasan-ananda-${student.id}`;
@@ -1090,33 +1094,38 @@ function renderExecutiveDashboard(_daftarAwal, account) {
   // Judul dan ringkasan hanya memakai peran dan jumlah dari data. Sebelumnya berisi
   // nama kawasan dan gedung operasional yang belum dikonfirmasi klien dan ditulis keras
   // di kode.
+  const namaWali = namaSapaan(account);
   const titleText = isAdmin
     ? 'Konsol pembinaan santri'
     : isSupervisor
       ? 'Konsol pembinaan musyrif'
-      : 'Pemantauan ananda';
+      : `Assalamu'alaikum, Bapak/Ibu${namaWali ? ` ${namaWali}` : ''}`;
   const subtitleText = isAdmin
     ? (ringkasan
       ? `Super Admin · ${ringkasan.summary.activeStudents} santri aktif, ${ringkasan.summary.dormitories} asrama, ${ringkasan.summary.supervisors} musyrif.`
       : `Super Admin · ${allTotal} santri terdaftar.`)
     : isSupervisor
       ? `${allTotal} santri dalam pengawasan Anda.`
-      : `${allTotal} ananda terhubung dengan akun ini.`;
+      : (allTotal
+        ? `${allTotal} ananda terhubung dengan akun ini. Ketuk kartu ananda untuk membuka rekam jejaknya.`
+        : 'Belum ada ananda yang terhubung dengan akun ini.');
   const heroTag = isAdmin ? 'KONSOL EKSEKUTIF' : isSupervisor ? 'KONSOL MUSYRIF' : 'PORTAL KELUARGA';
 
   const heroBanner = document.createElement('div');
   heroBanner.className = 'coursue-hero-banner';
   heroBanner.innerHTML = `
     <div class="coursue-hero-tag">${heroTag}</div>
-    <h2 class="coursue-hero-title">${titleText}</h2>
+    <h2 class="coursue-hero-title">${escapeHtml(titleText)}</h2>
     <p class="coursue-hero-subtitle">${escapeHtml(subtitleText)}</p>
-    <button type="button" class="coursue-hero-cta" id="btn-hero-action">
+    ${isParent ? '' : `<button type="button" class="coursue-hero-cta" id="btn-hero-action">
       <span>${isAdmin ? 'Buka rekam jejak santri' : 'Lihat mutaba\'ah terkini'}</span>
       <span class="coursue-hero-cta-arrow">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </span>
-    </button>
+    </button>`}
   `;
+  // Wali: tombol "Lihat mutaba'ah terkini" dihapus karena hanya membuka ananda pertama;
+  // setiap kartu ananda sudah bisa diketuk.
 
   // Selain admin, tidak ada kartu angka di bawah judul: jumlah santri sudah ada di
   // subjudul, dan kotak "Halaqah & Program" dulu hanya teks pengisi tanpa data.
@@ -1232,9 +1241,8 @@ function renderExecutiveDashboard(_daftarAwal, account) {
   buildTabs(tabDefs, panels, subtabsRow);
   panelsContainer.append(...panels);
 
-  const statCard = kartuSapaan(account, ringkasan, allTotal);
-
-  rightPanel.append(statCard);
+  // Wali: sapaan sudah di judul, jadi kolom kanan tidak dipakai.
+  if (!isParent) rightPanel.append(kartuSapaan(account, ringkasan, allTotal));
   if (isAdmin && window.HamasahAdminOverview) {
     rightPanel.append(window.HamasahAdminOverview.kartuDemo({
       headers: requestHeaders,
@@ -1253,18 +1261,38 @@ function renderExecutiveDashboard(_daftarAwal, account) {
     });
   }
 
+  // Wali: satu daftar saja, jadi pil tab "Daftar ananda" diganti judul kecil.
+  let judulDaftar = subtabsRow;
+  if (isParent) {
+    judulDaftar = document.createElement('h3');
+    judulDaftar.className = 'portal-ananda-heading';
+    judulDaftar.textContent = 'Ananda Anda';
+  }
   mainCol.append(
     heroBanner,
     ...(ringkasan ? [window.HamasahAdminOverview.kpi(ringkasan), window.HamasahAdminOverview.perhatian(ringkasan, { onOpenStudent: bukaSantri })] : []),
     ...(isSupervisor ? [kartuTugasMusyrif()] : []),
-    subtabsRow,
+    judulDaftar,
     panelsContainer
   );
-  coursueLayout.append(mainCol, rightPanel);
+  if (isParent) {
+    coursueLayout.classList.add('coursue-layout--tunggal');
+    coursueLayout.append(mainCol);
+  } else {
+    coursueLayout.append(mainCol, rightPanel);
+  }
   coursueLayout.classList.add('crm-view-enter');
 
   studentDashboard.append(coursueLayout);
   studentDashboard.hidden = false;
+}
+
+// Nama depan untuk sapaan. Gelar di depan (Ust., Ustzh., H., Dr., dst.) ikut disebut
+// bersama nama depannya, supaya tidak menjadi "Assalamu'alaikum, Ust.".
+function namaSapaan(account) {
+  const kataNama = account && account.name ? account.name.trim().split(/\s+/) : [];
+  const GELAR = /^(ust|ustz|ustzh|ustadz|ustadzah|ustaz|ustazah|kh|h|hj|dr|drs|prof|ir)\.?$/i;
+  return kataNama.length > 1 && GELAR.test(kataNama[0]) ? `${kataNama[0]} ${kataNama[1]}` : (kataNama[0] || '');
 }
 
 // Kartu sapaan di kolom kanan beranda: salam, peran, dan pintasan kerja per peran.
@@ -1272,11 +1300,7 @@ function kartuSapaan(account, ringkasan, allTotal) {
   // Kartu sapaan: hanya yang benar-benar diketahui (nama, peran, jumlah santri) dan
   // pintasan kerja sesuai peran. Dulu ada "Statistik Pekanan" dengan cincin progres dan
   // "Musyrif & Asatidzah" yang tidak pernah terisi oleh kode mana pun.
-  // Nama depan untuk sapaan. Gelar di depan (Ust., Ustzh., H., Dr., dst.) ikut disebut
-  // bersama nama depannya, supaya tidak menjadi "Assalamu'alaikum, Ust.".
-  const kataNama = account && account.name ? account.name.trim().split(/\s+/) : [];
-  const GELAR = /^(ust|ustz|ustzh|ustadz|ustadzah|ustaz|ustazah|kh|h|hj|dr|drs|prof|ir)\.?$/i;
-  const userName = kataNama.length > 1 && GELAR.test(kataNama[0]) ? `${kataNama[0]} ${kataNama[1]}` : (kataNama[0] || '');
+  const userName = namaSapaan(account);
   const PINTASAN = {
     // Urutannya sama dengan menu samping (nav.js).
     admin: [

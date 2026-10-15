@@ -526,12 +526,8 @@
 
   // Task R3.7. POST /api/auth/logout-all ada sejak lama dan tidak pernah dipanggil:
   // tidak ada cara mengakhiri sesi di perangkat lain. Dipasang di sini, bukan di
-  // tiap halaman, karena keenam halaman internal memuat berkas ini dan memakai
-  // .crm-sidebar-footer yang sama.
-  const sidebarFooter = sidebar.querySelector('.crm-sidebar-footer');
-  if (sidebarFooter) {
-    sidebarFooter.append(buatTombolGantiKataSandi());
-
+  // tiap halaman, karena semua halaman internal memuat berkas ini.
+  function buatTombolKeluarSemua() {
     const keluarSemua = document.createElement('button');
     keluarSemua.type = 'button';
     keluarSemua.id = 'logout-all-button';
@@ -580,8 +576,147 @@
       sessionStorage.removeItem('hamasahPortalSession');
       window.location.reload();
     });
+    return keluarSemua;
+  }
 
-    sidebarFooter.append(keluarSemua);
+  // Menu profil di pojok kanan atas (15 Oktober 2026): Ganti kata sandi, Keluar dari semua
+  // perangkat, dan Keluar dipindah dari kaki menu samping ke sini. Tombol "Keluar sesi" di
+  // menu samping tetap ada di DOM (disembunyikan) karena skrip tiap halaman memasang
+  // logout padanya; item "Keluar" di menu profil cukup mengekliknya.
+  const sidebarFooter = sidebar.querySelector('.crm-sidebar-footer');
+  const gantiSandi = buatTombolGantiKataSandi();
+  const keluarSemua = buatTombolKeluarSemua();
+  if (!pasangMenuProfil([gantiSandi, keluarSemua]) && sidebarFooter) {
+    sidebarFooter.append(gantiSandi, keluarSemua);
+  }
+
+  // Halaman konsol selain portal belum punya pil profil di kepala; dibuat di sini dan
+  // diisi dari akun yang sedang masuk.
+  function buatPilProfil() {
+    const tempat = topbar.querySelector('.crm-topbar-actions') || topbar;
+    const pil = document.createElement('div');
+    pil.className = 'crm-profile-pill';
+    pil.id = 'crm-topbar-profile';
+    pil.innerHTML = '<div class="crm-profile-pill-avatar" id="crm-topbar-avatar">..</div><span class="crm-profile-pill-name" id="crm-topbar-name">Akun</span><span class="crm-role-chip" id="crm-header-role"></span>';
+    tempat.append(pil);
+    const isi = (akun) => {
+      if (!akun) return;
+      const kata = String(akun.name || '').trim().split(/\s+/).filter(Boolean);
+      pil.querySelector('#crm-topbar-avatar').textContent = ((kata[0] || '?')[0] + (kata.length > 1 ? kata[kata.length - 1][0] : '')).toUpperCase();
+      pil.querySelector('#crm-topbar-name').textContent = akun.name || 'Akun';
+      const label = (typeof ROLE_DISPLAY_NAMES === 'object' && ROLE_DISPLAY_NAMES[akun.role]) || akun.role || '';
+      pil.querySelector('#crm-header-role').textContent = label;
+    };
+    try {
+      const token = storedTokenShell();
+      if (token && window.hamasahMintaAkun) {
+        Promise.resolve(window.hamasahMintaAkun({ Authorization: `Bearer ${token}` }))
+          .then((me) => { if (me && me.ok && me.body) isi(me.body.account); })
+          .catch(() => {});
+      }
+    } catch { /* pil tetap tampil tanpa nama */ }
+    return pil;
+  }
+
+  function storedTokenShell() {
+    try {
+      return (JSON.parse(sessionStorage.getItem('hamasahPortalSession') || 'null') || {}).accessToken || '';
+    } catch {
+      return '';
+    }
+  }
+
+  function pasangMenuProfil(itemAkun) {
+    const pil = topbar.querySelector('#crm-topbar-profile') || buatPilProfil();
+    const keluarSidebar = sidebarFooter && sidebarFooter.querySelector('.crm-logout-btn:not(.crm-logout-btn--all)');
+    if (!pil || !keluarSidebar) return false;
+
+    const pemicu = document.createElement('button');
+    pemicu.type = 'button';
+    pemicu.id = pil.id;
+    pemicu.className = `${pil.className} crm-profile-trigger`;
+    pemicu.setAttribute('aria-haspopup', 'menu');
+    pemicu.setAttribute('aria-expanded', 'false');
+    pemicu.setAttribute('aria-controls', 'crm-profile-menu');
+    pemicu.setAttribute('aria-label', 'Menu akun');
+    pemicu.append(...pil.childNodes);
+    const panah = document.createElement('span');
+    panah.className = 'crm-profile-trigger__caret';
+    panah.setAttribute('aria-hidden', 'true');
+    pemicu.append(panah);
+
+    const menu = document.createElement('div');
+    menu.className = 'crm-profile-menu';
+    menu.id = 'crm-profile-menu';
+    menu.setAttribute('role', 'menu');
+    menu.hidden = true;
+
+    const kepala = document.createElement('div');
+    kepala.className = 'crm-profile-menu__head';
+    const nama = document.createElement('strong');
+    const peran = document.createElement('span');
+    kepala.append(nama, peran);
+
+    const keluar = document.createElement('button');
+    keluar.type = 'button';
+    keluar.className = 'crm-logout-btn';
+    const keluarLabel = document.createElement('span');
+    keluarLabel.textContent = 'Keluar';
+    keluar.append(keluarLabel);
+    keluar.addEventListener('click', () => keluarSidebar.click());
+
+    const butir = [...itemAkun, keluar];
+    butir.forEach((tombol, i) => {
+      tombol.classList.remove('crm-logout-btn', 'crm-logout-btn--all');
+      tombol.classList.add('crm-profile-menu__item');
+      if (i === butir.length - 1) tombol.classList.add('crm-profile-menu__item--keluar');
+      tombol.setAttribute('role', 'menuitem');
+      tombol.addEventListener('click', () => tutupMenu());
+    });
+    const pemisah = document.createElement('div');
+    pemisah.className = 'crm-profile-menu__sep';
+    pemisah.setAttribute('role', 'separator');
+    menu.append(kepala, ...itemAkun, pemisah, keluar);
+
+    const wadah = document.createElement('div');
+    wadah.className = 'crm-profile-wrap';
+    pil.replaceWith(wadah);
+    wadah.append(pemicu, menu);
+    shell.classList.add('has-profile-menu');
+
+    function bukaMenu() {
+      nama.textContent = (pemicu.querySelector('.crm-profile-pill-name') || {}).textContent || '';
+      peran.textContent = (pemicu.querySelector('.crm-role-chip') || {}).textContent || '';
+      menu.hidden = false;
+      pemicu.setAttribute('aria-expanded', 'true');
+      butir[0].focus();
+    }
+    function tutupMenu({ kembalikanFokus = false } = {}) {
+      if (menu.hidden) return;
+      menu.hidden = true;
+      pemicu.setAttribute('aria-expanded', 'false');
+      if (kembalikanFokus) pemicu.focus();
+    }
+    pemicu.addEventListener('click', () => (menu.hidden ? bukaMenu() : tutupMenu()));
+    document.addEventListener('click', (event) => {
+      if (!wadah.contains(event.target)) tutupMenu();
+    });
+    menu.addEventListener('keydown', (event) => {
+      const i = butir.indexOf(document.activeElement);
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        tutupMenu({ kembalikanFokus: true });
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        butir[(i + 1) % butir.length].focus();
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        butir[(i - 1 + butir.length) % butir.length].focus();
+      } else if (event.key === 'Tab') {
+        tutupMenu();
+      }
+    });
+    return true;
   }
 
   // Ganti kata sandi sendiri, untuk semua peran. Memakai <dialog> bawaan browser supaya
