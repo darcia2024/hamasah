@@ -19,7 +19,7 @@
   let asramaAktif = null;
   let daftarAsrama = [];
   let data = null;
-  let tabAktif = 'jadwal';
+  let tabAktif = 'kalender';
   let bulan = null;
   let nomor = 0;
   // Pesan berhasil tingkat halaman: panel digambar ulang setelah data dimuat ulang, jadi
@@ -70,11 +70,6 @@
 
   function tanggal(iso) {
     return iso ? TANGGAL.format(new Date(`${iso}T00:00:00Z`)) : '';
-  }
-
-  function rentangJam(j) {
-    if (!j.startTime) return 'Sepanjang hari';
-    return j.endTime ? `${j.startTime}–${j.endTime}` : j.startTime;
   }
 
   function bidang(label, jenis = 'text', { nilai = '', placeholder = '', daftar = null } = {}) {
@@ -166,12 +161,12 @@
   }
 
   // ------------------------------------------------------------ Jadwal
-  function formJadwal(awal = null, { onSelesai } = {}) {
+  function formJadwal(awal = null, { onSelesai, hariAwal = null, jamAwal = '' } = {}) {
     const wadah = el('div', 'mus-form asr-form');
-    const hari = pilihan(awal ? 'Hari' : 'Hari (boleh lebih dari satu)', HARI.map((h, i) => [i + 1, h]), awal ? [awal.dayOfWeek] : [], { banyak: !awal });
+    const hari = pilihan(awal ? 'Hari' : 'Hari (boleh lebih dari satu)', HARI.map((h, i) => [i + 1, h]), awal ? [awal.dayOfWeek] : (hariAwal ? [hariAwal] : []), { banyak: !awal });
     const nama = bidang('Kegiatan', 'text', { nilai: awal ? awal.title : '', placeholder: 'Talaqqi kitab', daftar: [...new Set(data.schedule.map((j) => j.title))] });
     const baris = el('div', 'mus-form__row');
-    const mulai = bidang('Mulai', 'time', { nilai: awal ? awal.startTime || '' : '' });
+    const mulai = bidang('Mulai', 'time', { nilai: awal ? awal.startTime || '' : jamAwal });
     const selesai = bidang('Selesai', 'time', { nilai: awal ? awal.endTime || '' : '' });
     const tempat = bidang('Tempat', 'text', { nilai: awal ? awal.location : '', placeholder: 'Musholla asrama' });
     baris.append(mulai.el, selesai.el, tempat.el);
@@ -200,55 +195,13 @@
     return wadah;
   }
 
-  function panelJadwal() {
-    const isi = [];
-    const lihat = bagian('Jadwal mingguan', 'Kegiatan rutin asrama. Santri dan wali melihat jadwal ini di beranda mereka.');
-    const rutin = data.schedule.filter((j) => j.kind === 'rutin');
-    const minggu = el('div', 'asr-week');
-    HARI.forEach((namaHari, i) => {
-      const kolom = el('div', 'asr-day');
-      kolom.append(el('h4', 'asr-day__name', namaHari));
-      const daftar = rutin.filter((j) => j.dayOfWeek === i + 1);
-      if (!daftar.length) kolom.append(el('p', 'asr-empty', 'Belum ada kegiatan'));
-      const ul = el('ul', 'asr-day__list');
-      daftar.forEach((j) => {
-        const li = el('li', 'asr-item');
-        li.append(el('span', 'asr-item__time', rentangJam(j)), el('strong', 'asr-item__title', j.title));
-        if (j.location) li.append(el('span', 'asr-item__meta', j.location));
-        const aksi = el('span', 'asr-item__actions');
-        const ubah = tombol('Ubah', 'mus-link');
-        const hapus = tombol('Hapus', 'mus-link asr-danger');
-        ubah.addEventListener('click', () => {
-          const form = formJadwal(j, { onSelesai: () => { form.remove(); li.hidden = false; } });
-          li.hidden = true;
-          li.after(form);
-        });
-        hapus.addEventListener('click', async () => {
-          if (!window.confirm(`Hapus "${j.title}" dari jadwal ${namaHari}?`)) return;
-          await lakukan(() => api('DELETE', `/api/asrama/${asramaAktif}/jadwal/${j.id}`));
-        });
-        aksi.append(ubah, hapus);
-        li.append(aksi);
-        ul.append(li);
-      });
-      kolom.append(ul);
-      minggu.append(kolom);
-    });
-    lihat.append(minggu);
-    isi.push(lihat);
-    const tambah = bagian('Tambah kegiatan rutin', 'Pilih beberapa hari sekaligus untuk kegiatan yang berulang, misal talaqqi Senin sampai Kamis.');
-    tambah.append(formJadwal());
-    isi.push(tambah);
-    return isi;
-  }
-
   // ------------------------------------------------------------ Agenda
-  function formAcara(awal = null, { onSelesai } = {}) {
+  function formAcara(awal = null, { onSelesai, tanggalAwal = null, jamAwal = '' } = {}) {
     const wadah = el('div', 'mus-form asr-form');
     const nama = bidang('Nama acara', 'text', { nilai: awal ? awal.title : '', placeholder: 'Rihlah ke Alexandria' });
     const baris = el('div', 'mus-form__row');
-    const tgl = bidang('Tanggal', 'date', { nilai: awal ? awal.date : data.today });
-    const mulai = bidang('Mulai', 'time', { nilai: awal ? awal.startTime || '' : '' });
+    const tgl = bidang('Tanggal', 'date', { nilai: awal ? awal.date : (tanggalAwal || data.today) });
+    const mulai = bidang('Mulai', 'time', { nilai: awal ? awal.startTime || '' : jamAwal });
     const selesai = bidang('Selesai', 'time', { nilai: awal ? awal.endTime || '' : '' });
     baris.append(tgl.el, mulai.el, selesai.el);
     const tempat = bidang('Tempat', 'text', { nilai: awal ? awal.location : '' });
@@ -273,49 +226,57 @@
     return wadah;
   }
 
-  function barisAcara(j, lalu) {
-    const li = el('li', `asr-event ${lalu ? 'is-lalu' : ''}`.trim());
-    const tgl = new Date(`${j.date}T00:00:00Z`);
-    const kotak = el('div', 'asr-event__date');
-    kotak.append(el('strong', '', String(tgl.getUTCDate())), el('span', '', BULAN.format(tgl).split(' ')[0].slice(0, 3)));
-    const info = el('div', 'asr-event__body');
-    info.append(el('strong', 'asr-item__title', j.title), el('span', 'asr-item__meta', [tanggal(j.date), j.startTime ? rentangJam(j) : null, j.location].filter(Boolean).join(' · ')));
-    if (j.note) info.append(el('p', 'mus-note', j.note));
-    const aksi = el('span', 'asr-item__actions');
-    const ubah = tombol('Ubah', 'mus-link');
-    const hapus = tombol('Hapus', 'mus-link asr-danger');
-    ubah.addEventListener('click', () => {
-      const form = formAcara(j, { onSelesai: () => { form.remove(); li.hidden = false; } });
-      li.hidden = true;
-      li.after(form);
-    });
-    hapus.addEventListener('click', async () => {
-      if (!window.confirm(`Hapus acara "${j.title}"?`)) return;
-      await lakukan(() => api('DELETE', `/api/asrama/${asramaAktif}/jadwal/${j.id}`));
-    });
-    aksi.append(ubah, hapus);
-    li.append(kotak, info, aksi);
-    return li;
-  }
-
-  function panelAgenda() {
-    const acara = data.schedule.filter((j) => j.kind === 'acara');
-    const depan = acara.filter((j) => j.date >= data.today).sort((a, b) => a.date.localeCompare(b.date));
-    const lalu = acara.filter((j) => j.date < data.today).sort((a, b) => b.date.localeCompare(a.date));
-    const lihat = bagian('Agenda acara', 'Acara sekali jalan. Santri dan wali melihat agenda 45 hari ke depan.');
-    const ul = el('ul', 'asr-events');
-    if (!depan.length) ul.append(el('li', 'asr-empty', 'Belum ada acara mendatang.'));
-    depan.forEach((j) => ul.append(barisAcara(j, false)));
-    lihat.append(ul);
-    if (lalu.length) {
-      lihat.append(el('h4', 'wali-subtitle', 'Sudah lewat (30 hari terakhir)'));
-      const ul2 = el('ul', 'asr-events');
-      lalu.forEach((j) => ul2.append(barisAcara(j, true)));
-      lihat.append(ul2);
+  // Kalender: kegiatan rutin dan acara dalam satu tampilan pekan atau bulan. Klik kegiatan
+  // untuk mengubah atau menghapus; klik ruang kosong atau "+ Tambah" untuk menambah.
+  function panelKalender() {
+    const lihat = bagian('Kalender asrama', 'Kegiatan rutin dan acara. Santri dan wali melihat kalender yang sama di beranda mereka.');
+    const editor = el('div', 'asr-editor');
+    const tambahBagian = bagian('Tambah ke kalender');
+    const jenis = pilihan(null, [['rutin', 'Kegiatan rutin mingguan'], ['acara', 'Acara sekali']], 'rutin');
+    const formWadah = el('div');
+    // Hari, tanggal, dan jam yang terakhir diklik di kalender ikut terbawa saat jenis diganti.
+    let isianTerakhir = {};
+    function bukaForm(isian = isianTerakhir) {
+      isianTerakhir = isian;
+      const j = jenis.nilai();
+      formWadah.replaceChildren(j === 'rutin'
+        ? formJadwal(null, { hariAwal: isian.hari || null, jamAwal: isian.jam || '' })
+        : formAcara(null, { tanggalAwal: isian.tanggal || null, jamAwal: isian.jam || '' }));
     }
-    const tambah = bagian('Tambah acara');
-    tambah.append(formAcara());
-    return [lihat, tambah];
+    jenis.el.addEventListener('change', () => bukaForm());
+    tambahBagian.append(jenis.el, formWadah);
+    bukaForm();
+
+    const kalender = window.HamasahKalender.buat({
+      rutin: data.schedule.filter((j) => j.kind === 'rutin'),
+      acara: data.schedule.filter((j) => j.kind === 'acara'),
+      today: data.today,
+      labelTambah: '+ Tambah di hari ini',
+      onTambah: ({ tanggal, hari, jam }) => {
+        bukaForm({ tanggal, hari, jam });
+        tambahBagian.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      },
+      aksiItem: (item) => {
+        const aksi = el('span', 'asr-item__actions');
+        const ubah = tombol('Ubah', 'mus-link');
+        const hapus = tombol('Hapus', 'mus-link asr-danger');
+        ubah.addEventListener('click', () => {
+          const tutup = () => editor.replaceChildren();
+          const judulEditor = el('h4', 'wali-subtitle', `Ubah ${item.kind === 'acara' ? 'acara' : 'kegiatan rutin'}: ${item.title}`);
+          editor.replaceChildren(judulEditor, item.kind === 'acara' ? formAcara(item, { onSelesai: tutup }) : formJadwal(item, { onSelesai: tutup }));
+          editor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        hapus.addEventListener('click', async () => {
+          const keterangan = item.kind === 'acara' ? `acara "${item.title}"` : `"${item.title}" dari jadwal ${HARI[item.dayOfWeek - 1]}`;
+          if (!window.confirm(`Hapus ${keterangan}?`)) return;
+          await lakukan(() => api('DELETE', `/api/asrama/${asramaAktif}/jadwal/${item.id}`), null, 'Jadwal dihapus.');
+        });
+        aksi.append(ubah, hapus);
+        return aksi;
+      }
+    });
+    lihat.append(kalender.el, editor);
+    return [lihat, tambahBagian];
   }
 
   // ------------------------------------------------------------ Piket
@@ -676,8 +637,7 @@
 
   // ------------------------------------------------------------ Rangka
   const TAB = [
-    ['jadwal', 'Jadwal mingguan', panelJadwal],
-    ['agenda', 'Agenda', panelAgenda],
+    ['kalender', 'Kalender', panelKalender],
     ['piket', 'Piket', panelPiket],
     ['kas', 'Uang kas', panelKas],
     ['inventaris', 'Inventaris', panelInventaris]
@@ -747,7 +707,9 @@
       document.body.classList.add('in-crm');
       renderStaffNav(staffNav, akun.role, 'asrama', akun);
       try { tabAktif = localStorage.getItem(TAB_KUNCI) || tabAktif; } catch { /* opsional */ }
-      if (!TAB.some(([k]) => k === tabAktif)) tabAktif = 'jadwal';
+      // Tab lama "Jadwal mingguan" dan "Agenda" kini satu tab Kalender.
+      if (['jadwal', 'agenda'].includes(tabAktif)) tabAktif = 'kalender';
+      if (!TAB.some(([k]) => k === tabAktif)) tabAktif = 'kalender';
       daftarAsrama = (await api('GET', '/api/asrama')).dormitories;
       if (!daftarAsrama.length) {
         app.replaceChildren(el('p', 'asr-warning', akun.role === 'admin' ? 'Belum ada asrama. Buat asrama lewat halaman Monitoring.' : 'Anda belum ditugaskan ke asrama mana pun. Minta admin menugaskan asrama lewat halaman Monitoring.'));

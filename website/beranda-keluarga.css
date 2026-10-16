@@ -2049,83 +2049,482 @@ a.admin-ops-flag:hover { text-decoration: underline; }
   .mus-report__meta { grid-column: 1 / -1; display: flex; gap: 10px; }
 }
 
-/* Jadwal asrama untuk santri dan wali (beranda-keluarga.js: bagianJadwalAsrama). */
-.jadwal-asrama__grid {
+/* --------------------------------------------------------------------------
+   Kalender asrama (kalender-asrama.js): pekan, bulan, dan panel hari.
+   Rutin = tinta, acara = emas, piket = hijau.
+   -------------------------------------------------------------------------- */
+.kal {
+  --kal-line: rgba(60, 46, 20, 0.09);
+  --kal-ink: #2A2620;
+  --kal-gold: #D8A40F;
+  --kal-gold-soft: #FBF0CF;
+  --kal-green: #1F6F3D;
+  --kal-green-soft: #E5F2E9;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px;
+  gap: 16px;
+  min-width: 0;
 }
 
-.jadwal-asrama__col { display: grid; align-content: start; gap: 8px; }
+.kal__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
 
-.jadwal-asrama__label {
-  margin: 4px 0 0;
-  font-size: var(--fs-12);
+.kal__nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.kal__title {
+  margin: 0 0 0 10px;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: var(--fs-20);
+  font-weight: 700;
+  color: var(--kal-ink);
+  white-space: nowrap;
+}
+
+.kal__btn,
+.kal__view {
+  min-height: 38px;
+  padding: 6px 14px;
+  border: 1px solid var(--kal-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  font: inherit;
+  font-size: var(--fs-13);
   font-weight: 600;
-  letter-spacing: 0.1em;
+  color: var(--kal-ink);
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.kal__btn:hover,
+.kal__view:hover { background: #FFFFFF; border-color: rgba(60, 46, 20, 0.2); }
+.kal__btn:active,
+.kal__view:active { transform: scale(0.97); }
+.kal__btn--icon { width: 38px; padding: 0; font-size: 20px; line-height: 1; }
+.kal__btn--add { background: var(--kal-ink); border-color: var(--kal-ink); color: #FFF7E3; }
+.kal__btn--add:hover { background: #3A352D; }
+
+.kal__views {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(60, 46, 20, 0.06);
+}
+
+.kal__view { border: 0; background: transparent; min-height: 32px; }
+.kal__view.is-active { background: #FFFFFF; box-shadow: 0 2px 8px -2px rgba(60, 46, 20, 0.25); }
+
+.kal__board {
+  overflow: hidden;
+  border-radius: 20px;
+  background: #FFFFFF;
+  box-shadow: 0 1px 2px rgba(64, 46, 12, 0.05), 0 14px 36px -18px rgba(64, 46, 12, 0.2);
+}
+
+/* Pekan */
+.kal__week { display: grid; }
+
+.kal__week-head,
+.kal__allday,
+.kal__grid {
+  display: grid;
+  grid-template-columns: 60px repeat(7, minmax(0, 1fr));
+}
+
+.kal__week-head { border-bottom: 1px solid var(--kal-line); }
+
+.kal__col-head {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 12px 4px 10px;
+  border: 0;
+  border-left: 1px solid var(--kal-line);
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.kal__col-head:hover { background: #FFFBF1; }
+.kal__col-name { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+
+.kal__col-num {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: var(--fs-18);
+  color: var(--kal-ink);
+}
+
+.kal__col-head.is-today .kal__col-num { background: var(--kal-gold); color: #241C05; box-shadow: 0 6px 14px -6px rgba(180, 130, 0, 0.8); }
+.kal__col-head.is-today .kal__col-name { color: #8A6400; }
+.kal__col-head.is-selected:not(.is-today) .kal__col-num { box-shadow: inset 0 0 0 1.5px var(--kal-ink); }
+
+.kal__allday { border-bottom: 1px solid var(--kal-line); min-height: 34px; }
+
+.kal__gutter { border-right: 0; }
+
+.kal__gutter--label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 6px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--md-sys-color-outline);
 }
 
-.jadwal-asrama__list {
+.kal__allday-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px;
+  border-left: 1px solid var(--kal-line);
+  min-width: 0;
+}
+
+.kal__allday-cell.is-today,
+.kal__col.is-today { background: rgba(216, 164, 15, 0.05); }
+
+.kal__grid {
+  position: relative;
+  max-height: 560px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.kal__hours { display: grid; align-content: start; }
+
+.kal__hour {
+  height: 52px;
+  padding: 0 8px 0 0;
+  transform: translateY(-7px);
+  font-size: 11px;
+  color: var(--md-sys-color-outline);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.kal__hour:first-child { visibility: hidden; }
+
+.kal__col {
+  position: relative;
+  border-left: 1px solid var(--kal-line);
+  background-image: repeating-linear-gradient(180deg, transparent 0 51px, var(--kal-line) 51px 52px);
+  cursor: default;
+}
+
+.kal__event {
+  position: absolute;
+  display: grid;
+  align-content: start;
+  gap: 1px;
+  margin: 1px 2px;
+  padding: 5px 7px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 9px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: #F1ECE2;
+  color: var(--kal-ink);
+  box-shadow: inset 3px 0 0 var(--kal-ink);
+  transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+}
+
+.kal__event:hover { transform: translateY(-1px); filter: brightness(0.98); box-shadow: inset 3px 0 0 var(--kal-ink), 0 8px 16px -10px rgba(40, 30, 10, 0.5); }
+.kal__event:focus-visible { outline: 2px solid var(--kal-gold); outline-offset: 1px; z-index: 2; }
+
+.kal__event.is-acara {
+  background: linear-gradient(160deg, #F7D774, #E7B10C);
+  color: #2A1F02;
+  box-shadow: none;
+}
+.kal__event.is-acara:hover { box-shadow: 0 8px 18px -10px rgba(180, 130, 0, 0.9); }
+
+.kal__event.is-compact {
+  position: static;
+  margin: 0;
+  padding: 3px 7px;
+  border-radius: 6px;
+}
+
+.kal__event.is-short {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-block: 3px;
+}
+.kal__event.is-short .kal__event-title { white-space: nowrap; }
+.kal__event.is-short .kal__event-meta { display: none; }
+
+.kal__event-time { font-size: 10px; font-weight: 600; opacity: 0.75; font-variant-numeric: tabular-nums; }
+.kal__event-title { font-size: var(--fs-12); font-weight: 600; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; }
+.kal__event-meta { font-size: 10px; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.kal__now {
+  position: absolute;
+  left: -1px;
+  right: 0;
+  height: 2px;
+  background: #C0392B;
+  z-index: 3;
+  pointer-events: none;
+}
+.kal__now::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #C0392B;
+}
+
+.kal__chip {
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kal__chip.is-piket { background: var(--kal-green-soft); color: var(--kal-green); }
+
+/* Bulan */
+.kal__month {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.kal__month-name {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--kal-line);
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.kal__cell {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-height: 112px;
+  min-width: 0;
+  padding: 8px;
+  border: 0;
+  border-right: 1px solid var(--kal-line);
+  border-bottom: 1px solid var(--kal-line);
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.kal__cell:nth-child(7n + 14) { border-right: 0; }
+.kal__cell:hover { background: #FFFBF1; }
+.kal__cell.is-outside { background: rgba(60, 46, 20, 0.025); }
+.kal__cell.is-outside .kal__cell-num { color: var(--md-sys-color-outline); opacity: 0.6; }
+.kal__cell.is-selected { background: #FFF6DC; box-shadow: inset 0 0 0 1.5px rgba(216, 164, 15, 0.6); }
+
+.kal__cell-num {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: var(--fs-16);
+  color: var(--kal-ink);
+}
+
+.kal__cell.is-today .kal__cell-num { background: var(--kal-gold); color: #241C05; }
+
+.kal__cell-list { display: grid; gap: 2px; min-width: 0; }
+
+.kal__cell-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--md-sys-color-on-surface-variant);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kal__cell-item.is-acara {
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--kal-gold-soft);
+  color: #6B4D00;
+  font-weight: 600;
+}
+.kal__cell-item.is-acara .kal__dot { display: none; }
+.kal__cell-item.is-piket { color: var(--kal-green); font-weight: 600; }
+
+.kal__dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--kal-ink);
+}
+.kal__dot.is-acara { background: var(--kal-gold); }
+.kal__dot.is-rutin { background: var(--kal-ink); }
+
+.kal__cell-more { font-size: 11px; font-weight: 600; color: #8A6400; }
+
+/* Pemilih hari di layar sempit */
+.kal__strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  padding: 10px;
+}
+
+.kal__strip-day {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding: 8px 0 7px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.kal__strip-name { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.kal__strip-num { font-family: "Philosopher", Georgia, serif; font-size: var(--fs-18); color: var(--kal-ink); }
+.kal__strip-day.is-today .kal__strip-num { color: #8A6400; }
+.kal__strip-day.is-selected { background: var(--kal-ink); color: #F3EBDD; }
+.kal__strip-day.is-selected .kal__strip-num { color: #FFF7E3; }
+.kal__dots { display: flex; gap: 3px; min-height: 6px; }
+.kal__strip-day.is-selected .kal__dot.is-rutin { background: #F3EBDD; }
+
+/* Panel hari */
+.kal__day {
+  display: grid;
+  gap: 12px;
+  padding: 20px 22px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #FFFFFF, #FFFCF5);
+  box-shadow: 0 1px 2px rgba(64, 46, 12, 0.05), 0 14px 36px -18px rgba(64, 46, 12, 0.2);
+}
+
+.kal__day-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.kal__day-eyebrow {
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8A6400;
+}
+
+.kal__day-title {
+  margin: 2px 0 0;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: var(--fs-20);
+  font-weight: 700;
+  color: var(--kal-ink);
+}
+
+.kal__agenda {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
 }
 
-.jadwal-asrama__item {
+.kal__agenda-item {
   display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
-  gap: 2px 12px;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(54, 54, 56, 0.1);
-  font-size: var(--fs-14);
+  grid-template-columns: 104px minmax(0, 1fr) auto;
+  gap: 4px 14px;
+  align-items: start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--kal-line);
 }
 
-.jadwal-asrama__item.is-hari-ini .jadwal-asrama__title { font-weight: 700; color: #1F6F3D; }
+.kal__agenda-item:last-child { border-bottom: 0; }
 
-.jadwal-asrama__time {
+.kal__agenda-time {
   font-size: var(--fs-13);
   font-weight: 600;
-  color: var(--gold-dark);
+  color: #8A6400;
+  font-variant-numeric: tabular-nums;
 }
 
-.jadwal-asrama__title { color: var(--md-sys-color-on-surface); }
+.kal__agenda-body { display: grid; gap: 2px; min-width: 0; }
+.kal__agenda-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: var(--fs-14); color: var(--kal-ink); }
+.kal__agenda-meta { font-size: var(--fs-13); color: var(--md-sys-color-on-surface-variant); }
+.kal__agenda-note { margin: 2px 0 0; font-size: var(--fs-13); line-height: 1.5; color: var(--md-sys-color-on-surface-variant); }
 
-.jadwal-asrama__note {
-  grid-column: 2;
-  font-size: var(--fs-13);
-  color: var(--md-sys-color-on-surface-variant);
+.kal__tag {
+  padding: 1px 7px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: #F1ECE2;
+  color: var(--kal-ink);
+}
+.kal__tag.is-acara { background: var(--kal-gold-soft); color: #6B4D00; }
+.kal__tag.is-piket { background: var(--kal-green-soft); color: var(--kal-green); }
+
+.kal__empty { padding: 8px 0; font-size: var(--fs-14); color: var(--md-sys-color-on-surface-variant); }
+
+@media (max-width: 720px) {
+  .kal__title { margin-left: 4px; font-size: var(--fs-16); }
+  .kal__toolbar { gap: 8px; }
+  .kal__month-name { padding: 8px 2px; text-align: center; font-size: 10px; }
+  .kal__cell { min-height: 58px; padding: 4px 2px; justify-items: center; }
+  .kal__cell-num { width: 26px; height: 26px; font-size: var(--fs-14); }
+  .kal__cell-list { display: flex; gap: 2px; justify-content: center; }
+  .kal__cell-item { font-size: 0; padding: 0 !important; background: none !important; }
+  .kal__cell-item .kal__dot { display: block !important; }
+  .kal__cell-item.is-acara .kal__dot { background: var(--kal-gold); }
+  .kal__cell-item.is-piket::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--kal-green); }
+  .kal__cell-more { display: none; }
+  .kal__day { padding: 16px; }
+  .kal__agenda-item { grid-template-columns: 84px minmax(0, 1fr); }
+  .kal__agenda-item > :nth-child(3) { grid-column: 2; }
 }
 
-.jadwal-asrama__empty {
-  padding: 6px 0;
-  font-size: var(--fs-14);
-  color: var(--md-sys-color-on-surface-variant);
-}
-
-.jadwal-asrama__week { margin-top: 12px; }
-
-.jadwal-asrama__week summary {
-  font-size: var(--fs-14);
-  font-weight: 600;
-  color: var(--gold-dark);
-  cursor: pointer;
-}
-
-.jadwal-asrama__days {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 14px 20px;
-  margin-top: 12px;
-}
-
-.jadwal-asrama__day { display: grid; gap: 3px; font-size: var(--fs-13); color: var(--md-sys-color-on-surface-variant); }
-.jadwal-asrama__day strong { font-family: "Philosopher", Georgia, serif; font-size: var(--fs-16); color: var(--md-sys-color-on-surface); }
-.jadwal-asrama__day.is-hari-ini strong { color: #1F6F3D; }
-
-@media (max-width: 640px) {
-  .jadwal-asrama__grid { grid-template-columns: minmax(0, 1fr); }
-  .jadwal-asrama__item { grid-template-columns: 96px minmax(0, 1fr); }
+/* Kalender di dalam kartu (beranda santri): tanpa bayangan ganda. */
+.beranda-card .kal__board,
+.beranda-card .kal__day {
+  box-shadow: none;
+  border: 1px solid rgba(60, 46, 20, 0.09);
 }
