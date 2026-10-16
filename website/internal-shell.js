@@ -503,6 +503,23 @@
   window.HamasahDialog = Object.freeze({ formulir, pesan });
 }());
 
+// Tema konsol 2026: kartu tertentu memantulkan cahaya emas lembut di bawah kursor
+// (konsol-2026.css membaca --mx dan --my). Hanya untuk penunjuk mouse; dimatikan bila
+// pengguna meminta gerak dikurangi.
+(function initSorotKartu() {
+  const KARTU = '.admin-kpi, .admin-ops-card, .mus-card, .crm-white-card.beranda-card';
+  const kurangiGerak = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (kurangiGerak) return;
+  document.addEventListener('pointermove', (event) => {
+    if (event.pointerType !== 'mouse') return;
+    const kartu = event.target instanceof Element ? event.target.closest(KARTU) : null;
+    if (!kartu) return;
+    const kotak = kartu.getBoundingClientRect();
+    kartu.style.setProperty('--mx', `${Math.round(event.clientX - kotak.left)}px`);
+    kartu.style.setProperty('--my', `${Math.round(event.clientY - kotak.top)}px`);
+  }, { passive: true });
+}());
+
 (function initInternalShell() {
   const shell = document.querySelector('.crm-shell');
   const sidebar = document.querySelector('#crm-sidebar');

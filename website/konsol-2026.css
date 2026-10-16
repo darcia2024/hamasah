@@ -1,0 +1,507 @@
+/* ==========================================================================
+   Tema konsol 2026 (16 Oktober 2026): "editorial hangat".
+   Lapisan terakhir di atas staff.css, portal.css, dan beranda-keluarga.css untuk semua
+   halaman konsol. Tidak mengubah struktur; hanya permukaan, tipografi, dan gerak.
+     - Kanvas gading dengan butiran halus dan cahaya emas.
+     - Sidebar tinta hangat dengan aksen emas; topbar kaca.
+     - Kepala beranda: judul Philosopher, tanggal Masehi + Hijriah, pintasan kerja,
+       motif bintang delapan yang samar.
+     - Permukaan putih tanpa garis tepi, bayangan bernada hangat, kartu merespons kursor.
+     - Masuk bertahap; dimatikan untuk prefers-reduced-motion.
+   ========================================================================== */
+:root {
+  --k26-ink: #1F1C18;
+  --k26-ink-2: #2A2620;
+  --k26-ivory: #F6F1E7;
+  --k26-ivory-2: #FBF8F1;
+  --k26-paper: #FFFFFF;
+  --k26-gold: #D8A40F;
+  --k26-gold-deep: #8A6400;
+  --k26-gold-glow: rgba(216, 164, 15, 0.18);
+  --k26-line: rgba(60, 46, 20, 0.10);
+  --k26-text: #2B2722;
+  --k26-muted: #6E675C;
+  --k26-shadow: 0 1px 2px rgba(64, 46, 12, 0.05), 0 14px 36px -16px rgba(64, 46, 12, 0.18);
+  --k26-shadow-hover: 0 2px 4px rgba(64, 46, 12, 0.06), 0 22px 48px -18px rgba(64, 46, 12, 0.26);
+  --k26-radius-lg: 24px;
+  --k26-radius-md: 16px;
+  --k26-radius-sm: 10px;
+  --k26-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --k26-serif: "Philosopher", Georgia, serif;
+  /* Butiran halus (SVG turbulence) dan motif bintang delapan, keduanya data URI. */
+  --k26-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.27 0 0 0 0 0.1 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --k26-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23B8860B' stroke-width='0.8' stroke-opacity='0.35'%3E%3Crect x='20' y='20' width='24' height='24'/%3E%3Crect x='20' y='20' width='24' height='24' transform='rotate(45 32 32)'/%3E%3Ccircle cx='32' cy='32' r='5'/%3E%3Cpath d='M0 32h8M56 32h8M32 0v8M32 56v8'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ------------------------------------------------------------------ Kanvas */
+body.in-crm {
+  background-color: var(--k26-ivory) !important;
+  background-image:
+    radial-gradient(1200px 520px at 100% -10%, var(--k26-gold-glow), transparent 60%),
+    radial-gradient(900px 480px at -10% 110%, rgba(31, 111, 61, 0.06), transparent 60%),
+    var(--k26-grain) !important;
+  background-attachment: fixed !important;
+  color: var(--k26-text);
+}
+
+body.in-crm .crm-shell,
+body.in-crm .crm-workspace {
+  background: transparent !important;
+}
+
+body.in-crm .crm-canvas {
+  max-width: 1240px;
+  padding: 32px 44px 80px;
+  gap: 24px;
+  font-variant-numeric: tabular-nums;
+}
+
+body.in-crm :is(h1, h2, h3) { text-wrap: balance; }
+body.in-crm p { text-wrap: pretty; }
+
+body.in-crm ::selection { background: rgba(216, 164, 15, 0.28); }
+
+body.in-crm :focus-visible {
+  outline: 2px solid var(--k26-gold);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ Sidebar */
+body.in-crm .crm-sidebar {
+  background:
+    radial-gradient(420px 260px at 0% 0%, rgba(216, 164, 15, 0.14), transparent 70%),
+    linear-gradient(180deg, var(--k26-ink-2) 0%, var(--k26-ink) 60%, #181613 100%) !important;
+  border-right: 0 !important;
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.04), 12px 0 40px -24px rgba(0, 0, 0, 0.5) !important;
+  color: #F3EBDD;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+body.in-crm .crm-brand,
+body.in-crm .crm-brand-title { color: #FBF5EA !important; }
+body.in-crm .crm-brand-title { font-family: var(--k26-serif); font-weight: 700; letter-spacing: 0.01em; }
+body.in-crm .crm-brand-title strong { color: var(--k26-gold) !important; font-weight: 700; }
+body.in-crm .crm-brand-sub { color: rgba(243, 235, 221, 0.5) !important; letter-spacing: 0.14em; }
+
+body.in-crm .crm-collapse-btn {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #F3EBDD !important;
+  border-radius: 12px !important;
+}
+body.in-crm .crm-collapse-btn svg { stroke: currentColor; }
+body.in-crm .crm-collapse-btn:hover { background: rgba(255, 255, 255, 0.12) !important; }
+
+body.in-crm .crm-user-card {
+  margin: 0 14px 18px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: var(--k26-radius-md) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+body.in-crm .crm-user-avatar {
+  background: linear-gradient(140deg, #F2C94C, #B8860B) !important;
+  color: #231F19 !important;
+  font-family: var(--k26-serif);
+  border-radius: 12px !important;
+}
+body.in-crm .crm-user-name { color: #FBF5EA !important; }
+body.in-crm .crm-user-role-pill {
+  background: rgba(216, 164, 15, 0.16) !important;
+  color: #F2C94C !important;
+  border: 1px solid rgba(216, 164, 15, 0.3) !important;
+}
+
+body.in-crm .crm-nav-group-title,
+body.in-crm .crm-nav-group-title span { color: rgba(243, 235, 221, 0.4) !important; letter-spacing: 0.16em; }
+
+body.in-crm .crm-nav { gap: 2px; padding: 0 12px 16px; }
+
+body.in-crm .crm-nav a {
+  position: relative;
+  padding: 11px 14px !important;
+  border-radius: 12px !important;
+  color: rgba(243, 235, 221, 0.66) !important;
+  transition: background-color 0.2s var(--k26-ease), color 0.2s var(--k26-ease), transform 0.2s var(--k26-ease) !important;
+}
+body.in-crm .crm-nav a svg { stroke: rgba(243, 235, 221, 0.55) !important; transition: stroke 0.2s var(--k26-ease); }
+body.in-crm .crm-nav a:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #FBF5EA !important;
+  transform: translateX(2px);
+}
+body.in-crm .crm-nav a:hover svg { stroke: #FBF5EA !important; }
+
+body.in-crm .crm-nav a[aria-current="page"] {
+  background: linear-gradient(90deg, rgba(216, 164, 15, 0.24), rgba(216, 164, 15, 0.04)) !important;
+  color: #FFF3D1 !important;
+  font-weight: 600 !important;
+  box-shadow: inset 0 0 0 1px rgba(216, 164, 15, 0.22) !important;
+}
+body.in-crm .crm-nav a[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--k26-gold);
+  box-shadow: 0 0 12px rgba(216, 164, 15, 0.7);
+}
+body.in-crm .crm-nav a[aria-current="page"] svg { stroke: var(--k26-gold) !important; }
+
+body.in-crm .crm-sidebar-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background: transparent !important;
+}
+body.in-crm .crm-system-status { color: rgba(243, 235, 221, 0.55) !important; }
+body.in-crm .crm-sidebar-footer .crm-logout-btn {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #F3EBDD !important;
+}
+body.in-crm .crm-sidebar-footer .crm-logout-btn svg { stroke: currentColor !important; }
+body.in-crm .crm-sidebar-footer .crm-logout-btn:hover { background: rgba(255, 255, 255, 0.1) !important; }
+
+/* ------------------------------------------------------------------ Topbar */
+body.in-crm .crm-topbar {
+  background: rgba(246, 241, 231, 0.72) !important;
+  -webkit-backdrop-filter: saturate(1.4) blur(16px);
+  backdrop-filter: saturate(1.4) blur(16px);
+  border-bottom: 1px solid var(--k26-line) !important;
+  box-shadow: none !important;
+}
+body.in-crm .crm-breadcrumbs .crumb-active { color: var(--k26-text); }
+
+/* ------------------------------------------------------------------ Kepala beranda */
+body.in-crm .coursue-hero-banner.k26-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 40px 44px 34px !important;
+  border: 0 !important;
+  border-radius: 28px !important;
+  background:
+    radial-gradient(560px 300px at 92% -20%, rgba(216, 164, 15, 0.26), transparent 70%),
+    linear-gradient(135deg, #FFFDF8 0%, #FBF3E1 100%) !important;
+  box-shadow: var(--k26-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  color: var(--k26-text) !important;
+}
+
+/* Motif bintang delapan, memudar ke kiri. */
+body.in-crm .coursue-hero-banner.k26-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 0 40%;
+  z-index: -1;
+  background-image: var(--k26-star);
+  background-size: 88px 88px;
+  -webkit-mask-image: radial-gradient(120% 140% at 100% 0%, #000 20%, transparent 75%);
+  mask-image: radial-gradient(120% 140% at 100% 0%, #000 20%, transparent 75%);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+body.in-crm .k26-hero .coursue-hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px !important;
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+  font-size: var(--fs-12) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  color: var(--k26-gold-deep) !important;
+}
+body.in-crm .k26-hero .coursue-hero-tag::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: currentColor;
+}
+
+body.in-crm .k26-date {
+  margin: 0 0 10px;
+  font-size: var(--fs-13);
+  color: var(--k26-muted);
+}
+
+body.in-crm .k26-hero .coursue-hero-title {
+  max-width: 22ch !important;
+  margin: 0 0 10px !important;
+  font-family: var(--k26-serif) !important;
+  font-size: clamp(32px, 4.2vw, 50px) !important;
+  font-weight: 700 !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.01em !important;
+  color: var(--k26-ink) !important;
+}
+
+body.in-crm .k26-hero .coursue-hero-subtitle {
+  max-width: 60ch !important;
+  margin: 0 !important;
+  font-size: var(--fs-16) !important;
+  line-height: 1.6 !important;
+  color: var(--k26-muted) !important;
+}
+
+body.in-crm .k26-hero .coursue-hero-cta {
+  margin-top: 20px !important;
+  background: var(--k26-ink) !important;
+  color: #FFF8E8 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 10px 24px -12px rgba(31, 28, 24, 0.6) !important;
+  transition: transform 0.2s var(--k26-ease), box-shadow 0.2s var(--k26-ease) !important;
+}
+body.in-crm .k26-hero .coursue-hero-cta:hover { transform: translateY(-2px); box-shadow: 0 16px 32px -14px rgba(31, 28, 24, 0.7) !important; }
+body.in-crm .k26-hero .coursue-hero-cta:active { transform: translateY(0) scale(0.98); }
+body.in-crm .k26-hero .coursue-hero-cta-arrow { background: var(--k26-gold) !important; color: var(--k26-ink) !important; }
+
+body.in-crm .k26-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+body.in-crm .k26-shortcuts a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(138, 100, 0, 0.14);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  font-size: var(--fs-13);
+  font-weight: 500;
+  color: var(--k26-text);
+  text-decoration: none;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  transition: background-color 0.2s var(--k26-ease), border-color 0.2s var(--k26-ease), transform 0.2s var(--k26-ease);
+}
+body.in-crm .k26-shortcuts a::after {
+  content: "→";
+  margin-left: 6px;
+  color: var(--k26-gold-deep);
+  transition: transform 0.2s var(--k26-ease);
+}
+body.in-crm .k26-shortcuts a:hover { background: #FFFFFF; border-color: rgba(138, 100, 0, 0.3); transform: translateY(-1px); }
+body.in-crm .k26-shortcuts a:hover::after { transform: translateX(3px); }
+
+/* ------------------------------------------------------------------ Permukaan */
+body.in-crm :is(.crm-white-card, .admin-alerts, .admin-card, .admin-ops-card, .admin-kpi, .crm-summary-card) {
+  background: var(--k26-paper) !important;
+  border: 1px solid rgba(60, 46, 20, 0.05) !important;
+  border-radius: var(--k26-radius-lg) !important;
+  box-shadow: var(--k26-shadow) !important;
+}
+
+body.in-crm .admin-kpi {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px !important;
+  padding: 18px 20px !important;
+  transition: transform 0.25s var(--k26-ease), box-shadow 0.25s var(--k26-ease);
+}
+body.in-crm .admin-kpi:hover { transform: translateY(-2px); box-shadow: var(--k26-shadow-hover) !important; }
+body.in-crm .admin-kpi__label { font-size: var(--fs-13) !important; color: var(--k26-muted) !important; }
+body.in-crm .admin-kpi__value {
+  font-family: var(--k26-serif) !important;
+  font-size: clamp(30px, 3vw, 38px) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em;
+  color: var(--k26-ink) !important;
+}
+/* Peringatan pada kartu angka: titik dan garis atas, bukan bingkai berwarna. */
+body.in-crm .admin-kpi--warn::before,
+body.in-crm .admin-kpi--danger::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, var(--k26-gold), transparent);
+}
+body.in-crm .admin-kpi--danger::before { background: linear-gradient(90deg, #B4372F, transparent); }
+body.in-crm .admin-kpi--danger .admin-kpi__value { color: #B4372F !important; }
+
+body.in-crm .admin-kpi-grid { gap: 14px !important; }
+
+body.in-crm :is(.admin-section-title, .crm-white-card-header h3, .beranda-card__title, .santri-card__title) {
+  font-family: var(--k26-serif) !important;
+  font-weight: 700 !important;
+  font-size: var(--fs-20) !important;
+  letter-spacing: 0 !important;
+  color: var(--k26-ink) !important;
+}
+
+/* Kartu perhatian: baris bersih dengan penanda warna di kiri. */
+body.in-crm .admin-alert {
+  border-radius: 14px !important;
+  background: var(--k26-ivory-2) !important;
+  border: 0 !important;
+  box-shadow: inset 3px 0 0 var(--k26-gold) !important;
+  transition: background-color 0.2s var(--k26-ease), transform 0.2s var(--k26-ease);
+}
+body.in-crm .admin-alert:hover { background: #FFF8E6 !important; transform: translateX(2px); }
+body.in-crm .admin-alert--tinggi,
+body.in-crm .admin-alert.is-tinggi { box-shadow: inset 3px 0 0 #B4372F !important; }
+
+/* Tugas hari ini musyrif: daftar tenang, bukan kotak kuning. */
+body.in-crm .musyrif-task {
+  background: var(--k26-ivory-2) !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  box-shadow: inset 3px 0 0 var(--k26-gold) !important;
+}
+body.in-crm .musyrif-task.is-selesai { box-shadow: inset 3px 0 0 #1F6F3D !important; }
+
+/* Tabel */
+body.in-crm .admin-table th {
+  background: transparent !important;
+  font-size: var(--fs-12) !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--k26-muted) !important;
+}
+body.in-crm .admin-table tbody tr { transition: background-color 0.15s var(--k26-ease); }
+body.in-crm .admin-table tbody tr:hover { background: #FFFBF0 !important; }
+
+/* Tab berbentuk pil: segmented control yang tenang. */
+body.in-crm .crm-pill-btn {
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid var(--k26-line) !important;
+  color: var(--k26-text) !important;
+  box-shadow: none !important;
+  transition: background-color 0.2s var(--k26-ease), color 0.2s var(--k26-ease), transform 0.2s var(--k26-ease) !important;
+}
+body.in-crm .crm-pill-btn:hover { background: #FFFFFF !important; }
+body.in-crm .crm-pill-btn.is-active {
+  background: var(--k26-ink) !important;
+  border-color: var(--k26-ink) !important;
+  color: #FFF8E8 !important;
+  box-shadow: 0 8px 20px -12px rgba(31, 28, 24, 0.7) !important;
+}
+
+/* ------------------------------------------------------------------ Tombol */
+body.in-crm .button {
+  transition: transform 0.18s var(--k26-ease), box-shadow 0.18s var(--k26-ease), background-color 0.18s var(--k26-ease) !important;
+}
+body.in-crm .button:active { transform: translateY(1px) scale(0.985); }
+body.in-crm .button--primary {
+  background: linear-gradient(180deg, #F1C232 0%, #DCA80F 100%) !important;
+  border: 0 !important;
+  color: #2A2108 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 10px 22px -12px rgba(160, 112, 0, 0.75) !important;
+}
+body.in-crm .button--primary:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 14px 28px -12px rgba(160, 112, 0, 0.85) !important; }
+body.in-crm .button--secondary {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid var(--k26-line) !important;
+  color: var(--k26-text) !important;
+}
+body.in-crm .button--secondary:hover { background: #FFFFFF !important; border-color: rgba(60, 46, 20, 0.22) !important; }
+
+/* ------------------------------------------------------------------ Beranda per peran */
+/* Kartu santri musyrif dan kartu kelas santri: lebih lembut dan hidup. */
+body.in-crm .mus-card {
+  border: 0 !important;
+  border-radius: 22px !important;
+  box-shadow: var(--k26-shadow) !important;
+}
+body.in-crm .mus-card:hover { transform: translateY(-4px) !important; box-shadow: var(--k26-shadow-hover) !important; }
+body.in-crm .mus-card.is-perhatian { box-shadow: var(--k26-shadow), inset 0 0 0 1.5px rgba(180, 55, 47, 0.35) !important; }
+
+body.in-crm .beranda-class__next {
+  background:
+    radial-gradient(360px 160px at 100% 0%, rgba(216, 164, 15, 0.35), transparent 70%),
+    linear-gradient(135deg, #2A2620, #1B1916) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 18px 40px -22px rgba(31, 28, 24, 0.9);
+}
+
+body.in-crm :is(.beranda-stat, .santri-indicator) {
+  border: 0 !important;
+  background: var(--k26-ivory-2) !important;
+  border-radius: 16px !important;
+}
+body.in-crm .beranda-stat.is-baik { background: #EEF6F0 !important; }
+body.in-crm .beranda-stat.is-perlu { background: #FBEDEB !important; }
+body.in-crm .beranda-stat__value { font-family: var(--k26-serif); }
+
+/* Cerita AI di beranda musyrif: panel tersendiri supaya terasa sebagai fitur. */
+body.in-crm .mus-page > .mus-story {
+  margin-top: 8px;
+  padding: 28px 30px !important;
+  border-top: 0 !important;
+  border-radius: var(--k26-radius-lg);
+  background:
+    radial-gradient(420px 220px at 100% 0%, rgba(216, 164, 15, 0.16), transparent 70%),
+    var(--k26-paper);
+  box-shadow: var(--k26-shadow);
+}
+body.in-crm .mus-page > .mus-story .mus-title::before {
+  content: "✦";
+  margin-right: 10px;
+  color: var(--k26-gold);
+}
+
+/* Wali dan musyrif sudah memakai tata letak terbuka; garisnya disamakan. */
+body.in-crm :is(.wali-page, .mus-page, .asr-page) { --wali-rule: var(--k26-line); --mus-rule: var(--k26-line); --asr-rule: var(--k26-line); }
+
+/* ------------------------------------------------------------------ Kartu merespons kursor */
+/* --mx dan --my diisi internal-shell.js saat kursor bergerak di atas kartu. */
+body.in-crm :is(.admin-kpi, .admin-ops-card, .mus-card, .crm-white-card.beranda-card) {
+  background-image: radial-gradient(420px circle at var(--mx, -500px) var(--my, -500px), rgba(216, 164, 15, 0.09), transparent 45%) !important;
+}
+
+/* ------------------------------------------------------------------ Gerak masuk */
+@keyframes k26-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+body.in-crm .coursue-main-col > *,
+body.in-crm .beranda-keluarga > *,
+body.in-crm .mus-grid > * {
+  animation: k26-rise 0.6s var(--k26-ease) both;
+}
+body.in-crm .coursue-main-col > :nth-child(2),
+body.in-crm .beranda-keluarga > :nth-child(2),
+body.in-crm .mus-grid > :nth-child(2) { animation-delay: 60ms; }
+body.in-crm .coursue-main-col > :nth-child(3),
+body.in-crm .beranda-keluarga > :nth-child(3),
+body.in-crm .mus-grid > :nth-child(3) { animation-delay: 120ms; }
+body.in-crm .coursue-main-col > :nth-child(4),
+body.in-crm .beranda-keluarga > :nth-child(4),
+body.in-crm .mus-grid > :nth-child(4) { animation-delay: 180ms; }
+body.in-crm .coursue-main-col > :nth-child(5),
+body.in-crm .beranda-keluarga > :nth-child(5),
+body.in-crm .mus-grid > :nth-child(5) { animation-delay: 240ms; }
+body.in-crm .coursue-main-col > :nth-child(n + 6),
+body.in-crm .beranda-keluarga > :nth-child(n + 6),
+body.in-crm .mus-grid > :nth-child(n + 6) { animation-delay: 300ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  body.in-crm .coursue-main-col > *,
+  body.in-crm .beranda-keluarga > *,
+  body.in-crm .mus-grid > * { animation: none; }
+  body.in-crm .crm-nav a:hover,
+  body.in-crm .admin-kpi:hover,
+  body.in-crm .mus-card:hover { transform: none !important; }
+}
+
+/* ------------------------------------------------------------------ Layar kecil */
+@media (max-width: 900px) {
+  body.in-crm .crm-canvas { padding: 20px 16px 64px; }
+  body.in-crm .coursue-hero-banner.k26-hero { padding: 28px 22px 24px !important; border-radius: 22px !important; }
+  body.in-crm .coursue-hero-banner.k26-hero::after { inset: 0 0 0 30%; opacity: 0.6; }
+  body.in-crm .k26-shortcuts { flex-wrap: nowrap; overflow-x: auto; margin-right: -22px; padding-right: 22px; scrollbar-width: none; }
+  body.in-crm .k26-shortcuts a { flex: none; }
+}

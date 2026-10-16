@@ -1088,18 +1088,13 @@ function renderExecutiveDashboard(_daftarAwal, account) {
   coursueLayout.className = 'coursue-layout';
   const mainCol = document.createElement('div');
   mainCol.className = 'coursue-main-col';
-  const rightPanel = document.createElement('div');
-  rightPanel.className = 'coursue-right-panel';
-
   // Judul dan ringkasan hanya memakai peran dan jumlah dari data. Sebelumnya berisi
   // nama kawasan dan gedung operasional yang belum dikonfirmasi klien dan ditulis keras
   // di kode.
   const namaWali = namaSapaan(account);
-  const titleText = isAdmin
-    ? 'Konsol pembinaan santri'
-    : isSupervisor
-      ? 'Konsol pembinaan musyrif'
-      : `Assalamu'alaikum, Bapak/Ibu${namaWali ? ` ${namaWali}` : ''}`;
+  const titleText = isParent
+    ? `Assalamu'alaikum, Bapak/Ibu${namaWali ? ` ${namaWali}` : ''}`
+    : `Assalamu'alaikum${namaWali ? `, ${namaWali}` : ''}`;
   const subtitleText = isAdmin
     ? (ringkasan
       ? `Super Admin · ${ringkasan.summary.activeStudents} santri aktif, ${ringkasan.summary.dormitories} asrama, ${ringkasan.summary.supervisors} musyrif.`
@@ -1109,7 +1104,7 @@ function renderExecutiveDashboard(_daftarAwal, account) {
       : (allTotal
         ? `${allTotal} ananda terhubung dengan akun ini. Berikut perkembangan dan kegiatan terbaru ${allTotal > 1 ? 'mereka' : 'ananda'}.`
         : 'Belum ada ananda yang terhubung dengan akun ini.');
-  const heroTag = isAdmin ? 'KONSOL EKSEKUTIF' : isSupervisor ? 'KONSOL MUSYRIF' : 'PORTAL KELUARGA';
+  const heroTag = isAdmin ? 'Konsol eksekutif' : isSupervisor ? 'Konsol musyrif' : 'Portal keluarga';
 
   const heroBanner = document.createElement('div');
   heroBanner.className = 'coursue-hero-banner';
@@ -1244,14 +1239,12 @@ function renderExecutiveDashboard(_daftarAwal, account) {
   buildTabs(tabDefs, panels, subtabsRow);
   panelsContainer.append(...panels);
 
-  // Wali: sapaan sudah di judul, jadi kolom kanan tidak dipakai.
-  if (!isParent) rightPanel.append(kartuSapaan(account, ringkasan, allTotal));
-  if (isAdmin && window.HamasahAdminOverview) {
-    rightPanel.append(window.HamasahAdminOverview.kartuDemo({
-      headers: requestHeaders,
-      onSelesai: () => loadStudents(account).catch(() => {})
-    }));
-  }
+  // Tema 2026: satu kolom lebar. Sapaan dan pintasan pindah ke kepala halaman (hiasKepala),
+  // kartu data demo admin ke bagian paling bawah.
+  hiasKepala(heroBanner, account);
+  const kartuDemo = isAdmin && window.HamasahAdminOverview
+    ? window.HamasahAdminOverview.kartuDemo({ headers: requestHeaders, onSelesai: () => loadStudents(account).catch(() => {}) })
+    : null;
 
   const heroBtn = heroBanner.querySelector('#btn-hero-action');
   if (heroBtn) {
@@ -1307,14 +1300,11 @@ function renderExecutiveDashboard(_daftarAwal, account) {
     ...(isAdmin && window.HamasahBerandaAdmin ? [window.HamasahBerandaAdmin.operasional(requestHeaders())] : []),
     ...(ringkasan ? [window.HamasahAdminOverview.perhatian(ringkasan, { onOpenStudent: bukaSantri })] : []),
     ...(isSupervisor ? [kartuTugasMusyrif()] : []),
-    ...(berandaPeran ? [berandaPeran] : [subtabsRow, panelsContainer])
+    ...(berandaPeran ? [berandaPeran] : [subtabsRow, panelsContainer]),
+    ...(kartuDemo ? [kartuDemo] : [])
   );
-  if (isParent) {
-    coursueLayout.classList.add('coursue-layout--tunggal');
-    coursueLayout.append(mainCol);
-  } else {
-    coursueLayout.append(mainCol, rightPanel);
-  }
+  coursueLayout.classList.add('coursue-layout--tunggal');
+  coursueLayout.append(mainCol);
   coursueLayout.classList.add('crm-view-enter');
 
   studentDashboard.append(coursueLayout);
@@ -1365,7 +1355,7 @@ function renderBerandaSantri(student, account) {
   hero.className = 'coursue-hero-banner';
   const tag = document.createElement('div');
   tag.className = 'coursue-hero-tag';
-  tag.textContent = 'BERANDA SANTRI';
+  tag.textContent = 'Beranda santri';
   const judul = document.createElement('h2');
   judul.className = 'coursue-hero-title';
   judul.textContent = `Assalamu'alaikum, ${namaSapaan(account) || student.name}`;
@@ -1373,6 +1363,7 @@ function renderBerandaSantri(student, account) {
   sub.className = 'coursue-hero-subtitle';
   sub.textContent = [student.program, student.dormitoryName].filter(Boolean).join(' · ') || 'Semangat belajar hari ini.';
   hero.append(tag, judul, sub);
+  hiasKepala(hero, account);
 
   const isi = document.createElement('div');
   isi.className = 'beranda-keluarga';
@@ -1403,84 +1394,86 @@ function namaSapaan(account) {
 }
 
 // Kartu sapaan di kolom kanan beranda: salam, peran, dan pintasan kerja per peran.
-function kartuSapaan(account, ringkasan, allTotal) {
-  // Kartu sapaan: hanya yang benar-benar diketahui (nama, peran, jumlah santri) dan
-  // pintasan kerja sesuai peran. Dulu ada "Statistik Pekanan" dengan cincin progres dan
-  // "Musyrif & Asatidzah" yang tidak pernah terisi oleh kode mana pun.
-  const userName = namaSapaan(account);
-  const PINTASAN = {
-    // Urutannya sama dengan menu samping (nav.js).
-    admin: [
-      ['staff', 'Pendaftaran calon santri'],
-      ['monitoring', 'Monitoring santri & asrama'],
-      ['lms', 'LMS: maddah dan materi'],
-      ['operations', 'Keuangan, visa, dan inventaris'],
-      ['akun', 'Kelola akun'],
-      ['audit', 'Jejak audit'],
-      ['pengaturan', 'Pengaturan aplikasi']
-    ],
-    'registration-officer': [
-      ['staff', 'Pendaftaran calon santri'],
-      ['staff#tambah-manual', 'Tambah pendaftar manual'],
-      ['staff#agenda', 'Agenda tindak lanjut'],
-      ['staff#pesan-konsultasi', 'Pesan konsultasi']
-    ],
-    supervisor: [
-      ['monitoring#presensi', 'Presensi asrama (sholat dan kegiatan)'],
-      ['monitoring', 'Catat pembinaan per santri'],
-      ['monitoring#izin', 'Izin santri'],
-      ['monitoring#pesan-wali', 'Pesan wali'],
-      ['lms', 'Progres maddah santri']
-    ],
-    teacher: [
-      ['lms', 'Kelola maddah dan materi'],
-      ['lms#kelola=kiriman', 'Nilai kiriman tugas'],
-      ['lms#kelola=progres', 'Progres dan pendaftaran santri']
-    ],
-    finance: [
-      ['operations', 'Terbitkan tagihan dan kuitansi'],
-      ['operations#menunggak', 'Tagihan menunggak'],
-      ['operations#tunggakan', 'Tunggakan per santri'],
-      ['operations#visa', 'Visa dan paspor']
-    ],
-    student: [['lms', 'Buka ruang belajar']]
-  };
-  const statCard = document.createElement('div');
-  statCard.className = 'coursue-statistic-card portal-greeting';
-  const salam = document.createElement('h3');
-  salam.textContent = userName ? `Assalamu'alaikum, ${userName}` : "Assalamu'alaikum";
-  const peran = document.createElement('p');
-  peran.className = 'portal-greeting__role';
-  peran.textContent = roleLabels[account && account.role] || '';
-  const jumlah = document.createElement('p');
-  jumlah.className = 'portal-greeting__count';
-  // Admin: angka yang sama dengan ringkasan di kiri (santri aktif), sisanya disebut
-  // terpisah supaya 13 dan 14 tidak tampak saling bertentangan.
-  const tidakAktif = ringkasan ? Math.max(0, allTotal - ringkasan.summary.activeStudents) : 0;
-  // Hanya admin: peran lain sudah membaca jumlah yang sama di subjudul di kiri.
-  jumlah.textContent = ringkasan
-    ? `${ringkasan.summary.activeStudents} santri aktif${tidakAktif ? `, ${tidakAktif} sudah lulus atau nonaktif` : ''}.`
-    : '';
-  statCard.append(salam, peran);
-  if (jumlah.textContent) statCard.append(jumlah);
-  const tautan = PINTASAN[account && account.role] || [];
+// Pintasan kerja per peran. Urutannya sama dengan menu samping (nav.js). Tampil sebagai
+// deretan tautan di kepala halaman beranda.
+const PINTASAN_PERAN = {
+  admin: [
+    ['staff', 'Pendaftaran calon santri'],
+    ['monitoring', 'Monitoring santri & asrama'],
+    ['lms', 'LMS: maddah dan materi'],
+    ['operations', 'Keuangan, visa, dan inventaris'],
+    ['akun', 'Kelola akun'],
+    ['audit', 'Jejak audit'],
+    ['pengaturan', 'Pengaturan aplikasi']
+  ],
+  'registration-officer': [
+    ['staff', 'Pendaftaran calon santri'],
+    ['staff#tambah-manual', 'Tambah pendaftar manual'],
+    ['staff#agenda', 'Agenda tindak lanjut'],
+    ['staff#pesan-konsultasi', 'Pesan konsultasi']
+  ],
+  supervisor: [
+    ['asrama', 'Kelola asrama'],
+    ['monitoring#presensi', 'Presensi asrama (sholat dan kegiatan)'],
+    ['monitoring', 'Catat pembinaan per santri'],
+    ['monitoring#izin', 'Izin santri'],
+    ['monitoring#pesan-wali', 'Pesan wali'],
+    ['lms', 'Progres maddah santri']
+  ],
+  teacher: [
+    ['lms', 'Kelola maddah dan materi'],
+    ['lms#kelola=kiriman', 'Nilai kiriman tugas'],
+    ['lms#kelola=progres', 'Progres dan pendaftaran santri']
+  ],
+  finance: [
+    ['operations', 'Terbitkan tagihan dan kuitansi'],
+    ['operations#menunggak', 'Tagihan menunggak'],
+    ['operations#tunggakan', 'Tunggakan per santri'],
+    ['operations#visa', 'Visa dan paspor']
+  ],
+  student: [['lms', 'Buka ruang belajar']]
+};
+
+// Tanggal hari ini dalam Masehi dan Hijriah (kalender Umm al-Qura), zona Kairo.
+const TANGGAL_MASEHI = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Africa/Cairo' });
+let TANGGAL_HIJRIAH = null;
+try {
+  TANGGAL_HIJRIAH = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Africa/Cairo' });
+} catch {
+  TANGGAL_HIJRIAH = null;
+}
+
+function teksTanggalHariIni() {
+  const sekarang = new Date();
+  const masehi = TANGGAL_MASEHI.format(sekarang);
+  let hijriah = '';
+  try { hijriah = TANGGAL_HIJRIAH ? TANGGAL_HIJRIAH.format(sekarang) : ''; } catch { hijriah = ''; }
+  return hijriah ? `${masehi} · ${hijriah}` : masehi;
+}
+
+// Kepala halaman beranda (tema 2026): tanggal di atas judul dan pintasan kerja di bawahnya.
+function hiasKepala(hero, account) {
+  const tanggal = document.createElement('p');
+  tanggal.className = 'k26-date';
+  tanggal.textContent = teksTanggalHariIni();
+  const tag = hero.querySelector('.coursue-hero-tag');
+  if (tag) tag.after(tanggal);
+  else hero.prepend(tanggal);
+  const tautan = PINTASAN_PERAN[account && account.role] || [];
   if (tautan.length) {
-    const judul = document.createElement('p');
-    judul.className = 'portal-greeting__label';
-    judul.textContent = 'Pintasan kerja';
-    const daftar = document.createElement('ul');
-    daftar.className = 'portal-greeting__links';
+    const nav = document.createElement('nav');
+    nav.className = 'k26-shortcuts';
+    nav.setAttribute('aria-label', 'Pintasan kerja');
     tautan.forEach(([href, label]) => {
-      const item = document.createElement('li');
       const link = document.createElement('a');
       link.href = href;
       link.textContent = label;
-      item.append(link);
-      daftar.append(item);
+      nav.append(link);
     });
-    statCard.append(judul, daftar);
+    hero.append(nav);
   }
-  return statCard;
+  hero.classList.add('k26-hero');
+  return hero;
 }
 
 // Beranda peran yang tidak memegang daftar santri: banner, kartu kerja (guru: tugas
@@ -1502,8 +1495,6 @@ function renderBerandaPeran(account) {
   layout.className = 'coursue-layout crm-view-enter';
   const mainCol = document.createElement('div');
   mainCol.className = 'coursue-main-col';
-  const rightPanel = document.createElement('div');
-  rightPanel.className = 'coursue-right-panel';
 
   const hero = document.createElement('div');
   hero.className = 'coursue-hero-banner';
@@ -1529,8 +1520,9 @@ function renderBerandaPeran(account) {
   if (account && account.role === 'finance') mainCol.append(kartuTugasKeuangan(sub));
   if (account && account.role === 'registration-officer') mainCol.append(kartuTugasPendaftaran(sub));
 
-  rightPanel.append(kartuSapaan(account, null, 0));
-  layout.append(mainCol, rightPanel);
+  hiasKepala(hero, account);
+  layout.classList.add('coursue-layout--tunggal');
+  layout.append(mainCol);
   studentDashboard.append(layout);
   studentDashboard.hidden = false;
 
