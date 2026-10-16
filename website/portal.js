@@ -1229,7 +1229,7 @@ function renderExecutiveDashboard(_daftarAwal, account) {
   });
   // Wali memakai beranda keluarga; kartu ananda lama hanya dilukis bila beranda gagal,
   // karena tiap kartu wali memuat ringkasannya sendiri dari server.
-  const pakaiBerandaWali = isParent && Boolean(window.HamasahBerandaKeluarga);
+  const pakaiBerandaWali = isParent && Boolean(window.HamasahBerandaWali);
   if (!pakaiBerandaWali) paintStudents();
   panelStudents.append(studentTools, studentCards, studentMore);
 
@@ -1269,14 +1269,14 @@ function renderExecutiveDashboard(_daftarAwal, account) {
     });
   }
 
-  // Wali: beranda keluarga (beranda-keluarga.js) menggantikan daftar kartu ananda.
-  // Kartu perkembangan per ananda dan laporan kegiatan; tombol di kartu membuka rekam
+  // Wali: beranda wali (beranda-wali.js) menggantikan daftar kartu ananda.
+  // Laporan singkat, diagram, dan laporan kegiatan per ananda; tombol di laporan membuka rekam
   // jejak lengkap.
   let berandaWali = null;
   if (pakaiBerandaWali) {
     berandaWali = document.createElement('div');
     berandaWali.className = 'beranda-keluarga';
-    window.HamasahBerandaKeluarga.wali(berandaWali, {
+    window.HamasahBerandaWali.render(berandaWali, {
       students: studentPage.items,
       headers: requestHeaders(),
       onOpenStudent: bukaSantri

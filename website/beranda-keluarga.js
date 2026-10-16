@@ -1,7 +1,7 @@
 // Beranda keluarga di portal (16 Oktober 2026): wali dan santri tidak lagi langsung
 // dilempar ke rekam jejak lengkap, tetapi melihat beranda yang sesuai perannya.
-//   - Wali: kartu perkembangan tiap ananda (sholat, hafalan, kehadiran, catatan pembina)
-//     dan "Laporan kegiatan", linimasa gabungan semua ananda.
+//   - Wali: beranda-wali.js memakai bagian bersama di sini (muatAnak, linimasa
+//     berhalaman, pengumuman, paging).
 //   - Santri: kelas online di bagian paling atas, lalu perkembangan diri, izin, dan
 //     kegiatan terbaru.
 // Semua angka berasal dari API yang sudah dipakai rekam jejak (dashboard, care, juz,
@@ -9,13 +9,11 @@
 // Semua teks dipasang lewat textContent.
 (function initBerandaKeluarga() {
   const TANGGAL = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-  const TANGGAL_PENDEK = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short' });
   const HARI = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
   const NILAI_HAFALAN = { lancar: 'Lancar', 'kurang-lancar': 'Kurang lancar', ulang: 'Perlu diulang' };
   const PRESENSI = { present: 'Hadir', late: 'Terlambat', excused: 'Izin / sakit', absent: 'Tidak hadir' };
   const STATUS_IZIN = { menunggu: 'menunggu keputusan musyrif', disetujui: 'disetujui', ditolak: 'ditolak', dibatalkan: 'dibatalkan' };
   const PERIODE_HARI = 30;
-  const LINIMASA_AWAL = 8;
 
   function el(tag, className, text) {
     const node = document.createElement(tag);
@@ -53,18 +51,23 @@
   }
 
   // Semua data satu ananda, periode 30 hari terakhir. Setiap permintaan berdiri sendiri.
-  async function muatAnak(studentId, headers, { kelas = false } = {}) {
+  // banding: ikut memuat 30 hari sebelumnya untuk perbandingan naik/turun.
+  async function muatAnak(studentId, headers, { kelas = false, banding = false } = {}) {
     const id = encodeURIComponent(studentId);
     const rentang = `from=${tanggalIso(PERIODE_HARI - 1)}&to=${tanggalIso(0)}`;
-    const [dasbor, care, juz, tagihan, izin, courses] = await Promise.all([
+    const rentangLalu = `from=${tanggalIso(PERIODE_HARI * 2 - 1)}&to=${tanggalIso(PERIODE_HARI)}`;
+    const [dasbor, care, juz, tagihan, izin, courses, dasborLalu, careLalu] = await Promise.all([
       ambil(`/api/students/${id}/dashboard?${rentang}`, headers),
       ambil(`/api/students/${id}/care?${rentang}`, headers),
       ambil(`/api/students/${id}/juz`, headers),
       ambil(`/api/students/${id}/invoices`, headers),
       ambil(`/api/students/${id}/leave`, headers),
-      kelas ? ambil(`/api/students/${id}/courses`, headers) : null
+      kelas ? ambil(`/api/students/${id}/courses`, headers) : null,
+      banding ? ambil(`/api/students/${id}/dashboard?${rentangLalu}`, headers) : null,
+      banding ? ambil(`/api/students/${id}/care?${rentangLalu}`, headers) : null
     ]);
     return {
+      lalu: banding ? { dashboard: dasborLalu && dasborLalu.dashboard, care: careLalu && careLalu.care } : null,
       dashboard: dasbor && dasbor.dashboard,
       care: care && care.care,
       juz: juz && juz.tersedia ? juz : null,
@@ -187,7 +190,54 @@
     return butir.filter((item) => item.waktu).map((item) => ({ ...item, anak: nama }));
   }
 
-  function kartuLinimasa(semuaButir, { judul, keterangan, daftarAnak = [] }) {
+  // --------------------------------------------------------------- Paging
+  // Daftar panjang dibagi per halaman: tombol Sebelumnya/Berikutnya dan "Halaman x dari y".
+  // render(itemsHalamanIni, daftar) melukis isi; mengembalikan { wadah, setel(items) }.
+  function penomoran({ perHalaman, render, kelasDaftar = '', tagDaftar = 'ol', kosong = 'Belum ada data.' }) {
+    const wadah = el('div', 'beranda-paged');
+    const daftar = el(tagDaftar, kelasDaftar);
+    const nav = el('nav', 'beranda-pager');
+    nav.setAttribute('aria-label', 'Halaman');
+    const sebelum = el('button', 'beranda-pager__btn', 'Sebelumnya');
+    sebelum.type = 'button';
+    const posisi = el('span', 'beranda-pager__pos');
+    posisi.setAttribute('aria-live', 'polite');
+    const sesudah = el('button', 'beranda-pager__btn', 'Berikutnya');
+    sesudah.type = 'button';
+    nav.append(sebelum, posisi, sesudah);
+    wadah.append(daftar, nav);
+
+    let items = [];
+    let halaman = 0;
+    function lukis() {
+      const total = Math.max(1, Math.ceil(items.length / perHalaman));
+      halaman = Math.min(halaman, total - 1);
+      daftar.replaceChildren();
+      if (!items.length) daftar.append(el('li', 'beranda-empty', kosong));
+      else render(items.slice(halaman * perHalaman, (halaman + 1) * perHalaman), daftar);
+      posisi.textContent = `Halaman ${halaman + 1} dari ${total}`;
+      sebelum.disabled = halaman === 0;
+      sesudah.disabled = halaman >= total - 1;
+      nav.hidden = total <= 1;
+    }
+    sebelum.addEventListener('click', () => { halaman -= 1; lukis(); });
+    sesudah.addEventListener('click', () => { halaman += 1; lukis(); });
+    return {
+      wadah,
+      setel(baru) { items = baru; halaman = 0; lukis(); }
+    };
+  }
+
+  // Kelompok jenis untuk saringan linimasa.
+  const KELOMPOK = [
+    ['Kegiatan', ['Kegiatan', 'Presensi']],
+    ['Hafalan', ['Setoran hafalan']],
+    ['Pembinaan', ['Catatan pembina', 'Prestasi', 'Disiplin']],
+    ['Izin', ['Izin']],
+    ['Keuangan', ['Tagihan', 'Pembayaran']]
+  ];
+
+  function kartuLinimasa(semuaButir, { judul, keterangan, perHalaman = 6 }) {
     const wadah = el('section', 'crm-white-card beranda-card beranda-timeline');
     const kepala = el('div', 'beranda-card__head');
     const teks = el('div');
@@ -196,138 +246,88 @@
     wadah.append(kepala);
 
     const urut = semuaButir.slice().sort((a, b) => String(b.waktu).localeCompare(String(a.waktu)));
+    const ada = KELOMPOK.filter(([, jenis]) => urut.some((item) => jenis.includes(item.jenis)));
     let saringan = null;
-    let batas = LINIMASA_AWAL;
 
-    if (daftarAnak.length > 1) {
+    const pager = penomoran({
+      perHalaman,
+      kelasDaftar: 'beranda-timeline__list',
+      kosong: `Belum ada kegiatan tercatat dalam ${PERIODE_HARI} hari terakhir.`,
+      render(items, daftar) {
+        let hariSebelumnya = '';
+        items.forEach((item) => {
+          const hari = HARI.format(new Date(item.waktu));
+          if (hari !== hariSebelumnya) {
+            daftar.append(el('li', 'beranda-timeline__day', hari));
+            hariSebelumnya = hari;
+          }
+          const baris = el('li', `beranda-timeline__item is-${item.nada}`);
+          const meta = el('div', 'beranda-timeline__meta');
+          meta.append(el('span', 'beranda-timeline__kind', item.jenis));
+          baris.append(meta, el('p', 'beranda-timeline__title', item.judul));
+          if (item.isi) baris.append(el('p', 'beranda-timeline__body', item.isi));
+          daftar.append(baris);
+        });
+      }
+    });
+
+    if (ada.length > 1) {
       const pil = el('div', 'beranda-filter');
       pil.setAttribute('role', 'group');
-      pil.setAttribute('aria-label', 'Saring per ananda');
-      const tombol = [['Semua ananda', null], ...daftarAnak.map((nama) => [nama, nama])].map(([label, nilai]) => {
-        const b = el('button', `crm-pill-btn ${nilai === null ? 'is-active' : ''}`.trim(), label);
+      pil.setAttribute('aria-label', 'Saring jenis laporan');
+      const pilihan = [['Semua', null], ...ada];
+      const tombol = pilihan.map(([label, jenis]) => {
+        const jumlah = jenis ? urut.filter((item) => jenis.includes(item.jenis)).length : urut.length;
+        const b = el('button', `crm-pill-btn ${jenis === null ? 'is-active' : ''}`.trim(), `${label} (${jumlah})`);
         b.type = 'button';
-        b.setAttribute('aria-pressed', String(nilai === null));
+        b.setAttribute('aria-pressed', String(jenis === null));
         b.addEventListener('click', () => {
-          saringan = nilai;
-          batas = LINIMASA_AWAL;
+          saringan = jenis;
           tombol.forEach((lain) => { lain.classList.toggle('is-active', lain === b); lain.setAttribute('aria-pressed', String(lain === b)); });
-          lukis();
+          pager.setel(saringan ? urut.filter((item) => saringan.includes(item.jenis)) : urut);
         });
         return b;
       });
       pil.append(...tombol);
       wadah.append(pil);
     }
-
-    const daftar = el('ol', 'beranda-timeline__list');
-    const lebih = el('button', 'button button--secondary beranda-timeline__more', 'Tampilkan lebih banyak');
-    lebih.type = 'button';
-    lebih.addEventListener('click', () => { batas += LINIMASA_AWAL; lukis(); });
-    wadah.append(daftar, lebih);
-
-    function lukis() {
-      const tampil = urut.filter((item) => !saringan || item.anak === saringan);
-      daftar.replaceChildren();
-      if (!tampil.length) {
-        daftar.append(el('li', 'beranda-timeline__empty', `Belum ada kegiatan tercatat dalam ${PERIODE_HARI} hari terakhir.`));
-      }
-      let hariSebelumnya = '';
-      tampil.slice(0, batas).forEach((item) => {
-        const hari = HARI.format(new Date(item.waktu));
-        if (hari !== hariSebelumnya) {
-          daftar.append(el('li', 'beranda-timeline__day', hari));
-          hariSebelumnya = hari;
-        }
-        const baris = el('li', `beranda-timeline__item is-${item.nada}`);
-        const meta = el('div', 'beranda-timeline__meta');
-        meta.append(el('span', 'beranda-timeline__kind', item.jenis));
-        if (daftarAnak.length > 1 && item.anak) meta.append(el('span', 'beranda-timeline__child', item.anak));
-        baris.append(meta, el('p', 'beranda-timeline__title', item.judul));
-        if (item.isi) baris.append(el('p', 'beranda-timeline__body', item.isi));
-        daftar.append(baris);
-      });
-      lebih.hidden = tampil.length <= batas;
-    }
-    lukis();
+    wadah.append(pager.wadah);
+    pager.setel(urut);
     return wadah;
   }
 
-  function kartuPengumuman(data) {
-    const items = data && Array.isArray(data.items) ? data.items.slice(0, 3) : [];
+  function kartuPengumuman(data, perHalaman = 3) {
+    const items = data && Array.isArray(data.items) ? data.items : [];
     if (!items.length) return null;
     const wadah = el('section', 'crm-white-card beranda-card');
     const kepala = el('div', 'beranda-card__head');
     kepala.append(el('h3', 'beranda-card__title', 'Pengumuman asrama'));
     wadah.append(kepala);
-    const daftar = el('ul', 'beranda-announce');
-    items.forEach((item) => {
-      const baris = el('li', 'beranda-announce__item');
-      baris.append(
-        el('strong', 'beranda-announce__title', item.title),
-        el('p', 'beranda-announce__body', item.body),
-        el('span', 'beranda-announce__meta', [item.dormitoryName || 'Semua asrama', tanggal(item.createdAt)].filter(Boolean).join(' · '))
-      );
-      daftar.append(baris);
+    const pager = penomoran({
+      perHalaman,
+      tagDaftar: 'ul',
+      kelasDaftar: 'beranda-announce',
+      render(halaman, daftar) {
+        halaman.forEach((item) => {
+          const baris = el('li', 'beranda-announce__item');
+          baris.append(
+            el('strong', 'beranda-announce__title', item.title),
+            el('p', 'beranda-announce__body', item.body),
+            el('span', 'beranda-announce__meta', [item.dormitoryName || 'Semua asrama', tanggal(item.createdAt)].filter(Boolean).join(' · '))
+          );
+          daftar.append(baris);
+        });
+      }
     });
-    wadah.append(daftar);
+    wadah.append(pager.wadah);
+    pager.setel(items);
     return wadah;
-  }
-
-  function judulBagian(teks) {
-    return el('h3', 'beranda-section-title', teks);
   }
 
   function kerangkaMemuat(teks) {
     const wadah = el('div', 'crm-white-card beranda-loading', teks);
     wadah.setAttribute('role', 'status');
     return wadah;
-  }
-
-  // ------------------------------------------------------------------ Wali
-  function kartuAnak(student, data, onOpen) {
-    const wadah = el('article', 'crm-white-card beranda-child');
-    const kepala = el('div', 'beranda-child__head');
-    const avatar = el('span', 'beranda-child__avatar', inisial(student.name));
-    avatar.setAttribute('aria-hidden', 'true');
-    const identitas = el('div', 'beranda-child__id');
-    identitas.append(
-      el('h4', 'beranda-child__name', student.name),
-      el('p', 'beranda-child__meta', [student.program, student.dormitoryName || 'Belum ditempatkan di asrama'].filter(Boolean).join(' · '))
-    );
-    const buka = el('button', 'button button--secondary beranda-child__open', 'Rekam jejak lengkap');
-    buka.type = 'button';
-    buka.setAttribute('aria-label', `Buka rekam jejak lengkap ${student.name}`);
-    buka.addEventListener('click', onOpen);
-    kepala.append(avatar, identitas, buka);
-    wadah.append(kepala);
-    const chip = chipUrusan(data);
-    if (chip) wadah.append(chip);
-    wadah.append(kotakPerkembangan(data), catatanPembina(data));
-    return wadah;
-  }
-
-  async function wali(wadah, { students, headers, onOpenStudent }) {
-    wadah.replaceChildren(judulBagian('Perkembangan ananda'), kerangkaMemuat('Memuat perkembangan ananda...'));
-    if (!students.length) {
-      wadah.replaceChildren(el('div', 'crm-white-card beranda-loading', 'Belum ada ananda yang terhubung dengan akun ini. Hubungi admin Hamasah untuk menautkan akun.'));
-      return;
-    }
-    const [semuaData, pengumuman] = await Promise.all([
-      Promise.all(students.map((student) => muatAnak(student.id, headers))),
-      ambil('/api/announcements', headers)
-    ]);
-    const kartuKartu = students.map((student, i) => kartuAnak(student, semuaData[i], () => onOpenStudent(student.id)));
-    const butir = students.flatMap((student, i) => butirKegiatan(semuaData[i], student.name));
-    const isi = [judulBagian('Perkembangan ananda'), el('div', 'beranda-children')];
-    isi[1].append(...kartuKartu);
-    isi.push(kartuLinimasa(butir, {
-      judul: 'Laporan kegiatan',
-      keterangan: `Kegiatan, presensi, setoran hafalan, catatan pembina, izin, dan tagihan ${students.length > 1 ? 'semua ananda' : 'ananda'} dalam ${PERIODE_HARI} hari terakhir.`,
-      daftarAnak: students.map((student) => student.name)
-    }));
-    const umum = kartuPengumuman(pengumuman);
-    if (umum) isi.push(umum);
-    wadah.replaceChildren(...isi);
   }
 
   // ---------------------------------------------------------------- Santri
@@ -446,5 +446,8 @@
     wadah.replaceChildren(...isi);
   }
 
-  window.HamasahBerandaKeluarga = Object.freeze({ wali, santri, inisial, tanggalPendek: (iso) => TANGGAL_PENDEK.format(new Date(iso)) });
+  window.HamasahBerandaKeluarga = Object.freeze({
+    santri, muatAnak, ambil, butirKegiatan, kartuLinimasa, kartuPengumuman, penomoran, chipUrusan,
+    inisial, tanggal, rupiah, terbaru, PERIODE_HARI, NILAI_HAFALAN, PRESENSI
+  });
 })();
