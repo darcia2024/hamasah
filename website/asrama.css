@@ -1,0 +1,361 @@
+/* Kelola Asrama (asrama.js). Formulir, tab, dan angka memakai gaya beranda musyrif
+   (beranda-keluarga.css: .mus-*); berkas ini hanya menambah tata letak khusus asrama. */
+.asr-page {
+  --asr-rule: rgba(54, 54, 56, 0.12);
+  --asr-green: #1F6F3D;
+  --asr-red: #B4372F;
+  --asr-gold: #C9960A;
+  display: grid;
+  gap: 8px;
+  max-width: 1120px;
+  color: var(--md-sys-color-on-surface);
+}
+
+.asr-loading,
+.asr-empty {
+  margin: 0;
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.asr-warning {
+  margin: 12px 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #FFF6E5;
+  color: #6B4A00;
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+
+.asr-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+
+.asr-head__title {
+  margin: 2px 0 4px !important;
+  font-family: "Philosopher", Georgia, serif !important;
+  font-size: clamp(28px, 3.4vw, 38px) !important;
+  font-weight: 700 !important;
+  line-height: 1.1 !important;
+}
+
+.asr-head__select { max-width: 260px; }
+
+.asr-tabs { margin-bottom: 4px; }
+
+.asr-panel { display: grid; }
+
+.asr-section:first-child { border-top: 0; }
+
+.asr-danger { color: var(--asr-red) !important; }
+
+.asr-form { max-width: 760px; }
+
+/* Jadwal mingguan: tujuh kolom */
+.asr-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border-top: 1px solid var(--asr-rule);
+}
+
+.asr-day {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 10px 16px;
+  border-left: 1px solid var(--asr-rule);
+}
+
+.asr-day:first-child { border-left: 0; padding-left: 0; }
+
+.asr-day__name {
+  margin: 0;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: var(--fs-16);
+}
+
+.asr-day__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.asr-item {
+  display: grid;
+  gap: 1px;
+  font-size: var(--fs-13);
+}
+
+.asr-item__time {
+  font-size: var(--fs-12);
+  font-weight: 600;
+  color: var(--gold-dark);
+}
+
+.asr-item__title {
+  font-size: var(--fs-14);
+  font-weight: 600;
+}
+
+.asr-item__meta {
+  font-size: var(--fs-12);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.asr-item__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 2px;
+}
+
+.asr-item__actions .mus-link { font-size: var(--fs-12); }
+
+/* Agenda */
+.asr-events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.asr-event {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--asr-rule);
+}
+
+.asr-event.is-lalu { opacity: 0.6; }
+
+.asr-event__date {
+  display: grid;
+  justify-items: center;
+  padding: 6px 0;
+  border: 1px solid var(--asr-gold);
+  border-radius: 12px;
+  color: var(--gold-dark);
+}
+
+.asr-event__date strong {
+  font-family: "Philosopher", Georgia, serif;
+  font-size: var(--fs-24);
+  line-height: 1;
+}
+
+.asr-event__date span {
+  font-size: var(--fs-12);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.asr-event__body { display: grid; gap: 2px; }
+
+/* Piket */
+.asr-duty-wrap { overflow-x: auto; }
+
+.asr-duty {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  font-size: var(--fs-13);
+}
+
+.asr-duty th,
+.asr-duty td {
+  padding: 6px;
+  border-bottom: 1px solid var(--asr-rule);
+  text-align: left;
+  vertical-align: top;
+}
+
+.asr-duty thead th {
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.asr-duty__name {
+  min-width: 120px;
+  font-weight: 600;
+}
+
+.asr-duty__name span { display: block; }
+.asr-duty__name .mus-link { font-size: var(--fs-12); font-weight: 500; }
+
+.asr-duty__cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px;
+  border: 1px dashed var(--asr-rule);
+  border-radius: 10px;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.asr-duty__cell:hover { border-color: var(--md-sys-color-outline); background: #FFFFFF; }
+.asr-duty__cell:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: 2px; }
+
+.asr-duty__add {
+  margin: auto;
+  color: var(--md-sys-color-outline);
+  font-size: var(--fs-18);
+}
+
+.asr-chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  font-size: var(--fs-12);
+  font-weight: 600;
+}
+
+.asr-pick {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 16px;
+  max-height: 50vh;
+  overflow-y: auto;
+  margin: 8px 0 16px;
+}
+
+.asr-pick__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-14);
+}
+
+.asr-pick__row input { width: 18px; height: 18px; accent-color: var(--asr-green); }
+
+/* Uang kas */
+.asr-cash-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+}
+
+.asr-cash-top .mus-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 0; padding: 12px 0; }
+.asr-cash-top .mus-field { width: 180px; }
+
+.asr-dues,
+.asr-ledger,
+.asr-inv {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.asr-dues__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 16px;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--asr-rule);
+  font-size: var(--fs-14);
+}
+
+.asr-dues__state { color: var(--asr-red); font-size: var(--fs-13); font-weight: 600; }
+.asr-dues__row.is-lunas .asr-dues__state { color: var(--asr-green); }
+
+.asr-ledger__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 16px;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--asr-rule);
+}
+
+.asr-ledger__info { display: grid; gap: 2px; font-size: var(--fs-14); }
+.asr-ledger__info strong { text-transform: capitalize; }
+
+.asr-ledger__amount {
+  font-family: "Philosopher", Georgia, serif;
+  font-size: var(--fs-18);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.asr-ledger__row.is-masuk .asr-ledger__amount { color: var(--asr-green); }
+.asr-ledger__row.is-keluar .asr-ledger__amount { color: var(--md-sys-color-on-surface); }
+.asr-ledger__row.is-batal { opacity: 0.55; }
+.asr-ledger__row.is-batal .asr-ledger__amount { text-decoration: line-through; }
+
+/* Inventaris */
+.asr-inv__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 60px 80px auto;
+  gap: 16px;
+  align-items: baseline;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--asr-rule);
+}
+
+.asr-inv__info { display: grid; gap: 2px; font-size: var(--fs-14); }
+
+.asr-inv__qty {
+  font-family: "Philosopher", Georgia, serif;
+  font-size: var(--fs-20);
+  font-weight: 700;
+  text-align: right;
+}
+
+.asr-inv__cond {
+  font-size: var(--fs-13);
+  font-weight: 600;
+  color: var(--asr-green);
+}
+
+.asr-inv__cond.is-rusak { color: var(--asr-gold); }
+.asr-inv__cond.is-hilang { color: var(--asr-red); }
+
+@media (max-width: 1000px) {
+  .asr-week { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .asr-day { border-left: 0; padding-left: 0; border-bottom: 1px solid var(--asr-rule); }
+}
+
+@media (max-width: 640px) {
+  .asr-week { grid-template-columns: minmax(0, 1fr); }
+  .asr-cash-top { grid-template-columns: minmax(0, 1fr); }
+  .asr-cash-top .mus-stats { grid-template-columns: minmax(0, 1fr); row-gap: 12px; }
+  .asr-cash-top .mus-stats > .mus-stat { padding-left: 0; border-left: 0; }
+  .asr-event { grid-template-columns: 48px minmax(0, 1fr); }
+  .asr-event .asr-item__actions { grid-column: 2; }
+  .asr-ledger__row,
+  .asr-dues__row { grid-template-columns: minmax(0, 1fr) auto; }
+  .asr-ledger__row > .mus-link,
+  .asr-dues__row > .mus-link { grid-column: 1 / -1; justify-self: start; }
+  .asr-inv__row { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .asr-inv__row .asr-item__actions { grid-column: 1 / -1; }
+  .asr-pick { grid-template-columns: minmax(0, 1fr); }
+}
+
+.asr-flash {
+  margin: 8px 0 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #EEF7F1;
+}

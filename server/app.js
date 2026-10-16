@@ -32,6 +32,7 @@ const { createPostgresAuditStore } = require('./postgres-audit-store.js');
 const { createFileService } = require('./file-service.js');
 const { createStudentPhotoService } = require('./student-photo-service.js');
 const { createMusyrifStoryService } = require('./musyrif-story-service.js');
+const { createDormitoryManagementService } = require('./dormitory-management-service.js');
 const { createRegistrationConversionService } = require('./registration-conversion-service.js');
 const { createPostgresFileStore } = require('./postgres-file-store.js');
 const { createLocalStorage } = require('./storage/local.js');
@@ -86,6 +87,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/files.js'),
   ...require('./routes/operations.js'),
   ...require('./routes/dormitories.js'),
+  ...require('./routes/dormitory-management.js'),
   ...require('./routes/students.js'),
   ...require('./routes/student-care.js'),
   ...require('./routes/lms.js'),
@@ -395,11 +397,17 @@ function createHamasahApp(options) {
   const demoDataService = config.demoDataService || createDemoDataService({ database, storage });
   const studentPhotoService = config.studentPhotoService || createStudentPhotoService({ database, storage, studentPortalService });
   const musyrifStoryService = config.musyrifStoryService || createMusyrifStoryService({ studentPortalService, fetchImpl: config.fetchImpl, env: config.env });
+  const dormitoryManagementService = config.dormitoryManagementService || createDormitoryManagementService({
+    database,
+    staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId),
+    listStudentsForActor: (actor) => studentPortalService.listForActor(actor)
+  });
 
   const services = Object.freeze({
     maintenanceService,
     studentPhotoService,
     musyrifStoryService,
+    dormitoryManagementService,
     adminOverviewService,
     demoDataService,
     settingsService,

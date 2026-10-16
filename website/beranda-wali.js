@@ -513,7 +513,7 @@
       wadah.replaceChildren(...atas, memuat);
 
       if (!cache.has(aktifId)) cache.set(aktifId, K.muatAnak(aktifId, headers, { banding: true }));
-      const [data, pengumuman] = await Promise.all([cache.get(aktifId), pengumumanJanji]);
+      const [data, pengumuman, jadwalAsrama] = await Promise.all([cache.get(aktifId), pengumumanJanji, K.muatJadwalAsrama(headers)]);
       if (student.id !== aktifId) return;
 
       const grid = el('div', 'wali-grid');
@@ -522,6 +522,8 @@
         ...atas,
         kartuRingkasan(student, data, () => onOpenStudent(student.id)),
         grid,
+        // Jadwal rutin, agenda, dan piket ananda dari Kelola Asrama.
+        ...[K.bagianJadwalAsrama(jadwalAsrama, student.id, { polos: true })].filter(Boolean),
         K.kartuLinimasa(K.butirKegiatan(data, student.name), {
           judul: 'Catatan harian',
           keterangan: `Semua yang tercatat ${K.PERIODE_HARI} hari terakhir, terbaru di atas.`,

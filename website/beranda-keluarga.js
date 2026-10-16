@@ -325,6 +325,101 @@
     return wadah;
   }
 
+  // --------------------------------------------------------- Jadwal asrama
+  // Jadwal rutin, agenda, dan piket dari Kelola Asrama (GET /api/asrama-saya), untuk
+  // santri dan wali. Dimuat sekali per halaman.
+  const NAMA_HARI = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Ahad'];
+  const TANGGAL_AGENDA = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+  let jadwalJanji = null;
+  function muatJadwalAsrama(headers) {
+    if (!jadwalJanji) jadwalJanji = ambil('/api/asrama-saya', headers);
+    return jadwalJanji;
+  }
+
+  function jamKegiatan(j) {
+    if (!j.startTime) return 'Sepanjang hari';
+    return j.endTime ? `${j.startTime}–${j.endTime}` : j.startTime;
+  }
+
+  // data: hasil /api/asrama-saya. studentId: ananda yang sedang dilihat.
+  function bagianJadwalAsrama(data, studentId, { polos = false } = {}) {
+    if (!data || !data.tersedia || !Array.isArray(data.dormitories)) return null;
+    const asrama = data.dormitories.find((d) => d.students.some((s) => String(s.id) === String(studentId)));
+    if (!asrama || (!asrama.routine.length && !asrama.events.length && !asrama.duties.length)) return null;
+    const hariIni = ((new Date(`${data.today}T00:00:00Z`).getUTCDay() + 6) % 7) + 1;
+
+    const wadah = el('section', polos ? 'wali-section jadwal-asrama' : 'crm-white-card beranda-card jadwal-asrama');
+    const kepala = el('div', polos ? 'wali-section__head' : 'beranda-card__head');
+    const teks = el('div');
+    teks.append(
+      el('h3', polos ? 'wali-section__title' : 'beranda-card__title', 'Jadwal asrama'),
+      el('p', polos ? 'wali-section__note' : 'beranda-card__note', `${asrama.name || 'Asrama'}: kegiatan rutin, agenda, dan piket.`)
+    );
+    kepala.append(teks);
+    wadah.append(kepala);
+
+    const grid = el('div', 'jadwal-asrama__grid');
+    const kiri = el('div', 'jadwal-asrama__col');
+    kiri.append(el('h4', 'jadwal-asrama__label', `Hari ini, ${NAMA_HARI[hariIni - 1]}`));
+    const hariIniList = asrama.routine.filter((j) => j.dayOfWeek === hariIni);
+    const ul = el('ul', 'jadwal-asrama__list');
+    if (!hariIniList.length) ul.append(el('li', 'jadwal-asrama__empty', 'Tidak ada kegiatan rutin hari ini.'));
+    hariIniList.forEach((j) => {
+      const li = el('li', 'jadwal-asrama__item');
+      li.append(el('span', 'jadwal-asrama__time', jamKegiatan(j)), el('span', 'jadwal-asrama__title', j.title + (j.location ? ` · ${j.location}` : '')));
+      ul.append(li);
+    });
+    kiri.append(ul);
+
+    const piket = asrama.duties.filter((d) => String(d.studentId) === String(studentId));
+    kiri.append(el('h4', 'jadwal-asrama__label', 'Piket'));
+    const ulPiket = el('ul', 'jadwal-asrama__list');
+    if (!piket.length) ulPiket.append(el('li', 'jadwal-asrama__empty', 'Belum ada jadwal piket.'));
+    // Satu baris per hari, supaya beberapa tugas di hari yang sama tidak memanjangkan daftar.
+    const perHari = new Map();
+    piket.forEach((d) => perHari.set(d.dayOfWeek, [...(perHari.get(d.dayOfWeek) || []), d.duty]));
+    [...perHari.keys()].sort((a, b) => a - b).forEach((hari) => {
+      const li = el('li', `jadwal-asrama__item ${hari === hariIni ? 'is-hari-ini' : ''}`.trim());
+      li.append(el('span', 'jadwal-asrama__time', NAMA_HARI[hari - 1] + (hari === hariIni ? ' (hari ini)' : '')), el('span', 'jadwal-asrama__title', perHari.get(hari).join(', ')));
+      ulPiket.append(li);
+    });
+    kiri.append(ulPiket);
+
+    const kanan = el('div', 'jadwal-asrama__col');
+    kanan.append(el('h4', 'jadwal-asrama__label', 'Agenda mendatang'));
+    const ulAgenda = el('ul', 'jadwal-asrama__list');
+    if (!asrama.events.length) ulAgenda.append(el('li', 'jadwal-asrama__empty', 'Belum ada acara dalam 45 hari ke depan.'));
+    asrama.events.slice(0, 5).forEach((j) => {
+      const li = el('li', 'jadwal-asrama__item');
+      li.append(
+        el('span', 'jadwal-asrama__time', TANGGAL_AGENDA.format(new Date(`${j.date}T00:00:00Z`))),
+        el('span', 'jadwal-asrama__title', [j.title, j.startTime ? jamKegiatan(j) : null, j.location].filter(Boolean).join(' · '))
+      );
+      if (j.note) li.append(el('span', 'jadwal-asrama__note', j.note));
+      ulAgenda.append(li);
+    });
+    kanan.append(ulAgenda);
+    grid.append(kiri, kanan);
+    wadah.append(grid);
+
+    if (asrama.routine.length) {
+      const sepekan = el('details', 'jadwal-asrama__week');
+      sepekan.append(el('summary', '', 'Lihat jadwal sepekan'));
+      const minggu = el('div', 'jadwal-asrama__days');
+      NAMA_HARI.forEach((nama, i) => {
+        const daftar = asrama.routine.filter((j) => j.dayOfWeek === i + 1);
+        if (!daftar.length) return;
+        const kolom = el('div', `jadwal-asrama__day ${i + 1 === hariIni ? 'is-hari-ini' : ''}`.trim());
+        kolom.append(el('strong', '', nama));
+        daftar.forEach((j) => kolom.append(el('span', '', `${jamKegiatan(j)} ${j.title}`)));
+        minggu.append(kolom);
+      });
+      sepekan.append(minggu);
+      wadah.append(sepekan);
+    }
+    return wadah;
+  }
+
   function kerangkaMemuat(teks) {
     const wadah = el('div', 'crm-white-card beranda-loading', teks);
     wadah.setAttribute('role', 'status');
@@ -440,6 +535,9 @@
       if (izin) isi.push(izin);
     }
 
+    const jadwalAsrama = bagianJadwalAsrama(await muatJadwalAsrama(headers), student.id);
+    if (jadwalAsrama) isi.push(jadwalAsrama);
+
     isi.push(kartuLinimasa(butirKegiatan(data, student.name), {
       judul: 'Kegiatan terbaru',
       keterangan: `Kegiatan, presensi, setoran hafalan, dan catatan pembina ${PERIODE_HARI} hari terakhir.`
@@ -449,6 +547,7 @@
 
   window.HamasahBerandaKeluarga = Object.freeze({
     santri, muatAnak, ambil, butirKegiatan, kartuLinimasa, kartuPengumuman, penomoran, chipUrusan,
+    muatJadwalAsrama, bagianJadwalAsrama,
     inisial, tanggal, rupiah, terbaru, PERIODE_HARI, NILAI_HAFALAN, PRESENSI
   });
 })();

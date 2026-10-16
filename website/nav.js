@@ -16,6 +16,7 @@ const ROLE_NAV_LABELS = Object.freeze({
   supervisor: {
     portal: 'Portal Utama',
     monitoring: 'Monitoring Asrama',
+    asrama: 'Kelola Asrama',
     lms: 'Maddah Santri'
   },
   'registration-officer': {
@@ -34,6 +35,7 @@ const ROLE_NAV_LABELS = Object.freeze({
     portal: 'Portal Utama',
     staff: 'Pendaftaran',
     monitoring: 'Monitoring Asrama',
+    asrama: 'Kelola Asrama',
     lms: 'LMS Maddah',
     operations: 'Keuangan & SPP',
     akun: 'Kelola Akun',
@@ -86,6 +88,16 @@ const STAFF_NAV_LINKS = Object.freeze([
     badge: null,
     badgeType: null,
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M22 12h-4M6 12H2M12 6V2M12 22v-4"/><circle cx="12" cy="12" r="3"/></svg>'
+  },
+  // Kelola Asrama: jadwal, agenda, piket, uang kas, dan inventaris (asrama.js).
+  {
+    href: 'asrama',
+    label: 'Kelola Asrama',
+    page: 'asrama',
+    roles: ['admin', 'supervisor'],
+    badge: null,
+    badgeType: null,
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h3M8 17h6"/></svg>'
   },
   {
     href: 'lms',

@@ -1759,7 +1759,8 @@ a.admin-ops-flag:hover { text-decoration: underline; }
   gap: 6px;
 }
 
-.mus-seg input[type="radio"] {
+.mus-seg input[type="radio"],
+.mus-seg input[type="checkbox"] {
   position: absolute;
   opacity: 0;
   pointer-events: none;
@@ -1783,9 +1784,10 @@ a.admin-ops-flag:hover { text-decoration: underline; }
 
 .mus-seg__opt:hover { border-color: var(--md-sys-color-outline); color: var(--md-sys-color-on-surface); }
 
-.mus-seg input[type="radio"]:focus-visible + .mus-seg__opt { outline: 2px solid var(--md-sys-color-primary); outline-offset: 2px; }
+.mus-seg input:focus-visible + .mus-seg__opt { outline: 2px solid var(--md-sys-color-primary); outline-offset: 2px; }
 
-.mus-seg input[type="radio"]:checked + .mus-seg__opt {
+.mus-seg input[type="radio"]:checked + .mus-seg__opt,
+.mus-seg input[type="checkbox"]:checked + .mus-seg__opt {
   border-color: var(--md-sys-color-inverse-surface);
   background: var(--md-sys-color-inverse-surface);
   color: #FFFFFF;
@@ -2045,4 +2047,85 @@ a.admin-ops-flag:hover { text-decoration: underline; }
   .mus-prayer { grid-template-columns: minmax(0, 1fr); gap: 6px; }
   .mus-report__item { grid-template-columns: minmax(0, 1fr) auto; }
   .mus-report__meta { grid-column: 1 / -1; display: flex; gap: 10px; }
+}
+
+/* Jadwal asrama untuk santri dan wali (beranda-keluarga.js: bagianJadwalAsrama). */
+.jadwal-asrama__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.jadwal-asrama__col { display: grid; align-content: start; gap: 8px; }
+
+.jadwal-asrama__label {
+  margin: 4px 0 0;
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-outline);
+}
+
+.jadwal-asrama__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.jadwal-asrama__item {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 2px 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(54, 54, 56, 0.1);
+  font-size: var(--fs-14);
+}
+
+.jadwal-asrama__item.is-hari-ini .jadwal-asrama__title { font-weight: 700; color: #1F6F3D; }
+
+.jadwal-asrama__time {
+  font-size: var(--fs-13);
+  font-weight: 600;
+  color: var(--gold-dark);
+}
+
+.jadwal-asrama__title { color: var(--md-sys-color-on-surface); }
+
+.jadwal-asrama__note {
+  grid-column: 2;
+  font-size: var(--fs-13);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.jadwal-asrama__empty {
+  padding: 6px 0;
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.jadwal-asrama__week { margin-top: 12px; }
+
+.jadwal-asrama__week summary {
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--gold-dark);
+  cursor: pointer;
+}
+
+.jadwal-asrama__days {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px 20px;
+  margin-top: 12px;
+}
+
+.jadwal-asrama__day { display: grid; gap: 3px; font-size: var(--fs-13); color: var(--md-sys-color-on-surface-variant); }
+.jadwal-asrama__day strong { font-family: "Philosopher", Georgia, serif; font-size: var(--fs-16); color: var(--md-sys-color-on-surface); }
+.jadwal-asrama__day.is-hari-ini strong { color: #1F6F3D; }
+
+@media (max-width: 640px) {
+  .jadwal-asrama__grid { grid-template-columns: minmax(0, 1fr); }
+  .jadwal-asrama__item { grid-template-columns: 96px minmax(0, 1fr); }
 }

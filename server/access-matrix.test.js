@@ -79,7 +79,7 @@ async function run() {
     assert.deepEqual(saya.body.permissions, ['finance.manage', 'operations.manage', 'operations.read']);
     assert.deepEqual(
       (await request(baseUrl, 'GET', '/api/me', { token: token[ROLES.PARENT] })).body.permissions,
-      ['family-messages.send', 'students.read']
+      ['dormitory-schedule.read', 'family-messages.send', 'students.read']
     );
 
     // Data secukupnya supaya endpoint punya sasaran yang nyata.
@@ -152,6 +152,14 @@ async function run() {
       { permission: 'audit.read', method: 'GET', path: '/api/audit?limit=5' },
       { permission: 'overview.read', method: 'GET', path: '/api/admin/overview' },
       { permission: 'overview.dormitory', method: 'GET', path: '/api/musyrif/ringkasan' },
+      // Kelola Asrama (migrasi 050). Isian tidak valid atau id yang tidak ada: tidak ada yang tersimpan.
+      { permission: 'dormitory-management.manage', method: 'GET', path: '/api/asrama' },
+      { permission: 'dormitory-management.manage', method: 'GET', path: () => `/api/asrama/${dormitoryId}` },
+      { permission: 'dormitory-management.manage', method: 'POST', path: () => `/api/asrama/${dormitoryId}/jadwal`, body: () => ({ title: '' }) },
+      { permission: 'dormitory-management.manage', method: 'PATCH', path: () => `/api/asrama/${dormitoryId}/jadwal/00000000-0000-4000-8000-000000000000`, body: () => ({ title: '' }) },
+      { permission: 'dormitory-management.manage', method: 'DELETE', path: () => `/api/asrama/${dormitoryId}/jadwal/00000000-0000-4000-8000-000000000000` },
+      { permission: 'dormitory-management.manage', method: 'PUT', path: () => `/api/asrama/${dormitoryId}/piket`, body: () => ({}) },
+      { permission: 'dormitory-schedule.read', method: 'GET', path: '/api/asrama-saya' },
       { permission: 'demo.manage', method: 'GET', path: '/api/admin/demo-data' },
       // Langkah yang tidak dikenal dan konfirmasi yang salah: admin mendapat 422, bukan
       // data demo sungguhan di database uji matriks.
