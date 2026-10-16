@@ -540,5 +540,5 @@
     return { juz };
   }
 
-  window.HamasahPerjalanan = Object.freeze({ isi, daftarTugas, kartuJuz });
+  window.HamasahPerjalanan = Object.freeze({ isi, daftarTugas, kartuJuz, kartuIzin });
 }());

@@ -516,7 +516,15 @@ async function loadAssignableAccounts() {
 let studentPicker = null;
 async function loadStudents() {
   if (!studentPicker) studentPicker = window.HamasahStudentPicker.attach(studentSelect, { headers, placeholder: 'Pilih santri' });
-  await studentPicker.reload();
+  const hasil = await studentPicker.reload();
+  // Datang dari tombol "Catat" di beranda musyrif (?studentId=), atau hanya ada satu
+  // santri: langsung dipilih supaya musyrif tidak perlu membuka dropdown.
+  if (!studentSelect.value) {
+    const dituju = new URLSearchParams(window.location.search).get('studentId');
+    const pilihan = [...studentSelect.options].map((option) => option.value).filter(Boolean);
+    if (dituju && pilihan.includes(dituju)) studentSelect.value = dituju;
+    else if (hasil && hasil.total === 1 && pilihan.length === 1) studentSelect.value = pilihan[0];
+  }
   await loadDashboard();
 }
 

@@ -27,6 +27,9 @@ const PERMISSIONS = Object.freeze({
   'audit.read': Object.freeze([ROLES.ADMIN]),
   // Ringkasan seluruh santri, asrama, dan musyrif di dashboard super admin.
   'overview.read': Object.freeze([ROLES.ADMIN]),
+  // Ringkasan perkembangan santri di asrama yang dipegang, untuk beranda musyrif.
+  // Admin ikut memegang izin ini (semua asrama), sesuai aturan admin memegang semua izin.
+  'overview.dormitory': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   // Mengisi, mengganti kata sandi, dan menghapus data demo dari dashboard.
   'demo.manage': Object.freeze([ROLES.ADMIN]),
   // Halaman Pengaturan: saklar fitur dan pembaruan database.

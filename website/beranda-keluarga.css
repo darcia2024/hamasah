@@ -1,0 +1,703 @@
+/* --------------------------------------------------------------------------
+   Beranda per peran di portal (16 Oktober 2026): wali, santri (beranda-keluarga.js),
+   musyrif, dan admin. Memakai token warna dari website-core.css.
+   -------------------------------------------------------------------------- */
+.beranda-keluarga {
+  display: grid;
+  gap: 16px;
+}
+
+.beranda-section-title {
+  margin: 8px 0 -4px;
+  font-size: var(--fs-13);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-outline);
+}
+
+.beranda-loading {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--fs-14);
+}
+
+.beranda-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.beranda-card__title {
+  margin: 0;
+  font-size: var(--fs-18);
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+}
+
+.beranda-card__note {
+  margin: 4px 0 0;
+  font-size: var(--fs-14);
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.beranda-empty {
+  margin: 8px 0 0;
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Kartu ananda */
+.beranda-children {
+  display: grid;
+  gap: 16px;
+}
+
+.beranda-child__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.beranda-child__avatar {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  font-weight: 700;
+  font-size: var(--fs-16);
+}
+
+.beranda-child__id {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.beranda-child__name {
+  margin: 0;
+  font-size: var(--fs-18);
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+}
+
+.beranda-child__meta {
+  margin: 2px 0 0;
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.beranda-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 14px 0 0;
+}
+
+.beranda-card .beranda-chips {
+  margin: 0 0 14px;
+}
+
+/* Kotak angka perkembangan */
+.beranda-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.beranda-card .beranda-stats {
+  margin-top: 0;
+}
+
+.beranda-stat {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container-low);
+  min-width: 0;
+}
+
+.beranda-stat.is-baik {
+  border-color: #B9DDC5;
+  background: var(--md-sys-color-tertiary-container);
+}
+
+.beranda-stat.is-perlu {
+  border-color: #F3B4B4;
+  background: var(--md-sys-color-error-container);
+}
+
+.beranda-stat__label {
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.beranda-stat__value {
+  font-size: var(--fs-24);
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+  overflow-wrap: anywhere;
+}
+
+.beranda-stat__note {
+  font-size: var(--fs-13);
+  line-height: 1.45;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Catatan pembina */
+.beranda-note {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--md-sys-color-primary);
+  border-radius: 0 12px 12px 0;
+  background: var(--md-sys-color-surface-container-low);
+}
+
+.beranda-note__label {
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.beranda-note__body {
+  margin: 6px 0 4px;
+  font-size: var(--fs-16);
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface);
+}
+
+.beranda-note__body.is-empty {
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.beranda-note__meta {
+  font-size: var(--fs-13);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Linimasa kegiatan */
+.beranda-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.beranda-timeline__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.beranda-timeline__day {
+  margin-top: 8px;
+  font-size: var(--fs-13);
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+}
+
+.beranda-timeline__day:first-child {
+  margin-top: 0;
+}
+
+.beranda-timeline__item {
+  padding: 10px 14px 10px 16px;
+  border-radius: 12px;
+  background: var(--md-sys-color-surface-container-low);
+  border-left: 3px solid var(--md-sys-color-outline-variant);
+}
+
+.beranda-timeline__item.is-baik { border-left-color: var(--md-sys-color-tertiary); }
+.beranda-timeline__item.is-perlu { border-left-color: var(--md-sys-color-error); }
+.beranda-timeline__item.is-tunggu { border-left-color: var(--md-sys-color-primary); }
+.beranda-timeline__item.is-catatan { border-left-color: var(--gold-dark); }
+.beranda-timeline__item.is-hafalan { border-left-color: #2F6FB0; }
+.beranda-timeline__item.is-kegiatan { border-left-color: var(--md-sys-color-secondary); }
+
+.beranda-timeline__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  font-size: var(--fs-12);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.beranda-timeline__kind {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.beranda-timeline__title {
+  margin: 2px 0 0;
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+.beranda-timeline__body {
+  margin: 2px 0 0;
+  font-size: var(--fs-14);
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.beranda-timeline__empty {
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.beranda-timeline__more {
+  margin-top: 12px;
+}
+
+/* Pengumuman */
+.beranda-announce {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.beranda-announce__item {
+  display: grid;
+  gap: 2px;
+}
+
+.beranda-announce__title {
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-on-surface);
+}
+
+.beranda-announce__body {
+  margin: 0;
+  font-size: var(--fs-14);
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.beranda-announce__meta {
+  font-size: var(--fs-12);
+  color: var(--md-sys-color-outline);
+}
+
+/* Kelas online (santri) */
+.beranda-class__next {
+  display: grid;
+  gap: 2px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  border-radius: 16px;
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+  text-decoration: none;
+  transition: transform var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+
+.beranda-class__next:hover { transform: translateY(-1px); }
+
+.beranda-class__next:focus-visible {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+.beranda-class__next-label {
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-inverse-primary);
+}
+
+.beranda-class__next-title {
+  font-size: var(--fs-20);
+  font-weight: 700;
+}
+
+.beranda-class__next-meta {
+  font-size: var(--fs-14);
+  opacity: 0.85;
+}
+
+.beranda-class__label {
+  margin: 0 0 8px;
+  font-size: var(--fs-13);
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+}
+
+.beranda-class__tasks {
+  margin-bottom: 16px;
+}
+
+.beranda-class__task-list,
+.beranda-class__courses {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.beranda-class__task {
+  display: grid;
+  gap: 2px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--md-sys-color-surface-container-low);
+  border-left: 3px solid var(--md-sys-color-primary);
+  font-size: var(--fs-13);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.beranda-class__task.is-perlu { border-left-color: var(--md-sys-color-error); }
+
+.beranda-class__task a {
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+.beranda-class__course {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.beranda-class__course-title {
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+.beranda-class__course-meta {
+  font-size: var(--fs-13);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.beranda-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--md-sys-color-surface-container-high);
+  overflow: hidden;
+}
+
+.beranda-progress__fill {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  border-radius: inherit;
+  background: var(--md-sys-color-primary);
+}
+
+@media (max-width: 900px) {
+  .beranda-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .beranda-child__open { width: 100%; }
+  .beranda-card__head .button { width: 100%; text-align: center; }
+  .beranda-stat { padding: 12px; }
+  .beranda-stat__value { font-size: var(--fs-20); }
+}
+
+/* Beranda musyrif (beranda-musyrif.js): baris perkembangan santri binaan. */
+.musyrif-rows {
+  container-type: inline-size;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.musyrif-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: 12px 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container-lowest);
+}
+
+.musyrif-row.is-perhatian {
+  border-color: #F3B4B4;
+  background: #FFFBFA;
+}
+
+.musyrif-row__id {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.musyrif-row__id .beranda-chips {
+  margin-top: 6px;
+}
+
+.musyrif-row__name {
+  font-size: var(--fs-16);
+  color: var(--md-sys-color-on-surface);
+}
+
+.musyrif-row__meta {
+  font-size: var(--fs-13);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.musyrif-row__cell {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.musyrif-row__label {
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.musyrif-row__value {
+  font-size: var(--fs-18);
+  color: var(--md-sys-color-on-surface);
+  overflow-wrap: anywhere;
+}
+
+.musyrif-row__cell.is-baik .musyrif-row__value { color: var(--md-sys-color-tertiary); }
+.musyrif-row__cell.is-perlu .musyrif-row__value { color: var(--md-sys-color-error); }
+
+.musyrif-row__note {
+  font-size: var(--fs-12);
+  line-height: 1.4;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.musyrif-row__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.musyrif-row__id,
+.musyrif-row__actions { grid-column: 1 / -1; }
+
+/* Kolom lebar: satu baris per santri. Mengikuti lebar daftar, bukan layar, karena
+   kolom kanan beranda ikut memakan tempat. */
+@container (min-width: 860px) {
+  .musyrif-row { grid-template-columns: minmax(200px, 1.6fr) repeat(3, minmax(0, 1fr)) auto; }
+  .musyrif-row__id,
+  .musyrif-row__actions { grid-column: auto; }
+}
+
+@container (max-width: 420px) {
+  .musyrif-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .musyrif-row__actions .button { flex: 1; text-align: center; }
+}
+
+/* Beranda super admin (beranda-admin.js): bagian Operasional. */
+.admin-ops {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-ops-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 12px;
+}
+
+.admin-ops-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px 18px;
+  background: #FFFFFF;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 16px;
+}
+
+.admin-ops-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.admin-ops-card__title {
+  margin: 0;
+  font-size: var(--fs-16);
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+}
+
+.admin-ops-card__body {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-ops-lead {
+  margin: 0;
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.admin-ops-lead strong {
+  font-size: var(--fs-24);
+  color: var(--md-sys-color-on-surface);
+}
+
+.admin-ops-funnel {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.admin-ops-funnel__row {
+  display: grid;
+  grid-template-columns: minmax(0, 8.5em) minmax(0, 1fr) 2.5em;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-13);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.admin-ops-funnel__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--md-sys-color-surface-container);
+  overflow: hidden;
+}
+
+.admin-ops-funnel__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--md-sys-color-primary);
+}
+
+.admin-ops-funnel__row.is-perlu .admin-ops-funnel__fill { background: var(--md-sys-color-error); }
+
+.admin-ops-funnel__value {
+  text-align: right;
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-on-surface);
+}
+
+.admin-ops-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+}
+
+.admin-ops-figure {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--md-sys-color-surface-container-low);
+  min-width: 0;
+}
+
+.admin-ops-figure.is-baik { background: var(--md-sys-color-tertiary-container); }
+.admin-ops-figure.is-perlu { background: var(--md-sys-color-error-container); }
+
+.admin-ops-figure__label {
+  font-size: var(--fs-12);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.admin-ops-figure__value {
+  font-size: var(--fs-20);
+  line-height: 1.25;
+  color: var(--md-sys-color-on-surface);
+  overflow-wrap: anywhere;
+}
+
+.admin-ops-figure__note {
+  font-size: var(--fs-12);
+  line-height: 1.4;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.admin-ops-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-ops-flag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-12);
+  font-weight: 600;
+  text-decoration: none;
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+}
+
+.admin-ops-flag.is-netral {
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+a.admin-ops-flag:hover { text-decoration: underline; }
+
+.admin-ops-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.admin-ops-list__row {
+  display: grid;
+  gap: 1px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.admin-ops-list__row:last-child { border-bottom: 0; padding-bottom: 0; }
+
+.admin-ops-list__name {
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+.admin-ops-list__meta {
+  font-size: var(--fs-12);
+  color: var(--md-sys-color-on-surface-variant);
+}

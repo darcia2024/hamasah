@@ -573,7 +573,7 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
   if (onBack) {
     const backBar = document.createElement('div');
     backBar.className = 'crm-back-bar';
-    const labelKembali = account && account.role === 'parent' ? 'Kembali ke daftar ananda' : 'Kembali ke daftar santri';
+    const labelKembali = keluarga ? 'Kembali ke beranda' : 'Kembali ke daftar santri';
     backBar.innerHTML = `
       <button type="button" class="crm-topbar-action-btn js-chip-active" id="crm-back-btn">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
@@ -1107,7 +1107,7 @@ function renderExecutiveDashboard(_daftarAwal, account) {
     : isSupervisor
       ? `${allTotal} santri dalam pengawasan Anda.`
       : (allTotal
-        ? `${allTotal} ananda terhubung dengan akun ini. Ketuk kartu ananda untuk membuka rekam jejaknya.`
+        ? `${allTotal} ananda terhubung dengan akun ini. Berikut perkembangan dan kegiatan terbaru ${allTotal > 1 ? 'mereka' : 'ananda'}.`
         : 'Belum ada ananda yang terhubung dengan akun ini.');
   const heroTag = isAdmin ? 'KONSOL EKSEKUTIF' : isSupervisor ? 'KONSOL MUSYRIF' : 'PORTAL KELUARGA';
 
@@ -1117,8 +1117,8 @@ function renderExecutiveDashboard(_daftarAwal, account) {
     <div class="coursue-hero-tag">${heroTag}</div>
     <h2 class="coursue-hero-title">${escapeHtml(titleText)}</h2>
     <p class="coursue-hero-subtitle">${escapeHtml(subtitleText)}</p>
-    ${isParent ? '' : `<button type="button" class="coursue-hero-cta" id="btn-hero-action">
-      <span>${isAdmin ? 'Buka rekam jejak santri' : 'Lihat mutaba\'ah terkini'}</span>
+    ${isParent || isAdmin ? '' : `<button type="button" class="coursue-hero-cta" id="btn-hero-action">
+      <span>Catat di Monitoring Asrama</span>
       <span class="coursue-hero-cta-arrow">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </span>
@@ -1227,7 +1227,10 @@ function renderExecutiveDashboard(_daftarAwal, account) {
       studentMore.disabled = false;
     }
   });
-  paintStudents();
+  // Wali memakai beranda keluarga; kartu ananda lama hanya dilukis bila beranda gagal,
+  // karena tiap kartu wali memuat ringkasannya sendiri dari server.
+  const pakaiBerandaWali = isParent && Boolean(window.HamasahBerandaKeluarga);
+  if (!pakaiBerandaWali) paintStudents();
   panelStudents.append(studentTools, studentCards, studentMore);
 
   const panels = ringkasan
@@ -1253,6 +1256,11 @@ function renderExecutiveDashboard(_daftarAwal, account) {
   const heroBtn = heroBanner.querySelector('#btn-hero-action');
   if (heroBtn) {
     heroBtn.addEventListener('click', () => {
+      // Musyrif: pintasan ke halaman pencatatan. Perkembangan per santri sudah di beranda.
+      if (isSupervisor) {
+        window.location.href = 'monitoring';
+        return;
+      }
       if (students.length > 0) {
         loadDashboard(students[0].id, account, () => renderExecutiveDashboard(null, account)).catch((err) => {
           alert(err.message || 'Dashboard belum dapat dimuat.');
@@ -1261,19 +1269,44 @@ function renderExecutiveDashboard(_daftarAwal, account) {
     });
   }
 
-  // Wali: satu daftar saja, jadi pil tab "Daftar ananda" diganti judul kecil.
-  let judulDaftar = subtabsRow;
-  if (isParent) {
-    judulDaftar = document.createElement('h3');
-    judulDaftar.className = 'portal-ananda-heading';
-    judulDaftar.textContent = 'Ananda Anda';
+  // Wali: beranda keluarga (beranda-keluarga.js) menggantikan daftar kartu ananda.
+  // Kartu perkembangan per ananda dan laporan kegiatan; tombol di kartu membuka rekam
+  // jejak lengkap.
+  let berandaWali = null;
+  if (pakaiBerandaWali) {
+    berandaWali = document.createElement('div');
+    berandaWali.className = 'beranda-keluarga';
+    window.HamasahBerandaKeluarga.wali(berandaWali, {
+      students: studentPage.items,
+      headers: requestHeaders(),
+      onOpenStudent: bukaSantri
+    }).catch(() => {
+      paintStudents();
+      berandaWali.replaceChildren(panelsContainer);
+    });
   }
+  // Musyrif: perkembangan santri binaan (beranda-musyrif.js) menggantikan daftar nama.
+  // Bila ringkasannya gagal dimuat, daftar santri biasa yang tampil.
+  let berandaMusyrif = null;
+  if (isSupervisor && window.HamasahBerandaMusyrif) {
+    berandaMusyrif = document.createElement('div');
+    berandaMusyrif.className = 'beranda-keluarga';
+    window.HamasahBerandaMusyrif.render(berandaMusyrif, {
+      headers: requestHeaders(),
+      onOpenStudent: bukaSantri
+    }).catch(() => {
+      berandaMusyrif.replaceChildren(subtabsRow, panelsContainer);
+    });
+  }
+  const berandaPeran = berandaWali || berandaMusyrif;
   mainCol.append(
     heroBanner,
-    ...(ringkasan ? [window.HamasahAdminOverview.kpi(ringkasan), window.HamasahAdminOverview.perhatian(ringkasan, { onOpenStudent: bukaSantri })] : []),
+    ...(ringkasan ? [window.HamasahAdminOverview.kpi(ringkasan)] : []),
+    // Super admin: pendaftaran, belajar, dan keuangan di layar yang sama (beranda-admin.js).
+    ...(isAdmin && window.HamasahBerandaAdmin ? [window.HamasahBerandaAdmin.operasional(requestHeaders())] : []),
+    ...(ringkasan ? [window.HamasahAdminOverview.perhatian(ringkasan, { onOpenStudent: bukaSantri })] : []),
     ...(isSupervisor ? [kartuTugasMusyrif()] : []),
-    judulDaftar,
-    panelsContainer
+    ...(berandaPeran ? [berandaPeran] : [subtabsRow, panelsContainer])
   );
   if (isParent) {
     coursueLayout.classList.add('coursue-layout--tunggal');
@@ -1284,6 +1317,51 @@ function renderExecutiveDashboard(_daftarAwal, account) {
   coursueLayout.classList.add('crm-view-enter');
 
   studentDashboard.append(coursueLayout);
+  studentDashboard.hidden = false;
+}
+
+// Beranda santri: sapaan, lalu kelas online, perkembangan diri, izin, dan kegiatan
+// terbaru dari beranda-keluarga.js.
+function renderBerandaSantri(student, account) {
+  studentDashboard.replaceChildren();
+  if (studentList) studentList.hidden = true;
+  try { if (window.location.hash) history.replaceState(null, '', window.location.pathname); } catch {}
+
+  const layout = document.createElement('div');
+  layout.className = 'coursue-layout coursue-layout--tunggal crm-view-enter';
+  const mainCol = document.createElement('div');
+  mainCol.className = 'coursue-main-col';
+
+  const hero = document.createElement('div');
+  hero.className = 'coursue-hero-banner';
+  const tag = document.createElement('div');
+  tag.className = 'coursue-hero-tag';
+  tag.textContent = 'BERANDA SANTRI';
+  const judul = document.createElement('h2');
+  judul.className = 'coursue-hero-title';
+  judul.textContent = `Assalamu'alaikum, ${namaSapaan(account) || student.name}`;
+  const sub = document.createElement('p');
+  sub.className = 'coursue-hero-subtitle';
+  sub.textContent = [student.program, student.dormitoryName].filter(Boolean).join(' · ') || 'Semangat belajar hari ini.';
+  hero.append(tag, judul, sub);
+
+  const isi = document.createElement('div');
+  isi.className = 'beranda-keluarga';
+  const bukaLengkap = () => {
+    loadDashboard(student.id, account, () => renderBerandaSantri(student, account)).catch((err) => {
+      alert(err.message || 'Rekam jejak belum dapat dimuat.');
+    });
+  };
+  if (window.HamasahBerandaKeluarga) {
+    window.HamasahBerandaKeluarga.santri(isi, { student, headers: requestHeaders(), onOpenFull: bukaLengkap }).catch(() => bukaLengkap());
+  } else {
+    bukaLengkap();
+    return;
+  }
+
+  mainCol.append(hero, isi);
+  layout.append(mainCol);
+  studentDashboard.append(layout);
   studentDashboard.hidden = false;
 }
 
@@ -1777,11 +1855,15 @@ async function loadStudents(account) {
   const urlParams = new URLSearchParams(window.location.search);
   const targetStudentId = urlParams.get('studentId') || (window.location.hash.startsWith('#student=') ? window.location.hash.replace('#student=', '') : null);
 
-  if (account && (account.role === 'student' || (account.role === 'parent' && allTotal === 1))) {
-    if (students.length >= 1) {
-      await loadDashboard(students[0].id, account);
-    } else {
+  if (account && account.role === 'student') {
+    // Santri: beranda santri (kelas online, perkembangan, izin). Rekam jejak lengkap
+    // dibuka dari tombol di beranda, atau langsung bila datang lewat tautan #student=.
+    if (!students.length) {
       renderStudents([], account);
+    } else if (targetStudentId) {
+      await loadDashboard(students[0].id, account, () => renderBerandaSantri(students[0], account));
+    } else {
+      renderBerandaSantri(students[0], account);
     }
   } else {
     if (account && account.role === 'admin') {

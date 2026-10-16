@@ -82,6 +82,28 @@ async function run() {
     assert.ok(tanpaKesehatan.value.students.every((s) => s.health === null));
     assert.ok(!tanpaKesehatan.value.alerts.some((a) => a.kind === 'kesehatan'));
 
+    // Beranda musyrif: hanya santri di asrama yang dipegang, tanpa tagihan dan visa.
+    const layanan = createAdminOverviewService({ database, healthEnabled: true });
+    for (const role of ['finance', 'teacher', 'parent', 'student', 'registration-officer']) {
+      assert.equal((await layanan.dormitoryOverview({ id: null, role })).ok, false, role);
+    }
+    const semuaAsrama = await layanan.dormitoryOverview(ADMIN);
+    assert.equal(semuaAsrama.value.dormitories.length, dormitories.length, 'Admin melihat semua asrama.');
+    for (const musyrif of supervisors) {
+      const asramanya = dormitories.find((d) => d.id === musyrif.dormitories[0].id);
+      const binaan = await layanan.dormitoryOverview({ id: musyrif.id, role: 'supervisor' });
+      assert.equal(binaan.ok, true, musyrif.name);
+      assert.deepEqual(binaan.value.students.map((s) => s.id).sort(), asramanya.students.map((s) => s.id).sort(), musyrif.name);
+      assert.deepEqual(binaan.value.dormitories.map((d) => d.id), [asramanya.id]);
+      assert.equal(binaan.value.summary.students, asramanya.students.length);
+      assert.ok(binaan.value.students.every((s) => !('billing' in s) && !('visa' in s) && !('parentAccounts' in s)));
+      assert.ok(binaan.value.students.every((s) => s.prayers7 && s.attendance7 && s.memorization));
+    }
+    // Musyrif tanpa asrama tidak melihat santri siapa pun.
+    const tanpaAsrama = await layanan.dormitoryOverview({ id: '00000000-0000-0000-0000-000000000000', role: 'supervisor' });
+    assert.equal(tanpaAsrama.ok, true);
+    assert.deepEqual(tanpaAsrama.value.students, []);
+
     console.log('admin overview tests passed');
   } finally {
     await database.close();

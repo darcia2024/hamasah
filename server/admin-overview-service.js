@@ -11,6 +11,7 @@
 // (HEALTH_RECORDS_ENABLED), sama seperti di halaman lain.
 
 const ADMIN_ROLE = 'admin';
+const SUPERVISOR_ROLE = 'supervisor';
 // Batas aman satu respons. Lembaga ini jauh di bawahnya; bila suatu saat terlampaui,
 // respons menandainya lewat summary.truncated.
 const BATAS_SANTRI = 1000;
@@ -74,7 +75,62 @@ function createAdminOverviewService({ database, healthEnabled: kesehatanAktif = 
 
   async function overview(actor) {
     if (!actor || actor.role !== ADMIN_ROLE) return { ok: false, status: 403, error: 'Akses admin diperlukan.' };
+    return hitung({ dormitoryIds: null });
+  }
 
+  // Beranda musyrif: perkembangan santri di asrama yang dipegangnya saja. Tagihan, visa,
+  // dan akun wali tidak ikut, karena bukan urusan pembinaan dan tidak dibuka untuk musyrif.
+  // Admin mendapat semua asrama.
+  async function dormitoryOverview(actor) {
+    if (!actor || ![SUPERVISOR_ROLE, ADMIN_ROLE].includes(actor.role)) return { ok: false, status: 403, error: 'Akses musyrif diperlukan.' };
+    const dipegang = (await ambil(
+      actor.role === ADMIN_ROLE
+        ? 'SELECT id AS dormitory_id FROM dormitories'
+        : 'SELECT dormitory_id FROM staff_dormitory_assignments WHERE account_id = $1',
+      actor.role === ADMIN_ROLE ? [] : [actor.id]
+    )).map((row) => row.dormitory_id);
+    const hasil = await hitung({ dormitoryIds: dipegang });
+    const v = hasil.value;
+    const students = v.students.map((s) => ({
+      id: s.id,
+      name: s.name,
+      program: s.program,
+      gender: s.gender,
+      dormitory: s.dormitory,
+      attendance7: s.attendance7,
+      prayers7: s.prayers7,
+      memorization: s.memorization,
+      health: s.health,
+      violations30: s.violations30
+    }));
+    const totalKehadiran = students.reduce((jumlah, s) => jumlah + s.attendance7.recorded, 0);
+    const hadirKehadiran = students.reduce((jumlah, s) => jumlah + s.attendance7.present + s.attendance7.late, 0);
+    const totalSholat = students.reduce((jumlah, s) => jumlah + s.prayers7.recorded, 0);
+    const berjamaah = students.reduce((jumlah, s) => jumlah + s.prayers7.congregational, 0);
+    return {
+      ok: true,
+      value: {
+        generatedAt: v.generatedAt,
+        today: v.today,
+        healthEnabled: v.healthEnabled,
+        summary: {
+          students: students.length,
+          attendanceRate7: persen(hadirKehadiran, totalKehadiran),
+          prayerRate7: persen(berjamaah, totalSholat),
+          deposits7: students.reduce((jumlah, s) => jumlah + s.memorization.deposits7, 0),
+          violations30: students.reduce((jumlah, s) => jumlah + s.violations30, 0),
+          truncated: v.summary.truncated
+        },
+        dormitories: v.dormitories
+          .filter((dorm) => dipegang.includes(dorm.id))
+          .map(({ id, name, area, capacity, occupied, attendanceRate7, prayerRate7, deposits7, activities }) => ({ id, name, area, capacity, occupied, attendanceRate7, prayerRate7, deposits7, activities })),
+        students
+      }
+    };
+  }
+
+  // dormitoryIds: null = semua santri aktif (admin); daftar = hanya asrama itu (musyrif).
+  async function hitung({ dormitoryIds }) {
     const saatIni = now();
     const hariIni = tanggalJakarta(saatIni);
     const awal7 = geserHari(hariIni, -6);
@@ -95,10 +151,10 @@ function createAdminOverviewService({ database, healthEnabled: kesehatanAktif = 
                 to_char(s.join_date, 'YYYY-MM-DD') AS join_date,
                 (SELECT count(*)::int FROM student_parent_accounts p WHERE p.student_id = s.id) AS jumlah_wali
          FROM students s
-         WHERE s.status = 'active'
+         WHERE s.status = 'active'${dormitoryIds ? ' AND s.dormitory_id = ANY($2::uuid[])' : ''}
          ORDER BY s.name
          LIMIT $1`,
-        [BATAS_SANTRI + 1]
+        dormitoryIds ? [BATAS_SANTRI + 1, dormitoryIds] : [BATAS_SANTRI + 1]
       ),
       ambil('SELECT status, count(*)::int AS jumlah FROM students GROUP BY status'),
       ambil('SELECT id, name, area, gender, capacity FROM dormitories ORDER BY gender, name'),
@@ -359,7 +415,7 @@ function createAdminOverviewService({ database, healthEnabled: kesehatanAktif = 
     };
   }
 
-  return Object.freeze({ overview });
+  return Object.freeze({ overview, dormitoryOverview });
 }
 
 // Daftar "perlu perhatian": hal yang sebaiknya ditindaklanjuti admin hari ini.

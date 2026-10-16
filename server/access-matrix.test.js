@@ -151,6 +151,7 @@ async function run() {
 
       { permission: 'audit.read', method: 'GET', path: '/api/audit?limit=5' },
       { permission: 'overview.read', method: 'GET', path: '/api/admin/overview' },
+      { permission: 'overview.dormitory', method: 'GET', path: '/api/musyrif/ringkasan' },
       { permission: 'demo.manage', method: 'GET', path: '/api/admin/demo-data' },
       // Langkah yang tidak dikenal dan konfirmasi yang salah: admin mendapat 422, bukan
       // data demo sungguhan di database uji matriks.
