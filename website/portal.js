@@ -1293,8 +1293,9 @@ function renderExecutiveDashboard(_daftarAwal, account) {
     berandaMusyrif.className = 'beranda-keluarga';
     window.HamasahBerandaMusyrif.render(berandaMusyrif, {
       headers: requestHeaders(),
-      onOpenStudent: bukaSantri
+      onOpenSantri: (santri) => bukaSantriMusyrif(santri, account)
     }).catch(() => {
+      paintStudents();
       berandaMusyrif.replaceChildren(subtabsRow, panelsContainer);
     });
   }
@@ -1318,6 +1319,34 @@ function renderExecutiveDashboard(_daftarAwal, account) {
 
   studentDashboard.append(coursueLayout);
   studentDashboard.hidden = false;
+}
+
+// Musyrif: halaman laporan satu santri (beranda-musyrif.js) dengan foto, formulir cepat,
+// cerita AI, dan daftar laporan yang bisa dikoreksi. "Lihat seperti wali" membuka rekam
+// jejak lengkap.
+function bukaSantriMusyrif(santri, account) {
+  studentDashboard.replaceChildren();
+  if (studentList) studentList.hidden = true;
+  const layout = document.createElement('div');
+  layout.className = 'coursue-layout coursue-layout--tunggal crm-view-enter';
+  const mainCol = document.createElement('div');
+  mainCol.className = 'coursue-main-col';
+  const isi = document.createElement('div');
+  mainCol.append(isi);
+  layout.append(mainCol);
+  studentDashboard.append(layout);
+  studentDashboard.hidden = false;
+  window.scrollTo(0, 0);
+  window.HamasahBerandaMusyrif.santri(isi, {
+    student: santri,
+    headers: requestHeaders(),
+    onBack: () => renderExecutiveDashboard(null, account),
+    onOpenFull: () => loadDashboard(santri.id, account, () => bukaSantriMusyrif(santri, account)).catch((err) => {
+      alert(err.message || 'Rekam jejak belum dapat dimuat.');
+    })
+  }).catch((err) => {
+    isi.textContent = err.message || 'Laporan santri belum dapat dimuat.';
+  });
 }
 
 // Beranda santri: sapaan, lalu kelas online, perkembangan diri, izin, dan kegiatan

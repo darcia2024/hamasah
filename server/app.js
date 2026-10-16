@@ -30,6 +30,8 @@ const { createPostgresDormitoryStore } = require('./postgres-dormitory-store.js'
 const { ACTIONS, createAuditService } = require('./audit-service.js');
 const { createPostgresAuditStore } = require('./postgres-audit-store.js');
 const { createFileService } = require('./file-service.js');
+const { createStudentPhotoService } = require('./student-photo-service.js');
+const { createMusyrifStoryService } = require('./musyrif-story-service.js');
 const { createRegistrationConversionService } = require('./registration-conversion-service.js');
 const { createPostgresFileStore } = require('./postgres-file-store.js');
 const { createLocalStorage } = require('./storage/local.js');
@@ -391,9 +393,13 @@ function createHamasahApp(options) {
   };
 
   const demoDataService = config.demoDataService || createDemoDataService({ database, storage });
+  const studentPhotoService = config.studentPhotoService || createStudentPhotoService({ database, storage, studentPortalService });
+  const musyrifStoryService = config.musyrifStoryService || createMusyrifStoryService({ studentPortalService, fetchImpl: config.fetchImpl, env: config.env });
 
   const services = Object.freeze({
     maintenanceService,
+    studentPhotoService,
+    musyrifStoryService,
     adminOverviewService,
     demoDataService,
     settingsService,

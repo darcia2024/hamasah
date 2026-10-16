@@ -110,6 +110,24 @@ const POLICIES = Object.freeze({
     }
   }),
 
+  // Foto profil santri di kartu musyrif dan beranda keluarga. Foto yang berlaku adalah
+  // unggahan siap terbaru (student-photo-service.js), jadi tidak butuh kolom baru.
+  // Yang mengunggah: admin dan musyrif asrama santri itu.
+  'student-photo': Object.freeze({
+    entityType: 'student',
+    visibility: 'private',
+    contentTypes: GAMBAR,
+    maxBytes: 3 * MB,
+    async canUpload({ actor, entityId, services }) {
+      if (!actor || !['admin', 'supervisor'].includes(actor.role)) return false;
+      return (await services.studentPortalService.accessFor(entityId, actor)).write;
+    },
+    async canDownload({ actor, entityId, services }) {
+      if (!actor) return false;
+      return (await services.studentPortalService.accessFor(entityId, actor)).view;
+    }
+  }),
+
   // Foto kegiatan santri. Pembatasan asrama untuk musyrif ikut berlaku, karena
   // pemeriksaannya memakai dashboard santri yang sudah dibatasi.
   'student-media': Object.freeze({

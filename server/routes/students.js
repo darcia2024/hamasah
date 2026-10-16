@@ -242,6 +242,26 @@ module.exports = [
   },
 
   // Rapor digital PDF. Hak akses sama dengan dashboard (wali hanya santrinya sendiri).
+  // Foto profil santri (student-photo-service.js). Isinya dikirim langsung dari server
+  // supaya bisa dipasang di <img> lewat blob, sesuai CSP connect-src 'self'.
+  {
+    method: 'GET',
+    pattern: /^\/api\/students\/([\w-]+)\/photo$/,
+    permission: 'students.read',
+    async handler({ response, services, auth, params }) {
+      const hasil = await services.studentPhotoService.photoFor(params[0], await auth.actor());
+      if (!hasil.ok) {
+        json(response, hasil.status || 404, publicError(hasil));
+        return;
+      }
+      response.writeHead(200, {
+        'Content-Type': hasil.value.contentType,
+        'Cache-Control': 'private, max-age=300',
+        'X-Content-Type-Options': 'nosniff'
+      });
+      response.end(hasil.value.content);
+    }
+  },
   {
     method: 'GET',
     pattern: /^\/api\/students\/([\w-]+)\/report\.pdf$/,
