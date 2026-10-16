@@ -715,28 +715,28 @@ a.admin-ops-flag:hover { text-decoration: underline; }
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding-top: 10px;
-  border-top: 1px solid var(--md-sys-color-outline-variant);
+  padding-top: 12px;
 }
 
 .beranda-pager[hidden] { display: none; }
 
 .beranda-pager__btn {
   min-height: 36px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--md-sys-color-outline-variant);
-  background: var(--md-sys-color-surface-container-lowest);
-  color: var(--md-sys-color-on-surface);
+  padding: 6px 2px;
+  border: 0;
+  background: none;
+  color: var(--gold-dark);
   font: inherit;
-  font-size: var(--fs-13);
+  font-size: var(--fs-14);
   font-weight: 600;
   cursor: pointer;
 }
 
-.beranda-pager__btn:hover:not(:disabled) { background: var(--md-sys-color-surface-container); }
-.beranda-pager__btn:disabled { opacity: 0.4; cursor: default; }
-.beranda-pager__btn:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
+.beranda-pager__btn:first-child::before { content: "← "; }
+.beranda-pager__btn:last-child::after { content: " →"; }
+.beranda-pager__btn:hover:not(:disabled) { text-decoration: underline; text-underline-offset: 4px; }
+.beranda-pager__btn:disabled { color: var(--md-sys-color-outline); opacity: 0.45; cursor: default; }
+.beranda-pager__btn:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: 2px; border-radius: 4px; }
 
 .beranda-pager__pos {
   font-size: var(--fs-13);
@@ -744,109 +744,137 @@ a.admin-ops-flag:hover { text-decoration: underline; }
 }
 
 /* --------------------------------------------------------------------------
-   Beranda wali (beranda-wali.js): laporan singkat dan diagram.
+   Beranda wali (beranda-wali.js). Tata letak terbuka seperti landing page:
+   judul Philosopher, teks Plus Jakarta Sans, bagian dipisah garis tipis,
+   tanpa kartu bertumpuk.
    -------------------------------------------------------------------------- */
 .coursue-layout--tunggal {
   max-width: 1040px;
 }
 
-.wali-empty {
-  margin: 0;
-  padding: 18px;
-  border-radius: 12px;
-  background: var(--md-sys-color-surface-container-low);
-  font-size: var(--fs-14);
-  line-height: 1.5;
-  color: var(--md-sys-color-on-surface-variant);
-  text-align: center;
+.coursue-hero-banner .coursue-hero-title {
+  font-family: "Philosopher", Georgia, serif;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
-.wali-subtitle {
-  margin: 6px 0 0;
-  font-size: var(--fs-13);
-  font-weight: 700;
+.wali-page {
+  --wali-rule: rgba(54, 54, 56, 0.12);
+  --wali-green: #1F6F3D;
+  --wali-gold: #C9960A;
+  --wali-blue: #7E9BBE;
+  --wali-red: #B4372F;
+  --wali-empty: #ECE8DF;
+  display: grid;
+  gap: 0;
   color: var(--md-sys-color-on-surface);
 }
 
-/* Pemilih ananda */
+.wali-loading {
+  margin: 24px 0;
+  font-size: var(--fs-16);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.wali-empty {
+  margin: 0;
+  font-size: var(--fs-14);
+  line-height: 1.6;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.wali-eyebrow {
+  margin: 0;
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+}
+
+.wali-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--gold-dark);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.wali-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.wali-link:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: 3px; border-radius: 4px; }
+
+/* Pemilih ananda: tab teks bergaris bawah */
 .wali-switch {
   display: flex;
-  gap: 10px;
+  gap: 28px;
   overflow-x: auto;
-  padding-bottom: 2px;
-  scrollbar-width: thin;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--wali-rule);
+  scrollbar-width: none;
 }
 
 .wali-switch__btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: grid;
+  gap: 2px;
   flex: 0 0 auto;
-  min-width: 200px;
-  padding: 10px 16px 10px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--md-sys-color-outline-variant);
-  background: var(--md-sys-color-surface-container-lowest);
+  padding: 10px 0 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: none;
   font: inherit;
   text-align: left;
+  color: var(--md-sys-color-on-surface-variant);
   cursor: pointer;
-  transition: border-color var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard), background var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
 }
-
-.wali-switch__btn:hover { border-color: var(--md-sys-color-primary); }
-.wali-switch__btn:focus-visible { outline: 3px solid var(--md-sys-color-primary); outline-offset: 2px; }
 
 .wali-switch__btn.is-active {
-  border-color: var(--md-sys-color-inverse-surface);
-  background: var(--md-sys-color-inverse-surface);
-  color: var(--md-sys-color-inverse-on-surface);
+  border-bottom-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-surface);
 }
 
-.wali-switch__text {
-  display: grid;
-  gap: 1px;
-  min-width: 0;
+.wali-switch__btn:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: 2px; }
+
+.wali-switch__name {
+  font-size: var(--fs-16);
+  font-weight: 600;
 }
 
-.wali-switch__text strong { font-size: var(--fs-14); }
-
-.wali-switch__text span {
+.wali-switch__meta {
   font-size: var(--fs-12);
-  opacity: 0.75;
+  color: var(--md-sys-color-outline);
 }
 
-.wali-avatar {
-  display: grid;
-  place-items: center;
-  width: 56px;
-  height: 56px;
-  flex: none;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--md-sys-color-primary-container), #F2C94C);
-  color: var(--md-sys-color-on-primary-container);
-  font-weight: 700;
-  font-size: var(--fs-18);
-}
-
-.wali-avatar--sm {
-  width: 36px;
-  height: 36px;
-  font-size: var(--fs-13);
-}
-
-/* Laporan singkat */
+/* Kepala laporan */
 .wali-summary {
   display: grid;
-  gap: 18px;
+  gap: 28px;
+  padding: 24px 0 36px;
 }
-
-.wali-summary .beranda-chips { margin: 0; }
 
 .wali-summary__head {
   display: flex;
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
+}
+
+.wali-avatar {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid var(--wali-gold);
+  color: var(--gold-dark);
+  font-family: "Philosopher", Georgia, serif;
+  font-weight: 700;
+  font-size: var(--fs-18);
 }
 
 .wali-summary__id {
@@ -856,8 +884,10 @@ a.admin-ops-flag:hover { text-decoration: underline; }
 
 .wali-summary__name {
   margin: 0;
-  font-size: var(--fs-24);
-  font-weight: 800;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 700;
+  line-height: 1.15;
   color: var(--md-sys-color-on-surface);
 }
 
@@ -867,172 +897,189 @@ a.admin-ops-flag:hover { text-decoration: underline; }
   color: var(--md-sys-color-on-surface-variant);
 }
 
+/* Paragraf laporan */
 .wali-report {
-  padding: 18px 20px;
-  border-radius: 16px;
-  background: var(--md-sys-color-surface-container-low);
-  border: 1px solid var(--md-sys-color-outline-variant);
-}
-
-.wali-report.is-baik { background: #F1F8F3; border-color: #CFE6D7; }
-.wali-report.is-perlu { background: #FFF6F5; border-color: #F3C7C3; }
-.wali-report.is-cukup { background: #FFFBEF; border-color: #F1DFA5; }
-
-.wali-report__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.wali-report__eyebrow {
-  font-size: var(--fs-12);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--md-sys-color-on-surface-variant);
-}
-
-.wali-badge {
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: var(--fs-12);
-  font-weight: 700;
-  background: var(--md-sys-color-surface-container);
-  color: var(--md-sys-color-on-surface-variant);
-}
-
-.wali-badge.is-baik { background: var(--md-sys-color-tertiary); color: #FFFFFF; }
-.wali-badge.is-cukup { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
-.wali-badge.is-perlu { background: var(--md-sys-color-error); color: #FFFFFF; }
-
-.wali-report__list {
-  margin: 0;
-  padding-left: 20px;
   display: grid;
-  gap: 6px;
-  font-size: var(--fs-16);
-  line-height: 1.55;
+  gap: 10px;
+  max-width: 68ch;
+}
+
+.wali-report__status {
+  margin: 0;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: clamp(20px, 2.2vw, 24px);
+  font-weight: 700;
+  line-height: 1.3;
   color: var(--md-sys-color-on-surface);
 }
 
-.wali-report__list li::marker { color: var(--gold-dark); }
+.wali-report__status.is-baik { color: var(--wali-green); }
+.wali-report__status.is-perlu { color: var(--wali-red); }
 
-.wali-report__why {
-  margin: 12px 0 0;
-  font-size: var(--fs-14);
-  font-weight: 600;
-  color: var(--md-sys-color-on-error-container);
+.wali-report__body {
+  margin: 0;
+  font-size: var(--fs-16);
+  line-height: 1.75;
+  color: #4A4A4D;
 }
 
-.wali-kpis {
+.wali-pending {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 4px 0 0;
+  font-size: var(--fs-14);
+  line-height: 1.6;
+  color: var(--md-sys-color-on-surface);
+}
+
+.wali-pending__dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--wali-red);
+  transform: translateY(-1px);
+}
+
+/* Angka utama: berjejer, dipisah garis tegak */
+.wali-stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  border-top: 1px solid var(--wali-rule);
+  padding-top: 20px;
 }
 
-.wali-kpi {
+.wali-stat {
   display: grid;
   align-content: start;
-  gap: 4px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  border: 1px solid var(--md-sys-color-outline-variant);
-  background: var(--md-sys-color-surface-container-lowest);
+  gap: 2px;
+  padding: 0 20px;
+  border-left: 1px solid var(--wali-rule);
   min-width: 0;
 }
 
-.wali-kpi.is-baik { border-color: #B9DDC5; }
-.wali-kpi.is-perlu { border-color: #F3B4B4; }
-
-.wali-kpi__top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4px;
+.wali-stat:first-child {
+  padding-left: 0;
+  border-left: 0;
 }
 
-.wali-kpi__label {
-  font-size: var(--fs-12);
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--md-sys-color-on-surface-variant);
-}
-
-.wali-kpi__value {
-  font-size: var(--fs-28);
-  line-height: 1.15;
-  font-weight: 800;
+.wali-stat__value {
+  font-family: "Philosopher", Georgia, serif;
+  font-size: clamp(30px, 3.4vw, 40px);
+  font-weight: 700;
+  line-height: 1.1;
   color: var(--md-sys-color-on-surface);
 }
 
-.wali-kpi.is-baik .wali-kpi__value { color: var(--md-sys-color-tertiary); }
-.wali-kpi.is-perlu .wali-kpi__value { color: var(--md-sys-color-error); }
+.wali-stat.is-baik .wali-stat__value { color: var(--wali-green); }
+.wali-stat.is-perlu .wali-stat__value { color: var(--wali-red); }
 
-.wali-kpi__note {
+.wali-stat__label {
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+.wali-stat__note {
   font-size: var(--fs-13);
+  line-height: 1.5;
   color: var(--md-sys-color-on-surface-variant);
 }
 
-.wali-trend {
-  font-size: var(--fs-12);
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.wali-trend.is-naik { color: var(--md-sys-color-tertiary); }
-.wali-trend.is-turun { color: var(--md-sys-color-error); }
+.wali-trend { font-weight: 600; }
+.wali-trend.is-naik { color: var(--wali-green); }
+.wali-trend.is-turun { color: var(--wali-red); }
 .wali-trend.is-tetap { color: var(--md-sys-color-outline); }
 
-/* Grid diagram */
+/* Bagian laporan */
+.wali-section {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  min-width: 0;
+  padding: 32px 0;
+  border-top: 1px solid var(--wali-rule);
+}
+
+.wali-section__head {
+  display: grid;
+  gap: 4px;
+}
+
+.wali-section__title,
+.wali-section .beranda-card__title {
+  margin: 0;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: var(--fs-24);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--md-sys-color-on-surface);
+}
+
+.wali-section__note,
+.wali-section .beranda-card__note {
+  margin: 0;
+  font-size: var(--fs-14);
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.wali-section .beranda-card__head { margin-bottom: 0; }
+
+.wali-subtitle {
+  margin: 8px 0 0;
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-outline);
+}
+
+/* Dua kolom diagram dengan garis tengah */
 .wali-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  align-items: start;
+  column-gap: 48px;
+  border-top: 1px solid var(--wali-rule);
 }
 
-.wali-chart {
-  display: grid;
-  gap: 12px;
-  min-width: 0;
+.wali-grid > .wali-section {
+  border-top: 0;
 }
 
-.wali-chart .beranda-card__head { margin-bottom: 0; }
+.wali-grid > .wali-section:nth-child(n + 3) {
+  border-top: 1px solid var(--wali-rule);
+}
 
 /* Peta sholat */
 .wali-heatmap {
   display: grid;
-  gap: 4px;
+  gap: 5px;
 }
 
 .wali-heatmap__row {
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .wali-heatmap__label {
-  font-size: var(--fs-12);
-  font-weight: 600;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-on-surface-variant);
 }
 
 .wali-heatmap__cells {
   display: grid;
   grid-template-columns: repeat(30, minmax(0, 1fr));
-  gap: 2px;
+  gap: 3px;
 }
 
 .wali-heatmap__axis {
   display: flex;
   justify-content: space-between;
-  margin-left: 66px;
+  margin-left: 68px;
   font-size: var(--fs-12);
   color: var(--md-sys-color-outline);
 }
@@ -1040,16 +1087,16 @@ a.admin-ops-flag:hover { text-decoration: underline; }
 .wali-cell {
   display: inline-block;
   aspect-ratio: 1;
-  min-width: 6px;
-  border-radius: 3px;
-  background: var(--md-sys-color-surface-container);
+  min-width: 5px;
+  border-radius: 50%;
+  background: var(--wali-empty);
 }
 
-.wali-cell.is-berjamaah { background: var(--md-sys-color-tertiary); }
-.wali-cell.is-munfarid { background: #E7B10C; }
-.wali-cell.is-izin { background: #8DA6C4; }
-.wali-cell.is-tidak { background: var(--md-sys-color-error); }
-.wali-cell.is-kosong { background: var(--md-sys-color-surface-container-high); }
+.wali-cell.is-berjamaah { background: var(--wali-green); }
+.wali-cell.is-munfarid { background: var(--wali-gold); }
+.wali-cell.is-izin { background: var(--wali-blue); }
+.wali-cell.is-tidak { background: var(--wali-red); }
+.wali-cell.is-kosong { background: var(--wali-empty); }
 
 .wali-legend {
   list-style: none;
@@ -1057,8 +1104,8 @@ a.admin-ops-flag:hover { text-decoration: underline; }
   padding: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 14px;
-  font-size: var(--fs-12);
+  gap: 6px 16px;
+  font-size: var(--fs-13);
   color: var(--md-sys-color-on-surface-variant);
 }
 
@@ -1069,30 +1116,34 @@ a.admin-ops-flag:hover { text-decoration: underline; }
 }
 
 .wali-legend .wali-cell {
-  width: 12px;
-  min-width: 12px;
+  width: 9px;
+  min-width: 9px;
 }
 
 .wali-legend--stack {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   font-size: var(--fs-14);
   align-content: center;
 }
 
 .wali-legend--stack li {
   display: grid;
-  grid-template-columns: 12px minmax(0, 1fr) auto;
+  grid-template-columns: 9px minmax(0, 1fr) auto;
   gap: 10px;
 }
 
-.wali-legend__value { color: var(--md-sys-color-on-surface); }
+.wali-legend__value {
+  font-family: "Philosopher", Georgia, serif;
+  font-size: var(--fs-18);
+  color: var(--md-sys-color-on-surface);
+}
 
 .wali-dot {
-  width: 12px;
-  height: 12px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background: var(--md-sys-color-surface-container-high);
+  background: var(--wali-empty);
 }
 
 /* Bar per waktu sholat */
@@ -1101,22 +1152,22 @@ a.admin-ops-flag:hover { text-decoration: underline; }
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 
 .wali-bars__row {
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr) 3em;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: var(--fs-13);
   color: var(--md-sys-color-on-surface-variant);
 }
 
 .wali-bars__track {
-  height: 10px;
+  height: 4px;
   border-radius: 999px;
-  background: var(--md-sys-color-surface-container);
+  background: var(--wali-empty);
   overflow: hidden;
 }
 
@@ -1124,46 +1175,48 @@ a.admin-ops-flag:hover { text-decoration: underline; }
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--md-sys-color-primary);
+  background: var(--wali-gold);
 }
 
-.wali-bars__fill.is-baik { background: var(--md-sys-color-tertiary); }
-.wali-bars__fill.is-perlu { background: var(--md-sys-color-error); }
+.wali-bars__fill.is-baik { background: var(--wali-green); }
+.wali-bars__fill.is-perlu { background: var(--wali-red); }
 
 .wali-bars__value {
   text-align: right;
+  font-weight: 600;
   color: var(--md-sys-color-on-surface);
 }
 
 /* Donut */
 .wali-donut-wrap {
   display: grid;
-  grid-template-columns: 140px minmax(0, 1fr);
+  grid-template-columns: 136px minmax(0, 1fr);
   align-items: center;
-  gap: 18px;
+  gap: 24px;
 }
 
 .wali-donut {
-  width: 140px;
-  height: 140px;
+  width: 136px;
+  height: 136px;
 }
 
 .wali-donut__track {
   fill: none;
-  stroke: var(--md-sys-color-surface-container);
-  stroke-width: 14;
+  stroke: var(--wali-empty);
+  stroke-width: 8;
 }
 
 .wali-donut__seg {
   fill: none;
-  stroke-width: 14;
-  stroke-linecap: butt;
+  stroke-width: 8;
+  stroke-linecap: round;
   stroke: var(--md-sys-color-outline);
 }
 
 .wali-donut__value {
-  font-size: 22px;
-  font-weight: 800;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: 26px;
+  font-weight: 700;
   fill: var(--md-sys-color-on-surface);
 }
 
@@ -1172,70 +1225,56 @@ a.admin-ops-flag:hover { text-decoration: underline; }
   fill: var(--md-sys-color-on-surface-variant);
 }
 
-.wali-donut__seg.is-hadir,
-.wali-dot.is-hadir,
-.wali-donut__seg.is-hafal,
-.wali-dot.is-hafal,
-.wali-dot.is-lancar { stroke: var(--md-sys-color-tertiary); background: var(--md-sys-color-tertiary); }
+.wali-donut__seg.is-hadir, .wali-donut__seg.is-hafal { stroke: var(--wali-green); }
+.wali-donut__seg.is-telat, .wali-donut__seg.is-sedang { stroke: var(--wali-gold); }
+.wali-donut__seg.is-izin { stroke: var(--wali-blue); }
+.wali-donut__seg.is-alpa { stroke: var(--wali-red); }
+.wali-donut__seg.is-belum { stroke: var(--wali-empty); }
 
-.wali-donut__seg.is-telat,
-.wali-dot.is-telat,
-.wali-donut__seg.is-sedang,
-.wali-dot.is-sedang,
-.wali-dot.is-kurang { stroke: #E7B10C; background: #E7B10C; }
-
-.wali-donut__seg.is-izin,
-.wali-dot.is-izin { stroke: #8DA6C4; background: #8DA6C4; }
-
-.wali-donut__seg.is-alpa,
-.wali-dot.is-alpa,
-.wali-dot.is-ulang { stroke: var(--md-sys-color-error); background: var(--md-sys-color-error); }
-
-.wali-donut__seg.is-belum,
-.wali-dot.is-belum { stroke: var(--md-sys-color-surface-container-high); background: var(--md-sys-color-surface-container-high); }
+.wali-dot.is-hadir, .wali-dot.is-hafal, .wali-dot.is-lancar { background: var(--wali-green); }
+.wali-dot.is-telat, .wali-dot.is-sedang, .wali-dot.is-kurang { background: var(--wali-gold); }
+.wali-dot.is-izin { background: var(--wali-blue); }
+.wali-dot.is-alpa, .wali-dot.is-ulang { background: var(--wali-red); }
+.wali-dot.is-belum { background: var(--wali-empty); }
 
 /* Peta juz */
 .wali-juz {
   display: grid;
   grid-template-columns: repeat(15, minmax(0, 1fr));
-  gap: 3px;
+  gap: 4px;
 }
 
 .wali-juz__cell {
   display: grid;
   place-items: center;
   aspect-ratio: 1;
-  border-radius: 5px;
+  border-radius: 50%;
   font-size: 10px;
   font-weight: 600;
-  background: var(--md-sys-color-surface-container);
   color: var(--md-sys-color-outline);
+  box-shadow: inset 0 0 0 1px var(--wali-rule);
 }
 
-.wali-juz__cell.is-hafal { background: var(--md-sys-color-tertiary); color: #FFFFFF; }
-.wali-juz__cell.is-sedang { background: #F6D77A; color: var(--md-sys-color-on-primary-container); }
+.wali-juz__cell.is-hafal { background: var(--wali-green); color: #FFFFFF; box-shadow: none; }
+.wali-juz__cell.is-sedang { box-shadow: inset 0 0 0 1.5px var(--wali-gold); color: var(--gold-dark); }
 
-/* Mutu setoran: bar bertumpuk */
+/* Mutu setoran */
 .wali-stack {
   display: flex;
-  height: 22px;
+  height: 6px;
   border-radius: 999px;
   overflow: hidden;
-  gap: 2px;
+  gap: 3px;
 }
 
 .wali-stack__part {
-  display: grid;
-  place-items: center;
-  min-width: 22px;
-  font-size: var(--fs-12);
-  font-weight: 700;
-  color: #FFFFFF;
+  min-width: 6px;
+  font-size: 0;
 }
 
-.wali-stack__part.is-lancar { background: var(--md-sys-color-tertiary); }
-.wali-stack__part.is-kurang { background: #E7B10C; color: var(--md-sys-color-on-primary); }
-.wali-stack__part.is-ulang { background: var(--md-sys-color-error); }
+.wali-stack__part.is-lancar { background: var(--wali-green); }
+.wali-stack__part.is-kurang { background: var(--wali-gold); }
+.wali-stack__part.is-ulang { background: var(--wali-red); }
 
 /* Daftar kecil */
 .wali-mini-list {
@@ -1250,95 +1289,193 @@ a.admin-ops-flag:hover { text-decoration: underline; }
   justify-content: space-between;
   align-items: baseline;
   gap: 12px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--wali-rule);
   font-size: var(--fs-14);
   color: var(--md-sys-color-on-surface-variant);
 }
 
 .wali-mini-list li:last-child { border-bottom: 0; }
-.wali-mini-list strong { color: var(--md-sys-color-on-surface); white-space: nowrap; }
+.wali-mini-list strong { font-weight: 600; color: var(--md-sys-color-on-surface); white-space: nowrap; }
 
-.wali-grade { font-size: var(--fs-13); }
-.wali-grade.is-lancar { color: var(--md-sys-color-tertiary) !important; }
+.wali-grade.is-lancar { color: var(--wali-green) !important; }
 .wali-grade.is-kurang-lancar { color: var(--gold-dark) !important; }
-.wali-grade.is-ulang { color: var(--md-sys-color-error) !important; }
+.wali-grade.is-ulang { color: var(--wali-red) !important; }
 
-/* Catatan pembina */
+/* Catatan pembina: kutipan */
 .wali-notes {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 10px;
+  gap: 20px;
 }
-
-.wali-note {
-  padding: 12px 14px;
-  border-radius: 12px;
-  border-left: 3px solid var(--gold-dark);
-  background: var(--md-sys-color-surface-container-low);
-}
-
-.wali-note.is-baik { border-left-color: var(--md-sys-color-tertiary); }
-.wali-note.is-perlu { border-left-color: var(--md-sys-color-error); }
 
 .wali-note__meta {
   display: flex;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
   font-size: var(--fs-12);
-  color: var(--md-sys-color-on-surface-variant);
+  color: var(--md-sys-color-outline);
 }
 
 .wali-note__kind {
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: var(--gold-dark);
 }
 
+.wali-note.is-baik .wali-note__kind { color: var(--wali-green); }
+.wali-note.is-perlu .wali-note__kind { color: var(--wali-red); }
+
 .wali-note__body {
-  margin: 4px 0 0;
-  font-size: var(--fs-14);
-  line-height: 1.55;
+  margin: 6px 0 0;
+  font-size: var(--fs-16);
+  line-height: 1.6;
   color: var(--md-sys-color-on-surface);
 }
+
+.wali-note__body::before { content: "\201C"; }
+.wali-note__body::after { content: "\201D"; }
 
 /* Tagihan */
 .wali-bill {
   display: grid;
   gap: 2px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: var(--md-sys-color-surface-container-low);
+}
+
+.wali-bill .wali-kpi__label {
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .wali-bill__value {
-  font-size: var(--fs-24);
-  font-weight: 800;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: var(--fs-32);
+  font-weight: 700;
 }
 
-.wali-bill__value.is-perlu { color: var(--md-sys-color-error); }
-.wali-bill__value.is-baik { color: var(--md-sys-color-tertiary); }
+.wali-bill__value.is-perlu { color: var(--wali-red); }
+.wali-bill__value.is-baik { color: var(--wali-green); }
+
+.wali-bill .wali-kpi__note {
+  font-size: var(--fs-13);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Catatan harian dan pengumuman di beranda wali: daftar polos */
+.wali-page .beranda-filter {
+  gap: 4px 18px;
+  margin: 0;
+}
+
+.wali-filter__btn {
+  height: auto;
+  padding: 4px 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font: inherit;
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: pointer;
+}
+
+.wali-filter__btn:hover { color: var(--md-sys-color-on-surface); }
+.wali-filter__btn:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: 2px; }
+
+.wali-filter__btn.is-active {
+  border-bottom-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-surface);
+  font-weight: 600;
+}
+
+.wali-page .beranda-timeline__list { gap: 0; }
+
+.wali-page .beranda-timeline__day {
+  margin: 0;
+  padding: 18px 0 6px;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: var(--fs-16);
+  color: var(--md-sys-color-on-surface);
+}
+
+.wali-page .beranda-timeline__day:first-child { padding-top: 4px; }
+
+.wali-page .beranda-timeline__item {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  column-gap: 16px;
+  padding: 10px 0;
+  border: 0;
+  border-bottom: 1px solid var(--wali-rule);
+  border-radius: 0;
+  background: none;
+}
+
+.wali-page .beranda-timeline__meta {
+  grid-row: span 2;
+  align-items: baseline;
+}
+
+.wali-page .beranda-timeline__kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-12);
+  letter-spacing: 0.06em;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.wali-page .beranda-timeline__kind::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--md-sys-color-outline);
+}
+
+.wali-page .is-baik .beranda-timeline__kind::before { background: var(--wali-green); }
+.wali-page .is-perlu .beranda-timeline__kind::before { background: var(--wali-red); }
+.wali-page .is-tunggu .beranda-timeline__kind::before,
+.wali-page .is-catatan .beranda-timeline__kind::before { background: var(--wali-gold); }
+.wali-page .is-hafalan .beranda-timeline__kind::before { background: var(--wali-blue); }
+
+.wali-page .beranda-timeline__title {
+  margin: 0;
+  font-size: var(--fs-14);
+  font-weight: 600;
+}
+
+.wali-page .beranda-timeline__body { margin: 2px 0 0; }
+
+.wali-page .beranda-announce { gap: 18px; }
+.wali-page .beranda-announce__title { font-size: var(--fs-16); }
 
 @media (max-width: 900px) {
-  .wali-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wali-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 20px; }
+  .wali-stat:nth-child(3) { padding-left: 0; border-left: 0; }
   .wali-grid { grid-template-columns: minmax(0, 1fr); }
+  .wali-grid > .wali-section:nth-child(n + 2) { border-top: 1px solid var(--wali-rule); }
 }
 
 @media (max-width: 640px) {
-  .wali-summary__head .button { width: 100%; text-align: center; }
-  .wali-summary__name { font-size: var(--fs-20); }
-  .wali-kpi__value { font-size: var(--fs-24); }
-  .wali-report { padding: 14px 16px; }
-  .wali-report__list { font-size: var(--fs-14); }
-  .wali-donut-wrap { grid-template-columns: 112px minmax(0, 1fr); gap: 12px; }
+  .wali-summary { padding: 16px 0 28px; gap: 22px; }
+  .wali-summary__head .wali-link { width: 100%; }
+  .wali-report__body { font-size: var(--fs-16); line-height: 1.7; }
+  .wali-stat { padding: 0 14px; }
+  .wali-section { padding: 26px 0; }
+  .wali-section__title { font-size: var(--fs-20); }
+  .wali-donut-wrap { grid-template-columns: 112px minmax(0, 1fr); gap: 16px; }
   .wali-donut { width: 112px; height: 112px; }
   .wali-heatmap__row { grid-template-columns: 46px minmax(0, 1fr); gap: 6px; }
-  .wali-heatmap__cells { gap: 1px; }
+  .wali-heatmap__cells { gap: 2px; }
   .wali-heatmap__axis { margin-left: 52px; }
-  .wali-cell { border-radius: 2px; min-width: 0; }
+  .wali-cell { min-width: 0; }
   .wali-bars__row { grid-template-columns: 46px minmax(0, 1fr) 3em; }
   .wali-juz { grid-template-columns: repeat(10, minmax(0, 1fr)); }
-  .wali-switch__btn { min-width: 0; }
+  .wali-page .beranda-timeline__item { grid-template-columns: minmax(0, 1fr); }
+  .wali-page .beranda-timeline__meta { grid-row: auto; }
 }

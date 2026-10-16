@@ -39,13 +39,12 @@
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
+  // Satu bagian laporan: judul dan keterangan singkat, tanpa bingkai kartu.
   function kartu(judul, keterangan, kelas = '') {
-    const wadah = el('section', `crm-white-card beranda-card ${kelas}`.trim());
-    const kepala = el('div', 'beranda-card__head');
-    const teks = el('div');
-    teks.append(el('h3', 'beranda-card__title', judul));
-    if (keterangan) teks.append(el('p', 'beranda-card__note', keterangan));
-    kepala.append(teks);
+    const wadah = el('section', `wali-section ${kelas}`.trim());
+    const kepala = el('header', 'wali-section__head');
+    kepala.append(el('h3', 'wali-section__title', judul));
+    if (keterangan) kepala.append(el('p', 'wali-section__note', keterangan));
     wadah.append(kepala);
     return { wadah, kepala };
   }
@@ -87,8 +86,8 @@
   function tren(nilai, satuan = ' poin') {
     if (nilai === null) return null;
     const node = el('span', `wali-trend ${nilai > 0 ? 'is-naik' : nilai < 0 ? 'is-turun' : 'is-tetap'}`);
-    node.textContent = nilai > 0 ? `▲ ${nilai}${satuan}` : nilai < 0 ? `▼ ${Math.abs(nilai)}${satuan}` : '● sama';
-    node.setAttribute('aria-label', nilai > 0 ? `naik ${nilai}${satuan}` : nilai < 0 ? `turun ${Math.abs(nilai)}${satuan}` : 'sama dengan periode sebelumnya');
+    node.textContent = nilai > 0 ? `naik ${nilai}${satuan}` : nilai < 0 ? `turun ${Math.abs(nilai)}${satuan}` : 'tidak berubah';
+    node.title = 'Dibanding 30 hari sebelumnya';
     return node;
   }
 
@@ -100,47 +99,55 @@
     if (a.ulang >= 2) alasan.push(`${a.ulang} setoran perlu diulang`);
     if (a.disiplin) alasan.push(`${a.disiplin} catatan disiplin`);
     const adaData = a.sholatDicatat || a.hadirTotal || a.setoran || a.catatan;
-    if (!adaData) return { nada: 'netral', label: 'Belum banyak catatan', alasan: ['musyrif belum mencatat kegiatan 30 hari ini'] };
-    if (alasan.length) return { nada: 'perlu', label: 'Perlu perhatian', alasan };
+    if (!adaData) return { nada: 'netral', label: 'Belum banyak yang dicatat musyrif bulan ini.', alasan: [] };
+    if (alasan.length) return { nada: 'perlu', label: `Ada yang perlu diperhatikan: ${alasan.join(', ')}.`, alasan };
     const bagus = (a.sholat === null || a.sholat >= 80) && (a.hadir === null || a.hadir >= 85);
     return bagus
-      ? { nada: 'baik', label: 'Perkembangan baik', alasan: [] }
-      : { nada: 'cukup', label: 'Cukup baik', alasan: [] };
+      ? { nada: 'baik', label: 'Alhamdulillah, perkembangannya baik bulan ini.', alasan: [] }
+      : { nada: 'cukup', label: 'Secara umum cukup baik, masih bisa ditingkatkan.', alasan: [] };
   }
 
+  function kaliTeks(n) {
+    return n === 1 ? 'sekali' : `${n} kali`;
+  }
+
+  // Laporan sebagai paragraf yang enak dibaca, seperti surat dari musyrif.
   function kalimatLaporan(nama, a, lalu, data) {
     const depan = String(nama || 'Ananda').split(/\s+/)[0];
     const kalimat = [];
     if (a.sholatDicatat) {
       const beda = lalu ? selisih(a.sholat, lalu.sholat) : null;
-      kalimat.push(`${depan} sholat berjamaah ${a.sholat}% dari ${a.sholatDicatat} waktu yang dicatat musyrif${beda === null ? '' : beda > 0 ? `, naik ${beda} poin dari 30 hari sebelumnya` : beda < 0 ? `, turun ${Math.abs(beda)} poin dari 30 hari sebelumnya` : ', sama seperti 30 hari sebelumnya'}.`);
+      const banding = beda === null ? '' : beda > 0 ? `, naik ${beda} poin dari bulan sebelumnya` : beda < 0 ? `, turun ${Math.abs(beda)} poin dari bulan sebelumnya` : ', sama seperti bulan sebelumnya';
+      kalimat.push(`Bulan ini ${depan} sholat berjamaah di ${a.sholatBerjamaah} dari ${a.sholatDicatat} waktu yang dicatat (${a.sholat}%)${banding}.`);
     } else {
-      kalimat.push('Presensi sholat belum dicatat musyrif dalam 30 hari ini.');
+      kalimat.push(`Presensi sholat ${depan} belum dicatat musyrif bulan ini.`);
     }
     if (a.hadirTotal) {
       const telat = a.byStatus.late || 0;
       const alpa = a.byStatus.absent || 0;
-      kalimat.push(`Hadir di ${a.hadirMasuk} dari ${a.hadirTotal} kegiatan asrama${telat ? ` (${telat} kali terlambat)` : ''}${alpa ? `, ${alpa} kali tidak hadir` : ''}.`);
+      const tambahan = [telat ? `${kaliTeks(telat)} terlambat` : null, alpa ? `${kaliTeks(alpa)} tidak hadir` : null].filter(Boolean);
+      kalimat.push(`Ananda hadir di ${a.hadirMasuk} dari ${a.hadirTotal} kegiatan asrama${tambahan.length ? `, ${tambahan.join(' dan ')}` : ''}.`);
     }
     const juz = data.juz;
-    if (a.setoran) {
-      kalimat.push(`Menyetor hafalan ${a.setoran} kali: ${a.lancar} lancar${a.kurang ? `, ${a.kurang} kurang lancar` : ''}${a.ulang ? `, ${a.ulang} perlu diulang` : ''}.`);
-    }
-    if (juz) kalimat.push(juz.hafal || juz.sedang ? `Total hafalan ${juz.hafal} juz${juz.sedang ? `, ${juz.sedang} juz sedang dihafal` : ''}.` : 'Belum ada juz yang ditandai hafal.');
+    const hafalan = [];
+    if (a.setoran) hafalan.push(`menyetor hafalan ${kaliTeks(a.setoran)}${a.lancar ? `, ${a.lancar === a.setoran ? 'semuanya' : `${a.lancar} di antaranya`} lancar` : ''}`);
+    if (juz && (juz.hafal || juz.sedang)) hafalan.push(`sudah ${juz.hafal} juz yang dihafal${juz.sedang ? ` dengan ${juz.sedang} juz sedang berjalan` : ''}`);
+    if (hafalan.length) kalimat.push(`Untuk Al-Qur'an, ananda ${hafalan.join(', dan kini ')}.`);
+    if (a.ulang) kalimat.push(`Ada ${a.ulang} setoran yang perlu diulang.`);
     const pembinaan = [];
-    if (a.catatan) pembinaan.push(`${a.catatan} catatan pembina`);
-    if (a.prestasi) pembinaan.push(`${a.prestasi} prestasi`);
-    pembinaan.push(a.disiplin ? `${a.disiplin} catatan disiplin` : 'tanpa catatan disiplin');
-    kalimat.push(`Pembinaan: ${pembinaan.join(', ')}.`);
+    if (a.catatan) pembinaan.push(`menulis ${a.catatan} catatan`);
+    if (a.prestasi) pembinaan.push(`mencatat ${a.prestasi} prestasi`);
+    if (pembinaan.length) kalimat.push(`Musyrif ${pembinaan.join(' dan ')}${a.disiplin ? `, serta ${a.disiplin} catatan disiplin` : ', tanpa catatan disiplin'}.`);
+    else if (a.disiplin) kalimat.push(`Ada ${a.disiplin} catatan disiplin dari musyrif.`);
     return kalimat;
   }
 
   function kotakAngka(label, nilai, catatan, trenNode, nada = '') {
-    const kotak = el('div', `wali-kpi ${nada ? `is-${nada}` : ''}`.trim());
-    const atas = el('div', 'wali-kpi__top');
-    atas.append(el('span', 'wali-kpi__label', label));
-    if (trenNode) atas.append(trenNode);
-    kotak.append(atas, el('strong', 'wali-kpi__value', nilai), el('span', 'wali-kpi__note', catatan));
+    const kotak = el('div', `wali-stat ${nada ? `is-${nada}` : ''}`.trim());
+    kotak.append(el('strong', 'wali-stat__value', nilai), el('span', 'wali-stat__label', label));
+    const bawah = el('span', 'wali-stat__note', catatan);
+    if (trenNode) bawah.append(document.createTextNode(' · '), trenNode);
+    kotak.append(bawah);
     return kotak;
   }
 
@@ -149,54 +156,66 @@
     return nilai >= baik ? 'baik' : nilai < buruk ? 'perlu' : '';
   }
 
+  // Urusan yang menunggu wali (tagihan, izin) sebagai satu kalimat, bukan deretan lencana.
+  function kalimatUrusan(data) {
+    const butir = [];
+    if (data.tagihan) {
+      const belum = data.tagihan.filter((item) => item.status === 'unpaid');
+      const total = belum.reduce((jumlah, item) => jumlah + (Number(item.amount) || 0), 0);
+      if (belum.length) butir.push(`${belum.length} tagihan belum lunas (${K.rupiah(total)})`);
+    }
+    if (data.izin) {
+      const menunggu = data.izin.filter((item) => item.status === 'menunggu').length;
+      if (menunggu) butir.push(`${menunggu} izin menunggu keputusan musyrif`);
+    }
+    if (!butir.length) return null;
+    const baris = el('p', 'wali-pending');
+    baris.append(el('span', 'wali-pending__dot'), document.createTextNode(`Perlu Bapak/Ibu ketahui: ${butir.join(' dan ')}.`));
+    return baris;
+  }
+
   function kartuRingkasan(student, data, onOpen) {
     const a = hitung(data);
     const lalu = data.lalu ? hitung(data.lalu) : null;
     const status = nilaiKeseluruhan(a, data);
-    const wadah = el('section', 'crm-white-card wali-summary');
+    const wadah = el('section', 'wali-summary');
 
-    const kepala = el('div', 'wali-summary__head');
+    const kepala = el('header', 'wali-summary__head');
     const avatar = el('span', 'wali-avatar', K.inisial(student.name));
     avatar.setAttribute('aria-hidden', 'true');
     const id = el('div', 'wali-summary__id');
     const supervisors = data.dashboard && data.dashboard.student && data.dashboard.student.dormitory && data.dashboard.student.dormitory.supervisors;
     id.append(
       el('h3', 'wali-summary__name', student.name),
-      el('p', 'wali-summary__meta', [student.program, student.dormitoryName, supervisors && supervisors.length ? `Musyrif: ${supervisors.join(', ')}` : null].filter(Boolean).join(' · '))
+      el('p', 'wali-summary__meta', [student.program, student.dormitoryName, supervisors && supervisors.length ? `Musyrif ${supervisors.join(', ')}` : null].filter(Boolean).join(' · '))
     );
-    const buka = el('button', 'button button--secondary', 'Rekam jejak lengkap');
+    const buka = el('button', 'wali-link', 'Rekam jejak lengkap →');
     buka.type = 'button';
     buka.addEventListener('click', onOpen);
     kepala.append(avatar, id, buka);
 
-    const laporan = el('div', `wali-report is-${status.nada}`);
-    const lencana = el('div', 'wali-report__head');
-    lencana.append(el('span', 'wali-report__eyebrow', `Laporan singkat · ${K.PERIODE_HARI} hari terakhir`), el('span', `wali-badge is-${status.nada}`, status.label));
-    const daftar = el('ul', 'wali-report__list');
-    kalimatLaporan(student.name, a, lalu, data).forEach((teks) => daftar.append(el('li', '', teks)));
-    laporan.append(lencana, daftar);
-    if (status.alasan.length && status.nada === 'perlu') {
-      laporan.append(el('p', 'wali-report__why', `Yang perlu diperhatikan: ${status.alasan.join(', ')}.`));
-    }
+    const laporan = el('div', 'wali-report');
+    laporan.append(el('p', 'wali-eyebrow', `Laporan ${K.PERIODE_HARI} hari terakhir`));
+    laporan.append(el('p', `wali-report__status is-${status.nada}`, status.label));
+    laporan.append(el('p', 'wali-report__body', kalimatLaporan(student.name, a, lalu, data).join(' ')));
+    const urusan = kalimatUrusan(data);
+    if (urusan) laporan.append(urusan);
 
-    const angka = el('div', 'wali-kpis');
+    const angka = el('div', 'wali-stats');
     angka.append(
-      kotakAngka('Sholat berjamaah', a.sholat === null ? '-' : `${a.sholat}%`, a.sholatDicatat ? `${a.sholatBerjamaah} dari ${a.sholatDicatat} waktu` : 'Belum dicatat', lalu ? tren(selisih(a.sholat, lalu.sholat)) : null, nadaPersen(a.sholat, 80, 60)),
-      kotakAngka('Kehadiran kegiatan', a.hadir === null ? '-' : `${a.hadir}%`, a.hadirTotal ? `${a.hadirMasuk} dari ${a.hadirTotal} kegiatan` : 'Belum dicatat', lalu ? tren(selisih(a.hadir, lalu.hadir)) : null, nadaPersen(a.hadir, 85, 70)),
-      kotakAngka('Setoran hafalan', `${a.setoran}x`, a.setoran ? `${a.lancar} lancar` : 'Belum ada setoran', lalu ? tren(a.setoran - lalu.setoran, 'x') : null),
-      kotakAngka('Hafalan Al-Qur\'an', data.juz ? `${data.juz.hafal} juz` : '-', data.juz && data.juz.sedang ? `${data.juz.sedang} juz sedang dihafal` : 'dari 30 juz', null)
+      kotakAngka('sholat berjamaah', a.sholat === null ? '–' : `${a.sholat}%`, a.sholatDicatat ? `${a.sholatBerjamaah} dari ${a.sholatDicatat} waktu` : 'belum dicatat', lalu ? tren(selisih(a.sholat, lalu.sholat)) : null, nadaPersen(a.sholat, 80, 60)),
+      kotakAngka('hadir kegiatan', a.hadir === null ? '–' : `${a.hadir}%`, a.hadirTotal ? `${a.hadirMasuk} dari ${a.hadirTotal} kegiatan` : 'belum dicatat', lalu ? tren(selisih(a.hadir, lalu.hadir)) : null, nadaPersen(a.hadir, 85, 70)),
+      kotakAngka('setoran hafalan', `${a.setoran}×`, a.setoran ? `${a.lancar} lancar` : 'belum ada', lalu ? tren(a.setoran - lalu.setoran, '×') : null),
+      kotakAngka('juz dihafal', data.juz ? String(data.juz.hafal) : '–', data.juz && data.juz.sedang ? `${data.juz.sedang} juz sedang dihafal` : 'dari 30 juz', null)
     );
 
-    wadah.append(kepala);
-    const chip = K.chipUrusan(data);
-    if (chip) wadah.append(chip);
-    wadah.append(laporan, angka);
+    wadah.append(kepala, laporan, angka);
     return wadah;
   }
 
   // ------------------------------------------------------- Peta sholat 30 hari
   function kartuSholat(data) {
-    const { wadah } = kartu('Sholat berjamaah', 'Setiap kotak satu waktu sholat, 30 hari terakhir. Hari terbaru di paling kanan.', 'wali-chart');
+    const { wadah } = kartu('Sholat berjamaah', 'Lima waktu selama 30 hari terakhir, hari terbaru di kanan.', 'wali-chart');
     const prayers = data.care && data.care.prayers;
     if (!prayers || !prayers.recorded) {
       wadah.append(kosong('Presensi sholat belum dicatat musyrif dalam 30 hari terakhir.'));
@@ -293,7 +312,7 @@
   }
 
   function kartuKehadiran(data) {
-    const { wadah } = kartu('Kehadiran kegiatan', 'Kegiatan asrama: talaqqi, mudzakarah, kajian, dan lainnya.', 'wali-chart');
+    const { wadah } = kartu('Kegiatan asrama', 'Talaqqi, mudzakarah, kajian, dan kegiatan bersama lainnya.', 'wali-chart');
     const hadir = data.dashboard && data.dashboard.attendance;
     if (!hadir || !hadir.total) {
       wadah.append(kosong('Belum ada kegiatan asrama yang dicatat dalam 30 hari terakhir.'));
@@ -334,7 +353,7 @@
 
   // ------------------------------------------------------- Hafalan
   function kartuHafalan(data) {
-    const { wadah } = kartu('Hafalan Al-Qur\'an', 'Juz yang ditandai musyrif dan mutu setoran 30 hari terakhir.', 'wali-chart');
+    const { wadah } = kartu('Hafalan Al-Qur\'an', 'Juz yang sudah ditandai musyrif dan mutu setoran bulan ini.', 'wali-chart');
     const juz = data.juz;
     const setoran = (data.care && data.care.memorization) || [];
     if (!juz && !setoran.length) {
@@ -399,7 +418,7 @@
 
   // ------------------------------------------------------- Catatan pembina
   function kartuCatatan(data) {
-    const { wadah } = kartu('Catatan pembina', 'Evaluasi, prestasi, dan catatan disiplin dari musyrif.', 'wali-chart');
+    const { wadah } = kartu('Catatan pembina', 'Yang ditulis musyrif tentang ananda.', 'wali-chart');
     const d = data.dashboard || {};
     const items = [
       ...(d.evaluations || []).map((e) => ({ waktu: e.occurredAt, jenis: e.area || 'Evaluasi', isi: e.note, nada: 'catatan' })),
@@ -429,7 +448,7 @@
   // ------------------------------------------------------- Keuangan
   function kartuTagihan(data) {
     if (!data.tagihan || !data.tagihan.length) return null;
-    const { wadah } = kartu('Tagihan', 'Tagihan ananda yang belum lunas dan pembayaran terakhir.', 'wali-chart');
+    const { wadah } = kartu('Tagihan', null, 'wali-chart');
     const belum = data.tagihan.filter((t) => t.status === 'unpaid');
     const lunas = data.tagihan.filter((t) => t.status === 'paid').sort((x, y) => String(y.paidAt).localeCompare(String(x.paidAt)));
     const total = belum.reduce((jumlah, t) => jumlah + (Number(t.amount) || 0), 0);
@@ -467,11 +486,7 @@
       tombol.type = 'button';
       tombol.setAttribute('role', 'tab');
       tombol.setAttribute('aria-selected', String(s.id === aktifId));
-      const avatar = el('span', 'wali-avatar wali-avatar--sm', K.inisial(s.name));
-      avatar.setAttribute('aria-hidden', 'true');
-      const teks = el('span', 'wali-switch__text');
-      teks.append(el('strong', '', s.name), el('span', '', s.dormitoryName || s.program || ''));
-      tombol.append(avatar, teks);
+      tombol.append(el('span', 'wali-switch__name', s.name), el('span', 'wali-switch__meta', s.dormitoryName || s.program || ''));
       tombol.addEventListener('click', () => onPilih(s.id));
       wadah.append(tombol);
     });
@@ -479,8 +494,9 @@
   }
 
   async function render(wadah, { students, headers, onOpenStudent }) {
+    wadah.classList.add('wali-page');
     if (!students.length) {
-      wadah.replaceChildren(el('div', 'crm-white-card beranda-loading', 'Belum ada ananda yang terhubung dengan akun ini. Hubungi admin Hamasah untuk menautkan akun.'));
+      wadah.replaceChildren(el('p', 'wali-loading', 'Belum ada ananda yang terhubung dengan akun ini. Hubungi admin Hamasah untuk menautkan akun.'));
       return;
     }
     let tersimpan = null;
@@ -491,7 +507,7 @@
 
     async function tampilkan() {
       const student = students.find((s) => s.id === aktifId);
-      const memuat = el('div', 'crm-white-card beranda-loading', `Menyiapkan laporan ${student.name}...`);
+      const memuat = el('p', 'wali-loading', `Menyiapkan laporan ${student.name}...`);
       memuat.setAttribute('role', 'status');
       const atas = students.length > 1 ? [pemilihAnak(students, aktifId, pilih)] : [];
       wadah.replaceChildren(...atas, memuat);
@@ -507,14 +523,15 @@
         kartuRingkasan(student, data, () => onOpenStudent(student.id)),
         grid,
         K.kartuLinimasa(K.butirKegiatan(data, student.name), {
-          judul: 'Laporan kegiatan',
-          keterangan: `Semua catatan ${K.PERIODE_HARI} hari terakhir: kegiatan, presensi, hafalan, pembinaan, izin, dan tagihan.`,
-          perHalaman: 6
+          judul: 'Catatan harian',
+          keterangan: `Semua yang tercatat ${K.PERIODE_HARI} hari terakhir, terbaru di atas.`,
+          perHalaman: 8,
+          polos: true
         })
       ];
       const bawah = el('div', 'wali-grid');
       const tagihan = kartuTagihan(data);
-      const umum = K.kartuPengumuman(pengumuman);
+      const umum = K.kartuPengumuman(pengumuman, 3, { polos: true });
       [tagihan, umum].filter(Boolean).forEach((k) => bawah.append(k));
       if (bawah.childElementCount) isi.push(bawah);
       wadah.replaceChildren(...isi);
@@ -524,7 +541,7 @@
       aktifId = id;
       try { localStorage.setItem(PILIHAN_KUNCI, id); } catch { /* tanpa penyimpanan tetap jalan */ }
       tampilkan().catch(() => {
-        wadah.replaceChildren(el('div', 'crm-white-card beranda-loading', 'Laporan belum dapat dimuat. Coba muat ulang halaman.'));
+        wadah.replaceChildren(el('p', 'wali-loading', 'Laporan belum dapat dimuat. Coba muat ulang halaman.'));
       });
     }
 

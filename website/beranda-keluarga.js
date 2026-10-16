@@ -237,8 +237,9 @@
     ['Keuangan', ['Tagihan', 'Pembayaran']]
   ];
 
-  function kartuLinimasa(semuaButir, { judul, keterangan, perHalaman = 6 }) {
-    const wadah = el('section', 'crm-white-card beranda-card beranda-timeline');
+  // polos: tanpa kartu, untuk beranda wali yang memakai tata letak terbuka.
+  function kartuLinimasa(semuaButir, { judul, keterangan, perHalaman = 6, polos = false }) {
+    const wadah = el('section', polos ? 'wali-section beranda-timeline' : 'crm-white-card beranda-card beranda-timeline');
     const kepala = el('div', 'beranda-card__head');
     const teks = el('div');
     teks.append(el('h3', 'beranda-card__title', judul), el('p', 'beranda-card__note', keterangan));
@@ -278,7 +279,7 @@
       const pilihan = [['Semua', null], ...ada];
       const tombol = pilihan.map(([label, jenis]) => {
         const jumlah = jenis ? urut.filter((item) => jenis.includes(item.jenis)).length : urut.length;
-        const b = el('button', `crm-pill-btn ${jenis === null ? 'is-active' : ''}`.trim(), `${label} (${jumlah})`);
+        const b = el('button', `${polos ? 'wali-filter__btn' : 'crm-pill-btn'} ${jenis === null ? 'is-active' : ''}`.trim(), `${label} (${jumlah})`);
         b.type = 'button';
         b.setAttribute('aria-pressed', String(jenis === null));
         b.addEventListener('click', () => {
@@ -296,10 +297,10 @@
     return wadah;
   }
 
-  function kartuPengumuman(data, perHalaman = 3) {
+  function kartuPengumuman(data, perHalaman = 3, { polos = false } = {}) {
     const items = data && Array.isArray(data.items) ? data.items : [];
     if (!items.length) return null;
-    const wadah = el('section', 'crm-white-card beranda-card');
+    const wadah = el('section', polos ? 'wali-section' : 'crm-white-card beranda-card');
     const kepala = el('div', 'beranda-card__head');
     kepala.append(el('h3', 'beranda-card__title', 'Pengumuman asrama'));
     wadah.append(kepala);
