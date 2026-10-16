@@ -1,45 +1,44 @@
 /* ==========================================================================
-   Tema konsol 2026 (16 Oktober 2026): "editorial hangat".
+   Tema konsol 2026, palet landing page (17 Oktober 2026).
    Lapisan terakhir di atas staff.css, portal.css, dan beranda-keluarga.css untuk semua
-   halaman konsol. Tidak mengubah struktur; hanya permukaan, tipografi, dan gerak.
-     - Kanvas gading dengan butiran halus dan cahaya emas.
-     - Sidebar tinta hangat dengan aksen emas; topbar kaca.
-     - Kepala beranda: judul Philosopher, tanggal Masehi + Hijriah, pintasan kerja,
-       motif bintang delapan yang samar.
-     - Permukaan putih tanpa garis tepi, bayangan bernada hangat, kartu merespons kursor.
+   halaman konsol. Warnanya sama dengan landing page (landing.css): putih dan krem sangat
+   muda, teks arang #363638, emas #E7B10C, label emas muda #FBEFC4.
+     - Sidebar dan topbar terang seperti header landing; menu aktif berlatar emas muda.
+     - Kepala beranda seperti hero landing: putih ke krem dengan cahaya emas, judul
+       Philosopher, tanggal Masehi + Hijriah, pintasan kerja, motif bintang delapan samar.
+     - Permukaan putih dengan bayangan netral, kartu merespons kursor.
      - Masuk bertahap; dimatikan untuk prefers-reduced-motion.
    ========================================================================== */
 :root {
-  --k26-ink: #1F1C18;
-  --k26-ink-2: #2A2620;
-  --k26-ivory: #F6F1E7;
-  --k26-ivory-2: #FBF8F1;
+  --k26-ink: #262628;
+  --k26-ink-2: #363638;
+  --k26-ivory: #FBFAF6;
+  --k26-ivory-2: #FAF9F7;
   --k26-paper: #FFFFFF;
-  --k26-gold: #D8A40F;
-  --k26-gold-deep: #8A6400;
-  --k26-gold-glow: rgba(216, 164, 15, 0.18);
-  --k26-line: rgba(60, 46, 20, 0.10);
-  --k26-text: #2B2722;
-  --k26-muted: #6E675C;
-  --k26-shadow: 0 1px 2px rgba(64, 46, 12, 0.05), 0 14px 36px -16px rgba(64, 46, 12, 0.18);
-  --k26-shadow-hover: 0 2px 4px rgba(64, 46, 12, 0.06), 0 22px 48px -18px rgba(64, 46, 12, 0.26);
-  --k26-radius-lg: 24px;
+  --k26-gold: #E7B10C;
+  --k26-gold-deep: #856000;
+  --k26-gold-soft: #FBEFC4;
+  --k26-gold-glow: rgba(231, 177, 12, 0.12);
+  --k26-line: #E2DED6;
+  --k26-text: #363638;
+  --k26-muted: #6B6B70;
+  --k26-shadow: 0 0 0 1px rgba(54, 54, 56, 0.06), 0 1px 2px rgba(54, 54, 56, 0.05), 0 12px 32px -18px rgba(54, 54, 56, 0.18);
+  --k26-shadow-hover: 0 0 0 1px rgba(54, 54, 56, 0.08), 0 2px 4px rgba(54, 54, 56, 0.06), 0 20px 44px -18px rgba(54, 54, 56, 0.26);
+  --k26-radius-lg: 20px;
   --k26-radius-md: 16px;
   --k26-radius-sm: 10px;
   --k26-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --k26-serif: "Philosopher", Georgia, serif;
-  /* Butiran halus (SVG turbulence) dan motif bintang delapan, keduanya data URI. */
-  --k26-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.27 0 0 0 0 0.1 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  --k26-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23B8860B' stroke-width='0.8' stroke-opacity='0.35'%3E%3Crect x='20' y='20' width='24' height='24'/%3E%3Crect x='20' y='20' width='24' height='24' transform='rotate(45 32 32)'/%3E%3Ccircle cx='32' cy='32' r='5'/%3E%3Cpath d='M0 32h8M56 32h8M32 0v8M32 56v8'/%3E%3C/g%3E%3C/svg%3E");
+  /* Motif bintang delapan (data URI), emas tipis seperti ornamen landing. */
+  --k26-star: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23E7B10C' stroke-width='0.8' stroke-opacity='0.4'%3E%3Crect x='20' y='20' width='24' height='24'/%3E%3Crect x='20' y='20' width='24' height='24' transform='rotate(45 32 32)'/%3E%3Ccircle cx='32' cy='32' r='5'/%3E%3Cpath d='M0 32h8M56 32h8M32 0v8M32 56v8'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 /* ------------------------------------------------------------------ Kanvas */
 body.in-crm {
   background-color: var(--k26-ivory) !important;
   background-image:
-    radial-gradient(1200px 520px at 100% -10%, var(--k26-gold-glow), transparent 60%),
-    radial-gradient(900px 480px at -10% 110%, rgba(31, 111, 61, 0.06), transparent 60%),
-    var(--k26-grain) !important;
+    radial-gradient(1100px 520px at 100% -10%, var(--k26-gold-glow), transparent 60%),
+    linear-gradient(180deg, #FBFAF6 0%, #FFFFFF 40%, #FDF8EA 100%) !important;
   background-attachment: fixed !important;
   color: var(--k26-text);
 }
@@ -59,7 +58,7 @@ body.in-crm .crm-canvas {
 body.in-crm :is(h1, h2, h3) { text-wrap: balance; }
 body.in-crm p { text-wrap: pretty; }
 
-body.in-crm ::selection { background: rgba(216, 164, 15, 0.28); }
+body.in-crm ::selection { background: rgba(231, 177, 12, 0.28); }
 
 body.in-crm :focus-visible {
   outline: 2px solid var(--k26-gold);
@@ -67,53 +66,53 @@ body.in-crm :focus-visible {
 }
 
 /* ------------------------------------------------------------------ Sidebar */
+/* Terang seperti header landing: putih, garis tipis, menu aktif emas muda. */
 body.in-crm .crm-sidebar {
-  background:
-    radial-gradient(420px 260px at 0% 0%, rgba(216, 164, 15, 0.14), transparent 70%),
-    linear-gradient(180deg, var(--k26-ink-2) 0%, var(--k26-ink) 60%, #181613 100%) !important;
-  border-right: 0 !important;
-  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.04), 12px 0 40px -24px rgba(0, 0, 0, 0.5) !important;
-  color: #F3EBDD;
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  background: rgba(255, 255, 255, 0.92) !important;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid var(--k26-line) !important;
+  box-shadow: none !important;
+  color: var(--k26-text);
 }
 
 body.in-crm .crm-brand,
-body.in-crm .crm-brand-title { color: #FBF5EA !important; }
+body.in-crm .crm-brand-title { color: var(--k26-text) !important; }
 body.in-crm .crm-brand-title { font-family: var(--k26-serif); font-weight: 700; letter-spacing: 0.01em; }
-body.in-crm .crm-brand-title strong { color: var(--k26-gold) !important; font-weight: 700; }
-body.in-crm .crm-brand-sub { color: rgba(243, 235, 221, 0.5) !important; letter-spacing: 0.14em; }
+body.in-crm .crm-brand-title strong { color: var(--k26-gold-deep) !important; font-weight: 700; }
+body.in-crm .crm-brand-sub { color: var(--k26-muted) !important; letter-spacing: 0.14em; }
 
 body.in-crm .crm-collapse-btn {
-  background: rgba(255, 255, 255, 0.06) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  color: #F3EBDD !important;
+  background: #FFFFFF !important;
+  border: 1px solid var(--k26-line) !important;
+  color: var(--k26-text) !important;
   border-radius: 12px !important;
 }
 body.in-crm .crm-collapse-btn svg { stroke: currentColor; }
-body.in-crm .crm-collapse-btn:hover { background: rgba(255, 255, 255, 0.12) !important; }
+body.in-crm .crm-collapse-btn:hover { background: var(--k26-ivory-2) !important; }
 
 body.in-crm .crm-user-card {
   margin: 0 14px 18px !important;
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: linear-gradient(180deg, #FFFDF6, #FBF4DE) !important;
+  border: 1px solid rgba(231, 177, 12, 0.22) !important;
   border-radius: var(--k26-radius-md) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  box-shadow: none !important;
 }
 body.in-crm .crm-user-avatar {
-  background: linear-gradient(140deg, #F2C94C, #B8860B) !important;
-  color: #231F19 !important;
+  background: linear-gradient(140deg, #F3C64A, #E7B10C) !important;
+  color: #262628 !important;
   font-family: var(--k26-serif);
   border-radius: 12px !important;
 }
-body.in-crm .crm-user-name { color: #FBF5EA !important; }
+body.in-crm .crm-user-name { color: var(--k26-text) !important; }
 body.in-crm .crm-user-role-pill {
-  background: rgba(216, 164, 15, 0.16) !important;
-  color: #F2C94C !important;
-  border: 1px solid rgba(216, 164, 15, 0.3) !important;
+  background: #FFFFFF !important;
+  color: var(--k26-gold-deep) !important;
+  border: 1px solid rgba(231, 177, 12, 0.45) !important;
 }
 
 body.in-crm .crm-nav-group-title,
-body.in-crm .crm-nav-group-title span { color: rgba(243, 235, 221, 0.4) !important; letter-spacing: 0.16em; }
+body.in-crm .crm-nav-group-title span { color: var(--k26-muted) !important; letter-spacing: 0.16em; }
 
 body.in-crm .crm-nav { gap: 2px; padding: 0 12px 16px; }
 
@@ -121,22 +120,22 @@ body.in-crm .crm-nav a {
   position: relative;
   padding: 11px 14px !important;
   border-radius: 12px !important;
-  color: rgba(243, 235, 221, 0.66) !important;
+  color: var(--k26-muted) !important;
   transition: background-color 0.2s var(--k26-ease), color 0.2s var(--k26-ease), transform 0.2s var(--k26-ease) !important;
 }
-body.in-crm .crm-nav a svg { stroke: rgba(243, 235, 221, 0.55) !important; transition: stroke 0.2s var(--k26-ease); }
+body.in-crm .crm-nav a svg { stroke: #8A8A8F !important; transition: stroke 0.2s var(--k26-ease); }
 body.in-crm .crm-nav a:hover {
-  background: rgba(255, 255, 255, 0.06) !important;
-  color: #FBF5EA !important;
+  background: var(--k26-ivory-2) !important;
+  color: var(--k26-text) !important;
   transform: translateX(2px);
 }
-body.in-crm .crm-nav a:hover svg { stroke: #FBF5EA !important; }
+body.in-crm .crm-nav a:hover svg { stroke: var(--k26-text) !important; }
 
 body.in-crm .crm-nav a[aria-current="page"] {
-  background: linear-gradient(90deg, rgba(216, 164, 15, 0.24), rgba(216, 164, 15, 0.04)) !important;
-  color: #FFF3D1 !important;
+  background: var(--k26-gold-soft) !important;
+  color: #5A4200 !important;
   font-weight: 600 !important;
-  box-shadow: inset 0 0 0 1px rgba(216, 164, 15, 0.22) !important;
+  box-shadow: none !important;
 }
 body.in-crm .crm-nav a[aria-current="page"]::before {
   content: "";
@@ -147,26 +146,25 @@ body.in-crm .crm-nav a[aria-current="page"]::before {
   width: 3px;
   border-radius: 0 3px 3px 0;
   background: var(--k26-gold);
-  box-shadow: 0 0 12px rgba(216, 164, 15, 0.7);
 }
-body.in-crm .crm-nav a[aria-current="page"] svg { stroke: var(--k26-gold) !important; }
+body.in-crm .crm-nav a[aria-current="page"] svg { stroke: var(--k26-gold-deep) !important; }
 
 body.in-crm .crm-sidebar-footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-top: 1px solid var(--k26-line) !important;
   background: transparent !important;
 }
-body.in-crm .crm-system-status { color: rgba(243, 235, 221, 0.55) !important; }
+body.in-crm .crm-system-status { color: var(--k26-muted) !important; }
 body.in-crm .crm-sidebar-footer .crm-logout-btn {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  color: #F3EBDD !important;
+  background: #FFFFFF !important;
+  border: 1px solid var(--k26-line) !important;
+  color: var(--k26-text) !important;
 }
 body.in-crm .crm-sidebar-footer .crm-logout-btn svg { stroke: currentColor !important; }
-body.in-crm .crm-sidebar-footer .crm-logout-btn:hover { background: rgba(255, 255, 255, 0.1) !important; }
+body.in-crm .crm-sidebar-footer .crm-logout-btn:hover { background: var(--k26-ivory-2) !important; }
 
 /* ------------------------------------------------------------------ Topbar */
 body.in-crm .crm-topbar {
-  background: rgba(246, 241, 231, 0.72) !important;
+  background: rgba(255, 255, 255, 0.78) !important;
   -webkit-backdrop-filter: saturate(1.4) blur(16px);
   backdrop-filter: saturate(1.4) blur(16px);
   border-bottom: 1px solid var(--k26-line) !important;
@@ -183,8 +181,8 @@ body.in-crm .coursue-hero-banner.k26-hero {
   border: 0 !important;
   border-radius: 28px !important;
   background:
-    radial-gradient(560px 300px at 92% -20%, rgba(216, 164, 15, 0.26), transparent 70%),
-    linear-gradient(135deg, #FFFDF8 0%, #FBF3E1 100%) !important;
+    radial-gradient(70% 90% at 100% 0%, rgba(231, 177, 12, 0.16), transparent 70%),
+    linear-gradient(180deg, #FFFFFF 0%, #FDF8EA 100%) !important;
   box-shadow: var(--k26-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
   color: var(--k26-text) !important;
 }
@@ -251,15 +249,15 @@ body.in-crm .k26-hero .coursue-hero-subtitle {
 
 body.in-crm .k26-hero .coursue-hero-cta {
   margin-top: 20px !important;
-  background: var(--k26-ink) !important;
-  color: #FFF8E8 !important;
+  background: var(--k26-gold) !important;
+  color: #262628 !important;
   border-radius: 999px !important;
-  box-shadow: 0 10px 24px -12px rgba(31, 28, 24, 0.6) !important;
+  box-shadow: 0 10px 24px -12px rgba(38, 38, 40, 0.6) !important;
   transition: transform 0.2s var(--k26-ease), box-shadow 0.2s var(--k26-ease) !important;
 }
-body.in-crm .k26-hero .coursue-hero-cta:hover { transform: translateY(-2px); box-shadow: 0 16px 32px -14px rgba(31, 28, 24, 0.7) !important; }
+body.in-crm .k26-hero .coursue-hero-cta:hover { transform: translateY(-2px); box-shadow: 0 16px 32px -14px rgba(38, 38, 40, 0.7) !important; }
 body.in-crm .k26-hero .coursue-hero-cta:active { transform: translateY(0) scale(0.98); }
-body.in-crm .k26-hero .coursue-hero-cta-arrow { background: var(--k26-gold) !important; color: var(--k26-ink) !important; }
+body.in-crm .k26-hero .coursue-hero-cta-arrow { background: #262628 !important; color: #FFFFFF !important; }
 
 body.in-crm .k26-shortcuts {
   display: flex;
@@ -275,7 +273,7 @@ body.in-crm .k26-shortcuts a {
   padding: 7px 14px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(138, 100, 0, 0.14);
+  border: 1px solid rgba(133, 96, 0, 0.14);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
   font-size: var(--fs-13);
   font-weight: 500;
@@ -291,13 +289,13 @@ body.in-crm .k26-shortcuts a::after {
   color: var(--k26-gold-deep);
   transition: transform 0.2s var(--k26-ease);
 }
-body.in-crm .k26-shortcuts a:hover { background: #FFFFFF; border-color: rgba(138, 100, 0, 0.3); transform: translateY(-1px); }
+body.in-crm .k26-shortcuts a:hover { background: #FFFFFF; border-color: rgba(133, 96, 0, 0.3); transform: translateY(-1px); }
 body.in-crm .k26-shortcuts a:hover::after { transform: translateX(3px); }
 
 /* ------------------------------------------------------------------ Permukaan */
 body.in-crm :is(.crm-white-card, .admin-alerts, .admin-card, .admin-ops-card, .admin-kpi, .crm-summary-card) {
   background: var(--k26-paper) !important;
-  border: 1px solid rgba(60, 46, 20, 0.05) !important;
+  border: 1px solid rgba(54, 54, 56, 0.05) !important;
   border-radius: var(--k26-radius-lg) !important;
   box-shadow: var(--k26-shadow) !important;
 }
@@ -348,7 +346,7 @@ body.in-crm .admin-alert {
   box-shadow: inset 3px 0 0 var(--k26-gold) !important;
   transition: background-color 0.2s var(--k26-ease), transform 0.2s var(--k26-ease);
 }
-body.in-crm .admin-alert:hover { background: #FFF8E6 !important; transform: translateX(2px); }
+body.in-crm .admin-alert:hover { background: #FFF9E8 !important; transform: translateX(2px); }
 body.in-crm .admin-alert--tinggi,
 body.in-crm .admin-alert.is-tinggi { box-shadow: inset 3px 0 0 #B4372F !important; }
 
@@ -370,7 +368,7 @@ body.in-crm .admin-table th {
   color: var(--k26-muted) !important;
 }
 body.in-crm .admin-table tbody tr { transition: background-color 0.15s var(--k26-ease); }
-body.in-crm .admin-table tbody tr:hover { background: #FFFBF0 !important; }
+body.in-crm .admin-table tbody tr:hover { background: #FFFCF2 !important; }
 
 /* Tab berbentuk pil: segmented control yang tenang. */
 body.in-crm .crm-pill-btn {
@@ -383,11 +381,12 @@ body.in-crm .crm-pill-btn {
 }
 body.in-crm .crm-pill-btn:hover { background: #FFFFFF !important; }
 body.in-crm .crm-pill-btn.is-active {
-  background: var(--k26-ink) !important;
-  border-color: var(--k26-ink) !important;
-  color: #FFF8E8 !important;
-  box-shadow: 0 8px 20px -12px rgba(31, 28, 24, 0.7) !important;
+  background: var(--k26-gold) !important;
+  border-color: var(--k26-gold) !important;
+  color: #262628 !important;
+  box-shadow: 0 8px 20px -12px rgba(160, 112, 0, 0.7) !important;
 }
+body.in-crm .crm-pill-btn.is-active svg { stroke: #262628 !important; }
 
 /* ------------------------------------------------------------------ Tombol */
 body.in-crm .button {
@@ -395,18 +394,18 @@ body.in-crm .button {
 }
 body.in-crm .button:active { transform: translateY(1px) scale(0.985); }
 body.in-crm .button--primary {
-  background: linear-gradient(180deg, #F1C232 0%, #DCA80F 100%) !important;
+  background: var(--k26-gold) !important;
   border: 0 !important;
-  color: #2A2108 !important;
+  color: #262628 !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 10px 22px -12px rgba(160, 112, 0, 0.75) !important;
 }
-body.in-crm .button--primary:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 14px 28px -12px rgba(160, 112, 0, 0.85) !important; }
+body.in-crm .button--primary:hover { background: #D6A206 !important; transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 14px 28px -12px rgba(160, 112, 0, 0.85) !important; }
 body.in-crm .button--secondary {
   background: rgba(255, 255, 255, 0.85) !important;
   border: 1px solid var(--k26-line) !important;
   color: var(--k26-text) !important;
 }
-body.in-crm .button--secondary:hover { background: #FFFFFF !important; border-color: rgba(60, 46, 20, 0.22) !important; }
+body.in-crm .button--secondary:hover { background: #FFFFFF !important; border-color: rgba(54, 54, 56, 0.22) !important; }
 
 /* ------------------------------------------------------------------ Beranda per peran */
 /* Kartu santri musyrif dan kartu kelas santri: lebih lembut dan hidup. */
@@ -420,11 +419,14 @@ body.in-crm .mus-card.is-perhatian { box-shadow: var(--k26-shadow), inset 0 0 0 
 
 body.in-crm .beranda-class__next {
   background:
-    radial-gradient(360px 160px at 100% 0%, rgba(216, 164, 15, 0.35), transparent 70%),
-    linear-gradient(135deg, #2A2620, #1B1916) !important;
+    radial-gradient(360px 160px at 100% 0%, rgba(231, 177, 12, 0.28), transparent 70%),
+    linear-gradient(180deg, #FFFDF6, #FBEFC4) !important;
+  color: #363638 !important;
   border-radius: 20px !important;
-  box-shadow: 0 18px 40px -22px rgba(31, 28, 24, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(231, 177, 12, 0.3);
 }
+body.in-crm .beranda-class__next-label { color: #856000 !important; }
+body.in-crm .beranda-class__next-title { font-family: var(--k26-serif); }
 
 body.in-crm :is(.beranda-stat, .santri-indicator) {
   border: 0 !important;
@@ -442,7 +444,7 @@ body.in-crm .mus-page > .mus-story {
   border-top: 0 !important;
   border-radius: var(--k26-radius-lg);
   background:
-    radial-gradient(420px 220px at 100% 0%, rgba(216, 164, 15, 0.16), transparent 70%),
+    radial-gradient(420px 220px at 100% 0%, rgba(231, 177, 12, 0.16), transparent 70%),
     var(--k26-paper);
   box-shadow: var(--k26-shadow);
 }
@@ -458,7 +460,7 @@ body.in-crm :is(.wali-page, .mus-page, .asr-page) { --wali-rule: var(--k26-line)
 /* ------------------------------------------------------------------ Kartu merespons kursor */
 /* --mx dan --my diisi internal-shell.js saat kursor bergerak di atas kartu. */
 body.in-crm :is(.admin-kpi, .admin-ops-card, .mus-card, .crm-white-card.beranda-card) {
-  background-image: radial-gradient(420px circle at var(--mx, -500px) var(--my, -500px), rgba(216, 164, 15, 0.09), transparent 45%) !important;
+  background-image: radial-gradient(420px circle at var(--mx, -500px) var(--my, -500px), rgba(231, 177, 12, 0.09), transparent 45%) !important;
 }
 
 /* ------------------------------------------------------------------ Gerak masuk */
