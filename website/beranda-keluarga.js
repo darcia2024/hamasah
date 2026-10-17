@@ -335,7 +335,7 @@
   }
 
   // data: hasil /api/asrama-saya. studentId: ananda yang sedang dilihat.
-  function bagianJadwalAsrama(data, studentId, { polos = false } = {}) {
+  function bagianJadwalAsrama(data, studentId, { polos = false, santri = false } = {}) {
     if (!data || !data.tersedia || !Array.isArray(data.dormitories)) return null;
     const asrama = data.dormitories.find((d) => d.students.some((s) => String(s.id) === String(studentId)));
     if (!asrama || (!asrama.routine.length && !asrama.events.length && !asrama.duties.length)) return null;
@@ -344,7 +344,7 @@
     const teks = el('div');
     teks.append(
       el('h3', polos ? 'wali-section__title' : 'beranda-card__title', 'Jadwal asrama'),
-      el('p', polos ? 'wali-section__note' : 'beranda-card__note', `${asrama.name || 'Asrama'}: kegiatan rutin, acara, dan piket ananda. Ketuk hari untuk melihat rinciannya.`)
+      el('p', polos ? 'wali-section__note' : 'beranda-card__note', `${asrama.name || 'Asrama'}: kegiatan rutin, acara, dan piket ${santri ? 'kamu' : 'ananda'}. Ketuk hari untuk melihat rinciannya.`)
     );
     kepala.append(teks);
     wadah.append(kepala);
@@ -491,7 +491,7 @@
   }
 
   window.HamasahBerandaKeluarga = Object.freeze({
-    santri, muatAnak, ambil, butirKegiatan, kartuLinimasa, kartuPengumuman, penomoran, chipUrusan,
+    santri, muatAnak, ambil, butirKegiatan, kartuLinimasa, kartuPengumuman, penomoran, chipUrusan, kartuKelas,
     muatJadwalAsrama, bagianJadwalAsrama,
     inisial, tanggal, rupiah, terbaru, PERIODE_HARI, NILAI_HAFALAN, PRESENSI
   });

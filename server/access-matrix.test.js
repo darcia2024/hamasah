@@ -159,6 +159,8 @@ async function run() {
       { permission: 'dormitory-management.manage', method: 'PATCH', path: () => `/api/asrama/${dormitoryId}/jadwal/00000000-0000-4000-8000-000000000000`, body: () => ({ title: '' }) },
       { permission: 'dormitory-management.manage', method: 'DELETE', path: () => `/api/asrama/${dormitoryId}/jadwal/00000000-0000-4000-8000-000000000000` },
       { permission: 'dormitory-management.manage', method: 'PUT', path: () => `/api/asrama/${dormitoryId}/piket`, body: () => ({}) },
+      { permission: 'dormitory-management.manage', method: 'POST', path: () => `/api/asrama/${dormitoryId}/galeri`, body: () => ({ fileId: '' }) },
+      { permission: 'dormitory-management.manage', method: 'DELETE', path: () => `/api/asrama/${dormitoryId}/galeri/00000000-0000-4000-8000-000000000000` },
       { permission: 'dormitory-schedule.read', method: 'GET', path: '/api/asrama-saya' },
       { permission: 'demo.manage', method: 'GET', path: '/api/admin/demo-data' },
       // Langkah yang tidak dikenal dan konfirmasi yang salah: admin mendapat 422, bukan

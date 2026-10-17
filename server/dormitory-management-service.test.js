@@ -115,6 +115,42 @@ async function run() {
     assert.deepEqual(santriSendiri.duties.map((d) => d.studentName), ['Fikri Haidar']);
     assert.equal((await layanan.forFamily(MUSYRIF)).status, 403);
 
+    // Galeri asrama (migrasi 051): hanya unggahan 'dormitory-photo' asrama itu yang siap.
+    async function unggahan(asramaId, { purpose = 'dormitory-photo', status = 'ready' } = {}) {
+      const id = crypto.randomUUID();
+      await q(
+        `INSERT INTO file_objects (id, bucket, storage_key, purpose, entity_type, entity_id, original_name, content_type, size_bytes, status)
+         VALUES ($1, 'hamasah-private', $2, $3, 'dormitory', $4, 'foto.jpg', 'image/jpeg', 1200, $5)`,
+        [id, `${purpose}/${asramaId}/${id}.jpg`, purpose, String(asramaId), status]
+      );
+      return id;
+    }
+    const fotoRihlah = await unggahan(putra);
+    assert.equal((await layanan.addPhoto(putra, { fileId: await unggahan(putra, { status: 'pending' }) }, MUSYRIF)).ok, false, 'Unggahan belum selesai ditolak.');
+    assert.equal((await layanan.addPhoto(putra, { fileId: await unggahan(putri) }, MUSYRIF)).ok, false, 'Foto asrama lain ditolak.');
+    assert.equal((await layanan.addPhoto(putra, { fileId: await unggahan(putra, { purpose: 'student-photo' }) }, MUSYRIF)).ok, false, 'Jenis unggahan lain ditolak.');
+    assert.equal((await layanan.addPhoto(putri, { fileId: fotoRihlah }, MUSYRIF)).status, 403);
+    const foto = await layanan.addPhoto(putra, { fileId: fotoRihlah, caption: 'Rihlah ke Alexandria', takenOn: '2026-10-12' }, MUSYRIF);
+    assert.equal(foto.ok, true);
+    const fotoKedua = await layanan.addPhoto(putra, { fileId: await unggahan(putra), caption: 'Mudzakarah malam' }, MUSYRIF);
+    assert.deepEqual((await layanan.overview(putra, MUSYRIF)).value.gallery.items.map((f) => f.caption), ['Mudzakarah malam', 'Rihlah ke Alexandria']);
+    assert.deepEqual((await layanan.forFamily({ role: 'student' })).value.dormitories[0].gallery.map((f) => f.fileId), [fotoKedua.value.fileId, fotoRihlah]);
+    assert.equal(await layanan.bolehLihatFoto(putra, { role: 'parent' }), true);
+    assert.equal(await layanan.bolehLihatFoto(putri, { role: 'parent' }), false, 'Wali tidak melihat galeri asrama lain.');
+    assert.equal(await layanan.bolehLihatFoto(putra, { role: 'teacher' }), false);
+    assert.equal(await layanan.bolehUnggahFoto(putri, MUSYRIF), false);
+    assert.equal(await layanan.bolehUnggahFoto(putra, MUSYRIF), true);
+    assert.equal((await layanan.archivePhoto(putra, fotoKedua.value.id, MUSYRIF)).ok, true);
+    assert.deepEqual((await layanan.forFamily({ role: 'parent' })).value.dormitories[0].gallery.map((f) => f.caption), ['Rihlah ke Alexandria']);
+
+    // Sebelum migrasi 051 (tabel 050 sudah ada): galeri kosong, Kelola Asrama tetap jalan.
+    await q('DROP TABLE dormitory_gallery');
+    const tanpaGaleri = (await layanan.overview(putra, MUSYRIF)).value;
+    assert.equal(tanpaGaleri.tersedia, true);
+    assert.equal(tanpaGaleri.gallery.tersedia, false);
+    assert.deepEqual((await layanan.forFamily({ role: 'parent' })).value.dormitories[0].gallery, []);
+    assert.equal((await layanan.addPhoto(putra, { fileId: fotoRihlah }, MUSYRIF)).status, 409);
+
     // Hapus tugas piket ikut menghapus pembagiannya; hapus jadwal.
     await layanan.deleteDuty(putra, kamar.id, MUSYRIF);
     await layanan.deleteSchedule(putra, rihlah.value.id, MUSYRIF);

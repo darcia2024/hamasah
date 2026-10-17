@@ -19,11 +19,14 @@ const ARAH = Object.freeze(['masuk', 'keluar']);
 const HARI = Object.freeze(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Ahad']);
 const MAKS_RUPIAH = 1_000_000_000;
 const AGENDA_KE_DEPAN_HARI = 45;
+// Galeri: foto terbaru yang dikirim ke halaman (musyrif dan keluarga).
+const GALERI_KELOLA = 60;
+const GALERI_KELUARGA = 24;
 
 function tabelBelumAda(error) {
   if (!error) return false;
   if (error.code === '42P01') return true;
-  return /dormitory_(schedule|duties|duty_assignments|cash_entries|dues|inventory)/.test(String(error.message || '')) && /does not exist/i.test(String(error.message || ''));
+  return /dormitory_(schedule|duties|duty_assignments|cash_entries|dues|inventory|gallery)/.test(String(error.message || '')) && /does not exist/i.test(String(error.message || ''));
 }
 
 function bersih(value, max = 200) {
@@ -455,6 +458,74 @@ function createDormitoryManagementService({ database, staffDormitories, listStud
     });
   }
 
+  // ------------------------------------------------------------- galeri
+  // Foto kegiatan per asrama (migrasi 051). Fotonya unggahan berjenis 'dormitory-photo'
+  // dengan entityId = id asrama; baris galeri menautkannya beserta keterangan.
+  function barisFoto(row) {
+    return { id: row.id, fileId: row.file_id, caption: row.caption, takenOn: teksTanggal(row.taken_on), createdAt: iso(row.created_at) };
+  }
+
+  async function galeri(dormitoryIds, batas) {
+    return (await ambil(
+      `SELECT id, dormitory_id, file_id, caption, taken_on, created_at FROM (
+         SELECT g.*, row_number() OVER (PARTITION BY g.dormitory_id ORDER BY COALESCE(g.taken_on, g.created_at::date) DESC, g.created_at DESC) AS urutan
+           FROM dormitory_gallery g
+          WHERE g.dormitory_id::text = ANY($1::text[]) AND g.archived_at IS NULL
+       ) t WHERE urutan <= $2
+       ORDER BY COALESCE(taken_on, created_at::date) DESC, created_at DESC`,
+      [dormitoryIds.map(String), batas]
+    )).map((row) => ({ ...barisFoto(row), dormitoryId: row.dormitory_id }));
+  }
+
+  async function addPhoto(dormitoryId, input, actor) {
+    const izin = await bolehKelola(dormitoryId, actor);
+    if (!izin.ok) return izin;
+    const s = input || {};
+    const fileId = String(s.fileId || '');
+    const caption = bersih(s.caption, 160);
+    const takenOn = s.takenOn ? String(s.takenOn) : null;
+    if (takenOn && !isTanggal(takenOn)) return { ok: false, error: 'Tanggal foto tidak valid.' };
+    // Unggahan harus benar-benar foto asrama ini yang sudah selesai dikirim.
+    const berkas = await ambil(
+      `SELECT 1 FROM file_objects WHERE id::text = $1 AND purpose = 'dormitory-photo' AND entity_id = $2 AND status = 'ready'`,
+      [fileId, String(dormitoryId)]
+    );
+    if (!berkas.length) return { ok: false, error: 'Foto belum selesai diunggah. Coba unggah ulang.' };
+    return tulis(async () => {
+      const [row] = await ambil(
+        `INSERT INTO dormitory_gallery (id, dormitory_id, file_id, caption, taken_on, created_by_account_id)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [crypto.randomUUID(), dormitoryId, fileId, caption, takenOn, actor.id || null]
+      );
+      return { ok: true, value: barisFoto(row) };
+    });
+  }
+
+  async function archivePhoto(dormitoryId, photoId, actor) {
+    const izin = await bolehKelola(dormitoryId, actor);
+    if (!izin.ok) return izin;
+    return tulis(async () => {
+      const rows = await ambil(
+        `UPDATE dormitory_gallery SET archived_at = now() WHERE id::text = $1 AND dormitory_id::text = $2 AND archived_at IS NULL RETURNING id`,
+        [String(photoId), String(dormitoryId)]
+      );
+      return rows.length ? { ok: true, value: { id: photoId } } : { ok: false, status: 404, error: 'Foto tidak ditemukan.' };
+    });
+  }
+
+  // Aturan unggah dan unduh berkas 'dormitory-photo' (storage/upload-policies.js).
+  async function bolehUnggahFoto(dormitoryId, actor) {
+    return (await bolehKelola(dormitoryId, actor)).ok;
+  }
+
+  async function bolehLihatFoto(dormitoryId, actor) {
+    if (!actor) return false;
+    if (['admin', 'supervisor'].includes(actor.role)) return (await bolehKelola(dormitoryId, actor)).ok;
+    if (!['student', 'parent'].includes(actor.role)) return false;
+    const anak = await listStudentsForActor(actor);
+    return anak.some((s) => s.dormitoryId && String(s.dormitoryId) === String(dormitoryId));
+  }
+
   // ------------------------------------------------------------- baca
   async function list(actor) {
     const daftar = await asramaDikelola(actor);
@@ -477,10 +548,13 @@ function createDormitoryManagementService({ database, staffDormitories, listStud
         [dormitoryId]
       )).map(barisBarang)
     }), { tersedia: false, schedule: [], duties: [], cash: null, inventory: [] });
+    // Galeri dari migrasi 051: boleh belum ada walau tabel 050 sudah ada.
+    const galeriAsrama = await baca(async () => ({ tersedia: true, items: (await galeri([dormitoryId], GALERI_KELOLA)).map(({ dormitoryId: _d, ...f }) => f) }), { tersedia: false, items: [] });
     return {
       ok: true,
       value: {
         ...isi,
+        gallery: galeriAsrama,
         today: tanggalJakarta(now()),
         dormitory: { id: izin.asrama.id, name: izin.asrama.name, area: izin.asrama.area, gender: izin.asrama.gender },
         students: santri.map((s) => ({ id: s.id, name: s.name }))
@@ -502,6 +576,7 @@ function createDormitoryManagementService({ database, staffDormitories, listStud
       const semuaPiket = await piket(dormIds);
       return { tersedia: true, semuaJadwal, semuaPiket };
     }, { tersedia: false, semuaJadwal: [], semuaPiket: [] });
+    const semuaFoto = await baca(() => galeri(dormIds, GALERI_KELUARGA), []);
     const batasAgenda = geser(hariIni, AGENDA_KE_DEPAN_HARI);
     const dormitories = dormIds.map((dormId) => {
       const penghuni = anak.filter((s) => String(s.dormitoryId) === dormId);
@@ -520,7 +595,8 @@ function createDormitoryManagementService({ database, staffDormitories, listStud
         students: penghuni.map((s) => ({ id: s.id, name: s.name })),
         routine: jadwalAsrama.filter((j) => j.kind === 'rutin').map(({ dormitoryId, ...j }) => j),
         events: jadwalAsrama.filter((j) => j.kind === 'acara' && j.date <= batasAgenda).map(({ dormitoryId, ...j }) => j),
-        duties: piketAnak.sort((a, b) => a.dayOfWeek - b.dayOfWeek || a.duty.localeCompare(b.duty))
+        duties: piketAnak.sort((a, b) => a.dayOfWeek - b.dayOfWeek || a.duty.localeCompare(b.duty)),
+        gallery: semuaFoto.filter((f) => String(f.dormitoryId) === dormId).map(({ dormitoryId, ...f }) => f)
       };
     });
     return { ok: true, value: { tersedia: hasil.tersedia, today: hariIni, dormitories } };
@@ -531,7 +607,8 @@ function createDormitoryManagementService({ database, staffDormitories, listStud
     addSchedule, updateSchedule, deleteSchedule,
     addDuty, deleteDuty, setDutyAssignments,
     addCash, voidCash, setDues,
-    addInventory, updateInventory, archiveInventory
+    addInventory, updateInventory, archiveInventory,
+    addPhoto, archivePhoto, bolehUnggahFoto, bolehLihatFoto
   });
 }
 

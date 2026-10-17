@@ -1,5 +1,5 @@
 // Kelola Asrama (16 Oktober 2026): jadwal kegiatan rutin, agenda acara, piket, uang kas
-// dan iuran, serta inventaris asrama. Untuk musyrif (asrama yang dipegang) dan admin.
+// dan iuran, inventaris, serta galeri foto (17 Oktober). Untuk musyrif dan admin.
 // Data: /api/asrama (dormitory-management-service.js). Jadwal dan piket ikut tampil di
 // beranda santri dan wali. Semua teks dipasang lewat textContent.
 (function initKelolaAsrama() {
@@ -635,12 +635,91 @@
     return [lihat, tambah];
   }
 
+  // ------------------------------------------------------------ Galeri
+  // Foto kegiatan asrama (galeri-asrama.js). Tampil di beranda santri dan wali asrama ini.
+  function panelGaleri() {
+    const galeri = data.gallery || { tersedia: false, items: [] };
+    if (!galeri.tersedia) {
+      return [el('p', 'asr-warning', 'Galeri asrama menunggu pembaruan database (migrasi 051). Admin dapat menerapkannya di halaman Pengaturan, bagian Pembaruan database.')];
+    }
+    const G = window.HamasahGaleri;
+
+    const tambah = bagian('Unggah foto kegiatan', 'Foto tampil di beranda santri dan wali asrama ini. Pilih beberapa foto sekaligus; ukurannya dikecilkan otomatis.');
+    const idBerkas = idBaru('foto');
+    const pilihBerkas = el('label', 'galeri-drop');
+    pilihBerkas.htmlFor = idBerkas;
+    const masukan = el('input', 'sr-only');
+    masukan.type = 'file';
+    masukan.id = idBerkas;
+    masukan.accept = 'image/jpeg,image/png,image/webp';
+    masukan.multiple = true;
+    const labelPilih = el('span', 'galeri-drop__text', 'Pilih foto');
+    const infoPilih = el('span', 'galeri-drop__hint', 'JPG, PNG, atau WebP');
+    pilihBerkas.append(masukan, labelPilih, infoPilih);
+    masukan.addEventListener('change', () => {
+      const n = masukan.files.length;
+      labelPilih.textContent = n ? `${n} foto dipilih` : 'Pilih foto';
+      infoPilih.textContent = n ? [...masukan.files].map((f) => f.name).slice(0, 3).join(', ') + (n > 3 ? ', ...' : '') : 'JPG, PNG, atau WebP';
+    });
+    const baris = el('div', 'mus-form__row');
+    const keterangan = bidang('Keterangan', 'text', { placeholder: 'Rihlah ke Alexandria' });
+    keterangan.input.maxLength = 160;
+    keterangan.el.classList.add('lms-grow');
+    const kapan = bidang('Tanggal kegiatan', 'date', { nilai: data.today || '' });
+    baris.append(keterangan.el, kapan.el);
+    const st = status();
+    const kirim = tombol('Unggah ke galeri', 'button button--primary');
+    kirim.addEventListener('click', async () => {
+      const berkas = [...masukan.files];
+      if (!berkas.length) { st.galat('Pilih foto dulu.'); return; }
+      kirim.disabled = true;
+      let berhasil = 0;
+      try {
+        for (const [i, f] of berkas.entries()) {
+          st.ok(`Mengunggah foto ${i + 1} dari ${berkas.length}...`);
+          const fileId = await G.unggah(asramaAktif, f, headers());
+          await api('POST', `/api/asrama/${asramaAktif}/galeri`, { fileId, caption: keterangan.nilai(), takenOn: kapan.nilai() || null });
+          berhasil += 1;
+        }
+        kabar = `${berhasil} foto ditambahkan ke galeri.`;
+        await muat();
+      } catch (error) {
+        st.galat(berhasil ? `${berhasil} foto terunggah, lalu gagal: ${error.message}` : error.message);
+        kirim.disabled = false;
+        if (berhasil) { kabar = `${berhasil} foto ditambahkan ke galeri.`; await muat(); }
+      }
+    });
+    const aksi = el('div', 'mus-actions');
+    aksi.append(kirim);
+    tambah.append(pilihBerkas, baris, aksi, st.el);
+
+    const lihat = bagian('Galeri asrama', galeri.items.length ? `${galeri.items.length} foto terbaru. Ketuk foto untuk melihat besar.` : null);
+    if (!galeri.items.length) {
+      lihat.append(el('p', 'asr-empty', 'Belum ada foto. Unggah foto kegiatan pertama di atas.'));
+    } else if (G) {
+      lihat.append(G.grid(galeri.items, {
+        headers: headers(),
+        aksi: (f) => {
+          const tarik = tombol('Tarik', 'mus-link asr-danger galeri-cell__action');
+          tarik.setAttribute('aria-label', `Tarik foto ${f.caption || ''}`.trim());
+          tarik.addEventListener('click', async () => {
+            if (!window.confirm('Tarik foto ini dari galeri? Santri dan wali tidak melihatnya lagi.')) return;
+            await lakukan(() => api('DELETE', `/api/asrama/${asramaAktif}/galeri/${f.id}`), null, 'Foto ditarik dari galeri.');
+          });
+          return tarik;
+        }
+      }));
+    }
+    return [tambah, lihat];
+  }
+
   // ------------------------------------------------------------ Rangka
   const TAB = [
     ['kalender', 'Kalender', panelKalender],
     ['piket', 'Piket', panelPiket],
     ['kas', 'Uang kas', panelKas],
-    ['inventaris', 'Inventaris', panelInventaris]
+    ['inventaris', 'Inventaris', panelInventaris],
+    ['galeri', 'Galeri', panelGaleri]
   ];
 
   function lukis() {

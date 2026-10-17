@@ -149,6 +149,22 @@ const POLICIES = Object.freeze({
     }
   }),
 
+  // Galeri asrama (migrasi 051): foto kegiatan satu asrama, entityId = id asrama.
+  // Yang mengunggah: musyrif asrama itu dan admin. Yang melihat: pengelola asrama itu,
+  // serta santri dan wali yang ananda-nya tinggal di asrama itu.
+  'dormitory-photo': Object.freeze({
+    entityType: 'dormitory',
+    visibility: 'private',
+    contentTypes: GAMBAR,
+    maxBytes: 5 * MB,
+    async canUpload({ actor, entityId, services }) {
+      return Boolean(actor) && services.dormitoryManagementService.bolehUnggahFoto(entityId, actor);
+    },
+    async canDownload({ actor, entityId, services }) {
+      return Boolean(actor) && services.dormitoryManagementService.bolehLihatFoto(entityId, actor);
+    }
+  }),
+
   // Lampiran materi maddah.
   'course-file': Object.freeze({
     entityType: 'course',

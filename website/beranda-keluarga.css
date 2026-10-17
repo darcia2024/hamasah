@@ -2528,3 +2528,294 @@ a.admin-ops-flag:hover { text-decoration: underline; }
   box-shadow: none;
   border: 1px solid rgba(54, 54, 56, 0.09);
 }
+
+/* ==========================================================================
+   Beranda santri (beranda-santri.js, 17 Oktober 2026): kartu "Hari ini" di atas,
+   lalu bagian-bagian polos bergaya beranda wali.
+   ========================================================================== */
+/* Kartu lama (kelas online, izin) dibuat polos seperti bagian lain. Tema konsol memberi
+   kartu bingkai lewat !important, jadi penimpanya juga !important dan lebih spesifik. */
+body.in-crm .snt-page .crm-white-card,
+.snt-page .crm-white-card {
+  padding: 32px 0 !important;
+  border: 0 !important;
+  border-top: 1px solid var(--wali-rule) !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+body.in-crm .snt-page .wali-grid > .crm-white-card,
+.snt-page .wali-grid > .crm-white-card { border-top: 0 !important; }
+/* "Lanjutkan belajar" sudah ada di kartu Hari ini. */
+.snt-page .beranda-class__next { display: none; }
+
+.snt-today {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 20px 32px;
+  margin: 8px 0 28px;
+  padding: 28px;
+  border-radius: 28px;
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(251, 239, 196, 0.95) 0%, rgba(251, 239, 196, 0) 58%),
+    linear-gradient(180deg, #FFFDF7 0%, #FFFFFF 100%);
+  box-shadow: 0 0 0 1px rgba(231, 177, 12, 0.22), 0 24px 48px -32px rgba(133, 96, 0, 0.45);
+}
+
+.snt-today__main { display: grid; gap: 14px; align-content: start; min-width: 0; }
+.snt-today__empty { margin: 0; font-size: var(--fs-16); line-height: 1.6; color: var(--md-sys-color-on-surface-variant); }
+
+.snt-agenda { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.snt-agenda__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 11px 14px;
+  border-radius: 14px;
+  transition: background-color 0.2s;
+}
+.snt-agenda__item.is-past { opacity: 0.5; }
+.snt-agenda__item.is-now { background: #FFFFFF; box-shadow: inset 4px 0 0 var(--wali-gold), 0 0 0 1px rgba(231, 177, 12, 0.3); }
+.snt-agenda__item.is-next { background: rgba(255, 255, 255, 0.7); box-shadow: inset 4px 0 0 rgba(201, 150, 10, 0.45); }
+.snt-agenda__time { font-size: var(--fs-14); font-weight: 600; font-variant-numeric: tabular-nums; color: var(--gold-dark); }
+.snt-agenda__text { display: grid; gap: 1px; min-width: 0; }
+.snt-agenda__text strong { font-size: var(--fs-16); font-weight: 600; color: var(--md-sys-color-on-surface); }
+.snt-agenda__text span { font-size: var(--fs-13); color: var(--md-sys-color-on-surface-variant); }
+.snt-agenda__flag { padding: 3px 10px; border-radius: 999px; background: var(--wali-gold); font-size: var(--fs-12); font-weight: 700; color: #2B2100; white-space: nowrap; }
+.snt-agenda__item.is-next .snt-agenda__flag { background: #FBEFC4; color: #5A4200; }
+
+.snt-today__side { display: grid; gap: 10px; align-content: start; }
+.snt-tile {
+  display: grid;
+  gap: 3px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 0 0 1px rgba(54, 54, 56, 0.07);
+  color: inherit;
+  text-decoration: none;
+}
+.snt-tile__label { font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--md-sys-color-on-surface-variant); }
+.snt-tile__value { font-family: "Philosopher", Georgia, serif; font-size: 20px; font-weight: 700; line-height: 1.25; color: var(--md-sys-color-on-surface); }
+.snt-tile__value--sm { font-size: var(--fs-16); }
+.snt-tile__count { font-family: "Philosopher", Georgia, serif; font-size: 28px; font-weight: 700; line-height: 1.1; color: var(--gold-dark); }
+.snt-tile__note { font-size: var(--fs-13); line-height: 1.45; color: var(--md-sys-color-on-surface-variant); }
+.snt-tile.is-duty { background: #FFF6D9; box-shadow: 0 0 0 1px rgba(231, 177, 12, 0.35); }
+.snt-tile--learn { transition: transform 0.2s, box-shadow 0.2s; }
+.snt-tile--learn:hover { transform: translateY(-1px); box-shadow: 0 0 0 1px rgba(231, 177, 12, 0.45), 0 12px 24px -18px rgba(133, 96, 0, 0.5); }
+.snt-tile--learn:focus-visible { outline: 2px solid var(--wali-gold); outline-offset: 3px; }
+
+.snt-quick { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px; }
+.snt-quick__btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid rgba(54, 54, 56, 0.16);
+  border-radius: 999px;
+  background: #FFFFFF;
+  font: inherit;
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.15s;
+}
+.snt-quick__btn:hover { border-color: var(--wali-gold); background: #FFFBEF; }
+.snt-quick__btn:active { transform: translateY(1px); }
+.snt-quick__btn:focus-visible { outline: 2px solid var(--wali-gold); outline-offset: 2px; }
+.snt-quick__btn.is-primary { border-color: transparent; background: #E7B10C; color: #2B2100; }
+.snt-quick__btn.is-primary:hover { background: #D9A50A; }
+
+.snt-report { padding-top: 8px; }
+.snt-report__head { display: grid; gap: 6px; }
+
+/* Prestasi */
+.snt-badges { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.snt-badge { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: center; }
+.snt-badge__icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, #FFE58A 0%, #E7B10C 60%, #B88700 100%);
+  font-size: 18px;
+  color: #FFFFFF;
+  box-shadow: 0 6px 14px -8px rgba(133, 96, 0, 0.8);
+}
+.snt-badge__text { display: grid; gap: 1px; }
+.snt-badge__text strong { font-size: var(--fs-16); font-weight: 600; }
+.snt-badge__text span { font-size: var(--fs-13); color: var(--md-sys-color-on-surface-variant); }
+
+/* Acara mendatang */
+.snt-events { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.snt-event { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 14px; align-items: center; }
+.snt-event__date {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  height: 56px;
+  border-radius: 14px;
+  background: #FAF7EE;
+  line-height: 1.1;
+}
+.snt-event__date strong { font-family: "Philosopher", Georgia, serif; font-size: 22px; font-weight: 700; color: var(--md-sys-color-on-surface); }
+.snt-event__date span { font-size: var(--fs-12); text-transform: uppercase; letter-spacing: 0.06em; color: var(--md-sys-color-on-surface-variant); }
+.snt-event.is-soon .snt-event__date { background: #FBEFC4; }
+.snt-event__text { display: grid; gap: 2px; min-width: 0; }
+.snt-event__text strong { font-size: var(--fs-16); font-weight: 600; }
+.snt-event__text span { font-size: var(--fs-13); color: var(--md-sys-color-on-surface-variant); }
+.snt-event__count { font-size: var(--fs-13); font-weight: 600; color: var(--gold-dark); white-space: nowrap; }
+
+@media (max-width: 860px) {
+  .snt-today { grid-template-columns: minmax(0, 1fr); padding: 22px 18px; border-radius: 22px; }
+}
+
+@media (max-width: 640px) {
+  .snt-agenda__item { grid-template-columns: 92px minmax(0, 1fr); gap: 10px; padding: 10px; }
+  .snt-agenda__time { font-size: var(--fs-13); white-space: nowrap; }
+  .snt-agenda__flag { grid-column: 2; justify-self: start; }
+  .snt-quick__btn { flex: 1 1 auto; justify-content: center; }
+}
+
+/* ==========================================================================
+   Galeri asrama (galeri-asrama.js): grid foto, ubin, dan penampil layar penuh.
+   ========================================================================== */
+.galeri-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+.galeri-cell { position: relative; display: grid; gap: 6px; min-width: 0; }
+.galeri-tile {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(110deg, #F2EEE4 30%, #FAF7EE 50%, #F2EEE4 70%) 0 0 / 220% 100%;
+  animation: galeri-shimmer 1.4s linear infinite;
+  cursor: zoom-in;
+}
+.galeri-tile.is-loaded,
+.galeri-tile.is-gagal { animation: none; }
+.galeri-tile img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.5s ease;
+}
+.galeri-tile.is-loaded img { opacity: 1; }
+.galeri-tile:hover img { transform: scale(1.04); }
+.galeri-tile:focus-visible { outline: 2px solid #E7B10C; outline-offset: 3px; }
+.galeri-tile__cap {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 22px 12px 10px;
+  background: linear-gradient(180deg, rgba(20, 18, 14, 0) 0%, rgba(20, 18, 14, 0.72) 100%);
+  font-size: var(--fs-13);
+  font-weight: 600;
+  line-height: 1.3;
+  color: #FFFFFF;
+  text-align: left;
+}
+.galeri-cell__action { justify-self: start; }
+.galeri-more {
+  aspect-ratio: 4 / 3;
+  border: 1px dashed rgba(54, 54, 56, 0.25);
+  border-radius: 16px;
+  background: #FAF7EE;
+  font: inherit;
+  font-weight: 700;
+  color: #856000;
+  cursor: pointer;
+}
+@keyframes galeri-shimmer { to { background-position: -220% 0; } }
+@media (prefers-reduced-motion: reduce) { .galeri-tile { animation: none; } }
+
+/* Galeri di beranda: foto pertama lebih besar. */
+.snt-gallery .galeri-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.snt-gallery .galeri-cell:first-child { grid-column: span 2; grid-row: span 2; }
+.snt-gallery .galeri-cell:first-child .galeri-tile { aspect-ratio: auto; height: 100%; min-height: 220px; }
+
+.galeri-drop {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  padding: 26px 16px;
+  border: 1.5px dashed rgba(201, 150, 10, 0.55);
+  border-radius: 18px;
+  background: #FFFDF6;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+.galeri-drop:hover,
+.galeri-drop:focus-within { border-color: #E7B10C; background: #FFF8E1; }
+.galeri-drop__text { font-weight: 700; color: #856000; }
+.galeri-drop__hint { font-size: var(--fs-13); color: #6B6B70; }
+
+.galeri-viewer {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(1100px, 100vw);
+  max-width: 100vw;
+  height: min(820px, 100dvh);
+  max-height: 100dvh;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #FFFFFF;
+  overflow: visible;
+}
+.galeri-viewer::backdrop { background: rgba(14, 12, 9, 0.88); backdrop-filter: blur(6px); }
+.galeri-viewer__stage { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 12px; height: 100%; margin: 0; padding: 56px 64px 24px; }
+.galeri-viewer__img { width: 100%; height: 100%; min-height: 0; object-fit: contain; border-radius: 10px; }
+.galeri-viewer__cap { display: grid; gap: 2px; text-align: center; }
+.galeri-viewer__cap strong { font-size: var(--fs-16); }
+.galeri-viewer__cap span { font-size: var(--fs-13); opacity: 0.75; }
+.galeri-viewer__close,
+.galeri-viewer__nav {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 26px;
+  line-height: 1;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.galeri-viewer__close:hover,
+.galeri-viewer__nav:hover { background: rgba(255, 255, 255, 0.26); }
+.galeri-viewer__close:focus-visible,
+.galeri-viewer__nav:focus-visible { outline: 2px solid #E7B10C; outline-offset: 2px; }
+.galeri-viewer__nav:disabled { opacity: 0.3; cursor: default; }
+.galeri-viewer__close { top: 8px; right: 8px; }
+.galeri-viewer__nav { top: 50%; transform: translateY(-50%); }
+.galeri-viewer__nav.is-prev { left: 8px; }
+.galeri-viewer__nav.is-next { right: 8px; }
+.galeri-viewer__count { position: absolute; top: 18px; left: 18px; font-size: var(--fs-13); opacity: 0.75; }
+
+@media (max-width: 640px) {
+  .galeri-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .snt-gallery .galeri-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .snt-gallery .galeri-cell:first-child .galeri-tile { min-height: 0; aspect-ratio: 4 / 3; }
+  .snt-gallery .galeri-cell:first-child { grid-row: auto; }
+  .galeri-viewer__stage { padding: 56px 8px 20px; }
+  .galeri-viewer__nav { top: auto; bottom: 14px; transform: none; }
+}

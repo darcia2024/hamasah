@@ -1372,7 +1372,13 @@ function renderBerandaSantri(student, account) {
       alert(err.message || 'Rekam jejak belum dapat dimuat.');
     });
   };
-  if (window.HamasahBerandaKeluarga) {
+  // Beranda santri baru (beranda-santri.js); beranda keluarga lama sebagai cadangan.
+  if (window.HamasahBerandaSantri) {
+    window.HamasahBerandaSantri.render(isi, { student, headers: requestHeaders(), onOpenFull: bukaLengkap }).catch(() => {
+      if (window.HamasahBerandaKeluarga) window.HamasahBerandaKeluarga.santri(isi, { student, headers: requestHeaders(), onOpenFull: bukaLengkap }).catch(() => bukaLengkap());
+      else bukaLengkap();
+    });
+  } else if (window.HamasahBerandaKeluarga) {
     window.HamasahBerandaKeluarga.santri(isi, { student, headers: requestHeaders(), onOpenFull: bukaLengkap }).catch(() => bukaLengkap());
   } else {
     bukaLengkap();

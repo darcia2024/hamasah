@@ -417,8 +417,8 @@
   }
 
   // ------------------------------------------------------- Catatan pembina
-  function kartuCatatan(data) {
-    const { wadah } = kartu('Catatan pembina', 'Yang ditulis musyrif tentang ananda.', 'wali-chart');
+  function kartuCatatan(data, { judul = 'Catatan pembina', keterangan = 'Yang ditulis musyrif tentang ananda.' } = {}) {
+    const { wadah } = kartu(judul, keterangan, 'wali-chart');
     const d = data.dashboard || {};
     const items = [
       ...(d.evaluations || []).map((e) => ({ waktu: e.occurredAt, jenis: e.area || 'Evaluasi', isi: e.note, nada: 'catatan' })),
@@ -550,5 +550,9 @@
     await tampilkan();
   }
 
-  window.HamasahBerandaWali = Object.freeze({ render });
+  // Bagian yang dipakai ulang beranda santri (beranda-santri.js).
+  window.HamasahBerandaWali = Object.freeze({
+    render,
+    bagian: Object.freeze({ hitung, selisih, tren, kotakAngka, nadaPersen, kartu, kosong, kartuSholat, kartuKehadiran, kartuHafalan, kartuCatatan })
+  });
 })();

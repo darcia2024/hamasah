@@ -140,5 +140,23 @@ module.exports = [
     async handler({ response, services, auth, params }) {
       balas(response, await services.dormitoryManagementService.archiveInventory(params[0], params[1], await auth.actor()));
     }
+  },
+
+  // Galeri asrama: { fileId, caption, takenOn } dari unggahan 'dormitory-photo'.
+  {
+    method: 'POST',
+    pattern: pola(`\\/api\\/asrama\\/${ID}\\/galeri`),
+    permission: 'dormitory-management.manage',
+    async handler({ response, services, auth, params, readBody }) {
+      balas(response, await services.dormitoryManagementService.addPhoto(params[0], await readBody(), await auth.actor()), 201);
+    }
+  },
+  {
+    method: 'DELETE',
+    pattern: pola(`\\/api\\/asrama\\/${ID}\\/galeri\\/${ID}`),
+    permission: 'dormitory-management.manage',
+    async handler({ response, services, auth, params }) {
+      balas(response, await services.dormitoryManagementService.archivePhoto(params[0], params[1], await auth.actor()));
+    }
   }
 ];

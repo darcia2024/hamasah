@@ -358,11 +358,12 @@ function createHamasahApp(options) {
       public: config.storagePublicBucket || 'hamasah-public'
     },
     // Diisi setelah seluruh service siap, karena aturan unggah memerlukan
-    // service santri, LMS, dan operasional untuk memeriksa kepemilikan.
+    // service santri, LMS, operasional, dan asrama untuk memeriksa kepemilikan.
     services: {
       get studentPortalService() { return studentPortalService; },
       get lmsService() { return lmsService; },
-      get operationsStore() { return operationsStore; }
+      get operationsStore() { return operationsStore; },
+      get dormitoryManagementService() { return dormitoryManagementService; }
     }
   });
 
