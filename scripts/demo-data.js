@@ -117,7 +117,13 @@ async function main(argv = process.argv.slice(2), env = process.env) {
       return;
     }
 
-    const hasil = await isiDataDemo({ database, kataSandi });
+    // Foto galeri asrama ikut diunggah bila storage tersedia (lokal selalu tersedia).
+    const hasil = await isiDataDemo({
+      database,
+      kataSandi,
+      storage: buatStorage(env, target),
+      buckets: { private: env.STORAGE_BUCKET || 'hamasah-private', public: env.STORAGE_PUBLIC_BUCKET || 'hamasah-public' }
+    });
     if (hasil.sudahAda) {
       console.log('Data demo sudah ada, tidak ada yang ditambahkan.');
       console.log('Lupa kata sandi atau kode akses? Jalankan lagi dengan --sandi-baru.');

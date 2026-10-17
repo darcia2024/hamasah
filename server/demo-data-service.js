@@ -12,7 +12,7 @@ const demo = require('./demo-data.js');
 const KONFIRMASI_HAPUS = 'HAPUS';
 const SENYAP = Object.freeze({ log() {} });
 
-function createDemoDataService({ database, storage = null } = {}) {
+function createDemoDataService({ database, storage = null, fileService = null } = {}) {
   if (!database) throw new Error('createDemoDataService membutuhkan database.');
 
   // Jarak ke database menentukan apakah setiap langkah selesai jauh di bawah batas
@@ -51,6 +51,7 @@ function createDemoDataService({ database, storage = null } = {}) {
     return bungkus(() => demo.jalankanLangkahDemo({
       database,
       langkah: String(langkah || ''),
+      fileService,
       kataSandi: langkah === 'akun' ? demo.kataSandiAcak() : undefined
     }));
   }

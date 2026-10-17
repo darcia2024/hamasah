@@ -2,8 +2,9 @@
 // Data demo yang terasa seperti data sungguhan, supaya pemilik bisa membayangkan
 // aplikasi saat sudah dipakai: akun staf, wali, dan santri; asrama; santri dengan
 // presensi, sholat, hafalan, kesehatan, dan catatan pembinaan; tagihan dan kuitansi;
-// visa; inventaris; pendaftar di setiap tahap; kloter; pesan konsultasi; serta maddah
-// LMS lengkap dengan progres belajar. Semua data masuk lewat service aplikasi, jadi
+// visa; inventaris; pendaftar di setiap tahap; kloter; pesan konsultasi; maddah LMS
+// lengkap dengan progres belajar; serta isi Kelola Asrama (jadwal, acara, piket, kas,
+// iuran, inventaris) dan galeri foto asrama. Semua data masuk lewat service aplikasi, jadi
 // aturan validasi dan hak akses yang sama ikut berlaku.
 //
 // Dipakai dua jalur: skrip terminal (scripts/demo-data.js) dan tombol "Data demo" di
@@ -25,6 +26,8 @@
 // demo sebelum aplikasi dipakai untuk data sungguhan.
 
 const crypto = require('node:crypto');
+const fs = require('node:fs');
+const path = require('node:path');
 const identity = require('./identity-service.js');
 const registrationServiceModule = require('./registration-service.js');
 const { createAccessCode } = require('./applicant-service.js');
@@ -44,6 +47,10 @@ const { createOperationsService } = require('./operations-service.js');
 const { createPostgresLmsStore } = require('./postgres-lms-store.js');
 const { createLmsService } = require('./lms-service.js');
 const { createPostgresInquiryStore } = require('./postgres-inquiry-store.js');
+const { createDormitoryManagementService } = require('./dormitory-management-service.js');
+const { createStudentLifeService } = require('./student-life-service.js');
+const { createFileService } = require('./file-service.js');
+const { createPostgresFileStore } = require('./postgres-file-store.js');
 
 const DEMO_DOMAIN = 'demo.hamasah.test';
 const DEMO_EMAIL_PATTERN = `%@${DEMO_DOMAIN}`;
@@ -439,6 +446,187 @@ const JAWABAN_SALAH = Object.freeze({
   maktabah: 'maktab', kulliyyah: 'kuliyah', ustadz: 'ustaz', imtihan: 'imtihaan'
 });
 
+// Kelola Asrama (migrasi 050): jadwal rutin, acara, piket, uang kas, iuran, dan
+// inventaris tiap asrama demo, dicatat atas nama musyrif/musyrifahnya. Hari 1 = Senin
+// sampai 7 = Ahad. Acara memakai hari relatif: positif = sudah lewat, negatif = mendatang.
+const SETIAP_HARI = [1, 2, 3, 4, 5, 6, 7];
+const HARI_BELAJAR = [1, 2, 3, 4, 6, 7];
+const KELOLA_ASRAMA = Object.freeze({
+  putra: {
+    rutin: [
+      { hari: HARI_BELAJAR, title: "Halaqah tahfizh ba'da Subuh", startTime: '05:00', endTime: '06:00', location: 'Musholla asrama', note: "Setoran ziyadah dan muraja'ah, dibimbing musyrif." },
+      { hari: [1, 3], title: 'Talaqqi Matan Al-Ajurrumiyyah', startTime: '06:45', endTime: '08:00', location: 'Masjid Al-Azhar, Riwaq Al-Atrak', note: 'Bawa matan dan buku catatan syarah.' },
+      { hari: [2, 4], title: "Talaqqi Al-Arba'in An-Nawawiyyah", startTime: '06:45', endTime: '08:00', location: 'Masjid Al-Azhar' },
+      { hari: HARI_BELAJAR, title: "Muraja'ah bersama ba'da Maghrib", startTime: '17:45', endTime: '18:45', location: 'Ruang belajar' },
+      { hari: [4], title: 'Mudzakarah malam Jumat', startTime: '19:30', endTime: '21:00', location: 'Aula asrama', note: 'Yasin, tahlil, dan kajian singkat. Pengisi kajian bergiliran.' },
+      { hari: [5], title: 'Kerja bakti dan bersih kamar', startTime: '08:00', endTime: '09:30', location: 'Seluruh asrama' },
+      { hari: [5], title: "Sholat Jum'at berjamaah", startTime: '11:30', endTime: '13:00', location: 'Masjid Al-Azhar' },
+      { hari: [6], title: 'Olahraga pagi: futsal atau badminton', startTime: '07:00', endTime: '08:30', location: 'GOR Hay Asyir' },
+      { hari: [7], title: 'Kelas percakapan bahasa Arab', startTime: '16:00', endTime: '17:15', location: 'Ruang belajar', note: 'Dipandu santri senior tingkat tiga.' },
+      { hari: SETIAP_HARI, title: 'Jam malam, pintu asrama dikunci', startTime: '22:30', location: 'Asrama' }
+    ],
+    acara: [
+      { hari: 20, title: 'Rihlah ilmiah ke Masjid Amr bin Ash', startTime: '07:30', location: 'Masjid Amr bin Ash, Fustat' },
+      { hari: 13, title: 'Kerja bakti besar asrama', startTime: '08:00', location: 'Asrama Putra Al-Fath' },
+      { hari: 9, title: 'Tur sejarah Masjid Ibnu Thulun', startTime: '08:00', location: 'Masjid Ibnu Thulun, Sayyidah Zainab' },
+      { hari: -3, title: "Ziarah Masjid Sayyidah Nafisah dan makam Imam Syafi'i", startTime: '08:00', location: 'Sayyidah Nafisah', note: 'Berangkat bersama dari depan asrama naik tremco.' },
+      { hari: -8, title: "Tasmi' hafalan bulanan", startTime: '19:30', endTime: '22:00', location: 'Aula asrama', note: 'Setiap santri memperdengarkan hafalan bulan ini di hadapan musyrif.' },
+      { hari: -15, title: "Majelis sama' Shahih Bukhari", startTime: '09:00', endTime: '12:00', location: 'Masjid Al-Azhar' },
+      { hari: -22, title: 'Futsal persahabatan dengan asrama KMJT', startTime: '16:00', endTime: '18:00', location: 'GOR Hay Asyir' },
+      { hari: -30, title: 'Rapat bulanan musyrif dan santri', startTime: '20:00', endTime: '21:00', location: 'Aula asrama' },
+      { hari: -41, title: 'Rihlah ke Alexandria (2 hari)', startTime: '06:00', location: 'Berangkat dari asrama', note: 'Biaya rihlah dibantu kas asrama dan infaq wali.' }
+    ],
+    piket: ['Masak sarapan', 'Masak makan malam', 'Cuci piring', 'Kebersihan kamar mandi', 'Buang sampah dan sapu tangga'],
+    iuran: 150000,
+    belumBayar: ['daffa', 'naufal'],
+    pengeluaran: [
+      { tgl: 3, category: 'internet', amount: 289000, note: 'Paket internet WE bulanan untuk router asrama' },
+      { tgl: 5, category: 'kebersihan', amount: 87500, note: 'Sabun cuci, pel, kantong sampah, dan cairan pembersih' },
+      { tgl: 9, category: 'dapur', amount: 64000, note: 'Isi ulang 2 tabung gas' },
+      { tgl: 14, category: 'konsumsi', amount: 112000, note: 'Teh, gula, dan kue untuk mudzakarah malam Jumat' },
+      { tgl: 26, category: 'dapur', amount: 64000, note: 'Isi ulang 2 tabung gas' }
+    ],
+    perbaikan: [
+      { note: 'Lampu LED ruang belajar 4 buah', amount: 96000 },
+      { note: 'Servis mesin cuci, ganti pompa pembuangan', amount: 145000 },
+      { note: 'Ganti keran wastafel yang bocor', amount: 58000 }
+    ],
+    saldoAwal: 415000,
+    infaq: { amount: 500000, note: 'Infaq wali santri untuk kegiatan rihlah' },
+    inventaris: [
+      { name: 'Kompor gas 4 tungku', quantity: 1, note: 'Di dapur lantai 1' },
+      { name: 'Kulkas 2 pintu', quantity: 1 },
+      { name: 'Mesin cuci', quantity: 1, condition: 'rusak', note: 'Pompa pembuangan macet, menunggu teknisi datang' },
+      { name: 'Tabung gas', quantity: 3 },
+      { name: 'Dispenser air minum', quantity: 1 },
+      { name: 'Pemanas air kamar mandi', quantity: 2 },
+      { name: 'Kasur busa', quantity: 10 },
+      { name: 'Lemari pakaian', quantity: 7 },
+      { name: 'Karpet musholla', quantity: 3 },
+      { name: "Mushaf Al-Qur'an", quantity: 25 },
+      { name: 'Rak kitab', quantity: 3 },
+      { name: 'Papan tulis beroda', quantity: 1 },
+      { name: 'Kipas angin berdiri', quantity: 4 },
+      { name: 'Kipas angin dinding', quantity: 1, condition: 'rusak', note: 'Tidak berputar, dinamo terbakar' },
+      { name: 'Router WiFi', quantity: 1 },
+      { name: 'Setrika', quantity: 2 },
+      { name: 'Raket badminton', quantity: 4 },
+      { name: 'Kunci cadangan pintu depan', quantity: 1, condition: 'hilang', note: 'Dilaporkan hilang, gembok sudah diganti' }
+    ],
+    // Foto asli kegiatan asrama Hamasah dari folder assets/galeri.
+    galeri: [
+      { berkas: 'kajian-sore-asrama.webp', caption: 'Halaqah kitab sore bersama musyrif', hari: 4 },
+      { berkas: 'tur-masjid-ibnu-thulun.webp', caption: 'Tur sejarah Masjid Ibnu Thulun', hari: 9 },
+      { berkas: 'makan-bersama-asrama.webp', caption: 'Makan bersama setelah mudzakarah malam Jumat', hari: 15 },
+      { berkas: 'belajar-sore-musyrif.webp', caption: 'Kelas Nahwu sore di ruang tengah', hari: 16 },
+      { berkas: 'badminton-bersama.webp', caption: 'Badminton Sabtu pagi di GOR Hay Asyir', hari: 27 },
+      { berkas: 'acara-mingguan-asrama.webp', caption: 'Pertemuan pekanan santri bersama pembina Hamasah', hari: 34 },
+      { berkas: 'maulid-nabi-hadrah.webp', caption: 'Latihan hadrah untuk peringatan Maulid Nabi', hari: 53 },
+      { berkas: 'family-gathering-kairo.webp', caption: 'Family gathering santri Hamasah di Kairo', hari: 68 },
+      { berkas: 'idul-fitri-kairo.webp', caption: "Sholat Idul Fitri di Masjid Al-Fattah Al-'Alim", tanggal: '2026-03-20' }
+    ]
+  },
+  putri: {
+    rutin: [
+      { hari: HARI_BELAJAR, title: "Halaqah tahfizh ba'da Subuh", startTime: '05:00', endTime: '06:00', location: 'Ruang tahfizh', note: 'Dibimbing musyrifah, setoran bergiliran per kamar.' },
+      { hari: [1, 3], title: 'Kajian Riyadhus Shalihin bersama ustadzah', startTime: '16:00', endTime: '17:00', location: 'Ruang belajar' },
+      { hari: [2, 4], title: 'Kelas tajwid dan makharijul huruf', startTime: '16:00', endTime: '17:00', location: 'Ruang tahfizh' },
+      { hari: HARI_BELAJAR, title: "Muraja'ah bersama ba'da Maghrib", startTime: '17:45', endTime: '18:45', location: 'Ruang belajar' },
+      { hari: [4], title: 'Mudzakarah malam Jumat santriwati', startTime: '19:30', endTime: '20:45', location: 'Ruang tengah' },
+      { hari: [5], title: 'Kajian Jumat santriwati', startTime: '10:00', endTime: '11:30', location: 'Ruang tengah' },
+      { hari: [6], title: 'Jalan pagi dan senam ringan', startTime: '07:00', endTime: '08:00', location: 'Taman Hay Sabi' },
+      { hari: SETIAP_HARI, title: 'Jam malam, pintu asrama dikunci', startTime: '21:30', location: 'Asrama' }
+    ],
+    acara: [
+      { hari: 20, title: 'Rihlah ilmiah ke Masjid Amr bin Ash', startTime: '07:30', location: 'Masjid Amr bin Ash, Fustat' },
+      { hari: 13, title: 'Kerja bakti asrama', startTime: '08:00', location: 'Asrama Putri Az-Zahra' },
+      { hari: 6, title: 'Kajian muslimah bulanan', startTime: '15:30', location: 'Markaz Tathwir, Hay Sabi' },
+      { hari: -4, title: "Tasmi' hafalan bulanan", startTime: '16:00', endTime: '18:00', location: 'Ruang tahfizh' },
+      { hari: -11, title: 'Kunjungan ke Perpustakaan Al-Azhar', startTime: '09:00', location: 'Perpustakaan Al-Azhar, Darrasah' },
+      { hari: -19, title: 'Kelas memasak masakan Mesir', startTime: '15:00', endTime: '17:00', location: 'Dapur asrama', note: "Belajar membuat koshari dan ful medames." },
+      { hari: -33, title: 'Rapat bulanan musyrifah dan santriwati', startTime: '19:30', endTime: '20:30', location: 'Ruang tengah' },
+      { hari: -44, title: 'Rihlah ke Ain Sokhna', startTime: '05:30', location: 'Berangkat dari asrama' }
+    ],
+    piket: ['Masak', 'Cuci piring', 'Kebersihan kamar mandi', 'Sapu dan pel ruang tengah'],
+    iuran: 125000,
+    belumBayar: ['khansa'],
+    pengeluaran: [
+      { tgl: 3, category: 'internet', amount: 249000, note: 'Paket internet WE bulanan' },
+      { tgl: 6, category: 'kebersihan', amount: 64500, note: 'Sabun cuci, pewangi lantai, dan kantong sampah' },
+      { tgl: 11, category: 'dapur', amount: 32000, note: 'Isi ulang tabung gas' },
+      { tgl: 15, category: 'konsumsi', amount: 78000, note: 'Kurma dan kue untuk mudzakarah' },
+      { tgl: 25, category: 'dapur', amount: 32000, note: 'Isi ulang tabung gas' }
+    ],
+    perbaikan: [
+      { note: 'Gorden ruang tengah yang sobek', amount: 85000 },
+      { note: 'Ganti stop kontak dapur', amount: 41000 },
+      { note: 'Lampu kamar mandi', amount: 27500 }
+    ],
+    saldoAwal: 260000,
+    infaq: { amount: 300000, note: 'Infaq wali santri untuk perlengkapan dapur' },
+    inventaris: [
+      { name: 'Kompor gas 2 tungku', quantity: 1 },
+      { name: 'Kulkas', quantity: 1 },
+      { name: 'Mesin cuci', quantity: 1 },
+      { name: 'Rice cooker', quantity: 1 },
+      { name: 'Tabung gas', quantity: 2 },
+      { name: 'Kasur busa', quantity: 6 },
+      { name: 'Lemari pakaian', quantity: 5 },
+      { name: 'Karpet ruang tengah', quantity: 2 },
+      { name: "Mushaf Al-Qur'an", quantity: 15 },
+      { name: 'Meja lipat belajar', quantity: 6 },
+      { name: 'Kipas angin berdiri', quantity: 3 },
+      { name: 'Setrika', quantity: 1, condition: 'rusak', note: 'Kabel terkelupas, tidak dipakai dulu' },
+      { name: 'Router WiFi', quantity: 1 }
+    ],
+    galeri: [
+      { berkas: 'kajian-sore-santriwati.webp', caption: 'Halaqah tahfizh sore santriwati', hari: 5 },
+      { berkas: 'tur-santriwati-kairo.webp', caption: 'Rihlah ilmiah ke Masjid Amr bin Ash', hari: 20 },
+      { berkas: 'cairo-international-book-fair.webp', caption: 'Berburu kitab di Cairo International Book Fair', tanggal: '2026-01-27' }
+    ]
+  }
+});
+const FOLDER_FOTO_GALERI = path.join(__dirname, '..', 'assets', 'galeri');
+
+// Peta hafalan 30 juz (migrasi 045), selaras dengan ziyadah dan prestasi di atas.
+const PETA_JUZ = Object.freeze({
+  rayhan: { hafal: [30, 29], sedang: [1] },
+  hafizh: { hafal: [30], sedang: [29] },
+  zaki: { hafal: [30], sedang: [29] },
+  fikri: { hafal: [30], sedang: [1] },
+  naufal: { hafal: [30], sedang: [29] },
+  ilham: { hafal: [30, 29, 28, 1, 2], sedang: [3] },
+  daffa: { hafal: [30], sedang: [29] },
+  nayla: { hafal: [30], sedang: [29] },
+  aisyah: { hafal: [30, 29], sedang: [1] },
+  khansa: { hafal: [], sedang: [30] },
+  shafiyyah: { hafal: [30], sedang: [29] },
+  hana: { hafal: [30, 29, 1, 2, 3], sedang: [4] }
+});
+
+// Pengumuman musyrif per asrama. hari: berapa hari lalu ditulis.
+const PENGUMUMAN = Object.freeze({
+  putra: [
+    { hari: 11, audience: 'semua', title: 'Persiapan musim dingin', body: 'Suhu malam di Kairo mulai turun. Wali santri dimohon memastikan ananda membawa jaket dan selimut tebal. Asrama sudah menyalakan pemanas air di kedua kamar mandi.' },
+    { hari: 6, audience: 'santri', title: 'Iuran kas asrama bulan ini', body: 'Iuran kas asrama Rp150.000 dibayarkan paling lambat tanggal 10 ke musyrif. Kas dipakai untuk internet, gas, dan kebutuhan kebersihan bersama. Rincian pemakaian kas bisa dilihat di papan pengumuman ruang tengah.' },
+    { hari: 2, audience: 'semua', title: "Tasmi' hafalan bulanan", body: "Tasmi' hafalan bulan ini dilaksanakan ba'da Isya di aula asrama. Siapkan hafalan baru bulan ini, minimal setengah juz. Santri yang berhalangan wajib izin ke musyrif sebelum hari H." }
+  ],
+  putri: [
+    { hari: 8, audience: 'semua', title: 'Jam malam santriwati', body: 'Mulai pekan ini jam malam santriwati pukul 21.30 waktu Kairo. Kepulangan dari talaqqi dan kuliah sore wajib berkelompok, minimal bertiga.' },
+    { hari: 3, audience: 'santri', title: 'Kelas memasak masakan Mesir', body: 'Insya Allah ada kelas memasak koshari dan ful medames di dapur asrama. Bahan disiapkan dari kas asrama, santriwati cukup membawa celemek dan wadah sendiri.' }
+  ]
+});
+
+// Pengajuan izin dari santri yang punya akun. hari: berapa hari lalu diajukan (negatif =
+// masih menunggu keputusan untuk izin mendatang); keputusan: diputuskan musyrif.
+const IZIN_SANTRI = Object.freeze([
+  { santri: 'rayhan', hari: 24, kind: 'keluar-asrama', mulai: '08:00', jam: 6, reason: 'Ke KBRI Kairo untuk perpanjangan paspor bersama kakak tingkat.', keputusan: 'disetujui', note: 'Silakan, kabari musyrif bila sudah kembali.' },
+  { santri: 'rayhan', hari: 10, kind: 'keluar-asrama', mulai: '19:00', jam: 3, reason: 'Menghadiri undangan makan malam keluarga teman di Hay Asyir.', keputusan: 'ditolak', note: "Malam itu ada muraja'ah bersama menjelang tasmi'. Silakan ajukan lagi untuk akhir pekan." },
+  { santri: 'rayhan', hari: -2, kind: 'keluar-asrama', mulai: '13:00', jam: 4, reason: 'Mengambil kiriman paket dari Indonesia di kantor pos Ataba.' },
+  { santri: 'nayla', hari: 9, kind: 'sakit', mulai: '06:00', jam: 30, reason: 'Demam dan pusing sejak semalam, izin tidak ikut halaqah dan kelas pagi.', keputusan: 'disetujui', note: 'Istirahat dulu, nanti musyrifah antar ke klinik bila belum membaik.' },
+  { santri: 'nayla', hari: 2, kind: 'keluar-asrama', mulai: '09:00', jam: 5, reason: 'Membeli kitab dan perlengkapan kuliah di sekitar Masjid Al-Azhar bersama Aisyah.', keputusan: 'disetujui' }
+]);
+
 // ---------------------------------------------------------------------------
 // Waktu dan angka acak yang stabil
 
@@ -560,9 +748,24 @@ function rakitLayanan(database, jam) {
     async registrationExists(registrationId) { return Boolean(await registrationStore.get(registrationId)); }
   });
   const inquiryStore = createPostgresInquiryStore({ database });
+  const dormitoryManagementService = createDormitoryManagementService({
+    database,
+    staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId),
+    listStudentsForActor: (actor) => studentPortalService.listForActor(actor),
+    now: () => jam.sekarang()
+  });
+  const studentLifeService = createStudentLifeService({
+    database,
+    accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor),
+    getStudent: (studentId) => studentStore.getStudent(studentId),
+    staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId),
+    recordAttendance: (studentId, input, actor) => studentPortalService.addAttendance(studentId, input, actor),
+    now: () => jam.sekarang()
+  });
   return {
     accountStore, identityService, dormitoryService, studentPortalService, studentCareService,
-    operationsService, lmsService, registrationService, departureService, inquiryStore
+    operationsService, lmsService, registrationService, departureService, inquiryStore, dormitoryManagementService,
+    studentLifeService
   };
 }
 
@@ -1097,6 +1300,208 @@ async function isiBelajarSantri(ctx, s, indeks) {
   return 1;
 }
 
+// ---------------------------------------------------------------------------
+// Kelola Asrama dan galeri asrama
+
+async function tabelAda(database, tabel) {
+  return Boolean((await database.query('SELECT to_regclass($1)::text AS ada', [tabel])).rows[0].ada);
+}
+
+// 'YYYY-MM' n bulan sebelum bulan ini (WIB).
+function bulanLalu(n) {
+  const [tahun, bulan] = tanggal(0).split('-').map(Number);
+  return new Date(Date.UTC(tahun, bulan - 1 - n, 1)).toISOString().slice(0, 7);
+}
+
+function tanggalDalamBulan(bulan, tgl) {
+  const [tahun, b] = bulan.split('-').map(Number);
+  const akhir = new Date(Date.UTC(tahun, b, 0)).getUTCDate();
+  return `${bulan}-${String(Math.min(tgl, akhir)).padStart(2, '0')}`;
+}
+
+function musyrifAsrama(ctx, key) {
+  const asrama = ctx.asrama[key];
+  butuh(asrama, 'Asrama demo belum ada.');
+  const musyrif = ctx.aktor[DEMO_DORMITORIES.find((d) => d.key === key).pembina];
+  butuh(musyrif, 'Akun musyrif demo belum ada.');
+  return { asrama, musyrif };
+}
+
+// Jadwal, acara, piket, iuran, uang kas tiga bulan terakhir, dan inventaris satu asrama.
+// Setiap bagian hanya diisi bila masih kosong. Database yang belum menerapkan migrasi
+// 050 dilewati supaya bagian lain data demo tetap bisa diisi.
+async function buatKelolaAsrama(ctx, key) {
+  const { asrama, musyrif } = musyrifAsrama(ctx, key);
+  santriWajib(ctx);
+  if (!(await tabelAda(ctx.database, 'dormitory_schedule'))) return 0;
+  const m = ctx.layanan.dormitoryManagementService;
+  const data = KELOLA_ASRAMA[key];
+  const id = asrama.id;
+  const kosong = async (tabel) => !(await hitungBaris(ctx.database, `SELECT count(*)::int AS jumlah FROM ${tabel} WHERE dormitory_id = $1`, [id]));
+  const penghuni = DEMO_STUDENTS.filter((s) => s.gender === key);
+  let dibuat = 0;
+
+  if (await kosong('dormitory_schedule')) {
+    for (const r of data.rutin) {
+      for (const hari of r.hari) {
+        pastikan(await m.addSchedule(id, { kind: 'rutin', dayOfWeek: hari, title: r.title, startTime: r.startTime, endTime: r.endTime, location: r.location, note: r.note }, musyrif), `menambah jadwal ${r.title}`);
+        dibuat += 1;
+      }
+    }
+    for (const a of data.acara) {
+      pastikan(await m.addSchedule(id, { kind: 'acara', date: tanggal(a.hari), title: a.title, startTime: a.startTime, endTime: a.endTime, location: a.location, note: a.note }, musyrif), `menambah acara ${a.title}`);
+      dibuat += 1;
+    }
+  }
+
+  if (await kosong('dormitory_duties')) {
+    const tugas = [];
+    for (const nama of data.piket) tugas.push(pastikan(await m.addDuty(id, { name: nama }, musyrif), `menambah piket ${nama}`));
+    // Bergilir: setiap hari tiap tugas dipegang santri yang berbeda.
+    const assignments = SETIAP_HARI.flatMap((hari) => tugas.map((t, i) => ({
+      dutyId: t.id, day: hari, studentIds: [ctx.santri[penghuni[(hari + i) % penghuni.length].key].id]
+    })));
+    pastikan(await m.setDutyAssignments(id, { assignments }, musyrif), 'membagi jadwal piket');
+    dibuat += tugas.length;
+  }
+
+  if (await kosong('dormitory_dues')) {
+    pastikan(await m.setDues(id, { monthlyAmount: data.iuran }, musyrif), 'mengatur iuran bulanan');
+  }
+
+  if (await kosong('dormitory_cash_entries')) {
+    const hariIni = tanggal(0);
+    const catat = async (masukan, label) => {
+      if (masukan.date > hariIni) return null;
+      dibuat += 1;
+      return pastikan(await m.addCash(id, masukan, musyrif), label);
+    };
+    await catat({ direction: 'masuk', amount: data.saldoAwal, category: 'saldo awal', date: tanggalDalamBulan(bulanLalu(2), 1), note: 'Sisa kas dari periode sebelumnya' }, 'mencatat saldo awal kas');
+    for (const n of [2, 1, 0]) {
+      const bulan = bulanLalu(n);
+      for (const [i, s] of penghuni.entries()) {
+        // Bulan ini masih ada yang belum membayar; santri baru tidak membayar bulan sebelum ia datang.
+        if (n === 0 && data.belumBayar.includes(s.key)) continue;
+        const tgl = tanggalDalamBulan(bulan, 1 + ((i * 3) % 10));
+        if (tgl < tanggal(s.bergabung)) continue;
+        await catat({ direction: 'masuk', amount: data.iuran, category: 'iuran', studentId: ctx.santri[s.key].id, period: bulan, date: tgl }, `mencatat iuran ${s.name}`);
+      }
+      for (const p of data.pengeluaran) {
+        await catat({ direction: 'keluar', amount: p.amount, category: p.category, date: tanggalDalamBulan(bulan, p.tgl), note: p.note }, `mencatat ${p.note}`);
+      }
+      const perbaikan = data.perbaikan[2 - n];
+      await catat({ direction: 'keluar', amount: perbaikan.amount, category: 'perbaikan', date: tanggalDalamBulan(bulan, 19), note: perbaikan.note }, `mencatat ${perbaikan.note}`);
+      if (n === 1) {
+        await catat({ direction: 'masuk', amount: data.infaq.amount, category: 'infaq', date: tanggalDalamBulan(bulan, 12), note: data.infaq.note }, 'mencatat infaq');
+        // Salah catat yang lalu dibatalkan, seperti yang biasa terjadi di buku kas.
+        const p = data.pengeluaran[1];
+        const ganda = await catat({ direction: 'keluar', amount: p.amount, category: p.category, date: tanggalDalamBulan(bulan, p.tgl), note: p.note }, 'mencatat pengeluaran ganda');
+        if (ganda) pastikan(await m.voidCash(id, ganda.id, { reason: 'Tercatat dua kali dari nota yang sama.' }, musyrif), 'membatalkan catatan ganda');
+      }
+    }
+  }
+
+  if (await kosong('dormitory_inventory')) {
+    for (const b of data.inventaris) {
+      pastikan(await m.addInventory(id, { name: b.name, quantity: b.quantity, condition: b.condition || 'baik', note: b.note }, musyrif), `mencatat inventaris ${b.name}`);
+      dibuat += 1;
+    }
+  }
+  return dibuat;
+}
+
+// Foto kegiatan diunggah lewat alur berkas aplikasi (izin, tipe, ukuran, tanda tangan
+// berkas) atas nama musyrif. Tanpa layanan berkas (skrip terminal tanpa akses storage)
+// langkah ini dilewati.
+function layananBerkas(ctx, { fileService, storage, buckets }) {
+  if (fileService) return fileService;
+  if (!storage) return null;
+  return createFileService({
+    store: createPostgresFileStore({ database: ctx.database }),
+    storage,
+    buckets,
+    services: { dormitoryManagementService: ctx.layanan.dormitoryManagementService }
+  });
+}
+
+async function buatGaleriAsrama(ctx, key, berkas) {
+  const { asrama, musyrif } = musyrifAsrama(ctx, key);
+  const fileService = layananBerkas(ctx, berkas);
+  if (!fileService || !(await tabelAda(ctx.database, 'dormitory_gallery'))) return 0;
+  const sudah = new Set((await ctx.database.query('SELECT caption FROM dormitory_gallery WHERE dormitory_id = $1', [asrama.id])).rows.map((row) => row.caption));
+  let dibuat = 0;
+  for (const foto of KELOLA_ASRAMA[key].galeri) {
+    if (sudah.has(foto.caption)) continue;
+    const isi = fs.readFileSync(path.join(FOLDER_FOTO_GALERI, foto.berkas));
+    const pemanggil = { actor: musyrif, auth: null };
+    const unggahan = pastikan(await fileService.createUpload({
+      purpose: 'dormitory-photo', entityId: asrama.id, fileName: foto.berkas, contentType: 'image/webp', size: isi.length
+    }, pemanggil), `menyiapkan foto ${foto.berkas}`);
+    pastikan(await fileService.saveContent(unggahan.id, isi, pemanggil), `mengunggah foto ${foto.berkas}`);
+    pastikan(await ctx.layanan.dormitoryManagementService.addPhoto(asrama.id, {
+      fileId: unggahan.id, caption: foto.caption, takenOn: foto.tanggal || tanggal(foto.hari)
+    }, musyrif), `menyimpan foto ${foto.caption}`);
+    dibuat += 1;
+  }
+  return dibuat;
+}
+
+// Peta hafalan, pengumuman musyrif, dan riwayat izin (migrasi 045). Setiap bagian hanya
+// diisi bila masih kosong; database tanpa migrasi 045 dilewati.
+async function buatKehidupanSantri(ctx) {
+  santriWajib(ctx);
+  if (!(await tabelAda(ctx.database, 'student_juz_progress'))) return 0;
+  const hidup = ctx.layanan.studentLifeService;
+  const idSantri = DEMO_STUDENTS.map((s) => ctx.santri[s.key].id);
+  let dibuat = 0;
+
+  if (!(await hitungBaris(ctx.database, 'SELECT count(*)::int AS jumlah FROM student_juz_progress WHERE student_id = ANY($1::uuid[])', [idSantri]))) {
+    for (const s of DEMO_STUDENTS) {
+      const musyrif = ctx.aktor[DEMO_DORMITORIES.find((d) => d.key === s.gender).pembina];
+      const peta = PETA_JUZ[s.key];
+      for (const [status, daftar] of [['hafal', peta.hafal], ['sedang', peta.sedang]]) {
+        for (const juz of daftar) {
+          await pada(ctx.jam, waktu(5, '20:00'), `menandai juz ${juz} ${s.name}`, () => hidup.setJuz(ctx.santri[s.key].id, juz, status, musyrif));
+          dibuat += 1;
+        }
+      }
+    }
+  }
+
+  for (const d of DEMO_DORMITORIES) {
+    const { asrama, musyrif } = musyrifAsrama(ctx, d.key);
+    if (await hitungBaris(ctx.database, 'SELECT count(*)::int AS jumlah FROM announcements WHERE dormitory_id = $1', [asrama.id])) continue;
+    for (const p of PENGUMUMAN[d.key]) {
+      await pada(ctx.jam, waktu(p.hari, '16:30'), `menulis pengumuman ${p.title}`, () => hidup.createAnnouncement({
+        title: p.title, body: p.body, audience: p.audience, dormitoryId: String(asrama.id)
+      }, musyrif));
+      dibuat += 1;
+    }
+  }
+
+  if (!(await hitungBaris(ctx.database, 'SELECT count(*)::int AS jumlah FROM student_leave_requests WHERE student_id = ANY($1::uuid[])', [idSantri]))) {
+    for (const izin of IZIN_SANTRI) {
+      const s = DEMO_STUDENTS.find((x) => x.key === izin.santri);
+      const santriAktor = ctx.aktor[s.akun];
+      const musyrif = ctx.aktor[DEMO_DORMITORIES.find((d) => d.key === s.gender).pembina];
+      // Portal menampilkan waktu dalam WIB, jadi jam izin ditulis dalam WIB juga.
+      const mulai = new Date(`${tanggal(izin.hari)}T${izin.mulai}:00+07:00`);
+      const selesai = new Date(mulai.getTime() + izin.jam * 60 * 60 * 1000);
+      const diajukan = izin.hari > 0 ? new Date(mulai.getTime() - 20 * 60 * 60 * 1000) : null;
+      const baru = await pada(ctx.jam, diajukan, `mengajukan izin ${s.name}`, () => hidup.requestLeave(ctx.santri[s.key].id, {
+        kind: izin.kind, startsAt: mulai.toISOString(), endsAt: selesai.toISOString(), reason: izin.reason
+      }, santriAktor));
+      if (izin.keputusan) {
+        await pada(ctx.jam, new Date(diajukan.getTime() + 2 * 60 * 60 * 1000), `memutuskan izin ${s.name}`, () => hidup.decideLeave(baru.id, {
+          decision: izin.keputusan, note: izin.note
+        }, musyrif));
+      }
+      dibuat += 1;
+    }
+  }
+  return dibuat;
+}
+
 // Urutan langkah pengisian. Bagian terberat (pendaftar, catatan harian, progres
 // belajar) dipecah kecil supaya setiap langkah selesai dalam hitungan detik, jauh di
 // bawah batas waktu satu permintaan di Vercel.
@@ -1110,6 +1515,9 @@ const LANGKAH_DEMO = Object.freeze([
   { id: 'tagihan', label: 'Tagihan dan kuitansi' },
   { id: 'visa', label: 'Visa dan paspor' },
   { id: 'inventaris', label: 'Inventaris' },
+  ...DEMO_DORMITORIES.map((d) => ({ id: `kelola:${d.key}`, label: `Kelola Asrama ${d.name}` })),
+  ...DEMO_DORMITORIES.map((d) => ({ id: `galeri:${d.key}`, label: `Galeri ${d.name}` })),
+  { id: 'kehidupan', label: 'Peta hafalan, pengumuman, dan izin' },
   { id: 'pesan', label: 'Pesan konsultasi' },
   { id: 'maddah', label: 'Maddah dan materi' },
   ...DEMO_STUDENTS.map((s) => ({ id: `belajar:${s.key}`, label: `Progres belajar ${s.name}` }))
@@ -1118,7 +1526,7 @@ const LANGKAH_DEMO = Object.freeze([
 // Menjalankan satu langkah. kataSandi hanya dipakai langkah 'akun'. Hasilnya memuat
 // kataSandi bila ada akun yang baru dibuat, dan kode akses pendaftar yang baru dibuat;
 // keduanya hanya bisa ditampilkan saat itu.
-async function jalankanLangkahDemo({ database, langkah, kataSandi }) {
+async function jalankanLangkahDemo({ database, langkah, kataSandi, fileService = null, storage = null, buckets = undefined }) {
   if (!LANGKAH_DEMO.some((item) => item.id === langkah)) throw new KesalahanDemo('Langkah data demo tidak dikenal.');
   const ctx = await muatKonteks(database);
   if (langkah === 'akun') {
@@ -1144,6 +1552,9 @@ async function jalankanLangkahDemo({ database, langkah, kataSandi }) {
   }
   if (langkah === 'visa') return { langkah, dibuat: await buatVisa(ctx) };
   if (langkah === 'inventaris') return { langkah, dibuat: await buatInventaris(ctx) };
+  if (langkah.startsWith('kelola:')) return { langkah, dibuat: await buatKelolaAsrama(ctx, langkah.slice('kelola:'.length)) };
+  if (langkah === 'kehidupan') return { langkah, dibuat: await buatKehidupanSantri(ctx) };
+  if (langkah.startsWith('galeri:')) return { langkah, dibuat: await buatGaleriAsrama(ctx, langkah.slice('galeri:'.length), { fileService, storage, buckets }) };
   if (langkah === 'pesan') return { langkah, dibuat: await buatPesan(ctx) };
   if (langkah === 'maddah') return { langkah, dibuat: await buatMaddah(ctx) };
   const indeks = DEMO_STUDENTS.findIndex((s) => s.key === langkah.slice('belajar:'.length));
@@ -1152,19 +1563,22 @@ async function jalankanLangkahDemo({ database, langkah, kataSandi }) {
 
 // Semua langkah berurutan (dipakai skrip terminal dan test). Aman dijalankan ulang:
 // yang sudah ada dilewati, jadi pengisian yang terputus cukup diulang.
-async function isiDataDemo({ database, kataSandi, logger = console }) {
+async function isiDataDemo({ database, kataSandi, fileService = null, storage = null, buckets = undefined, logger = console }) {
   const problem = identity.validatePassword(kataSandi);
   if (problem) throw new Error(`Kata sandi demo belum valid: ${problem}`);
   let total = 0;
   let kataSandiBaru = null;
   const kodeBaru = new Map();
-  const JUDUL_KELOMPOK = { pendaftaran: 'Pendaftar di setiap tahap', catatan: 'Catatan harian santri (bagian paling lama)', belajar: 'Progres belajar santri' };
+  const JUDUL_KELOMPOK = {
+    pendaftaran: 'Pendaftar di setiap tahap', catatan: 'Catatan harian santri (bagian paling lama)', belajar: 'Progres belajar santri',
+    kelola: 'Kelola Asrama: jadwal, piket, kas, dan inventaris', galeri: 'Galeri foto asrama'
+  };
   let kelompokTerakhir = '';
   for (const item of LANGKAH_DEMO) {
     const kelompok = item.id.split(':')[0];
     if (kelompok !== kelompokTerakhir) logger.log(`[demo] ${JUDUL_KELOMPOK[kelompok] || item.label}.`);
     kelompokTerakhir = kelompok;
-    const hasil = await jalankanLangkahDemo({ database, langkah: item.id, kataSandi });
+    const hasil = await jalankanLangkahDemo({ database, langkah: item.id, kataSandi, fileService, storage, buckets });
     total += hasil.dibuat;
     if (hasil.kataSandi) kataSandiBaru = hasil.kataSandi;
     (hasil.pendaftar || []).forEach((p) => kodeBaru.set(p.nomor, p.kode));

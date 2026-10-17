@@ -1,4 +1,8 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { createLocalStorage } = require('../server/storage/local.js');
 const identity = require('../server/identity-service.js');
 const { createTestDatabase } = require('../server/test-support/database.js');
 const { createPostgresAccountStore } = require('../server/postgres-account-store.js');
@@ -16,13 +20,15 @@ async function hitung(database, sql, params) {
 
 async function run() {
   const database = await createTestDatabase();
+  const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'hamasah-demo-'));
+  const storage = createLocalStorage({ rootDirectory: folder });
   try {
     // Akun admin sungguhan yang sudah ada tidak boleh tersentuh data demo.
     const identityService = identity.createIdentityService({ accountStore: createPostgresAccountStore({ database }) });
     const admin = await identityService.createAccount({ name: 'Admin Hamasah', email: 'admin@hamasah.com', role: identity.ROLES.ADMIN, password: 'kata-sandi-admin-asli' });
     assert.equal(admin.ok, true);
 
-    const hasil = await isiDataDemo({ database, kataSandi: LOCAL_DEMO_PASSWORD, logger: SILENT_LOGGER });
+    const hasil = await isiDataDemo({ database, kataSandi: LOCAL_DEMO_PASSWORD, storage, logger: SILENT_LOGGER });
     assert.equal(hasil.sudahAda, false);
     assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM accounts WHERE email LIKE $1', [`%@${DEMO_DOMAIN}`]), DEMO_ACCOUNTS.length);
     assert.equal(await hitung(database, "SELECT count(*)::int AS jumlah FROM accounts WHERE role = 'admin'"), 1, 'Skrip demo tidak membuat akun admin.');
@@ -42,6 +48,20 @@ async function run() {
     assert.ok(await hitung(database, "SELECT count(*)::int AS jumlah FROM invoices WHERE status = 'paid'") > 0, 'Ada tagihan lunas.');
     assert.ok(await hitung(database, "SELECT count(*)::int AS jumlah FROM invoices WHERE status = 'unpaid'") > 0, 'Ada tagihan belum lunas.');
 
+    // Kelola Asrama dan galeri terisi untuk kedua asrama, atas nama musyrifnya.
+    for (const tabel of ['dormitory_schedule', 'dormitory_duties', 'dormitory_dues', 'dormitory_cash_entries', 'dormitory_inventory', 'dormitory_gallery']) {
+      assert.equal(await hitung(database, `SELECT count(DISTINCT dormitory_id)::int AS jumlah FROM ${tabel}`), DEMO_DORMITORIES.length, `${tabel} terisi di kedua asrama.`);
+    }
+    assert.ok(await hitung(database, "SELECT count(*)::int AS jumlah FROM dormitory_schedule WHERE kind = 'acara' AND event_date > CURRENT_DATE") >= 4, 'Ada acara mendatang.');
+    assert.ok(await hitung(database, 'SELECT count(*)::int AS jumlah FROM dormitory_duty_assignments') > 0, 'Piket sudah dibagi.');
+    assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM dormitory_cash_entries WHERE voided_at IS NOT NULL'), DEMO_DORMITORIES.length, 'Satu salah catat dibatalkan per asrama.');
+    assert.equal(await hitung(database, "SELECT count(*)::int AS jumlah FROM file_objects WHERE purpose = 'dormitory-photo' AND status = 'ready'"), await hitung(database, 'SELECT count(*)::int AS jumlah FROM dormitory_gallery'));
+    assert.equal(await hitung(database, "SELECT count(*)::int AS jumlah FROM dormitory_schedule WHERE created_by_account_id IS NULL"), 0);
+    assert.equal(await hitung(database, 'SELECT count(DISTINCT student_id)::int AS jumlah FROM student_juz_progress'), DEMO_STUDENTS.length, 'Peta hafalan semua santri terisi.');
+    assert.equal(await hitung(database, 'SELECT count(DISTINCT dormitory_id)::int AS jumlah FROM announcements'), DEMO_DORMITORIES.length);
+    const izin = (await database.query('SELECT status, count(*)::int AS jumlah FROM student_leave_requests GROUP BY status ORDER BY status')).rows;
+    assert.deepEqual(izin.map((row) => row.status), ['disetujui', 'ditolak', 'menunggu']);
+
     // Pendaftar tersebar di semua tahap, dan pendaftar yang sudah berangkat terhubung ke data santrinya.
     const status = (await database.query('SELECT DISTINCT status FROM registrations')).rows.map((row) => row.status).sort();
     assert.deepEqual(status, ['academic-preparation', 'cancelled', 'completed', 'document-review', 'needs-revision', 'ready-for-departure', 'submitted']);
@@ -52,8 +72,10 @@ async function run() {
     assert.equal(await hitung(database, "SELECT count(*)::int AS jumlah FROM registrations WHERE phone_e164 NOT LIKE '+62800000%' OR email NOT LIKE $1", [`%@${DEMO_DOMAIN}`]), 0);
 
     // Dijalankan ulang tidak membuat data ganda.
-    const kedua = await isiDataDemo({ database, kataSandi: LOCAL_DEMO_PASSWORD, logger: SILENT_LOGGER });
+    const jadwalAwal = await hitung(database, 'SELECT count(*)::int AS jumlah FROM dormitory_schedule');
+    const kedua = await isiDataDemo({ database, kataSandi: LOCAL_DEMO_PASSWORD, storage, logger: SILENT_LOGGER });
     assert.equal(kedua.sudahAda, true);
+    assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM dormitory_schedule'), jadwalAwal);
     assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM students'), DEMO_STUDENTS.length);
 
     // Kata sandi dan kode akses bisa diganti tanpa mengubah data lain.
@@ -72,9 +94,10 @@ async function run() {
     assert.equal(data.kloter.length, DEMO_KLOTER.length);
     assert.equal(data.asramaDilewati.length, 0);
     assert.equal(data.inventarisDilewati.length, 0);
-    await hapusDataDemo({ database, data, storage: null, logger: SILENT_LOGGER });
+    assert.ok(data.berkas.length > 0, 'Foto galeri ikut terdaftar untuk dihapus.');
+    await hapusDataDemo({ database, data, storage, logger: SILENT_LOGGER });
     assert.equal(totalBaris(await temukanDataDemo(database)), 0);
-    for (const tabel of ['students', 'registrations', 'invoices', 'departure_groups', 'dormitories', 'inventory_items', 'inquiries', 'courses']) {
+    for (const tabel of ['students', 'registrations', 'invoices', 'departure_groups', 'dormitories', 'inventory_items', 'inquiries', 'courses', 'dormitory_schedule', 'dormitory_cash_entries', 'dormitory_gallery', 'file_objects', 'announcements', 'student_juz_progress', 'student_leave_requests']) {
       assert.equal(await hitung(database, `SELECT count(*)::int AS jumlah FROM ${tabel}`), 0, `Tabel ${tabel} bersih.`);
     }
     assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM accounts'), 1, 'Hanya akun admin yang tersisa.');
@@ -84,6 +107,7 @@ async function run() {
     console.log('demo data tests passed');
   } finally {
     await database.close();
+    fs.rmSync(folder, { recursive: true, force: true });
   }
 }
 

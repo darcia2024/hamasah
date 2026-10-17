@@ -398,7 +398,7 @@ function createHamasahApp(options) {
     }
   };
 
-  const demoDataService = config.demoDataService || createDemoDataService({ database, storage });
+  const demoDataService = config.demoDataService || createDemoDataService({ database, storage, fileService });
   const studentPhotoService = config.studentPhotoService || createStudentPhotoService({ database, storage, studentPortalService });
   const musyrifStoryService = config.musyrifStoryService || createMusyrifStoryService({ studentPortalService, fetchImpl: config.fetchImpl, env: config.env });
   const dormitoryManagementService = config.dormitoryManagementService || createDormitoryManagementService({
