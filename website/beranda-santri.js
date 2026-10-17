@@ -4,9 +4,10 @@
 //   2. Laporanku 30 hari: status, angka utama dengan perbandingan bulan lalu.
 //   3. Diagram (dari beranda-wali.js): sholat berjamaah, kegiatan, hafalan, catatan musyrif.
 //   4. Prestasi, kelas online, jadwal asrama (kalender) dan acara mendatang, galeri asrama,
-//      pengumuman, izin, dan catatan harian.
+//      iqamah, pengumuman, izin, dan catatan harian. Iqamah yang harus segera diurus naik
+//      tepat di bawah "Hari ini".
 // Data: API yang sama dengan beranda wali (/api/students/:id/*, /api/asrama-saya,
-// /api/announcements). Semua teks lewat textContent; tidak ada atribut style.
+// /api/announcements, /api/iqamah-saya). Semua teks lewat textContent; tidak ada atribut style.
 (function initBerandaSantri() {
   const K = window.HamasahBerandaKeluarga;
   const W = window.HamasahBerandaWali && window.HamasahBerandaWali.bagian;
@@ -50,7 +51,7 @@
   }
 
   // ------------------------------------------------------------ Hari ini
-  function bagianHariIni({ student, asrama, data, kini, onIzin, onOpenFull }) {
+  function bagianHariIni({ student, asrama, data, iqamah, kini, onIzin, onOpenFull }) {
     const wadah = el('section', 'snt-today');
     const utama = el('div', 'snt-today__main');
     utama.append(el('p', 'wali-eyebrow', `Hari ini · ${HARI[kini.hariKe - 1]}`));
@@ -106,6 +107,10 @@
       kotakAcara.append(el('strong', 'snt-tile__value', 'Belum ada'), el('span', 'snt-tile__note', 'Acara asrama tampil di sini begitu dijadwalkan musyrif.'));
     }
     samping.append(kotakAcara);
+
+    const I = window.HamasahIqamah;
+    const kotakIqamah = I && iqamah ? I.ubin(iqamah, student.id) : null;
+    if (kotakIqamah) samping.append(kotakIqamah);
 
     const bantuan = window.HamasahPerjalanan && window.HamasahPerjalanan.daftarTugas;
     const { berikutnya = [] } = bantuan && data.courses ? bantuan(data.courses) : {};
@@ -231,10 +236,11 @@
     memuat.setAttribute('role', 'status');
     wadah.replaceChildren(memuat);
 
-    const [data, jadwal, pengumuman] = await Promise.all([
+    const [data, jadwal, pengumuman, iqamah] = await Promise.all([
       K.muatAnak(student.id, headers, { kelas: true, banding: true }),
       K.muatJadwalAsrama(headers),
-      K.ambil('/api/announcements', headers)
+      K.ambil('/api/announcements', headers),
+      K.ambil('/api/iqamah-saya', headers)
     ]);
     const asrama = jadwal && jadwal.tersedia && Array.isArray(jadwal.dormitories)
       ? jadwal.dormitories.find((d) => d.students.some((s) => String(s.id) === String(student.id))) || null
@@ -262,6 +268,22 @@
       if (isian) setTimeout(() => isian.focus({ preventScroll: true }), 450);
     };
 
+    // Kartu iqamah: laporan tanggal baru dan penanda "sedang mengurus" memuat ulang kartunya saja.
+    const I = window.HamasahIqamah;
+    let kartuIqamahEl = null;
+    const buatKartuIqamah = (isi, pesan = '') => {
+      const k = I ? I.kartu(isi, { studentId: student.id, headers, santri: true, muatUlang: muatUlangIqamah, pesan }) : null;
+      if (k) k.id = 'kartu-iqamah';
+      return k;
+    };
+    async function muatUlangIqamah(pesan) {
+      const segar = await K.ambil(`/api/iqamah-saya?t=${Date.now()}`, headers);
+      const baru = buatKartuIqamah(segar, pesan);
+      if (kartuIqamahEl && baru) { kartuIqamahEl.replaceWith(baru); kartuIqamahEl = baru; }
+    }
+    kartuIqamahEl = buatKartuIqamah(iqamah);
+    const iqamahMendesak = kartuIqamahEl && /\bis-(urus|habis)\b/.test(kartuIqamahEl.className);
+
     const grafik = el('div', 'wali-grid');
     [
       W.kartuSholat(data),
@@ -282,13 +304,15 @@
     [umum, kartuIzinEl].filter(Boolean).forEach((k) => baris2.append(k));
 
     wadah.replaceChildren(...[
-      bagianHariIni({ student, asrama, data, kini, onIzin: keIzin, onOpenFull }),
+      bagianHariIni({ student, asrama, data, iqamah, kini, onIzin: keIzin, onOpenFull }),
+      iqamahMendesak ? kartuIqamahEl : null,
       bagianLaporan(data),
       grafik,
       belajar,
       K.bagianJadwalAsrama(jadwal, student.id, { polos: true, santri: true }),
       baris1,
       galeri,
+      iqamahMendesak ? null : kartuIqamahEl,
       baris2.childElementCount ? baris2 : null,
       K.kartuLinimasa(K.butirKegiatan(data, student.name), {
         judul: 'Catatan harian',

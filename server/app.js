@@ -34,6 +34,7 @@ const { createFileService } = require('./file-service.js');
 const { createStudentPhotoService } = require('./student-photo-service.js');
 const { createMusyrifStoryService } = require('./musyrif-story-service.js');
 const { createDormitoryManagementService } = require('./dormitory-management-service.js');
+const { createResidenceService } = require('./residence-service.js');
 const { createRegistrationConversionService } = require('./registration-conversion-service.js');
 const { createPostgresFileStore } = require('./postgres-file-store.js');
 const { createLocalStorage } = require('./storage/local.js');
@@ -89,6 +90,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/operations.js'),
   ...require('./routes/dormitories.js'),
   ...require('./routes/dormitory-management.js'),
+  ...require('./routes/residence.js'),
   ...require('./routes/students.js'),
   ...require('./routes/student-care.js'),
   ...require('./routes/lms.js'),
@@ -406,8 +408,16 @@ function createHamasahApp(options) {
     staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId),
     listStudentsForActor: (actor) => studentPortalService.listForActor(actor)
   });
+  // Iqamah santri: sisa masa berlaku, batas mulai perpanjangan, dan laporan santri (migrasi 052).
+  const residenceService = config.residenceService || createResidenceService({
+    database,
+    accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor),
+    listStudentsForActor: (actor) => studentPortalService.listForActor(actor),
+    staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId)
+  });
 
   const services = Object.freeze({
+    residenceService,
     maintenanceService,
     studentPhotoService,
     musyrifStoryService,

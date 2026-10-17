@@ -1,5 +1,5 @@
 // Kelola Asrama (16 Oktober 2026): jadwal kegiatan rutin, agenda acara, piket, uang kas
-// dan iuran, inventaris, serta galeri foto (17 Oktober). Untuk musyrif dan admin.
+// dan iuran, inventaris, galeri foto, serta iqamah santri (17 Oktober). Untuk musyrif dan admin.
 // Data: /api/asrama (dormitory-management-service.js). Jadwal dan piket ikut tampil di
 // beranda santri dan wali. Semua teks dipasang lewat textContent.
 (function initKelolaAsrama() {
@@ -19,6 +19,8 @@
   let asramaAktif = null;
   let daftarAsrama = [];
   let data = null;
+  // Iqamah santri asrama ini (/api/asrama/:id/iqamah); null bila belum bisa dimuat.
+  let iqamah = null;
   let tabAktif = 'kalender';
   let bulan = null;
   let nomor = 0;
@@ -142,7 +144,10 @@
 
   async function muat() {
     const params = bulan ? `?bulan=${encodeURIComponent(bulan)}` : '';
-    data = await api('GET', `/api/asrama/${encodeURIComponent(asramaAktif)}${params}`);
+    [data, iqamah] = await Promise.all([
+      api('GET', `/api/asrama/${encodeURIComponent(asramaAktif)}${params}`),
+      api('GET', `/api/asrama/${encodeURIComponent(asramaAktif)}/iqamah`).catch(() => null)
+    ]);
     if (!bulan && data.cash) bulan = data.cash.month;
     lukis();
   }
@@ -713,13 +718,101 @@
     return [tambah, lihat];
   }
 
+  // ------------------------------------------------------------ Iqamah
+  // Sisa masa berlaku iqamah tiap santri dan batas mulai perpanjangan (iqamah.js). Laporan
+  // tanggal baru dari santri diterima atau ditolak di sini; tanggal juga bisa diisi langsung.
+  function panelIqamah() {
+    const I = window.HamasahIqamah;
+    if (!iqamah || !I) return [el('p', 'asr-warning', 'Data iqamah belum dapat dimuat. Coba muat ulang halaman.')];
+    const daftar = iqamah.students;
+    const hitung = (fn) => daftar.filter(fn).length;
+    const menunggu = hitung((x) => x.laporan && x.laporan.status === 'menunggu');
+    const ringkas = [
+      menunggu ? `${menunggu} laporan menunggu dicek` : null,
+      hitung((x) => x.iqamah.tahap === 'habis') ? `${hitung((x) => x.iqamah.tahap === 'habis')} sudah habis` : null,
+      hitung((x) => x.iqamah.tahap === 'urus') ? `${hitung((x) => x.iqamah.tahap === 'urus')} harus segera diurus` : null,
+      hitung((x) => x.iqamah.tahap === 'siapkan') ? `${hitung((x) => x.iqamah.tahap === 'siapkan')} mulai siapkan berkas` : null,
+      hitung((x) => x.iqamah.tahap === 'kosong') ? `${hitung((x) => x.iqamah.tahap === 'kosong')} belum diisi` : null
+    ].filter(Boolean);
+    const lihat = bagian('Iqamah santri', `Perpanjangan mulai diurus paling lambat ${iqamah.aturan.batasUrusHari} hari sebelum habis. Santri dan wali melihat sisa waktunya di beranda masing-masing.`);
+    lihat.append(el('p', 'mus-note', ringkas.length ? ringkas.join(' · ') : 'Semua iqamah santri masih aman.'));
+    if (!iqamah.tersedia) {
+      lihat.append(el('p', 'asr-warning', 'Laporan dari santri menunggu pembaruan database (migrasi 052). Tanggal tetap bisa diisi di sini. Admin dapat menerapkan pembaruan di halaman Pengaturan.'));
+    }
+    const ul = el('ul', 'iqm-list');
+    if (!daftar.length) ul.append(el('li', 'asr-empty', 'Belum ada santri aktif di asrama ini.'));
+    daftar.forEach((x) => {
+      const li = el('li', `iqm-row is-${x.iqamah.tahap}`);
+      const kepala = el('div', 'iqm-row__head');
+      const nama = el('div', 'iqm-row__name');
+      nama.append(el('strong', '', x.name), el('span', 'asr-item__meta', I.teksSisa(x.iqamah)));
+      kepala.append(nama, I.chip(x.iqamah.tahap));
+      li.append(kepala, I.fakta(x));
+      const paspor = I.catatanPaspor(x, iqamah.aturan);
+      if (paspor) li.append(paspor);
+
+      if (x.laporan && x.laporan.status === 'menunggu') {
+        const lapor = el('div', 'iqm-report');
+        lapor.append(el('p', '', `Laporan santri: berlaku sampai ${I.tanggal(x.laporan.expiresOn)}${x.laporan.note ? ` · ${x.laporan.note}` : ''}. Cocokkan dengan kartu iqamah sebelum menerima.`));
+        const aksiLapor = el('div', 'mus-actions');
+        const terima = tombol('Terima', 'button button--primary');
+        terima.addEventListener('click', async () => {
+          terima.disabled = true;
+          await lakukan(() => api('POST', `/api/iqamah/laporan/${x.laporan.id}/keputusan`, { decision: 'diterima' }), null, `Iqamah ${x.name} diperbarui sampai ${I.tanggal(x.laporan.expiresOn)}.`);
+          terima.disabled = false;
+        });
+        const tolak = tombol('Tolak');
+        tolak.addEventListener('click', async () => {
+          const hasil = await window.HamasahDialog.formulir({
+            judul: `Tolak laporan ${x.name}`,
+            keterangan: 'Santri melihat alasan ini dan bisa mengirim ulang tanggal yang benar.',
+            bidang: [{ nama: 'note', label: 'Alasan', jenis: 'textarea', wajib: true }],
+            labelSimpan: 'Tolak laporan',
+            kirim: (n) => api('POST', `/api/iqamah/laporan/${x.laporan.id}/keputusan`, { decision: 'ditolak', note: n.note })
+          });
+          if (hasil) { kabar = 'Laporan ditolak.'; await muat(); }
+        });
+        aksiLapor.append(terima, tolak);
+        lapor.append(aksiLapor);
+        li.append(lapor);
+      }
+
+      const aksi = el('div', 'asr-item__actions');
+      const isi = tombol(x.iqamah.expiresOn ? 'Ubah tanggal' : 'Isi tanggal', 'mus-link');
+      isi.addEventListener('click', async () => {
+        const hasil = await window.HamasahDialog.formulir({
+          judul: `Iqamah ${x.name}`,
+          keterangan: 'Isi sesuai tanggal habis yang tertulis di kartu iqamah.',
+          bidang: [{ nama: 'expiresOn', label: 'Berlaku sampai', jenis: 'date', nilai: x.iqamah.expiresOn || '', wajib: true }],
+          kirim: (n) => api('PUT', `/api/students/${x.id}/iqamah`, { expiresOn: n.expiresOn })
+        });
+        if (hasil) { kabar = `Iqamah ${x.name} disimpan.`; await muat(); }
+      });
+      aksi.append(isi);
+      if (iqamah.tersedia && (x.pengurusan || ['siapkan', 'urus', 'habis'].includes(x.iqamah.tahap))) {
+        const tandai = tombol(x.pengurusan ? 'Lepas tanda sedang diurus' : 'Tandai sedang diurus', 'mus-link');
+        tandai.addEventListener('click', () => lakukan(
+          () => api('PUT', `/api/students/${x.id}/iqamah/pengurusan`, { aktif: !x.pengurusan }),
+          null,
+          x.pengurusan ? 'Tanda pengurusan dilepas.' : `${x.name} ditandai sedang mengurus perpanjangan.`
+        ));
+        aksi.append(tandai);
+      }
+      li.append(aksi);
+      ul.append(li);
+    });
+    lihat.append(ul);
+    return [lihat];
+  }
+
   // ------------------------------------------------------------ Rangka
   const TAB = [
     ['kalender', 'Kalender', panelKalender],
     ['piket', 'Piket', panelPiket],
     ['kas', 'Uang kas', panelKas],
     ['inventaris', 'Inventaris', panelInventaris],
-    ['galeri', 'Galeri', panelGaleri]
+    ['galeri', 'Galeri', panelGaleri],
+    ['iqamah', 'Iqamah', panelIqamah]
   ];
 
   function lukis() {

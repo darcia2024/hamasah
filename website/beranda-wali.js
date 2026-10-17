@@ -504,6 +504,7 @@
     let aktifId = students.some((s) => s.id === tersimpan) ? tersimpan : students[0].id;
     const cache = new Map();
     const pengumumanJanji = K.ambil('/api/announcements', headers);
+    const iqamahJanji = K.ambil('/api/iqamah-saya', headers);
 
     async function tampilkan() {
       const student = students.find((s) => s.id === aktifId);
@@ -513,7 +514,7 @@
       wadah.replaceChildren(...atas, memuat);
 
       if (!cache.has(aktifId)) cache.set(aktifId, K.muatAnak(aktifId, headers, { banding: true }));
-      const [data, pengumuman, jadwalAsrama] = await Promise.all([cache.get(aktifId), pengumumanJanji, K.muatJadwalAsrama(headers)]);
+      const [data, pengumuman, jadwalAsrama, iqamah] = await Promise.all([cache.get(aktifId), pengumumanJanji, K.muatJadwalAsrama(headers), iqamahJanji]);
       if (student.id !== aktifId) return;
 
       const grid = el('div', 'wali-grid');
@@ -534,7 +535,9 @@
       const bawah = el('div', 'wali-grid');
       const tagihan = kartuTagihan(data);
       const umum = K.kartuPengumuman(pengumuman, 3, { polos: true });
-      [tagihan, umum].filter(Boolean).forEach((k) => bawah.append(k));
+      // Iqamah ananda, hanya dilihat; laporan tanggal baru dikirim santri sendiri.
+      const iqamahAnanda = window.HamasahIqamah ? window.HamasahIqamah.kartu(iqamah, { studentId: student.id, headers }) : null;
+      [iqamahAnanda, tagihan, umum].filter(Boolean).forEach((k) => bawah.append(k));
       if (bawah.childElementCount) isi.push(bawah);
       wadah.replaceChildren(...isi);
     }

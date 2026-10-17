@@ -79,7 +79,7 @@ async function run() {
     assert.deepEqual(saya.body.permissions, ['finance.manage', 'operations.manage', 'operations.read']);
     assert.deepEqual(
       (await request(baseUrl, 'GET', '/api/me', { token: token[ROLES.PARENT] })).body.permissions,
-      ['dormitory-schedule.read', 'family-messages.send', 'students.read']
+      ['dormitory-schedule.read', 'family-messages.send', 'residence.read', 'students.read']
     );
 
     // Data secukupnya supaya endpoint punya sasaran yang nyata.
@@ -162,6 +162,13 @@ async function run() {
       { permission: 'dormitory-management.manage', method: 'POST', path: () => `/api/asrama/${dormitoryId}/galeri`, body: () => ({ fileId: '' }) },
       { permission: 'dormitory-management.manage', method: 'DELETE', path: () => `/api/asrama/${dormitoryId}/galeri/00000000-0000-4000-8000-000000000000` },
       { permission: 'dormitory-schedule.read', method: 'GET', path: '/api/asrama-saya' },
+      // Iqamah (migrasi 052). Tanggal kosong atau id yang tidak ada: tidak ada yang tersimpan.
+      { permission: 'residence.read', method: 'GET', path: '/api/iqamah-saya' },
+      { permission: 'residence.report', method: 'POST', path: () => `/api/students/${studentId}/iqamah/laporan`, body: () => ({ expiresOn: '' }) },
+      { permission: 'residence.renewal', method: 'PUT', path: () => `/api/students/00000000-0000-4000-8000-000000000000/iqamah/pengurusan`, body: () => ({ aktif: true }) },
+      { permission: 'residence.manage', method: 'PUT', path: () => `/api/students/${studentId}/iqamah`, body: () => ({ expiresOn: '' }) },
+      { permission: 'residence.manage', method: 'POST', path: '/api/iqamah/laporan/00000000-0000-4000-8000-000000000000/keputusan', body: () => ({ decision: 'diterima' }) },
+      { permission: 'residence.manage', method: 'GET', path: () => `/api/asrama/${dormitoryId}/iqamah` },
       { permission: 'demo.manage', method: 'GET', path: '/api/admin/demo-data' },
       // Langkah yang tidak dikenal dan konfirmasi yang salah: admin mendapat 422, bukan
       // data demo sungguhan di database uji matriks.

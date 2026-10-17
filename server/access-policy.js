@@ -52,6 +52,13 @@ const PERMISSIONS = Object.freeze({
   // "Kirim doa untuk ananda": wali menulis, musyrif asramanya dan admin membaca.
   'family-messages.send': Object.freeze([ROLES.PARENT]),
   'family-messages.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
+  // Iqamah: santri dan wali melihat sisa masa berlaku; santri melapor tanggal baru;
+  // musyrif asramanya atau admin mengecek dan mengisi tanggal. Penanda "sedang diurus"
+  // boleh dipasang santri sendiri maupun musyrif.
+  'residence.read': Object.freeze([ROLES.ADMIN, ROLES.PARENT, ROLES.STUDENT]),
+  'residence.report': Object.freeze([ROLES.STUDENT]),
+  'residence.renewal': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.STUDENT]),
+  'residence.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
 
   'registrations.read': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
   'registrations.update-status': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),

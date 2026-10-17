@@ -2819,3 +2819,179 @@ body.in-crm .snt-page .wali-grid > .crm-white-card,
   .galeri-viewer__stage { padding: 56px 8px 20px; }
   .galeri-viewer__nav { top: auto; bottom: 14px; transform: none; }
 }
+
+/* Iqamah (iqamah.js, 17 Oktober 2026): kartu beranda santri/wali, ubin "Hari ini", dan
+   daftar di Kelola Asrama. Nada: baik (aman), cukup (siapkan berkas), perlu (urus/habis),
+   netral (belum diisi). Warna sama dengan diagram wali. */
+.iqm-card,
+.iqm-list,
+.iqm-tile {
+  --iqm-green: #1F6F3D;
+  --iqm-gold: #856000;
+  --iqm-red: #B4372F;
+  --iqm-rule: rgba(54, 54, 56, 0.12);
+}
+
+.iqm-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-12);
+  font-weight: 600;
+  white-space: nowrap;
+  background: #F1EEE6;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.iqm-chip.is-baik { background: #E6F2EA; color: #1F6F3D; }
+.iqm-chip.is-cukup { background: #FFF3CC; color: #856000; }
+.iqm-chip.is-perlu { background: #FBE7E5; color: #B4372F; }
+
+.iqm-hero {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 14px;
+}
+
+.iqm-hero__count {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.iqm-hero__count strong {
+  font-family: "Philosopher", Georgia, serif;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--md-sys-color-on-surface);
+}
+
+.iqm-card.is-urus .iqm-hero__count strong,
+.iqm-card.is-habis .iqm-hero__count strong { color: #B4372F; }
+.iqm-card.is-siapkan .iqm-hero__count strong { color: #856000; }
+
+.iqm-hero__hint {
+  margin: 0;
+  max-width: 62ch;
+  font-size: var(--fs-14);
+  line-height: 1.55;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.iqm-facts {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  border-top: 1px solid var(--iqm-rule);
+}
+
+.iqm-facts__row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--iqm-rule);
+  font-size: var(--fs-14);
+}
+
+.iqm-facts__label { color: var(--md-sys-color-on-surface-variant); }
+.iqm-facts__value { font-weight: 600; text-align: right; }
+.iqm-facts__row.is-warn .iqm-facts__value { color: #B4372F; }
+.iqm-facts__row.is-progress .iqm-facts__value { color: #1F6F3D; }
+
+.iqm-alert,
+.iqm-note {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: var(--fs-14);
+  line-height: 1.5;
+  background: #F6F4EE;
+  color: var(--md-sys-color-on-surface);
+}
+
+.iqm-alert,
+.iqm-note.is-rejected { background: #FBE7E5; color: #7A231D; }
+.iqm-note.is-wait { background: #FFF6D9; color: #5C4300; }
+
+.iqm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.iqm-actions[hidden],
+.iqm-form[hidden] { display: none; }
+
+/* Formulir laporan: dua bidang sebaris di layar lebar. */
+.iqm-form { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+.iqm-form .santri-leave-form__field:nth-of-type(4) { grid-column: auto; }
+
+/* Ubin di kartu "Hari ini". */
+.iqm-tile { text-decoration: none; transition: transform 0.2s, box-shadow 0.2s; }
+.iqm-tile:hover { transform: translateY(-1px); }
+.iqm-tile:focus-visible { outline: 2px solid #C9960A; outline-offset: 3px; }
+.iqm-tile.is-perlu { background: #FBE7E5; box-shadow: 0 0 0 1px rgba(180, 55, 47, 0.3); }
+.iqm-tile.is-perlu .snt-tile__value { color: #B4372F; }
+.iqm-tile.is-cukup { background: #FFF6D9; box-shadow: 0 0 0 1px rgba(231, 177, 12, 0.35); }
+
+#kartu-iqamah { scroll-margin-top: 80px; }
+
+/* Daftar musyrif di Kelola Asrama. */
+.iqm-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.iqm-row {
+  padding: 14px 16px;
+  border: 1px solid var(--md-sys-color-outline-variant, #E3DED2);
+  border-left-width: 4px;
+  border-radius: 12px;
+  background: var(--md-sys-color-surface-container-lowest, #fff);
+}
+
+.iqm-row.is-aman { border-left-color: #1F6F3D; }
+.iqm-row.is-siapkan { border-left-color: #C9960A; }
+.iqm-row.is-urus,
+.iqm-row.is-habis { border-left-color: #B4372F; }
+
+.iqm-row__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.iqm-row__name { display: grid; gap: 2px; }
+.iqm-row__name strong { font-size: var(--fs-16); }
+.iqm-row .iqm-facts { margin-bottom: 8px; }
+
+.iqm-report {
+  margin: 0 0 10px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #FFF6D9;
+}
+
+.iqm-report p {
+  margin: 0 0 10px;
+  font-size: var(--fs-14);
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .iqm-form { grid-template-columns: 1fr; }
+  .iqm-facts__value { text-align: left; }
+}
