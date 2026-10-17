@@ -101,7 +101,11 @@ function createAiService(options) {
     const providerAnswer = await callProvider({
       question,
       actor: source.actor ? { id: accountKey(source.actor), role: source.actor.role } : null,
+      history: Array.isArray(source.history) ? source.history.slice(-6) : [],
       context: {
+        courseTitle: cleanText(source.context && source.context.courseTitle, 200),
+        type: cleanText(source.context && source.context.type, 40),
+        content: cleanText(source.context && source.context.content, 8000),
         title: cleanText(source.context && source.context.title, 200),
         summary: cleanText(source.context && source.context.summary, 2000),
         keyPoints: Array.isArray(source.context && source.context.keyPoints) ? source.context.keyPoints.map((item) => cleanText(item, 400)).slice(0, 8) : [],

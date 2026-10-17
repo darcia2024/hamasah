@@ -1,7 +1,7 @@
 // Ruang belajar santri (17 Oktober 2026).
 //   - Beranda: kartu "Lanjutkan belajar" dan kartu maddah dengan progres melingkar.
 //   - Halaman maddah: materi aktif (video YouTube tersemat, PDF, bacaan, kuis pilihan
-//     ganda/isian, tugas), tanya jawab materi, tombol sebelumnya/berikutnya, dan daftar
+//     ganda/isian, tugas), asisten belajar AI (tombol cepat + percakapan), tombol sebelumnya/berikutnya, dan daftar
 //     kurikulum dengan tanda selesai.
 // Data: /api/my-students (santri sendiri) dan /api/students/:id/courses*. Semua teks
 // dipasang lewat textContent; video lewat iframe youtube-nocookie (CSP frame-src).
@@ -56,6 +56,7 @@
     let maddah = [];
     let aktif = null;
     let materiId = null;
+    const percakapan = new Map();
 
     async function api(method, url, body) {
       const response = await fetch(url, {
@@ -282,30 +283,135 @@
       return wadahIsi;
     }
 
-    function tanyaMateri(m) {
-      const kotak = el('details', 'lms-ask');
-      kotak.append(el('summary', '', 'Ada yang belum jelas? Tanyakan tentang materi ini'));
-      const id = idBaru('tanya');
-      const lbl = el('label', 'mus-label', 'Pertanyaanmu');
-      lbl.htmlFor = id;
-      const input = el('input', 'mus-input');
-      input.id = id;
-      input.placeholder = 'Contoh: apa bedanya mubtada dan khabar?';
-      const tanya = tombol('Tanya');
-      const jawab = el('div', 'lms-ask__answer');
-      tanya.addEventListener('click', async () => {
-        if (input.value.trim().length < 3) return;
-        tanya.disabled = true;
-        jawab.replaceChildren(el('p', 'mus-note', 'Mencari jawaban...'));
-        try {
-          const r = await api('POST', `/api/students/${encodeURIComponent(studentId)}/courses/${aktif.id}/materials/${m.id}/study-help`, { question: input.value.trim() });
-          jawab.replaceChildren(paragraf((r.help && r.help.answer) || 'Belum ada jawaban. Tanyakan langsung ke guru.'));
-        } catch (error) { jawab.replaceChildren(el('p', 'mus-status is-galat', error.message)); } finally { tanya.disabled = false; }
+    // Asisten belajar: tombol cepat + percakapan per materi. Riwayat disimpan di memori
+    // halaman (percakapan) supaya tidak hilang saat santri berpindah materi lalu kembali.
+    const TOMBOL_CEPAT = [
+      ['sederhana', 'Jelaskan lebih sederhana'],
+      ['contoh', 'Beri contoh'],
+      ['ringkas', 'Ringkas poin penting'],
+      ['latihan', 'Buat latihan soal']
+    ];
+
+    // Teks jawaban menjadi paragraf dan daftar (baris "- " atau "1. "), tanpa innerHTML.
+    function teksKaya(teks) {
+      const wadahTeks = el('div', 'lms-tutor__text');
+      String(teks || '').split(/\n{2,}/).forEach((blok) => {
+        const baris = blok.split('\n').map((b) => b.trim()).filter(Boolean);
+        if (!baris.length) return;
+        const butir = baris.filter((b) => /^(-|•|\d+[.)])\s+/.test(b));
+        if (butir.length && butir.length === baris.length) {
+          const daftarEl = el(/^\d/.test(baris[0]) ? 'ol' : 'ul');
+          baris.forEach((b) => daftarEl.append(el('li', '', b.replace(/^(-|•|\d+[.)])\s+/, ''))));
+          wadahTeks.append(daftarEl);
+        } else if (butir.length && !/^(-|•|\d+[.)])\s+/.test(baris[0])) {
+          wadahTeks.append(el('p', '', baris[0]));
+          const daftarEl = el(/^\d/.test(baris[1] || '') ? 'ol' : 'ul');
+          baris.slice(1).forEach((b) => daftarEl.append(el('li', '', b.replace(/^(-|•|\d+[.)])\s+/, ''))));
+          wadahTeks.append(daftarEl);
+        } else {
+          wadahTeks.append(el('p', '', baris.join(' ')));
+        }
       });
-      const baris = el('div', 'mus-form__row');
-      baris.append(input, tanya);
-      input.classList.add('lms-grow');
-      kotak.append(lbl, baris, jawab);
+      return wadahTeks;
+    }
+
+    function asistenBelajar(m) {
+      const kotak = el('section', 'lms-tutor');
+      kotak.setAttribute('aria-label', 'Asisten belajar');
+      const kepala = el('header', 'lms-tutor__head');
+      const lencana = el('span', 'lms-tutor__badge', '✦');
+      lencana.setAttribute('aria-hidden', 'true');
+      const judul = el('div');
+      judul.append(el('h4', 'lms-tutor__title', 'Asisten belajar'), el('p', 'lms-tutor__note', `Bantu kamu memahami "${m.title}". Jawaban AI bisa keliru, jadi pastikan hal penting ke ustadz pengampu.`));
+      kepala.append(lencana, judul);
+      kotak.append(kepala);
+
+      if (m.type === 'quiz' && !m.completed) {
+        kotak.classList.add('is-locked');
+        kotak.append(el('p', 'lms-tutor__locked', 'Asisten dibuka lagi setelah kuis ini selesai, supaya nilaimu benar-benar hasil pemahamanmu. Kalau ada yang belum jelas, buka lagi materi sebelumnya.'));
+        return kotak;
+      }
+
+      const riwayat = percakapan.get(m.id) || [];
+      percakapan.set(m.id, riwayat);
+      const utas = el('ol', 'lms-tutor__thread');
+      utas.setAttribute('aria-live', 'polite');
+
+      function gelembung(giliran) {
+        const li = el('li', `lms-tutor__msg is-${giliran.role}${giliran.galat ? ' is-error' : ''}`);
+        if (giliran.role === 'user') li.append(el('p', 'lms-tutor__text', giliran.label || giliran.text));
+        else li.append(teksKaya(giliran.text));
+        if (giliran.cadangan) li.append(el('span', 'lms-tutor__source', 'Disusun dari ringkasan materi pengajar'));
+        return li;
+      }
+      function gambarUtas() {
+        utas.replaceChildren(...riwayat.map(gelembung));
+        utas.hidden = !riwayat.length;
+      }
+      gambarUtas();
+
+      const chips = el('div', 'lms-tutor__chips');
+      const form = el('form', 'lms-tutor__form');
+      const idInput = idBaru('tutor');
+      const lbl = el('label', 'sr-only', 'Pertanyaanmu tentang materi ini');
+      lbl.htmlFor = idInput;
+      const input = el('textarea', 'lms-tutor__input');
+      input.id = idInput;
+      input.rows = 2;
+      input.maxLength = 1000;
+      input.placeholder = 'Tanyakan bagian yang belum kamu pahami...';
+      const kirim = el('button', 'lms-tutor__send', 'Tanya');
+      kirim.type = 'submit';
+      form.append(lbl, input, kirim);
+
+      let sibuk = false;
+      async function tanya(mode, pertanyaan, label) {
+        if (sibuk) return;
+        sibuk = true;
+        kotak.classList.add('is-busy');
+        [...chips.children].forEach((c) => { c.disabled = true; });
+        kirim.disabled = true;
+        const sebelumnya = riwayat.filter((g) => !g.galat).slice(-6).map((g) => ({ role: g.role, text: g.text }));
+        riwayat.push({ role: 'user', text: pertanyaan || label, label });
+        gambarUtas();
+        const mengetik = el('li', 'lms-tutor__msg is-assistant is-typing');
+        mengetik.append(el('span', 'lms-tutor__dots'), el('span', 'sr-only', 'Sedang menyusun jawaban'));
+        utas.append(mengetik);
+        mengetik.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        try {
+          const r = await api('POST', `/api/students/${encodeURIComponent(studentId)}/courses/${aktif.id}/materials/${m.id}/study-help`, { mode, question: pertanyaan || '', history: sebelumnya });
+          const help = r.help || {};
+          riwayat.push({ role: 'assistant', text: help.answer || 'Belum ada jawaban. Tanyakan langsung ke ustadz pengampu.', cadangan: help.mode === 'fallback' });
+        } catch (error) {
+          riwayat.push({ role: 'assistant', text: error.message, galat: true });
+        } finally {
+          sibuk = false;
+          kotak.classList.remove('is-busy');
+          [...chips.children].forEach((c) => { c.disabled = false; });
+          kirim.disabled = false;
+          gambarUtas();
+          const terakhir = utas.lastElementChild;
+          if (terakhir) terakhir.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+      }
+
+      TOMBOL_CEPAT.forEach(([mode, label]) => {
+        const c = tombol(label, 'lms-tutor__chip');
+        c.addEventListener('click', () => tanya(mode, '', label));
+        chips.append(c);
+      });
+      input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); form.requestSubmit(); }
+      });
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const teks = input.value.trim();
+        if (teks.length < 3) { input.focus(); return; }
+        input.value = '';
+        tanya('tanya', teks);
+      });
+
+      kotak.append(chips, utas, form);
       return kotak;
     }
 
@@ -404,7 +510,7 @@
           poin.append(ul);
           utama.append(poin);
         }
-        utama.append(tanyaMateri(materi));
+        utama.append(asistenBelajar(materi));
 
         const nav = el('nav', 'lms-learn__nav');
         nav.setAttribute('aria-label', 'Navigasi materi');

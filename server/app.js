@@ -21,6 +21,7 @@ const { createStudentPortalService } = require('./student-portal-service.js');
 const { createPostgresStudentStore } = require('./postgres-student-store.js');
 const { createLmsService } = require('./lms-service.js');
 const { createAiService } = require('./ai-service.js');
+const { createLmsTutorProvider } = require('./lms-tutor-provider.js');
 const { createPostgresLmsStore } = require('./postgres-lms-store.js');
 const { createOperationsService } = require('./operations-service.js');
 const { createOperationsImportService } = require('./operations-import-service.js');
@@ -280,9 +281,11 @@ function createHamasahApp(options) {
     healthEnabled: kesehatanAktif
   });
   const aiService = config.aiService || createAiService({
-    provider: config.aiProvider || null,
+    // Asisten belajar LMS: model lewat OpenRouter bila OPENROUTER_API_KEY diisi; tanpa kunci,
+    // jawaban disusun lokal dari materi pengajar.
+    provider: config.aiProvider !== undefined ? config.aiProvider : createLmsTutorProvider({ env: config.env, fetchImpl: config.fetchImpl, logger: config.logger }),
     maxRequests: () => settingsService.ambil('asisten.batasPerJam'),
-    timeoutMs: Number(config.aiTimeoutMs || process.env.AI_TIMEOUT_MS || 8000),
+    timeoutMs: Number(config.aiTimeoutMs || process.env.AI_TIMEOUT_MS || 22000),
     logger: config.logger || console
   });
   const lmsStore = config.lmsStore || createPostgresLmsStore({ database });

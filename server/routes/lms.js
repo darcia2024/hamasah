@@ -110,7 +110,7 @@ module.exports = [
     permission: 'courses.read',
     async handler({ response, services, auth, params, readBody }) {
       const body = await readBody();
-      const help = await services.lmsService.studyHelp(params[0], params[1], params[2], body.question, await auth.actor());
+      const help = await services.lmsService.studyHelp(params[0], params[1], params[2], { question: body.question, mode: body.mode, history: body.history }, await auth.actor());
       json(response, help.ok ? 200 : 422, help.ok ? { help: help.value } : publicError(help));
     }
   }

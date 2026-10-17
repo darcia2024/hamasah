@@ -1,5 +1,6 @@
 const crypto = require('node:crypto');
 const { findAnswer } = require('./study-retriever.js');
+const { MODES: TUTOR_MODES } = require('./lms-tutor-provider.js');
 
 const MATERIAL_TYPES = Object.freeze(['video', 'pdf', 'text', 'assignment', 'quiz']);
 // Dipakai submitQuiz dan ditampilkan ke santri supaya aturannya tidak tersembunyi.
@@ -596,10 +597,16 @@ function createLmsService(options) {
     return saved ? { ok: true, value: saved } : { ok: false, error: 'Submission tidak ditemukan.' };
   }
 
-  async function studyHelp(studentId, courseId, materialId, question, actor) {
+  // input: string pertanyaan (bentuk lama) atau { question, mode, history }.
+  // mode: tanya | sederhana | contoh | ringkas | latihan (tombol cepat di ruang belajar).
+  async function studyHelp(studentId, courseId, materialId, input, actor) {
     if (!(await studyHelpEnabled())) {
       return { ok: false, error: 'Asisten belajar sedang dinonaktifkan admin. Tanyakan bagian yang belum jelas langsung ke pengajar.' };
     }
+    const permintaan = input && typeof input === 'object' ? input : { question: input };
+    const mode = Object.prototype.hasOwnProperty.call(TUTOR_MODES, permintaan.mode) ? permintaan.mode : 'tanya';
+    const question = clean(permintaan.question) || TUTOR_MODES[mode];
+    if (!question) return { ok: false, error: 'Pertanyaan belum diisi.' };
     const courseResult = await getStudentCourse(studentId, courseId, actor);
     if (!courseResult.ok) {
       return courseResult;
@@ -609,32 +616,53 @@ function createLmsService(options) {
     if (!material) {
       return { ok: false, error: 'Materi tidak ditemukan.' };
     }
+    // Kuis yang belum lulus tidak dibantu AI, supaya nilainya tetap hasil pemahaman santri.
+    const tampilan = courseResult.value.materials.find((entry) => entry.id === material.id);
+    if (material.type === 'quiz' && !(tampilan && tampilan.completed)) {
+      return { ok: false, error: 'Asisten belajar dibuka lagi setelah kuis ini selesai. Pelajari materi sebelumnya dulu, lalu kerjakan kuisnya.' };
+    }
     // Jawaban lokal dari materi pengajar (study-retriever.js). Materi lain yang masih aktif di
     // maddah yang sama ikut dicari bila materi yang dibuka tidak membahasnya.
     const otherMaterials = course.materials.filter(function activeMaterial(entry) { return entry.id !== material.id && !entry.archivedAt; });
-    const local = findAnswer({ question: clean(question), material, otherMaterials });
+    const local = mode === 'tanya'
+      ? findAnswer({ question, material, otherMaterials })
+      : { answer: rangkumanLokal(material), source: 'rangkuman materi' };
     const fallbackAnswer = local.answer;
     if (aiService && typeof aiService.answer === 'function') {
+      // Isi kuis (soal dan kunci) tidak pernah dikirim ke model.
+      const isiTeks = material.type === 'quiz' ? '' : ['video', 'pdf', 'text'].includes(material.type) ? bacaIsiMateri(material).teks : material.content;
       const aiResult = await aiService.answer({
         actor,
-        question: clean(question),
+        question,
+        history: permintaan.history,
         fallbackAnswer,
         fallbackSource: local.source,
-        context: { title: material.title, summary: material.summary, keyPoints: material.keyPoints, studyGuide: material.studyGuide }
+        context: { courseTitle: course.title, type: material.type, content: isiTeks, title: material.title, summary: material.summary, keyPoints: material.keyPoints, studyGuide: material.studyGuide }
       });
       if (!aiResult.ok) return aiResult;
-      return { ok: true, value: { materialId: material.id, summary: material.summary, keyPoints: material.keyPoints, ...aiResult.value } };
+      return { ok: true, value: { materialId: material.id, action: mode, summary: material.summary, keyPoints: material.keyPoints, ...aiResult.value } };
     }
     return {
       ok: true,
       value: {
         materialId: material.id,
+        action: mode,
         summary: material.summary,
         keyPoints: material.keyPoints,
         answer: fallbackAnswer,
-        source: local.source
+        source: local.source,
+        mode: 'fallback'
       }
     };
+  }
+
+  // Cadangan tanpa model AI untuk tombol cepat: ringkasan dan poin penting dari pengajar.
+  function rangkumanLokal(material) {
+    const poin = (material.keyPoints || []).filter(Boolean);
+    const bagian = [material.summary || ''];
+    if (poin.length) bagian.push(`Poin penting:\n${poin.map((p) => `- ${p}`).join('\n')}`);
+    bagian.push('Penjelasan lebih lanjut bisa kamu tanyakan langsung ke ustadz pengampu.');
+    return bagian.filter(Boolean).join('\n\n');
   }
 
   return Object.freeze({ progressSummary,
