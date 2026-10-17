@@ -101,6 +101,51 @@ async function run() {
   assert.equal((await service.completeMaterial('student-2', courseId, material.value.id, student)).ok, false);
   assert.equal((await service.studyHelp('student-2', courseId, material.value.id, 'Apa fungsi khabar?', student)).ok, false);
 
+  // Video YouTube dan PDF (17 Oktober 2026): isi JSON, santri menerima media siap pakai.
+  const video = await service.addMaterial(courseId, {
+    type: 'video', title: 'Jumlah Filiyyah', summary: 'Jumlah filiyyah diawali fiil.',
+    content: JSON.stringify({ url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=30s', teks: 'Tonton sampai menit 10.' })
+  }, admin);
+  assert.equal(video.ok, true, 'Poin penting tidak wajib lagi.');
+  assert.equal((await service.addMaterial(courseId, { type: 'video', title: 'Video asing', summary: 'Ringkasan cukup panjang.', content: JSON.stringify({ url: 'javascript:alert(1)' }) }, admin)).ok, false);
+  const pdf = await service.addMaterial(courseId, {
+    type: 'pdf', title: 'Matan Ajurrumiyyah', summary: 'Matan lengkap untuk dibaca.',
+    content: JSON.stringify({ fileId: '11111111-2222-4333-8444-555555555555', fileName: 'ajurrumiyyah.pdf', teks: 'Baca bab kalam.' })
+  }, admin);
+  assert.equal(pdf.ok, true);
+  assert.equal((await service.addMaterial(courseId, { type: 'pdf', title: 'PDF kosong', summary: 'Ringkasan cukup panjang.', content: JSON.stringify({ fileId: 'bukan-id' }) }, admin)).ok, false);
+
+  // Kuis pilihan ganda: pilihan dikirim ke santri, kunci tidak.
+  assert.equal((await service.addMaterial(courseId, { type: 'quiz', title: 'Kuis salah', summary: 'Kuis tentang kalam.', content: JSON.stringify({ questions: [{ prompt: 'Kalam?', answer: 'Lafadz', options: ['Huruf', 'Isim'] }] }) }, admin)).ok, false, 'Jawaban harus salah satu pilihan.');
+  const kuis = await service.addMaterial(courseId, {
+    type: 'quiz', title: 'Kuis kalam', summary: 'Kuis tentang kalam.',
+    content: JSON.stringify({ questions: [
+      { prompt: 'Tanda isim yang menerima Al?', answer: 'Isim', options: ['Fiil', 'Isim', 'Huruf'] },
+      { prompt: 'Huruf jar untuk tempat?', answer: 'fi' }
+    ] })
+  }, admin);
+  assert.equal(kuis.ok, true);
+  const lihat = (await service.getStudentCourse('student-1', courseId, student)).value;
+  const mVideo = lihat.materials.find((m) => m.id === video.value.id);
+  assert.equal(mVideo.media.youtubeId, 'dQw4w9WgXcQ');
+  assert.equal(mVideo.content, 'Tonton sampai menit 10.');
+  const mPdf = lihat.materials.find((m) => m.id === pdf.value.id);
+  assert.deepEqual([mPdf.media.fileId, mPdf.media.fileName], ['11111111-2222-4333-8444-555555555555', 'ajurrumiyyah.pdf']);
+  const mLama = lihat.materials.find((m) => m.id === material.value.id);
+  assert.equal(mLama.content, 'Video pembahasan mubtada dan khabar.', 'Materi lama berupa teks tetap terbaca.');
+  const mKuis = lihat.materials.find((m) => m.id === kuis.value.id);
+  assert.deepEqual(mKuis.quiz.questions[0], { index: 0, prompt: 'Tanda isim yang menerima Al?', options: ['Fiil', 'Isim', 'Huruf'] });
+  assert.equal(JSON.stringify(mKuis).includes('"answer"'), false, 'Kunci jawaban tidak terkirim.');
+  const nilai = await service.submitQuiz('student-1', courseId, kuis.value.id, { 0: 'Isim', 1: 'fi' }, student);
+  assert.equal(nilai.value.attempt.score, 100);
+
+  // Urutan materi.
+  const ids = lihat.materials.map((m) => m.id);
+  const balik = await service.reorderMaterials(courseId, [...ids].reverse(), admin);
+  assert.equal(balik.ok, true);
+  assert.deepEqual((await service.getStudentCourse('student-1', courseId, student)).value.materials.map((m) => m.id), [...ids].reverse());
+  assert.equal((await service.reorderMaterials(courseId, ids, otherTeacher)).ok, false);
+
   console.log('lms-service tests passed');
 }
 

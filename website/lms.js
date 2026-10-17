@@ -1454,6 +1454,21 @@ if (logoutButton) {
     consoleSection.hidden = false;
     document.body.classList.add('in-crm');
     renderStaffNav(staffNav, role, 'lms', result.account);
+    // Tampilan 2026: santri memakai ruang belajar (lms-belajar.js), guru dan admin memakai
+    // studio maddah (lms-studio.js). Musyrif tetap memakai tampilan pemantauan di bawah.
+    const app = document.querySelector('#lms-app');
+    const modul = role === 'student' ? window.HamasahLmsBelajar : ['teacher', 'admin'].includes(role) ? window.HamasahLmsStudio : null;
+    if (app && modul) {
+      document.querySelectorAll('#lms-console .crm-page-header, #lms-subtabs, #panel-my-courses, #panel-course-detail, #panel-manage')
+        .forEach((bagian) => { bagian.hidden = true; });
+      app.hidden = false;
+      const remah = document.querySelector('.crm-breadcrumbs .crumb-active');
+      if (remah) remah.textContent = role === 'student' ? 'Ruang belajar' : 'Studio maddah';
+      const tampilan = modul.buat({ wadah: app, headers, role });
+      window.hamasahSaatDataSegar(() => (tampilan.segarkan ? tampilan.segarkan() : null));
+      await tampilan.mulai();
+      return;
+    }
     if (role === 'student') siapkanTampilanSantri();
     if (LMS_MANAGE_ROLES.includes(role)) {
       document.querySelectorAll('.staff-only-tab').forEach((el) => { el.hidden = false; });

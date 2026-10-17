@@ -18,6 +18,70 @@ function clean(value) {
   return String(value || '').trim();
 }
 
+// Isi materi (17 Oktober 2026). Kolom content tetap satu teks, tetapi untuk video dan PDF
+// boleh berupa JSON: { teks, url } untuk video YouTube dan { teks, fileId, fileName } untuk
+// lampiran PDF (tujuan unggahan course-file). Materi lama yang berupa teks biasa tetap
+// terbaca: tautan pertama di teks dipakai sebagai url.
+const POLA_YOUTUBE = /(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^#\s]*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/i;
+const POLA_TAUTAN = /https?:\/\/[^\s<>"']+/i;
+const POLA_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function bacaIsiMateri(material) {
+  const mentah = String((material && material.content) || '');
+  let isi = null;
+  if (mentah.trim().startsWith('{')) {
+    try { isi = JSON.parse(mentah); } catch { isi = null; }
+  }
+  const teks = isi && typeof isi === 'object' ? clean(isi.teks) : mentah;
+  const url = isi && typeof isi === 'object' ? clean(isi.url) : ((mentah.match(POLA_TAUTAN) || [])[0] || '');
+  const youtube = (url.match(POLA_YOUTUBE) || teks.match(POLA_YOUTUBE) || [])[1] || null;
+  const fileId = isi && POLA_UUID.test(clean(isi.fileId)) ? clean(isi.fileId) : null;
+  return { teks, url: url || null, youtubeId: youtube, fileId, fileName: fileId ? clean(isi.fileName).slice(0, 160) || 'materi.pdf' : null };
+}
+
+// Kuis: { questions: [{ prompt, answer, options? }] }. Dengan options (2 sampai 6 pilihan
+// berbeda), answer harus salah satu pilihan. Tanpa options, jawaban isian dicocokkan persis.
+function normalkanKuis(content) {
+  let data;
+  try { data = JSON.parse(content); } catch { return { ok: false, error: 'Isi kuis tidak valid.' }; }
+  const daftar = Array.isArray(data && data.questions) ? data.questions : [];
+  const questions = [];
+  for (const q of daftar.slice(0, 50)) {
+    const prompt = clean(q && q.prompt).slice(0, 500);
+    const answer = clean(q && q.answer).slice(0, 200);
+    if (!prompt || !answer) return { ok: false, error: 'Setiap soal kuis perlu pertanyaan dan jawaban.' };
+    if (Array.isArray(q.options) && q.options.length) {
+      const options = [...new Set(q.options.map((o) => clean(o).slice(0, 200)).filter(Boolean))].slice(0, 6);
+      if (options.length < 2) return { ok: false, error: 'Soal pilihan ganda perlu minimal dua pilihan berbeda.' };
+      if (!options.includes(answer)) return { ok: false, error: 'Jawaban benar harus salah satu pilihan.' };
+      questions.push({ prompt, answer, options });
+    } else {
+      questions.push({ prompt, answer });
+    }
+  }
+  if (!questions.length) return { ok: false, error: 'Kuis perlu minimal satu soal.' };
+  return { ok: true, value: JSON.stringify({ questions }) };
+}
+
+// Video dan PDF berformat JSON dinormalkan; teks biasa dibiarkan.
+function normalkanIsi(type, content) {
+  if (type === 'quiz') return normalkanKuis(content);
+  if ((type === 'video' || type === 'pdf') && content.startsWith('{')) {
+    let isi;
+    try { isi = JSON.parse(content); } catch { return { ok: false, error: 'Isi materi tidak valid.' }; }
+    const teks = clean(isi.teks).slice(0, 4000);
+    if (type === 'video') {
+      const url = clean(isi.url).slice(0, 500);
+      if (!POLA_YOUTUBE.test(url) && !/^https:\/\//i.test(url)) return { ok: false, error: 'Tautan video harus alamat https, misalnya tautan YouTube.' };
+      return { ok: true, value: JSON.stringify({ url, teks }) };
+    }
+    const fileId = clean(isi.fileId);
+    if (!POLA_UUID.test(fileId)) return { ok: false, error: 'Unggah berkas PDF materinya dulu.' };
+    return { ok: true, value: JSON.stringify({ fileId, fileName: clean(isi.fileName).slice(0, 160), teks }) };
+  }
+  return { ok: true, value: content };
+}
+
 // Antarmuka store LMS sama persis dengan postgres-lms-store.js, supaya service
 // tidak perlu tahu data disimpan di mana.
 function createMemoryLmsStore() {
@@ -77,6 +141,7 @@ function createMemoryLmsStore() {
     ,async listSubmissionsByCourse(courseId) { return clone(database.submissions.filter((item) => item.courseId === courseId)); }
     ,async reviewSubmission(id, review) { const item = database.submissions.find((entry) => entry.id === id); if (!item) return null; Object.assign(item, review); return clone(item); }
     ,async updateMaterial(courseId, materialId, value) { const course = database.courses[courseId]; const item = course && course.materials.find((entry) => entry.id === materialId); if (!item) return null; Object.assign(item, value, { version: (item.version || 1) + 1 }); return clone(item); }
+    ,async setMaterialPositions(courseId, ids) { const course = database.courses[courseId]; if (!course) return; course.materials.forEach((item) => { item.position = ids.indexOf(item.id); }); course.materials.sort((a, b) => a.position - b.position); }
     ,async archiveMaterial(courseId, materialId, archivedAt) { const course = database.courses[courseId]; const item = course && course.materials.find((entry) => entry.id === materialId); if (!item) return null; item.archivedAt = archivedAt; item.version = (item.version || 1) + 1; return clone(item); }
   };
 }
@@ -187,12 +252,14 @@ function createLmsService(options) {
         return { question: clean(entry.question), answer: clean(entry.answer) };
       }).filter(function completeGuide(entry) { return entry.question && entry.answer; }).slice(0, 10)
       : [];
-    if (!MATERIAL_TYPES.includes(type) || title.length < 3 || content.length < 3 || summary.length < 8 || keyPoints.length === 0) {
+    if (!MATERIAL_TYPES.includes(type) || title.length < 3 || content.length < 3 || summary.length < 8) {
       return { ok: false, error: 'Materi belum lengkap atau jenis materi tidak valid.' };
     }
+    const isi = normalkanIsi(type, content);
+    if (!isi.ok) return isi;
 
     const saved = await store.addMaterial(courseId, {
-      id: crypto.randomUUID(), type, title, content, summary, keyPoints, studyGuide, createdAt: now()
+      id: crypto.randomUUID(), type, title, content: isi.value, summary, keyPoints, studyGuide, createdAt: now()
     });
     return { ok: true, value: saved };
   }
@@ -203,8 +270,24 @@ function createLmsService(options) {
     if (!canManageCourse(course, actor)) return { ok: false, error: 'Guru hanya dapat mengubah course miliknya.' };
     const source = input || {}; const title = clean(source.title); const content = clean(source.content); const summary = clean(source.summary);
     if (title.length < 3 || content.length < 3 || summary.length < 8) return { ok: false, error: 'Materi belum lengkap.' };
-    const value = await store.updateMaterial(courseId, materialId, { title, content, summary, keyPoints: Array.isArray(source.keyPoints) ? source.keyPoints.map(clean).filter(Boolean).slice(0, 8) : undefined, studyGuide: Array.isArray(source.studyGuide) ? source.studyGuide : undefined, updatedAt: now() });
+    const jenis = course.materials.find((item) => item.id === materialId).type;
+    const isi = normalkanIsi(jenis, content);
+    if (!isi.ok) return isi;
+    const value = await store.updateMaterial(courseId, materialId, { title, content: isi.value, summary, keyPoints: Array.isArray(source.keyPoints) ? source.keyPoints.map(clean).filter(Boolean).slice(0, 8) : undefined, studyGuide: Array.isArray(source.studyGuide) ? source.studyGuide : undefined, updatedAt: now() });
     return value ? { ok: true, value } : { ok: false, error: 'Materi tidak ditemukan.' };
+  }
+
+  // ids: urutan baru id materi aktif. Materi yang tidak disebut ditaruh di belakang.
+  async function reorderMaterials(courseId, ids, actor) {
+    if (!isStaff(actor)) return { ok: false, error: 'Akses guru atau admin diperlukan.' };
+    const course = await store.getCourse(courseId);
+    if (!course || !canManageCourse(course, actor)) return { ok: false, error: 'Maddah tidak ditemukan.' };
+    if (!Array.isArray(ids) || typeof store.setMaterialPositions !== 'function') return { ok: false, error: 'Urutan materi tidak valid.' };
+    const milik = new Set(course.materials.map((item) => item.id));
+    const urut = [...new Set(ids.map(String))].filter((id) => milik.has(id));
+    const sisa = course.materials.map((item) => item.id).filter((id) => !urut.includes(id));
+    await store.setMaterialPositions(courseId, [...urut, ...sisa]);
+    return { ok: true, value: await store.getCourse(courseId) };
   }
 
   async function archiveMaterial(courseId, materialId, actor) {
@@ -256,6 +339,11 @@ function createLmsService(options) {
         id: material.id, type: material.type, title: material.title, content: material.content,
         summary: material.summary, keyPoints: material.keyPoints, completed: completedMaterialIds.includes(material.id)
       };
+      if (['video', 'pdf', 'text'].includes(material.type)) {
+        const isi = bacaIsiMateri(material);
+        dasar.content = isi.teks;
+        dasar.media = { url: isi.url, youtubeId: isi.youtubeId, fileId: isi.fileId, fileName: isi.fileName };
+      }
       if (material.type === 'quiz') {
         // Kunci jawaban tidak pernah dikirim ke peramban santri: yang dikirim hanya
         // pertanyaannya. Penilaian tetap dikerjakan server di submitQuiz.
@@ -263,7 +351,11 @@ function createLmsService(options) {
         try { questions = JSON.parse(material.content).questions || []; } catch { questions = []; }
         dasar.content = '';
         dasar.quiz = {
-          questions: questions.map((question, index) => ({ index, prompt: question.prompt })),
+          questions: questions.map((question, index) => ({
+            index,
+            prompt: question.prompt,
+            ...(Array.isArray(question.options) && question.options.length ? { options: question.options } : {})
+          })),
           attemptLimit: QUIZ_ATTEMPT_LIMIT,
           passingScore: QUIZ_PASSING_SCORE
         };
@@ -546,6 +638,7 @@ function createLmsService(options) {
     addMaterial,
     updateCourse,
     archiveMaterial,
+    reorderMaterials,
     completeMaterial,
     createCourse,
     createMemoryLmsStore,
@@ -565,4 +658,4 @@ function createLmsService(options) {
   });
 }
 
-module.exports = { MATERIAL_TYPES, createLmsService, createMemoryLmsStore };
+module.exports = { MATERIAL_TYPES, bacaIsiMateri, createLmsService, createMemoryLmsStore };

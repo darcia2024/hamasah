@@ -38,7 +38,8 @@ function run() {
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
-    "object-src 'none'"
+    "object-src 'none'",
+    'frame-src https://www.youtube-nocookie.com'
   ]) {
     assert.ok(csp.includes(potongan), `CSP kehilangan bagian: ${potongan}`);
   }
@@ -51,7 +52,7 @@ function run() {
   });
   const cspTambahan = ditambah.forDocument()['Content-Security-Policy'];
   assert.ok(cspTambahan.includes("script-src 'self' https://challenges.cloudflare.com"));
-  assert.ok(cspTambahan.includes('frame-src https://challenges.cloudflare.com'));
+  assert.ok(cspTambahan.includes('frame-src https://www.youtube-nocookie.com https://challenges.cloudflare.com'));
   assert.ok(cspTambahan.includes("object-src 'none'"), 'Direktif lain tidak boleh hilang saat menambah sumber.');
 
   // Sumber yang sama tidak digandakan.

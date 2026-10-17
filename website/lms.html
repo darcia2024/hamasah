@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="staff.css?v=87a684ff62" />
     <link rel="stylesheet" href="portal.css?v=1838fa6b1f" />
     <link rel="stylesheet" href="fields.css?v=9cd65bf0c8" />
+    <link rel="stylesheet" href="beranda-keluarga.css?v=ce7bfa65e6" />
+    <link rel="stylesheet" href="asrama.css?v=8be8d8883e" />
+    <link rel="stylesheet" href="lms-2026.css?v=d38216c179" />
     <link rel="stylesheet" href="konsol-2026.css?v=60df2f44af" />
     <script src="session-hint.js?v=b0562827f3"></script>
     <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
@@ -108,6 +111,8 @@
         </header>
 
         <div class="crm-canvas">
+          <!-- Studio maddah (guru, admin) dan ruang belajar (santri): lms-studio.js, lms-belajar.js. -->
+          <div id="lms-app" class="mus-page lms-page" hidden></div>
           <div class="crm-page-header">
             <h2 class="crm-summary-title">LMS maddah</h2>
             <p class="crm-summary-subtitle">Kelola maddah dan materi, lalu pantau progres belajar santri.</p>
@@ -336,7 +341,9 @@
     <script src="internal-shell.js?v=da0d378c78"></script>
     <script src="nav.js?v=26656a0635"></script>
     <script src="student-picker.js?v=e59fd6a323"></script>
-    <script src="lms.js?v=d5e78bb18a"></script>
+    <script src="lms-studio.js?v=0795cdc2a5"></script>
+    <script src="lms-belajar.js?v=a6a36100d8"></script>
+    <script src="lms.js?v=a35608c821"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>

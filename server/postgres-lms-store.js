@@ -142,6 +142,15 @@ function createPostgresLmsStore({ database } = {}) {
       return rows[0] ? toMaterial(rows[0]) : null;
     },
 
+    // Urutan baru materi satu maddah (lms-service reorderMaterials), dalam satu transaksi.
+    async setMaterialPositions(courseId, ids) {
+      await database.withTransaction(async (tx) => {
+        for (let i = 0; i < ids.length; i += 1) {
+          await tx.query('UPDATE course_materials SET position = $3 WHERE course_id = $1 AND id = $2', [courseId, ids[i], i]);
+        }
+      });
+    },
+
     async archiveMaterial(courseId, materialId, archivedAt) {
       const { rows } = await database.query(
         `UPDATE course_materials SET archived_at = $3, version = version + 1 WHERE course_id = $1 AND id = $2

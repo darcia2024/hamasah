@@ -13,6 +13,9 @@ const DEFAULT_DIRECTIVES = Object.freeze({
   'font-src': Object.freeze(['https://fonts.gstatic.com']),
   'img-src': Object.freeze(["'self'", 'data:', 'blob:']),
   'connect-src': Object.freeze(["'self'"]),
+  // Video materi LMS: hanya pemutar YouTube mode privasi (tanpa cookie) yang boleh disematkan
+  // (keputusan pemilik 17 Oktober 2026). Sumber bingkai lain tetap ditolak lewat default-src.
+  'frame-src': Object.freeze(['https://www.youtube-nocookie.com']),
   // Menolak situs lain memuat halaman ini di dalam iframe, yaitu clickjacking.
   'frame-ancestors': Object.freeze(["'none'"]),
   'base-uri': Object.freeze(["'self'"]),

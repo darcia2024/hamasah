@@ -114,6 +114,17 @@ module.exports = [
       json(response, help.ok ? 200 : 422, help.ok ? { help: help.value } : publicError(help));
     }
   }
+  // Urutan materi: { ids: [...] } dari atas ke bawah.
+  ,{
+    method: 'PUT',
+    pattern: /^\/api\/courses\/([\w-]+)\/materials\/urutan$/,
+    permission: 'courses.manage',
+    async handler({ response, services, auth, params, readBody }) {
+      const body = await readBody();
+      const result = await services.lmsService.reorderMaterials(params[0], body && body.ids, await auth.actor());
+      json(response, result.ok ? 200 : 422, result.ok ? { course: result.value } : publicError(result));
+    }
+  }
   ,{
     method: 'PATCH',
     pattern: /^\/api\/courses\/([\w-]+)\/materials\/([\w-]+)$/,

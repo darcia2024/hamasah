@@ -258,6 +258,7 @@ async function run() {
 
       { permission: 'courses.manage', method: 'GET', path: '/api/courses' },
       { permission: 'courses.manage', method: 'GET', path: () => `/api/courses/${courseId}/submissions` },
+      { permission: 'courses.manage', method: 'PUT', path: () => `/api/courses/${courseId}/materials/urutan`, body: () => ({ ids: [] }) },
       { permission: 'courses.manage', method: 'GET', path: () => `/api/courses/${courseId}/progres` },
       { permission: 'courses.manage', method: 'GET', path: '/api/lms/ringkasan-guru' },
       { permission: 'courses.manage', method: 'GET', path: '/api/lms/pilihan-santri' },
