@@ -1,4 +1,5 @@
 const path = require('node:path');
+const { catatKoneksiBaru, ukurQuery } = require('./http/server-timing.js');
 
 // Satu pintu database untuk semua store.
 // Antarmuka yang dipakai store:
@@ -12,6 +13,10 @@ const path = require('node:path');
 
 const DEFAULT_POOL_MAX = 5;
 const MAX_POOL_MAX = 50;
+// Koneksi menganggur dibiarkan hidup satu menit (bawaan pg hanya 10 detik). Membuka koneksi
+// baru ke Supabase butuh TCP, TLS, dan autentikasi, beberapa kali bolak-balik; di antara
+// klik pengguna, koneksi yang sudah ada sebaiknya dipakai ulang.
+const IDLE_TIMEOUT_MS = 60 * 1000;
 
 function readPoolMax(value) {
   if (value === undefined || value === null || String(value).trim() === '') {
@@ -26,7 +31,8 @@ function readPoolMax(value) {
 
 function createPool(connectionString, poolMax) {
   const { Pool } = require('pg');
-  const pool = new Pool({ connectionString, max: readPoolMax(poolMax) });
+  const pool = new Pool({ connectionString, max: readPoolMax(poolMax), idleTimeoutMillis: IDLE_TIMEOUT_MS, keepAlive: true });
+  pool.on('connect', catatKoneksiBaru);
   // Tanpa handler ini, proses Node crash saat koneksi idle diputus server database.
   pool.on('error', (error) => {
     console.error(`[database] Koneksi idle bermasalah: ${error.message}`);
@@ -39,7 +45,7 @@ function createPostgresDatabase(pool, { ownsPool }) {
     kind: 'postgres',
 
     query(sql, params) {
-      return pool.query(sql, params);
+      return ukurQuery(() => pool.query(sql, params));
     },
 
     async withTransaction(work) {
@@ -49,7 +55,7 @@ function createPostgresDatabase(pool, { ownsPool }) {
       try {
         await client.query('BEGIN');
         const result = await work({
-          query: (sql, params) => client.query(sql, params),
+          query: (sql, params) => ukurQuery(() => client.query(sql, params)),
           // exec untuk SQL berisi banyak statement, misalnya file migrasi.
           exec: (sql) => client.query(sql)
         });
@@ -92,7 +98,7 @@ function createPgliteDatabase(target) {
     kind: 'pglite',
 
     query(sql, params) {
-      return db.query(sql, params);
+      return ukurQuery(() => db.query(sql, params));
     },
 
     withTransaction(work) {

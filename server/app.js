@@ -40,6 +40,7 @@ const { createPostgresFileStore } = require('./postgres-file-store.js');
 const { createLocalStorage } = require('./storage/local.js');
 const { createSupabaseStorage } = require('./storage/supabase.js');
 const { json, tooManyRequests } = require('./http/respond.js');
+const serverTiming = require('./http/server-timing.js');
 const { MAX_REQUEST_BODY_BYTES, RequestBodyError, readJsonBody } = require('./http/body.js');
 const { serveStaticFile } = require('./http/static.js');
 const seo = require('./seo.js');
@@ -528,7 +529,11 @@ function createHamasahApp(options) {
     response.end(body);
   }
 
-  async function requestListener(request, response) {
+  function requestListener(request, response) {
+    return serverTiming.jalankan(response, () => tanganiPermintaan(request, response));
+  }
+
+  async function tanganiPermintaan(request, response) {
     const url = new URL(request.url, 'http://localhost');
     const isApi = url.pathname.startsWith('/api/');
     const requestId = createRequestId();
