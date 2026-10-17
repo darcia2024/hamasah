@@ -2890,25 +2890,24 @@ main h1.lp-h2 {
   background: #0d0d0e;
 }
 
-/* Layar portal wali (15 Oktober 2026): kepala gelap berisi sapaan untuk wali dan profil
-   santri, kartu progres hafalan bercincin emas yang menumpuk di tepi kepala, dua angka
-   ringkas, lalu linimasa kegiatan hari ini. */
-.lp-phone__hero {
-  position: relative;
-  flex: none;
-  padding: 14px 18px 46px;
-  border-radius: 0 0 26px 26px;
+/* Layar portal wali (17 Oktober 2026), meniru beranda wali yang asli (beranda-wali.js):
+   latar krem terang, bilah Menu dan nama wali, kartu sapaan "Portal keluarga", profil
+   ananda berinisial emas bergaris, laporan 30 hari dengan empat angka, lalu grafik titik
+   sholat berjamaah lima waktu. Warna titik sama dengan portal: hijau berjamaah, emas
+   munfarid, merah tidak sholat. */
+.lp-phone__screen {
   background:
-    radial-gradient(90% 70% at 100% 0%, rgba(231, 177, 12, 0.35), transparent 60%),
-    linear-gradient(160deg, #3d3d40 0%, #262628 100%);
-  color: #fff;
+    radial-gradient(120% 40% at 100% 0%, rgba(231, 177, 12, 0.12), transparent 60%),
+    #fbfaf6;
+  color: #363638;
 }
 
 .lp-phone__status {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 6px 16px;
+  padding: 14px 24px 6px;
   font-size: 10px;
   font-weight: 700;
 }
@@ -2924,278 +2923,217 @@ main h1.lp-h2 {
   width: 3px;
   height: 5px;
   border-radius: 1px;
-  background: #fff;
+  background: #363638;
 }
 
 .lp-phone__signal i:nth-child(2) { height: 7px; }
 .lp-phone__signal i:nth-child(3) { height: 9px; }
 
+.lp-phone__bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px 8px;
+  border-bottom: 1px solid #ece8df;
+  font-size: 9px;
+}
+
+.lp-phone__menu,
+.lp-phone__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border: 1px solid #e3ded2;
+  border-radius: 999px;
+  background: #fff;
+}
+
+.lp-phone__menu {
+  border-radius: 8px;
+}
+
+/* Ikon tiga garis. */
+.lp-phone__menu i {
+  width: 9px;
+  height: 7px;
+  border-block: 1.5px solid currentColor;
+  background: linear-gradient(currentColor, currentColor) center / 100% 1.5px no-repeat;
+}
+
+.lp-phone__chip b {
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #e7b10c;
+  font-size: 7px;
+  font-weight: 700;
+}
+
+.lp-phone__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 10px 12px 0;
+  overflow: hidden;
+  /* Layar dipotong lembut di bawah, seolah halaman masih bisa digulir. */
+  -webkit-mask-image: linear-gradient(#000 82%, transparent);
+  mask-image: linear-gradient(#000 82%, transparent);
+}
+
 .lp-phone__salam {
-  margin: 0 0 12px;
-  font-size: 10px;
-  letter-spacing: 0.02em;
-  color: rgba(255, 255, 255, 0.7);
+  padding: 11px 12px 12px;
+  border: 1px solid #efe6cc;
+  border-radius: 16px;
+  background:
+    radial-gradient(80% 90% at 100% 0%, rgba(231, 177, 12, 0.14), transparent 70%),
+    #fffdf7;
+}
+
+.lp-phone__salam small,
+.lp-phone__eyebrow {
+  display: block;
+  margin: 0 0 4px;
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #856000;
+}
+
+.lp-phone__title {
+  margin: 0;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.15;
 }
 
 .lp-phone__profile {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 9px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid #ece8df;
 }
 
 .lp-phone__avatar {
   flex: none;
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
-  border: 2px solid #f3c64a;
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid #c9960a;
   border-radius: 50%;
-  background: linear-gradient(140deg, #f3c64a, #b98a06);
-  box-shadow: 0 0 0 3px rgba(243, 198, 74, 0.25);
-  color: #262628;
+  color: #856000;
   font-family: "Philosopher", Georgia, serif;
-  font-size: 17px;
-  font-weight: 700;
-}
-
-.lp-phone__title {
-  margin: 0 0 3px;
-  font-family: "Philosopher", Georgia, serif;
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.15;
-  color: #fff;
-}
-
-.lp-phone__text {
-  margin: 0;
-  font-size: 10px;
-  line-height: 1.4;
-  color: #f3c64a;
-}
-
-.lp-phone__body {
-  position: relative;
-  z-index: 1;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: -32px;
-  padding: 0 14px;
-}
-
-.lp-phone__card {
-  display: grid;
-  gap: 8px;
-  padding: 12px 13px;
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 10px 22px -14px rgba(0, 0, 0, 0.3);
-}
-
-.lp-phone__card b {
-  display: block;
-  font-size: 11.5px;
-  font-weight: 700;
-}
-
-.lp-phone__card small {
-  display: block;
-  font-size: 9px;
-  color: #6b6b70;
-}
-
-/* Cincin progres hafalan: conic-gradient emas di atas abu muda. */
-.lp-phone__hafalan {
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 12px;
-}
-
-.lp-phone__ring {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: conic-gradient(#e7b10c 0 78%, #f1ede0 78% 100%);
-}
-
-.lp-phone__ring::before {
-  content: "";
-  position: absolute;
-  inset: 6px;
-  border-radius: 50%;
-  background: #fff;
-}
-
-.lp-phone__ring b {
-  position: relative;
   font-size: 11px;
 }
 
-.lp-phone__hafalan small {
-  margin-bottom: 1px;
-}
-
-.lp-phone__note {
+.lp-phone__profile b {
   display: block;
-  margin-top: 3px;
-  font-size: 9px;
-  font-weight: 600;
-  color: #1e6b3a;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: 12.5px;
+  line-height: 1.2;
 }
 
-.lp-phone__stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
-.lp-phone__stats span {
-  padding: 9px 11px;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 18px -14px rgba(0, 0, 0, 0.3);
-}
-
-.lp-phone__stats strong {
+.lp-phone__profile small {
   display: block;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.lp-phone__stats small {
-  display: block;
-  font-size: 9px;
+  font-size: 8px;
   color: #6b6b70;
 }
 
-.lp-phone__report {
-  gap: 4px;
-  padding: 11px 12px 8px;
+.lp-phone__eyebrow {
+  margin: 2px 0 -6px;
 }
 
-.lp-phone__report-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 2px;
-}
-
-.lp-phone__report-head small {
+.lp-phone__lead {
   margin: 0;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
-/* Linimasa: titik emas bersambung garis tipis. */
-.lp-phone__report ul {
+/* Empat angka berpetak dua, dipisah garis tipis seperti di portal. */
+.lp-phone__stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border-block: 1px solid #ece8df;
+}
+
+.lp-phone__stats span {
+  display: grid;
+  padding: 7px 0 7px 2px;
+}
+
+.lp-phone__stats span:nth-child(even) {
+  padding-left: 10px;
+  border-left: 1px solid #ece8df;
+}
+
+.lp-phone__stats span:nth-child(-n + 2) {
+  border-bottom: 1px solid #ece8df;
+}
+
+.lp-phone__stats strong {
+  font-family: "Philosopher", Georgia, serif;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.lp-phone__stats small {
+  font-size: 8.5px;
+}
+
+.lp-phone__stats em {
+  font-size: 7.5px;
+  font-style: normal;
+  color: #6b6b70;
+}
+
+.lp-phone__sholat b {
+  display: block;
+  margin-bottom: 6px;
+  font-family: "Philosopher", Georgia, serif;
+  font-size: 12px;
+}
+
+.lp-phone__sholat ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
+  gap: 5px;
 }
 
-.lp-phone__report li {
-  position: relative;
+.lp-phone__sholat li {
   display: grid;
-  grid-template-columns: 28px 1fr auto;
+  grid-template-columns: 34px repeat(12, 1fr);
   align-items: center;
-  gap: 6px;
-  padding: 4px 0 4px 14px;
-  font-size: 10px;
-}
-
-.lp-phone__report li::before {
-  content: "";
-  position: absolute;
-  left: 2px;
-  top: 50%;
-  width: 6px;
-  height: 6px;
-  margin-top: -3px;
-  border-radius: 50%;
-  background: #e7b10c;
-}
-
-.lp-phone__report li:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  left: 4.5px;
-  top: calc(50% + 4px);
-  height: 100%;
-  width: 1px;
-  background: #ecdcae;
-}
-
-.lp-phone__report li.is-nanti::before {
-  background: #d6d6da;
-}
-
-.lp-phone__report time {
-  font-size: 9px;
-  color: #8a8a8f;
-  font-variant-numeric: tabular-nums;
-}
-
-.lp-phone__report i {
-  padding: 1px 7px;
-  border-radius: 999px;
-  background: #e6f2ea;
-  color: #1e6b3a;
-  font-size: 8.5px;
-  font-style: normal;
-  font-weight: 700;
-}
-
-.lp-phone__report li.is-nanti i {
-  background: #f1f1f3;
-  color: #8a8a8f;
-}
-
-.lp-phone__tabs {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  margin-top: auto;
-  padding: 8px 8px 16px;
-  border-top: 1px solid #ececee;
-  background: #fff;
-}
-
-.lp-phone__tabs span {
-  display: grid;
   justify-items: center;
-  gap: 3px;
-  font-size: 8.5px;
-  font-weight: 600;
-  color: #b4b4b9;
 }
 
-.lp-phone__tabs svg {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.lp-phone__sholat li span {
+  justify-self: start;
+  font-size: 8px;
+  color: #6b6b70;
 }
 
-.lp-phone__tabs .is-active {
-  color: #262628;
+.lp-phone__sholat i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #1f6f3d;
 }
 
-.lp-phone__tabs .is-active svg {
-  width: 30px;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: #fbefc4;
-  box-sizing: content-box;
-  color: #856000;
-}
+.lp-phone__sholat i.is-m { background: #c9960a; }
+.lp-phone__sholat i.is-t { background: #b4372f; }
 
 @media (max-width: 900px) {
   .lp-phone {
