@@ -101,7 +101,8 @@ const POLICIES = Object.freeze({
     entityType: 'gallery',
     visibility: 'public',
     contentTypes: GAMBAR,
-    maxBytes: 5 * MB,
+    // Peramban sudah mengecilkan foto ke 1600 px (konten.js), hasilnya jauh di bawah 1 MB.
+    maxBytes: 2 * MB,
     async canUpload({ actor }) {
       return Boolean(actor) && roleHasPermission(actor.role, 'content.manage');
     },
@@ -117,7 +118,8 @@ const POLICIES = Object.freeze({
     entityType: 'student',
     visibility: 'private',
     contentTypes: GAMBAR,
-    maxBytes: 3 * MB,
+    // Peramban sudah mengecilkan foto ke 800 px (beranda-musyrif.js).
+    maxBytes: 1 * MB,
     async canUpload({ actor, entityId, services }) {
       if (!actor || !['admin', 'supervisor'].includes(actor.role)) return false;
       return (await services.studentPortalService.accessFor(entityId, actor)).write;
@@ -156,7 +158,8 @@ const POLICIES = Object.freeze({
     entityType: 'dormitory',
     visibility: 'private',
     contentTypes: GAMBAR,
-    maxBytes: 5 * MB,
+    // Peramban sudah mengecilkan foto ke 1280 px (galeri-asrama.js).
+    maxBytes: 2 * MB,
     async canUpload({ actor, entityId, services }) {
       return Boolean(actor) && services.dormitoryManagementService.bolehUnggahFoto(entityId, actor);
     },

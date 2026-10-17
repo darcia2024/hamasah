@@ -393,6 +393,30 @@ async function loadVisaDocuments() {
   }
 }
 
+// Foto paspor atau visa dari HP bisa 3 sampai 5 MB. Seperti di halaman cek status, foto
+// JPG/PNG di atas 800 KB dikecilkan ke sisi terpanjang 2200 px dan JPEG kualitas 0,85:
+// tulisannya tetap terbaca, ukurannya biasanya di bawah 1 MB. PDF dikirim apa adanya.
+async function kecilkanFotoVisa(file) {
+  if (!/^image\/(jpeg|png)$/.test(file.type) || file.size <= 800 * 1024) return file;
+  try {
+    const gambar = await createImageBitmap(file);
+    const skala = Math.min(1, 2200 / Math.max(gambar.width, gambar.height));
+    const kanvas = document.createElement('canvas');
+    kanvas.width = Math.round(gambar.width * skala);
+    kanvas.height = Math.round(gambar.height * skala);
+    const ctx = kanvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, kanvas.width, kanvas.height);
+    ctx.drawImage(gambar, 0, 0, kanvas.width, kanvas.height);
+    if (typeof gambar.close === 'function') gambar.close();
+    const blob = await new Promise((resolve) => kanvas.toBlob(resolve, 'image/jpeg', 0.85));
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
+  } catch {
+    return file;
+  }
+}
+
 // Alur unggah dua langkah yang sudah dipakai halaman cek status: minta tempat
 // unggah lebih dulu supaya izin dan ukuran diperiksa sebelum satu byte pun
 // dikirim, baru isinya menyusul.
@@ -1357,7 +1381,7 @@ if (visaDocumentForm) {
     if (tombol) tombol.textContent = 'Mengunggah...';
     try {
       feedback('#visa-document-status', 'Mengunggah berkas...');
-      const fileObjectId = await unggahBerkasVisa(file, studentId);
+      const fileObjectId = await unggahBerkasVisa(await kecilkanFotoVisa(file), studentId);
       await jsonRequest('/api/operations/visa-documents', {
         method: 'POST',
         headers: { ...headers(), 'Content-Type': 'application/json' },

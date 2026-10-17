@@ -1,7 +1,8 @@
 // Galeri asrama (17 Oktober 2026), dipakai Kelola Asrama (unggah dan tarik foto) dan
 // beranda santri/wali (melihat). Foto bersifat privat: diambil lewat GET /api/files/:id
 // dengan sesi, lalu ditampilkan sebagai blob URL. Unggahan dikecilkan di peramban (sisi
-// terpanjang 1600 px, JPEG) dan dikirim lewat alur /api/uploads berjenis 'dormitory-photo'.
+// terpanjang 1280 px, JPEG 0,8, biasanya 150-300 KB supaya kuota storage awet) dan
+// dikirim lewat alur /api/uploads berjenis 'dormitory-photo'.
 (function initGaleriAsrama() {
   const TANGGAL = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
   const cache = new Map();
@@ -136,7 +137,7 @@
     } catch {
       throw new Error('Berkas ini tidak bisa dibaca sebagai foto. Gunakan JPG, PNG, atau WebP.');
     }
-    const skala = Math.min(1, 1600 / Math.max(gambar.width, gambar.height));
+    const skala = Math.min(1, 1280 / Math.max(gambar.width, gambar.height));
     const kanvas = document.createElement('canvas');
     kanvas.width = Math.round(gambar.width * skala);
     kanvas.height = Math.round(gambar.height * skala);
@@ -145,7 +146,7 @@
     ktx.fillRect(0, 0, kanvas.width, kanvas.height);
     ktx.drawImage(gambar, 0, 0, kanvas.width, kanvas.height);
     if (typeof gambar.close === 'function') gambar.close();
-    const blob = await new Promise((resolve) => kanvas.toBlob(resolve, 'image/jpeg', 0.84));
+    const blob = await new Promise((resolve) => kanvas.toBlob(resolve, 'image/jpeg', 0.8));
     if (!blob) throw new Error('Foto belum dapat diproses. Coba foto lain.');
     return blob;
   }
