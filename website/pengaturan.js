@@ -39,6 +39,45 @@ function setStatus(node, text, error = false) {
   node.classList.toggle('is-error', error);
 }
 
+// Konfirmasi di dalam halaman, pengganti window.confirm. Pop-up bawaan peramban bisa
+// diblokir (peramban di dalam aplikasi, pengaturan "jangan tampilkan dialog lagi"), dan
+// saat diblokir confirm() langsung bernilai false sehingga tombol terlihat tidak bekerja.
+// Panel muncul tepat setelah `jangkar`; hasilnya true bila pengguna memilih lanjut.
+function tanya(jangkar, pesan, labelYa = 'Ya, lanjutkan') {
+  const lama = jangkar.nextElementSibling;
+  if (lama && lama.classList.contains('settings-confirm')) lama.remove();
+  return new Promise((selesai) => {
+    const panel = document.createElement('div');
+    panel.className = 'settings-confirm';
+    panel.setAttribute('role', 'group');
+    panel.setAttribute('aria-label', 'Konfirmasi');
+    const teks = document.createElement('p');
+    teks.className = 'settings-confirm__text';
+    teks.textContent = pesan;
+    const ya = document.createElement('button');
+    ya.type = 'button';
+    ya.className = 'button button--primary control--h42';
+    ya.textContent = labelYa;
+    const batal = document.createElement('button');
+    batal.type = 'button';
+    batal.className = 'button button--secondary control--h42';
+    batal.textContent = 'Batal';
+    const tombol = document.createElement('div');
+    tombol.className = 'settings-confirm__actions';
+    tombol.append(batal, ya);
+    panel.append(teks, tombol);
+    const tutup = (hasil) => {
+      panel.remove();
+      selesai(hasil);
+    };
+    ya.addEventListener('click', () => tutup(true));
+    batal.addEventListener('click', () => tutup(false));
+    panel.addEventListener('keydown', (event) => { if (event.key === 'Escape') tutup(false); });
+    jangkar.after(panel);
+    ya.focus();
+  });
+}
+
 async function kirim(method, url, body) {
   const response = await fetch(url, {
     method,
@@ -151,7 +190,7 @@ async function muat() {
 
 artikelApply.addEventListener('click', async () => {
   const jumlah = artikelPending.children.length;
-  if (!window.confirm(`Tambahkan ${jumlah} artikel bawaan ke Pena Hamasah? Artikel langsung terbit dan bisa disunting atau diarsipkan dari halaman Pendaftaran.`)) return;
+  if (!(await tanya(artikelApply, `Tambahkan ${jumlah} artikel bawaan ke Pena Hamasah? Artikel langsung terbit dan bisa disunting atau diarsipkan dari halaman Pendaftaran.`, 'Ya, tambahkan'))) return;
   artikelApply.disabled = true;
   artikelApply.textContent = 'Menambahkan...';
   setStatus(artikelStatus, '');
@@ -174,11 +213,12 @@ function jalankan(pekerjaan, node = status) {
 }
 
 // Dua perubahan yang berdampak besar diminta konfirmasi dulu.
-function konfirmasi(berubah) {
+async function konfirmasi(berubah) {
+  const baris = saveButton.closest('.settings-actions');
   if (berubah['pendaftaran.dibuka'] === false
-    && !window.confirm('Tutup pendaftaran online? Pengunjung tidak bisa mengirim formulir sampai dibuka lagi.')) return false;
+    && !(await tanya(baris, 'Tutup pendaftaran online? Pengunjung tidak bisa mengirim formulir sampai dibuka lagi.', 'Ya, tutup pendaftaran'))) return false;
   if (berubah['kesehatan.aktif'] === true
-    && !window.confirm('Nyalakan catatan kesehatan? Pastikan Kebijakan Privasi sudah memuat pengolahan data kesehatan santri.')) return false;
+    && !(await tanya(baris, 'Nyalakan catatan kesehatan? Pastikan Kebijakan Privasi sudah memuat pengolahan data kesehatan santri.', 'Ya, nyalakan'))) return false;
   return true;
 }
 
@@ -196,7 +236,7 @@ resetButton.addEventListener('click', () => {
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
   const berubah = perubahan();
-  if (!Object.keys(berubah).length || !konfirmasi(berubah)) return;
+  if (!Object.keys(berubah).length || !(await konfirmasi(berubah))) return;
   saveButton.disabled = true;
   saveButton.textContent = 'Menyimpan...';
   setStatus(status, '');
@@ -220,7 +260,7 @@ form.addEventListener('submit', async (event) => {
 
 dbApply.addEventListener('click', async () => {
   const jumlah = dbPending.children.length;
-  if (!window.confirm(`Terapkan ${jumlah} pembaruan database sekarang? Lakukan setelah aplikasi versi baru sudah berjalan. Proses ini tidak bisa dibatalkan dari halaman ini.`)) return;
+  if (!(await tanya(dbApply, `Terapkan ${jumlah} pembaruan database sekarang? Lakukan setelah aplikasi versi baru sudah berjalan. Proses ini tidak bisa dibatalkan dari halaman ini.`, 'Ya, terapkan'))) return;
   dbApply.disabled = true;
   dbApply.textContent = 'Menerapkan...';
   setStatus(dbStatus, '');
@@ -239,8 +279,9 @@ dbApply.addEventListener('click', async () => {
   }
 });
 
-document.querySelector('#reload-settings').addEventListener('click', () => {
-  if (Object.keys(perubahan()).length && !window.confirm('Buang perubahan yang belum disimpan?')) return;
+document.querySelector('#reload-settings').addEventListener('click', async () => {
+  if (Object.keys(perubahan()).length
+    && !(await tanya(saveButton.closest('.settings-actions'), 'Buang perubahan yang belum disimpan?', 'Ya, buang'))) return;
   jalankan(muat);
 });
 
