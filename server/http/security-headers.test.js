@@ -33,7 +33,7 @@ function run() {
     "script-src 'self'",
     "style-src 'self' https://fonts.googleapis.com",
     'font-src https://fonts.gstatic.com',
-    "img-src 'self' data: blob:",
+    "img-src 'self' data: blob: https://i.ytimg.com",
     "connect-src 'self'",
     "frame-ancestors 'none'",
     "base-uri 'self'",

@@ -371,12 +371,15 @@ function createLmsService(options) {
       }
       return dasar;
     }));
+    // Nama guru pengampu untuk kepala halaman belajar; aman bila akun tidak ditemukan.
+    const pengampu = course.ownerAccountId ? await getAccount(course.ownerAccountId).catch(() => null) : null;
     return {
       ok: true,
       value: {
         id: course.id,
         title: course.title,
         description: course.description,
+        teacherName: (pengampu && pengampu.name) || null,
         materials,
         progress: activeMaterials.length ? Math.round((completedMaterialIds.filter((id) => activeMaterials.some((material) => material.id === id)).length / activeMaterials.length) * 100) : 0,
         completionStatus: activeMaterials.length && completedMaterialIds.filter((id) => activeMaterials.some((material) => material.id === id)).length === activeMaterials.length ? 'completed' : 'in-progress'
