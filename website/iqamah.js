@@ -103,6 +103,56 @@
     return hasil;
   }
 
+  const TANGGAL_KARTU = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit', timeZone: 'UTC' });
+
+  // Kartu bergaya kartu kredit: warna mengikuti tahap (hijau aman, emas siapkan berkas,
+  // merah segera urus atau habis), sisa hari besar, bilah sisa masa berlaku (dianggap
+  // iqamah setahun), nama pemegang, dan tanggal berlaku seperti di kartu bank.
+  function kartuVisual(s) {
+    const q = s.iqamah;
+    const kartuEl = el('div', `iqm-cc is-${q.tahap}`);
+    kartuEl.setAttribute('role', 'img');
+    kartuEl.setAttribute('aria-label', q.expiresOn
+      ? `Kartu iqamah ${s.name}: berlaku sampai ${tanggal(q.expiresOn)}, ${teksSisa(q).toLowerCase()}.`
+      : `Kartu iqamah ${s.name}: tanggal habis belum diisi.`);
+
+    const atas = el('div', 'iqm-cc__top');
+    const penerbit = el('span', 'iqm-cc__issuer');
+    penerbit.append(el('b', '', 'IQAMAH'), el('small', '', 'Izin tinggal · Mesir'));
+    const bendera = el('span', 'iqm-cc__flag');
+    bendera.append(el('i'), el('i'), el('i'));
+    atas.append(penerbit, bendera);
+
+    const tengah = el('div', 'iqm-cc__mid');
+    tengah.append(el('span', 'iqm-cc__chip'));
+    const hitung = el('div', 'iqm-cc__count');
+    if (q.sisaHari === null) {
+      hitung.append(el('strong', 'is-text', 'Belum diisi'));
+    } else if (q.sisaHari < 0) {
+      hitung.append(el('strong', '', String(-q.sisaHari)), el('span', '', 'hari lewat'));
+    } else {
+      hitung.append(el('strong', '', String(q.sisaHari)), el('span', '', q.sisaHari === 0 ? 'habis hari ini' : 'hari lagi'));
+    }
+    tengah.append(hitung, chip(q.tahap));
+
+    const bilah = el('div', 'iqm-cc__bar');
+    const isiBilah = el('i');
+    const persen = q.sisaHari === null ? 0 : Math.max(0, Math.min(100, Math.round((q.sisaHari / 365) * 100)));
+    isiBilah.style.width = `${persen}%`;
+    bilah.append(isiBilah);
+
+    const bawah = el('div', 'iqm-cc__bottom');
+    const pemegang = el('span', 'iqm-cc__field');
+    pemegang.append(el('small', '', 'Pemegang'), el('b', 'iqm-cc__name', s.name));
+    const berlaku = el('span', 'iqm-cc__field is-end');
+    berlaku.append(el('small', '', 'Berlaku s/d'), el('b', '', q.expiresOn ? TANGGAL_KARTU.format(new Date(`${q.expiresOn}T00:00:00Z`)) : '--/--/--'));
+    bawah.append(pemegang, berlaku);
+
+    [atas, tengah, bilah, bawah].forEach((n) => n.setAttribute('aria-hidden', 'true'));
+    kartuEl.append(atas, tengah, bilah, bawah);
+    return kartuEl;
+  }
+
   // Kartu untuk beranda. data: jawaban /api/iqamah-saya. santri: tampilkan laporan dan
   // penanda pengurusan; tanpa itu (wali) hanya melihat. muatUlang(pesan) menggambar ulang.
   function kartu(data, { studentId, headers, santri = false, muatUlang, pesan = '' }) {
@@ -114,14 +164,14 @@
     const kepala = el('div', 'santri-card__head');
     kepala.append(el('h3', 'santri-card__title', santri ? 'Iqamah' : 'Iqamah ananda'));
     kepala.append(el('p', 'santri-card__note', 'Izin tinggal di Mesir. Perpanjang sebelum habis supaya tidak kena denda.'));
-    wadah.append(kepala);
+    // Kartu visual di kiri, rincian dan tindakan di kanan (bertumpuk di ponsel).
+    const tata = el('div', 'iqm-layout');
+    const rinci = el('div', 'iqm-detail');
+    tata.append(kartuVisual(s), rinci);
+    wadah.append(kepala, tata);
 
-    const inti = el('div', 'iqm-hero');
-    const angka = el('div', 'iqm-hero__count');
-    angka.append(el('strong', '', teksSisa(s.iqamah)), chip(s.iqamah.tahap));
-    inti.append(angka, el('p', 'iqm-hero__hint', arahan(s, aturan, { santri })));
-    wadah.append(inti, fakta(s));
-    [catatanPaspor(s, aturan), catatanLaporan(s.laporan)].filter(Boolean).forEach((n) => wadah.append(n));
+    rinci.append(el('p', 'iqm-hero__hint', arahan(s, aturan, { santri })), fakta(s));
+    [catatanPaspor(s, aturan), catatanLaporan(s.laporan)].filter(Boolean).forEach((n) => rinci.append(n));
 
     if (!santri) return wadah;
 
@@ -133,7 +183,7 @@
     };
 
     if (s.tersedia === false) {
-      wadah.append(el('p', 'iqm-note', 'Laporan iqamah belum bisa dikirim dari sini. Sampaikan tanggal iqamah ke musyrif langsung.'));
+      rinci.append(el('p', 'iqm-note', 'Laporan iqamah belum bisa dikirim dari sini. Sampaikan tanggal iqamah ke musyrif langsung.'));
       return wadah;
     }
 
@@ -210,7 +260,7 @@
         kirimTombol.disabled = false;
       }
     });
-    wadah.append(aksi, form, status);
+    rinci.append(aksi, form, status);
     return wadah;
   }
 
@@ -228,5 +278,5 @@
     return kotak;
   }
 
-  window.HamasahIqamah = Object.freeze({ TAHAP, arahan, chip, fakta, kartu, kirim, tanggal, teksSisa, ubin, catatanPaspor });
+  window.HamasahIqamah = Object.freeze({ TAHAP, arahan, chip, fakta, kartu, kartuVisual, kirim, tanggal, teksSisa, ubin, catatanPaspor });
 })();

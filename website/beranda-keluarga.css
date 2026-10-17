@@ -2995,3 +2995,203 @@ body.in-crm .snt-page .wali-grid > .crm-white-card,
   .iqm-form { grid-template-columns: 1fr; }
   .iqm-facts__value { text-align: left; }
 }
+
+/* Kartu iqamah bergaya kartu kredit (iqamah.js, kartuVisual). Rasio kartu bank 85,6 x 54 mm.
+   Warna mengikuti tahap; pola bintang halus dan kilau hologram dari gradien, tanpa gambar. */
+.iqm-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.iqm-detail { min-width: 0; }
+.iqm-detail .iqm-hero__hint { margin: 0 0 12px; }
+
+.iqm-cc {
+  --cc-a: #0F3D2E;
+  --cc-b: #18604A;
+  --cc-c: #0A281E;
+  --cc-accent: #E9C46A;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  gap: 10px;
+  width: 100%;
+  aspect-ratio: 1.586;
+  padding: 18px 20px 16px;
+  overflow: hidden;
+  border-radius: 18px;
+  color: #FFFFFF;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(255, 255, 255, 0.16), transparent 55%),
+    linear-gradient(135deg, var(--cc-a) 0%, var(--cc-b) 48%, var(--cc-c) 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.25) inset,
+    0 0 0 1px rgba(0, 0, 0, 0.08),
+    0 22px 40px -22px rgba(15, 61, 46, 0.75);
+  transform: perspective(900px) rotateX(0) rotateY(0);
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.45s;
+}
+
+.iqm-cc.is-siapkan { --cc-a: #6B4E00; --cc-b: #A07A12; --cc-c: #3F2E00; box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 0 0 1px rgba(0, 0, 0, 0.08), 0 22px 40px -22px rgba(107, 78, 0, 0.75); }
+.iqm-cc.is-urus,
+.iqm-cc.is-habis { --cc-a: #7A1F19; --cc-b: #A3322A; --cc-c: #44100C; --cc-accent: #F4D58D; box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 0 0 1px rgba(0, 0, 0, 0.08), 0 22px 40px -22px rgba(122, 31, 25, 0.75); }
+.iqm-cc.is-kosong { --cc-a: #3A3A3D; --cc-b: #55555A; --cc-c: #232325; }
+
+/* Pola bintang delapan sudut yang sangat halus. */
+.iqm-cc::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.09;
+  background:
+    conic-gradient(from 22.5deg at 50% 50%, #fff 0 12.5%, transparent 0 25%, #fff 0 37.5%, transparent 0 50%, #fff 0 62.5%, transparent 0 75%, #fff 0 87.5%, transparent 0) 0 0 / 34px 34px;
+  -webkit-mask-image: linear-gradient(115deg, transparent 20%, #000 75%);
+  mask-image: linear-gradient(115deg, transparent 20%, #000 75%);
+}
+
+/* Kilau hologram yang bergeser saat kartu disorot. */
+.iqm-cc::after {
+  content: "";
+  position: absolute;
+  inset: -40% -60%;
+  z-index: -1;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.18) 48%, rgba(233, 196, 106, 0.16) 52%, transparent 60%);
+  transform: translateX(-30%);
+  transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.iqm-cc:hover {
+  transform: perspective(900px) rotateX(4deg) rotateY(-6deg) translateY(-2px);
+}
+
+.iqm-cc:hover::after { transform: translateX(30%); }
+
+.iqm-cc__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.iqm-cc__issuer { display: grid; gap: 1px; }
+.iqm-cc__issuer b { font-size: 15px; font-weight: 700; letter-spacing: 0.32em; }
+.iqm-cc__issuer small { font-size: 10.5px; letter-spacing: 0.08em; opacity: 0.75; }
+
+/* Bendera Mesir kecil: merah, putih, hitam. */
+.iqm-cc__flag {
+  display: grid;
+  width: 30px;
+  height: 20px;
+  overflow: hidden;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.iqm-cc__flag i:nth-child(1) { background: #CE1126; }
+.iqm-cc__flag i:nth-child(2) { background: #FFFFFF; }
+.iqm-cc__flag i:nth-child(3) { background: #000000; }
+
+.iqm-cc__mid {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 0;
+}
+
+/* Chip EMV emas. */
+.iqm-cc__chip {
+  flex: none;
+  width: 40px;
+  height: 30px;
+  border-radius: 6px;
+  background:
+    linear-gradient(90deg, transparent 32%, rgba(80, 55, 0, 0.45) 32% 36%, transparent 36% 64%, rgba(80, 55, 0, 0.45) 64% 68%, transparent 68%),
+    linear-gradient(0deg, transparent 46%, rgba(80, 55, 0, 0.45) 46% 54%, transparent 54%),
+    linear-gradient(135deg, #F6DE95, #C9960A 55%, #F0D27A);
+  box-shadow: 0 0 0 1px rgba(80, 55, 0, 0.35) inset;
+}
+
+.iqm-cc__count {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-right: auto;
+}
+
+.iqm-cc__count strong {
+  font-family: "Philosopher", Georgia, serif;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.iqm-cc__count strong.is-text { font-size: 22px; }
+.iqm-cc__count span { font-size: 13px; opacity: 0.85; }
+
+.iqm-cc .iqm-chip {
+  background: rgba(255, 255, 255, 0.16);
+  color: #FFFFFF;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.28) inset;
+  backdrop-filter: blur(4px);
+}
+
+.iqm-cc__bar {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.iqm-cc__bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--cc-accent);
+}
+
+.iqm-cc__bottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.iqm-cc__field { display: grid; gap: 2px; min-width: 0; }
+.iqm-cc__field.is-end { text-align: right; }
+.iqm-cc__field small { font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.7; }
+
+.iqm-cc__field b {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.iqm-cc__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+
+@media (max-width: 760px) {
+  .iqm-layout { grid-template-columns: 1fr; gap: 18px; }
+  .iqm-cc { max-width: 420px; }
+}
+
+@media (max-width: 380px) {
+  .iqm-cc { padding: 14px 16px 12px; gap: 8px; }
+  .iqm-cc__count strong { font-size: 32px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iqm-cc,
+  .iqm-cc::after { transition: none; }
+  .iqm-cc:hover { transform: none; }
+}
