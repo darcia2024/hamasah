@@ -41,7 +41,7 @@ const PAGES = Object.freeze([
   { file: 'program-courses.html', url: 'program-courses', name: 'Hamasah Courses' },
   { file: 'biaya.html', url: 'biaya', name: 'Biaya & fasilitas' },
   { file: 'kontak.html', url: 'kontak', name: 'Kontak' },
-  { file: 'daftar.html', url: 'daftar', name: 'Daftar konsultasi' },
+  { file: 'daftar.html', url: 'daftar', name: 'Formulir pendaftaran' },
   { file: 'tim.html', url: 'tim', name: 'Tim Hamasah' }
 ]);
 

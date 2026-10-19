@@ -56,7 +56,7 @@ Lapisan penyeragamannya ditulis di akhir `website-public.css` (publik), `website
 - **Perataan:** kepala halaman dan judul bagian rata kiri. Tidak ada judul rata tengah.
 - **Kapital:** judul, label, dan tombol memakai kapital di awal kalimat. Nama diri, nama peran,
   dan singkatan (LMS, CSV, SPP, PDF) tetap seperti aslinya. Satu maksud memakai satu label;
-  ajakan mendaftar selalu "Daftar konsultasi".
+  ajakan mendaftar selalu "Daftar sekarang", tombol kirim formulir "Kirim pendaftaran".
 - **Irama bagian:** `padding-block: clamp(72px, 9vw, 120px)`, kepala halaman lebih rapat.
 - **Keadaan kosong:** bidang solid `surface-container`, tanpa garis putus-putus. Garis putus-putus
   hanya dipakai untuk aksi keluar dari semua perangkat.

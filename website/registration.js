@@ -165,14 +165,14 @@ const NOMOR_ADMIN = String((document.querySelector('meta[name="hamasah-whatsapp"
 function pesanUntukAdmin(isian, registrationId) {
   const opsi = fields.program.querySelector(`option[value="${isian.program}"]`);
   const baris = [
-    "Assalamu'alaikum, admin Hamasah International.",
+    "Assalamu'alaikum warahmatullahi wabarakatuh, admin Hamasah International.",
     '',
-    'Saya baru mengisi formulir konsultasi di website.',
+    'Saya sudah mengisi formulir pendaftaran di website Hamasah International dengan data berikut:',
     `Nama: ${isian.applicantName.trim()}`,
     `Program: ${opsi ? opsi.textContent.trim() : isian.program}`
   ];
   if (isian.city.trim()) baris.push(`Kota: ${isian.city.trim()}`);
-  baris.push(`Nomor registrasi: ${registrationId}`, '', 'Mohon info langkah selanjutnya. Terima kasih.');
+  baris.push(`Nomor registrasi: ${registrationId}`, '', 'Saya menunggu informasi selanjutnya dari tim Hamasah. Jazakumullahu khairan.');
   return `https://wa.me/${NOMOR_ADMIN}?text=${encodeURIComponent(baris.join('\n'))}`;
 }
 
@@ -281,6 +281,6 @@ form.addEventListener('submit', async (event) => {
     status.classList.add('is-error');
   } finally {
     submitButton.disabled = false;
-    submitButton.textContent = 'Kirim data konsultasi';
+    submitButton.textContent = 'Kirim pendaftaran';
   }
 });

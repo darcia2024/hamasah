@@ -9,7 +9,7 @@ const KNOWLEDGE_BASE = Object.freeze([
     id: 'pendaftaran',
     label: 'Tentang pendaftaran',
     keywords: ['daftar', 'pendaftaran', 'mendaftar', 'formulir', 'dokumen', 'berkas'],
-    answer: 'Isi formulir di halaman Daftar konsultasi. Setelah terkirim, Anda langsung menerima nomor registrasi dan Kode Akses, lalu tim kami menghubungi lewat WhatsApp. Untuk mendaftar cukup pindaian ijazah dan paspor atau KTP; dokumen asli baru dibutuhkan setelah lulus seleksi. Berkas diunggah lewat halaman Cek status.'
+    answer: 'Isi formulir di halaman Daftar sekarang. Setelah terkirim, Anda langsung menerima nomor registrasi dan Kode Akses, lalu tim kami menghubungi lewat WhatsApp. Untuk mendaftar cukup pindaian ijazah dan paspor atau KTP; dokumen asli baru dibutuhkan setelah lulus seleksi. Berkas diunggah lewat halaman Cek status.'
   },
   {
     id: 'cicilan',
