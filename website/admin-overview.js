@@ -595,14 +595,17 @@
     function gambar(status) {
       badan.replaceChildren();
       const j = status.jumlah;
+      const keadaan = status.versiLama
+        ? ' Ini data demo versi lama dengan banyak contoh per fitur. Hapus dulu, lalu isi ulang untuk mendapat satu contoh per fitur.'
+        : status.lengkap ? '' : ' Pengisian belum selesai.';
       badan.append(el('p', 'admin-card__meta', status.ada
-        ? `Aktif: ${j.akun} akun, ${j.santri} santri, ${j.pendaftar} pendaftar, ${j.tagihan} tagihan.${status.lengkap ? '' : ' Pengisian belum selesai.'}`
-        : 'Belum ada data demo. Isi untuk mencoba aplikasi dari sisi setiap peran: petugas, musyrif, guru, keuangan, wali, dan santri.'));
+        ? `Aktif: ${j.akun} akun, ${j.santri} santri, ${j.pendaftar} pendaftar, ${j.tagihan} tagihan.${keadaan}`
+        : 'Belum ada data demo. Isi untuk mencoba aplikasi dari sisi setiap peran, dengan satu contoh untuk setiap fitur: petugas, musyrif, guru, keuangan, wali, dan santri.'));
       if (status.latensiMs > 60) {
         badan.append(el('p', 'admin-card__line is-warn', `Database berjarak ${status.latensiMs} ms dari server, jadi pengisian bisa lambat. Bila berhenti di tengah, tekan tombolnya lagi untuk melanjutkan.`));
       }
       const aksi = el('div', 'admin-demo__actions');
-      if (!status.ada || !status.lengkap) {
+      if (!status.versiLama && (!status.ada || !status.lengkap)) {
         aksi.append(tombol(status.ada ? 'Lanjutkan pengisian' : 'Isi data demo', 'button--primary', () => isiData(status)));
       }
       if (status.ada) {

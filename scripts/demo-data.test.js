@@ -7,7 +7,7 @@ const identity = require('../server/identity-service.js');
 const { createTestDatabase } = require('../server/test-support/database.js');
 const { createPostgresAccountStore } = require('../server/postgres-account-store.js');
 const {
-  DEMO_ACCOUNTS, DEMO_DOMAIN, DEMO_DORMITORIES, DEMO_INQUIRIES, DEMO_INVENTORY, DEMO_KLOTER,
+  DEMO_ACCOUNTS, DEMO_COURSES, DEMO_DOMAIN, DEMO_DORMITORIES, DEMO_INQUIRIES, DEMO_INVENTORY, DEMO_KLOTER,
   DEMO_REGISTRATIONS, DEMO_STUDENTS, LOCAL_DEMO_PASSWORD,
   gantiSandiDemo, hapusDataDemo, isiDataDemo, temukanDataDemo, totalBaris
 } = require('./demo-data.js');
@@ -35,24 +35,24 @@ async function run() {
     assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM students'), DEMO_STUDENTS.length);
     assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM students WHERE dormitory_id IS NOT NULL'), DEMO_STUDENTS.length);
     assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM dormitories'), DEMO_DORMITORIES.length);
-    assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM staff_dormitory_assignments'), 2);
+    assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM staff_dormitory_assignments'), DEMO_DORMITORIES.length);
     assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM departure_groups'), DEMO_KLOTER.length);
     assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM inventory_items'), DEMO_INVENTORY.length);
     assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM inquiries'), DEMO_INQUIRIES.length);
     assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM visa_tracking'), DEMO_STUDENTS.length);
-    assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM courses'), 2);
-    assert.ok(await hitung(database, 'SELECT count(*)::int AS jumlah FROM student_prayer_logs') >= DEMO_STUDENTS.length * 7, 'Catatan sholat terisi.');
+    assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM courses'), DEMO_COURSES.length);
+    assert.ok(await hitung(database, 'SELECT count(*)::int AS jumlah FROM student_prayer_logs') >= DEMO_STUDENTS.length, 'Catatan sholat terisi.');
     assert.ok(await hitung(database, 'SELECT count(*)::int AS jumlah FROM student_health_logs') > 0, 'Catatan kesehatan terisi.');
     assert.ok(await hitung(database, 'SELECT count(*)::int AS jumlah FROM lms_attempts') > 0, 'Ada percobaan kuis.');
     assert.ok(await hitung(database, "SELECT count(*)::int AS jumlah FROM lms_submissions WHERE status = 'reviewed'") > 0, 'Ada tugas yang sudah dinilai.');
     assert.ok(await hitung(database, "SELECT count(*)::int AS jumlah FROM invoices WHERE status = 'paid'") > 0, 'Ada tagihan lunas.');
     assert.ok(await hitung(database, "SELECT count(*)::int AS jumlah FROM invoices WHERE status = 'unpaid'") > 0, 'Ada tagihan belum lunas.');
 
-    // Kelola Asrama dan galeri terisi untuk kedua asrama, atas nama musyrifnya.
+    // Kelola Asrama dan galeri terisi di setiap asrama demo, atas nama musyrifnya.
     for (const tabel of ['dormitory_schedule', 'dormitory_duties', 'dormitory_dues', 'dormitory_cash_entries', 'dormitory_inventory', 'dormitory_gallery']) {
-      assert.equal(await hitung(database, `SELECT count(DISTINCT dormitory_id)::int AS jumlah FROM ${tabel}`), DEMO_DORMITORIES.length, `${tabel} terisi di kedua asrama.`);
+      assert.equal(await hitung(database, `SELECT count(DISTINCT dormitory_id)::int AS jumlah FROM ${tabel}`), DEMO_DORMITORIES.length, `${tabel} terisi.`);
     }
-    assert.ok(await hitung(database, "SELECT count(*)::int AS jumlah FROM dormitory_schedule WHERE kind = 'acara' AND event_date > CURRENT_DATE") >= 4, 'Ada acara mendatang.');
+    assert.ok(await hitung(database, "SELECT count(*)::int AS jumlah FROM dormitory_schedule WHERE kind = 'acara' AND event_date > CURRENT_DATE") >= 1, 'Ada acara mendatang.');
     assert.ok(await hitung(database, 'SELECT count(*)::int AS jumlah FROM dormitory_duty_assignments') > 0, 'Piket sudah dibagi.');
     assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM dormitory_cash_entries WHERE voided_at IS NOT NULL'), DEMO_DORMITORIES.length, 'Satu salah catat dibatalkan per asrama.');
     assert.equal(await hitung(database, "SELECT count(*)::int AS jumlah FROM file_objects WHERE purpose = 'dormitory-photo' AND status = 'ready'"), await hitung(database, 'SELECT count(*)::int AS jumlah FROM dormitory_gallery'));
@@ -60,13 +60,13 @@ async function run() {
     assert.equal(await hitung(database, 'SELECT count(DISTINCT student_id)::int AS jumlah FROM student_juz_progress'), DEMO_STUDENTS.length, 'Peta hafalan semua santri terisi.');
     assert.equal(await hitung(database, 'SELECT count(DISTINCT dormitory_id)::int AS jumlah FROM announcements'), DEMO_DORMITORIES.length);
     const izin = (await database.query('SELECT status, count(*)::int AS jumlah FROM student_leave_requests GROUP BY status ORDER BY status')).rows;
-    assert.deepEqual(izin.map((row) => row.status), ['disetujui', 'ditolak', 'menunggu']);
+    assert.deepEqual(izin.map((row) => row.status), ['disetujui']);
 
-    // Pendaftar tersebar di semua tahap, dan pendaftar yang sudah berangkat terhubung ke data santrinya.
+    // Satu contoh per fitur: satu pendaftar yang siap berangkat dan sudah masuk kloter.
     const status = (await database.query('SELECT DISTINCT status FROM registrations')).rows.map((row) => row.status).sort();
-    assert.deepEqual(status, ['academic-preparation', 'cancelled', 'completed', 'document-review', 'needs-revision', 'ready-for-departure', 'submitted']);
+    assert.deepEqual(status, ['ready-for-departure']);
     assert.equal(hasil.pendaftar.length, DEMO_REGISTRATIONS.length);
-    assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM students WHERE registration_id IS NOT NULL'), 2);
+    assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM students WHERE registration_id IS NOT NULL'), 0);
 
     // Semua nomor WhatsApp fiktif dan semua email di domain .test.
     assert.equal(await hitung(database, "SELECT count(*)::int AS jumlah FROM registrations WHERE phone_e164 NOT LIKE '+62800000%' OR email NOT LIKE $1", [`%@${DEMO_DOMAIN}`]), 0);
@@ -87,10 +87,16 @@ async function run() {
     const akunAdmin = (await database.query("SELECT password_hash FROM accounts WHERE email = 'admin@hamasah.com'")).rows[0];
     assert.equal(await identity.verifyPassword('kata-sandi-admin-asli', akunAdmin.password_hash), true, 'Kata sandi admin tidak ikut berubah.');
 
+    // Santri dari pengisian versi lama (sebelum satu contoh per fitur) tetap ditemukan,
+    // supaya situs yang sudah diisi versi lama bisa dibersihkan seluruhnya.
+    await database.query(
+      "INSERT INTO students (id, name, program, city, join_date) VALUES (gen_random_uuid(), 'Ahmad Zaki Mubarak', 'Kuliah S1 Al-Azhar (Syariah wal Qanun)', 'Kairo', CURRENT_DATE)"
+    );
+
     // Penghapusan: laporan lengkap, lalu semua hilang tanpa menyentuh akun admin.
     const data = await temukanDataDemo(database);
     assert.equal(data.akun.length, DEMO_ACCOUNTS.length);
-    assert.equal(data.santri.length, DEMO_STUDENTS.length);
+    assert.equal(data.santri.length, DEMO_STUDENTS.length + 1);
     assert.equal(data.kloter.length, DEMO_KLOTER.length);
     assert.equal(data.asramaDilewati.length, 0);
     assert.equal(data.inventarisDilewati.length, 0);

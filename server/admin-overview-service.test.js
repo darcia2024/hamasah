@@ -35,11 +35,11 @@ async function run() {
     assert.equal(summary.dormitories, DEMO_DORMITORIES.length);
     assert.equal(summary.occupied, DEMO_STUDENTS.length);
     assert.equal(summary.capacity, DEMO_DORMITORIES.reduce((jumlah, d) => jumlah + d.capacity, 0));
-    assert.equal(summary.supervisors, 2);
+    assert.equal(summary.supervisors, DEMO_DORMITORIES.length);
     assert.ok(summary.attendanceRate7 > 50 && summary.attendanceRate7 <= 100, 'Persentase kehadiran masuk akal.');
     assert.ok(summary.prayerRate7 > 50 && summary.prayerRate7 <= 100, 'Persentase sholat berjamaah masuk akal.');
     assert.ok(summary.unpaidInvoices > 0 && summary.unpaidAmount > 0);
-    assert.deepEqual(summary.programs.map((p) => p.label).sort(), ['Kuliah S1 Al-Azhar', "Ma'had Al-Azhar"]);
+    assert.deepEqual(summary.programs.map((p) => p.label).sort(), ['Kuliah S1 Al-Azhar']);
 
     // Asrama: penghuni sesuai jenis kelamin, dan musyrifnya tercantum.
     for (const asrama of dormitories) {
@@ -61,20 +61,19 @@ async function run() {
 
     // Santri: catatan harian, hafalan, tagihan, dan visa ikut terangkum.
     const rayhan = students.find((s) => s.name === 'Rayhan Akbar Wibowo');
-    assert.ok(rayhan.attendance7.recorded >= 7);
-    // Jendela 7 hari termasuk hari ini; data demo mencatat 1 sampai 7 hari lalu, jadi
-    // yang masuk enam hari kali lima waktu.
-    assert.equal(rayhan.prayers7.recorded, 30);
+    assert.ok(rayhan.attendance7.recorded >= 1);
+    // Data demo mencatat sholat satu hari (kemarin), lima waktu.
+    assert.equal(rayhan.prayers7.recorded, 5);
     assert.ok(rayhan.memorization.last);
     assert.equal(rayhan.hasStudentAccount, true);
     assert.equal(rayhan.parentAccounts, 1);
-    assert.equal(rayhan.visa.status, 'approved');
+    assert.equal(rayhan.visa.status, 'collecting-documents');
 
-    // Perhatian: data demo sengaja memuat santri sakit, paspor hampir habis, dan visa
-    // yang segera habis.
+    // Perhatian: santri contoh sengaja baru sakit, paspornya hampir habis, dan visanya
+    // segera habis.
     const jenis = new Set(alerts.map((a) => a.kind));
     for (const harus of ['kesehatan', 'paspor', 'visa']) assert.ok(jenis.has(harus), `Ada peringatan ${harus}.`);
-    assert.ok(alerts.some((a) => a.kind === 'kesehatan' && a.title.startsWith('Daffa')), 'Maag Daffa masuk daftar.');
+    assert.ok(alerts.some((a) => a.kind === 'kesehatan' && a.title.startsWith('Rayhan')), 'Flu Rayhan masuk daftar.');
     assert.deepEqual(alerts.map((a) => a.level), [...alerts.map((a) => a.level)].sort((a, b) => ['tinggi', 'sedang', 'info'].indexOf(a) - ['tinggi', 'sedang', 'info'].indexOf(b)), 'Urut dari yang paling mendesak.');
 
     // Tanpa fitur kesehatan, tidak ada data kesehatan sama sekali.

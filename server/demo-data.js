@@ -1,11 +1,12 @@
 'use strict';
 // Data demo yang terasa seperti data sungguhan, supaya pemilik bisa membayangkan
-// aplikasi saat sudah dipakai: akun staf, wali, dan santri; asrama; santri dengan
-// presensi, sholat, hafalan, kesehatan, dan catatan pembinaan; tagihan dan kuitansi;
-// visa; inventaris; pendaftar di setiap tahap; kloter; pesan konsultasi; maddah LMS
-// lengkap dengan progres belajar; serta isi Kelola Asrama (jadwal, acara, piket, kas,
-// iuran, inventaris) dan galeri foto asrama. Semua data masuk lewat service aplikasi, jadi
-// aturan validasi dan hak akses yang sama ikut berlaku.
+// aplikasi saat sudah dipakai. Setiap fitur berisi satu contoh (lihat bagian "Satu
+// contoh untuk setiap fitur"): akun per peran; asrama; santri dengan presensi, sholat,
+// hafalan, kesehatan, dan catatan pembinaan; tagihan dan kuitansi; visa; inventaris;
+// pendaftar; kloter; pesan konsultasi; maddah LMS dengan progres belajar; serta isi
+// Kelola Asrama (jadwal, acara, piket, kas, iuran, inventaris) dan galeri foto asrama.
+// Semua data masuk lewat service aplikasi, jadi aturan validasi dan hak akses yang sama
+// ikut berlaku.
 //
 // Dipakai dua jalur: skrip terminal (scripts/demo-data.js) dan tombol "Data demo" di
 // dashboard super admin (server/routes/admin-demo.js). Pengisian dipecah per langkah
@@ -73,7 +74,7 @@ function telepon(nomor) {
   return `${DEMO_PHONE_PREFIX}${String(nomor).padStart(4, '0')}`;
 }
 
-const DEMO_ACCOUNTS = Object.freeze([
+const SEMUA_AKUN = Object.freeze([
   { key: 'petugas', name: 'Nurul Hidayati', email: email('petugas'), role: ROLES.REGISTRATION_OFFICER, peran: 'Petugas pendaftaran', dibuat: 95 },
   { key: 'musyrif', name: 'Ust. Hanif Mubarok', email: email('musyrif'), role: ROLES.SUPERVISOR, peran: 'Musyrif Asrama Putra Al-Fath', dibuat: 95 },
   { key: 'musyrifah', name: 'Ustzh. Salma Nurjannah', email: email('musyrifah'), role: ROLES.SUPERVISOR, peran: 'Musyrifah Asrama Putri Az-Zahra', dibuat: 95 },
@@ -85,12 +86,12 @@ const DEMO_ACCOUNTS = Object.freeze([
   { key: 'santri2', name: 'Nayla Husna Wibowo', email: email('santri2'), role: ROLES.STUDENT, peran: "Santri Ma'had, angkatan baru", dibuat: 37 }
 ]);
 
-const DEMO_DORMITORIES = Object.freeze([
+const SEMUA_ASRAMA = Object.freeze([
   { key: 'putra', name: 'Asrama Putra Al-Fath', area: 'Hay Asyir, Madinat Nasr', gender: 'putra', capacity: 24, pembina: 'musyrif' },
   { key: 'putri', name: 'Asrama Putri Az-Zahra', area: 'Hay Sabi, Madinat Nasr', gender: 'putri', capacity: 16, pembina: 'musyrifah' }
 ]);
 
-const DEMO_STUDENTS = Object.freeze([
+const SEMUA_SANTRI = Object.freeze([
   { key: 'rayhan', name: 'Rayhan Akbar Wibowo', gender: 'putra', jalur: 'kuliah', program: 'Kuliah S1 Al-Azhar (Ushuluddin)', bergabung: LAMA, asal: 'Semarang', akun: 'santri', wali: ['wali'] },
   { key: 'hafizh', name: 'Muhammad Hafizh Ramadhan', gender: 'putra', jalur: 'mahad', program: "Ma'had Al-Azhar (I'dadi)", bergabung: BARU, asal: 'Cirebon', wali: ['wali2'] },
   { key: 'zaki', name: 'Ahmad Zaki Mubarak', gender: 'putra', jalur: 'kuliah', program: 'Kuliah S1 Al-Azhar (Syariah wal Qanun)', bergabung: LAMA, asal: 'Padang' },
@@ -109,10 +110,9 @@ const DEMO_STUDENTS = Object.freeze([
 const CATATAN_SANTRI = Object.freeze({
   rayhan: {
     prestasi: [{ hari: 21, title: 'Khatam hafalan Juz 30', description: 'Menyelesaikan setoran Juz 30 dengan predikat lancar di hadapan musyrif.' }],
-    evaluasi: [
-      { hari: 16, area: 'Akademik', note: "Kehadiran kuliah stabil. Perlu menambah jam muraja'ah mata kuliah Tafsir menjelang ujian termin." },
-      { hari: 4, area: 'Kemandirian', note: 'Sudah bisa mengatur uang saku bulanan sendiri dan rutin melapor ke musyrif.' }
-    ]
+    evaluasi: [{ hari: 16, area: 'Akademik', note: "Kehadiran kuliah stabil. Perlu menambah jam muraja'ah mata kuliah Tafsir menjelang ujian termin." }],
+    pelanggaran: [{ hari: 12, level: 'ringan', note: 'Terlambat kembali ke asrama 30 menit setelah jam malam tanpa memberi kabar.' }],
+    kesehatan: [{ hari: 9, condition: 'sakit-ringan', complaint: 'Flu dan batuk setelah cuaca mulai dingin.', actionTaken: 'Diberi obat flu dan vitamin, istirahat di kamar satu hari, dan dipantau musyrif.', parentNote: 'Ananda sempat flu ringan dan sudah ditangani. Alhamdulillah sekarang sudah membaik.' }]
   },
   hafizh: {
     evaluasi: [{ hari: 9, area: 'Adaptasi', note: 'Masih menyesuaikan diri dengan cuaca dan makanan di Kairo. Mulai akrab dengan teman sekamar.' }],
@@ -183,7 +183,7 @@ const MURAJAAH = Object.freeze([
 // Pendaftar di setiap tahap. Peristiwa ditulis berurutan dari yang paling lama.
 // status: pindah tahap; catatan: catatan internal atau untuk pendaftar; langkah:
 // tindak lanjut dengan tenggat sekian hari dari hari ini.
-const DEMO_REGISTRATIONS = Object.freeze([
+const SEMUA_PENDAFTAR = Object.freeze([
   {
     key: 'fikri', applicantName: 'Fikri Haidar Alfarizi', program: 'kuliah-al-azhar', gender: 'putra', umur: 19, city: 'Bekasi',
     schoolOrigin: 'MA Miftahul Ulum Bekasi', educationLevel: 'MA', guardianName: 'Hadi Alfarizi', referralSource: 'Instagram', dibuat: 130, jam: '10:12', kloter: 'lalu',
@@ -299,13 +299,13 @@ const DEMO_REGISTRATIONS = Object.freeze([
 ]);
 
 // Kloter: hari positif berarti sekian hari lalu, negatif berarti mendatang.
-const DEMO_KLOTER = Object.freeze([
+const SEMUA_KLOTER = Object.freeze([
   { key: 'lalu', hari: 39, status: 'departed', dibuat: 75, origin: 'Bandara Soekarno-Hatta (CGK) Terminal 3', applicantNote: 'Rombongan sudah tiba di Kairo dengan selamat. Terima kasih atas doa Bapak dan Ibu.' },
   { key: 'dekat', hari: -17, status: 'confirmed', dibuat: 22, origin: 'Bandara Soekarno-Hatta (CGK) Terminal 3', applicantNote: 'Kumpul di Terminal 3 pukul 14.00 WIB. Bawa paspor asli, fotokopi ijazah, dan obat pribadi secukupnya.' },
   { key: 'nanti', hari: -100, status: 'planned', dibuat: 15, origin: 'Bandara Soekarno-Hatta (CGK)', applicantNote: 'Tanggal masih rencana dan akan dipastikan setelah visa terbit.' }
 ]);
 
-const DEMO_INQUIRIES = Object.freeze([
+const SEMUA_PESAN = Object.freeze([
   { name: 'Rafi Ardiansyah', topic: 'lainnya', jamLalu: 3, status: 'new', message: 'Apakah Hamasah membantu pengurusan legalisir ijazah ke Kemenag dan Kemenlu sebelum berangkat?' },
   { name: 'Rina Marlina', topic: 'biaya', hari: 1, jam: '20:14', status: 'new', message: "Assalamualaikum, apakah biaya Ma'had bisa dicicil? Anak saya baru lulus SMP tahun ini." },
   { name: 'Agus Setiawan', topic: 'asrama', hari: 2, jam: '09:32', status: 'new', message: 'Asrama putra di Kairo jaraknya berapa jauh dari kampus Al-Azhar? Apakah sudah termasuk makan?' },
@@ -315,7 +315,7 @@ const DEMO_INQUIRIES = Object.freeze([
   { name: 'Haris Munandar', topic: 'biaya', hari: 12, jam: '07:58', status: 'closed', ditangani: 11, message: 'Untuk DP pemberkasan kuliah Rp 4,5 juta, apakah boleh ditransfer dua kali?' }
 ]);
 
-const DEMO_INVENTORY = Object.freeze([
+const SEMUA_INVENTARIS = Object.freeze([
   { name: 'Kasur busa 90x200 cm', location: 'Asrama Putra Al-Fath', awal: 18, hari: 90, mutasi: [{ hari: 42, direction: 'in', quantity: 6, reason: 'Pembelian untuk santri baru angkatan Agustus' }, { hari: 15, direction: 'out', quantity: 1, reason: 'Sobek dan kempis, diganti baru' }] },
   { name: 'Lemari pakaian dua pintu', location: 'Asrama Putra Al-Fath', awal: 12, hari: 90, mutasi: [] },
   { name: 'Kipas angin berdiri', location: 'Asrama Putra Al-Fath', awal: 10, hari: 90, mutasi: [{ hari: 9, direction: 'out', quantity: 1, reason: 'Motor kipas rusak, dibawa ke tempat servis' }] },
@@ -331,7 +331,8 @@ const DEMO_INVENTORY = Object.freeze([
 // paspor dan visa: sekian hari lagi sampai kedaluwarsa.
 const VISA_SANTRI_BARU = 'Berkas iqamah pelajar sudah diserahkan ke kantor imigrasi Abbasiyah, menunggu jadwal foto sidik jari.';
 const DEMO_VISA = Object.freeze({
-  rayhan: { status: 'approved', paspor: 1200, visa: 190, note: 'Iqamah pelajar aktif.' },
+  // Santri contoh satu-satunya, jadi sengaja memicu peringatan paspor dan visa di dashboard.
+  rayhan: { status: 'collecting-documents', paspor: 150, visa: 25, note: 'Iqamah habis bulan depan dan paspor tinggal lima bulan. Perpanjang paspor di KBRI Kairo dulu, lalu berkas perpanjangan iqamah diserahkan.' },
   hafizh: { status: 'legalization', paspor: 1790, visa: 52, note: 'Menunggu legalisir surat keterangan pelajar dari Al-Azhar sebelum pengajuan iqamah.' },
   zaki: { status: 'collecting-documents', paspor: 950, visa: 18, note: 'Iqamah habis bulan depan. Berkas perpanjangan mulai dikumpulkan.' },
   fikri: { status: 'submitted', paspor: 1800, visa: 52, note: VISA_SANTRI_BARU },
@@ -345,11 +346,7 @@ const DEMO_VISA = Object.freeze({
   hana: { status: 'approved', paspor: 700, visa: 260, note: 'Iqamah pelajar aktif.' }
 });
 
-// Iuran bulan berjalan yang belum dibayar, supaya daftar tagihan memperlihatkan
-// campuran lunas dan belum lunas.
-const IURAN_BELUM_LUNAS = Object.freeze(['hafizh', 'zaki', 'daffa', 'khansa', 'hana']);
-
-const DEMO_COURSES = Object.freeze([
+const SEMUA_MADDAH = Object.freeze([
   {
     key: 'nahwu',
     title: 'Nahwu Dasar: Matan Al-Ajurrumiyyah',
@@ -626,6 +623,57 @@ const IZIN_SANTRI = Object.freeze([
   { santri: 'nayla', hari: 9, kind: 'sakit', mulai: '06:00', jam: 30, reason: 'Demam dan pusing sejak semalam, izin tidak ikut halaqah dan kelas pagi.', keputusan: 'disetujui', note: 'Istirahat dulu, nanti musyrifah antar ke klinik bila belum membaik.' },
   { santri: 'nayla', hari: 2, kind: 'keluar-asrama', mulai: '09:00', jam: 5, reason: 'Membeli kitab dan perlengkapan kuliah di sekitar Masjid Al-Azhar bersama Aisyah.', keputusan: 'disetujui' }
 ]);
+
+// ---------------------------------------------------------------------------
+// Satu contoh untuk setiap fitur
+//
+// Pemilik meminta setiap fitur cukup berisi satu contoh yang terasa nyata, bukan daftar
+// panjang. Yang diisi hanya bagian di bawah ini: satu akun per peran, satu asrama, satu
+// santri (Rayhan, lengkap dengan akun santri dan walinya), satu pendaftar yang sudah
+// masuk kloter, dan satu contoh untuk setiap catatan, tagihan, maddah, dan isi Kelola
+// Asrama. Daftar SEMUA_* di atas tetap dipakai temukanDataDemo, supaya data demo dari
+// pengisian versi lama (12 santri, 2 asrama) tetap ikut terhapus.
+
+const AKUN_CONTOH = Object.freeze(['petugas', 'musyrif', 'guru', 'keuangan', 'wali', 'santri']);
+const DEMO_ACCOUNTS = Object.freeze(SEMUA_AKUN
+  .filter((a) => AKUN_CONTOH.includes(a.key))
+  .map((a) => (a.key === 'wali' ? { ...a, peran: 'Wali Rayhan' } : a)));
+const DEMO_DORMITORIES = Object.freeze(SEMUA_ASRAMA.filter((d) => d.key === 'putra'));
+const DEMO_STUDENTS = Object.freeze(SEMUA_SANTRI.filter((s) => s.key === 'rayhan'));
+// Hamzah: siap berangkat, sudah masuk kloter, punya catatan untuk pendaftar dan satu
+// tindak lanjut, jadi satu pendaftar ini memperlihatkan seluruh alur konsol.
+const DEMO_REGISTRATIONS = Object.freeze(SEMUA_PENDAFTAR.filter((r) => r.key === 'hamzah'));
+const DEMO_KLOTER = Object.freeze(SEMUA_KLOTER.filter((k) => DEMO_REGISTRATIONS.some((r) => r.kloter === k.key)));
+const DEMO_INQUIRIES = Object.freeze(SEMUA_PESAN.slice(0, 1));
+const DEMO_INVENTORY = Object.freeze(SEMUA_INVENTARIS.slice(0, 1));
+// Satu maddah dengan satu materi untuk setiap jenis: bacaan, kuis, dan tugas.
+const DEMO_COURSES = Object.freeze(SEMUA_MADDAH.filter((c) => c.key === 'nahwu').map((c) => ({
+  ...c,
+  materials: ['text', 'quiz', 'assignment'].map((type) => c.materials.find((m) => m.type === type))
+})));
+
+// Catatan harian: satu hari presensi dan sholat, satu setoran hafalan, satu kegiatan.
+const HARI_CATATAN = Object.freeze([1]);
+const HARI_HAFALAN = Object.freeze([1]);
+const KEGIATAN_CONTOH = Object.freeze(KEGIATAN_BERSAMA.filter((k) => k.untuk === 'semua').slice(0, 1));
+
+const KELOLA_CONTOH = Object.freeze({
+  putra: {
+    rutin: KELOLA_ASRAMA.putra.rutin.filter((r) => r.title === 'Mudzakarah malam Jumat'),
+    acara: KELOLA_ASRAMA.putra.acara.filter((a) => a.hari < 0).slice(0, 1),
+    piket: KELOLA_ASRAMA.putra.piket.slice(0, 1),
+    iuran: KELOLA_ASRAMA.putra.iuran,
+    saldoAwal: KELOLA_ASRAMA.putra.saldoAwal,
+    // Uang kas memakai hari relatif, bukan tanggal dalam bulan, supaya semua catatan
+    // selalu sudah lewat kapan pun data demo diisi.
+    kas: { saldoAwal: 25, iuran: 18, pengeluaran: 9 },
+    pengeluaran: KELOLA_ASRAMA.putra.pengeluaran.slice(0, 1),
+    inventaris: KELOLA_ASRAMA.putra.inventaris.slice(0, 1),
+    galeri: KELOLA_ASRAMA.putra.galeri.slice(0, 1)
+  }
+});
+const PENGUMUMAN_CONTOH = Object.freeze({ putra: PENGUMUMAN.putra.slice(0, 1) });
+const IZIN_CONTOH = Object.freeze(IZIN_SANTRI.slice(0, 1));
 
 // ---------------------------------------------------------------------------
 // Waktu dan angka acak yang stabil
@@ -952,7 +1000,7 @@ async function buatKloter(ctx) {
 }
 
 async function buatSantri(ctx) {
-  butuh(ctx.asrama.putra && ctx.asrama.putri, 'Asrama demo belum ada.');
+  butuh(DEMO_DORMITORIES.every((d) => ctx.asrama[d.key]), 'Asrama demo belum ada.');
   let dibuat = 0;
   for (const s of DEMO_STUDENTS) {
     if (ctx.santri[s.key]) continue;
@@ -998,7 +1046,7 @@ async function isiCatatanSantri(ctx, s, indeks) {
   const catatan = CATATAN_SANTRI[s.key] || {};
   const hariSakit = new Set((catatan.kesehatan || []).filter((k) => k.condition !== 'sehat').map((k) => k.hari));
 
-  for (let n = 7; n >= 1; n -= 1) {
+  for (const n of HARI_CATATAN) {
     const status = hariSakit.has(n) ? 'excused' : pilihBerbobot(acak, [['present', 84], ['late', 9], ['excused', 4], ['absent', 3]]);
     const note = {
       present: '',
@@ -1029,7 +1077,7 @@ async function isiCatatanSantri(ctx, s, indeks) {
 
   const segmen = ZIYADAH[s.jalur];
   let urut = (indeks * 3 + (s.bergabung === BARU ? 0 : 4)) % segmen.length;
-  for (const [k, n] of [13, 11, 9, 7, 5, 3, 1].entries()) {
+  for (const [k, n] of HARI_HAFALAN.entries()) {
     const kind = k % 2 === 0 ? 'ziyadah' : 'murajaah';
     const portion = kind === 'ziyadah' ? segmen[urut++ % segmen.length] : MURAJAAH[(indeks + k) % MURAJAAH.length];
     const grade = hariSakit.has(n) ? 'ulang' : pilihBerbobot(acak, [['lancar', 68], ['kurang-lancar', 24], ['ulang', 8]]);
@@ -1047,7 +1095,7 @@ async function isiCatatanSantri(ctx, s, indeks) {
     }, pembina));
   }
 
-  for (const kegiatan of KEGIATAN_BERSAMA) {
+  for (const kegiatan of KEGIATAN_CONTOH) {
     if (kegiatan.untuk === 'baru' && s.bergabung !== BARU) continue;
     await pada(jam, waktu(kegiatan.hari, '16:00'), 'mencatat kegiatan', () => portal.addActivity(id, {
       title: kegiatan.title, description: kegiatan.description, occurredAt: waktu(kegiatan.hari, '15:00').toISOString()
@@ -1095,17 +1143,15 @@ async function buatTagihan(ctx) {
       peristiwa.push({ saat: waktu(hariLunas, '14:20').getTime() + peristiwa.length * 60 * 1000, tagihan, jenis: 'bayar' });
     }
   }
+  // Satu contoh per keadaan: tagihan lunas (dengan kuitansi) dan tagihan belum lunas.
   for (const [i, s] of DEMO_STUDENTS.entries()) {
     const id = ctx.santri[s.key].id;
     if (s.bergabung === BARU) {
       tagih(id, `DP pemberkasan ${s.jalur === 'kuliah' ? 'Kuliah S1 Al-Azhar' : "Ma'had Al-Azhar"}`, s.jalur === 'kuliah' ? 4500000 : 5000000, 112 - (i % 4), 110 - (i % 4));
-      tagih(id, 'Cicilan biaya program tahap 2', 7500000, 75, 70 - (i % 3));
-      tagih(id, 'Cicilan biaya program tahap 3', 7500000, 12, i % 2 === 0 ? 4 : null);
     } else {
-      tagih(id, `Daftar ulang tahun ajaran ${tahunAjaran(waktu(48))}`, 3500000, 48, s.key === 'daffa' ? null : 44 - (i % 3));
+      tagih(id, `Daftar ulang tahun ajaran ${tahunAjaran(waktu(48))}`, 3500000, 48, 44 - (i % 3));
     }
-    tagih(id, `Iuran asrama dan makan ${namaBulan(waktu(25))}`, 2400000, 32, 29 - (i % 4));
-    tagih(id, `Iuran asrama dan makan ${namaBulan(new Date(Date.now() + 5 * HARI_MS))}`, 2400000, 2, IURAN_BELUM_LUNAS.includes(s.key) ? null : 1);
+    tagih(id, `Iuran asrama dan makan ${namaBulan(new Date(Date.now() + 5 * HARI_MS))}`, 2400000, 2, null);
   }
   peristiwa.sort((a, b) => a.saat - b.saat);
   for (const p of peristiwa) {
@@ -1286,14 +1332,14 @@ async function isiBelajarSantri(ctx, s, indeks) {
   butuh(guru, 'Akun guru demo belum ada.');
   butuh(ctx.santri[s.key], `Santri ${s.name} belum ada.`);
   const maddah = await muatMaddah(ctx);
-  butuh(maddah.nahwu && maddah.persiapan, 'Maddah demo belum ada.');
+  butuh(maddah.nahwu, 'Maddah demo belum ada.');
   const studentId = ctx.santri[s.key].id;
   if (await hitungBaris(ctx.database, 'SELECT count(*)::int AS jumlah FROM course_enrollments WHERE student_id = $1 AND course_id = $2', [studentId, maddah.nahwu.course.id])) return 0;
   const acak = buatAcak(5000 + indeks * 104729);
   const lama = s.bergabung !== BARU;
   await pada(ctx.jam, waktu(lama ? 59 : 37, '09:00'), 'mendaftarkan maddah', () => lms.enroll(studentId, maddah.nahwu.course.id, guru));
   await jalankanProgres(ctx, s, maddah.nahwu, lama ? 3 + Math.floor(acak() * 3) : 1 + Math.floor(acak() * 4), acak, lama ? 50 : 30);
-  if (!lama) {
+  if (!lama && maddah.persiapan) {
     await pada(ctx.jam, waktu(35, '09:00'), 'mendaftarkan maddah', () => lms.enroll(studentId, maddah.persiapan.course.id, guru));
     await jalankanProgres(ctx, s, maddah.persiapan, 2 + Math.floor(acak() * 3), acak, 33);
   }
@@ -1307,18 +1353,6 @@ async function tabelAda(database, tabel) {
   return Boolean((await database.query('SELECT to_regclass($1)::text AS ada', [tabel])).rows[0].ada);
 }
 
-// 'YYYY-MM' n bulan sebelum bulan ini (WIB).
-function bulanLalu(n) {
-  const [tahun, bulan] = tanggal(0).split('-').map(Number);
-  return new Date(Date.UTC(tahun, bulan - 1 - n, 1)).toISOString().slice(0, 7);
-}
-
-function tanggalDalamBulan(bulan, tgl) {
-  const [tahun, b] = bulan.split('-').map(Number);
-  const akhir = new Date(Date.UTC(tahun, b, 0)).getUTCDate();
-  return `${bulan}-${String(Math.min(tgl, akhir)).padStart(2, '0')}`;
-}
-
 function musyrifAsrama(ctx, key) {
   const asrama = ctx.asrama[key];
   butuh(asrama, 'Asrama demo belum ada.');
@@ -1327,7 +1361,7 @@ function musyrifAsrama(ctx, key) {
   return { asrama, musyrif };
 }
 
-// Jadwal, acara, piket, iuran, uang kas tiga bulan terakhir, dan inventaris satu asrama.
+// Jadwal, acara, piket, iuran, uang kas, dan inventaris satu asrama, masing-masing satu contoh.
 // Setiap bagian hanya diisi bila masih kosong. Database yang belum menerapkan migrasi
 // 050 dilewati supaya bagian lain data demo tetap bisa diisi.
 async function buatKelolaAsrama(ctx, key) {
@@ -1335,7 +1369,7 @@ async function buatKelolaAsrama(ctx, key) {
   santriWajib(ctx);
   if (!(await tabelAda(ctx.database, 'dormitory_schedule'))) return 0;
   const m = ctx.layanan.dormitoryManagementService;
-  const data = KELOLA_ASRAMA[key];
+  const data = KELOLA_CONTOH[key];
   const id = asrama.id;
   const kosong = async (tabel) => !(await hitungBaris(ctx.database, `SELECT count(*)::int AS jumlah FROM ${tabel} WHERE dormitory_id = $1`, [id]));
   const penghuni = DEMO_STUDENTS.filter((s) => s.gender === key);
@@ -1370,34 +1404,20 @@ async function buatKelolaAsrama(ctx, key) {
   }
 
   if (await kosong('dormitory_cash_entries')) {
-    const hariIni = tanggal(0);
     const catat = async (masukan, label) => {
-      if (masukan.date > hariIni) return null;
       dibuat += 1;
       return pastikan(await m.addCash(id, masukan, musyrif), label);
     };
-    await catat({ direction: 'masuk', amount: data.saldoAwal, category: 'saldo awal', date: tanggalDalamBulan(bulanLalu(2), 1), note: 'Sisa kas dari periode sebelumnya' }, 'mencatat saldo awal kas');
-    for (const n of [2, 1, 0]) {
-      const bulan = bulanLalu(n);
-      for (const [i, s] of penghuni.entries()) {
-        // Bulan ini masih ada yang belum membayar; santri baru tidak membayar bulan sebelum ia datang.
-        if (n === 0 && data.belumBayar.includes(s.key)) continue;
-        const tgl = tanggalDalamBulan(bulan, 1 + ((i * 3) % 10));
-        if (tgl < tanggal(s.bergabung)) continue;
-        await catat({ direction: 'masuk', amount: data.iuran, category: 'iuran', studentId: ctx.santri[s.key].id, period: bulan, date: tgl }, `mencatat iuran ${s.name}`);
-      }
-      for (const p of data.pengeluaran) {
-        await catat({ direction: 'keluar', amount: p.amount, category: p.category, date: tanggalDalamBulan(bulan, p.tgl), note: p.note }, `mencatat ${p.note}`);
-      }
-      const perbaikan = data.perbaikan[2 - n];
-      await catat({ direction: 'keluar', amount: perbaikan.amount, category: 'perbaikan', date: tanggalDalamBulan(bulan, 19), note: perbaikan.note }, `mencatat ${perbaikan.note}`);
-      if (n === 1) {
-        await catat({ direction: 'masuk', amount: data.infaq.amount, category: 'infaq', date: tanggalDalamBulan(bulan, 12), note: data.infaq.note }, 'mencatat infaq');
-        // Salah catat yang lalu dibatalkan, seperti yang biasa terjadi di buku kas.
-        const p = data.pengeluaran[1];
-        const ganda = await catat({ direction: 'keluar', amount: p.amount, category: p.category, date: tanggalDalamBulan(bulan, p.tgl), note: p.note }, 'mencatat pengeluaran ganda');
-        if (ganda) pastikan(await m.voidCash(id, ganda.id, { reason: 'Tercatat dua kali dari nota yang sama.' }, musyrif), 'membatalkan catatan ganda');
-      }
+    const hari = data.kas;
+    await catat({ direction: 'masuk', amount: data.saldoAwal, category: 'saldo awal', date: tanggal(hari.saldoAwal), note: 'Sisa kas dari periode sebelumnya' }, 'mencatat saldo awal kas');
+    for (const s of penghuni) {
+      await catat({ direction: 'masuk', amount: data.iuran, category: 'iuran', studentId: ctx.santri[s.key].id, period: tanggal(hari.iuran).slice(0, 7), date: tanggal(hari.iuran) }, `mencatat iuran ${s.name}`);
+    }
+    for (const p of data.pengeluaran) {
+      await catat({ direction: 'keluar', amount: p.amount, category: p.category, date: tanggal(hari.pengeluaran), note: p.note }, `mencatat ${p.note}`);
+      // Salah catat dibatalkan, seperti yang biasa terjadi di buku kas.
+      const ganda = await catat({ direction: 'keluar', amount: p.amount, category: p.category, date: tanggal(hari.pengeluaran), note: p.note }, 'mencatat pengeluaran ganda');
+      pastikan(await m.voidCash(id, ganda.id, { reason: 'Tercatat dua kali dari nota yang sama.' }, musyrif), 'membatalkan catatan ganda');
     }
   }
 
@@ -1430,7 +1450,7 @@ async function buatGaleriAsrama(ctx, key, berkas) {
   if (!fileService || !(await tabelAda(ctx.database, 'dormitory_gallery'))) return 0;
   const sudah = new Set((await ctx.database.query('SELECT caption FROM dormitory_gallery WHERE dormitory_id = $1', [asrama.id])).rows.map((row) => row.caption));
   let dibuat = 0;
-  for (const foto of KELOLA_ASRAMA[key].galeri) {
+  for (const foto of KELOLA_CONTOH[key].galeri) {
     if (sudah.has(foto.caption)) continue;
     const isi = fs.readFileSync(path.join(FOLDER_FOTO_GALERI, foto.berkas));
     const pemanggil = { actor: musyrif, auth: null };
@@ -1471,7 +1491,7 @@ async function buatKehidupanSantri(ctx) {
   for (const d of DEMO_DORMITORIES) {
     const { asrama, musyrif } = musyrifAsrama(ctx, d.key);
     if (await hitungBaris(ctx.database, 'SELECT count(*)::int AS jumlah FROM announcements WHERE dormitory_id = $1', [asrama.id])) continue;
-    for (const p of PENGUMUMAN[d.key]) {
+    for (const p of PENGUMUMAN_CONTOH[d.key]) {
       await pada(ctx.jam, waktu(p.hari, '16:30'), `menulis pengumuman ${p.title}`, () => hidup.createAnnouncement({
         title: p.title, body: p.body, audience: p.audience, dormitoryId: String(asrama.id)
       }, musyrif));
@@ -1480,7 +1500,7 @@ async function buatKehidupanSantri(ctx) {
   }
 
   if (!(await hitungBaris(ctx.database, 'SELECT count(*)::int AS jumlah FROM student_leave_requests WHERE student_id = ANY($1::uuid[])', [idSantri]))) {
-    for (const izin of IZIN_SANTRI) {
+    for (const izin of IZIN_CONTOH) {
       const s = DEMO_STUDENTS.find((x) => x.key === izin.santri);
       const santriAktor = ctx.aktor[s.akun];
       const musyrif = ctx.aktor[DEMO_DORMITORIES.find((d) => d.key === s.gender).pembina];
@@ -1655,7 +1675,7 @@ async function temukanDataDemo(database) {
         OR s.student_account_id = ANY($3::uuid[])
         OR s.registration_id = ANY($4::uuid[])
      ORDER BY s.name`,
-    [DEMO_STUDENTS.map((s) => s.name), DEMO_STUDENTS.map((s) => s.program), akunIds, pendaftaran.map((row) => row.id)]
+    [SEMUA_SANTRI.map((s) => s.name), SEMUA_SANTRI.map((s) => s.program), akunIds, pendaftaran.map((row) => row.id)]
   );
   const santriIds = santri.map((row) => row.id);
   // Kloter hanya ikut terhapus bila SEMUA anggotanya pendaftar demo. Kloter kosong
@@ -1670,7 +1690,7 @@ async function temukanDataDemo(database) {
   const asrama = await ambil(
     `SELECT d.id, d.name, EXISTS (SELECT 1 FROM students s WHERE s.dormitory_id = d.id AND NOT (s.id = ANY($2::uuid[]))) AS dipakai
      FROM dormitories d WHERE d.name = ANY($1::text[]) ORDER BY d.name`,
-    [DEMO_DORMITORIES.map((d) => d.name), santriIds]
+    [SEMUA_ASRAMA.map((d) => d.name), santriIds]
   );
   const inventaris = await ambil(
     `SELECT i.id, i.name, i.location,
@@ -1679,11 +1699,11 @@ async function temukanDataDemo(database) {
      FROM inventory_items i
      WHERE EXISTS (SELECT 1 FROM unnest($1::text[], $2::text[]) AS d(nama, lokasi) WHERE d.nama = i.name AND d.lokasi = i.location)
      ORDER BY i.location, i.name`,
-    [DEMO_INVENTORY.map((b) => b.name), DEMO_INVENTORY.map((b) => b.location), akunIds]
+    [SEMUA_INVENTARIS.map((b) => b.name), SEMUA_INVENTARIS.map((b) => b.location), akunIds]
   );
   const maddah = await ambil('SELECT id, title FROM courses WHERE owner_account_id = ANY($1::uuid[]) ORDER BY title', [akunIds]);
   const pesan = await ambil(
-    'SELECT id, name FROM inquiries WHERE phone_e164 LIKE $1 AND name = ANY($2::text[]) ORDER BY created_at', [`${DEMO_PHONE_PREFIX}%`, DEMO_INQUIRIES.map((p) => p.name)]
+    'SELECT id, name FROM inquiries WHERE phone_e164 LIKE $1 AND name = ANY($2::text[]) ORDER BY created_at', [`${DEMO_PHONE_PREFIX}%`, SEMUA_PESAN.map((p) => p.name)]
   );
   const invoice = await ambil('SELECT id, invoice_number, receipt_number FROM invoices WHERE student_id = ANY($1::uuid[]) ORDER BY invoice_number', [santriIds]);
   const berkas = await ambil(
@@ -1825,7 +1845,10 @@ async function statusDataDemo(database) {
       pesan: data.pesan.length,
       berkas: data.berkas.length
     },
-    lengkap: data.akun.length === DEMO_ACCOUNTS.length && data.santri.length === DEMO_STUDENTS.length && data.maddah.length === DEMO_COURSES.length
+    lengkap: data.akun.length === DEMO_ACCOUNTS.length && data.santri.length === DEMO_STUDENTS.length && data.maddah.length === DEMO_COURSES.length,
+    // Pengisian versi lama berisi lebih banyak akun dan santri daripada satu contoh per
+    // fitur. Melanjutkan pengisian tidak mengubahnya, jadi dashboard meminta dihapus dulu.
+    versiLama: data.akun.length > DEMO_ACCOUNTS.length || data.santri.length > DEMO_STUDENTS.length
   };
 }
 
