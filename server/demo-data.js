@@ -1444,10 +1444,13 @@ function layananBerkas(ctx, { fileService, storage, buckets }) {
   });
 }
 
+// Storage yang menolak unggahan (bucket belum dibuat, tipe berkas dibatasi) tidak boleh
+// menghentikan langkah-langkah sesudahnya. Fotonya dilewati, baris berkas yang terlanjur
+// dibuat dihapus lagi, dan alasannya dikembalikan sebagai peringatan untuk admin.
 async function buatGaleriAsrama(ctx, key, berkas) {
   const { asrama, musyrif } = musyrifAsrama(ctx, key);
   const fileService = layananBerkas(ctx, berkas);
-  if (!fileService || !(await tabelAda(ctx.database, 'dormitory_gallery'))) return 0;
+  if (!fileService || !(await tabelAda(ctx.database, 'dormitory_gallery'))) return { dibuat: 0 };
   const sudah = new Set((await ctx.database.query('SELECT caption FROM dormitory_gallery WHERE dormitory_id = $1', [asrama.id])).rows.map((row) => row.caption));
   let dibuat = 0;
   for (const foto of KELOLA_CONTOH[key].galeri) {
@@ -1457,13 +1460,19 @@ async function buatGaleriAsrama(ctx, key, berkas) {
     const unggahan = pastikan(await fileService.createUpload({
       purpose: 'dormitory-photo', entityId: asrama.id, fileName: foto.berkas, contentType: 'image/webp', size: isi.length
     }, pemanggil), `menyiapkan foto ${foto.berkas}`);
-    pastikan(await fileService.saveContent(unggahan.id, isi, pemanggil), `mengunggah foto ${foto.berkas}`);
+    try {
+      pastikan(await fileService.saveContent(unggahan.id, isi, pemanggil), `mengunggah foto ${foto.berkas}`);
+    } catch (error) {
+      await ctx.database.query('DELETE FROM file_objects WHERE id = $1', [unggahan.id]);
+      console.error(`[demo] Foto galeri ${foto.berkas} dilewati: ${error.message}`);
+      return { dibuat, peringatan: `Foto galeri ${asrama.name} dilewati karena storage menolak unggahan: ${error.message}` };
+    }
     pastikan(await ctx.layanan.dormitoryManagementService.addPhoto(asrama.id, {
       fileId: unggahan.id, caption: foto.caption, takenOn: foto.tanggal || tanggal(foto.hari)
     }, musyrif), `menyimpan foto ${foto.caption}`);
     dibuat += 1;
   }
-  return dibuat;
+  return { dibuat };
 }
 
 // Peta hafalan, pengumuman musyrif, dan riwayat izin (migrasi 045). Setiap bagian hanya
@@ -1574,7 +1583,7 @@ async function jalankanLangkahDemo({ database, langkah, kataSandi, fileService =
   if (langkah === 'inventaris') return { langkah, dibuat: await buatInventaris(ctx) };
   if (langkah.startsWith('kelola:')) return { langkah, dibuat: await buatKelolaAsrama(ctx, langkah.slice('kelola:'.length)) };
   if (langkah === 'kehidupan') return { langkah, dibuat: await buatKehidupanSantri(ctx) };
-  if (langkah.startsWith('galeri:')) return { langkah, dibuat: await buatGaleriAsrama(ctx, langkah.slice('galeri:'.length), { fileService, storage, buckets }) };
+  if (langkah.startsWith('galeri:')) return { langkah, ...(await buatGaleriAsrama(ctx, langkah.slice('galeri:'.length), { fileService, storage, buckets })) };
   if (langkah === 'pesan') return { langkah, dibuat: await buatPesan(ctx) };
   if (langkah === 'maddah') return { langkah, dibuat: await buatMaddah(ctx) };
   const indeks = DEMO_STUDENTS.findIndex((s) => s.key === langkah.slice('belajar:'.length));
@@ -1707,7 +1716,7 @@ async function temukanDataDemo(database) {
   );
   const invoice = await ambil('SELECT id, invoice_number, receipt_number FROM invoices WHERE student_id = ANY($1::uuid[]) ORDER BY invoice_number', [santriIds]);
   const berkas = await ambil(
-    `SELECT id, bucket, storage_key FROM file_objects
+    `SELECT id, bucket, storage_key, status FROM file_objects
      WHERE uploaded_by_account_id = ANY($1::uuid[])
         OR (entity_type = 'registration' AND entity_id = ANY($2::text[]))
         OR entity_id = ANY($3::text[])
@@ -1814,7 +1823,8 @@ async function hapusDataDemo({ database, data, storage, logger = console }) {
   });
 
   for (const file of data.berkas) {
-    await storage.remove(file.bucket, file.storage_key);
+    // Berkas yang tidak pernah selesai diunggah tidak punya isi di storage.
+    if (file.status === 'ready') await storage.remove(file.bucket, file.storage_key);
     await database.query('DELETE FROM file_objects WHERE id = $1', [file.id]);
     logger.log(`  Berkas terhapus: ${file.bucket}/${file.storage_key}`);
   }

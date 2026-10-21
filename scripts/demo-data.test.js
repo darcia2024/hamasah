@@ -8,8 +8,8 @@ const { createTestDatabase } = require('../server/test-support/database.js');
 const { createPostgresAccountStore } = require('../server/postgres-account-store.js');
 const {
   DEMO_ACCOUNTS, DEMO_COURSES, DEMO_DOMAIN, DEMO_DORMITORIES, DEMO_INQUIRIES, DEMO_INVENTORY, DEMO_KLOTER,
-  DEMO_REGISTRATIONS, DEMO_STUDENTS, LOCAL_DEMO_PASSWORD,
-  gantiSandiDemo, hapusDataDemo, isiDataDemo, temukanDataDemo, totalBaris
+  DEMO_REGISTRATIONS, DEMO_STUDENTS, LANGKAH_DEMO, LOCAL_DEMO_PASSWORD,
+  gantiSandiDemo, hapusDataDemo, isiDataDemo, jalankanLangkahDemo, temukanDataDemo, totalBaris
 } = require('./demo-data.js');
 
 const SILENT_LOGGER = { log() {} };
@@ -109,6 +109,19 @@ async function run() {
     assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM accounts'), 1, 'Hanya akun admin yang tersisa.');
     // Nomor pendaftaran, invoice, dan kuitansi sungguhan pertama kembali mulai dari 00001.
     assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM document_counters'), 0);
+
+    // Storage yang menolak unggahan hanya melewati foto galeri: langkah lain tetap
+    // terisi, admin mendapat peringatan, dan tidak ada baris berkas yang tertinggal.
+    const storageMenolak = { ...storage, async upload() { throw new Error('Unggahan ke storage gagal (400): Bucket not found'); } };
+    for (const item of LANGKAH_DEMO) {
+      const langkah = await jalankanLangkahDemo({ database, langkah: item.id, kataSandi: LOCAL_DEMO_PASSWORD, storage: storageMenolak });
+      if (item.id.startsWith('galeri:')) assert.match(langkah.peringatan, /Bucket not found/);
+    }
+    assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM dormitory_gallery'), 0);
+    assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM file_objects'), 0, 'Unggahan yang gagal tidak meninggalkan baris berkas.');
+    assert.ok(await hitung(database, 'SELECT count(*)::int AS jumlah FROM course_enrollments') > 0, 'Langkah sesudah galeri tetap jalan.');
+    await hapusDataDemo({ database, data: await temukanDataDemo(database), storage: storageMenolak, logger: SILENT_LOGGER });
+    assert.equal(totalBaris(await temukanDataDemo(database)), 0);
 
     console.log('demo data tests passed');
   } finally {

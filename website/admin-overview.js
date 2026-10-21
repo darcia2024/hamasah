@@ -627,6 +627,7 @@
 
       let kataSandi = null;
       const pendaftar = [];
+      const peringatan = [];
       const total = status.langkah.length;
       for (const [indeks, langkah] of status.langkah.entries()) {
         progres.textContent = `Langkah ${indeks + 1} dari ${total}: ${langkah.label}`;
@@ -635,6 +636,7 @@
           const hasil = await mintaJson('/api/admin/demo-data/langkah', headers(), { method: 'POST', body: JSON.stringify({ langkah: langkah.id }) });
           if (hasil.kataSandi) kataSandi = hasil.kataSandi;
           (hasil.pendaftar || []).forEach((p) => pendaftar.push(p));
+          if (hasil.peringatan) peringatan.push(hasil.peringatan);
         } catch (error) {
           progres.textContent = `Berhenti di langkah ${indeks + 1} (${langkah.label}): ${error.message}`;
           badan.append(tombol('Lanjutkan pengisian', 'button--primary', () => isiData(status)));
@@ -653,7 +655,7 @@
       dialogHasil({
         judul: 'Data demo siap',
         kataSandi, akunDemo: status.akunDemo, pendaftar,
-        catatan: kataSandi ? '' : 'Akun demo sudah ada dari pengisian sebelumnya, jadi kata sandinya tidak berubah. Pakai tombol Kata sandi baru bila lupa.',
+        catatan: [...peringatan, kataSandi ? '' : 'Akun demo sudah ada dari pengisian sebelumnya, jadi kata sandinya tidak berubah. Pakai tombol Kata sandi baru bila lupa.'].filter(Boolean).join(' '),
         onTutup: onSelesai
       });
     }
