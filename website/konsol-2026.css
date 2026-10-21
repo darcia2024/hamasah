@@ -499,6 +499,39 @@ body.in-crm .mus-grid > :nth-child(n + 6) { animation-delay: 300ms; }
   body.in-crm .mus-card:hover { transform: none !important; }
 }
 
+/* ------------------------------------------------------------------ Tipografi konsol
+   (21 Oktober 2026). Diukur di 11 halaman konsol pada lebar 1280 px: teks kerja 14 px,
+   keterangan 12 px, kalender dan label LMS 9-11 px, dan judul halaman berbeda-beda dari
+   28 sampai 50 px. Konsol dibaca lama oleh admin dan petugas, jadi:
+     - Skala kecil naik satu tingkat hanya di konsol (situs publik tidak berubah):
+       teks kerja 15 px, keterangan 14 px, label 13 px.
+     - Tidak ada teks di bawah 12 px; angka di gelembung notifikasi tetap 12 px supaya
+       muat di lingkarannya.
+     - Satu ukuran judul untuk semua halaman; sapaan beranda sedikit lebih besar, angka
+       KPI tidak lagi lebih besar dari judulnya. */
+body.staff-page {
+  --fs-12: 13px;
+  --fs-13: 14px;
+  --fs-14: 15px;
+}
+
+body.staff-page .crm-icon-badge { font-size: 12px; }
+
+body.staff-page .kal__gutter,
+body.staff-page .kal__gutter--label,
+body.staff-page .kal__hour,
+body.staff-page .kal__event-time,
+body.staff-page .kal__event-meta,
+body.staff-page .kal__tag,
+body.staff-page .lms-type { font-size: 12px; }
+
+body.staff-page .crm-page-header .crm-summary-title,
+body.staff-page .asr-head__title,
+body.staff-page .lms-head__title { font-size: clamp(28px, 2.6vw, 34px) !important; line-height: 1.15; }
+
+body.staff-page.in-crm .k26-hero .coursue-hero-title { font-size: clamp(30px, 3.2vw, 40px) !important; }
+body.staff-page.in-crm .admin-kpi__value { font-size: clamp(26px, 2.4vw, 32px) !important; }
+
 /* ------------------------------------------------------------------ Layar kecil */
 @media (max-width: 900px) {
   body.in-crm .crm-canvas { padding: 20px 16px 64px; }

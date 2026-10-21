@@ -7720,3 +7720,255 @@ button.santri-juz__cell:focus-visible {
   background: #e6f2ea;
   color: #1e6b3a;
 }
+
+/* Tabel santri beranda admin (rapikan, 21 Oktober 2026).
+   Tujuh kolom, bukan sembilan, supaya muat tanpa geser di layar lebar. Nama santri tetap terlihat
+   saat tabel digeser. Status dibaca dari titik kecil di depan nilai (kuning perlu dicek, merah
+   mendesak, hijau beres, abu belum ada data), bukan dari pil. Baris yang masuk "Perlu perhatian"
+   diberi garis emas di kiri, sama dengan kartu peringatan. Di ponsel baris menjadi kartu dua kolom. */
+.admin-toolbar {
+  padding: 14px 16px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 0 0 1px rgba(54, 54, 56, 0.07), 0 8px 24px -18px rgba(54, 54, 56, 0.35);
+}
+
+.admin-toolbar .portal-student-search {
+  flex: 2 1 260px;
+}
+
+.admin-filter {
+  flex: 1 1 170px;
+  font-weight: 600;
+}
+
+.admin-filter .monitoring-select {
+  width: 100%;
+}
+
+.admin-check {
+  padding-inline: 4px;
+  cursor: pointer;
+}
+
+.admin-table-info {
+  padding-inline: 4px;
+}
+
+.admin-table-scroll {
+  border: 0;
+  border-radius: 20px;
+  box-shadow: 0 0 0 1px rgba(54, 54, 56, 0.07), 0 8px 24px -18px rgba(54, 54, 56, 0.35);
+}
+
+.admin-table {
+  min-width: 1020px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.admin-table th {
+  padding: 14px 16px;
+  line-height: 1.2;
+}
+
+.admin-table td {
+  padding: 16px;
+  line-height: 1.4;
+  vertical-align: top;
+}
+
+.admin-table tbody tr {
+  cursor: pointer;
+}
+
+.admin-table tbody tr.has-alert td:first-child {
+  box-shadow: inset 3px 0 0 var(--gold-dark);
+}
+
+.admin-table .admin-student-name {
+  display: block;
+  font-size: var(--fs-16);
+  line-height: 1.3;
+}
+
+.admin-cell-dorm {
+  display: block;
+  margin-top: 6px;
+  font-size: var(--fs-13);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.admin-cell-dorm.is-warn {
+  color: var(--gold-dark);
+}
+
+/* Dua ukuran dalam satu sel (hadir dan berjamaah), masing-masing satu baris:
+   titik, label, angka. Label lebar tetap supaya angka kedua baris sejajar. */
+.admin-metric + .admin-metric {
+  margin-top: 8px;
+}
+
+.admin-metric__label {
+  flex: none;
+  min-width: 52px;
+  font-size: var(--fs-13);
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.admin-metric__value {
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-metric .admin-cell-sub {
+  padding-left: 16px;
+}
+
+/* Penanda status: titik kecil di depan nilai utama. Titik ikut sebagai bagian baris yang
+   sama (flex), jadi tidak pernah tertinggal sendirian saat teksnya turun ke baris kedua.
+   Warna teks mengikuti status yang sama. */
+.admin-table td .admin-cell-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.admin-table td.is-muted .admin-cell-main,
+.admin-metric.is-muted .admin-cell-main {
+  font-weight: 400;
+}
+
+.admin-table td.is-warn .admin-cell-main::before,
+.admin-table td.is-danger .admin-cell-main::before,
+.admin-table td.is-ok .admin-cell-main::before,
+.admin-table td.is-muted .admin-cell-main::before,
+.admin-metric.is-warn .admin-cell-main::before,
+.admin-metric.is-danger .admin-cell-main::before,
+.admin-metric.is-ok .admin-cell-main::before,
+.admin-metric.is-muted .admin-cell-main::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 0.45em;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.admin-table td.is-ok,
+.admin-metric.is-ok {
+  color: #1F6F3D;
+}
+
+.admin-table td.is-ok .admin-cell-sub,
+.admin-table td.is-warn .admin-cell-sub,
+.admin-table td.is-danger .admin-cell-sub,
+.admin-metric .admin-cell-sub {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.admin-metric.is-warn {
+  color: var(--gold-dark);
+}
+
+.admin-metric.is-danger {
+  color: var(--md-sys-color-error);
+}
+
+.admin-metric.is-muted {
+  color: var(--md-sys-color-outline);
+}
+
+/* Nama tetap terlihat saat tabel digeser ke samping. */
+@media (min-width: 641px) {
+  .admin-table th:first-child,
+  .admin-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    min-width: 190px;
+    background: #fff;
+  }
+
+  .admin-table th:first-child {
+    z-index: 2;
+    background: var(--md-sys-color-surface-container-low);
+  }
+
+  body.in-crm .admin-table tbody tr:hover td:first-child {
+    background: #FFFCF2;
+  }
+
+  .admin-table th:first-child::after,
+  .admin-table td:first-child::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: -1px;
+    bottom: 0;
+    width: 1px;
+    background: rgba(54, 54, 56, 0.07);
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-toolbar {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  /* Lebar minimum tabel hanya untuk layar lebar; di ponsel baris sudah menjadi kartu. */
+  .admin-table {
+    min-width: 0;
+  }
+
+  .admin-table tr {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 12px;
+    padding: 16px;
+    border-radius: 20px;
+    border: 0;
+    box-shadow: 0 0 0 1px rgba(54, 54, 56, 0.07), 0 8px 24px -18px rgba(54, 54, 56, 0.35);
+  }
+
+  .admin-table tr.has-alert {
+    box-shadow: inset 4px 0 0 var(--gold-dark), 0 0 0 1px rgba(54, 54, 56, 0.07);
+  }
+
+  .admin-table tbody tr.has-alert td:first-child {
+    box-shadow: none;
+  }
+
+  .admin-table td {
+    padding: 0;
+    font-size: var(--fs-14);
+  }
+
+  .admin-table td .admin-cell-sub {
+    font-size: var(--fs-13);
+  }
+
+  .admin-table td::before {
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  /* Presensi memakai dua ukuran, jadi selebar kartu. */
+  .admin-table td:nth-child(2) {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 12px;
+  }
+
+  .admin-table td:nth-child(2)::before {
+    grid-column: 1 / -1;
+  }
+
+  .admin-metric + .admin-metric {
+    margin-top: 0;
+  }
+}

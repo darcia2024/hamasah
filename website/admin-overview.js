@@ -137,10 +137,11 @@
   // ---------------------------------------------------------------------------
   // Tabel santri
 
+  // Teks polos dibungkus .admin-cell-main supaya penanda status (titik kecil) selalu punya tempat.
   function sel(baris, isi, nada) {
     const td = el('td', nada ? `is-${nada}` : '');
     if (Array.isArray(isi)) td.append(...isi);
-    else td.textContent = isi;
+    else td.append(el('span', 'admin-cell-main', isi));
     baris.append(td);
     return td;
   }
@@ -149,33 +150,55 @@
     return [el('span', 'admin-cell-main', utama), el('span', 'admin-cell-sub', kecil)];
   }
 
+  // Satu angka dengan labelnya dalam satu baris, dipakai saat satu sel memuat dua ukuran
+  // (hadir dan sholat). Catatan kecil hanya muncul bila ada yang perlu dicek; keadaan beres
+  // cukup ditandai titik hijau supaya baris tetap pendek.
+  function metrik(label, utama, kecil, nada) {
+    const wadah = el('div', `admin-metric${nada ? ` is-${nada}` : ''}`);
+    const baris = el('span', 'admin-cell-main');
+    baris.append(el('span', 'admin-metric__label', label), el('span', 'admin-metric__value', utama));
+    wadah.append(baris);
+    if (kecil) wadah.append(el('span', 'admin-cell-sub', kecil));
+    return wadah;
+  }
+
   function perluPerhatian(data) {
     return new Set(data.alerts.filter((a) => a.studentId).map((a) => a.studentId));
   }
 
   function judulKolomSantri(data) {
-    return ['Santri', 'Asrama', 'Kehadiran 7 hari', 'Sholat 7 hari', 'Hafalan terakhir', ...(data.healthEnabled ? ['Kesehatan'] : []), 'Tagihan', 'Visa', 'Wali'];
+    return ['Santri', 'Presensi 7 hari', 'Hafalan terakhir', ...(data.healthEnabled ? ['Kesehatan'] : []), 'Tagihan', 'Visa', 'Wali'];
   }
 
-  function barisSantri(data, s, onOpenStudent) {
-    const tr = el('tr');
+  function barisSantri(data, s, onOpenStudent, perluPerhatianBaris) {
+    const tr = el('tr', perluPerhatianBaris ? 'has-alert' : '');
+    // Klik di mana saja pada baris membuka santri; tombol nama tetap jalur untuk keyboard.
+    tr.addEventListener('click', (event) => { if (!event.target.closest('button')) onOpenStudent(s.id); });
     const nama = el('button', 'admin-student-name', s.name);
     nama.type = 'button';
     nama.addEventListener('click', () => onOpenStudent(s.id));
-    sel(tr, [nama, el('span', 'admin-cell-sub', s.program)]);
-    sel(tr, s.dormitory ? s.dormitory.name : 'Belum ditempatkan', s.dormitory ? '' : 'warn');
+    sel(tr, [
+      nama,
+      el('span', 'admin-cell-sub', s.program),
+      el('span', `admin-cell-dorm${s.dormitory ? '' : ' is-warn'}`, s.dormitory ? s.dormitory.name : 'Belum ditempatkan')
+    ]);
 
+    // Kehadiran dan sholat berbagi satu kolom: dua ukuran 7 hari yang biasanya dibaca berdampingan.
     const hadir = s.attendance7;
-    if (!hadir.recorded) sel(tr, 'Belum dicatat', 'muted');
-    else sel(tr, duaBaris(`${hadir.present + hadir.late}/${hadir.recorded} hadir`, hadir.absent ? `${hadir.absent} alpa` : (hadir.late ? `${hadir.late} terlambat` : 'Tanpa alpa')), hadir.absent >= 2 ? 'danger' : (hadir.absent ? 'warn' : ''));
-
     const sholat = s.prayers7;
-    if (!sholat.recorded) sel(tr, 'Belum dicatat', 'muted');
-    else sel(tr, duaBaris(`${sholat.congregational}/${sholat.recorded} berjamaah`, sholat.missed ? `${sholat.missed} terlewat` : 'Tidak ada yang terlewat'), sholat.missed >= 2 ? 'warn' : '');
+    sel(tr, [
+      hadir.recorded
+        ? metrik('Hadir', `${hadir.present + hadir.late}/${hadir.recorded}`, hadir.absent ? `${hadir.absent} alpa` : (hadir.late ? `${hadir.late} terlambat` : ''), hadir.absent >= 2 ? 'danger' : (hadir.absent ? 'warn' : 'ok'))
+        : metrik('Hadir', 'Belum dicatat', '', 'muted'),
+      sholat.recorded
+        ? metrik('Jamaah', `${sholat.congregational}/${sholat.recorded}`, sholat.missed ? `${sholat.missed} sholat terlewat` : '', sholat.missed >= 2 ? 'warn' : 'ok')
+        : metrik('Jamaah', 'Belum dicatat', '', 'muted')
+    ]);
 
     const hafalan = s.memorization.last;
     if (!hafalan) sel(tr, 'Belum ada setoran', 'muted');
-    else sel(tr, duaBaris(hafalan.portion, `${LABEL_HAFALAN[hafalan.grade] || hafalan.grade}, ${tanggal(hafalan.date)}`), hafalan.grade === 'ulang' ? 'warn' : '');
+    // Strip pada rentang ayat (40-52) diganti strip tak terputus supaya angkanya tidak terbelah ke dua baris.
+    else sel(tr, duaBaris(hafalan.portion.replace(/(\d)-(\d)/g, '$1‑$2'), `${LABEL_HAFALAN[hafalan.grade] || hafalan.grade}, ${tanggal(hafalan.date)}`), hafalan.grade === 'ulang' ? 'warn' : '');
 
     if (data.healthEnabled) {
       if (!s.health) sel(tr, 'Tidak ada catatan', 'muted');
@@ -183,7 +206,7 @@
     }
 
     const bayar = s.billing;
-    sel(tr, bayar.unpaidCount ? duaBaris(RUPIAH.format(bayar.unpaidAmount), `${bayar.unpaidCount} belum lunas`) : 'Lunas', bayar.unpaidCount ? 'warn' : '');
+    sel(tr, bayar.unpaidCount ? duaBaris(RUPIAH.format(bayar.unpaidAmount), `${bayar.unpaidCount} tagihan belum lunas`) : 'Lunas', bayar.unpaidCount ? 'warn' : 'ok');
 
     if (!s.visa) {
       sel(tr, 'Belum dicatat', 'muted');
@@ -193,7 +216,7 @@
       sel(tr, duaBaris(LABEL_VISA[s.visa.status] || s.visa.status, s.visa.visaExpiresAt ? `Berlaku s.d. ${tanggal(s.visa.visaExpiresAt)}` : 'Tanggal belum diisi'), nada);
     }
 
-    sel(tr, s.parentAccounts ? 'Terhubung' : 'Belum', s.parentAccounts ? '' : 'muted');
+    sel(tr, s.parentAccounts ? 'Terhubung' : 'Belum terhubung', s.parentAccounts ? 'ok' : 'muted');
     // Di ponsel tabel tampil sebagai kartu; tiap sel membawa judul kolomnya sendiri.
     const judul = judulKolomSantri(data);
     [...tr.children].forEach((td, i) => td.setAttribute('data-label', judul[i] || ''));
@@ -254,7 +277,7 @@
         && (!program.select.value || s.programGroup === program.select.value)
         && (!centang.checked || ditandai.has(s.id)));
       const tampil = semua || disaring ? hasil : hasil.slice(0, BATAS_AWAL);
-      tbody.replaceChildren(...tampil.map((s) => barisSantri(data, s, onOpenStudent)));
+      tbody.replaceChildren(...tampil.map((s) => barisSantri(data, s, onOpenStudent, ditandai.has(s.id))));
       info.textContent = tampil.length === data.students.length
         ? `${tampil.length} santri aktif.`
         : `Menampilkan ${tampil.length} dari ${disaring ? hasil.length : data.students.length} santri.`;
