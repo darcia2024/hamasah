@@ -513,6 +513,20 @@ body.staff-page {
   --fs-12: 13px;
   --fs-13: 14px;
   --fs-14: 15px;
+  /* Teks konsol memakai Source Sans 3 (dimuat hanya di halaman konsol); judul tetap
+     Philosopher. Landing page dan halaman publik tetap Plus Jakarta Sans. */
+  --main-font: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* portal.css mengisi --apple-font-stack dari --main-font di :root, jadi nilainya sudah
+     terkunci ke Plus Jakarta Sans sebelum sampai sini; dihitung ulang di body. */
+  --apple-font-stack: var(--main-font);
+  font-family: var(--main-font);
+}
+
+body.staff-page input,
+body.staff-page select,
+body.staff-page textarea,
+body.staff-page button {
+  font-family: var(--main-font);
 }
 
 body.staff-page .crm-icon-badge { font-size: 12px; }
