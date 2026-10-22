@@ -1,0 +1,77 @@
+{
+  "title": "Nahwu Dasar: Fondasi Membaca Al-Ajurrumiyyah",
+  "description": "Mulai membaca susunan bahasa Arab dengan memahami kalam, jenis kata, dan tanda-tandanya. Untuk santri yang sudah dapat membaca huruf Arab berharakat. Tiga pertemuan video, tiga modul latihan, kuis akhir, dan tugas analisis. Alokasi belajar mandiri: 30–45 menit per pertemuan, di luar durasi video. Setelah selesai, kamu dapat membedakan kalimat lengkap dan frasa, mengelompokkan kata, serta menjelaskan alasan pengelompokannya. Kerjakan materi secara berurutan. Modul dan latihan disusun khusus untuk kelas ini; video rujukan berasal dari kanal pengajar yang dicantumkan pada setiap pertemuan. Kelas pengantar ini tidak mencakup seluruh isi Al-Ajurrumiyyah.",
+  "sourceNote": "Materi pendamping dan soal merupakan susunan orisinal untuk contoh LMS Hamasah, 22 Oktober 2026. Konsep mengikuti bab pembuka Al-Ajurrumiyyah karya Ibn Ajurrum. Video disematkan dari kanal sumber, bukan rekaman produksi Hamasah. Tidak ada afiliasi pengajar yang dinyatakan. Modul bukan transkrip video atau salinan modul berbayar pihak lain.",
+  "lessons": [
+    {
+      "title": "Kalam: kapan susunan kata memberi makna lengkap?",
+      "summary": "Bedakan kata, frasa, dan kalam melalui contoh yang dekat dengan kegiatan santri.",
+      "url": "https://www.youtube.com/watch?v=qKaR8eTDIl4",
+      "credit": "Video rujukan: Bab kalam | Jurumiyah #1, kanal elfansyah. Catatan dan latihan di bawah ini disusun terpisah sebagai pendamping belajar.",
+      "objectives": ["Menjelaskan empat unsur definisi kalam.", "Membedakan frasa yang masih menggantung dan kalimat yang sudah lengkap.", "Menyebutkan alasan suatu contoh termasuk kalam."],
+      "sections": [
+        {"heading": "Mulai dari makna", "text": "Bandingkan 'di dalam kelas' dengan 'santri itu berada di dalam kelas'. Ungkapan pertama belum memberi tahu siapa atau apa yang berada di sana. Ungkapan kedua menyampaikan informasi yang dapat dipahami sebagai satu pernyataan lengkap. Dalam nahwu, kelengkapan makna menjadi salah satu syarat kalam."},
+        {"heading": "Empat unsur kalam", "text": "Kalam adalah lafaz yang tersusun, memberi faedah lengkap, dan menggunakan ketentuan bahasa Arab. Lafaz berarti bunyi ujaran yang tersusun dari huruf. Murakkab berarti memiliki susunan kata, baik yang tampak maupun yang dipahami dari konteks gramatikal. Mufid berarti pendengar memperoleh makna yang utuh. Bil-wadh' pada pengantar ini dipahami sebagai menggunakan bahasa Arab menurut pemakaiannya. Tulisan pada modul adalah representasi ujaran untuk latihan."},
+        {"heading": "Contoh yang utuh", "arabic": "الطَّالِبُ حَاضِرٌ", "text": "Ath-thalibu hadirun: santri itu hadir. Ada sesuatu yang dibicarakan dan informasi tentangnya. Karena itu, susunannya memberi makna lengkap. Bandingkan dengan fi al-fashli (di dalam kelas) jika berdiri sendiri tanpa konteks: ungkapan tersebut masih menunggu pelengkap."},
+        {"heading": "Jangan menghitung kata saja", "arabic": "اُكْتُبْ", "text": "Uktub berarti 'tulislah!'. Walaupun hanya satu kata yang tampak, pelakunya dipahami sebagai anta (kamu). Karena susunannya dapat bersifat tersirat, jumlah kata tertulis bukan satu-satunya penentu. Di kelas ini, fokuskan analisis pada susunan dan kelengkapan makna."}
+      ],
+      "practice": ["Bandingkan 'kitabun' (sebuah buku) dan 'al-kitabu jadidun' (buku itu baru). Mana yang sudah memberi informasi lengkap tanpa konteks tambahan?", "Jelaskan mengapa 'fi al-maktabati' (di perpustakaan), jika berdiri sendiri, belum menjadi pernyataan lengkap.", "Buat satu kalimat Arab sederhana berharakat tentang kegiatan di asrama. Tulis artinya."],
+      "answers": ["Al-kitabu jadidun sudah menyampaikan informasi lengkap; kitabun saja belum menyatakan informasi lengkap dalam contoh tanpa konteks ini.", "Frasa tempat tersebut belum menyebutkan sesuatu yang diterangkan; misalnya dapat dilengkapi menjadi 'al-kitabu fi al-maktabati'.", "Contoh: الطَّالِبُ حَاضِرٌ, santri itu hadir. Jawaban lain dapat diterima jika susunan dan maknanya tepat."],
+      "keyPoints": ["Kalam memiliki lafaz, susunan, makna lengkap, dan mengikuti bahasa Arab.", "Frasa belum tentu memberi makna lengkap.", "Unsur susunan dapat tersirat, seperti pelaku pada kata perintah."],
+      "studyGuide": [{"question": "Apa itu kalam dan apa syaratnya?", "answer": "Kalam adalah lafaz yang tersusun, memberi makna lengkap, dan mengikuti bahasa Arab. Contohnya ath-thalibu hadirun, santri itu hadir. Jangan hanya menghitung kata: pada uktub, pelaku anta dipahami meskipun tidak tertulis."}, {"question": "Mengapa fi al-fashli belum termasuk kalam?", "answer": "Dalam contoh tanpa konteks tambahan, fi al-fashli hanya memberi keterangan tempat. Pendengar belum tahu siapa atau apa yang berada di kelas. Lengkapi misalnya menjadi ath-thalibu fi al-fashli."}]
+    },
+    {
+      "title": "Isim, fi‘il, dan huruf: mengenali peran setiap kata",
+      "summary": "Kelompokkan kata berdasarkan makna dan fungsinya, lalu terapkan pada kalimat sederhana.",
+      "url": "https://www.youtube.com/watch?v=uMObs3_4SaU",
+      "credit": "Video rujukan: Pembagian Kalam | Jurumiyah #2, kanal elfansyah. Catatan dan latihan merupakan materi pendamping orisinal kelas ini.",
+      "objectives": ["Membedakan isim, fi'il, dan huruf makna.", "Mengenali hubungan makna fi'il dan waktu.", "Mengelompokkan kata dalam satu kalimat beserta alasannya."],
+      "sections": [
+        {"heading": "Tiga kelompok kata", "text": "Kata dalam bahasa Arab dikelompokkan menjadi isim, fi'il, dan huruf. Isim menunjukkan makna pada dirinya tanpa terikat waktu dalam pengertian definisi kata kerja. Fi'il menunjukkan makna pada dirinya sekaligus berkaitan dengan waktu. Huruf makna baru menunjukkan hubungan maknanya ketika bersama kata lain."},
+        {"heading": "Isim lebih luas daripada nama benda", "arabic": "طَالِبٌ — مَسْجِدٌ — جَمِيلٌ", "text": "Thalibun (santri), masjidun (masjid), dan jamilun (indah) adalah isim. Jadi, jangan membatasi isim hanya pada benda yang dapat disentuh. Sifat dan banyak kata ganti juga termasuk isim. Penentuan jenis kata dapat dibantu dengan tanda yang akan dibahas pada pertemuan berikutnya."},
+        {"heading": "Fi'il dan waktu", "arabic": "كَتَبَ — يَكْتُبُ — اُكْتُبْ", "text": "Kataba menyatakan telah menulis; yaktubu menyatakan sedang atau akan menulis, bergantung konteks; uktub merupakan perintah menulis. Ini memperkenalkan bentuk madhi, mudhari', dan amr. Kata yang menunjukkan waktu seperti yaumun (hari) tetap dapat berupa isim: menyebut waktu tidak otomatis membuat suatu kata menjadi fi'il."},
+        {"heading": "Huruf yang menghubungkan makna", "arabic": "ذَهَبَ الطَّالِبُ إِلَى الْمَسْجِدِ", "text": "Dzahaba ath-thalibu ila al-masjidi: santri itu pergi ke masjid. Dzahaba adalah fi'il; ath-thalibu dan al-masjidi adalah isim; ila adalah huruf yang memberi hubungan arah tujuan. Huruf di sini berarti partikel bermakna, bukan huruf abjad seperti alif dan ba."}
+      ],
+      "practice": ["Kelompokkan thalibun, kataba, ila, masjidun, dan yaktubu ke dalam tiga jenis kata.", "Mengapa jamilun dapat menjadi isim walaupun artinya sifat?", "Uraikan jenis kata pada 'jalasa ath-thalibu fi al-fashli' (santri itu duduk di kelas)."],
+      "answers": ["Isim: thalibun, masjidun. Fi'il: kataba, yaktubu. Huruf: ila.", "Isim tidak terbatas pada benda konkret. Jamilun menunjukkan sifat dan tidak membawa waktu kata kerja.", "Jalasa: fi'il; ath-thalibu: isim; fi: huruf; al-fashli: isim."],
+      "keyPoints": ["Isim tidak terikat waktu seperti kata kerja dan tidak terbatas pada benda konkret.", "Fi'il mencakup madhi, mudhari', dan amr.", "Huruf makna berfungsi dalam hubungannya dengan kata lain."],
+      "studyGuide": [{"question": "Apa perbedaan isim fiil dan huruf?", "answer": "Isim memiliki makna tanpa waktu kata kerja, misalnya thalibun. Fi'il memiliki makna sekaligus waktu, misalnya kataba dan yaktubu. Huruf menghubungkan makna ketika bersama kata lain, misalnya ila pada ila al-masjidi."}, {"question": "Apakah semua kata yang menunjukkan waktu adalah fiil?", "answer": "Tidak. Yaumun (hari) adalah isim. Waktu dalam definisi fi'il melekat pada bentuk tindakan atau kejadiannya, seperti kataba untuk perbuatan menulis yang telah terjadi."}]
+    },
+    {
+      "title": "Tanda kata: membuktikan isim dan fi‘il dalam bacaan",
+      "summary": "Gunakan tanwin, al-, huruf jar, dan penanda fi‘il untuk memberi alasan yang dapat diperiksa.",
+      "url": "https://www.youtube.com/watch?v=ao61X6Ql3Ok",
+      "credit": "Video rujukan: Tanda Tanda Isim, Fi'il, dan Huruf, Ustadz Muhammad Abduh Tuasikal, Yufid EDU. Sumber: https://yufidedu.com/tanda-tanda-isim-fiil-dan-huruf-ngaji-kitab-jurumiyah-eps-2-ustadz-muhammad-abduh-tuasikal/ . Video bukan produksi Hamasah.",
+      "objectives": ["Menunjukkan bukti suatu kata termasuk isim.", "Mengenali qad, sa-, sawfa, dan ta' ta'nits sakinah sebagai tanda fi'il.", "Menganalisis contoh tanpa menyimpulkan bahwa semua tanda harus hadir bersama."],
+      "sections": [
+        {"heading": "Dari tebakan menjadi bukti", "text": "Pada pertemuan sebelumnya kamu mengelompokkan kata dari maknanya. Sekarang tambahkan bukti gramatikal. Pada tahap dasar, perhatikan kemampuan kata menerima jar, tanwin, al-, atau didahului huruf jar. Tanda-tanda ini merupakan petunjuk keisiman; tidak semuanya harus terlihat dalam satu kata."},
+        {"heading": "Tanda isim pada contoh", "arabic": "كِتَابٌ — الْكِتَابُ — فِي الْمَسْجِدِ", "text": "Kitabun memiliki tanwin. Al-kitabu memiliki al-. Pada fi al-masjidi, fi adalah huruf jar dan al-masjidi merupakan isim yang dijarkan; contoh ini memakai kasrah. Tidak setiap kasrah pada sembarang kata otomatis berarti jar. Ada pula isim yang tidak menampakkan tanda-tanda ini secara langsung, sehingga analisis tidak boleh hanya bergantung pada satu ciri permukaan."},
+        {"heading": "Tanda fi'il dan penggunaannya", "arabic": "قَدْ كَتَبَ — سَيَكْتُبُ — سَوْفَ يَكْتُبُ — كَتَبَتْ", "text": "Qad dapat mendahului fi'il madhi atau mudhari'. Sa- dan sawfa mendahului mudhari' untuk menunjukkan masa mendatang. Ta' ta'nits sakinah muncul pada fi'il madhi, seperti katabat (dia perempuan telah menulis). Ini tanda pengenal, bukan syarat bahwa setiap fi'il harus membawa salah satunya. Fi'il amr seperti uktub tetap fi'il meskipun tidak menampakkan empat tanda tersebut."},
+        {"heading": "Analisis yang hati-hati", "arabic": "قَدْ جَلَسَ الطَّالِبُ فِي الْمَسْجِدِ", "text": "Qad adalah huruf; jalasa fi'il madhi dan dapat didahului qad. Ath-thalibu isim dengan al-. Fi huruf jar. Al-masjidi isim yang didahului fi dan pada contoh ini berakhir kasrah. Sebutkan jenis kata, bukti, lalu maknanya. Untuk huruf, periksa fungsi serta tidak diterimanya tanda isim dan fi'il dalam penggunaan tersebut."}
+      ],
+      "practice": ["Tunjukkan bukti keisiman pada kitabun dan al-kitabu.", "Bandingkan katabat dengan yaktubu. Mana yang membawa ta' ta'nits sakinah?", "Analisis 'sawfa yaktubu ath-thalibu fi al-fashli': tulis jenis tiap kata dan satu bukti yang relevan."],
+      "answers": ["Kitabun ditandai tanwin; al-kitabu ditandai al-.", "Katabat membawa ta' ta'nits sakinah. Yaktubu merupakan mudhari'; tidak ada ta' ta'nits sakinah pada contoh itu.", "Sawfa: huruf penanda masa depan; yaktubu: fi'il mudhari' yang didahului sawfa; ath-thalibu: isim dengan al-; fi: huruf jar; al-fashli: isim yang didahului huruf jar."],
+      "keyPoints": ["Tanwin, al-, dan jar membantu mengenali isim.", "Qad, sa-, sawfa, dan ta' ta'nits sakinah membantu mengenali fi'il.", "Tidak semua tanda berlaku pada setiap jenis fi'il atau harus muncul bersamaan."],
+      "studyGuide": [{"question": "Apa tanda isim?", "answer": "Tanda isim pada pengantar Al-Ajurrumiyyah meliputi jar, tanwin, al-, dan didahului huruf jar. Contoh kitabun bertanwin dan al-masjidi pada fi al-masjidi. Satu tanda yang sesuai dapat cukup menjadi bukti; semuanya tidak harus hadir bersama."}, {"question": "Apa tanda fiil apakah semua harus ada?", "answer": "Di antaranya menerima qad, sa-, sawfa, atau ta' ta'nits sakinah sesuai bentuknya. Sa- dan sawfa untuk mudhari', ta' ta'nits sakinah untuk madhi. Fi'il amr seperti uktub tetap fi'il walau tidak membawa tanda tersebut."}]
+    }
+  ],
+  "quiz": {
+    "title": "Evaluasi: kalam dan jenis kata",
+    "summary": "Delapan soal untuk memeriksa pemahaman kalam, pembagian kata, dan tanda-tandanya. Nilai lulus minimal 70; maksimal tiga percobaan.",
+    "questions": [
+      {"prompt": "Mana yang memberi informasi lengkap dalam contoh tanpa konteks tambahan?", "options": ["Al-kitabu jadidun (buku itu baru)", "Fi al-fashli (di dalam kelas)", "Kitabun (sebuah buku)"], "answer": "Al-kitabu jadidun (buku itu baru)"},
+      {"prompt": "Kata ila pada ila al-masjidi termasuk ...", "options": ["Isim", "Fi'il", "Huruf makna"], "answer": "Huruf makna"},
+      {"prompt": "Mengapa jamilun (indah) dapat termasuk isim?", "options": ["Isim juga mencakup sifat dan tidak terbatas pada benda konkret", "Setiap sifat selalu fi'il madhi", "Karena semua kata Arab adalah isim"], "answer": "Isim juga mencakup sifat dan tidak terbatas pada benda konkret"},
+      {"prompt": "Apa bukti keisiman yang tampak pada kitabun?", "options": ["Tanwin", "Sawfa", "Ta' ta'nits sakinah"], "answer": "Tanwin"},
+      {"prompt": "Sawfa pada sawfa yaktubu mendahului bentuk ...", "options": ["Fi'il madhi", "Fi'il mudhari'", "Isim dengan tanwin"], "answer": "Fi'il mudhari'"},
+      {"prompt": "Apa fungsi fi pada fi al-masjidi?", "options": ["Huruf jar", "Fi'il amr", "Isim sifat"], "answer": "Huruf jar"},
+      {"prompt": "Mengapa uktub dapat memberi makna lengkap walaupun hanya satu kata tertulis?", "options": ["Pelaku anta dipahami dalam susunannya", "Setiap satu kata pasti kalam", "Karena uktub adalah huruf jar"], "answer": "Pelaku anta dipahami dalam susunannya"},
+      {"prompt": "Pernyataan mana yang tepat tentang tanda fi'il?", "options": ["Semua fi'il harus membawa qad dan sawfa bersama", "Tanda digunakan sesuai bentuk fi'il; tidak harus semuanya hadir", "Fi'il amr tidak termasuk fi'il"], "answer": "Tanda digunakan sesuai bentuk fi'il; tidak harus semuanya hadir"}
+    ]
+  },
+  "assignment": {
+    "title": "Tugas akhir: membaca kalimat kehidupan santri",
+    "summary": "Terapkan kaidah pada dua kalimat. Tulis jenis kata, bukti, arti, dan alasan kelengkapan makna. Pengajar menilai jawabanmu.",
+    "content": "Analisis dua kalimat berikut:\n1. قَدْ جَلَسَ الطَّالِبُ فِي الْمَسْجِدِ\n2. سَوْفَ يَكْتُبُ الطَّالِبُ الدَّرْسَ\nUntuk setiap kalimat, tulis: (a) arti keseluruhan, (b) daftar setiap kata beserta jenisnya, (c) bukti tanda isim atau fi'il yang relevan, dan (d) alasan mengapa susunannya sudah memberi makna lengkap. Akhiri dengan satu kalimat Arab buatanmu tentang belajar atau kehidupan asrama, beserta arti dan jenis katanya. Tidak perlu membahas i'rab seluruh kata karena belum menjadi cakupan kelas ini.\nRubrik: ketepatan jenis kata 40 poin; alasan/tanda yang relevan 30 poin; arti dan kelengkapan makna 20 poin; contoh mandiri yang tepat 10 poin. Nilai lulus minimal 70. Jawaban yang dikirim akan diperiksa pengajar; AI dapat membantu menjelaskan konsep, tetapi tulislah analisis dengan pemahamanmu sendiri."
+  }
+}

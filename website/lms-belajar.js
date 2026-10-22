@@ -59,7 +59,25 @@
     // Mode pratinjau (admin dan guru dari studio): { onKembali }. Semua aksi yang mencatat
     // progres, nilai, kiriman, atau memanggil asisten AI dimatikan; tidak ada santri aktif.
     let pratinjau = null;
+    let katalogStaf = false;
+    let pencarian = '';
+    const pdfUrls = new Set();
     const percakapan = new Map();
+
+    function lepasPdf() {
+      pdfUrls.forEach((url) => URL.revokeObjectURL(url));
+      pdfUrls.clear();
+    }
+
+    // Daftar studio menyimpan isi mentah; metadata ini hanya untuk thumbnail katalog.
+    function mediaKatalog(m) {
+      if (m.media) return m;
+      let isi = {};
+      try { isi = JSON.parse(m.content || '{}'); } catch { /* materi lama berupa teks */ }
+      const tautan = String(isi.url || m.content || '');
+      const yt = tautan.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^#\s]*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/i);
+      return { ...m, media: { youtubeId: yt ? yt[1] : null, fileId: isi.fileId || null } };
+    }
 
     async function api(method, url, body) {
       const response = await fetch(url, {
@@ -74,67 +92,148 @@
 
     async function muatDaftar() {
       const r = await api('GET', `/api/students/${encodeURIComponent(studentId)}/courses`);
-      maddah = r.items || [];
+      maddah = (r.items || []).map((c) => ({ ...c, progress: progresMaddah(c) }));
     }
 
     function berikutnya(course) {
-      const m = course.materials || [];
+      const m = pertemuan(course);
       return m.find((x) => !x.completed) || null;
     }
 
     // ------------------------------------------------------------ Beranda
+    // Bacaan lama mengikuti video terdekat dalam urutan kurikulum, tanpa mengubah data.
+    function pertemuan(course) {
+      const bahan = (course.materials || []).filter((m) => !m.archivedAt);
+      const daftar = bahan.filter((m) => m.type !== 'text').map((m) => ({ ...m, bacaan: [] }));
+      let video = daftar.find((m) => m.type === 'video');
+      bahan.forEach((m) => {
+        if (m.type === 'video') video = daftar.find((x) => x.id === m.id);
+        else if (m.type === 'text' && video) video.bacaan.push(m);
+      });
+      return daftar.map((m) => ({ ...m, completed: Boolean(m.completed) && m.bacaan.every((b) => b.completed) }));
+    }
+
+    function progresMaddah(course) {
+      const daftar = pertemuan(course);
+      return daftar.length ? Math.round(daftar.filter((m) => m.completed).length / daftar.length * 100) : 0;
+    }
+
+    function tampilGalat(error) {
+      lukisBeranda();
+      const pesan = el('p', 'mus-status is-galat', error.message || 'Maddah belum dapat dibuka. Silakan coba kembali.');
+      pesan.setAttribute('role', 'alert');
+      wadah.prepend(pesan);
+    }
+
+    function posterMaddah(course, indeks) {
+      const pertama = pertemuan(course).find((m) => m.type === 'video' && mediaKatalog(m).media.youtubeId);
+      const poster = el('span', `lms-maddah-poster is-tone-${indeks % 3}`);
+      if (pertama) {
+        const img = el('img');
+        img.src = `https://i.ytimg.com/vi/${mediaKatalog(pertama).media.youtubeId}/hqdefault.jpg`;
+        img.alt = ''; img.loading = 'lazy'; img.decoding = 'async';
+        img.addEventListener('error', () => img.remove());
+        poster.append(img);
+      }
+      poster.append(el('span', 'lms-maddah-poster__label', 'HAMASAH · RUANG BELAJAR'), el('span', 'lms-maddah-poster__number', String(indeks + 1).padStart(2, '0')), el('span', 'lms-maddah-poster__title', course.title));
+      return poster;
+    }
+
     function lukisBeranda() {
-      const isi = [];
+      lepasPdf();
       const kepala = el('header', 'lms-head');
       const teks = el('div');
-      teks.append(el('p', 'wali-eyebrow', 'Ruang belajar'), el('h2', 'lms-head__title', 'Belajar hari ini'), el('p', 'mus-note', maddah.length ? `${maddah.length} maddah sedang kamu ikuti.` : 'Belum ada maddah. Maddah muncul di sini setelah guru mendaftarkanmu.'));
+      teks.append(el('p', 'wali-eyebrow', 'Ruang belajar'), el('h2', 'lms-head__title', 'Jelajahi maddah'), el('p', 'mus-note', 'Pilih maddah untuk melihat pembahasan dan pertemuan yang tersedia.'));
       kepala.append(teks);
-      isi.push(kepala);
-
-      const lanjut = maddah.map((c) => ({ c, m: berikutnya(c) })).find((x) => x.m);
-      if (lanjut) {
-        const kartu = tombol('', 'lms-continue', `Lanjutkan ${lanjut.m.title}`);
-        const kiri = el('span', 'lms-continue__text');
-        kiri.append(el('span', 'lms-continue__label', 'Lanjutkan belajar'), el('strong', 'lms-continue__title', lanjut.m.title), el('span', 'lms-continue__meta', `${lanjut.c.title} · ${LABEL_JENIS[lanjut.m.type] || lanjut.m.type}`));
-        kartu.append(kiri, el('span', 'lms-continue__go', 'Mulai →'));
-        kartu.addEventListener('click', () => buka(lanjut.c.id, lanjut.m.id));
-        isi.push(kartu);
+      const cari = el('input', 'mus-input lms-catalog__search');
+      cari.type = 'search'; cari.placeholder = 'Cari maddah atau pembahasan';
+      cari.setAttribute('aria-label', 'Cari maddah atau pembahasan'); cari.value = pencarian;
+      const hasil = el('p', 'mus-note'); hasil.setAttribute('role', 'status');
+      const katalog = el('div', 'lms-maddah-grid');
+      function gambarDaftar() {
+        katalog.replaceChildren();
+        const kata = pencarian.trim().toLocaleLowerCase('id-ID');
+        const cocok = maddah.filter((c) => `${c.title} ${c.description || ''} ${(c.materials || []).map((m) => m.title).join(' ')}`.toLocaleLowerCase('id-ID').includes(kata));
+        cocok.forEach((c) => {
+          const daftar = pertemuan(c);
+          const kartu = tombol('', 'lms-maddah-card', `Lihat maddah ${c.title}`);
+          const isi = el('span', 'lms-maddah-card__body');
+          isi.append(el('span', 'lms-maddah-card__meta', `${daftar.length} pertemuan${!katalogStaf && c.progress ? ` · ${c.progress}% selesai` : ''}`), el('strong', 'lms-maddah-card__title', c.title));
+          if (c.description) isi.append(el('span', 'lms-maddah-card__desc', c.description));
+          isi.append(el('span', 'lms-maddah-card__action', 'Lihat maddah →'));
+          kartu.append(posterMaddah(c, maddah.indexOf(c)), isi);
+          kartu.addEventListener('click', () => buka(c.id).catch(tampilGalat));
+          katalog.append(kartu);
+        });
+        hasil.textContent = `${cocok.length} maddah${kata ? ' ditemukan' : ' tersedia'}.`;
+        if (!cocok.length) katalog.append(el('p', 'lms-empty-line', kata ? 'Tidak ada maddah yang sesuai. Gunakan kata kunci lain.' : 'Belum ada maddah yang tersedia untuk akun ini. Hubungi pengajar untuk informasi kelas.'));
       }
+      cari.addEventListener('input', () => { pencarian = cari.value; gambarDaftar(); });
+      gambarDaftar();
+      wadah.replaceChildren(kepala, cari, hasil, katalog);
+    }
 
-      const grid = el('div', 'lms-grid');
-      maddah.forEach((c) => {
-        const m = c.materials || [];
-        const selesai = m.filter((x) => x.completed).length;
-        const kartu = tombol('', 'lms-card lms-card--learn', `Buka ${c.title}`);
-        const atas = el('span', 'lms-card__top');
-        atas.append(cincin(c.progress || 0, 56));
-        const status = el('span', `lms-card__status ${c.completionStatus === 'completed' ? 'is-done' : ''}`.trim(), c.completionStatus === 'completed' ? 'Selesai' : `${selesai} dari ${m.length} materi`);
-        atas.append(status);
-        const bawah = el('span', 'lms-card__foot');
-        const n = berikutnya(c);
-        bawah.append(el('span', 'mus-note', n ? `Berikutnya: ${n.title}` : 'Semua materi selesai'), el('span', 'lms-card__go', 'Buka →'));
-        kartu.append(atas, el('span', 'lms-card__title', c.title), el('span', 'lms-card__desc', c.description || ''), bawah);
-        kartu.addEventListener('click', () => buka(c.id));
-        grid.append(kartu);
+    function lukisDetail() {
+      lepasPdf(); materiId = null;
+      const kembali = tombol('← Semua maddah', 'mus-back');
+      kembali.addEventListener('click', keBeranda);
+      const kepala = el('section', 'lms-course-detail');
+      const sampul = posterMaddah(aktif, Math.max(0, maddah.findIndex((c) => c.id === aktif.id)));
+      const intro = el('div', 'lms-course-detail__intro');
+      intro.append(el('p', 'wali-eyebrow', 'Tentang maddah'), el('h2', 'lms-head__title', aktif.title), el('p', 'lms-course-detail__desc', aktif.description || 'Ikuti setiap pertemuan sesuai urutan pembahasan.'));
+      const daftar = pertemuan(aktif);
+      const video = daftar.filter((m) => m.type === 'video');
+      const modul = video.filter((m) => m.media && m.media.fileId).length;
+      intro.append(el('p', 'lms-course-meta', [ `${daftar.length} pertemuan`, modul ? `${modul} modul PDF` : '', aktif.teacherName ? `Pengampu: ${aktif.teacherName}` : '' ].filter(Boolean).join(' · ')));
+      const mulai = daftar.find((m) => !m.completed) || daftar[0];
+      if (mulai) {
+        const aksi = tombol(!katalogStaf && daftar.some((m) => m.completed) ? 'Lanjutkan belajar' : 'Mulai belajar', 'button button--primary');
+        aksi.addEventListener('click', () => pilihMateri(mulai.id));
+        intro.append(aksi);
+      }
+      kepala.append(sampul, intro);
+      const kurikulum = el('section', 'lms-course-lessons');
+      kurikulum.append(el('h3', '', 'Daftar pertemuan'), el('p', 'mus-note', 'Pilih pertemuan untuk membuka video, bacaan pendamping, dan modulnya.'));
+      const list = el('ol', 'lms-course-lessons__list');
+      daftar.forEach((m, i) => {
+        const li = el('li');
+        const b = tombol('', 'lms-course-lesson', `Buka pertemuan ${i + 1}: ${m.title}`);
+        const info = el('span', 'lms-course-lesson__info');
+        info.append(el('span', 'lms-course-lesson__meta', `Pertemuan ${i + 1} · ${LABEL_JENIS[m.type] || m.type}${m.completed ? ' · Selesai' : ''}`), el('strong', '', m.title));
+        if (m.summary) info.append(el('span', 'mus-note', m.summary));
+        if ((m.media && m.media.fileId) || m.bacaan.length || m.content) info.append(el('span', 'lms-course-lesson__resources', [m.media && m.media.fileId ? 'Modul PDF' : '', m.bacaan.length || (m.type === 'video' && m.content) ? 'Bacaan pendamping' : ''].filter(Boolean).join(' · ')));
+        b.append(el('span', 'lms-course-lesson__number', String(i + 1).padStart(2, '0')), info, el('span', 'lms-course-lesson__go', 'Buka →'));
+        b.addEventListener('click', () => pilihMateri(m.id)); li.append(b); list.append(li);
       });
-      isi.push(grid);
-      wadah.replaceChildren(...isi);
+      kurikulum.append(list);
+      if (!daftar.length) kurikulum.append(el('p', 'lms-empty-line', 'Pertemuan untuk maddah ini sedang disiapkan.'));
+      const bacaanLepas = !video.length ? (aktif.materials || []).filter((m) => m.type === 'text' && !m.archivedAt) : [];
+      if (bacaanLepas.length) {
+        const bacaan = el('section', 'lms-reading'); bacaan.append(el('h3', '', 'Bacaan pendamping'));
+        bacaanLepas.forEach((m) => bacaan.append(el('h4', '', m.title), paragraf(m.content)));
+        kurikulum.append(bacaan);
+      }
+      wadah.replaceChildren(kembali, kepala, kurikulum);
     }
 
     async function buka(courseId, matId = null) {
+      lepasPdf();
       wadah.replaceChildren(el('p', 'mus-loading', 'Membuka maddah...'));
-      const r = await api('GET', `/api/students/${encodeURIComponent(studentId)}/courses/${encodeURIComponent(courseId)}`);
+      const r = await api('GET', katalogStaf ? `/api/courses/${encodeURIComponent(courseId)}/pratinjau` : `/api/students/${encodeURIComponent(studentId)}/courses/${encodeURIComponent(courseId)}`);
+      if (katalogStaf) pratinjau = { onKembali: () => { aktif = null; lukisBeranda(); window.scrollTo({ top: 0, behavior: 'instant' }); } };
       aktif = r.course || r;
-      const m = aktif.materials || [];
+      aktif.progress = progresMaddah(aktif);
+      const m = pertemuan(aktif);
       materiId = matId && m.some((x) => x.id === matId) ? matId : ((berikutnya(aktif) || m[0] || {}).id || null);
-      lukisMaddah();
+      if (matId && m.some((x) => x.id === matId)) lukisMaddah();
+      else lukisDetail();
       window.scrollTo({ top: 0 });
     }
 
     function gantiCourse(course) {
-      aktif = course;
+      aktif = { ...course, progress: progresMaddah(course) };
       const idx = maddah.findIndex((c) => c.id === course.id);
-      if (idx >= 0) maddah[idx] = { ...maddah[idx], progress: course.progress, completionStatus: course.completionStatus, materials: course.materials };
+      if (idx >= 0) maddah[idx] = { ...maddah[idx], progress: aktif.progress, completionStatus: course.completionStatus, materials: course.materials };
     }
 
     // ------------------------------------------------------------ Isi materi
@@ -153,15 +252,20 @@
         bingkai.append(f);
         wadahIsi.append(bingkai);
       } else if (media.url) {
+        wadahIsi.append(el('p', 'lms-video-unavailable', 'Video ini dibuka melalui situs pengajar.'));
         const a = el('a', 'button button--primary', 'Tonton video ↗');
         a.href = media.url;
         a.target = '_blank';
         a.rel = 'noopener';
         wadahIsi.append(a);
-      }
-      if (m.content) wadahIsi.append(paragraf(m.content));
-      // Modul PDF pertemuan, tepat di bawah catatan video (sebelum asisten belajar).
-      if (media.fileId) wadahIsi.append(kartuPdf(media, { judul: 'Modul pertemuan', keterangan: 'Baca langsung atau unduh untuk dipelajari tanpa internet.' }));
+      } else wadahIsi.append(el('p', 'lms-video-unavailable', 'Video pertemuan ini belum tersedia. Pengajar belum menambahkan tautannya.'));
+      if (media.fileId) wadahIsi.append(kartuPdf(media, { judul: 'Modul PDF', keterangan: 'Baca modul di halaman ini atau unduh untuk dipelajari secara mandiri.' }));
+      const bacaan = el('section', 'lms-reading');
+      const judulBacaan = el('h4', '', 'Bacaan pendamping');
+      bacaan.append(judulBacaan);
+      if (m.content) bacaan.append(paragraf(m.content));
+      (m.bacaan || []).forEach((b) => bacaan.append(el('h5', '', b.title), paragraf(b.content)));
+      if (m.content || (m.bacaan || []).length) wadahIsi.append(bacaan);
       return wadahIsi;
     }
 
@@ -175,31 +279,64 @@
 
     // Kartu berkas PDF dengan tombol baca dan unduh; dipakai materi PDF dan modul video.
     // Berkas diambil lewat /api/files/:id (akses diperiksa server, course-file).
-    function kartuPdf(media, { judul = null, keterangan = 'Buka di tab baru untuk membaca, atau unduh untuk disimpan.' } = {}) {
+    function kartuPdf(media, { judul = null, keterangan = 'Baca modul di sini, atau unduh untuk disimpan.' } = {}) {
       const kartu = el('div', 'lms-pdf');
       kartu.append(el('span', 'lms-pdf__icon', 'PDF'));
       const info = el('div', 'lms-pdf__info');
       if (judul) info.append(el('span', 'lms-pdf__eyebrow', judul));
       info.append(el('strong', '', media.fileName || 'Materi PDF'), el('span', 'mus-note', keterangan));
       const st = el('p', 'mus-status');
+      st.setAttribute('role', 'status');
+      const pembaca = el('section', 'lms-pdf-reader');
+      pembaca.hidden = true;
+      let blobUrl = null;
       const ambilBlob = async () => {
+        if (blobUrl) return blobUrl;
         const response = await fetch(`/api/files/${encodeURIComponent(media.fileId)}`, { headers: headers() });
         if (!response.ok) throw new Error('PDF belum dapat dibuka.');
-        return URL.createObjectURL(await response.blob());
+        const blob = await response.blob();
+        if (blob.type.split(';')[0] !== 'application/pdf') throw new Error('Berkas modul bukan PDF. Hubungi pengajar.');
+        blobUrl = URL.createObjectURL(blob);
+        pdfUrls.add(blobUrl);
+        return blobUrl;
       };
-      const baca = tombol('Baca PDF', 'button button--primary');
+      const baca = tombol('Buka modul PDF', 'button button--primary');
+      baca.setAttribute('aria-expanded', 'false');
+      pembaca.id = idBaru('modul-pdf');
+      baca.setAttribute('aria-controls', pembaca.id);
       baca.addEventListener('click', async () => {
-        const jendela = window.open('', '_blank');
-        try { const url = await ambilBlob(); if (jendela) jendela.location.href = url; else window.location.href = url; } catch (error) { if (jendela) jendela.close(); st.textContent = error.message; st.className = 'mus-status is-galat'; }
+        if (!pembaca.hidden) {
+          pembaca.hidden = true;
+          baca.textContent = 'Buka modul PDF';
+          baca.setAttribute('aria-expanded', 'false');
+          return;
+        }
+        baca.disabled = true;
+        st.textContent = 'Membuka modul…';
+        try {
+          const url = await ambilBlob();
+          if (!kartu.isConnected) { URL.revokeObjectURL(url); pdfUrls.delete(url); return; }
+          const frame = el('iframe', 'lms-pdf-reader__frame');
+          frame.src = url;
+          frame.title = `Modul PDF: ${media.fileName || 'Materi pertemuan'}`;
+          const luar = el('a', 'mus-link', 'Buka PDF di tab baru ↗');
+          luar.href = url; luar.target = '_blank'; luar.rel = 'noopener';
+          pembaca.replaceChildren(el('p', 'mus-note', 'Jika PDF tidak tampil di perangkatmu, buka di tab baru atau gunakan tombol Unduh.'), luar, frame);
+          pembaca.hidden = false;
+          baca.textContent = 'Tutup modul PDF';
+          baca.setAttribute('aria-expanded', 'true');
+          st.textContent = '';
+        } catch (error) { st.textContent = error.message; st.className = 'mus-status is-galat'; }
+        finally { baca.disabled = false; }
       });
-      const unduh = tombol('Unduh');
+      const unduh = tombol('Unduh PDF');
       unduh.addEventListener('click', async () => {
-        try { const url = await ambilBlob(); const a = el('a'); a.href = url; a.download = media.fileName || 'materi.pdf'; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); } catch (error) { st.textContent = error.message; st.className = 'mus-status is-galat'; }
+        try { const url = await ambilBlob(); const a = el('a'); a.href = url; a.download = media.fileName || 'materi.pdf'; document.body.append(a); a.click(); a.remove(); } catch (error) { st.textContent = error.message; st.className = 'mus-status is-galat'; }
       });
       const aksi = el('div', 'mus-actions');
       aksi.append(baca, unduh);
       info.append(aksi, st);
-      kartu.append(info);
+      kartu.append(info, pembaca);
       return kartu;
     }
 
@@ -309,8 +446,8 @@
     // Asisten belajar: tombol cepat + percakapan per materi. Riwayat disimpan di memori
     // halaman (percakapan) supaya tidak hilang saat santri berpindah materi lalu kembali.
     const TOMBOL_CEPAT = [
-      ['sederhana', 'Jelaskan lebih sederhana'],
-      ['contoh', 'Beri contoh'],
+      ['sederhana', 'Jelaskan secara sederhana'],
+      ['contoh', 'Berikan contoh'],
       ['ringkas', 'Ringkas poin penting'],
       ['latihan', 'Buat latihan soal']
     ];
@@ -345,9 +482,14 @@
       const lencana = el('span', 'lms-tutor__badge', '✦');
       lencana.setAttribute('aria-hidden', 'true');
       const judul = el('div');
-      judul.append(el('h4', 'lms-tutor__title', 'Asisten belajar'), el('p', 'lms-tutor__note', `Bantu kamu memahami "${m.title}". Jawaban AI bisa keliru, jadi pastikan hal penting ke ustadz pengampu.`));
+      judul.append(el('h4', 'lms-tutor__title', 'Tanya asisten belajar'), el('p', 'lms-tutor__note', `Diskusikan pembahasan “${m.title}” dan minta contoh atau penjelasan tambahan. Konfirmasikan jawaban penting kepada pengajar.`));
       kepala.append(lencana, judul);
       kotak.append(kepala);
+
+      if (pratinjau) {
+        kotak.append(el('p', 'mus-note', 'Pada akun santri, asisten menjawab pertanyaan berdasarkan pertemuan yang sedang dibuka. Pertanyaan tidak dikirim dalam mode pratinjau.'));
+        return kotak;
+      }
 
       if (m.type === 'quiz' && !m.completed) {
         kotak.classList.add('is-locked');
@@ -382,7 +524,7 @@
       input.id = idInput;
       input.rows = 2;
       input.maxLength = 1000;
-      input.placeholder = 'Tanyakan bagian yang belum kamu pahami...';
+      input.placeholder = 'Tulis pertanyaan tentang pertemuan ini';
       const kirim = el('button', 'lms-tutor__send', 'Tanya');
       kirim.type = 'submit';
       form.append(lbl, input, kirim);
@@ -441,12 +583,6 @@
     // ------------------------------------------------------------ Halaman maddah
     // Tata letak: kepala (remah roti, judul maddah, baris statistik), panggung materi di
     // kiri, dan daftar "Isi kelas" bergambar di kanan (di ponsel turun ke bawah).
-    function statistik(label, nilai) {
-      const sel = el('div', 'lms-stat');
-      sel.append(el('span', 'lms-stat__label', label), el('strong', 'lms-stat__value', nilai));
-      return sel;
-    }
-
     function gambarMini(x) {
       const thumb = el('span', `lms-thumb is-${x.type}`);
       const yt = x.media && x.media.youtubeId;
@@ -465,12 +601,14 @@
     }
 
     function pilihMateri(id) {
+      lepasPdf();
       materiId = id;
       lukisMaddah();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     async function keBeranda() {
+      lepasPdf();
       if (pratinjau) { pratinjau.onKembali(); return; }
       aktif = null;
       await muatDaftar();
@@ -478,36 +616,32 @@
     }
 
     function lukisMaddah(kabar = '') {
-      const m = aktif.materials || [];
+      lepasPdf();
+      const m = pertemuan(aktif);
       const i = Math.max(0, m.findIndex((x) => x.id === materiId));
       const materi = m[i];
       const jumlahSelesai = m.filter((x) => x.completed).length;
       const isi = [];
-      const kembali = tombol(pratinjau ? '← Kembali ke studio' : '← Kembali ke ruang belajar', 'mus-back');
-      kembali.addEventListener('click', keBeranda);
+      const kembali = tombol('← Detail maddah', 'mus-back');
+      kembali.addEventListener('click', () => { lukisDetail(); window.scrollTo({ top: 0, behavior: 'instant' }); });
       isi.push(kembali);
-      if (pratinjau) isi.push(el('p', 'lms-preview-note', 'Mode pratinjau: begini santri melihat kelas ini. Tandai selesai, kuis, tugas, dan asisten belajar tidak aktif, jadi tidak ada yang tercatat.'));
+      if (pratinjau) isi.push(el('p', 'lms-preview-note', 'Pratinjau pengajar · Tonton materi dan baca modul tanpa mengubah progres santri.'));
 
       const tata = el('div', 'lms-learn');
       const utama = el('article', 'lms-learn__main');
+      const dukungan = el('div', 'lms-learn__support');
 
       const kepala = el('header', 'lms-learn__head');
       const remah = el('nav', 'lms-crumbs');
       remah.setAttribute('aria-label', 'Lokasi');
-      const tautBeranda = tombol(pratinjau ? 'Studio maddah' : 'Ruang belajar', 'lms-crumbs__link');
+      const tautBeranda = tombol(pratinjau && !katalogStaf ? 'Studio maddah' : 'Ruang belajar', 'lms-crumbs__link');
       tautBeranda.addEventListener('click', keBeranda);
-      remah.append(tautBeranda, el('span', 'lms-crumbs__sep', '/'), el('span', 'lms-crumbs__here', aktif.title));
+      const tautMaddah = tombol(aktif.title, 'lms-crumbs__link');
+      tautMaddah.addEventListener('click', () => { lukisDetail(); window.scrollTo({ top: 0, behavior: 'instant' }); });
+      remah.append(tautBeranda, el('span', 'lms-crumbs__sep', '/'), tautMaddah);
       if (materi) remah.append(el('span', 'lms-crumbs__sep', '/'), el('span', `lms-type is-${materi.type}`, LABEL_JENIS[materi.type] || materi.type));
       kepala.append(remah, el('h2', 'lms-learn__title', aktif.title));
-      const stat = el('div', 'lms-stats');
-      stat.append(
-        statistik('Progres belajar', `${aktif.progress || 0}%`),
-        statistik('Materi selesai', `${jumlahSelesai}/${m.length}`),
-        statistik('Isi kelas', `${m.length} materi`),
-        statistik('Pengampu', aktif.teacherName || 'Asatidz Hamasah')
-      );
-      kepala.append(stat);
-      utama.append(kepala);
+      kepala.append(el('p', 'lms-course-meta', `${m.length} pertemuan${aktif.teacherName ? ` · ${aktif.teacherName}` : ''}${pratinjau ? '' : ` · ${jumlahSelesai} selesai`}`));
 
       if (!materi) {
         utama.append(el('p', 'lms-empty-line', 'Maddah ini belum punya materi.'));
@@ -520,7 +654,7 @@
         const keadaan = pratinjau ? ['is-preview', 'Pratinjau'] : materi.completed ? ['is-done', '✓ Selesai'] : ['is-now', 'Sedang dipelajari'];
         baris.append(
           el('span', `lms-status-pill ${keadaan[0]}`, keadaan[1]),
-          el('span', 'lms-stage__num', `Materi ${i + 1} dari ${m.length}`),
+          el('span', 'lms-stage__num', `Pertemuan ${i + 1} dari ${m.length}`),
           el('span', 'lms-learn__meta-end', LABEL_JENIS[materi.type] || materi.type)
         );
         judul.append(baris, el('h3', 'lms-stage__title', materi.title));
@@ -538,24 +672,28 @@
           const ul = el('ul');
           materi.keyPoints.forEach((p) => ul.append(el('li', '', p)));
           poin.append(ul);
-          utama.append(poin);
+          dukungan.append(poin);
         }
         // Asisten belajar memanggil AI atas nama santri, jadi tidak ada di pratinjau.
-        if (!pratinjau) utama.append(asistenBelajar(materi));
+        dukungan.append(asistenBelajar(materi));
 
         const nav = el('nav', 'lms-learn__nav');
         nav.setAttribute('aria-label', 'Navigasi materi');
         const sebelum = tombol('← Sebelumnya');
         sebelum.disabled = i === 0;
         sebelum.addEventListener('click', () => pilihMateri(m[i - 1].id));
-        const lanjut = tombol(i === m.length - 1 ? (pratinjau ? 'Kembali ke studio' : 'Kembali ke ruang belajar') : 'Berikutnya →', 'button button--primary');
-        lanjut.addEventListener('click', () => (i === m.length - 1 ? keBeranda() : pilihMateri(m[i + 1].id)));
+        const lanjut = tombol(i === m.length - 1 ? 'Detail maddah' : 'Pertemuan berikutnya →', 'button button--primary');
+        lanjut.addEventListener('click', () => (i === m.length - 1 ? lukisDetail() : pilihMateri(m[i + 1].id)));
         nav.append(sebelum);
         if (!pratinjau && ['video', 'pdf', 'text'].includes(materi.type) && !materi.completed) {
           const selesai = tombol('✓ Tandai selesai', 'button button--secondary');
           selesai.addEventListener('click', async () => {
             selesai.disabled = true;
             try {
+              // Bacaan pendamping selesai bersama video saat santri menandai pertemuan selesai.
+              for (const b of (materi.bacaan || []).filter((x) => !x.completed)) {
+                await api('POST', `/api/students/${encodeURIComponent(studentId)}/courses/${aktif.id}/materials/${b.id}/complete`);
+              }
               const r = await api('POST', `/api/students/${encodeURIComponent(studentId)}/courses/${aktif.id}/materials/${materi.id}/complete`);
               gantiCourse(r.course);
               if (i < m.length - 1) { materiId = m[i + 1].id; lukisMaddah('Materi sebelumnya ditandai selesai.'); window.scrollTo({ top: 0, behavior: 'smooth' }); } else lukisMaddah('Materi terakhir selesai. Masya Allah.');
@@ -564,14 +702,15 @@
           nav.append(selesai);
         }
         nav.append(lanjut);
-        utama.append(nav);
+        dukungan.append(nav);
       }
+      utama.append(dukungan);
 
       const samping = el('aside', 'lms-learn__side');
       samping.setAttribute('aria-label', 'Isi kelas');
       const sKepala = el('header', 'lms-side__head');
       const sJudul = el('div');
-      sJudul.append(el('p', 'wali-eyebrow', 'Isi kelas'), el('h3', 'lms-side__title', 'Materi pembelajaran'));
+      sJudul.append(el('p', 'wali-eyebrow', 'Maddah ini'), el('h3', 'lms-side__title', 'Daftar pertemuan'));
       sKepala.append(sJudul, el('span', 'lms-side__count', `${jumlahSelesai}/${m.length}`));
       const bar = el('div', 'lms-bar lms-side__bar');
       const isiBar = el('span');
@@ -589,11 +728,10 @@
         const b = tombol('', `lms-toc__item ${dibuka ? 'is-active' : ''} ${x.completed ? 'is-done' : ''}`.trim());
         if (dibuka) b.setAttribute('aria-current', 'true');
         const thumb = gambarMini(x);
-        const sedang = x.type === 'video' ? 'Sedang diputar' : 'Sedang dibuka';
-        thumb.append(el('span', 'lms-thumb__num', `Materi ${j + 1}`));
+        const sedang = 'Sedang dibuka';
+        thumb.append(el('span', 'lms-thumb__num', String(j + 1)));
         if (dibuka) thumb.append(el('span', 'lms-thumb__now', sedang));
         else if (x.completed) thumb.append(el('span', 'lms-thumb__now is-done', '✓ Selesai'));
-        if (x.media && x.media.youtubeId) thumb.append(el('span', 'lms-thumb__source', '▶ Video YouTube'));
         const teks = el('span', 'lms-toc__text');
         const kaki = el('span', 'lms-toc__foot');
         const jenisTeks = `${LABEL_JENIS[x.type] || x.type}${x.type === 'video' && x.media && x.media.fileId ? ' · Modul PDF' : ''}`;
@@ -605,7 +743,7 @@
         daftar.append(li);
       });
       samping.append(sKepala, bar, daftar);
-      tata.append(utama, samping);
+      tata.append(kepala, utama, samping);
       isi.push(tata);
       wadah.replaceChildren(...isi);
       // Di layar lebar daftar materi bergulir sendiri; bawa materi yang dibuka ke pandangan.
@@ -614,6 +752,14 @@
     }
 
     return {
+      hancurkan: lepasPdf,
+      async katalog() {
+        katalogStaf = true;
+        pratinjau = null;
+        const r = await api('GET', '/api/courses');
+        maddah = r.items || [];
+        lukisBeranda();
+      },
       // Dipakai studio (lms-studio.js): ruang belajar sebuah maddah persis seperti dilihat
       // santri, dari /api/courses/:id/pratinjau. onKembali dipanggil tombol kembali.
       async pratinjau(courseId, { onKembali }) {
@@ -621,8 +767,8 @@
         wadah.replaceChildren(el('p', 'mus-loading', 'Menyiapkan pratinjau kelas...'));
         const r = await api('GET', `/api/courses/${encodeURIComponent(courseId)}/pratinjau`);
         aktif = r.course;
-        materiId = ((aktif.materials || [])[0] || {}).id || null;
-        lukisMaddah();
+        materiId = null;
+        lukisDetail();
         window.scrollTo({ top: 0, behavior: 'instant' });
       },
       async mulai() {

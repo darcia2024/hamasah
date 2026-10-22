@@ -1464,6 +1464,41 @@ if (logoutButton) {
       app.hidden = false;
       const remah = document.querySelector('.crm-breadcrumbs .crumb-active');
       if (remah) remah.textContent = role === 'student' ? 'Ruang belajar' : 'Studio maddah';
+      if (['admin', 'teacher'].includes(role) && window.HamasahLmsBelajar) {
+        const modes = document.createElement('nav');
+        modes.className = 'lms-mode-switch';
+        modes.setAttribute('aria-label', 'Tampilan LMS');
+        const view = document.createElement('div');
+        view.className = 'lms-view';
+        app.replaceChildren(modes, view);
+        let tampilan = null;
+        const tombolMode = [];
+        async function gantiMode(mode) {
+          tombolMode.forEach((b) => { b.disabled = true; b.setAttribute('aria-pressed', String(b.dataset.mode === mode)); });
+          if (remah) remah.textContent = mode === 'belajar' ? 'Ruang belajar' : 'Studio maddah';
+          if (tampilan && tampilan.hancurkan) tampilan.hancurkan();
+          view.replaceChildren();
+          try {
+            tampilan = (mode === 'belajar' ? window.HamasahLmsBelajar : window.HamasahLmsStudio).buat({ wadah: view, headers, role });
+            await (mode === 'belajar' ? tampilan.katalog() : tampilan.mulai());
+          } catch (error) {
+            const pesan = document.createElement('p');
+            pesan.className = 'mus-status is-galat';
+            pesan.setAttribute('role', 'alert');
+            pesan.textContent = error.message || 'LMS belum dapat dimuat. Coba pilih tampilannya lagi.';
+            view.replaceChildren(pesan);
+          } finally { tombolMode.forEach((b) => { b.disabled = false; }); }
+        }
+        [['belajar', 'Ruang belajar'], ['studio', 'Kelola maddah']].forEach(([mode, label]) => {
+          const b = document.createElement('button');
+          b.type = 'button'; b.textContent = label; b.dataset.mode = mode;
+          b.addEventListener('click', () => gantiMode(mode));
+          tombolMode.push(b); modes.append(b);
+        });
+        window.hamasahSaatDataSegar(() => tampilan && tampilan.segarkan ? tampilan.segarkan() : null);
+        await gantiMode(new URLSearchParams(location.hash.slice(1)).has('kelola') ? 'studio' : 'belajar');
+        return;
+      }
       const tampilan = modul.buat({ wadah: app, headers, role });
       window.hamasahSaatDataSegar(() => (tampilan.segarkan ? tampilan.segarkan() : null));
       await tampilan.mulai();

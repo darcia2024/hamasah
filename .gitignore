@@ -10,6 +10,8 @@ node_modules/
 # Database pengembangan lokal (PGlite) dan berkas unggahan lokal.
 data/dev-db*/
 data/dev-storage/
+data/example-course-uploads.json
+tmp/pdfs/
 *.tmp
 coverage/
 .env.*

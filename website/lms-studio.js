@@ -12,12 +12,11 @@
   // dengan modul PDF opsional (22 Oktober 2026).
   const JENIS = [
     ['video', 'Video', 'Tautan YouTube + modul PDF opsional untuk diunduh santri.'],
-    ['text', 'Bacaan', 'Teks materi, ringkasan bab, atau rujukan kitab.'],
     ['pdf', 'PDF', 'Unggah berkas PDF; santri membacanya di portal.'],
     ['quiz', 'Kuis', 'Pilihan ganda atau isian, dinilai otomatis.'],
     ['assignment', 'Tugas', 'Santri mengirim jawaban, Anda menilai.']
   ];
-  const LABEL_JENIS = Object.fromEntries(JENIS.map(([k, l]) => [k, l]));
+  const LABEL_JENIS = { text: 'Bacaan pendamping', ...Object.fromEntries(JENIS.map(([k, l]) => [k, l])) };
   const POLA_YOUTUBE = /(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^#\s]*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/i;
   const TANGGAL = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   let nomor = 0;
@@ -290,8 +289,8 @@
           ambilIsi = () => f.nilai();
         } else if (jenis === 'video') {
           const url = bidang('Tautan YouTube', 'url', { nilai: isiLama.url || ((teksLama.match(/https?:\/\/\S+/) || [])[0] || ''), placeholder: 'https://www.youtube.com/watch?v=...' });
-          const catatan = bidang('Catatan untuk santri (opsional)', 'textarea', { nilai: isiLama.teks || (isiLama.url ? '' : teksLama.replace(/https?:\/\/\S+/, '').trim()) });
-          catatan.input.rows = 3;
+          const catatan = bidang('Bacaan pendamping (opsional)', 'textarea', { nilai: isiLama.teks || (isiLama.url ? '' : teksLama.replace(/https?:\/\/\S+/, '').trim()), placeholder: 'Tuliskan penjelasan, ringkasan, atau rujukan untuk dibaca di bawah video.' });
+          catatan.input.rows = 6;
           const pratinjau = el('div', 'lms-video lms-video--preview');
           const segarPratinjau = () => {
             const m = url.nilai().match(POLA_YOUTUBE);
