@@ -425,6 +425,50 @@
       return minta.upload.id;
     }
 
+    // ------------------------------------------------------------ Pemutar video
+    // Materi video disimpan sebagai JSON { url, teks } (formMateri), atau teks lama yang memuat
+    // tautan. Guru dan admin bisa memutarnya langsung dari kurikulum, sama seperti santri.
+    function tautanVideo(m) {
+      const mentah = String(m.content || '');
+      let url = '';
+      try { const isi = JSON.parse(mentah); url = isi && typeof isi.url === 'string' ? isi.url : ''; } catch { url = (mentah.match(/https:\/\/\S+/) || [])[0] || ''; }
+      const youtubeId = (url.match(POLA_YOUTUBE) || mentah.match(POLA_YOUTUBE) || [])[1] || null;
+      return { url, youtubeId };
+    }
+
+    // Tombol putar dan wadah pemutar untuk satu materi video. Iframe dibuat saat dibuka dan
+    // dibuang saat ditutup, supaya videonya berhenti dan halaman tidak memuat banyak iframe.
+    function pemutarMateri(m) {
+      const video = tautanVideo(m);
+      if (!video.youtubeId && !video.url) return null;
+      const wadahPutar = el('div', 'lms-video lms-lesson__player');
+      wadahPutar.hidden = true;
+      const putar = tombol('▶ Putar video', 'mus-link', `Putar video ${m.title}`);
+      putar.addEventListener('click', () => {
+        if (!wadahPutar.hidden) {
+          wadahPutar.replaceChildren();
+          wadahPutar.hidden = true;
+          putar.textContent = '▶ Putar video';
+          return;
+        }
+        if (video.youtubeId) {
+          const f = el('iframe');
+          f.src = `https://www.youtube-nocookie.com/embed/${video.youtubeId}?rel=0&autoplay=1`;
+          f.title = m.title;
+          f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+          f.allowFullscreen = true;
+          f.referrerPolicy = 'strict-origin-when-cross-origin';
+          wadahPutar.append(f);
+          wadahPutar.hidden = false;
+          putar.textContent = 'Tutup video';
+        } else {
+          window.open(video.url, '_blank', 'noopener');
+        }
+      });
+      if (!video.youtubeId) putar.textContent = 'Buka video ↗';
+      return { putar, wadahPutar };
+    }
+
     // ------------------------------------------------------------ Tab Kurikulum
     function tabKurikulum(course) {
       const wadahTab = el('div', 'lms-tab');
@@ -469,8 +513,12 @@
           if (!window.confirm(`Arsipkan "${m.title}"? Santri tidak melihatnya lagi; progres yang sudah ada tetap tersimpan.`)) return;
           try { await api('PATCH', `/api/courses/${course.id}/materials/${m.id}/archive`); await segarkan('Materi diarsipkan.'); } catch (error) { window.alert(error.message); }
         });
-        aksi.append(naik, turun, ubah, arsip);
-        li.append(info, aksi);
+        const video = m.type === 'video' ? pemutarMateri(m) : null;
+        // Materi video tanpa tautan tidak bisa diputar siapa pun, termasuk santri.
+        if (m.type === 'video' && !video) info.append(el('p', 'mus-status is-galat', 'Tautan video belum diisi. Klik Ubah lalu tempel tautan YouTube.'));
+        aksi.append(...(video ? [video.putar] : []), naik, turun, ubah, arsip);
+        // Pemutar menjadi baris sendiri di bawah info dan tombol, selebar kartu materi.
+        li.append(info, aksi, ...(video ? [video.wadahPutar] : []));
         daftar.append(li);
       });
       wadahTab.append(atas, komposer, daftar);
@@ -623,9 +671,22 @@
       const teks = el('div');
       teks.append(el('p', 'wali-eyebrow', 'Maddah'), el('h2', 'lms-head__title', course.title), el('p', 'mus-note', course.description || ''));
       const aksi = el('div', 'mus-actions');
+      // Ruang belajar persis seperti dilihat santri (lms-belajar.js, mode pratinjau): pemutar
+      // video, isi materi, dan daftar isi kelas, tanpa mencatat apa pun.
+      const lihat = tombol('▶ Lihat sebagai santri', 'button button--primary');
+      lihat.addEventListener('click', async () => {
+        const belajar = window.HamasahLmsBelajar && window.HamasahLmsBelajar.buat({ wadah, headers });
+        if (!belajar) return;
+        try {
+          await belajar.pratinjau(course.id, { onKembali: () => { lukis(); window.scrollTo({ top: 0, behavior: 'instant' }); } });
+        } catch (error) {
+          lukis();
+          window.alert(error.message);
+        }
+      });
       const ubah = tombol('Ubah maddah');
       ubah.addEventListener('click', () => dialogMaddah(course));
-      aksi.append(ubah);
+      aksi.append(lihat, ubah);
       if (role === 'admin') {
         const jual = tombol('Atur penjualan');
         jual.addEventListener('click', () => dialogJual(course));

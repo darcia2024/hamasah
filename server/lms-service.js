@@ -333,8 +333,25 @@ function createLmsService(options) {
     const completedMaterialIds = completions
       .filter(function currentCourse(entry) { return entry.courseId === courseId; })
       .map(function materialId(entry) { return entry.materialId; });
-    const activeMaterials = course.materials.filter((material) => !material.archivedAt);
     const attempts = typeof store.listAttempts === 'function' ? await store.listAttempts(studentId, null) : [];
+    const submissionOf = typeof store.getSubmission === 'function' ? (materialId) => store.getSubmission(studentId, materialId) : null;
+    return { ok: true, value: await susunMaddahPembelajar(course, { completedMaterialIds, attempts, submissionOf }) };
+  }
+
+  // Pratinjau maddah seperti yang dilihat santri, untuk admin dan guru pemiliknya: isi dan
+  // urutan materi sama persis (dibangun oleh susunMaddahPembelajar), tanpa progres, nilai,
+  // atau kiriman santri mana pun. Kunci jawaban kuis tetap tidak dikirim.
+  async function previewCourse(courseId, actor) {
+    const course = await store.getCourse(courseId);
+    if (!course) return { ok: false, status: 404, error: 'Maddah tidak ditemukan.' };
+    if (!canManageCourse(course, actor)) return { ok: false, status: 403, error: 'Pratinjau hanya untuk admin dan guru pengampu maddah ini.' };
+    return { ok: true, value: await susunMaddahPembelajar(course, { completedMaterialIds: [], attempts: [], submissionOf: null }) };
+  }
+
+  // Bentuk maddah untuk ruang belajar. Satu-satunya tempat yang memutuskan apa yang dikirim
+  // ke peramban pembelajar, dipakai tampilan santri dan pratinjau.
+  async function susunMaddahPembelajar(course, { completedMaterialIds, attempts, submissionOf }) {
+    const activeMaterials = course.materials.filter((material) => !material.archivedAt);
     const materials = await Promise.all(activeMaterials.map(async function learnerMaterial(material) {
       const dasar = {
         id: material.id, type: material.type, title: material.title, content: material.content,
@@ -364,8 +381,8 @@ function createLmsService(options) {
           .filter((attempt) => attempt.materialId === material.id)
           .map((attempt) => ({ attemptNumber: attempt.attemptNumber, score: attempt.score, passed: attempt.passed, createdAt: attempt.createdAt }));
       }
-      if (material.type === 'assignment' && typeof store.getSubmission === 'function') {
-        const submission = await store.getSubmission(studentId, material.id);
+      if (material.type === 'assignment' && submissionOf) {
+        const submission = await submissionOf(material.id);
         dasar.submission = submission
           ? { id: submission.id, status: submission.status, score: submission.score, reviewerNote: submission.reviewerNote, submittedAt: submission.submittedAt || submission.createdAt || null }
           : null;
@@ -375,16 +392,13 @@ function createLmsService(options) {
     // Nama guru pengampu untuk kepala halaman belajar; aman bila akun tidak ditemukan.
     const pengampu = course.ownerAccountId ? await getAccount(course.ownerAccountId).catch(() => null) : null;
     return {
-      ok: true,
-      value: {
-        id: course.id,
-        title: course.title,
-        description: course.description,
-        teacherName: (pengampu && pengampu.name) || null,
-        materials,
-        progress: activeMaterials.length ? Math.round((completedMaterialIds.filter((id) => activeMaterials.some((material) => material.id === id)).length / activeMaterials.length) * 100) : 0,
-        completionStatus: activeMaterials.length && completedMaterialIds.filter((id) => activeMaterials.some((material) => material.id === id)).length === activeMaterials.length ? 'completed' : 'in-progress'
-      }
+      id: course.id,
+      title: course.title,
+      description: course.description,
+      teacherName: (pengampu && pengampu.name) || null,
+      materials,
+      progress: activeMaterials.length ? Math.round((completedMaterialIds.filter((id) => activeMaterials.some((material) => material.id === id)).length / activeMaterials.length) * 100) : 0,
+      completionStatus: activeMaterials.length && completedMaterialIds.filter((id) => activeMaterials.some((material) => material.id === id)).length === activeMaterials.length ? 'completed' : 'in-progress'
     };
   }
 
@@ -675,6 +689,7 @@ function createLmsService(options) {
     createMemoryLmsStore,
     enroll,
     getStudentCourse,
+    previewCourse,
     listCourses,
     listStudentCourses,
     studyHelp,

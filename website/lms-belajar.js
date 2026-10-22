@@ -56,6 +56,9 @@
     let maddah = [];
     let aktif = null;
     let materiId = null;
+    // Mode pratinjau (admin dan guru dari studio): { onKembali }. Semua aksi yang mencatat
+    // progres, nilai, kiriman, atau memanggil asisten AI dimatikan; tidak ada santri aktif.
+    let pratinjau = null;
     const percakapan = new Map();
 
     async function api(method, url, body) {
@@ -234,6 +237,12 @@
       const kirim = el('button', 'button button--primary', 'Kirim jawaban');
       kirim.type = 'submit';
       form.append(kirim, st);
+      if (pratinjau) {
+        form.querySelectorAll('input, button').forEach((k) => { k.disabled = true; });
+        st.textContent = 'Pratinjau: soal ditampilkan seperti untuk santri, jawaban tidak bisa dikirim.';
+        wadahIsi.append(form);
+        return wadahIsi;
+      }
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
         const answers = Object.fromEntries(kontrol.map((f, i) => [i, f()]));
@@ -269,6 +278,13 @@
       area.placeholder = 'Tulis jawaban tugas di sini.';
       const st = el('p', 'mus-status');
       const kirim = tombol('Kirim tugas', 'button button--primary');
+      if (pratinjau) {
+        area.disabled = true;
+        kirim.disabled = true;
+        st.textContent = 'Pratinjau: kolom jawaban seperti yang dilihat santri, tugas tidak bisa dikirim.';
+        wadahIsi.append(lbl, area, kirim, st);
+        return wadahIsi;
+      }
       kirim.addEventListener('click', async () => {
         if (area.value.trim().length < 3) { st.textContent = 'Jawaban terlalu singkat.'; st.className = 'mus-status is-galat'; return; }
         kirim.disabled = true;
@@ -448,6 +464,7 @@
     }
 
     async function keBeranda() {
+      if (pratinjau) { pratinjau.onKembali(); return; }
       aktif = null;
       await muatDaftar();
       lukisBeranda();
@@ -459,9 +476,10 @@
       const materi = m[i];
       const jumlahSelesai = m.filter((x) => x.completed).length;
       const isi = [];
-      const kembali = tombol('← Kembali ke ruang belajar', 'mus-back');
+      const kembali = tombol(pratinjau ? '← Kembali ke studio' : '← Kembali ke ruang belajar', 'mus-back');
       kembali.addEventListener('click', keBeranda);
       isi.push(kembali);
+      if (pratinjau) isi.push(el('p', 'lms-preview-note', 'Mode pratinjau: begini santri melihat kelas ini. Tandai selesai, kuis, tugas, dan asisten belajar tidak aktif, jadi tidak ada yang tercatat.'));
 
       const tata = el('div', 'lms-learn');
       const utama = el('article', 'lms-learn__main');
@@ -469,7 +487,7 @@
       const kepala = el('header', 'lms-learn__head');
       const remah = el('nav', 'lms-crumbs');
       remah.setAttribute('aria-label', 'Lokasi');
-      const tautBeranda = tombol('Ruang belajar', 'lms-crumbs__link');
+      const tautBeranda = tombol(pratinjau ? 'Studio maddah' : 'Ruang belajar', 'lms-crumbs__link');
       tautBeranda.addEventListener('click', keBeranda);
       remah.append(tautBeranda, el('span', 'lms-crumbs__sep', '/'), el('span', 'lms-crumbs__here', aktif.title));
       if (materi) remah.append(el('span', 'lms-crumbs__sep', '/'), el('span', `lms-type is-${materi.type}`, LABEL_JENIS[materi.type] || materi.type));
@@ -490,9 +508,14 @@
         if (kabar) utama.append(el('p', 'mus-status is-ok asr-flash', kabar));
         const panggung = el('section', 'lms-stage');
         const judul = el('header', 'lms-stage__head');
+        // Baris status di bawah pemutar: keadaan materi, posisinya, dan jenisnya.
         const baris = el('div', 'lms-learn__meta');
-        baris.append(el('span', 'lms-stage__num', `Materi ${i + 1} dari ${m.length}`));
-        if (materi.completed) baris.append(el('span', 'lms-done', '✓ Selesai'));
+        const keadaan = pratinjau ? ['is-preview', 'Pratinjau'] : materi.completed ? ['is-done', '✓ Selesai'] : ['is-now', 'Sedang dipelajari'];
+        baris.append(
+          el('span', `lms-status-pill ${keadaan[0]}`, keadaan[1]),
+          el('span', 'lms-stage__num', `Materi ${i + 1} dari ${m.length}`),
+          el('span', 'lms-learn__meta-end', LABEL_JENIS[materi.type] || materi.type)
+        );
         judul.append(baris, el('h3', 'lms-stage__title', materi.title));
         const konten = materi.type === 'video' ? isiVideo(materi) : materi.type === 'pdf' ? isiPdf(materi) : materi.type === 'quiz' ? isiKuis(materi) : materi.type === 'assignment' ? isiTugas(materi) : (() => { const w = el('div', 'lms-content'); w.append(paragraf(materi.content)); return w; })();
         // Video tampil lebar di atas; judul materinya di bawah pemutar.
@@ -510,17 +533,18 @@
           poin.append(ul);
           utama.append(poin);
         }
-        utama.append(asistenBelajar(materi));
+        // Asisten belajar memanggil AI atas nama santri, jadi tidak ada di pratinjau.
+        if (!pratinjau) utama.append(asistenBelajar(materi));
 
         const nav = el('nav', 'lms-learn__nav');
         nav.setAttribute('aria-label', 'Navigasi materi');
         const sebelum = tombol('← Sebelumnya');
         sebelum.disabled = i === 0;
         sebelum.addEventListener('click', () => pilihMateri(m[i - 1].id));
-        const lanjut = tombol(i === m.length - 1 ? 'Kembali ke ruang belajar' : 'Berikutnya →', 'button button--primary');
+        const lanjut = tombol(i === m.length - 1 ? (pratinjau ? 'Kembali ke studio' : 'Kembali ke ruang belajar') : 'Berikutnya →', 'button button--primary');
         lanjut.addEventListener('click', () => (i === m.length - 1 ? keBeranda() : pilihMateri(m[i + 1].id)));
         nav.append(sebelum);
-        if (['video', 'pdf', 'text'].includes(materi.type) && !materi.completed) {
+        if (!pratinjau && ['video', 'pdf', 'text'].includes(materi.type) && !materi.completed) {
           const selesai = tombol('✓ Tandai selesai', 'button button--secondary');
           selesai.addEventListener('click', async () => {
             selesai.disabled = true;
@@ -558,12 +582,14 @@
         const b = tombol('', `lms-toc__item ${dibuka ? 'is-active' : ''} ${x.completed ? 'is-done' : ''}`.trim());
         if (dibuka) b.setAttribute('aria-current', 'true');
         const thumb = gambarMini(x);
+        const sedang = x.type === 'video' ? 'Sedang diputar' : 'Sedang dibuka';
         thumb.append(el('span', 'lms-thumb__num', `Materi ${j + 1}`));
-        if (dibuka) thumb.append(el('span', 'lms-thumb__now', 'Sedang dibuka'));
+        if (dibuka) thumb.append(el('span', 'lms-thumb__now', sedang));
         else if (x.completed) thumb.append(el('span', 'lms-thumb__now is-done', '✓ Selesai'));
+        if (x.media && x.media.youtubeId) thumb.append(el('span', 'lms-thumb__source', '▶ Video YouTube'));
         const teks = el('span', 'lms-toc__text');
         const kaki = el('span', 'lms-toc__foot');
-        kaki.append(el('span', '', LABEL_JENIS[x.type] || x.type), el('span', '', x.completed ? 'Selesai' : dibuka ? 'Sedang dibuka' : 'Belum mulai'));
+        kaki.append(el('span', '', LABEL_JENIS[x.type] || x.type), el('span', '', pratinjau ? '' : x.completed ? 'Selesai' : dibuka ? sedang : 'Belum mulai'));
         teks.append(el('span', 'lms-toc__title', x.title), kaki);
         b.append(thumb, teks);
         b.addEventListener('click', () => pilihMateri(x.id));
@@ -580,6 +606,17 @@
     }
 
     return {
+      // Dipakai studio (lms-studio.js): ruang belajar sebuah maddah persis seperti dilihat
+      // santri, dari /api/courses/:id/pratinjau. onKembali dipanggil tombol kembali.
+      async pratinjau(courseId, { onKembali }) {
+        pratinjau = { onKembali };
+        wadah.replaceChildren(el('p', 'mus-loading', 'Menyiapkan pratinjau kelas...'));
+        const r = await api('GET', `/api/courses/${encodeURIComponent(courseId)}/pratinjau`);
+        aktif = r.course;
+        materiId = ((aktif.materials || [])[0] || {}).id || null;
+        lukisMaddah();
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      },
       async mulai() {
         wadah.replaceChildren(el('p', 'mus-loading', 'Menyiapkan ruang belajar...'));
         const saya = await api('GET', '/api/my-students');

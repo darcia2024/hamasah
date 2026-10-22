@@ -160,17 +160,21 @@
     const s = data.students.find((x) => String(x.id) === String(studentId));
     if (!s) return null;
     const aturan = data.aturan;
-    const wadah = el('section', `crm-white-card santri-card iqm-card is-${s.iqamah.tahap}`);
+    const wadah = el('section', `crm-white-card santri-card iqm-card${santri ? ' iqm-card--summary' : ''} is-${s.iqamah.tahap}`);
     const kepala = el('div', 'santri-card__head');
     kepala.append(el('h3', 'santri-card__title', santri ? 'Iqamah' : 'Iqamah ananda'));
-    kepala.append(el('p', 'santri-card__note', 'Izin tinggal di Mesir. Perpanjang sebelum habis supaya tidak kena denda.'));
+    kepala.append(el('p', 'santri-card__note', 'Izin tinggal di Mesir'));
     // Kartu visual di kiri, rincian dan tindakan di kanan (bertumpuk di ponsel).
     const tata = el('div', 'iqm-layout');
     const rinci = el('div', 'iqm-detail');
     tata.append(kartuVisual(s), rinci);
     wadah.append(kepala, tata);
 
-    rinci.append(el('p', 'iqm-hero__hint', arahan(s, aturan, { santri })), fakta(s));
+    const info = fakta(s);
+    rinci.append(el('p', 'iqm-hero__hint', santri && s.iqamah.tahap === 'kosong'
+      ? 'Isi tanggal yang tertera pada iqamah. Musyrif akan memeriksanya dan membantu mengingatkan perpanjangan.'
+      : arahan(s, aturan, { santri })));
+    if (info.children.length) rinci.append(info);
     [catatanPaspor(s, aturan), catatanLaporan(s.laporan)].filter(Boolean).forEach((n) => rinci.append(n));
 
     if (!santri) return wadah;

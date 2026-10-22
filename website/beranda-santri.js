@@ -1,11 +1,14 @@
-// Beranda santri (17 Oktober 2026). Urutan dari yang paling sering dibuka:
+// Beranda santri (disusun ulang 21 Oktober 2026). Enam kelompok berjudul, dari yang paling
+// perlu dilihat santri sampai yang paling jarang:
 //   1. Hari ini: jadwal rutin hari ini (yang sedang/berikutnya disorot), piket, acara
 //      terdekat dengan hitung mundur, lanjutkan belajar, dan pintasan (izin, ruang belajar).
-//   2. Laporanku 30 hari: status, angka utama dengan perbandingan bulan lalu.
-//   3. Diagram (dari beranda-wali.js): sholat berjamaah, kegiatan, hafalan, catatan musyrif.
-//   4. Prestasi, kelas online, jadwal asrama (kalender) dan acara mendatang, galeri asrama,
-//      iqamah, pengumuman, izin, dan catatan harian. Iqamah yang harus segera diurus naik
-//      tepat di bawah "Hari ini".
+//   2. Urusanku: iqamah dan izin, berdampingan. Iqamah selalu di sini, bukan hanya saat
+//      mendesak, karena masa berlaku iqamah menentukan santri boleh tinggal di Mesir.
+//   3. Perkembanganku: laporan 30 hari, prestasi, dan diagram (sholat, kegiatan, hafalan,
+//      catatan musyrif) dari beranda-wali.js.
+//   4. Belajar: kelas online.
+//   5. Kabar asrama: pengumuman, acara mendatang, jadwal asrama (kalender), galeri.
+//   6. Riwayat: catatan harian.
 // Data: API yang sama dengan beranda wali (/api/students/:id/*, /api/asrama-saya,
 // /api/announcements, /api/iqamah-saya). Semua teks lewat textContent; tidak ada atribut style.
 (function initBerandaSantri() {
@@ -51,8 +54,9 @@
   }
 
   // ------------------------------------------------------------ Hari ini
-  function bagianHariIni({ student, asrama, data, iqamah, kini, onIzin, onOpenFull }) {
+  function bagianHariIni({ student, asrama, data, kini, onIzin, onOpenFull }) {
     const wadah = el('section', 'snt-today');
+    wadah.id = 'santri-hari-ini';
     const utama = el('div', 'snt-today__main');
     utama.append(el('p', 'wali-eyebrow', `Hari ini · ${HARI[kini.hariKe - 1]}`));
 
@@ -67,6 +71,12 @@
       const sedang = urut.find((j) => menitDari(j.startTime) !== null && menitDari(j.startTime) <= kini.menit && kini.menit < (menitDari(j.endTime) ?? menitDari(j.startTime) + 60));
       const berikut = sedang ? null : urut.find((j) => menitDari(j.startTime) !== null && menitDari(j.startTime) > kini.menit);
       const daftar = el('ol', 'snt-agenda');
+      const lainnya = el('details', 'snt-agenda-more');
+      const judulLain = el('summary', '', 'Lihat seluruh jadwal hari ini');
+      const daftarLain = el('ol', 'snt-agenda');
+      lainnya.append(judulLain, daftarLain);
+      const awal = sedang || berikut || urut[urut.length - 1];
+      const utamaHariIni = new Set(urut.slice(urut.indexOf(awal), urut.indexOf(awal) + 2));
       urut.forEach((j) => {
         const mulai = menitDari(j.startTime);
         const lewat = mulai !== null && (menitDari(j.endTime) ?? mulai + 60) <= kini.menit;
@@ -78,9 +88,11 @@
         li.append(teks);
         if (j === sedang) li.append(el('span', 'snt-agenda__flag', 'Sedang berlangsung'));
         if (j === berikut) li.append(el('span', 'snt-agenda__flag', 'Berikutnya'));
-        daftar.append(li);
+        if (utamaHariIni.has(j)) daftar.append(li);
+        else daftarLain.append(li);
       });
       utama.append(daftar);
+      if (daftarLain.children.length) utama.append(lainnya);
     }
 
     const samping = el('div', 'snt-today__side');
@@ -107,10 +119,8 @@
       kotakAcara.append(el('strong', 'snt-tile__value', 'Belum ada'), el('span', 'snt-tile__note', 'Acara asrama tampil di sini begitu dijadwalkan musyrif.'));
     }
     samping.append(kotakAcara);
-
-    const I = window.HamasahIqamah;
-    const kotakIqamah = I && iqamah ? I.ubin(iqamah, student.id) : null;
-    if (kotakIqamah) samping.append(kotakIqamah);
+    // Iqamah tidak lagi berupa ubin di sini: kartunya yang lengkap ada tepat di bawah,
+    // di kelompok "Urusanku".
 
     const bantuan = window.HamasahPerjalanan && window.HamasahPerjalanan.daftarTugas;
     const { berikutnya = [] } = bantuan && data.courses ? bantuan(data.courses) : {};
@@ -229,6 +239,33 @@
     return wadah;
   }
 
+  // ------------------------------------------------------------ Kelompok
+  // Satu kelompok beranda: judul, satu kalimat penjelasan, lalu isinya. Kelompok tanpa isi
+  // tidak ditampilkan sama sekali.
+  function kelompok(kunci, judul, keterangan, isi) {
+    const anak = isi.filter(Boolean);
+    if (!anak.length) return null;
+    const wadah = el('section', `snt-group snt-group--${kunci}`);
+    wadah.id = `santri-${kunci}`;
+    const idJudul = `snt-group-${kunci}`;
+    wadah.setAttribute('aria-labelledby', idJudul);
+    const kepala = el('header', 'snt-group__head');
+    const h = el('h2', 'snt-group__title', judul);
+    h.id = idJudul;
+    kepala.append(h, el('p', 'snt-group__note', keterangan));
+    wadah.append(kepala, ...anak);
+    return wadah;
+  }
+
+  // Dua kartu berdampingan di layar lebar (satu kolom di ponsel); satu kartu memakai lebar penuh.
+  function berdampingan(kelas, isi) {
+    const anak = isi.filter(Boolean);
+    if (!anak.length) return null;
+    const baris = el('div', `${kelas}${anak.length === 1 ? ' is-single' : ''}`);
+    baris.append(...anak);
+    return baris;
+  }
+
   // ------------------------------------------------------------ Rangka
   async function render(wadah, { student, headers, onOpenFull }) {
     wadah.classList.add('wali-page', 'snt-page');
@@ -282,7 +319,6 @@
       if (kartuIqamahEl && baru) { kartuIqamahEl.replaceWith(baru); kartuIqamahEl = baru; }
     }
     kartuIqamahEl = buatKartuIqamah(iqamah);
-    const iqamahMendesak = kartuIqamahEl && /\bis-(urus|habis)\b/.test(kartuIqamahEl.className);
 
     const grafik = el('div', 'wali-grid');
     [
@@ -295,31 +331,46 @@
     const belajar = K.kartuKelas ? K.kartuKelas(data.courses, student) : null;
     if (belajar) belajar.classList.add('snt-class');
 
-    const baris1 = el('div', 'wali-grid');
-    [bagianAcara(asrama, kini), bagianPrestasi(data)].forEach((k) => baris1.append(k));
-
-    const galeri = bagianGaleri(asrama, headers);
     const umum = K.kartuPengumuman(pengumuman, 3, { polos: true });
-    const baris2 = el('div', 'wali-grid');
-    [umum, kartuIzinEl].filter(Boolean).forEach((k) => baris2.append(k));
+
+    const pintasanBagian = el('nav', 'snt-section-nav');
+    pintasanBagian.setAttribute('aria-label', 'Bagian dashboard santri');
+    [
+      ['#santri-hari-ini', 'Hari ini'],
+      ['#santri-urusan', 'Iqamah & izin'],
+      ...(belajar ? [['#santri-belajar', 'Belajar']] : []),
+      ['#santri-perkembangan', 'Perkembangan']
+    ].forEach(([href, label]) => {
+      const tautan = el('a', '', label);
+      tautan.href = href;
+      pintasanBagian.append(tautan);
+    });
 
     wadah.replaceChildren(...[
-      bagianHariIni({ student, asrama, data, iqamah, kini, onIzin: keIzin, onOpenFull }),
-      iqamahMendesak ? kartuIqamahEl : null,
-      bagianLaporan(data),
-      grafik,
-      belajar,
-      K.bagianJadwalAsrama(jadwal, student.id, { polos: true, santri: true }),
-      baris1,
-      galeri,
-      iqamahMendesak ? null : kartuIqamahEl,
-      baris2.childElementCount ? baris2 : null,
-      K.kartuLinimasa(K.butirKegiatan(data, student.name), {
-        judul: 'Catatan harian',
-        keterangan: `Semua yang tercatat ${K.PERIODE_HARI} hari terakhir, terbaru di atas.`,
-        perHalaman: 8,
-        polos: true
-      })
+      pintasanBagian,
+      bagianHariIni({ student, asrama, data, kini, onIzin: keIzin, onOpenFull }),
+      kelompok('urusan', 'Iqamah & izin', 'Pantau izin tinggal dan ajukan izin keluar asrama.', [
+        berdampingan('snt-affairs', [kartuIqamahEl, kartuIzinEl])
+      ]),
+      kelompok('belajar', 'Belajar', 'Maddah yang kamu ikuti di ruang belajar online.', [belajar]),
+      kelompok('perkembangan', 'Perkembanganku', `Catatan musyrif tentang ibadah, kegiatan, dan hafalanmu ${K.PERIODE_HARI} hari terakhir.`, [
+        bagianLaporan(data),
+        bagianPrestasi(data),
+        grafik
+      ]),
+      kelompok('asrama', 'Kabar asrama', 'Pengumuman, acara, jadwal, dan momen dari asramamu.', [
+        berdampingan('wali-grid', [umum, bagianAcara(asrama, kini)]),
+        K.bagianJadwalAsrama(jadwal, student.id, { polos: true, santri: true }),
+        bagianGaleri(asrama, headers)
+      ]),
+      kelompok('riwayat', 'Riwayat', 'Semua yang tercatat tentangmu, terbaru di atas.', [
+        K.kartuLinimasa(K.butirKegiatan(data, student.name), {
+          judul: 'Catatan harian',
+          keterangan: `Semua yang tercatat ${K.PERIODE_HARI} hari terakhir, terbaru di atas.`,
+          perHalaman: 8,
+          polos: true
+        })
+      ])
     ].filter(Boolean));
   }
 

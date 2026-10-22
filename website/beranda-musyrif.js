@@ -877,5 +877,7 @@
     wadah.replaceChildren(kembali, kepala, bagianIsi, bagianLaporan);
   }
 
-  window.HamasahBerandaMusyrif = Object.freeze({ render, santri });
+  // fotoUrl dan unggahFoto juga dipakai detail santri di portal.js, supaya cache foto dan
+// cara mengecilkan foto sama di kedua tempat.
+window.HamasahBerandaMusyrif = Object.freeze({ render, santri, fotoUrl, unggahFoto });
 })();

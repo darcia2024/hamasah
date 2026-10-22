@@ -546,6 +546,101 @@ body.staff-page .lms-head__title { font-size: clamp(28px, 2.6vw, 34px) !importan
 body.staff-page.in-crm .k26-hero .coursue-hero-title { font-size: clamp(30px, 3.2vw, 40px) !important; }
 body.staff-page.in-crm .admin-kpi__value { font-size: clamp(26px, 2.4vw, 32px) !important; }
 
+/* Menu mobile: identitas, navigasi, dan tombol tutup dalam satu panel. */
+.crm-drawer-close { display: none; }
+@media (max-width: 800px) {
+  body.in-crm .crm-sidebar {
+    width: min(88vw, 344px);
+    min-width: 0;
+    height: 100dvh;
+    border-radius: 0 24px 24px 0;
+    background: #FFFFFF !important;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    overscroll-behavior: contain;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  body.in-crm .crm-shell.is-drawer-open .crm-sidebar { box-shadow: 12px 0 48px rgba(31, 29, 24, 0.18) !important; }
+  body.in-crm .crm-sidebar-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    flex: none;
+    gap: 8px;
+    padding: max(20px, env(safe-area-inset-top)) 18px 18px;
+    background: #FFFFFF;
+    border-bottom: 1px solid #F0EDE7;
+  }
+  body.in-crm .crm-sidebar .crm-collapse-btn { display: none; }
+  .crm-drawer-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid #E7E3DB;
+    border-radius: 12px;
+    background: #FAF9F6;
+    color: #363638;
+    cursor: pointer;
+  }
+  .crm-drawer-close:focus-visible,
+  body.in-crm .crm-drawer-toggle:focus-visible { outline: 2px solid #856000; outline-offset: 3px; }
+  body.in-crm .crm-drawer-toggle {
+    width: auto;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 12px;
+    border-color: #E4E1DA;
+    background: #FFFFFF;
+    color: #363638;
+  }
+  body.in-crm .crm-drawer-toggle-label { font-size: 14px; }
+  body.in-crm .crm-sidebar .crm-brand-logo { width: 32px; height: 32px; }
+  body.in-crm .crm-sidebar .crm-brand-title { font-size: 18px; }
+  body.in-crm .crm-sidebar .crm-brand-sub { font-size: 10px; letter-spacing: 0.1em; }
+  body.in-crm .crm-sidebar .crm-user-card {
+    flex: none;
+    margin: 18px 16px 20px !important;
+    padding: 14px !important;
+    border-radius: 14px !important;
+    border: 1px solid #ECE7D9 !important;
+    background: #FCFAF3 !important;
+  }
+  body.in-crm .crm-sidebar .crm-user-avatar { width: 44px; height: 44px; flex: 0 0 44px; }
+  body.in-crm .crm-sidebar .crm-user-info { min-width: 0; }
+  body.in-crm .crm-sidebar .crm-user-name { font-size: 16px; overflow-wrap: anywhere; }
+  body.in-crm .crm-sidebar .crm-user-role-pill { margin-top: 4px; font-size: 12px; }
+  body.in-crm .crm-sidebar .crm-nav-group-title { padding: 0 22px 10px; font-size: 11px; }
+  body.in-crm .crm-sidebar .crm-nav { flex: 0 0 auto; gap: 6px; padding: 0 16px 20px; }
+  body.in-crm .crm-sidebar .crm-nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+    padding: 13px 14px !important;
+    border-radius: 12px !important;
+    font-size: 15px;
+    line-height: 1.4;
+    color: #55534F !important;
+  }
+  body.in-crm .crm-sidebar .crm-nav a svg { width: 20px; height: 20px; flex: 0 0 20px; }
+  body.in-crm .crm-sidebar .crm-nav a:hover { transform: none; }
+  body.in-crm .crm-sidebar .crm-nav a[aria-current='page'] {
+    color: #644900 !important;
+    background: #FBEFC4 !important;
+    box-shadow: inset 0 0 0 1px #EFD991 !important;
+  }
+  body.in-crm .crm-sidebar .crm-nav a[aria-current='page']::before { display: none; }
+  body.in-crm .crm-sidebar .crm-sidebar-footer { margin-top: auto; padding: 18px 22px; }
+  .crm-drawer-backdrop { background: rgba(24, 23, 20, 0.45); }
+  @media (prefers-reduced-motion: reduce) {
+    .crm-sidebar, .crm-drawer-backdrop { transition: none !important; }
+  }
+}
+
 /* ------------------------------------------------------------------ Layar kecil */
 @media (max-width: 900px) {
   body.in-crm .crm-canvas { padding: 20px 16px 64px; }

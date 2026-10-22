@@ -442,6 +442,63 @@ function inisialNama(nama) {
   return ((kata[0] || '?')[0] + (kata.length > 1 ? kata[kata.length - 1][0] : '')).toUpperCase();
 }
 
+// Foto santri di kartu ringkasan detail santri. Inisial tampil lebih dulu dan diganti foto
+// bila ada (unggahan admin/musyrif, atau pas foto dari berkas pendaftaran). Ambil dan unggah
+// memakai fungsi beranda-musyrif.js supaya cache dan pengecilan fotonya sama.
+function pasangFotoSantri(wadah, student, bolehUbah) {
+  const musyrif = window.HamasahBerandaMusyrif;
+  if (!wadah || !musyrif || !musyrif.fotoUrl) return;
+  const bingkai = wadah.querySelector('.crm-summary-photo');
+
+  function tampilkan(url) {
+    const lama = bingkai.querySelector('img');
+    if (lama) lama.remove();
+    if (!url) return;
+    const img = document.createElement('img');
+    img.className = 'crm-summary-photo__img';
+    img.alt = `Foto ${student.name}`;
+    img.decoding = 'async';
+    img.src = url;
+    bingkai.append(img);
+    bingkai.classList.add('has-img');
+  }
+  musyrif.fotoUrl(student.id, requestHeaders()).then(tampilkan);
+
+  if (!bolehUbah || !musyrif.unggahFoto) return;
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/jpeg,image/png,image/webp';
+  input.hidden = true;
+  const tombol = document.createElement('button');
+  tombol.type = 'button';
+  tombol.className = 'crm-summary-photo__action';
+  const label = () => (bingkai.classList.contains('has-img') ? 'Ganti foto' : 'Tambah foto');
+  tombol.textContent = 'Tambah foto';
+  musyrif.fotoUrl(student.id, requestHeaders()).then(() => { tombol.textContent = label(); });
+  const status = document.createElement('p');
+  status.className = 'crm-summary-photo__status';
+  status.setAttribute('role', 'status');
+  tombol.addEventListener('click', () => input.click());
+  input.addEventListener('change', async () => {
+    const file = input.files && input.files[0];
+    input.value = '';
+    if (!file) return;
+    tombol.disabled = true;
+    status.textContent = 'Mengunggah foto...';
+    try {
+      await musyrif.unggahFoto(student.id, file, requestHeaders());
+      tampilkan(await musyrif.fotoUrl(student.id, requestHeaders()));
+      status.textContent = 'Foto tersimpan.';
+    } catch (error) {
+      status.textContent = error.message || 'Foto belum dapat diunggah.';
+    } finally {
+      tombol.disabled = false;
+      tombol.textContent = label();
+    }
+  });
+  wadah.append(tombol, input, status);
+}
+
 // Kartu profil wali dan santri: kepala gelap berisi inisial, nama, program, asrama, dan
 // tiga angka utama (sholat berjamaah, hafalan, kehadiran). Angka hafalan diisi setelah
 // data juz dimuat oleh perjalanan-santri.js.
@@ -599,11 +656,16 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
 
   summaryCard.innerHTML = `
     <div class="crm-summary-col">
-      <div>
-        <div class="crm-summary-title-row">
-          <h2 class="crm-summary-title">${escapeHtml(student.name)}</h2>
+      <div class="crm-summary-identity">
+        <div class="crm-summary-photo-wrap">
+          <span class="crm-summary-photo"><span class="crm-summary-photo__initials">${escapeHtml(inisialNama(student.name))}</span></span>
         </div>
-        ${subtitle ? `<p class="crm-summary-subtitle">${escapeHtml(subtitle)}</p>` : ''}
+        <div>
+          <div class="crm-summary-title-row">
+            <h2 class="crm-summary-title">${escapeHtml(student.name)}</h2>
+          </div>
+          ${subtitle ? `<p class="crm-summary-subtitle">${escapeHtml(subtitle)}</p>` : ''}
+        </div>
       </div>
       <div>
         <p class="crm-field-label">BERGABUNG</p>
@@ -641,6 +703,7 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
       </div>
     </div>
   `;
+  pasangFotoSantri(summaryCard.querySelector('.crm-summary-photo-wrap'), student, canRecord);
 
   const attendanceEntries = dashboard.attendance.entries || [];
   const prayerEntries = attendanceEntries.filter((entry) => PRAYER_PATTERN.test(entry.category || ''));
@@ -1173,8 +1236,16 @@ function renderExecutiveDashboard(_daftarAwal, account) {
     bukaSantri(student.id);
   }
 
+  // Detail santri selalu dibuka dari atas: tanpa ini layar tetap di posisi gulir dashboard
+  // (misalnya di tengah tabel santri). Hanya di sini, bukan di loadDashboard, supaya
+  // mengganti periode di dalam detail santri tidak melompat ke atas.
   function bukaSantri(studentId) {
-    loadDashboard(studentId, account, () => renderExecutiveDashboard(null, account)).catch((err) => {
+    loadDashboard(studentId, account, () => renderExecutiveDashboard(null, account)).then(() => {
+      // 'instant': html memakai scroll-behavior: smooth, dan halaman baru tidak perlu animasi.
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      const kembali = document.querySelector('#crm-back-btn');
+      if (kembali) kembali.focus({ preventScroll: true });
+    }).catch((err) => {
       alert(err.message || 'Dashboard belum dapat dimuat.');
     });
   }
@@ -1349,7 +1420,7 @@ function renderBerandaSantri(student, account) {
   const layout = document.createElement('div');
   layout.className = 'coursue-layout coursue-layout--tunggal crm-view-enter';
   const mainCol = document.createElement('div');
-  mainCol.className = 'coursue-main-col';
+  mainCol.className = 'coursue-main-col snt-home';
 
   const hero = document.createElement('div');
   hero.className = 'coursue-hero-banner';

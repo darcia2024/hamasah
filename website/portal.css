@@ -7972,3 +7972,103 @@ button.santri-juz__cell:focus-visible {
     margin-top: 0;
   }
 }
+
+/* Foto santri di kartu ringkasan detail santri (21 Oktober 2026). Inisial tampil sampai
+   foto termuat; admin dan musyrif mendapat tombol tambah/ganti foto di bawahnya. */
+.crm-summary-identity {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.crm-summary-photo-wrap {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 104px;
+}
+
+.crm-summary-photo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  overflow: hidden;
+  border-radius: 22px;
+  background: #FBEFC4;
+  color: #6B4D00;
+  box-shadow: 0 0 0 1px rgba(54, 54, 56, 0.06);
+}
+
+.crm-summary-photo__initials {
+  font-family: 'Philosopher', serif;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.crm-summary-photo__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.crm-summary-photo__action {
+  padding: 4px 6px;
+  font: inherit;
+  font-size: var(--fs-13);
+  font-weight: 600;
+  color: var(--gold-dark);
+  background: none;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.crm-summary-photo__action:hover,
+.crm-summary-photo__action:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.crm-summary-photo__action:disabled {
+  color: var(--md-sys-color-outline);
+  cursor: progress;
+}
+
+.crm-summary-photo__status {
+  margin: 0;
+  font-size: var(--fs-12);
+  line-height: 1.3;
+  text-align: center;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.crm-summary-photo__status:empty {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .crm-summary-identity {
+    gap: 14px;
+  }
+
+  .crm-summary-photo-wrap {
+    width: 80px;
+  }
+
+  .crm-summary-photo {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+  }
+
+  .crm-summary-photo__initials {
+    font-size: 26px;
+  }
+}

@@ -146,6 +146,20 @@ async function run() {
   assert.deepEqual((await service.getStudentCourse('student-1', courseId, student)).value.materials.map((m) => m.id), [...ids].reverse());
   assert.equal((await service.reorderMaterials(courseId, ids, otherTeacher)).ok, false);
 
+  // Pratinjau ruang belajar: isi sama dengan yang dilihat santri, tanpa progres siapa pun.
+  const pratinjau = await service.previewCourse(courseId, admin);
+  assert.equal(pratinjau.ok, true);
+  const dilihatSantri = (await service.getStudentCourse('student-1', courseId, student)).value;
+  assert.deepEqual(pratinjau.value.materials.map((m) => [m.id, m.type, m.title]), dilihatSantri.materials.map((m) => [m.id, m.type, m.title]));
+  assert.equal(pratinjau.value.materials.find((m) => m.id === video.value.id).media.youtubeId, 'dQw4w9WgXcQ');
+  assert.equal(pratinjau.value.progress, 0);
+  assert.equal(pratinjau.value.materials.some((m) => m.completed || (m.attempts && m.attempts.length) || m.submission), false, 'Progres, nilai, dan kiriman santri tidak ikut.');
+  assert.equal(JSON.stringify(pratinjau.value).includes('"answer"'), false, 'Kunci jawaban tidak terkirim di pratinjau.');
+  assert.equal((await service.previewCourse(teacherCourse.value.id, teacher)).ok, true, 'Guru pengampu boleh melihat pratinjau maddahnya.');
+  assert.equal((await service.previewCourse(courseId, otherTeacher)).status, 403, 'Guru lain tidak boleh melihat pratinjau.');
+  assert.equal((await service.previewCourse(courseId, student)).ok, false);
+  assert.equal((await service.previewCourse('maddah-tidak-ada', admin)).status, 404);
+
   console.log('lms-service tests passed');
 }
 

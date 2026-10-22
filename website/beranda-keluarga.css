@@ -2671,8 +2671,27 @@ body.in-crm .snt-page .wali-grid > .crm-white-card,
 .snt-event__text span { font-size: var(--fs-13); color: var(--md-sys-color-on-surface-variant); }
 .snt-event__count { font-size: var(--fs-13); font-weight: 600; color: var(--gold-dark); white-space: nowrap; }
 
+/* Kelompok beranda santri (21 Oktober 2026): Urusanku, Perkembanganku, Belajar, Kabar asrama,
+   Riwayat. Judul Philosopher dan satu kalimat penjelasan, dipisah jarak lega dan satu garis
+   emas pendek supaya peralihan antarkelompok terbaca sekilas. */
+.snt-group { display: grid; padding-top: 40px; }
+.snt-group__head { display: grid; gap: 6px; padding-bottom: 18px; }
+.snt-group__head::before { content: ""; width: 36px; height: 3px; margin-bottom: 8px; border-radius: 2px; background: #E7B10C; }
+.snt-group__title { margin: 0; font-family: "Philosopher", Georgia, serif; font-size: clamp(24px, 2.4vw, 30px); font-weight: 700; line-height: 1.15; color: var(--md-sys-color-on-surface); }
+.snt-group__note { margin: 0; max-width: 60ch; font-size: var(--fs-14); line-height: 1.55; color: var(--md-sys-color-on-surface-variant); }
+.snt-group .wali-grid.is-single { grid-template-columns: minmax(0, 1fr); }
+
+/* Iqamah lalu izin, masing-masing selebar penuh. */
+.snt-stack { display: grid; gap: 20px; }
+.snt-stack > * { margin: 0 !important; }
+
 @media (max-width: 860px) {
   .snt-today { grid-template-columns: minmax(0, 1fr); padding: 22px 18px; border-radius: 22px; }
+  .snt-stack { gap: 16px; }
+}
+
+@media (max-width: 640px) {
+  .snt-group { padding-top: 32px; }
 }
 
 @media (max-width: 640px) {
@@ -3194,4 +3213,145 @@ body.in-crm .snt-page .wali-grid > .crm-white-card,
   .iqm-cc,
   .iqm-cc::after { transition: none; }
   .iqm-cc:hover { transform: none; }
+}
+
+/* Urusan santri: informasi utama tetap terbaca pada panel berukuran ringkas. */
+.snt-affairs {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+.snt-affairs.is-single { grid-template-columns: minmax(0, 1fr); }
+body.in-crm .snt-page .snt-affairs > .crm-white-card {
+  min-width: 0;
+  margin: 0;
+  padding: 24px !important;
+  border: 1px solid #E4E1DA !important;
+  border-radius: 16px !important;
+  background: #FFFFFF !important;
+  box-shadow: none !important;
+}
+.snt-group--urusan .snt-group__head { padding-bottom: 16px; }
+.snt-group--urusan .snt-group__head::before { display: none; }
+.snt-affairs .santri-card__head { margin-bottom: 18px; }
+.snt-affairs .santri-card__title { margin: 0 0 6px; font-size: 22px; }
+.snt-affairs .santri-card__note { margin: 0; font-size: 15px; line-height: 1.5; }
+.iqm-card--summary .iqm-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.iqm-card--summary .iqm-cc {
+  max-width: 360px;
+  min-width: 0;
+  justify-self: start;
+  box-sizing: border-box;
+  box-shadow: 0 8px 18px -12px rgba(0, 0, 0, 0.4);
+}
+.iqm-card--summary .iqm-cc:hover { transform: none; }
+.iqm-card--summary .iqm-cc__mid { flex-wrap: wrap; gap: 8px; }
+.iqm-card--summary .iqm-cc__count strong { font-size: 32px; }
+.iqm-card--summary .iqm-cc__count strong.is-text { font-size: 20px; }
+.iqm-card--summary .iqm-cc .iqm-chip { font-size: 11px; }
+.iqm-card--summary .iqm-cc__name { white-space: nowrap; }
+.iqm-summary {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #E9E5DA;
+  border-radius: 12px;
+  background: #FAF9F5;
+}
+.iqm-summary__date { display: grid; gap: 6px; min-width: 0; }
+.iqm-summary__label { font-size: 13px; color: #65635F; }
+.iqm-summary__date strong { font-size: 20px; font-weight: 600; line-height: 1.3; }
+.iqm-summary .iqm-chip { flex: none; font-size: 12px; }
+.iqm-summary__remaining { flex-basis: 100%; margin: 0; font-size: 14px; font-weight: 600; }
+.iqm-card--summary .iqm-hero__hint { font-size: 15px; line-height: 1.6; margin: 0 0 16px; }
+body.in-crm .snt-page .snt-affairs .button {
+  min-height: 42px;
+  padding: 10px 16px;
+  border-radius: 10px !important;
+  font-size: 15px;
+  line-height: 1.4;
+  white-space: normal;
+  box-shadow: none !important;
+}
+.iqm-card--summary .iqm-actions { margin: 0; }
+.iqm-card--summary .form-status:empty { display: none; }
+.iqm-card--summary .iqm-form { grid-template-columns: minmax(0, 1fr); }
+.snt-section-nav { display: none; }
+.snt-page .snt-group,
+.snt-page .snt-today { scroll-margin-top: 88px; }
+.snt-agenda-more { margin-top: 8px; }
+.snt-agenda-more > summary {
+  min-height: 44px;
+  padding: 12px 4px;
+  cursor: pointer;
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: #745400;
+}
+.snt-agenda-more > summary:focus-visible { outline: 2px solid #856000; outline-offset: 2px; }
+@media (max-width: 760px) {
+  .snt-affairs { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  body.in-crm .snt-page .snt-affairs > .crm-white-card { padding: 20px !important; }
+}
+
+@media (max-width: 640px) {
+  .snt-section-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0 0 16px;
+  }
+  .snt-section-nav a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 8px;
+    border: 1px solid #E4E1DA;
+    border-radius: 10px;
+    background: #FFFFFF;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #363638;
+    text-decoration: none;
+    text-align: center;
+  }
+  .snt-section-nav a:focus-visible { outline: 2px solid #856000; outline-offset: 2px; }
+  .snt-section-nav a[href='#santri-urusan'] { background: #FFF6D9; border-color: #D9BC68; }
+  body.in-crm .snt-home .coursue-hero-banner.k26-hero { padding: 20px 18px !important; border-radius: 18px !important; }
+  body.in-crm .snt-home .k26-hero .coursue-hero-title { font-size: 26px !important; line-height: 1.2 !important; }
+  body.in-crm .snt-home .k26-date { font-size: 12px; line-height: 1.5; margin-bottom: 8px; }
+  body.in-crm .snt-home .k26-hero .coursue-hero-subtitle { font-size: 14px !important; line-height: 1.5 !important; }
+  body.in-crm .snt-home .k26-shortcuts { display: none; }
+  .snt-page .snt-today { margin: 0; padding: 18px 14px; gap: 16px; border-radius: 18px; }
+  .snt-page .snt-today__side { gap: 8px; }
+  .snt-page .snt-tile { padding: 12px; border-radius: 12px; }
+  .snt-page .snt-tile--event { display: none; }
+  .snt-page .snt-agenda__item { grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 10px 12px; }
+  .snt-page .snt-agenda__flag { grid-column: 1; justify-self: start; margin-top: 4px; }
+  .snt-page .snt-agenda__text strong { font-size: 16px; line-height: 1.4; }
+  .snt-page .snt-today__empty { font-size: 15px; line-height: 1.5; }
+  .snt-page .snt-quick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .snt-page .snt-quick__btn { min-height: 44px; padding: 10px; border-radius: 10px; font-size: 14px; text-align: center; line-height: 1.4; }
+  .snt-page .snt-quick__btn:last-child { grid-column: 1 / -1; }
+  .snt-page .snt-group { padding-top: 28px; }
+  .snt-page .snt-group__head { padding-bottom: 14px; gap: 6px; }
+  .snt-page .snt-group__title { font-size: 24px; }
+  .snt-page .snt-group__note { font-size: 14px; line-height: 1.5; }
+  .snt-page .wali-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 0; }
+  .snt-page .wali-stat:nth-child(odd) { padding-left: 0; border-left: 0; }
+  .snt-page .wali-stat:nth-child(even) { padding-left: 16px; }
+  .snt-page .wali-stat__value { font-size: 30px; }
+  body.in-crm .snt-page .snt-affairs .button { min-height: 44px; }
+  .snt-page .iqm-card--summary .iqm-actions { flex-direction: column; align-items: stretch; }
+  .snt-page .iqm-card--summary .iqm-actions .button { width: 100%; justify-content: center; }
+  .snt-page .iqm-card--summary .iqm-cc { justify-self: center; }
+  .snt-page .santri-leave-form input,
+  .snt-page .santri-leave-form select,
+  .snt-page .santri-leave-form textarea { font-size: 16px; min-height: 44px; max-width: 100%; }
 }

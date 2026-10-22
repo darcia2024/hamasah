@@ -535,6 +535,16 @@
   toggle.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span class="crm-drawer-toggle-label">Menu</span>';
   topbar.prepend(toggle);
 
+  const closeButton = document.createElement('button');
+  closeButton.type = 'button';
+  closeButton.className = 'crm-drawer-close';
+  closeButton.setAttribute('aria-label', 'Tutup menu');
+  closeButton.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg>';
+  const sidebarHeader = sidebar.querySelector('.crm-sidebar-header');
+  if (sidebarHeader) sidebarHeader.append(closeButton);
+  const workspace = shell.querySelector('.crm-workspace');
+  const originalSidebarRole = sidebar.getAttribute('role');
+
   const backdrop = document.createElement('button');
   backdrop.type = 'button';
   backdrop.className = 'crm-drawer-backdrop';
@@ -884,7 +894,12 @@
     toggle.setAttribute('aria-expanded', 'false');
     toggle.setAttribute('aria-label', 'Buka navigasi samping');
     sidebar.removeAttribute('aria-modal');
+    if (originalSidebarRole) sidebar.setAttribute('role', originalSidebarRole);
+    else sidebar.removeAttribute('role');
+    sidebar.removeAttribute('aria-label');
     sidebar.setAttribute('aria-hidden', isMobile() ? 'true' : 'false');
+    sidebar.inert = isMobile();
+    if (workspace) workspace.inert = false;
     document.body.classList.remove('crm-drawer-open');
     if (returnFocus) toggle.focus();
   }
@@ -895,10 +910,13 @@
     toggle.setAttribute('aria-expanded', 'true');
     toggle.setAttribute('aria-label', 'Tutup navigasi samping');
     sidebar.setAttribute('aria-hidden', 'false');
+    sidebar.inert = false;
+    sidebar.setAttribute('role', 'dialog');
+    sidebar.setAttribute('aria-label', 'Menu navigasi Hamasah');
     sidebar.setAttribute('aria-modal', 'true');
+    if (workspace) workspace.inert = true;
     document.body.classList.add('crm-drawer-open');
-    const first = focusables()[0];
-    if (first) first.focus();
+    closeButton.focus();
   }
 
   toggle.addEventListener('click', () => {
@@ -906,6 +924,7 @@
     else openDrawer();
   });
   backdrop.addEventListener('click', () => closeDrawer({ returnFocus: true }));
+  closeButton.addEventListener('click', () => closeDrawer({ returnFocus: true }));
   sidebar.addEventListener('click', (event) => {
     if (event.target.closest('a')) closeDrawer();
   });
@@ -931,6 +950,11 @@
   });
   window.addEventListener('resize', () => {
     if (!isMobile()) closeDrawer();
+    else if (toggle.getAttribute('aria-expanded') !== 'true') {
+      sidebar.setAttribute('aria-hidden', 'true');
+      sidebar.inert = true;
+    }
   });
   sidebar.setAttribute('aria-hidden', isMobile() ? 'true' : 'false');
+  sidebar.inert = isMobile();
 })();

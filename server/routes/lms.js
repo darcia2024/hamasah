@@ -40,6 +40,17 @@ module.exports = [
     }
   },
 
+  // Pratinjau ruang belajar untuk admin dan guru pengampu (lms-service previewCourse).
+  {
+    method: 'GET',
+    pattern: /^\/api\/courses\/([\w-]+)\/pratinjau$/,
+    permission: 'courses.manage',
+    async handler({ response, services, auth, params }) {
+      const hasil = await services.lmsService.previewCourse(params[0], await auth.actor());
+      json(response, hasil.ok ? 200 : (hasil.status || 422), hasil.ok ? { course: hasil.value } : publicError(hasil));
+    }
+  },
+
   {
     method: 'GET',
     pattern: /^\/api\/courses$/,
