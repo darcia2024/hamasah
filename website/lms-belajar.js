@@ -160,40 +160,47 @@
         wadahIsi.append(a);
       }
       if (m.content) wadahIsi.append(paragraf(m.content));
+      // Modul PDF pertemuan, tepat di bawah catatan video (sebelum asisten belajar).
+      if (media.fileId) wadahIsi.append(kartuPdf(media, { judul: 'Modul pertemuan', keterangan: 'Baca langsung atau unduh untuk dipelajari tanpa internet.' }));
       return wadahIsi;
     }
 
     function isiPdf(m) {
       const wadahIsi = el('div', 'lms-content');
       const media = m.media || {};
-      if (media.fileId) {
-        const kartu = el('div', 'lms-pdf');
-        kartu.append(el('span', 'lms-pdf__icon', 'PDF'));
-        const info = el('div', 'lms-pdf__info');
-        info.append(el('strong', '', media.fileName || 'Materi PDF'), el('span', 'mus-note', 'Buka di tab baru untuk membaca, atau unduh untuk disimpan.'));
-        const st = el('p', 'mus-status');
-        const ambilBlob = async () => {
-          const response = await fetch(`/api/files/${encodeURIComponent(media.fileId)}`, { headers: headers() });
-          if (!response.ok) throw new Error('PDF belum dapat dibuka.');
-          return URL.createObjectURL(await response.blob());
-        };
-        const baca = tombol('Baca PDF', 'button button--primary');
-        baca.addEventListener('click', async () => {
-          const jendela = window.open('', '_blank');
-          try { const url = await ambilBlob(); if (jendela) jendela.location.href = url; else window.location.href = url; } catch (error) { if (jendela) jendela.close(); st.textContent = error.message; st.className = 'mus-status is-galat'; }
-        });
-        const unduh = tombol('Unduh');
-        unduh.addEventListener('click', async () => {
-          try { const url = await ambilBlob(); const a = el('a'); a.href = url; a.download = media.fileName || 'materi.pdf'; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); } catch (error) { st.textContent = error.message; st.className = 'mus-status is-galat'; }
-        });
-        const aksi = el('div', 'mus-actions');
-        aksi.append(baca, unduh);
-        info.append(aksi, st);
-        kartu.append(info);
-        wadahIsi.append(kartu);
-      }
+      if (media.fileId) wadahIsi.append(kartuPdf(media));
       if (m.content) wadahIsi.append(paragraf(m.content));
       return wadahIsi;
+    }
+
+    // Kartu berkas PDF dengan tombol baca dan unduh; dipakai materi PDF dan modul video.
+    // Berkas diambil lewat /api/files/:id (akses diperiksa server, course-file).
+    function kartuPdf(media, { judul = null, keterangan = 'Buka di tab baru untuk membaca, atau unduh untuk disimpan.' } = {}) {
+      const kartu = el('div', 'lms-pdf');
+      kartu.append(el('span', 'lms-pdf__icon', 'PDF'));
+      const info = el('div', 'lms-pdf__info');
+      if (judul) info.append(el('span', 'lms-pdf__eyebrow', judul));
+      info.append(el('strong', '', media.fileName || 'Materi PDF'), el('span', 'mus-note', keterangan));
+      const st = el('p', 'mus-status');
+      const ambilBlob = async () => {
+        const response = await fetch(`/api/files/${encodeURIComponent(media.fileId)}`, { headers: headers() });
+        if (!response.ok) throw new Error('PDF belum dapat dibuka.');
+        return URL.createObjectURL(await response.blob());
+      };
+      const baca = tombol('Baca PDF', 'button button--primary');
+      baca.addEventListener('click', async () => {
+        const jendela = window.open('', '_blank');
+        try { const url = await ambilBlob(); if (jendela) jendela.location.href = url; else window.location.href = url; } catch (error) { if (jendela) jendela.close(); st.textContent = error.message; st.className = 'mus-status is-galat'; }
+      });
+      const unduh = tombol('Unduh');
+      unduh.addEventListener('click', async () => {
+        try { const url = await ambilBlob(); const a = el('a'); a.href = url; a.download = media.fileName || 'materi.pdf'; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); } catch (error) { st.textContent = error.message; st.className = 'mus-status is-galat'; }
+      });
+      const aksi = el('div', 'mus-actions');
+      aksi.append(baca, unduh);
+      info.append(aksi, st);
+      kartu.append(info);
+      return kartu;
     }
 
     function isiKuis(m) {
@@ -589,7 +596,8 @@
         if (x.media && x.media.youtubeId) thumb.append(el('span', 'lms-thumb__source', '▶ Video YouTube'));
         const teks = el('span', 'lms-toc__text');
         const kaki = el('span', 'lms-toc__foot');
-        kaki.append(el('span', '', LABEL_JENIS[x.type] || x.type), el('span', '', pratinjau ? '' : x.completed ? 'Selesai' : dibuka ? sedang : 'Belum mulai'));
+        const jenisTeks = `${LABEL_JENIS[x.type] || x.type}${x.type === 'video' && x.media && x.media.fileId ? ' · Modul PDF' : ''}`;
+        kaki.append(el('span', '', jenisTeks), el('span', '', pratinjau ? '' : x.completed ? 'Selesai' : dibuka ? sedang : 'Belum mulai'));
         teks.append(el('span', 'lms-toc__title', x.title), kaki);
         b.append(thumb, teks);
         b.addEventListener('click', () => pilihMateri(x.id));

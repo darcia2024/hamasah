@@ -8,9 +8,11 @@
 // Endpoint yang dipakai sama dengan konsol lama (/api/courses, /api/lms/*). Semua teks
 // dipasang lewat textContent.
 (function initLmsStudio() {
+  // Video lebih dulu dan menjadi bawaan: setiap pertemuan kelas online berupa video YouTube
+  // dengan modul PDF opsional (22 Oktober 2026).
   const JENIS = [
+    ['video', 'Video', 'Tautan YouTube + modul PDF opsional untuk diunduh santri.'],
     ['text', 'Bacaan', 'Teks materi, ringkasan bab, atau rujukan kitab.'],
-    ['video', 'Video', 'Tautan YouTube; diputar langsung di portal.'],
     ['pdf', 'PDF', 'Unggah berkas PDF; santri membacanya di portal.'],
     ['quiz', 'Kuis', 'Pilihan ganda atau isian, dinilai otomatis.'],
     ['assignment', 'Tugas', 'Santri mengirim jawaban, Anda menilai.']
@@ -195,7 +197,7 @@
 
     // ------------------------------------------------------------ Penyusun materi
     function formMateri(course, materi, { onSelesai }) {
-      const jenisAwal = materi ? materi.type : 'text';
+      const jenisAwal = materi ? materi.type : 'video';
       const panel = el('section', 'lms-composer');
       const kepala = el('header', 'lms-composer__head');
       kepala.append(el('h3', 'mus-title', materi ? `Ubah materi: ${materi.title}` : 'Materi baru'));
@@ -242,6 +244,40 @@
       }
       const teksLama = materi && !String(materi.content || '').trim().startsWith('{') ? materi.content : '';
 
+      // Pemilih berkas PDF, dipakai materi PDF dan modul video. ambil() memberi
+      // { fileId, fileName } atau null bila belum ada berkas.
+      function pemilihPdf({ kosong, pilih: teksPilih }) {
+        let berkas = isiLama.fileId ? { fileId: isiLama.fileId, fileName: isiLama.fileName || 'materi.pdf' } : null;
+        const info = el('p', 'lms-file');
+        const segarInfo = () => { info.textContent = berkas ? `Berkas: ${berkas.fileName}` : kosong; info.classList.toggle('has-file', Boolean(berkas)); };
+        segarInfo();
+        const masukan = el('input');
+        masukan.type = 'file';
+        masukan.accept = 'application/pdf';
+        masukan.id = idBaru('pdf');
+        masukan.className = 'mus-visually-hidden';
+        const lbl = el('label', 'button button--secondary lms-upload', berkas ? 'Ganti PDF' : teksPilih);
+        lbl.htmlFor = masukan.id;
+        const st = status();
+        masukan.addEventListener('change', async () => {
+          const file = masukan.files && masukan.files[0];
+          if (!file) return;
+          if (file.type !== 'application/pdf') { st.galat('Hanya berkas PDF.'); return; }
+          st.ok('Mengunggah PDF...');
+          try {
+            berkas = { fileId: await unggahPdf(course.id, file), fileName: file.name };
+            segarInfo();
+            lbl.textContent = 'Ganti PDF';
+            st.ok('PDF terunggah.');
+          } catch (error) { st.galat(error.message); } finally { masukan.value = ''; }
+        });
+        const baris = el('div', 'mus-form__row');
+        baris.append(lbl, masukan);
+        const wadahPdf = el('div', 'lms-pdf-pick');
+        wadahPdf.append(info, baris, st.el);
+        return { el: wadahPdf, ambil: () => berkas };
+      }
+
       function lukisIsi() {
         isiWadah.replaceChildren();
         if (jenis === 'text' || jenis === 'assignment') {
@@ -274,39 +310,23 @@
           };
           url.input.addEventListener('change', segarPratinjau);
           segarPratinjau();
-          isiWadah.append(url.el, pratinjau, catatan.el);
-          ambilIsi = () => (url.nilai() ? JSON.stringify({ url: url.nilai(), teks: catatan.nilai() }) : '');
+          const modul = pemilihPdf({ kosong: 'Belum ada modul. Santri tetap bisa menonton videonya.', pilih: 'Unggah modul PDF' });
+          const judulModul = el('p', 'mus-label', 'Modul PDF (opsional)');
+          isiWadah.append(url.el, pratinjau, catatan.el, judulModul, modul.el);
+          ambilIsi = () => {
+            if (!url.nilai()) return '';
+            const berkas = modul.ambil();
+            return JSON.stringify(berkas ? { url: url.nilai(), teks: catatan.nilai(), fileId: berkas.fileId, fileName: berkas.fileName } : { url: url.nilai(), teks: catatan.nilai() });
+          };
         } else if (jenis === 'pdf') {
-          let berkas = isiLama.fileId ? { fileId: isiLama.fileId, fileName: isiLama.fileName || 'materi.pdf' } : null;
-          const info = el('p', 'lms-file');
-          const segarInfo = () => { info.textContent = berkas ? `Berkas: ${berkas.fileName}` : 'Belum ada berkas PDF.'; info.classList.toggle('has-file', Boolean(berkas)); };
-          segarInfo();
-          const pilih = el('input');
-          pilih.type = 'file';
-          pilih.accept = 'application/pdf';
-          pilih.id = idBaru('pdf');
-          const lbl = el('label', 'button button--secondary lms-upload', berkas ? 'Ganti PDF' : 'Pilih PDF');
-          lbl.htmlFor = pilih.id;
-          pilih.className = 'mus-visually-hidden';
-          const st = status();
-          pilih.addEventListener('change', async () => {
-            const file = pilih.files && pilih.files[0];
-            if (!file) return;
-            if (file.type !== 'application/pdf') { st.galat('Hanya berkas PDF.'); return; }
-            st.ok('Mengunggah PDF...');
-            try {
-              berkas = { fileId: await unggahPdf(course.id, file), fileName: file.name };
-              segarInfo();
-              lbl.textContent = 'Ganti PDF';
-              st.ok('PDF terunggah.');
-            } catch (error) { st.galat(error.message); } finally { pilih.value = ''; }
-          });
+          const pdf = pemilihPdf({ kosong: 'Belum ada berkas PDF.', pilih: 'Pilih PDF' });
           const catatan = bidang('Catatan untuk santri (opsional)', 'textarea', { nilai: isiLama.teks || teksLama });
           catatan.input.rows = 3;
-          const baris = el('div', 'mus-form__row');
-          baris.append(lbl, pilih);
-          isiWadah.append(info, baris, st.el, catatan.el);
-          ambilIsi = () => (berkas ? JSON.stringify({ fileId: berkas.fileId, fileName: berkas.fileName, teks: catatan.nilai() }) : '');
+          isiWadah.append(pdf.el, catatan.el);
+          ambilIsi = () => {
+            const berkas = pdf.ambil();
+            return berkas ? JSON.stringify({ fileId: berkas.fileId, fileName: berkas.fileName, teks: catatan.nilai() }) : '';
+          };
         } else if (jenis === 'quiz') {
           const daftar = el('ol', 'lms-quiz-builder2');
           const soalLama = Array.isArray(isiLama.questions) ? isiLama.questions : [];

@@ -74,7 +74,11 @@ function normalkanIsi(type, content) {
     if (type === 'video') {
       const url = clean(isi.url).slice(0, 500);
       if (!POLA_YOUTUBE.test(url) && !/^https:\/\//i.test(url)) return { ok: false, error: 'Tautan video harus alamat https, misalnya tautan YouTube.' };
-      return { ok: true, value: JSON.stringify({ url, teks }) };
+      // Modul PDF opsional (22 Oktober 2026): setiap pertemuan berupa video YouTube dengan
+      // modul yang bisa diunduh santri. Unggahannya course-file milik maddah yang sama.
+      const fileId = clean(isi.fileId);
+      if (fileId && !POLA_UUID.test(fileId)) return { ok: false, error: 'Modul PDF belum selesai diunggah. Unggah ulang modulnya.' };
+      return { ok: true, value: JSON.stringify(fileId ? { url, teks, fileId, fileName: clean(isi.fileName).slice(0, 160) } : { url, teks }) };
     }
     const fileId = clean(isi.fileId);
     if (!POLA_UUID.test(fileId)) return { ok: false, error: 'Unggah berkas PDF materinya dulu.' };

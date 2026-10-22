@@ -108,6 +108,13 @@ async function run() {
   }, admin);
   assert.equal(video.ok, true, 'Poin penting tidak wajib lagi.');
   assert.equal((await service.addMaterial(courseId, { type: 'video', title: 'Video asing', summary: 'Ringkasan cukup panjang.', content: JSON.stringify({ url: 'javascript:alert(1)' }) }, admin)).ok, false);
+  // Video dengan modul PDF: santri menerima tautan video dan modulnya sekaligus.
+  const videoModul = await service.addMaterial(courseId, {
+    type: 'video', title: 'Pertemuan 2', summary: 'Pembahasan bab kalam.',
+    content: JSON.stringify({ url: 'https://youtu.be/dQw4w9WgXcQ', teks: 'Tonton lalu baca modul.', fileId: '22222222-3333-4444-8555-666666666666', fileName: 'modul-pertemuan-2.pdf' })
+  }, admin);
+  assert.equal(videoModul.ok, true);
+  assert.equal((await service.addMaterial(courseId, { type: 'video', title: 'Modul rusak', summary: 'Ringkasan cukup panjang.', content: JSON.stringify({ url: 'https://youtu.be/dQw4w9WgXcQ', fileId: 'bukan-id' }) }, admin)).ok, false);
   const pdf = await service.addMaterial(courseId, {
     type: 'pdf', title: 'Matan Ajurrumiyyah', summary: 'Matan lengkap untuk dibaca.',
     content: JSON.stringify({ fileId: '11111111-2222-4333-8444-555555555555', fileName: 'ajurrumiyyah.pdf', teks: 'Baca bab kalam.' })
@@ -129,6 +136,9 @@ async function run() {
   const mVideo = lihat.materials.find((m) => m.id === video.value.id);
   assert.equal(mVideo.media.youtubeId, 'dQw4w9WgXcQ');
   assert.equal(mVideo.content, 'Tonton sampai menit 10.');
+  assert.equal(mVideo.media.fileId, null, 'Video tanpa modul tetap tanpa lampiran.');
+  const mVideoModul = lihat.materials.find((m) => m.id === videoModul.value.id);
+  assert.deepEqual([mVideoModul.media.youtubeId, mVideoModul.media.fileId, mVideoModul.media.fileName], ['dQw4w9WgXcQ', '22222222-3333-4444-8555-666666666666', 'modul-pertemuan-2.pdf']);
   const mPdf = lihat.materials.find((m) => m.id === pdf.value.id);
   assert.deepEqual([mPdf.media.fileId, mPdf.media.fileName], ['11111111-2222-4333-8444-555555555555', 'ajurrumiyyah.pdf']);
   const mLama = lihat.materials.find((m) => m.id === material.value.id);

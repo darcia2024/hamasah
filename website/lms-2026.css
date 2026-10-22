@@ -458,6 +458,8 @@
 .lms-thumb__num { left: 10px; background: rgba(31, 31, 33, 0.78); color: #FFFFFF; backdrop-filter: blur(4px); }
 .lms-thumb__now { right: 10px; background: var(--lms-gold); color: #2B2100; }
 .lms-thumb__now.is-done { background: #1F6F3D; color: #FFFFFF; }
+.lms-pdf__eyebrow { font-size: var(--fs-12); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--lms-gold-deep); }
+.lms-pdf-pick { display: grid; gap: 8px; }
 .lms-thumb__source { position: absolute; left: 10px; bottom: 10px; padding: 3px 9px; border-radius: 999px; background: rgba(31, 31, 33, 0.78); color: #FFFFFF; font-size: var(--fs-12); font-weight: 600; backdrop-filter: blur(4px); }
 .lms-toc__text { display: grid; gap: 6px; padding: 0 2px; }
 .lms-toc__title {
