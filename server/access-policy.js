@@ -84,7 +84,7 @@ const PERMISSIONS = Object.freeze({
   'students.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.PARENT, ROLES.STUDENT]),
 
   // Membuat maddah, menambah materi, dan mendaftarkan santri ke maddah.
-  'courses.manage': Object.freeze([ROLES.ADMIN, ROLES.TEACHER]),
+  'courses.manage': Object.freeze([ROLES.ADMIN, ROLES.TEACHER, ROLES.SUPERVISOR]),
   // Membuka isi maddah. Santri hanya maddah yang diikutinya sendiri.
   'courses.read': Object.freeze([ROLES.ADMIN, ROLES.TEACHER, ROLES.SUPERVISOR, ROLES.STUDENT]),
 

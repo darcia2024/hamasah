@@ -16,6 +16,7 @@ fs.mkdirSync(path.join(SANDBOX, 'assets'), { recursive: true });
 fs.writeFileSync(path.join(SANDBOX, 'website', 'index.html'), '<h1>Beranda uji</h1>', 'utf8');
 fs.writeFileSync(path.join(SANDBOX, 'website', 'gaya.css'), 'body { color: #363638; }', 'utf8');
 fs.writeFileSync(path.join(SANDBOX, 'assets', 'logo.png'), 'bukan-png-sungguhan', 'utf8');
+fs.writeFileSync(path.join(SANDBOX, 'assets', 'font.woff2'), 'wOF2-font-fixture', 'utf8');
 fs.mkdirSync(path.join(SANDBOX, 'assets', 'tim'), { recursive: true });
 fs.writeFileSync(path.join(SANDBOX, 'assets', 'tim', 'foto.webp'), 'bukan-webp-sungguhan', 'utf8');
 fs.writeFileSync(path.join(SANDBOX, '.env'), ISI_RAHASIA_PALSU, 'utf8');
@@ -73,6 +74,10 @@ async function run() {
     const logo = await serve('/assets/logo.png');
     assert.equal(logo.status, 200);
     assert.equal(logo.headers['Content-Type'], 'image/png');
+    const font = await serve('/assets/font.woff2');
+    assert.equal(font.status, 200);
+    assert.equal(font.headers['Content-Type'], 'font/woff2');
+    assert.equal(font.isi(), 'wOF2-font-fixture');
 
     // Foto yang dulu JPEG dan kini WebP: alamat lama dialihkan, bukan 404. Hanya bila
     // berkas WebP-nya memang ada, dan hanya di dalam assets/.

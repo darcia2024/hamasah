@@ -2671,9 +2671,7 @@ body.in-crm .snt-page .wali-grid > .crm-white-card,
 .snt-event__text span { font-size: var(--fs-13); color: var(--md-sys-color-on-surface-variant); }
 .snt-event__count { font-size: var(--fs-13); font-weight: 600; color: var(--gold-dark); white-space: nowrap; }
 
-/* Kelompok beranda santri (21 Oktober 2026): Iqamah & izin, Belajar, Perkembanganku, Kabar
-   asrama, Riwayat. Judul Philosopher dan satu kalimat penjelasan, dipisah jarak lega dan satu
-   garis emas pendek supaya peralihan antarkelompok terbaca sekilas. */
+/* Kelompok beranda santri: judul dan penjelasan menjaga urutan informasi. */
 .snt-group { display: grid; padding-top: 40px; }
 .snt-group__head { display: grid; gap: 6px; padding-bottom: 18px; }
 .snt-group__head::before { content: ""; width: 36px; height: 3px; margin-bottom: 8px; border-radius: 2px; background: #E7B10C; }
@@ -3349,4 +3347,174 @@ body.in-crm .snt-page .snt-affairs .button {
   .snt-page .santri-leave-form input,
   .snt-page .santri-leave-form select,
   .snt-page .santri-leave-form textarea { font-size: 16px; min-height: 44px; max-width: 100%; }
+}
+
+/* Garis utama memisahkan urusan; garis tipis memisahkan isi di dalamnya. */
+.snt-page { --snt-divider: #D8D2C6; --wali-rule: #E4DFD5; }
+.snt-page .snt-group {
+  margin-top: 16px;
+  padding-top: 20px;
+  border-top: 2px solid var(--snt-divider);
+}
+.snt-page .snt-group__head { gap: 4px; padding-bottom: 14px; }
+.snt-page .snt-group__head::before { display: none; }
+.snt-page .snt-group__note { line-height: 1.5; }
+.snt-page .snt-today { margin-bottom: 4px; }
+.snt-page .snt-quick { border-top: 1px solid var(--snt-divider); padding-top: 14px; }
+.snt-page .snt-today__side { border-left: 1px solid var(--snt-divider); padding-left: 20px; }
+.snt-page .snt-group > .wali-section,
+.snt-page .snt-group > .wali-summary { padding-top: 16px; padding-bottom: 16px; }
+body.in-crm .snt-page .snt-class { padding: 16px 0 !important; }
+.snt-page .snt-class .beranda-class__tasks { padding-bottom: 16px; border-bottom: 1px solid var(--snt-divider); }
+.snt-page .snt-group .wali-grid { column-gap: 24px; }
+.snt-page .snt-group .wali-grid > .wali-section { padding-top: 18px; padding-bottom: 18px; }
+.snt-page .snt-group .wali-grid > .wali-section:nth-child(even) { border-left: 1px solid var(--wali-rule); padding-left: 24px; }
+@media (max-width: 860px) {
+  .snt-page .snt-today__side { border-left: 0; padding-left: 0; border-top: 1px solid var(--snt-divider); padding-top: 12px; }
+}
+@media (max-width: 640px) {
+  .snt-page .snt-group { margin-top: 18px; padding-top: 16px; }
+  .snt-page .snt-group__head { padding-bottom: 12px; }
+  .snt-page .snt-group .wali-grid > .wali-section:nth-child(even) { border-left: 0; padding-left: 0; }
+  .snt-page .snt-group .wali-grid > .wali-section + .wali-section { border-top: 1px solid var(--wali-rule); }
+}
+
+/* Garis laporan wali: pemisah utama, rincian, dan kolom responsif. */
+.wali-page:not(.snt-page) { --wali-rule: #DDD7CC; --wali-divider: #CFC7B8; }
+.wali-page:not(.snt-page) .wali-switch { border-bottom-color: var(--wali-divider); margin-bottom: 0; }
+.wali-page:not(.snt-page) .wali-summary { gap: 18px; padding: 22px 0 24px; }
+.wali-page:not(.snt-page) .wali-summary__head { padding-bottom: 18px; border-bottom: 1px solid var(--wali-rule); }
+.wali-page:not(.snt-page) .wali-report__body { line-height: 1.6; }
+.wali-page:not(.snt-page) .wali-stats { padding-top: 18px; }
+.wali-page:not(.snt-page) > .wali-section,
+.wali-page:not(.snt-page) > .wali-grid { border-top: 2px solid var(--wali-divider); }
+.wali-page:not(.snt-page) .wali-section { gap: 14px; padding-block: 24px; }
+.wali-page:not(.snt-page) .wali-section__head,
+.wali-page:not(.snt-page) .beranda-card__head { padding-bottom: 12px; border-bottom: 1px solid var(--wali-rule); }
+.wali-page:not(.snt-page) .wali-grid { column-gap: 24px; }
+.wali-page:not(.snt-page) .wali-grid > :nth-child(even) { border-left: 1px solid var(--wali-rule); padding-left: 24px; }
+.wali-page:not(.snt-page) .wali-grid > :nth-child(n + 3) { border-top: 1px solid var(--wali-rule); }
+@media (max-width: 900px) {
+  .wali-page:not(.snt-page) .wali-grid > :nth-child(even) { border-left: 0; padding-left: 0; }
+  .wali-page:not(.snt-page) .wali-grid > :nth-child(n + 2) { border-top: 2px solid var(--wali-divider); }
+  .wali-page:not(.snt-page) .wali-stats { row-gap: 0; padding-top: 0; }
+  .wali-page:not(.snt-page) .wali-stat { padding-block: 16px; }
+  .wali-page:not(.snt-page) .wali-stat:nth-child(n + 3) { border-top: 1px solid var(--wali-rule); }
+}
+
+.wali-page:not(.snt-page) .wali-attention { display: grid; gap: 10px; padding: 16px 18px; border: 1px solid #DDD3B5; border-left: 3px solid #B48B22; border-radius: 8px; background: #FFFCF3; }
+.wali-attention__title { margin: 0; font-size: 16px; font-weight: 700; }
+.wali-attention__list { margin: 0; padding-left: 20px; display: grid; gap: 8px; font-size: 14px; line-height: 1.6; }
+.wali-attention .wali-link { justify-self: start; min-height: 44px; white-space: normal; text-align: left; }
+.wali-freshness { margin: 2px 0 0; color: #696459; font-size: 12px; line-height: 1.6; }
+.wali-freshness span { display: block; }
+.wali-weekly__list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.wali-weekly__list > li + li { padding-top: 12px; border-top: 1px solid var(--wali-rule); }
+.wali-weekly__meta { margin: 0 0 4px; font-size: 12px; color: #756C5A; }
+.wali-weekly__text { margin: 0; font-size: 15px; line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
+
+/* Konsol musyrif: bidang kerja ringkas dan pemisah yang konsisten. */
+.mus-home { --mus-rule: #DED8CD; --mus-divider: #CCC3B2; gap: 0; }
+.mus-home .coursue-hero-banner { padding: 24px 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.mus-home .coursue-hero-banner::before,.mus-home .coursue-hero-banner::after { display: none; }
+.mus-home .coursue-hero-title { font-size: clamp(26px,3vw,34px); line-height: 1.2; }
+.mus-home .coursue-hero-banner .button { box-shadow: none; min-height: 44px; }
+.mus-home .coursue-hero-banner nav { border-top: 1px solid var(--mus-rule); padding-top: 16px; }
+.mus-home #tugas-musyrif { margin: 0; padding: 22px 0; border: 0; border-top: 2px solid var(--mus-divider); border-radius: 0; background: transparent; box-shadow: none; }
+.mus-home #tugas-musyrif .admin-section-head { padding-bottom: 12px; border-bottom: 1px solid var(--mus-rule); }
+.mus-home .musyrif-task-list { margin: 0; padding: 0; }
+.mus-home .musyrif-task { padding: 14px 0; border: 0; border-bottom: 1px solid var(--mus-rule); border-radius: 0; background: transparent; box-shadow: none; }
+.mus-home .musyrif-task:last-child { border-bottom: 0; }
+.mus-home .mus-dashboard { --mus-rule: #DED8CD; }
+.mus-home .mus-dashboard > .mus-section { padding: 24px 0; border-top: 2px solid var(--mus-divider); }
+.mus-home .mus-section__head { padding-bottom: 12px; border-bottom: 1px solid var(--mus-rule); }
+.mus-home .mus-title { font-size: 22px; line-height: 1.3; }
+.mus-home .mus-note { max-width: 78ch; line-height: 1.55; }
+.mus-home .mus-stats { padding: 0; margin: 0; border: 0; }
+.mus-home .mus-stat { padding: 8px 20px; }
+.mus-home .mus-stat:first-child { padding-left: 0; }
+.mus-home .mus-stat__value { font-size: 32px; }
+.mus-home .mus-watch__list { display: grid; }
+.mus-home .mus-watch__item { display: grid; grid-template-columns: 180px minmax(0,1fr) auto; align-items: center; gap: 16px; padding: 16px 0; min-height: 64px; border: 0; border-bottom: 1px solid var(--mus-rule); background: transparent; font: inherit; text-align: left; color: #373733; cursor: pointer; }
+.mus-home .mus-watch__item > span:not(.mus-link) { color: #806222; font-size: 14px; }
+.mus-home .mus-watch__item:last-child { border-bottom: 0; }
+.mus-home .mus-roster-controls { display: grid; grid-template-columns: minmax(0,1fr) 220px; align-items: end; gap: 16px; }
+.mus-home .mus-roster-controls .mus-input { width: 100%; box-sizing: border-box; min-height: 44px; }
+.mus-home .mus-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 24px; border-top: 1px solid var(--mus-rule); }
+.mus-home .mus-card { display: grid; grid-template-columns: 52px minmax(0,1fr); grid-template-rows: auto; align-items: start; gap: 14px; padding: 18px 0; border: 0; border-bottom: 1px solid var(--mus-rule); border-radius: 0; background: transparent; box-shadow: none; transform: none; }
+.mus-home .mus-card:nth-child(even) { border-left: 1px solid var(--mus-rule); padding-left: 24px; }
+.mus-home .mus-card:hover { background: #FAF7EE; transform: none; box-shadow: none; }
+.mus-home .mus-photo--card { width: 52px; height: 58px; aspect-ratio: auto; border-radius: 8px; }
+.mus-home .mus-photo__initials { font-size: 21px; }
+.mus-home .mus-card__info { padding: 0; gap: 5px; min-width: 0; }
+.mus-home .mus-card__name { font-size: 17px; line-height: 1.35; overflow-wrap: anywhere; }
+.mus-home .mus-card__stats { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 12px; }
+.mus-home .mus-card__state { color: #49624B; font-size: 12px; }
+.mus-home .mus-card__state.is-watch { color: #8B641C; }
+.mus-home .mus-card__flag { margin: 0; padding: 0; background: transparent; font-size: 12px; }
+.mus-home .mus-assistant > summary { cursor: pointer; padding-block: 4px; min-height: 44px; }
+.mus-home .mus-assistant .mus-story { margin-top: 14px; padding: 0; border: 0; background: transparent; box-shadow: none; }
+.mus-home :is(.mus-card,.mus-watch__item):focus-visible { outline: 2px solid #A17D22; outline-offset: 2px; }
+@media(max-width:900px) {
+ .mus-home .mus-stat:nth-child(n+3) { border-top: 1px solid var(--mus-rule); }
+ .mus-home .mus-stats { row-gap: 0; }
+ .mus-home .mus-stat { padding-block: 16px; }
+ .mus-home .mus-watch__item { grid-template-columns: minmax(0,1fr) auto; gap: 6px 12px; }
+ .mus-home .mus-watch__item > span:not(.mus-link) { grid-row: 2; }
+ .mus-home .mus-watch__item .mus-link { grid-column: 2; grid-row: 1 / span 2; }
+}
+@media(max-width:640px) {
+ .mus-home .coursue-hero-banner { padding-block: 18px; }
+ .mus-home .mus-dashboard > .mus-section { padding-block: 20px; }
+ .mus-home .mus-grid { grid-template-columns: minmax(0,1fr); }
+ .mus-home .mus-card:nth-child(even) { border-left: 0; padding-left: 0; }
+ .mus-home .mus-roster-controls { grid-template-columns: minmax(0,1fr); gap: 10px; }
+ .mus-home .mus-watch__item { grid-template-columns: minmax(0,1fr); }
+ .mus-home .mus-watch__item .mus-link { grid-column: 1; grid-row: 3; }
+ .mus-home .mus-stat__value { font-size: 28px; }
+ .mus-home .mus-title { font-size: 20px; }
+}
+/* Permukaan konsol mengungguli bingkai kartu workspace bersama. */
+body.in-crm .mus-home .coursue-hero-banner { padding: 20px 0 24px !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
+body.in-crm .mus-home #tugas-musyrif { padding: 22px 0 !important; border: 0 !important; border-top: 2px solid var(--mus-divider) !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
+body.in-crm .mus-home .musyrif-task { border: 0 !important; border-bottom: 1px solid var(--mus-rule) !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
+body.in-crm .mus-home .coursue-hero-title { font-size: clamp(26px,3vw,34px) !important; }
+body.in-crm .mus-home .mus-card { border-radius: 0 !important; box-shadow: none !important; background: transparent !important; }
+
+/* Status perhatian cukup berupa teks; seluruh baris tetap memakai garis netral. */
+body.in-crm .mus-home .mus-dashboard .mus-card,
+body.in-crm .mus-home .mus-dashboard .mus-card.is-perhatian,
+body.in-crm .mus-home .mus-dashboard .mus-card:hover { box-shadow: none !important; transform: none !important; border-top: 0 !important; border-right: 0 !important; border-bottom: 1px solid var(--mus-rule) !important; border-left: 0 !important; background: transparent !important; }
+body.in-crm .mus-home .mus-dashboard .mus-card:nth-child(even) { border-left: 1px solid var(--mus-rule) !important; }
+body.in-crm .mus-home .mus-dashboard .mus-card:hover { background: #FAF8F1 !important; }
+body.in-crm .mus-home .mus-dashboard .mus-card__flag { color: #806222; line-height: 1.5; }
+@media(max-width:640px) { body.in-crm .mus-home .mus-dashboard .mus-card:nth-child(even) { border-left: 0 !important; } }
+
+/* Header musyrif: judul kerja, bukan banner promosi. */
+body.staff-page.in-crm .mus-home .mus-home-header.k26-hero .coursue-hero-title { font-family: "Philosopher", Georgia, serif !important; font-size: clamp(25px,2.5vw,30px) !important; font-weight: 600 !important; line-height: 1.25 !important; letter-spacing: -.02em !important; margin: 10px 0 6px !important; }
+body.staff-page.in-crm .mus-home .mus-home-header .coursue-hero-subtitle { font-size: 15px !important; line-height: 1.5 !important; margin: 0 0 16px !important; }
+body.staff-page.in-crm .mus-home .mus-home-header .coursue-hero-cta { min-height: 44px !important; padding: 10px 18px !important; border: 1px solid #B39748 !important; border-radius: 8px !important; background: #E9C65B !important; color: #322A17 !important; box-shadow: none !important; font-size: 14px !important; font-weight: 600 !important; transform: none !important; }
+body.staff-page.in-crm .mus-home .mus-home-header .coursue-hero-tag { font-size: 11px !important; letter-spacing: .08em !important; }
+
+/* Hierarki teks konsol musyrif: sapaan → bagian → nama → isi → metadata. */
+body.staff-page.in-crm .mus-home { --mus-text-primary: #30312E; --mus-text-secondary: #625F57; }
+body.staff-page.in-crm .mus-home .mus-home-header.k26-hero .coursue-hero-title { font-size: clamp(28px, 2.6vw, 34px) !important; font-weight: 700 !important; line-height: 1.2 !important; letter-spacing: -.015em !important; max-width: none !important; width: auto !important; text-wrap: pretty; margin: 10px 0 8px !important; }
+body.staff-page.in-crm .mus-home .mus-home-header .coursue-hero-subtitle { font-size: 16px !important; line-height: 1.5 !important; color: var(--mus-text-secondary) !important; }
+body.staff-page.in-crm .mus-home :is(.mus-title,.admin-section-title) { font-family: "Philosopher", Georgia, serif !important; font-size: 24px !important; font-weight: 700 !important; line-height: 1.25 !important; letter-spacing: 0 !important; color: var(--mus-text-primary) !important; }
+body.staff-page.in-crm .mus-home :is(.mus-note,.musyrif-task,.mus-watch__item) { font-size: 15px !important; line-height: 1.55 !important; }
+body.staff-page.in-crm .mus-home .mus-note { color: var(--mus-text-secondary) !important; }
+body.staff-page.in-crm .mus-home .mus-card__name { font-family: "Philosopher",Georgia,serif !important; font-size: 18px !important; font-weight: 600 !important; line-height: 1.35 !important; }
+body.staff-page.in-crm .mus-home .mus-watch__item > strong { font-size: 17px !important; font-weight: 600 !important; line-height: 1.35 !important; }
+body.staff-page.in-crm .mus-home .mus-stat__value { font-family: "Philosopher",Georgia,serif !important; font-size: 34px !important; line-height: 1.15 !important; font-weight: 700 !important; }
+body.staff-page.in-crm .mus-home .mus-stat__label { font-size: 15px !important; font-weight: 600 !important; line-height: 1.4 !important; }
+body.staff-page.in-crm .mus-home :is(.mus-card__meta,.mus-stat__note,.mus-card__stats,.mus-card__state,.mus-card__flag,.musyrif-prayer-chip) { font-size: 13px !important; line-height: 1.5 !important; }
+body.staff-page.in-crm .mus-home :is(.mus-card__meta,.mus-stat__note) { color: var(--mus-text-secondary) !important; }
+body.staff-page.in-crm .mus-home :is(.k26-date,.mus-label) { font-size: 13px !important; line-height: 1.45 !important; }
+body.staff-page.in-crm .mus-home .k26-shortcuts a { font-size: 14px !important; line-height: 1.4 !important; }
+@media(max-width:640px) {
+ body.staff-page.in-crm .mus-home .mus-home-header.k26-hero .coursue-hero-title { font-size: 28px !important; }
+ body.staff-page.in-crm .mus-home :is(.mus-title,.admin-section-title) { font-size: 22px !important; }
+ body.staff-page.in-crm .mus-home .mus-stat__value { font-size: 30px !important; }
+ body.staff-page.in-crm .mus-home .mus-card__name { font-size: 17px !important; }
+ body.staff-page.in-crm .mus-home .mus-home-header .coursue-hero-subtitle { font-size: 15px !important; }
 }

@@ -37,6 +37,11 @@ function createLocalStorage({ rootDirectory } = {}) {
     async read(bucket, key) {
       return fs.promises.readFile(resolveKey(bucket, key));
     },
+    async readRange(bucket, key, start, end) {
+      const file = resolveKey(bucket, key);
+      await fs.promises.access(file);
+      return fs.createReadStream(file, { start, end });
+    },
 
     async remove(bucket, key) {
       await fs.promises.rm(resolveKey(bucket, key), { force: true });

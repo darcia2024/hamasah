@@ -649,3 +649,6 @@ body.staff-page.in-crm .admin-kpi__value { font-size: clamp(26px, 2.4vw, 32px) !
   body.in-crm .k26-shortcuts { flex-wrap: nowrap; overflow-x: auto; margin-right: -22px; padding-right: 22px; scrollbar-width: none; }
   body.in-crm .k26-shortcuts a { flex: none; }
 }
+
+/* Judul halaman LMS dan Monitoring mengikuti tipografi judul portal. */
+body.staff-page .crm-page-header .crm-summary-title.workspace-heading-serif { font-family: "Philosopher", Georgia, serif !important; font-weight: 700 !important; letter-spacing: 0 !important; }

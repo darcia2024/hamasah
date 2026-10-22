@@ -293,6 +293,7 @@ function createHamasahApp(options) {
   });
   const lmsStore = config.lmsStore || createPostgresLmsStore({ database });
   const lmsService = config.lmsService || createLmsService({
+    getFile: (fileId) => fileStore.get(fileId),
     store: lmsStore,
     getAccount: (accountId) => accountStore.getById(accountId),
     aiService,

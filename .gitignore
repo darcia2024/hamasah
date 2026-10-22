@@ -11,6 +11,7 @@ node_modules/
 data/dev-db*/
 data/dev-storage/
 data/example-course-uploads.json
+data/dev-video-demo.webm
 tmp/pdfs/
 *.tmp
 coverage/

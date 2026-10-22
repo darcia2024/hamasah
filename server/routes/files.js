@@ -11,6 +11,34 @@ const DOWNLOAD_HEADERS = Object.freeze({
 });
 
 module.exports = [
+  {
+    method: 'POST', pattern: /^\/api\/course-videos\/([\w-]+)\/session$/, session: true,
+    async handler({ request, response, services, auth, params, config, ip }) {
+      const actor = await auth.actor();
+      const result = await services.fileService.videoRecord(params[0], { actor, auth });
+      if (!result.ok) { json(response, result.status, publicError(result)); return; }
+      await services.auditService.record({ action: ACTIONS.FILE_DOWNLOADED, actor, ip, entityType: 'course', entityId: result.value.entityId, metadata: { fileId: result.value.id, purpose: 'course-video', mode: 'stream' } });
+      const secure = Boolean(request.socket.encrypted || config.appBaseUrl.startsWith('https://'));
+      // Reuse the existing session only for this read-only media path. The token never enters URLs.
+      response.setHeader('Set-Cookie', `hi_video_session=${encodeURIComponent(auth.token)}; HttpOnly; SameSite=Strict; Path=/api/course-videos/; Max-Age=86400${secure ? '; Secure' : ''}`);
+      response.setHeader('Cache-Control', 'no-store');
+      json(response, 200, { src: `/api/course-videos/${params[0]}/content` });
+    }
+  },
+  {
+    method: 'GET', pattern: /^\/api\/course-videos\/([\w-]+)\/content$/,
+    async handler({ request, response, services, params }) {
+      const raw = String(request.headers.cookie || '').split(';').map(s=>s.trim()).find(s=>s.startsWith('hi_video_session='));
+      let token = ''; try { token = decodeURIComponent(raw ? raw.slice('hi_video_session='.length) : ''); } catch {}
+      const session = await services.identityService.authenticate(token);
+      if (!session.ok) { json(response, 401, { error: 'Masuk ke portal untuk menonton video ini.' }); return; }
+      const result = await services.fileService.videoRange(params[0], { actor: session.value }, request.headers.range);
+      if (!result.ok) { if (result.status === 416) response.setHeader('Content-Range', `bytes */${result.size}`); json(response, result.status, publicError(result)); return; }
+      const { record, stream, start, end, size } = result.value;
+      response.writeHead(206, { 'Content-Type': record.contentType, 'Content-Length': String(end - start + 1), 'Content-Range': `bytes ${start}-${end}/${size}`, 'Accept-Ranges': 'bytes', 'Cache-Control': 'private, no-store', 'Cross-Origin-Resource-Policy': 'same-origin', 'X-Content-Type-Options': 'nosniff', Vary: 'Cookie' });
+      require('node:stream').pipeline(stream, response, () => {});
+    }
+  },
   // Langkah 1: meminta tempat unggah. Izin dan aturan ukuran diperiksa di sini,
   // sebelum satu byte pun isi berkas diterima.
   {

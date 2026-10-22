@@ -24,7 +24,7 @@ const MAX_FAMILY_MESSAGES_PER_DAY = 10;
 
 function tabelBelumAda(error) {
   if (!error) return false;
-  if (error.code === '42P01') return true;
+  if (['42P01','42703'].includes(error.code)) return true;
   return /(student_juz_progress|announcements|student_leave_requests|family_messages)/.test(String(error.message || '')) && /does not exist/i.test(String(error.message || ''));
 }
 
@@ -264,6 +264,8 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
       kindLabel: LEAVE_KINDS[row.kind] || row.kind,
       startsAt: iso(row.starts_at),
       endsAt: iso(row.ends_at),
+      returnedAt: iso(row.returned_at), returnNote: row.return_note || null,
+      returnState: row.returned_at ? 'kembali' : row.status !== 'disetujui' || row.kind !== 'keluar-asrama' ? null : new Date(row.starts_at) > now() ? 'terjadwal' : new Date(row.ends_at) < now() ? 'terlambat' : 'di-luar',
       reason: row.reason,
       status: row.status,
       decisionNote: row.decision_note || null,
@@ -329,14 +331,14 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
   async function leaveQueue(actor, statusInput) {
     if (!actor || !['admin', 'supervisor'].includes(actor.role)) return { ok: false, status: 403, error: 'Hanya admin dan musyrif.' };
     const status = clean(statusInput) || 'menunggu';
-    if (!['menunggu', 'disetujui', 'ditolak', 'dibatalkan', 'semua'].includes(status)) return { ok: false, error: 'Status izin tidak dikenal.' };
+    if (!['menunggu', 'disetujui', 'ditolak', 'dibatalkan', 'semua', 'belum-kembali', 'kepulangan'].includes(status)) return { ok: false, error: 'Status izin tidak dikenal.' };
     const asrama = actor.role === 'supervisor' ? await staffDormitories(actor.id) : null;
     const hasil = await baca(async () => {
       const { rows } = await database.query(
         `${SELECT_LEAVE}
-          WHERE ($1::text = 'semua' OR l.status = $1)
+          WHERE ($1::text = 'semua' OR l.status = $1 OR ($1 IN ('belum-kembali','kepulangan') AND l.status='disetujui' AND l.kind='keluar-asrama' AND ($1='kepulangan' OR l.returned_at IS NULL)))
             AND ($2::uuid[] IS NULL OR s.dormitory_id = ANY($2::uuid[]))
-          ORDER BY l.created_at DESC LIMIT 50`,
+          ORDER BY CASE WHEN $1 IN ('belum-kembali','kepulangan') THEN l.ends_at END ASC, l.created_at DESC LIMIT 50`,
         [status, asrama]
       );
       return { tersedia: true, rows };
@@ -504,8 +506,46 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
     });
   }
 
+
+  async function markLeaveReturned(id, input, actor) {
+    if (!actor || !['admin','supervisor'].includes(actor.role)) return {ok:false,status:403,error:'Hanya admin dan musyrif.'};
+    const note=teks(input && input.note); if(note.length>300) return {ok:false,error:'Catatan maksimal 300 karakter.'};
+    return tulis(async()=>{
+      const {rows}=await database.query(SELECT_LEAVE+' WHERE l.id=$1',[id]);
+      if(!rows.length) return {ok:false,status:404,error:'Izin tidak ditemukan.'};
+      const leave=toLeave(rows[0]), access=await aksesSantri(leave.studentId,actor,'write');if(!access.ok)return access;
+      if(leave.status!=='disetujui'||leave.kind!=='keluar-asrama')return {ok:false,status:409,error:'Hanya izin keluar yang disetujui dapat dicatat kembali.'};
+      if(new Date(leave.startsAt)>now())return {ok:false,status:409,error:'Waktu izin belum dimulai.'};
+      const result=await database.query('UPDATE student_leave_requests SET returned_at=$2,returned_by=$3,return_note=$4 WHERE id=$1 AND returned_at IS NULL RETURNING id',[id,now(),actor.id,note]);
+      if(!result.rows.length)return {ok:false,status:409,error:'Kepulangan sudah dicatat.'};
+      const end=await database.query(SELECT_LEAVE+' WHERE l.id=$1',[id]);return {ok:true,value:toLeave(end.rows[0])};
+    });
+  }
+  function followUp(row) {return {id:row.id,studentId:row.student_id,studentName:row.student_name,title:row.title,target:row.target,dueOn:String(row.due_on).slice(0,10),status:row.status,progressNote:row.progress_note,updatedAt:iso(row.updated_at)};}
+  async function followUps(actor) {
+    if(!actor||!['admin','supervisor'].includes(actor.role))return {ok:false,status:403,error:'Hanya admin dan musyrif.'};
+    const ids=actor.role==='supervisor'?await staffDormitories(actor.id):null;
+    const result=await baca(async()=>{const {rows}=await database.query("SELECT f.*,f.due_on::text AS due_on,s.name AS student_name FROM student_follow_ups f JOIN students s ON s.id=f.student_id WHERE ($1::uuid[] IS NULL OR s.dormitory_id=ANY($1::uuid[])) ORDER BY (f.status='selesai'),f.due_on,f.created_at LIMIT 200",[ids]);return {tersedia:true,items:rows.map(followUp)};},{tersedia:false,items:[]});
+    return {ok:true,value:result};
+  }
+  async function saveFollowUp(id, input, actor) {
+    if(!actor||!['admin','supervisor'].includes(actor.role))return {ok:false,status:403,error:'Hanya admin dan musyrif.'};
+    const source=input||{};
+    return tulis(async()=>{
+      let old=null;
+      if(id){const found=await database.query('SELECT *,due_on::text AS due_on FROM student_follow_ups WHERE id=$1',[id]);old=found.rows[0];if(!old)return {ok:false,status:404,error:'Tindak lanjut tidak ditemukan.'};}
+      const sid=old?old.student_id:clean(source.studentId),access=await aksesSantri(sid,actor,'write');if(!access.ok)return access;
+      const title=source.title===undefined&&old?old.title:clean(source.title),target=source.target===undefined&&old?old.target:teks(source.target),due=source.dueOn===undefined&&old?old.due_on:clean(source.dueOn),status=source.status===undefined?(old?old.status:'perlu'):clean(source.status),note=source.progressNote===undefined?(old?old.progress_note:''):teks(source.progressNote);
+      if(title.length<3||title.length>160||target.length<5||target.length>1000||note.length>1000||!['perlu','dipantau','selesai'].includes(status)||!/^\d{4}-\d{2}-\d{2}$/.test(due)||Number.isNaN(Date.parse(due+'T00:00:00Z'))||new Date(due+'T00:00:00Z').toISOString().slice(0,10)!==due)return {ok:false,error:'Isi judul, target, tanggal tenggat, dan status yang valid.'};
+      const key=id||crypto.randomUUID();
+      if(id)await database.query('UPDATE student_follow_ups SET title=$2,target=$3,due_on=$4,status=$5,progress_note=$6,updated_by=$7,updated_at=$8 WHERE id=$1',[key,title,target,due,status,note,actor.id,now()]);
+      else await database.query('INSERT INTO student_follow_ups(id,student_id,title,target,due_on,status,progress_note,created_by,updated_by,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$8,$9,$9)',[key,sid,title,target,due,status,note,actor.id,now()]);
+      return {ok:true,value:{id:key,studentId:sid,title,target,dueOn:due,status,progressNote:note}};
+    });
+  }
+
   return Object.freeze({
-    announcementTargets, announcementsFor, cancelLeave, createAnnouncement, decideLeave,
+    followUps, saveFollowUp, markLeaveReturned, announcementTargets, announcementsFor, cancelLeave, createAnnouncement, decideLeave,
     familyInbox, familyMessagesOf, juzMap, leaveQueue, leavesOf, markFamilyMessageRead,
     removeAnnouncement, requestLeave, sendFamilyMessage, setJuz
   });

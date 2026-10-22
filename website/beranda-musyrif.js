@@ -475,7 +475,8 @@
       el('span', '', `${s.memorization.deposits7} setoran`)
     );
     info.append(angka);
-    if (alasan.length) info.append(el('span', 'mus-card__flag', alasan[0] + (alasan.length > 1 ? ` +${alasan.length - 1}` : '')));
+    info.append(el('span', `mus-card__state ${alasan.length ? 'is-watch' : ''}`, alasan.length ? 'Perlu ditinjau' : 'Tidak ada tanda perhatian'));
+    if (alasan.length) info.append(el('span', 'mus-card__flag', alasan.join(' · ')));
     kartu.append(avatar(s, headers, 'mus-photo--card'), info);
     kartu.addEventListener('click', () => onOpen(s));
     return kartu;
@@ -486,6 +487,7 @@
     memuat.setAttribute('role', 'status');
     wadah.replaceChildren(memuat);
     wadah.classList.add('mus-page');
+    wadah.classList.add('mus-dashboard');
 
     const data = await mintaJson('/api/musyrif/ringkasan', headers);
     const { summary, students, dormitories } = data;
@@ -500,13 +502,26 @@
     const kepalaSantri = el('header', 'mus-section__head');
     kepalaSantri.append(
       el('h3', 'mus-title', 'Santri binaan'),
-      el('p', 'mus-note', `${students.length} santri di ${dormitories.map((d) => d.name).join(', ')}. ${perhatian ? `${perhatian} perlu perhatian pekan ini, ditaruh paling depan.` : 'Semua dalam kondisi baik pekan ini.'} Ketuk kartu untuk membuka dan mengisi laporannya.`)
+      el('p', 'mus-note', `${students.length} santri · ${dormitories.map((d) => d.name).join(', ')}. Buka santri untuk mencatat dan melihat perkembangannya.`)
     );
     const grid = el('div', 'mus-grid');
     urut.forEach((s) => grid.append(kartuSantri(s, headers, onOpenSantri)));
     if (!urut.length) grid.append(el('p', 'mus-loading', 'Belum ada santri di asrama Anda.'));
     const bagianSantri = el('section', 'mus-section');
-    bagianSantri.append(kepalaSantri, grid);
+    const controls = el('div', 'mus-roster-controls');
+    const search = bidang('Cari santri', 'search', { placeholder: 'Nama santri…' });
+    const filter = el('select', 'mus-input'); filter.setAttribute('aria-label', 'Saring kondisi santri');
+    [['all','Semua santri'],['attention','Perlu ditinjau']].forEach(([value,label]) => { const option = el('option','',label); option.value = value; filter.append(option); });
+    const count = el('p', 'mus-note'); count.setAttribute('role','status');
+    function filterRoster() {
+      const visible = urut.filter(s => s.name.toLocaleLowerCase('id').includes(search.nilai().toLocaleLowerCase('id')) && (filter.value !== 'attention' || alasanPerhatian(s).length));
+      grid.replaceChildren(...visible.map(s => kartuSantri(s, headers, onOpenSantri)));
+      if (!visible.length) grid.append(el('p','mus-empty','Tidak ada santri yang sesuai pencarian.'));
+      count.textContent = `${visible.length} dari ${students.length} santri ditampilkan`;
+    }
+    search.input.addEventListener('input',filterRoster); filter.addEventListener('change',filterRoster);
+    controls.append(search.el,filter); filterRoster();
+    bagianSantri.append(kepalaSantri, controls, count, grid);
 
     const angka = el('div', 'mus-stats');
     [
@@ -520,11 +535,23 @@
       angka.append(s);
     });
 
-    wadah.replaceChildren(
-      bagianSantri,
-      angka,
-      kotakCerita({ headers, onSaved: () => render(wadah, { headers, onOpenSantri }).catch(() => {}) })
-    );
+    const overview = el('section','mus-section mus-overview');
+    const overviewHead = el('header','mus-section__head');
+    overviewHead.append(el('h3','mus-title','Ringkasan asrama'),el('p','mus-note','Perkembangan dari laporan yang sudah dicatat. Data kosong tidak dihitung sebagai ketidakhadiran.'));
+    overview.append(overviewHead,angka);
+    const watch = el('section','mus-section mus-watch');
+    const watchHead = el('header','mus-section__head');
+    watchHead.append(el('h3','mus-title','Prioritas pembinaan'),el('p','mus-note',`${perhatian} santri memiliki catatan yang perlu ditinjau. Buka laporan untuk melihat konteksnya.`));
+    watch.append(watchHead);
+    const watchList = el('div','mus-watch__list');
+    urut.filter(s => alasanPerhatian(s).length).slice(0,5).forEach(s => { const b = tombol('','mus-watch__item'); b.append(el('strong','',s.name),el('span','',alasanPerhatian(s).join(' · ')),el('span','mus-link','Buka laporan →')); b.addEventListener('click',()=>onOpenSantri(s)); watchList.append(b); });
+    if (!perhatian) watchList.append(el('p','mus-empty','Tidak ada tanda perhatian dari laporan yang tersedia. Tetap lengkapi pencatatan harian.'));
+    if (perhatian > 5) watchList.append(el('p','mus-note','Gunakan filter Perlu ditinjau pada daftar santri untuk melihat semuanya.'));
+    watch.append(watchList);
+    const assistant = el('details','mus-section mus-assistant');
+    assistant.append(el('summary','mus-title','Bantu susun laporan dengan AI'));
+    assistant.append(kotakCerita({ headers, onSaved: () => render(wadah, { headers, onOpenSantri }).catch(() => {}) }));
+    wadah.replaceChildren(overview,watch,bagianSantri,assistant);
   }
 
   // ------------------------------------------------------ Halaman santri

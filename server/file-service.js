@@ -221,6 +221,7 @@ function createFileService(options = {}) {
   // Langkah 3: mengunduh.
   async function prepareDownload(fileId, { actor, auth }) {
     const record = await store.get(fileId);
+    if (record && record.purpose === 'course-video') return { ok: false, status: 403, error: 'Gunakan pemutar kelas untuk menonton video privat.' };
     if (!record || record.status !== 'ready') {
       return { ok: false, status: 404, error: 'Berkas tidak ditemukan.' };
     }
@@ -262,7 +263,30 @@ function createFileService(options = {}) {
     return store.deletePendingBefore(batas);
   }
 
-  return Object.freeze({ beginContent, confirmContent, createDirectUpload, createUpload, isReady, prepareDownload, publicFile, purgeStalePending, saveContent, supportsDirectUpload: Boolean(storage.supportsSignedUpload) });
+  async function videoRecord(fileId, context) {
+    const record = await store.get(fileId);
+    if (!record || record.status !== 'ready' || record.purpose !== 'course-video') return { ok: false, status: 404, error: 'Video tidak tersedia.' };
+    if (!(await policyFor('course-video').canDownload(await konteks(context.actor, context.auth, record.entityId)))) return { ok: false, status: 403, error: 'Akun ini tidak memiliki akses ke video kelas.' };
+    return { ok: true, value: record };
+  }
+  async function videoRange(fileId, context, range) {
+    const result = await videoRecord(fileId, context);
+    if (!result.ok) return result;
+    const record = result.value, size = record.sizeBytes;
+    let start = 0, end = size - 1;
+    if (range) {
+      const match = /^bytes=(\d*)-(\d*)$/.exec(String(range));
+      if (!match || (!match[1] && !match[2])) return { ok: false, status: 416, size, error: 'Rentang video tidak valid.' };
+      if (!match[1]) start = Math.max(0, size - Number(match[2]));
+      else { start = Number(match[1]); if (match[2]) end = Math.min(end, Number(match[2])); }
+    }
+    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || start >= size || end < start) return { ok: false, status: 416, size, error: 'Rentang video tidak tersedia.' };
+    // Keep each response within serverless response limits and avoid loading the whole video.
+    end = Math.min(end, start + 1024 * 1024 - 1);
+    if (typeof storage.readRange !== 'function') return { ok: false, status: 503, error: 'Pemutaran video belum tersedia di penyimpanan ini.' };
+    return { ok: true, value: { record, start, end, size, stream: await storage.readRange(record.bucket, record.storageKey, start, end) } };
+  }
+  return Object.freeze({ videoRecord, videoRange, beginContent, confirmContent, createDirectUpload, createUpload, isReady, prepareDownload, publicFile, purgeStalePending, saveContent, supportsDirectUpload: Boolean(storage.supportsSignedUpload) });
 }
 
 module.exports = { PENDING_EXPIRY_MS, createFileService, safeFileName };

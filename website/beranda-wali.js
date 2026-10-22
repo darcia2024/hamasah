@@ -174,7 +174,48 @@
     return baris;
   }
 
-  function kartuRingkasan(student, data, onOpen) {
+  function ringkasanPembina(data) {
+    const { wadah } = kartu('Ringkasan musyrif', 'Catatan pembina dalam 7 hari terakhir.', 'wali-weekly');
+    const batas = Date.now() - 7 * 86400000;
+    const notes = ((data.dashboard || {}).evaluations || []).filter(n => n.note && Date.parse(n.occurredAt) >= batas && Date.parse(n.occurredAt) <= Date.now()).sort((a,b) => String(b.occurredAt).localeCompare(String(a.occurredAt)));
+    if (!notes.length) wadah.append(kosong('Belum ada catatan musyrif untuk pekan ini. Catatan sebelumnya tetap tersedia di bagian Catatan pembina.'));
+    else {
+      const list = el('ul', 'wali-weekly__list');
+      notes.slice(0, 3).forEach(n => {
+        const item = el('li');
+        item.append(el('p', 'wali-weekly__meta', [n.area || 'Pembinaan', K.tanggal(n.occurredAt)].join(' · ')), el('p', 'wali-weekly__text', n.note));
+        list.append(item);
+      });
+      wadah.append(list);
+      if (notes.length > 3) wadah.append(kosong('Catatan lainnya tersedia di bagian Catatan pembina.'));
+    }
+    return wadah;
+  }
+
+  function perhatian(data, iqamah, studentId, onOpen) {
+    const box = el('section', 'wali-attention');
+    box.append(el('h4', 'wali-attention__title', 'Perlu perhatian'));
+    const items = [];
+    const unpaid = (data.tagihan || []).filter(t => t.status === 'unpaid');
+    if (unpaid.length) items.push(`${unpaid.length} tagihan belum lunas (${K.rupiah(unpaid.reduce((sum,t) => sum + (Number(t.amount) || 0), 0))}). Lihat rincian dan petunjuk pembayaran di rekam jejak ananda.`);
+    const q = iqamah && (iqamah.students || []).find(s => String(s.id) === String(studentId));
+    if (q && q.iqamah) {
+      const stage = q.iqamah.tahap;
+      if (stage === 'kosong') items.push('Tanggal habis iqamah belum tercatat. Ingatkan ananda untuk melaporkannya kepada musyrif.');
+      if (['habis','urus','siapkan'].includes(stage)) items.push(stage === 'habis' ? 'Iqamah sudah habis. Koordinasikan perpanjangan dengan ananda dan musyrif.' : 'Iqamah memasuki masa persiapan perpanjangan. Pastikan ananda berkoordinasi dengan musyrif.');
+    }
+    const pending = (data.izin || []).filter(i => i.status === 'menunggu').length;
+    if (pending) items.push(`${pending} pengajuan izin menunggu keputusan musyrif. Wali tidak perlu memberikan persetujuan di sini.`);
+    const complete = data.tagihan !== null && data.izin !== null && !!q;
+    if (items.length) {
+      const ul = el('ul', 'wali-attention__list'); items.forEach(text => ul.append(el('li', '', text))); box.append(ul);
+      const button = el('button', 'wali-link', 'Lihat rekam jejak ananda →'); button.type = 'button'; button.addEventListener('click', onOpen); box.append(button);
+    } else box.append(el('p', 'wali-empty', complete ? 'Tidak ada hal yang perlu ditindaklanjuti dari data yang tersedia.' : 'Informasi perhatian belum lengkap karena sebagian data belum dapat dimuat. Muat ulang halaman untuk mencoba lagi.'));
+    if (items.length && !complete) box.append(el('p', 'wali-empty', 'Sebagian data belum dapat dimuat. Daftar ini mungkin belum lengkap.'));
+    return box;
+  }
+
+  function kartuRingkasan(student, data, onOpen, iqamah) {
     const a = hitung(data);
     const lalu = data.lalu ? hitung(data.lalu) : null;
     const status = nilaiKeseluruhan(a, data);
@@ -198,8 +239,11 @@
     laporan.append(el('p', 'wali-eyebrow', `Laporan ${K.PERIODE_HARI} hari terakhir`));
     laporan.append(el('p', `wali-report__status is-${status.nada}`, status.label));
     laporan.append(el('p', 'wali-report__body', kalimatLaporan(student.name, a, lalu, data).join(' ')));
-    const urusan = kalimatUrusan(data);
-    if (urusan) laporan.append(urusan);
+    const records = Object.values(data.dashboard || {}).filter(Array.isArray).flat();
+    const updated = records.flatMap(r => [r.updatedAt, r.createdAt]).filter(v => v && Number.isFinite(Date.parse(v)) && Date.parse(v) <= Date.now()).sort((a,b) => Date.parse(b)-Date.parse(a))[0];
+    const freshness = el('p', 'wali-freshness', updated ? `Catatan perkembangan terakhir diperbarui: ${new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Africa/Cairo' }).format(new Date(updated))} waktu Kairo.` : 'Waktu pembaruan catatan belum tersedia. Tanggal pada laporan menunjukkan tanggal kegiatan.');
+    freshness.append(el('span', '', ' Data yang belum dicatat tidak berarti ananda tidak hadir.'));
+    laporan.append(freshness);
 
     const angka = el('div', 'wali-stats');
     angka.append(
@@ -209,7 +253,7 @@
       kotakAngka('juz dihafal', data.juz ? String(data.juz.hafal) : '–', data.juz && data.juz.sedang ? `${data.juz.sedang} juz sedang dihafal` : 'dari 30 juz', null)
     );
 
-    wadah.append(kepala, laporan, angka);
+    wadah.append(kepala, perhatian(data, iqamah, student.id, onOpen), laporan, angka);
     return wadah;
   }
 
@@ -521,7 +565,8 @@
       [kartuSholat(data), kartuKehadiran(data), kartuHafalan(data), kartuCatatan(data)].forEach((k) => grid.append(k));
       const isi = [
         ...atas,
-        kartuRingkasan(student, data, () => onOpenStudent(student.id)),
+        kartuRingkasan(student, data, () => onOpenStudent(student.id), iqamah),
+        ringkasanPembina(data),
         grid,
         // Jadwal rutin, agenda, dan piket ananda dari Kelola Asrama.
         ...[K.bagianJadwalAsrama(jadwalAsrama, student.id, { polos: true })].filter(Boolean),

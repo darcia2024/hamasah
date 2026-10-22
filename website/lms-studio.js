@@ -11,7 +11,7 @@
   // Video lebih dulu dan menjadi bawaan: setiap pertemuan kelas online berupa video YouTube
   // dengan modul PDF opsional (22 Oktober 2026).
   const JENIS = [
-    ['video', 'Video', 'Tautan YouTube + modul PDF opsional untuk diunduh santri.'],
+    ['video', 'Video privat', 'Unggah video kelas dan modul PDF opsional.'],
     ['pdf', 'PDF', 'Unggah berkas PDF; santri membacanya di portal.'],
     ['quiz', 'Kuis', 'Pilihan ganda atau isian, dinilai otomatis.'],
     ['assignment', 'Tugas', 'Santri mengirim jawaban, Anda menilai.']
@@ -34,6 +34,27 @@
     return b;
   }
   function idBaru(a) { nomor += 1; return `${a}-${nomor}`; }
+
+  function formatBacaan(field) {
+    const tools = el('div', 'lms-format-tools');
+    tools.setAttribute('role', 'group'); tools.setAttribute('aria-label', 'Format bacaan');
+    const preview = el('details', 'lms-format-preview');
+    const body = el('div'); preview.append(el('summary', '', 'Pratinjau bacaan'), body);
+    const refresh = () => { if (preview.open && window.HamasahLmsRichText) body.replaceChildren(window.HamasahLmsRichText.render(field.input.value)); };
+    [['H1', '# ', 'Judul tingkat 1'], ['H2', '## ', 'Judul tingkat 2'], ['H3', '### ', 'Judul tingkat 3'], ['Daftar', '- ', 'Daftar berpoin'], ['Nomor', '1. ', 'Daftar bernomor']].forEach(([label, prefix, name]) => {
+      const b = tombol(label, 'lms-format-tools__button', name);
+      b.addEventListener('click', () => {
+        const input = field.input, start = input.selectionStart, end = input.selectionEnd;
+        const lineStart = input.value.lastIndexOf('\n', Math.max(0, start - 1)) + 1;
+        const tail = input.value.indexOf('\n', end), lineEnd = tail < 0 ? input.value.length : tail;
+        const lines = input.value.slice(lineStart, lineEnd).split('\n').map(line => prefix + line.replace(/^(?:#{1,3}\s+|[-*]\s+|\d+[.)]\s+)/, ''));
+        input.setRangeText(lines.join('\n'), lineStart, lineEnd, 'select'); input.focus(); input.dispatchEvent(new Event('input', { bubbles: true }));
+      }); tools.append(b);
+    });
+    field.input.before(tools);
+    field.el.append(el('p', 'lms-hint', 'Gunakan judul untuk membagi pembahasan. Pisahkan paragraf dengan satu baris kosong; **teks** untuk cetak tebal.'), preview);
+    field.input.addEventListener('input', refresh); preview.addEventListener('toggle', refresh);
+  }
 
   function bidang(label, jenis = 'text', { nilai = '', placeholder = '', petunjuk = '' } = {}) {
     const wadah = el('div', 'mus-field');
@@ -289,13 +310,44 @@
           ambilIsi = () => f.nilai();
         } else if (jenis === 'video') {
           const url = bidang('Tautan YouTube', 'url', { nilai: isiLama.url || ((teksLama.match(/https?:\/\/\S+/) || [])[0] || ''), placeholder: 'https://www.youtube.com/watch?v=...' });
+          url.el.hidden = false;
+          const sourceMode = el('select', 'mus-input'); sourceMode.setAttribute('aria-label', 'Sumber video');
+          [['embed','Link embed YouTube'],['private','Unggah video privat']].forEach(([value,label]) => { const o = el('option','',label); o.value=value; sourceMode.append(o); });
+          sourceMode.value = isiLama.videoFileId ? 'private' : 'embed';
+          let coverFileId = isiLama.coverFileId || null;
+          const cover = bidang('Foto cover video (opsional)', 'file'); cover.input.accept = 'image/jpeg,image/png,image/webp';
+          const coverStatus = status();
+          cover.input.addEventListener('change', async () => { const file = cover.input.files[0]; if (!file) return;
+            if (!['image/jpeg','image/png','image/webp'].includes(file.type) || file.size > 3*1024*1024) { coverStatus.galat('Pilih JPG, PNG, atau WebP maksimal 3 MB.'); return; }
+            cover.input.disabled = true; coverStatus.ok('Mengunggah cover…');
+            try { coverFileId = await unggahBerkas(course.id,file,'course-cover'); coverStatus.ok('Cover siap. Simpan materi untuk menerapkannya.'); } catch(e) { coverStatus.galat(e.message); } finally { cover.input.disabled = false; }
+          });
+          if (coverFileId) coverStatus.ok('Cover sudah tersedia. Pilih gambar untuk menggantinya.');
+          isiWadah.append(sourceMode,url.el,cover.el,coverStatus.el);
+          let berkasVideo = isiLama.videoFileId ? { videoFileId: isiLama.videoFileId, videoFileName: isiLama.videoFileName || 'video kelas' } : null;
+          const infoVideo = el('p', 'lms-file', berkasVideo ? `Video: ${berkasVideo.videoFileName}` : url.nilai() ? 'Video lama masih memakai tautan luar. Unggah berkas video untuk menggantinya dengan video privat.' : 'Unggah video MP4 (disarankan H.264) atau WebM, maksimal 100 MB.');
+          const pilihVideo = el('input'); pilihVideo.type = 'file'; pilihVideo.accept = 'video/mp4,video/webm'; pilihVideo.id = idBaru('video'); pilihVideo.className = 'mus-visually-hidden';
+          const labelVideo = el('label', 'button button--secondary lms-upload', berkasVideo ? 'Ganti video' : 'Unggah video privat'); labelVideo.htmlFor = pilihVideo.id;
+          const statusVideo = status();
+          pilihVideo.addEventListener('change', async () => {
+            const file = pilihVideo.files && pilihVideo.files[0]; if (!file) return;
+            if (!['video/mp4', 'video/webm'].includes(file.type) || file.size > 100 * 1024 * 1024) { statusVideo.galat('Pilih MP4 atau WebM dengan ukuran maksimal 100 MB.'); pilihVideo.value = ''; return; }
+            pilihVideo.disabled = true; statusVideo.ok('Mengunggah video. Tunggu sampai selesai sebelum menyimpan materi.');
+            try { berkasVideo = { videoFileId: await unggahBerkas(course.id, file, 'course-video'), videoFileName: file.name }; infoVideo.textContent = `Video: ${file.name}`; labelVideo.textContent = 'Ganti video'; segarPratinjau(); statusVideo.ok('Video privat siap. Simpan materi untuk menerapkan perubahan.'); }
+            catch (error) { statusVideo.galat(error.message); } finally { pilihVideo.disabled = false; pilihVideo.value = ''; }
+          });
           const catatan = bidang('Bacaan pendamping (opsional)', 'textarea', { nilai: isiLama.teks || (isiLama.url ? '' : teksLama.replace(/https?:\/\/\S+/, '').trim()), placeholder: 'Tuliskan penjelasan, ringkasan, atau rujukan untuk dibaca di bawah video.' });
           catatan.input.rows = 6;
+          formatBacaan(catatan);
           const pratinjau = el('div', 'lms-video lms-video--preview');
           const segarPratinjau = () => {
-            const m = url.nilai().match(POLA_YOUTUBE);
+            const m = sourceMode.value === 'embed' ? url.nilai().match(POLA_YOUTUBE) : null;
+            pratinjau.querySelectorAll('video').forEach(v => v.pause());
             pratinjau.replaceChildren();
-            if (m) {
+            pratinjau.classList.toggle('is-private-preview', Boolean(berkasVideo));
+            if (sourceMode.value === 'private' && berkasVideo && window.HamasahLmsPrivateVideo) {
+              pratinjau.append(window.HamasahLmsPrivateVideo.buat({ fileId: berkasVideo.videoFileId, title: 'Pratinjau video privat', headers }));
+            } else if (m) {
               const f = el('iframe');
               f.src = `https://www.youtube-nocookie.com/embed/${m[1]}`;
               f.title = 'Pratinjau video';
@@ -308,14 +360,21 @@
             }
           };
           url.input.addEventListener('change', segarPratinjau);
+          sourceMode.addEventListener('change', () => { url.el.hidden = sourceMode.value !== 'embed'; labelVideo.hidden = sourceMode.value !== 'private'; infoVideo.hidden = sourceMode.value !== 'private'; segarPratinjau(); });
+          url.el.hidden = sourceMode.value !== 'embed'; labelVideo.hidden = sourceMode.value !== 'private'; infoVideo.hidden = sourceMode.value !== 'private';
           segarPratinjau();
           const modul = pemilihPdf({ kosong: 'Belum ada modul. Santri tetap bisa menonton videonya.', pilih: 'Unggah modul PDF' });
           const judulModul = el('p', 'mus-label', 'Modul PDF (opsional)');
-          isiWadah.append(url.el, pratinjau, catatan.el, judulModul, modul.el);
+          isiWadah.append(infoVideo, labelVideo, pilihVideo, statusVideo.el, pratinjau, catatan.el, judulModul, modul.el);
           ambilIsi = () => {
-            if (!url.nilai()) return '';
+            if (cover.input.disabled) throw new Error('Tunggu unggahan cover selesai.');
+            if (pilihVideo.disabled) throw new Error('Tunggu unggahan video selesai.');
+            if (!berkasVideo && !url.nilai()) return '';
             const berkas = modul.ambil();
-            return JSON.stringify(berkas ? { url: url.nilai(), teks: catatan.nilai(), fileId: berkas.fileId, fileName: berkas.fileName } : { url: url.nilai(), teks: catatan.nilai() });
+            if (sourceMode.value === 'embed' && !POLA_YOUTUBE.test(url.nilai())) throw new Error('Gunakan link YouTube watch, youtu.be, atau embed yang valid.');
+            if (sourceMode.value === 'private' && !berkasVideo) throw new Error('Unggah video privat terlebih dahulu.');
+            const sumber = { ...(sourceMode.value === 'private' ? berkasVideo : { url: url.nilai() }), coverFileId };
+            return JSON.stringify(berkas ? { ...sumber, teks: catatan.nilai(), fileId: berkas.fileId, fileName: berkas.fileName } : { ...sumber, teks: catatan.nilai() });
           };
         } else if (jenis === 'pdf') {
           const pdf = pemilihPdf({ kosong: 'Belum ada berkas PDF.', pilih: 'Pilih PDF' });
@@ -404,8 +463,9 @@
       const simpan = tombol(materi ? 'Simpan perubahan' : 'Tambah ke kurikulum', 'button button--primary');
       simpan.addEventListener('click', async () => {
         st.kosong();
-        const content = ambilIsi();
-        if (!content) { st.galat(jenis === 'pdf' ? 'Unggah PDF-nya dulu.' : jenis === 'video' ? 'Isi tautan videonya.' : jenis === 'quiz' ? 'Tambahkan minimal satu soal.' : 'Isi materinya dulu.'); return; }
+        let content;
+        try { content = ambilIsi(); } catch (error) { st.galat(error.message); return; }
+        if (!content) { st.galat(jenis === 'pdf' ? 'Unggah PDF-nya dulu.' : jenis === 'video' ? 'Unggah video privat terlebih dahulu.' : jenis === 'quiz' ? 'Tambahkan minimal satu soal.' : 'Isi materinya dulu.'); return; }
         const body = {
           type: jenis, title: judul.nilai(), summary: ringkas.nilai(), content,
           keyPoints: poin.nilai().split(',').map((x) => x.trim()).filter(Boolean),
@@ -422,24 +482,28 @@
       });
       const aksi = el('div', 'mus-actions');
       const batal = tombol('Batal');
-      batal.addEventListener('click', onSelesai);
+      batal.addEventListener('click', () => { panel.querySelectorAll('video').forEach(video => { video.pause(); video.removeAttribute('src'); video.load(); }); onSelesai(); });
       aksi.append(simpan, batal);
       panel.append(judul.el, isiWadah, ringkas.el, tambahan, aksi, st.el);
       return panel;
     }
 
     async function unggahPdf(courseId, file) {
-      const minta = await api('POST', '/api/uploads', { purpose: 'course-file', entityId: courseId, fileName: file.name, contentType: 'application/pdf', size: file.size });
+      return unggahBerkas(courseId, file, 'course-file');
+    }
+    async function unggahBerkas(courseId, file, purpose) {
+      const contentType = purpose === 'course-file' ? 'application/pdf' : file.type;
+      const minta = await api('POST', '/api/uploads', { purpose, entityId: courseId, fileName: file.name, contentType, size: file.size });
       const id = encodeURIComponent(minta.upload.id);
       if (minta.directUpload) {
         const tautan = await api('POST', `/api/uploads/${id}/direct`);
-        const kirim = await fetch(tautan.uploadUrl, { method: 'PUT', headers: { 'Content-Type': 'application/pdf' }, body: file });
-        if (!kirim.ok) throw new Error('PDF gagal dikirim ke penyimpanan.');
+        const kirim = await fetch(tautan.uploadUrl, { method: 'PUT', headers: { 'Content-Type': contentType }, body: file });
+        if (!kirim.ok) throw new Error('Berkas gagal dikirim ke penyimpanan.');
         await api('POST', `/api/uploads/${id}/confirm`);
       } else {
-        const response = await fetch(`/api/uploads/${id}/content`, { method: 'PUT', headers: { ...headers(), 'Content-Type': 'application/pdf' }, body: file });
+        const response = await fetch(`/api/uploads/${id}/content`, { method: 'PUT', headers: { ...headers(), 'Content-Type': contentType }, body: file });
         const hasil = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(hasil.error || 'PDF gagal diunggah.');
+        if (!response.ok) throw new Error(hasil.error || 'Berkas gagal diunggah.');
       }
       return minta.upload.id;
     }
@@ -452,25 +516,29 @@
       let url = '';
       try { const isi = JSON.parse(mentah); url = isi && typeof isi.url === 'string' ? isi.url : ''; } catch { url = (mentah.match(/https:\/\/\S+/) || [])[0] || ''; }
       const youtubeId = (url.match(POLA_YOUTUBE) || mentah.match(POLA_YOUTUBE) || [])[1] || null;
-      return { url, youtubeId };
+      let videoFileId = null; try { videoFileId = JSON.parse(mentah).videoFileId || null; } catch {}
+      return { url: videoFileId ? '' : url, youtubeId: videoFileId ? null : youtubeId, videoFileId };
     }
 
     // Tombol putar dan wadah pemutar untuk satu materi video. Iframe dibuat saat dibuka dan
     // dibuang saat ditutup, supaya videonya berhenti dan halaman tidak memuat banyak iframe.
     function pemutarMateri(m) {
       const video = tautanVideo(m);
-      if (!video.youtubeId && !video.url) return null;
-      const wadahPutar = el('div', 'lms-video lms-lesson__player');
+      if (!video.youtubeId && !video.url && !video.videoFileId) return null;
+      const wadahPutar = el('div', video.videoFileId ? 'lms-lesson__player' : 'lms-video lms-lesson__player');
       wadahPutar.hidden = true;
       const putar = tombol('▶ Putar video', 'mus-link', `Putar video ${m.title}`);
       putar.addEventListener('click', () => {
         if (!wadahPutar.hidden) {
+          wadahPutar.querySelectorAll('video').forEach(v => v.pause());
           wadahPutar.replaceChildren();
           wadahPutar.hidden = true;
           putar.textContent = '▶ Putar video';
           return;
         }
-        if (video.youtubeId) {
+        if (video.videoFileId && window.HamasahLmsPrivateVideo) {
+          wadahPutar.hidden = false; wadahPutar.append(window.HamasahLmsPrivateVideo.buat({ fileId: video.videoFileId, title: m.title, headers })); putar.textContent = 'Tutup video';
+        } else if (video.youtubeId) {
           const f = el('iframe');
           f.src = `https://www.youtube-nocookie.com/embed/${video.youtubeId}?rel=0&autoplay=1`;
           f.title = m.title;
@@ -484,7 +552,7 @@
           window.open(video.url, '_blank', 'noopener');
         }
       });
-      if (!video.youtubeId) putar.textContent = 'Buka video ↗';
+      if (!video.youtubeId && !video.videoFileId) putar.textContent = 'Buka video ↗';
       return { putar, wadahPutar };
     }
 
@@ -730,11 +798,16 @@
     }
 
     function lukis() {
+      hentikanVideo();
       const course = aktifId && maddah.find((c) => c.id === aktifId);
       if (course) lukisMaddah(course); else { aktifId = null; lukisBeranda(); }
     }
 
+    function hentikanVideo() {
+      wadah.querySelectorAll('video').forEach(video => { video.pause(); video.removeAttribute('src'); video.load(); });
+    }
     return {
+      hancurkan: hentikanVideo,
       async mulai() {
         wadah.replaceChildren(el('p', 'mus-loading', 'Memuat studio maddah...'));
         await muat();

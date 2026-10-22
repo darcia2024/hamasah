@@ -8,7 +8,7 @@ const QUIZ_ATTEMPT_LIMIT = 3;
 const QUIZ_PASSING_SCORE = 70;
 const ASSIGNMENT_PASSING_SCORE = 70;
 // Harus sepadan dengan izin courses.manage dan courses.read di server/access-policy.js.
-const MANAGE_ROLES = Object.freeze(['admin', 'teacher']);
+const MANAGE_ROLES = Object.freeze(['admin', 'teacher', 'supervisor']);
 const VIEW_ROLES = Object.freeze(['admin', 'teacher', 'supervisor']);
 
 function clone(value) {
@@ -37,7 +37,8 @@ function bacaIsiMateri(material) {
   const url = isi && typeof isi === 'object' ? clean(isi.url) : ((mentah.match(POLA_TAUTAN) || [])[0] || '');
   const youtube = (url.match(POLA_YOUTUBE) || teks.match(POLA_YOUTUBE) || [])[1] || null;
   const fileId = isi && POLA_UUID.test(clean(isi.fileId)) ? clean(isi.fileId) : null;
-  return { teks, url: url || null, youtubeId: youtube, fileId, fileName: fileId ? clean(isi.fileName).slice(0, 160) || 'materi.pdf' : null };
+  const videoFileId = isi && POLA_UUID.test(clean(isi.videoFileId)) ? clean(isi.videoFileId) : null;
+  return { coverFileId: isi && POLA_UUID.test(clean(isi.coverFileId)) ? clean(isi.coverFileId) : null, teks, url: videoFileId ? null : url || null, youtubeId: videoFileId ? null : youtube, videoFileId, videoFileName: videoFileId ? clean(isi.videoFileName).slice(0, 160) : null, fileId, fileName: fileId ? clean(isi.fileName).slice(0, 160) || 'materi.pdf' : null };
 }
 
 // Kuis: { questions: [{ prompt, answer, options? }] }. Dengan options (2 sampai 6 pilihan
@@ -73,12 +74,17 @@ function normalkanIsi(type, content) {
     const teks = clean(isi.teks).slice(0, 4000);
     if (type === 'video') {
       const url = clean(isi.url).slice(0, 500);
-      if (!POLA_YOUTUBE.test(url) && !/^https:\/\//i.test(url)) return { ok: false, error: 'Tautan video harus alamat https, misalnya tautan YouTube.' };
+      const videoFileId = clean(isi.videoFileId);
+      if (videoFileId && !POLA_UUID.test(videoFileId)) return { ok: false, error: 'Berkas video belum valid.' };
+      if (!videoFileId && !POLA_YOUTUBE.test(url) && !/^https:\/\//i.test(url)) return { ok: false, error: 'Unggah video privat atau isi tautan video yang valid.' };
       // Modul PDF opsional (22 Oktober 2026): setiap pertemuan berupa video YouTube dengan
       // modul yang bisa diunduh santri. Unggahannya course-file milik maddah yang sama.
       const fileId = clean(isi.fileId);
       if (fileId && !POLA_UUID.test(fileId)) return { ok: false, error: 'Modul PDF belum selesai diunggah. Unggah ulang modulnya.' };
-      return { ok: true, value: JSON.stringify(fileId ? { url, teks, fileId, fileName: clean(isi.fileName).slice(0, 160) } : { url, teks }) };
+      const coverFileId = clean(isi.coverFileId);
+      if (coverFileId && !POLA_UUID.test(coverFileId)) return { ok: false, error: 'Cover belum valid.' };
+      const video = videoFileId ? { videoFileId, videoFileName: clean(isi.videoFileName).slice(0, 160), teks } : { url, teks };
+      return { ok: true, value: JSON.stringify(fileId ? { ...video, coverFileId: coverFileId || null, fileId, fileName: clean(isi.fileName).slice(0, 160) } : { ...video, coverFileId: coverFileId || null }) };
     }
     const fileId = clean(isi.fileId);
     if (!POLA_UUID.test(fileId)) return { ok: false, error: 'Unggah berkas PDF materinya dulu.' };
@@ -168,13 +174,25 @@ function createLmsService(options) {
   const listStudents = config.listStudents || async function tanpaSantri() { return []; };
   // Dipakai saat admin memindahkan maddah ke guru lain.
   const getAccount = config.getAccount || async function tanpaAkun() { return null; };
+  const getFile = config.getFile || async function tanpaBerkas() { return null; };
+  async function validVideoFile(type, content, courseId) {
+    if (type !== 'video') return true;
+    const media = bacaIsiMateri({ content });
+    if (media.coverFileId) {
+      const cover = await getFile(media.coverFileId);
+      if (!cover || cover.status !== 'ready' || cover.purpose !== 'course-cover' || cover.entityId !== courseId) return false;
+    }
+    if (!media.videoFileId) return true;
+    const file = await getFile(media.videoFileId);
+    return Boolean(file && file.status === 'ready' && file.purpose === 'course-video' && file.entityId === courseId);
+  }
 
   function isStaff(actor) {
     return Boolean(actor && MANAGE_ROLES.includes(actor.role));
   }
 
   function canManageCourse(course, actor) {
-    return Boolean(actor && (actor.role === 'admin' || (actor.role === 'teacher' && course && course.ownerAccountId === actor.id)));
+    return Boolean(actor && (actor.role === 'admin' || (['teacher', 'supervisor'].includes(actor.role) && course && course.ownerAccountId === actor.id)));
   }
 
   // Wajib di-await. Tanpa await, Promise selalu bernilai benar dan akses santri lain terbuka.
@@ -199,7 +217,7 @@ function createLmsService(options) {
       return { ok: false, error: 'Judul dan deskripsi maddah belum valid.' };
     }
     const course = await store.createCourse({
-      id: crypto.randomUUID(), title, description, ownerAccountId: actor.role === 'teacher' ? actor.id : null, createdAt: now(), updatedAt: now()
+      id: crypto.randomUUID(), title, description, ownerAccountId: actor.role !== 'admin' ? actor.id : null, createdAt: now(), updatedAt: now()
     });
     return { ok: true, value: course };
   }
@@ -262,6 +280,7 @@ function createLmsService(options) {
     }
     const isi = normalkanIsi(type, content);
     if (!isi.ok) return isi;
+    if (!(await validVideoFile(type, isi.value, courseId))) return { ok: false, error: 'Video belum siap atau bukan milik maddah ini.' };
 
     const saved = await store.addMaterial(courseId, {
       id: crypto.randomUUID(), type, title, content: isi.value, summary, keyPoints, studyGuide, createdAt: now()
@@ -278,6 +297,7 @@ function createLmsService(options) {
     const jenis = course.materials.find((item) => item.id === materialId).type;
     const isi = normalkanIsi(jenis, content);
     if (!isi.ok) return isi;
+    if (!(await validVideoFile(jenis, isi.value, courseId))) return { ok: false, error: 'Video belum siap atau bukan milik maddah ini.' };
     const value = await store.updateMaterial(courseId, materialId, { title, content: isi.value, summary, keyPoints: Array.isArray(source.keyPoints) ? source.keyPoints.map(clean).filter(Boolean).slice(0, 8) : undefined, studyGuide: Array.isArray(source.studyGuide) ? source.studyGuide : undefined, updatedAt: now() });
     return value ? { ok: true, value } : { ok: false, error: 'Materi tidak ditemukan.' };
   }
@@ -313,6 +333,7 @@ function createLmsService(options) {
       return { ok: false, error: 'Maddah tidak ditemukan.' };
     }
     if (!canManageCourse(course, actor)) return { ok: false, error: 'Guru hanya dapat mengelola enrollment course miliknya.' };
+    if (actor.role === 'supervisor' && !(await canViewProgress(studentId, actor))) return { ok: false, status: 403, error: 'Santri bukan bagian dari asrama binaan Anda.' };
     await store.addEnrollment(studentId, courseId, now());
     return { ok: true };
   }
@@ -348,7 +369,7 @@ function createLmsService(options) {
   async function previewCourse(courseId, actor) {
     const course = await store.getCourse(courseId);
     if (!course) return { ok: false, status: 404, error: 'Maddah tidak ditemukan.' };
-    if (!canManageCourse(course, actor)) return { ok: false, status: 403, error: 'Pratinjau hanya untuk admin dan guru pengampu maddah ini.' };
+    if (!canManageCourse(course, actor) && actor.role !== 'supervisor') return { ok: false, status: 403, error: 'Pratinjau hanya untuk pengelola dan musyrif.' };
     return { ok: true, value: await susunMaddahPembelajar(course, { completedMaterialIds: [], attempts: [], submissionOf: null }) };
   }
 
@@ -364,7 +385,7 @@ function createLmsService(options) {
       if (['video', 'pdf', 'text'].includes(material.type)) {
         const isi = bacaIsiMateri(material);
         dasar.content = isi.teks;
-        dasar.media = { url: isi.url, youtubeId: isi.youtubeId, fileId: isi.fileId, fileName: isi.fileName };
+        dasar.media = { coverFileId: isi.coverFileId, url: isi.url, youtubeId: isi.youtubeId, fileId: isi.fileId, fileName: isi.fileName, ...(isi.videoFileId ? { videoFileId: isi.videoFileId, videoFileName: isi.videoFileName } : {}) };
       }
       if (material.type === 'quiz') {
         // Kunci jawaban tidak pernah dikirim ke peramban santri: yang dikirim hanya
@@ -684,6 +705,11 @@ function createLmsService(options) {
   }
 
   return Object.freeze({ progressSummary,
+    async canManageFiles(courseId, actor) {
+      if (!isStaff(actor)) return false;
+      const course = await store.getCourse(courseId);
+      return Boolean(course && canManageCourse(course, actor));
+    },
     addMaterial,
     updateCourse,
     archiveMaterial,

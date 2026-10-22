@@ -1,0 +1,45 @@
+const assert = require('node:assert/strict');
+const { test } = require('node:test');
+const H = require('../scripts/browser-harness.js');
+test('private video requires enrollment and a live cookie session, supports ranges, and never redirects to storage', async () => {
+  const app = await H.bootApp();
+  try {
+    const login = async role => (await H.call(app.baseUrl, 'POST', '/api/auth/login', null, { email: H.ROLE_EMAILS[role], password: app.password })).body.accessToken;
+    const admin = await login('admin'), student = await login('santri'), teacher = await login('guru');
+    const api = (method, route, token, body) => H.call(app.baseUrl, method, route, token, body);
+    const course = (await api('POST', '/api/courses', admin, { title: 'Private video test', description: 'Course for private media access checks.' })).body.course;
+    const studentId = (await api('GET', '/api/my-students', student)).body.items[0].id;
+    const bytes = Buffer.alloc(256, 0x20); bytes.write('ftyp', 4);
+    const upload = { purpose: 'course-video', entityId: course.id, fileName: 'lesson.mp4', contentType: 'video/mp4', size: bytes.length };
+    assert.equal((await api('POST', '/api/uploads', student, upload)).status, 403);
+    assert.equal((await api('POST', '/api/uploads', teacher, upload)).status, 403);
+    const record = (await api('POST', '/api/uploads', admin, upload)).body.upload;
+    const put = await fetch(`${app.baseUrl}/api/uploads/${record.id}/content`, { method: 'PUT', headers: { Authorization: `Bearer ${admin}` }, body: bytes });
+    assert.equal(put.status, 200);
+    const route = `/api/course-videos/${record.id}`;
+    assert.equal((await api('POST', route + '/session', null)).status, 401);
+    assert.equal((await api('POST', route + '/session', student)).status, 403);
+    assert.equal((await api('POST', route + '/session', teacher)).status, 403);
+    await api('POST', `/api/students/${studentId}/courses/${course.id}`, admin);
+    const response = await fetch(app.baseUrl + route + '/session', { method: 'POST', headers: { Authorization: `Bearer ${student}` } });
+    assert.equal(response.status, 200);
+    const cookie = response.headers.get('set-cookie'); assert.match(cookie, /HttpOnly/); assert.match(cookie, /SameSite=Strict/);
+    const { src } = await response.json(); assert.ok(!src.includes(student)); assert.equal(src, route + '/content');
+    assert.equal((await fetch(app.baseUrl + src)).status, 401);
+    const get = async range => fetch(app.baseUrl + src, { headers: { Cookie: cookie.split(';')[0], ...(range ? { Range: range } : {}) }, redirect: 'manual' });
+    const range = await get('bytes=10-19'); assert.equal(range.status, 206); assert.equal(range.headers.get('content-range'), 'bytes 10-19/256'); assert.deepEqual(Buffer.from(await range.arrayBuffer()), bytes.subarray(10, 20));
+    const suffix = await get('bytes=-8'); assert.equal(suffix.status, 206); assert.equal((await suffix.arrayBuffer()).byteLength, 8);
+    assert.equal((await get('bytes=999-')).status, 416);
+    assert.equal((await get('bytes=0-1,4-5')).status, 416);
+    assert.equal((await api('GET', `/api/files/${record.id}`, admin)).status, 403);
+    const material = { type: 'video', title: 'Private lesson', summary: 'Video with a private, course-bound file.', content: JSON.stringify({ videoFileId: record.id, teks: '# Introduction' }) };
+    const saved = await api('POST', `/api/courses/${course.id}/materials`, admin, material); assert.equal(saved.status, 201);
+    const other = (await api('POST', '/api/courses', admin, { title: 'Other course', description: 'Files from another course must be rejected.' })).body.course;
+    assert.equal((await api('POST', `/api/courses/${other.id}/materials`, admin, material)).status, 422);
+    assert.equal((await api('PATCH', `/api/courses/${other.id}/materials/${saved.body.material.id}`, admin, material)).status, 422);
+    const details = (await api('GET', `/api/students/${studentId}/courses/${course.id}`, student)).body.course;
+    assert.equal(details.materials[0].media.videoFileId, record.id); assert.equal(details.materials[0].media.url, null);
+    await api('POST', '/api/auth/logout', student);
+    assert.equal((await get('bytes=0-15')).status, 401);
+  } finally { await app.stop(); }
+});

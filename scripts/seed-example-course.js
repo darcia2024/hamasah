@@ -39,9 +39,10 @@ async function api(method, route, body) {
       media={fileId:upload.id,fileName};
       cache[course.id]||={};cache[course.id][i]=media;fs.writeFileSync(cachePath,JSON.stringify(cache,null,2));
     }
-    const teks=['TUJUAN BELAJAR',...lesson.objectives, ...lesson.sections.flatMap(s=>[s.heading,s.arabic||'',s.text]),'LATIHAN MANDIRI',...lesson.practice,'Buka modul PDF untuk pembahasan latihan.',lesson.credit,lesson.url].filter(Boolean).join('\n\n');
+    const teks=['# Tujuan belajar',lesson.objectives.map(s=>`- ${s}`).join('\n'), '# Pembahasan', ...lesson.sections.flatMap(s=>[`## ${s.heading}`,s.arabic||'',s.text]),'# Latihan mandiri',lesson.practice.map((s,i)=>`${i+1}. ${s}`).join('\n'),'Buka modul PDF untuk pembahasan latihan.','### Sumber video',lesson.credit,lesson.url].filter(Boolean).join('\n\n');
     if(teks.length>4000)throw new Error('Bacaan melebihi kapasitas materi.');
-    await upsert({type:'video',title:lesson.title,summary:lesson.summary,content:JSON.stringify({url:lesson.url,teks,fileId:media.fileId,fileName:media.fileName}),keyPoints:lesson.keyPoints,studyGuide:lesson.studyGuide});
+    const videoSource=media.videoFileId?{videoFileId:media.videoFileId,videoFileName:media.videoFileName}:{url:lesson.url};
+    await upsert({type:'video',title:lesson.title,summary:lesson.summary,content:JSON.stringify({...videoSource,teks,fileId:media.fileId,fileName:media.fileName}),keyPoints:lesson.keyPoints,studyGuide:lesson.studyGuide});
   }
   await upsert({type:'quiz',title:spec.quiz.title,summary:spec.quiz.summary,content:JSON.stringify({questions:spec.quiz.questions}),keyPoints:['Kerjakan setelah tiga pertemuan selesai.'],studyGuide:[]});
   await upsert({type:'assignment',title:spec.assignment.title,summary:spec.assignment.summary,content:spec.assignment.content,keyPoints:['Jenis kata 40 poin; bukti 30; arti dan kelengkapan 20; contoh mandiri 10.'],studyGuide:[]});

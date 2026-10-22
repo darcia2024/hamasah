@@ -82,6 +82,8 @@ const ACTIONS = Object.freeze({
   ,STUDENT_JUZ_UPDATED: 'student.juz-updated'
   ,ANNOUNCEMENT_CREATED: 'announcement.created'
   ,ANNOUNCEMENT_DELETED: 'announcement.deleted'
+  ,FOLLOW_UP_SAVED: 'student.follow-up-saved'
+  ,LEAVE_RETURNED: 'leave.returned'
   ,LEAVE_REQUESTED: 'leave.requested'
   ,LEAVE_DECIDED: 'leave.decided'
   ,LEAVE_CANCELLED: 'leave.cancelled'

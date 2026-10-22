@@ -21,6 +21,8 @@ const SIGNATURES = Object.freeze({
 });
 
 const EXTENSIONS = Object.freeze({
+  'video/mp4': 'mp4',
+  'video/webm': 'webm',
   'application/pdf': 'pdf',
   'image/png': 'png',
   'image/jpeg': 'jpg',
@@ -42,6 +44,22 @@ async function studentsVisibleTo(services, actor) {
 }
 
 const POLICIES = Object.freeze({
+  'course-cover': Object.freeze({ entityType: 'course', visibility: 'private', contentTypes: GAMBAR, maxBytes: 3 * MB,
+    async canUpload({ actor, entityId, services }) { return Boolean(actor) && services.lmsService.canManageFiles(entityId, actor); },
+    async canDownload(ctx) { return POLICIES['course-file'].canDownload(ctx); }
+  }),
+  'course-video': Object.freeze({
+    entityType: 'course', visibility: 'private',
+    contentTypes: Object.freeze(['video/mp4', 'video/webm']), maxBytes: 100 * MB,
+    async canUpload({ actor, entityId, services }) {
+      return Boolean(actor) && services.lmsService.canManageFiles(entityId, actor);
+    },
+    async canDownload(ctx) {
+      if (!ctx.actor) return false;
+      if (['admin', 'teacher', 'supervisor'].includes(ctx.actor.role)) return ctx.services.lmsService.canManageFiles(ctx.entityId, ctx.actor);
+      return ctx.actor.role === 'student' && POLICIES['course-file'].canDownload(ctx);
+    }
+  }),
   // Paspor, ijazah, transkrip, surat kesehatan calon santri.
   'registration-document': Object.freeze({
     entityType: 'registration',
@@ -250,6 +268,8 @@ function extensionFor(contentType) {
 
 // Memeriksa byte awal berkas terhadap tipe yang diakui pengirim.
 function matchesSignature(contentType, buffer) {
+  if (contentType === 'video/mp4') return buffer.length >= 12 && buffer.toString('ascii', 4, 8) === 'ftyp';
+  if (contentType === 'video/webm') return buffer.length >= 4 && buffer.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]));
   const daftar = SIGNATURES[contentType];
   if (!daftar) {
     return false;

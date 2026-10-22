@@ -129,6 +129,16 @@ function createSupabaseStorage({ url, serviceRoleKey, fetchImpl } = {}) {
         throw new Error(`Berkas gagal dibaca dari storage (${response.status}): ${await bacaPesanError(response)}`);
       }
       return Buffer.from(await response.arrayBuffer());
+    },
+    async readRange(bucket, key, start, end) {
+      const response = await panggil(`${base}/storage/v1/object/${bucket}/${encodeKey(key)}`, {
+        method: 'GET', headers: headers({ Range: `bytes=${start}-${end}` })
+      });
+      if (response.status !== 206 || response.headers.get('content-range')?.split('/')[0] !== `bytes ${start}-${end}`) {
+        await response.body?.cancel();
+        throw new Error('Penyimpanan tidak mendukung pemutaran rentang video.');
+      }
+      return require('node:stream').Readable.fromWeb(response.body);
     }
 
   };

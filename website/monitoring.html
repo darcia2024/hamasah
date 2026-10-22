@@ -12,13 +12,14 @@
     <link rel="stylesheet" href="staff.css?v=10b485d34d" />
     <link rel="stylesheet" href="portal.css?v=1fb9273814" />
     <link rel="stylesheet" href="fields.css?v=9cd65bf0c8" />
-    <link rel="stylesheet" href="konsol-2026.css?v=9276fdfa14" />
+    <link rel="stylesheet" href="konsol-2026.css?v=d5727b5de1" />
+    <link rel="stylesheet" href="monitoring-2026.css?v=ad3a24105a" />
     <script src="session-hint.js?v=b0562827f3"></script>
     <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
          supaya pindah menu tidak menampilkan kerangka kosong. Lihat portal.css. -->
     <link rel="expect" href="#konsol-siap" blocking="render" />
   </head>
-  <body class="staff-page">
+  <body class="staff-page monitoring-page">
     <!-- Header saat Belum Login -->
     <header class="staff-header staff-header--shell" id="public-header">
       <a href="portal" class="staff-brand">
@@ -113,15 +114,30 @@
 
         <div class="crm-canvas">
           <div class="crm-page-header">
-            <h2 class="crm-summary-title">Monitoring santri dan asrama</h2>
-            <p class="crm-summary-subtitle">Catat kegiatan, ibadah, dan pembinaan santri, serta atur penempatan asrama.</p>
+            <h2 class="crm-summary-title workspace-heading-serif">Monitoring asrama</h2>
+            <p class="crm-summary-subtitle">Pantau asrama binaan, lengkapi presensi, dan tindak lanjuti kebutuhan santri.</p>
           </div>
+          <section class="monitoring-scope" aria-labelledby="monitoring-scope-title">
+            <div class="monitoring-scope__heading">
+              <p class="monitoring-eyebrow">PENUGASAN ASRAMA</p>
+              <h3 id="monitoring-scope-title">Memuat asrama binaan…</h3>
+              <p id="monitoring-scope-note" class="monitoring-note" role="status">Memeriksa penugasan dan laporan hari ini.</p>
+            </div>
+            <div id="monitoring-scope-dorms" class="monitoring-scope__dorms"></div>
+            <div id="monitoring-scope-stats" class="monitoring-scope__stats"></div>
+          </section>
+          <header class="monitoring-work-head">
+            <h3>Ruang monitoring</h3>
+            <p class="monitoring-note">Pilih bagian kerja. Data yang ditampilkan mengikuti hak akses asrama Anda.</p>
+          </header>
 
           <!-- Subtabs for Monitoring -->
           <div class="crm-subtabs-row" id="monitoring-subtabs">
+            <button type="button" class="crm-pill-btn" id="tab-btn-followups">Tindak lanjut pembinaan</button>
+            <button type="button" class="crm-pill-btn" id="tab-btn-returns">Kepulangan izin</button>
             <button type="button" class="crm-pill-btn is-active" id="tab-btn-tracking">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M22 12h-4M6 12H2M12 6V2M12 22v-4"/><circle cx="12" cy="12" r="3"/></svg>
-              <span>Monitoring rekam jejak</span>
+              <span>Pembinaan santri</span>
             </button>
             <button type="button" class="crm-pill-btn" id="tab-btn-roll">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
@@ -163,6 +179,18 @@
             </button>
           </div>
 
+          <section id="panel-followups" class="crm-white-card" hidden>
+            <div class="crm-white-card-header"><div><h3>Tindak lanjut pembinaan</h3><p>Pantau target dan tenggat pembinaan. Buat tindak lanjut dari santri yang dipilih pada Pembinaan santri.</p></div></div>
+            <label for="followup-filter">Tampilkan</label>
+            <select id="followup-filter"><option value="aktif">Belum selesai</option><option value="semua">Semua tindak lanjut</option><option value="selesai">Selesai</option></select>
+            <p id="followup-status" class="form-status" role="status"></p>
+            <div id="followup-list" class="monitoring-action-list"></div>
+          </section>
+          <section id="panel-returns" class="crm-white-card" hidden>
+            <div class="crm-white-card-header"><div><h3>Kepulangan izin</h3><p>Izin keluar asrama yang telah disetujui. Periksa batas kembali dan catat kepulangan setelah santri tiba.</p></div></div>
+            <label for="return-filter">Tampilkan</label><select id="return-filter"><option value="aktif">Belum kembali</option><option value="semua">Semua izin keluar</option></select>
+            <p id="return-status" class="form-status" role="status"></p><div id="return-list" class="monitoring-action-list"></div>
+          </section>
           <!-- Tab Panel 1: Monitoring Rekam Jejak -->
           <div id="panel-tracking" class="crm-card-stack">
             <div class="crm-toolbar">
@@ -201,6 +229,7 @@
 
             <!-- Catatan Pembinaan & Ibadah (Mutaba'ah) -->
             <section id="record-section" class="crm-white-card" hidden>
+              <button type="button" class="button button--secondary" id="add-followup">Buat tindak lanjut pembinaan</button>
               <div class="crm-white-card-header">
                 <div>
                   <h3 id="record-form-title">Catatan pembinaan &amp; rekam mutaba'ah harian</h3>
@@ -736,7 +765,7 @@
     <script src="nav.js?v=26656a0635"></script>
     <script src="student-picker.js?v=e59fd6a323"></script>
     <script src="perjalanan-santri.js?v=c6fa27f00b"></script>
-    <script src="monitoring.js?v=b0a9cb43cf"></script>
+    <script src="monitoring.js?v=860c27ecd9"></script>
     <div id="konsol-siap" hidden></div>
   </body>
 </html>

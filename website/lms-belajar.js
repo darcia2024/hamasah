@@ -46,6 +46,7 @@
   }
 
   function paragraf(teks) {
+    if (window.HamasahLmsRichText) return window.HamasahLmsRichText.render(teks);
     const wadah = el('div', 'lms-prose');
     String(teks || '').split(/\n{2,}/).map((p) => p.trim()).filter(Boolean).forEach((p) => wadah.append(el('p', '', p)));
     return wadah;
@@ -65,6 +66,7 @@
     const percakapan = new Map();
 
     function lepasPdf() {
+      wadah.querySelectorAll('video').forEach(video => { video.pause(); video.removeAttribute('src'); video.load(); });
       pdfUrls.forEach((url) => URL.revokeObjectURL(url));
       pdfUrls.clear();
     }
@@ -76,7 +78,7 @@
       try { isi = JSON.parse(m.content || '{}'); } catch { /* materi lama berupa teks */ }
       const tautan = String(isi.url || m.content || '');
       const yt = tautan.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^#\s]*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/i);
-      return { ...m, media: { youtubeId: yt ? yt[1] : null, fileId: isi.fileId || null } };
+      return { ...m, media: { coverFileId: isi.coverFileId || null, youtubeId: isi.videoFileId ? null : yt ? yt[1] : null, videoFileId: isi.videoFileId || null, fileId: isi.fileId || null } };
     }
 
     async function api(method, url, body) {
@@ -126,11 +128,13 @@
     }
 
     function posterMaddah(course, indeks) {
-      const pertama = pertemuan(course).find((m) => m.type === 'video' && mediaKatalog(m).media.youtubeId);
+      const pertama = pertemuan(course).find((m) => m.type === 'video' && mediaKatalog(m).media.coverFileId) || pertemuan(course).find((m) => m.type === 'video' && mediaKatalog(m).media.youtubeId);
       const poster = el('span', `lms-maddah-poster is-tone-${indeks % 3}`);
       if (pertama) {
         const img = el('img');
-        img.src = `https://i.ytimg.com/vi/${mediaKatalog(pertama).media.youtubeId}/hqdefault.jpg`;
+        const media = mediaKatalog(pertama).media;
+        if (media.coverFileId) fetch('/api/files/' + encodeURIComponent(media.coverFileId), { headers: headers() }).then(r => { if (!r.ok) throw new Error('Cover tidak tersedia'); return r.blob(); }).then(blob => { const url=URL.createObjectURL(blob); pdfUrls.add(url); img.src=url; }).catch(() => img.remove());
+        else img.src = `https://i.ytimg.com/vi/${media.youtubeId}/hqdefault.jpg`;
         img.alt = ''; img.loading = 'lazy'; img.decoding = 'async';
         img.addEventListener('error', () => img.remove());
         poster.append(img);
@@ -180,18 +184,35 @@
       const kepala = el('section', 'lms-course-detail');
       const sampul = posterMaddah(aktif, Math.max(0, maddah.findIndex((c) => c.id === aktif.id)));
       const intro = el('div', 'lms-course-detail__intro');
-      intro.append(el('p', 'wali-eyebrow', 'Tentang maddah'), el('h2', 'lms-head__title', aktif.title), el('p', 'lms-course-detail__desc', aktif.description || 'Ikuti setiap pertemuan sesuai urutan pembahasan.'));
+      const deskripsi = String(aktif.description || 'Ikuti setiap pertemuan sesuai urutan pembahasan.').trim();
+      const panjang = deskripsi.length > 260;
+      const kalimat = deskripsi.match(/^.{1,260}?[.!?](?:\s|$)/);
+      const ringkas = panjang ? (kalimat ? kalimat[0].trim() : `${deskripsi.slice(0, 240).replace(/\s+\S*$/, '')}…`) : deskripsi;
+      intro.append(el('p', 'wali-eyebrow', 'Ruang belajar · Maddah'), el('h2', 'lms-head__title', aktif.title), el('p', 'lms-course-detail__desc', ringkas));
       const daftar = pertemuan(aktif);
       const video = daftar.filter((m) => m.type === 'video');
       const modul = video.filter((m) => m.media && m.media.fileId).length;
-      intro.append(el('p', 'lms-course-meta', [ `${daftar.length} pertemuan`, modul ? `${modul} modul PDF` : '', aktif.teacherName ? `Pengampu: ${aktif.teacherName}` : '' ].filter(Boolean).join(' · ')));
+      const fakta = el('ul', 'lms-course-detail__facts');
+      const kuis = daftar.filter((m) => m.type === 'quiz').length;
+      const tugas = daftar.filter((m) => m.type === 'assignment').length;
+      [video.length ? `${video.length} video` : '', modul ? `${modul} modul PDF` : '', kuis ? `${kuis} kuis` : '', tugas ? `${tugas} tugas` : '', !video.length && !kuis && !tugas ? `${daftar.length} materi` : ''].filter(Boolean).forEach((teks) => fakta.append(el('li', '', teks)));
+      intro.append(fakta);
+      if (aktif.teacherName) intro.append(el('p', 'lms-course-meta', `Pengampu: ${aktif.teacherName}`));
+      const tindakan = el('div', 'lms-course-detail__actions');
       const mulai = daftar.find((m) => !m.completed) || daftar[0];
       if (mulai) {
         const aksi = tombol(!katalogStaf && daftar.some((m) => m.completed) ? 'Lanjutkan belajar' : 'Mulai belajar', 'button button--primary');
         aksi.addEventListener('click', () => pilihMateri(mulai.id));
-        intro.append(aksi);
+        tindakan.append(aksi);
       }
+      if (!katalogStaf && daftar.length) tindakan.append(el('span', 'lms-course-detail__progress', `${daftar.filter((m) => m.completed).length} dari ${daftar.length} aktivitas selesai`));
+      intro.append(tindakan);
       kepala.append(sampul, intro);
+      if (panjang) {
+        const tentang = el('details', 'lms-course-detail__about');
+        tentang.append(el('summary', '', 'Deskripsi lengkap'), paragraf(deskripsi));
+        kepala.append(tentang);
+      }
       const kurikulum = el('section', 'lms-course-lessons');
       kurikulum.append(el('h3', '', 'Daftar pertemuan'), el('p', 'mus-note', 'Pilih pertemuan untuk membuka video, bacaan pendamping, dan modulnya.'));
       const list = el('ol', 'lms-course-lessons__list');
@@ -240,7 +261,9 @@
     function isiVideo(m) {
       const wadahIsi = el('div', 'lms-content');
       const media = m.media || {};
-      if (media.youtubeId) {
+      if (media.videoFileId && window.HamasahLmsPrivateVideo) {
+        wadahIsi.append(window.HamasahLmsPrivateVideo.buat({ fileId: media.videoFileId, title: m.title, headers }));
+      } else if (media.youtubeId) {
         const bingkai = el('div', 'lms-video');
         const f = el('iframe');
         f.src = `https://www.youtube-nocookie.com/embed/${media.youtubeId}?rel=0`;
@@ -660,7 +683,7 @@
         judul.append(baris, el('h3', 'lms-stage__title', materi.title));
         const konten = materi.type === 'video' ? isiVideo(materi) : materi.type === 'pdf' ? isiPdf(materi) : materi.type === 'quiz' ? isiKuis(materi) : materi.type === 'assignment' ? isiTugas(materi) : (() => { const w = el('div', 'lms-content'); w.append(paragraf(materi.content)); return w; })();
         // Video tampil lebar di atas; judul materinya di bawah pemutar.
-        const pemutar = materi.type === 'video' ? konten.querySelector('.lms-video') : null;
+        const pemutar = materi.type === 'video' ? konten.querySelector('.lms-private-player, .lms-video') : null;
         if (pemutar) panggung.append(pemutar);
         panggung.append(judul);
         if (materi.summary) panggung.append(el('p', 'lms-learn__summary', materi.summary));

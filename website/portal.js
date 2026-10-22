@@ -1151,6 +1151,7 @@ function renderExecutiveDashboard(_daftarAwal, account) {
   coursueLayout.className = 'coursue-layout';
   const mainCol = document.createElement('div');
   mainCol.className = 'coursue-main-col';
+  if (isSupervisor) mainCol.classList.add('mus-home');
   // Judul dan ringkasan hanya memakai peran dan jumlah dari data. Sebelumnya berisi
   // nama kawasan dan gedung operasional yang belum dikonfirmasi klien dan ditulis keras
   // di kode.
@@ -1182,6 +1183,14 @@ function renderExecutiveDashboard(_daftarAwal, account) {
       </span>
     </button>`}
   `;
+  if (isSupervisor) {
+    heroBanner.classList.add('mus-home-header');
+    const title = heroBanner.querySelector('.coursue-hero-title');
+    title.textContent = `Assalamu'alaikum, ${sapaanMusyrif(account)}`;
+    heroBanner.querySelector('.coursue-hero-subtitle').textContent = `Pantau perkembangan ${allTotal} santri binaan dan lengkapi laporan harian.`;
+    const action = heroBanner.querySelector('#btn-hero-action');
+    if (action) action.textContent = 'Catat presensi';
+  }
   // Wali: tombol "Lihat mutaba'ah terkini" dihapus karena hanya membuka ananda pertama;
   // setiap kartu ananda sudah bisa diketuk.
 
@@ -1464,6 +1473,14 @@ function renderBerandaSantri(student, account) {
 
 // Nama depan untuk sapaan. Gelar di depan (Ust., Ustzh., H., Dr., dst.) ikut disebut
 // bersama nama depannya, supaya tidak menjadi "Assalamu'alaikum, Ust.".
+function sapaanMusyrif(account) {
+  const name = String(account && account.name || '').trim();
+  const perempuan = /^(ustadzah|ustazah|ustzh|ustzhh|musyrifah)\b/i.test(name);
+  const tanpaGelar = name.replace(/^(?:ustadzah|ustazah|ustzhh?|ustadz|ustaz|ustad|ust|musyrifah)\.?\s*/i, '').trim();
+  const nama = namaSapaan({ name: tanpaGelar });
+  return `${perempuan ? 'Ustadzah' : 'Ustadz'}${nama ? ` ${nama}` : ''}`;
+}
+
 function namaSapaan(account) {
   const kataNama = account && account.name ? account.name.trim().split(/\s+/) : [];
   const GELAR = /^(ust|ustz|ustzh|ustadz|ustadzah|ustaz|ustazah|kh|h|hj|dr|drs|prof|ir)\.?$/i;
@@ -1495,6 +1512,8 @@ const PINTASAN_PERAN = {
     ['monitoring', 'Catat pembinaan per santri'],
     ['monitoring#izin', 'Izin santri'],
     ['monitoring#pesan-wali', 'Pesan wali'],
+    ['monitoring#tindak-lanjut', 'Tindak lanjut pembinaan'],
+    ['monitoring#kepulangan', 'Kepulangan izin'],
     ['lms', 'Progres maddah santri']
   ],
   teacher: [
