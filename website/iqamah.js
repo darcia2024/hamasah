@@ -108,13 +108,22 @@
   // Kartu bergaya kartu kredit: warna mengikuti tahap (hijau aman, emas siapkan berkas,
   // merah segera urus atau habis), sisa hari besar, bilah sisa masa berlaku (dianggap
   // iqamah setahun), nama pemegang, dan tanggal berlaku seperti di kartu bank.
+  // Tanggal belum tercatat tetapi santri sudah melapor: kartu tidak boleh berkata "Belum
+  // diisi", karena santri sudah mengisinya dan tinggal menunggu musyrif memeriksa.
+  function menungguDicek(s) {
+    return s.iqamah.sisaHari === null && Boolean(s.laporan && s.laporan.status === 'menunggu');
+  }
+
   function kartuVisual(s) {
     const q = s.iqamah;
+    const menunggu = menungguDicek(s);
     const kartuEl = el('div', `iqm-cc is-${q.tahap}`);
     kartuEl.setAttribute('role', 'img');
     kartuEl.setAttribute('aria-label', q.expiresOn
       ? `Kartu iqamah ${s.name}: berlaku sampai ${tanggal(q.expiresOn)}, ${teksSisa(q).toLowerCase()}.`
-      : `Kartu iqamah ${s.name}: tanggal habis belum diisi.`);
+      : menunggu
+        ? `Kartu iqamah ${s.name}: tanggal ${tanggal(s.laporan.expiresOn)} sudah dilaporkan dan menunggu dicek musyrif.`
+        : `Kartu iqamah ${s.name}: tanggal habis belum diisi.`);
 
     const atas = el('div', 'iqm-cc__top');
     const penerbit = el('span', 'iqm-cc__issuer');
@@ -127,13 +136,16 @@
     tengah.append(el('span', 'iqm-cc__chip'));
     const hitung = el('div', 'iqm-cc__count');
     if (q.sisaHari === null) {
-      hitung.append(el('strong', 'is-text', 'Belum diisi'));
+      hitung.append(el('strong', 'is-text', menunggu ? 'Menunggu dicek' : 'Belum diisi'));
     } else if (q.sisaHari < 0) {
       hitung.append(el('strong', '', String(-q.sisaHari)), el('span', '', 'hari lewat'));
     } else {
       hitung.append(el('strong', '', String(q.sisaHari)), el('span', '', q.sisaHari === 0 ? 'habis hari ini' : 'hari lagi'));
     }
-    tengah.append(hitung, chip(q.tahap));
+    // Saat menunggu dicek tidak ada chip: "Menunggu dicek" sudah berkata sama, dan chip
+    // tambahan membuat baris tengah turun menimpa nama pemegang di kartu yang sempit.
+    tengah.append(hitung);
+    if (!menunggu) tengah.append(chip(q.tahap));
 
     const bilah = el('div', 'iqm-cc__bar');
     const isiBilah = el('i');
@@ -171,11 +183,15 @@
     wadah.append(kepala, tata);
 
     const info = fakta(s);
-    rinci.append(el('p', 'iqm-hero__hint', santri && s.iqamah.tahap === 'kosong'
-      ? 'Isi tanggal yang tertera pada iqamah. Musyrif akan memeriksanya dan membantu mengingatkan perpanjangan.'
-      : arahan(s, aturan, { santri })));
+    const menunggu = menungguDicek(s);
+    rinci.append(el('p', 'iqm-hero__hint', menunggu
+      ? `${santri ? 'Tanggal yang kamu laporkan' : 'Tanggal yang dilaporkan'} (${tanggal(s.laporan.expiresOn)}) sedang dicek musyrif. Setelah disetujui, sisa masa berlaku tampil di kartu ini.`
+      : santri && s.iqamah.tahap === 'kosong'
+        ? 'Isi tanggal yang tertera pada iqamah. Musyrif akan memeriksanya dan membantu mengingatkan perpanjangan.'
+        : arahan(s, aturan, { santri })));
     if (info.children.length) rinci.append(info);
-    [catatanPaspor(s, aturan), catatanLaporan(s.laporan)].filter(Boolean).forEach((n) => rinci.append(n));
+    // Saat menunggu dicek, kalimat di atas sudah menjelaskan laporannya; catatan kuning tidak diulang.
+    [catatanPaspor(s, aturan), menunggu ? null : catatanLaporan(s.laporan)].filter(Boolean).forEach((n) => rinci.append(n));
 
     if (!santri) return wadah;
 

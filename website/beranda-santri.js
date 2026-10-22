@@ -1,14 +1,16 @@
-// Beranda santri (disusun ulang 21 Oktober 2026). Enam kelompok berjudul, dari yang paling
-// perlu dilihat santri sampai yang paling jarang:
+// Beranda santri (disusun ulang 21-22 Oktober 2026). Enam kelompok berjudul, dari yang
+// paling perlu dilihat santri sampai yang paling jarang:
 //   1. Hari ini: jadwal rutin hari ini (yang sedang/berikutnya disorot), piket, acara
 //      terdekat dengan hitung mundur, lanjutkan belajar, dan pintasan (izin, ruang belajar).
-//   2. Urusanku: iqamah dan izin, berdampingan. Iqamah selalu di sini, bukan hanya saat
-//      mendesak, karena masa berlaku iqamah menentukan santri boleh tinggal di Mesir.
-//   3. Perkembanganku: laporan 30 hari, prestasi, dan diagram (sholat, kegiatan, hafalan,
+//   2. Iqamah & izin (snt-affairs): kartu iqamah lebih lebar di kiri, izin di kanan;
+//      bertumpuk di layar sempit. Iqamah selalu di sini, bukan hanya saat mendesak, karena
+//      masa berlaku iqamah menentukan santri boleh tinggal di Mesir.
+//   3. Belajar: kelas online.
+//   4. Perkembanganku: laporan 30 hari, prestasi, dan diagram (sholat, kegiatan, hafalan,
 //      catatan musyrif) dari beranda-wali.js.
-//   4. Belajar: kelas online.
 //   5. Kabar asrama: pengumuman, acara mendatang, jadwal asrama (kalender), galeri.
 //   6. Riwayat: catatan harian.
+// Di ponsel ada navigasi lompat antarkelompok (snt-section-nav).
 // Data: API yang sama dengan beranda wali (/api/students/:id/*, /api/asrama-saya,
 // /api/announcements, /api/iqamah-saya). Semua teks lewat textContent; tidak ada atribut style.
 (function initBerandaSantri() {

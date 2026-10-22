@@ -2671,9 +2671,9 @@ body.in-crm .snt-page .wali-grid > .crm-white-card,
 .snt-event__text span { font-size: var(--fs-13); color: var(--md-sys-color-on-surface-variant); }
 .snt-event__count { font-size: var(--fs-13); font-weight: 600; color: var(--gold-dark); white-space: nowrap; }
 
-/* Kelompok beranda santri (21 Oktober 2026): Urusanku, Perkembanganku, Belajar, Kabar asrama,
-   Riwayat. Judul Philosopher dan satu kalimat penjelasan, dipisah jarak lega dan satu garis
-   emas pendek supaya peralihan antarkelompok terbaca sekilas. */
+/* Kelompok beranda santri (21 Oktober 2026): Iqamah & izin, Belajar, Perkembanganku, Kabar
+   asrama, Riwayat. Judul Philosopher dan satu kalimat penjelasan, dipisah jarak lega dan satu
+   garis emas pendek supaya peralihan antarkelompok terbaca sekilas. */
 .snt-group { display: grid; padding-top: 40px; }
 .snt-group__head { display: grid; gap: 6px; padding-bottom: 18px; }
 .snt-group__head::before { content: ""; width: 36px; height: 3px; margin-bottom: 8px; border-radius: 2px; background: #E7B10C; }
@@ -2681,13 +2681,8 @@ body.in-crm .snt-page .wali-grid > .crm-white-card,
 .snt-group__note { margin: 0; max-width: 60ch; font-size: var(--fs-14); line-height: 1.55; color: var(--md-sys-color-on-surface-variant); }
 .snt-group .wali-grid.is-single { grid-template-columns: minmax(0, 1fr); }
 
-/* Iqamah lalu izin, masing-masing selebar penuh. */
-.snt-stack { display: grid; gap: 20px; }
-.snt-stack > * { margin: 0 !important; }
-
 @media (max-width: 860px) {
   .snt-today { grid-template-columns: minmax(0, 1fr); padding: 22px 18px; border-radius: 22px; }
-  .snt-stack { gap: 16px; }
 }
 
 @media (max-width: 640px) {
