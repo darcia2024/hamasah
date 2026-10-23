@@ -34,6 +34,9 @@ async function jsonRequest(url, options) {
 
 // Nama santri dipetakan sekali supaya baris invoice dan visa tidak menampilkan UUID mentah.
 const studentNames = new Map();
+// Santri aktif (id, name, program), dipakai kartu visa supaya semua santri tampil,
+// bukan hanya yang sudah punya catatan visa.
+const studentList = [];
 
 // Pilihan santri dari GET /api/operations/pilihan-santri (santri aktif: id, nama,
 // program). Dulu memakai daftar santri umum yang tertutup untuk peran keuangan, sehingga
@@ -41,6 +44,7 @@ const studentNames = new Map();
 async function loadStudents() {
   const hasil = await jsonRequest('/api/operations/pilihan-santri', { headers: headers() });
   hasil.items.forEach((student) => studentNames.set(student.id, student.name));
+  studentList.splice(0, studentList.length, ...hasil.items);
   ['#invoice-student', '#visa-student'].forEach((selector) => {
     const select = document.querySelector(selector);
     if (!select) return;
@@ -330,46 +334,138 @@ function labelStatusVisa(status) {
   return opsi ? opsi.textContent.trim().toLowerCase() : status;
 }
 
-function visaReminderRow(item) {
+const AMBANG_PENGINGAT_HARI = 30;
+
+// Tanda masa berlaku satu dokumen. Sudah lewat, segera habis, dan aman dinyatakan
+// lewat kata, bukan hanya warna.
+function visaDokumenBaris(label, iso) {
   const baris = document.createElement('div');
-  baris.className = 'op-row';
-
-  const utama = document.createElement('div');
-  utama.className = 'op-row__main';
-  const judul = document.createElement('strong');
-  judul.textContent = `${VISA_DOCUMENT_LABELS[item.document] || item.document} \u00b7 ${studentLabel(item.studentId, item.studentName)}`;
-  const rinci = document.createElement('span');
-  rinci.textContent = `Berlaku sampai ${tanggalIndonesia(item.expiresAt)} \u00b7 status ${labelStatusVisa(item.status)}`;
-  utama.append(judul, rinci);
-
-  // Perbedaan sudah lewat dan akan lewat dinyatakan lewat kata, bukan hanya warna.
-  const hari = selisihHari(item.expiresAt);
-  const tanda = document.createElement('span');
-  tanda.className = item.overdue ? 'op-status op-status--overdue' : 'op-status op-status--unpaid';
-  if (item.overdue) {
-    const lewat = Math.abs(hari);
-    tanda.textContent = lewat === 0 ? 'Kedaluwarsa hari ini' : `Sudah lewat ${lewat} hari`;
-  } else {
-    tanda.textContent = hari === 0 ? 'Kedaluwarsa hari ini' : `${hari} hari lagi`;
+  baris.className = 'visa-card__doc';
+  const nama = document.createElement('span');
+  nama.className = 'visa-card__doc-name';
+  nama.textContent = label;
+  const nilai = document.createElement('span');
+  nilai.className = 'visa-card__doc-value';
+  if (!iso) {
+    nilai.textContent = 'Belum dicatat';
+    nilai.classList.add('is-empty');
+    baris.append(nama, nilai);
+    return baris;
   }
-
-  const wa = document.createElement('button'); wa.type = 'button'; wa.className = 'button button--secondary op-action'; wa.textContent = 'Siapkan pengingat WhatsApp';
-  wa.addEventListener('click', () => {
-    const message = `Assalamu'alaikum,\n\nPengingat ${VISA_DOCUMENT_LABELS[item.document] || item.document} untuk ${studentLabel(item.studentId, item.studentName)}: masa berlaku sampai ${tanggalIndonesia(item.expiresAt)}. Mohon koordinasikan pengecekan berkas dan proses perpanjangan dengan tim Hamasah. Rincian terbaru tersedia di ${location.origin}/portal.\n\nWassalamu'alaikum,\nTim Hamasah International`;
-    window.HamasahManualWhatsapp.show({ recipientName: 'Pemilik dokumen atau wali yang bersangkutan', requiresContactSelection: true, message, url: `https://wa.me/?text=${encodeURIComponent(message)}` });
-  });
-  baris.append(utama, tanda, wa);
+  const hari = selisihHari(iso);
+  const tanggal = document.createElement('span');
+  tanggal.textContent = tanggalIndonesia(iso);
+  const tanda = document.createElement('span');
+  if (hari < 0) {
+    tanda.className = 'op-status op-status--overdue';
+    tanda.textContent = `Lewat ${Math.abs(hari)} hari`;
+  } else if (hari === 0) {
+    tanda.className = 'op-status op-status--overdue';
+    tanda.textContent = 'Habis hari ini';
+  } else if (hari <= AMBANG_PENGINGAT_HARI) {
+    tanda.className = 'op-status op-status--unpaid';
+    tanda.textContent = `${hari} hari lagi`;
+  } else {
+    tanda.className = 'op-status op-status--paid';
+    tanda.textContent = 'Aman';
+  }
+  nilai.append(tanggal, tanda);
+  baris.append(nama, nilai);
   return baris;
 }
 
+// Isi formulir di bawah dengan data santri ini supaya langsung bisa diperbarui.
+function isiFormulirVisa(student, visa) {
+  if (!visaStudentSelect) return;
+  visaStudentSelect.value = student.id;
+  document.querySelector('#visa-state').value = visa ? visa.status : 'not-started';
+  document.querySelector('#visa-passport-expires').value = (visa && visa.passportExpiresAt) || '';
+  document.querySelector('#visa-visa-expires').value = (visa && visa.visaExpiresAt) || '';
+  document.querySelector('#visa-note').value = (visa && visa.note) || '';
+  loadVisaDocuments();
+  const formulir = document.querySelector('#visa-form');
+  formulir.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  visaStudentSelect.focus({ preventScroll: true });
+}
+
+function visaStudentCard(student, visa) {
+  const kartu = document.createElement('article');
+  kartu.className = 'visa-card';
+
+  const kepala = document.createElement('div');
+  kepala.className = 'visa-card__head';
+  const nama = document.createElement('strong');
+  nama.textContent = student.name;
+  const program = document.createElement('span');
+  program.textContent = student.program || 'Program belum diisi';
+  kepala.append(nama, program);
+
+  const tahap = document.createElement('span');
+  tahap.className = 'visa-card__stage';
+  const status = visa ? visa.status : 'not-started';
+  tahap.textContent = labelStatusVisa(status);
+  tahap.dataset.stage = status;
+
+  const dokumen = [
+    { jenis: 'passport', label: VISA_DOCUMENT_LABELS.passport, iso: visa && visa.passportExpiresAt },
+    { jenis: 'visa', label: VISA_DOCUMENT_LABELS.visa, iso: visa && visa.visaExpiresAt }
+  ];
+  const daftarDokumen = document.createElement('div');
+  daftarDokumen.className = 'visa-card__docs';
+  dokumen.forEach((item) => daftarDokumen.append(visaDokumenBaris(item.label, item.iso)));
+
+  const aksi = document.createElement('div');
+  aksi.className = 'visa-card__actions';
+  const perbarui = document.createElement('button');
+  perbarui.type = 'button';
+  perbarui.className = 'button button--secondary op-action';
+  perbarui.textContent = 'Perbarui';
+  perbarui.addEventListener('click', () => isiFormulirVisa(student, visa));
+  aksi.append(perbarui);
+
+  // Pengingat WhatsApp hanya untuk dokumen yang sudah lewat atau segera habis;
+  // yang dipakai adalah yang paling mendesak.
+  const mendesak = dokumen
+    .filter((item) => item.iso && selisihHari(item.iso) <= AMBANG_PENGINGAT_HARI)
+    .sort((kiri, kanan) => kiri.iso.localeCompare(kanan.iso))[0];
+  if (mendesak) {
+    const wa = document.createElement('button');
+    wa.type = 'button';
+    wa.className = 'button button--secondary op-action';
+    wa.textContent = 'Pengingat WhatsApp';
+    wa.addEventListener('click', () => {
+      const message = `Assalamu'alaikum,\n\nPengingat ${mendesak.label} untuk ${student.name}: masa berlaku sampai ${tanggalIndonesia(mendesak.iso)}. Mohon koordinasikan pengecekan berkas dan proses perpanjangan dengan tim Hamasah. Rincian terbaru tersedia di ${location.origin}/portal.\n\nWassalamu'alaikum,\nTim Hamasah International`;
+      window.HamasahManualWhatsapp.show({ recipientName: 'Pemilik dokumen atau wali yang bersangkutan', requiresContactSelection: true, message, url: `https://wa.me/?text=${encodeURIComponent(message)}` });
+    });
+    aksi.append(wa);
+  }
+
+  kartu.append(kepala, tahap, daftarDokumen, aksi);
+  return kartu;
+}
+
+// Hari tersisa paling sedikit dari paspor dan visa; santri tanpa tanggal dicatat paling akhir.
+function urutanVisa(visa) {
+  const hari = [visa && visa.passportExpiresAt, visa && visa.visaExpiresAt].filter(Boolean).map(selisihHari);
+  return hari.length ? Math.min(...hari) : Infinity;
+}
+
+// Satu kartu per santri aktif, termasuk yang belum punya catatan visa.
 async function loadVisaReminders() {
   try {
-    const hasil = await jsonRequest('/api/operations/visa-reminders?days=30', { headers: headers() });
-    if (!hasil.items.length) {
-      visaReminderList.replaceChildren(kosong('Tidak ada paspor atau visa yang kedaluwarsa dalam 30 hari ke depan. Daftar ini terisi setelah tanggal berlaku dicatat pada formulir di bawah.'));
+    const hasil = await jsonRequest('/api/operations', { headers: headers() });
+    if (!studentList.length) {
+      visaReminderList.replaceChildren(kosong('Belum ada santri aktif yang terdaftar.'));
       return;
     }
-    visaReminderList.replaceChildren(...hasil.items.map(visaReminderRow));
+    const visaPerSantri = new Map((hasil.visas || []).map((visa) => [visa.studentId, visa]));
+    const urut = studentList
+      .map((student) => ({ student, visa: visaPerSantri.get(student.id) || null }))
+      .sort((kiri, kanan) => {
+        const selisih = urutanVisa(kiri.visa) - urutanVisa(kanan.visa);
+        return Number.isNaN(selisih) || selisih === 0 ? String(kiri.student.name).localeCompare(String(kanan.student.name), 'id-ID') : selisih;
+      });
+    visaReminderList.replaceChildren(...urut.map(({ student, visa }) => visaStudentCard(student, visa)));
   } catch (error) {
     visaReminderList.replaceChildren(kosong(error.message));
     panelRetry(visaReminderList, loadVisaReminders);

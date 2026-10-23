@@ -8483,6 +8483,124 @@ button.santri-juz__cell:focus-visible {
   margin-top: 20px;
 }
 
+/* Kartu visa: satu kartu per santri aktif, tiga kartu per baris. */
+#visa-reminder-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+#visa-reminder-list > .form-status {
+  grid-column: 1 / -1;
+}
+
+.visa-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 16px 18px;
+  background: #FFFFFF;
+  border: 1px solid #E4E1DA;
+  border-radius: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.visa-card:hover {
+  border-color: #D9D3C6;
+  box-shadow: 0 2px 10px rgba(54, 54, 56, 0.06);
+}
+
+.visa-card__head {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.visa-card__head strong {
+  font-size: var(--fs-16);
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+  overflow-wrap: anywhere;
+}
+
+.visa-card__head span {
+  font-size: var(--fs-13);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.visa-card__stage {
+  justify-self: start;
+  padding: 3px 10px;
+  font-size: var(--fs-12);
+  font-weight: 600;
+  color: #5C4300;
+  background: #FFF3CC;
+  border-radius: 999px;
+}
+
+.visa-card__stage[data-stage="not-started"] {
+  color: var(--md-sys-color-on-surface-variant);
+  background: #F3F0E9;
+}
+
+.visa-card__stage[data-stage="approved"] {
+  color: #1F5B3A;
+  background: #E3F1E8;
+}
+
+.visa-card__stage[data-stage="expired"] {
+  color: #8E2A23;
+  background: #FBE9E7;
+}
+
+.visa-card__docs {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #EFECE6;
+}
+
+.visa-card__doc {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 10px;
+  font-size: var(--fs-13);
+}
+
+.visa-card__doc-name {
+  color: var(--md-sys-color-outline);
+}
+
+.visa-card__doc-value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px 8px;
+  color: var(--md-sys-color-on-surface);
+}
+
+.visa-card__doc-value.is-empty {
+  color: var(--md-sys-color-outline);
+}
+
+.visa-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 1100px) {
+  #visa-reminder-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  #visa-reminder-list { grid-template-columns: minmax(0, 1fr); }
+}
+
 @media (max-width: 900px) {
   .invoice-filter-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .invoice-filter-row > :first-child { grid-column: 1 / -1; }
