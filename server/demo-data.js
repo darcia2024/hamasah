@@ -1859,7 +1859,8 @@ async function statusDataDemo(database) {
       pesan: data.pesan.length,
       berkas: data.berkas.length
     },
-    lengkap: data.akun.length === DEMO_ACCOUNTS.length && data.santri.length === DEMO_STUDENTS.length && data.maddah.length === DEMO_COURSES.length,
+    lengkap: data.akun.length === DEMO_ACCOUNTS.length && data.santri.length === DEMO_STUDENTS.length
+      && DEMO_COURSES.every((course) => data.maddah.some((row) => row.title === course.title)),
     // Pengisian versi lama berisi lebih banyak akun dan santri daripada satu contoh per
     // fitur. Melanjutkan pengisian tidak mengubahnya, jadi dashboard meminta dihapus dulu.
     versiLama: data.akun.length > DEMO_ACCOUNTS.length || data.santri.length > DEMO_STUDENTS.length

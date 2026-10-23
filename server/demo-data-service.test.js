@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const identity = require('./identity-service.js');
 const { createTestDatabase } = require('./test-support/database.js');
 const { createDemoDataService } = require('./demo-data-service.js');
-const { DEMO_ACCOUNTS, DEMO_REGISTRATIONS, DEMO_STUDENTS, LANGKAH_DEMO } = require('./demo-data.js');
+const { DEMO_ACCOUNTS, DEMO_COURSES, DEMO_REGISTRATIONS, DEMO_STUDENTS, LANGKAH_DEMO } = require('./demo-data.js');
 
 async function run() {
   const database = await createTestDatabase();
@@ -53,6 +53,17 @@ async function run() {
     assert.equal(await database.query('SELECT count(*)::int AS jumlah FROM course_enrollments').then((r) => r.rows[0].jumlah), DEMO_STUDENTS.length + DEMO_STUDENTS.filter((s) => s.bergabung === 38).length, 'Tidak ada pendaftaran maddah ganda.');
     const hash = (await database.query("SELECT password_hash FROM accounts WHERE email LIKE '%@demo.hamasah.test' LIMIT 1")).rows[0].password_hash;
     assert.equal(await identity.verifyPassword(kataSandi, hash), true);
+
+    // Additional classes owned by the demo teacher must not make a complete demo
+    // appear unfinished. The required class must still be present.
+    const extraCourseId = require('node:crypto').randomUUID();
+    await database.query(`INSERT INTO courses (id, title, description, owner_account_id)
+      SELECT $1, 'Kelas tambahan contoh', 'Latihan tambahan untuk presentasi.', owner_account_id
+      FROM courses WHERE title = $2 LIMIT 1`, [extraCourseId, DEMO_COURSES[0].title]);
+    assert.equal((await layanan.status()).lengkap, true, 'Kelas tambahan tidak mengubah status demo lengkap.');
+    await database.query('UPDATE courses SET title = $1 WHERE title = $2', ['Judul sementara', DEMO_COURSES[0].title]);
+    assert.equal((await layanan.status()).lengkap, false, 'Kelas lain tidak menggantikan kelas demo yang wajib ada.');
+    await database.query('UPDATE courses SET title = $1 WHERE title = $2', [DEMO_COURSES[0].title, 'Judul sementara']);
 
     // Kata sandi baru.
     const baru = await layanan.gantiSandi();
