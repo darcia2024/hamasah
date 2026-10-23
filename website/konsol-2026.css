@@ -652,7 +652,7 @@ body.staff-page.in-crm .admin-kpi__value { font-size: clamp(26px, 2.4vw, 32px) !
 body.staff-page .crm-page-header .crm-summary-title.workspace-heading-serif { font-family: "Philosopher", Georgia, serif !important; font-weight: 700 !important; letter-spacing: 0 !important; }
 
 /* Plus Jakarta Sans memiliki bentuk lebih lebar; isi tetap padat dan terbaca. */
-body.staff-page { font-size: 15px; line-height: 1.55; }
+body.staff-page { font-size: 14px; line-height: 1.55; }
 body.staff-page :is(.crm-summary-subtitle,.mus-note,.lms-card__desc,.lms-maddah-card__desc,.lms-course-detail__desc,.wali-report__body) { line-height: 1.6; }
 body.staff-page :is(input,select,textarea,button) { letter-spacing: 0; }
 @media(max-width:640px) {
@@ -687,4 +687,27 @@ body.staff-page.in-crm :is(h3, h4, h5, h6, p, label, small, input, select, texta
 /* Contoh Arab tetap menggunakan font khusus agar harakat terbaca baik. */
 body.staff-page :is(.lms-prose__arabic, [lang="ar"]) {
   font-family: "Traditional Naskh", "Traditional Arabic", serif !important;
+}
+
+/* Deskripsi ringkas: ukuran tetap, tidak ikut skala judul atau angka ringkasan. */
+body.staff-page.in-crm .crm-canvas :is(
+  .crm-summary-subtitle, .coursue-hero-subtitle, .mus-note,
+  .admin-ops-lead, .admin-card__line, .admin-alert__detail,
+  .lms-head__desc, .lms-card__desc, .lms-maddah-card__desc,
+  .lms-course-detail__desc, .lms-learn__summary, .lms-course-lesson__desc,
+  .wali-report__body, .wali-attention__body,
+  .santri-card__desc, .snt-group__desc, .snt-today__empty
+) {
+  font-size: 14px !important;
+  line-height: 1.55 !important;
+}
+
+body.staff-page.in-crm .crm-canvas :is(
+  .admin-kpi__note, .admin-section-note, .admin-card__meta,
+  .admin-dorm-card__meta, .admin-ops-figure__note, .admin-ops-list__meta,
+  .admin-empty, .admin-alert__level, .admin-table td small,
+  .lms-toc__foot, .lms-tutor__note, .mus-meta
+) {
+  font-size: 13px !important;
+  line-height: 1.5 !important;
 }
