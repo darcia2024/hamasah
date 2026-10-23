@@ -14,8 +14,12 @@ const valid = checkStagingEnvironment(base, options);
 assert.deepEqual(valid.errors, []);
 assert.equal(valid.config.appEnvironment, 'staging');
 
-const missingEmail = checkStagingEnvironment({ ...base, EMAIL_DRIVER: 'disabled' }, options);
+// Kanal bawaan whatsapp-manual: email boleh mati.
+assert.deepEqual(checkStagingEnvironment({ ...base, EMAIL_DRIVER: 'disabled' }, options).errors, []);
+// Kanal email: email wajib aktif.
+const missingEmail = checkStagingEnvironment({ ...base, NOTIFICATION_CHANNEL: 'email', EMAIL_DRIVER: 'disabled' }, options);
 assert.ok(missingEmail.errors.some((message) => /EMAIL_DRIVER/.test(message)));
+assert.deepEqual(checkStagingEnvironment({ ...base, NOTIFICATION_CHANNEL: 'email' }, options).errors, []);
 
 const missingBucket = checkStagingEnvironment({ ...base, STORAGE_BUCKET: ' ' }, options);
 assert.ok(missingBucket.errors.some((message) => /STORAGE_BUCKET/.test(message)));

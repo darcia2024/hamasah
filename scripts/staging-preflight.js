@@ -16,8 +16,10 @@ function checkStagingEnvironment(environment = process.env, { loadFile = true } 
   }
   if (!config.storageBucket) errors.push('STORAGE_BUCKET wajib diisi untuk UAT staging/production.');
   if (config.storageDriver !== 'supabase') errors.push('STORAGE_DRIVER harus supabase untuk UAT staging/production.');
-  if (config.email.driver === 'disabled') errors.push('EMAIL_DRIVER masih disabled; worker dan aktivasi akun tidak bisa diuji.');
-  if (!config.email.appBaseUrl) errors.push('APP_BASE_URL wajib diisi agar link email dapat diuji.');
+  // Email hanya wajib bila kanal notifikasinya email. Bawaannya whatsapp-manual: email
+  // dimatikan oleh production-config dan petugas mengirim pesan WhatsApp sendiri.
+  if (config.notificationChannel === 'email' && config.email.driver === 'disabled') errors.push('NOTIFICATION_CHANNEL=email tetapi EMAIL_DRIVER masih disabled; worker dan aktivasi akun tidak bisa diuji.');
+  if (!config.email.appBaseUrl) errors.push('APP_BASE_URL wajib diisi agar link aktivasi dan cek status dapat diuji.');
   if (config.email.appBaseUrl && !config.email.appBaseUrl.startsWith('https://')) warnings.push('APP_BASE_URL belum memakai https://. Gunakan HTTPS pada domain staging yang sebenarnya.');
   if (!values.NOTIFICATION_PAYLOAD_KEY && !config.ipHashSecret) errors.push('NOTIFICATION_PAYLOAD_KEY atau IP_HASH_SECRET wajib tersedia untuk worker.');
   return { config, errors, warnings };
