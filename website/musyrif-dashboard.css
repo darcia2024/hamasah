@@ -1,0 +1,35 @@
+/* Batas bidang kerja musyrif. Judul dan teks mengikuti skala tipografi portal. */
+body.staff-page.in-crm .mus-home { display: grid; gap: 18px; }
+body.staff-page.in-crm .mus-home > .mus-home-header.coursue-hero-banner.k26-hero,
+body.staff-page.in-crm .mus-home > #tugas-musyrif,
+body.staff-page.in-crm .mus-home .mus-dashboard > .mus-section {
+ margin: 0 !important; padding: 22px 24px !important; min-width: 0;
+ border: 1px solid #DDD8CE !important; border-radius: 10px !important;
+ background: #FFFFFF !important; background-image: none !important; box-shadow: none !important;
+}
+body.staff-page.in-crm .mus-home > .mus-home-header::before,
+body.staff-page.in-crm .mus-home > .mus-home-header::after { content: none !important; display: none !important; }
+body.staff-page.in-crm .mus-home .mus-dashboard { display: grid; gap: 18px; }
+body.staff-page.in-crm .mus-home :is(.mus-section__head,.admin-section-head) { padding: 0 0 14px; border-bottom: 1px solid #E4DFD6; margin: 0; }
+body.staff-page.in-crm .mus-home .mus-dashboard > .mus-section { gap: 16px; }
+body.staff-page.in-crm .mus-home .mus-dashboard .mus-stats { margin: 0; padding-top: 0; }
+body.staff-page.in-crm .mus-home .mus-dashboard .mus-stat { padding-top: 8px; padding-bottom: 8px; }
+body.staff-page.in-crm .mus-home #tugas-musyrif .musyrif-task-list { padding-top: 6px; }
+body.staff-page.in-crm .mus-home #tugas-musyrif .musyrif-task:last-child { border-bottom: 0 !important; padding-bottom: 0; }
+body.staff-page.in-crm .mus-home .mus-watch__item { padding-block: 14px; }
+body.staff-page.in-crm .mus-home .mus-card { background-image: none !important; }
+body.staff-page.in-crm .mus-home .mus-card:hover { background: #FAF9F5 !important; }
+body.staff-page.in-crm .mus-home .k26-shortcuts { margin-top: 18px !important; padding-top: 16px !important; border-top: 1px solid #E4DFD6; gap: 8px; }
+body.staff-page.in-crm .mus-home .k26-shortcuts a { border-radius: 6px !important; box-shadow: none !important; border: 1px solid #E4DFD6 !important; background: #FFFFFF !important; min-height: 40px; }
+body.staff-page.in-crm .mus-home .mus-assistant > summary { min-height: 32px; }
+@media(max-width:900px) {
+ body.staff-page.in-crm .mus-home .mus-dashboard .mus-stat { padding-block: 14px; }
+}
+@media(max-width:640px) {
+ body.staff-page.in-crm .mus-home,
+ body.staff-page.in-crm .mus-home .mus-dashboard { gap: 14px; }
+ body.staff-page.in-crm .mus-home > .mus-home-header.coursue-hero-banner.k26-hero,
+ body.staff-page.in-crm .mus-home > #tugas-musyrif,
+ body.staff-page.in-crm .mus-home .mus-dashboard > .mus-section { padding: 18px 16px !important; border-radius: 8px !important; }
+ body.staff-page.in-crm .mus-home .k26-shortcuts a { white-space: normal; max-width: 100%; }
+}

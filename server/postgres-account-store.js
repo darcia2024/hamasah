@@ -1,4 +1,4 @@
-const ACCOUNT_FIELDS = `id, email, name, role, active, password_hash, reset_token_hash, reset_expires_at,
+const ACCOUNT_FIELDS = `id, email, name, role, active, lifecycle, version, password_hash, reset_token_hash, reset_expires_at,
   invitation_token_hash, invitation_expires_at, invited_at, created_at, updated_at`;
 
 function toAccount(row) {
@@ -8,6 +8,8 @@ function toAccount(row) {
     name: row.name,
     role: row.role,
     active: row.active,
+    lifecycle: row.lifecycle,
+    version: Number(row.version),
     passwordHash: row.password_hash,
     resetTokenHash: row.reset_token_hash,
     resetExpiresAt: row.reset_expires_at && row.reset_expires_at.toISOString(),
@@ -53,7 +55,7 @@ function createPostgresAccountStore({ database } = {}) {
     async consumeResetToken(tokenHash, passwordHash, nowIso) {
       const { rows } = await database.query(
         `UPDATE accounts
-         SET password_hash = $2, reset_token_hash = NULL, reset_expires_at = NULL, updated_at = $3
+         SET version = version + 1, password_hash = $2, reset_token_hash = NULL, reset_expires_at = NULL, updated_at = $3
          WHERE reset_token_hash = $1 AND reset_expires_at > $3 AND active = TRUE
          RETURNING id`,
         [tokenHash, passwordHash, nowIso]
@@ -64,9 +66,9 @@ function createPostgresAccountStore({ database } = {}) {
     async consumeInvitationToken(tokenHash, passwordHash, nowIso) {
       const { rows } = await database.query(
         `UPDATE accounts
-         SET active = TRUE, password_hash = $2, invitation_token_hash = NULL,
+         SET version = version + 1, lifecycle = 'active', active = TRUE, password_hash = $2, invitation_token_hash = NULL,
              invitation_expires_at = NULL, updated_at = $3
-         WHERE invitation_token_hash = $1 AND invitation_expires_at > $3 AND active = FALSE
+         WHERE invitation_token_hash = $1 AND invitation_expires_at > $3 AND active = FALSE AND lifecycle = 'pending'
          RETURNING id`,
         [tokenHash, passwordHash, nowIso]
       );
@@ -78,12 +80,23 @@ function createPostgresAccountStore({ database } = {}) {
       return rows.map(toAccount);
     },
 
+    async patch(id, version, changes) {
+      const columns = { name: 'name', email: 'email', role: 'role', active: 'active', lifecycle: 'lifecycle', passwordHash: 'password_hash', resetTokenHash: 'reset_token_hash', resetExpiresAt: 'reset_expires_at', invitationTokenHash: 'invitation_token_hash', invitationExpiresAt: 'invitation_expires_at', invitedAt: 'invited_at', updatedAt: 'updated_at' };
+      const entries = Object.entries(changes);
+      if (entries.some(([key]) => !columns[key])) throw new Error('Invalid account patch');
+      const assignments = entries.map(([key], i) => `${columns[key]} = $${i + 3}`);
+      const { rows } = await database.query(`UPDATE accounts SET ${assignments.join(', ')}, version = version + 1 WHERE id = $1 AND version = $2 RETURNING ${ACCOUNT_FIELDS}`, [id, version, ...entries.map(([, value]) => value)]);
+      return rows[0] ? toAccount(rows[0]) : null;
+    },
+
     async save(account) {
       const { rows } = await database.query(
         `INSERT INTO accounts (id, email, name, role, active, password_hash, reset_token_hash, reset_expires_at,
-          invitation_token_hash, invitation_expires_at, invited_at, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+          invitation_token_hash, invitation_expires_at, invited_at, created_at, updated_at, lifecycle)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
          ON CONFLICT (id) DO UPDATE SET
+           version = accounts.version + 1,
+           lifecycle = EXCLUDED.lifecycle,
            email = EXCLUDED.email,
            name = EXCLUDED.name,
            role = EXCLUDED.role,
@@ -95,6 +108,7 @@ function createPostgresAccountStore({ database } = {}) {
            invitation_expires_at = EXCLUDED.invitation_expires_at,
            invited_at = EXCLUDED.invited_at,
            updated_at = EXCLUDED.updated_at
+         WHERE accounts.version = $15
          RETURNING ${ACCOUNT_FIELDS}`,
         [
           account.id,
@@ -109,10 +123,12 @@ function createPostgresAccountStore({ database } = {}) {
           account.invitationExpiresAt,
           account.invitedAt,
           account.createdAt,
-          account.updatedAt
+          account.updatedAt,
+          account.lifecycle || (account.active ? 'active' : 'blocked'),
+          account.version == null ? -1 : account.version
         ]
       );
-      return toAccount(rows[0]);
+      return rows[0] ? toAccount(rows[0]) : null;
     }
   };
 }

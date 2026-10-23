@@ -9,19 +9,38 @@ function createAccessCode() {
   return Array.from({ length: 10 }, () => ACCESS_CODE_ALPHABET[crypto.randomInt(ACCESS_CODE_ALPHABET.length)]).join('');
 }
 
-function createApplicantService({ registrationStore, sessionStore, now = () => new Date() } = {}) {
+function createApplicantService({ registrationStore, sessionStore, prepareRecovery = null, canRecover = () => false, now = () => new Date() } = {}) {
   if (!registrationStore || !sessionStore) throw new Error('createApplicantService membutuhkan registrationStore dan sessionStore.');
   async function login(registrationId, accessCode) {
     const registration = await registrationStore.get(registrationId);
     if (!registration || !registration.accessCodeHash || !(await verifyPassword(String(accessCode || ''), registration.accessCodeHash))) {
       return { ok: false, error: 'Nomor pendaftaran atau kode akses tidak tepat.' };
     }
+    return startSession(registration.registrationId, registration.accessCodeHash);
+  }
+  async function startSession(registrationId, verifiedCodeHash = null) {
+    const registration = await registrationStore.get(registrationId);
+    if (!registration) return { ok: false, error: 'Pendaftaran tidak ditemukan.' };
     const token = crypto.randomBytes(32).toString('base64url');
     const issuedAt = now();
-    await sessionStore.save({ tokenHash: hashToken(token), registrationId: registration.id, expiresAt: new Date(issuedAt.getTime() + SESSION_TTL_MS).toISOString(), createdAt: issuedAt.toISOString() });
+    const session = { tokenHash: hashToken(token), registrationId: registration.id, expiresAt: new Date(issuedAt.getTime() + SESSION_TTL_MS).toISOString(), createdAt: issuedAt.toISOString() };
+    if (typeof sessionStore.saveForCredential === 'function') {
+      if (!(await sessionStore.saveForCredential(session, verifiedCodeHash))) return { ok: false, error: 'Kode akses berubah. Masuk dengan kode terbaru.' };
+    } else {
+      await sessionStore.save(session);
+      // Memory/custom adapters also remove sessions if recovery overtook verification.
+      if (verifiedCodeHash && (await registrationStore.get(registrationId))?.accessCodeHash !== verifiedCodeHash) {
+        await sessionStore.remove(session.tokenHash);
+        return { ok: false, error: 'Kode akses berubah. Masuk dengan kode terbaru.' };
+      }
+    }
     return { ok: true, value: { accessToken: token, registrationId: registration.registrationId } };
   }
   async function recoverAccessCode(registrationId, email) {
+    // Do not rotate a credential unless its encrypted delivery can be committed too.
+    if (!canRecover() || !prepareRecovery || typeof registrationStore.recoverAccessCode !== 'function') {
+      return { ok: false, error: 'Pemulihan email belum tersedia.' };
+    }
     const registration = await registrationStore.get(registrationId);
     const requestedEmail = String(email || '').trim().toLocaleLowerCase('id-ID');
     const registeredEmail = String(registration?.applicant?.email || '').trim().toLocaleLowerCase('id-ID');
@@ -30,7 +49,9 @@ function createApplicantService({ registrationStore, sessionStore, now = () => n
     }
     const accessCode = createAccessCode();
     const updatedAt = now().toISOString();
-    await registrationStore.update({ ...registration, accessCodeHash: await hashPassword(accessCode), updatedAt });
+    const value = { registrationId: registration.registrationId, email: registration.applicant.email, name: registration.applicant.applicantName, accessCode };
+    const notification = await prepareRecovery(value);
+    await registrationStore.recoverAccessCode(registration, await hashPassword(accessCode), notification, updatedAt);
     return {
       ok: true,
       value: {
@@ -56,7 +77,7 @@ function createApplicantService({ registrationStore, sessionStore, now = () => n
     if (typeof sessionStore.removeExpired !== 'function') return 0;
     return sessionStore.removeExpired(now().toISOString());
   }
-  return Object.freeze({ authenticate, createAccessCode, hashAccessCode: hashPassword, login, logout, purgeExpiredSessions, recoverAccessCode });
+  return Object.freeze({ authenticate, createAccessCode, hashAccessCode: hashPassword, login, logout, purgeExpiredSessions, recoverAccessCode, startSession });
 }
 
 module.exports = { ACCESS_CODE_ALPHABET, SESSION_TTL_MS, createAccessCode, createApplicantService };

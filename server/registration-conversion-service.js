@@ -85,6 +85,7 @@ function createRegistrationConversionService({ database, notificationPayloadKey 
 
         async function prepareInvitation(account, name, forceRenewal = false) {
           if (account.active && !forceRenewal) return;
+          if (account.lifecycle !== 'pending') throw new Error(`Email ${account.email} terkait akun yang diblokir. Hubungi admin.`);
           const existingNotice = await tx.query(
             `SELECT 1 FROM notification_outbox
              WHERE account_id = $1 AND notification_type = 'account-invitation'
@@ -96,14 +97,14 @@ function createRegistrationConversionService({ database, notificationPayloadKey 
           const invitationTokenHash = crypto.createHash('sha256').update(invitationToken).digest('hex');
           await tx.query(
             `UPDATE accounts SET invitation_token_hash = $2, invitation_expires_at = $3,
-              invited_at = $4, updated_at = $4 WHERE id = $1`,
+              invited_at = $4, updated_at = $4, version = version + 1 WHERE id = $1 AND lifecycle = 'pending' AND active = FALSE`,
             [account.id, invitationTokenHash, invitationExpiresAt, createdAtIso]
           );
           accountsToInvite.push({ id: account.id, email: account.email, role: account.role, invitationToken });
         }
 
         async function findOrCreateAccount(email, name, role) {
-          const found = await tx.query('SELECT id, email, role, active FROM accounts WHERE email = $1 FOR UPDATE', [email]);
+          const found = await tx.query('SELECT id, email, role, active, lifecycle FROM accounts WHERE email = $1 FOR UPDATE', [email]);
           if (found.rows[0]) {
             if (found.rows[0].role !== role) {
               throw new Error(`Email ${email} sudah dipakai akun dengan peran lain.`);
@@ -122,8 +123,8 @@ function createRegistrationConversionService({ database, notificationPayloadKey 
           const invitationTokenHash = crypto.createHash('sha256').update(invitationToken).digest('hex');
           await tx.query(
             `INSERT INTO accounts (id, email, name, role, active, password_hash, invitation_token_hash,
-              invitation_expires_at, invited_at, created_at, updated_at)
-             VALUES ($1, $2, $3, $4, FALSE, $5, $6, $7, $8, $8, $8)`,
+              invitation_expires_at, invited_at, created_at, updated_at, lifecycle)
+             VALUES ($1, $2, $3, $4, FALSE, $5, $6, $7, $8, $8, $8, 'pending')`,
             [accountId, email, String(name || email), role, await hashPassword(crypto.randomBytes(48).toString('base64url')),
               invitationTokenHash, invitationExpiresAt, createdAtIso]
           );

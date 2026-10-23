@@ -71,6 +71,9 @@ function createFileService(options = {}) {
       return { ok: false, error: `Ukuran berkas melebihi batas ${Math.round(policy.maxBytes / (1024 * 1024))} MB.` };
     }
 
+    if (policy.entityType === 'course' && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(entityId)) {
+      return { ok: false, error: 'Kelas untuk unggahan belum valid.' };
+    }
     if (!(await policy.canUpload(await konteks(actor, auth, entityId)))) {
       return { ok: false, status: 403, error: 'Anda tidak memiliki akses untuk mengunggah berkas ini.' };
     }

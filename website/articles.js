@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
           filterChips.forEach((c) => {
             const active = c.dataset.category === 'all';
             c.classList.toggle('is-active', active);
+            c.setAttribute('aria-pressed', String(active));
           });
           filterAndRender();
         });
@@ -88,6 +89,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // jalan, dan "Muat lebih banyak" menambah halaman berikutnya (Task R6.2).
   const PAGE_SIZE = 12;
   let requestToken = 0;
+  let retryAppend = null;
+  const loadStatus = document.createElement('p');
+  loadStatus.className = 'form-status';
+  loadStatus.setAttribute('role', 'status');
+  articlesGrid.after(loadStatus);
   const moreWrap = document.createElement('div');
   moreWrap.className = 'articles-more';
   moreWrap.hidden = true;
@@ -104,23 +110,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentCategory !== 'all') params.set('category', currentCategory);
     if (currentSearchQuery) params.set('search', currentSearchQuery);
     moreButton.disabled = true;
+    loadStatus.textContent = 'Memuat artikel...';
     try {
       const response = await fetch('/api/articles?' + params);
       if (!response.ok) throw new Error('Gagal memuat artikel.');
       const data = await response.json();
       // Permintaan yang sudah tertinggal oleh filter baru tidak boleh menimpa hasilnya.
       if (token !== requestToken) return;
-      const items = Array.isArray(data.items) ? data.items : [];
+      if (!Array.isArray(data.items) || !Number.isFinite(data.total)) throw new Error('Respons artikel tidak valid.');
+      const items = data.items;
+      retryAppend = null;
+      moreButton.textContent = 'Muat lebih banyak';
+      loadStatus.textContent = '';
       allArticles = append ? allArticles.concat(items) : items;
       renderCards(allArticles);
       moreWrap.hidden = allArticles.length >= (data.total || 0);
     } catch {
       if (token !== requestToken) return;
       if (!append) allArticles = [];
-      renderCards(allArticles);
-      moreWrap.hidden = true;
+      if (!append) articlesGrid.replaceChildren();
+      loadStatus.textContent = 'Artikel belum dapat dimuat. Silakan coba lagi.';
+      retryAppend = append;
+      moreButton.textContent = 'Coba lagi';
+      moreWrap.hidden = false;
     } finally {
-      moreButton.disabled = false;
+      if (token === requestToken) moreButton.disabled = false;
     }
   }
 
@@ -128,14 +142,19 @@ document.addEventListener('DOMContentLoaded', () => {
     return loadArticles({ append: false });
   }
 
-  moreButton.addEventListener('click', () => loadArticles({ append: true }));
+  moreButton.addEventListener('click', () => loadArticles({ append: retryAppend ?? true }));
   filterAndRender();
 
   // Filter chips click
   filterChips.forEach((chip) => {
+    chip.setAttribute('aria-pressed', String(chip.dataset.category === currentCategory));
     chip.addEventListener('click', () => {
-      filterChips.forEach((c) => c.classList.remove('is-active'));
+      filterChips.forEach((c) => {
+        c.classList.remove('is-active');
+        c.setAttribute('aria-pressed', 'false');
+      });
       chip.classList.add('is-active');
+      chip.setAttribute('aria-pressed', 'true');
       currentCategory = chip.dataset.category || 'all';
       filterAndRender();
     });

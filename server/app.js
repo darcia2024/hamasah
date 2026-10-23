@@ -150,7 +150,11 @@ function createHamasahApp(options) {
     notificationPayloadKey: config.notificationPayloadKey || process.env.NOTIFICATION_PAYLOAD_KEY || process.env.IP_HASH_SECRET || 'development-only-key'
   });
   const applicantSessionStore = config.applicantSessionStore || createPostgresApplicantSessionStore({ database });
-  const applicantService = config.applicantService || createApplicantService({ registrationStore, sessionStore: applicantSessionStore });
+  const applicantService = config.applicantService || createApplicantService({
+    registrationStore, sessionStore: applicantSessionStore,
+    canRecover: () => notificationService.canSend(),
+    prepareRecovery: (payload) => notificationService.prepareApplicantRecovery(payload)
+  });
   const articleStore = config.articleStore || createPostgresArticleStore({ database });
   const inquiryStore = config.inquiryStore || createPostgresInquiryStore({ database });
   const accountStore = config.accountStore || createPostgresAccountStore({ database });
@@ -307,7 +311,7 @@ function createHamasahApp(options) {
     },
     // Wali: sama dengan hak melihat dashboard santri (hanya santri yang terhubung).
     async canViewProgress(studentId, actor) {
-      if (!actor || actor.role !== identity.ROLES.PARENT) return false;
+      if (!actor || ![identity.ROLES.PARENT, identity.ROLES.SUPERVISOR].includes(actor.role)) return false;
       return (await studentPortalService.dashboard(studentId, actor)).ok;
     },
     listStudents: () => studentStore.listStudents(),
@@ -377,7 +381,7 @@ function createHamasahApp(options) {
   // tagihan, email ke wali) ikut dikirim setiap kali rute perawatan dipanggil.
   async function kirimAntreanNotifikasi() {
     try {
-      const hasil = await notificationWorker.runOnce({ limit: 50 });
+      const hasil = await notificationWorker.runOnce({ limit: 20, maxDurationMs: 20000 });
       return hasil.claimed;
     } catch (error) {
       console.error(`[notifikasi] Pengiriman antrean gagal: ${error.message}`);
@@ -386,6 +390,7 @@ function createHamasahApp(options) {
   }
 
   const maintenanceService = {
+    flushNotifications: kirimAntreanNotifikasi,
     async run() {
       const [sesi, audit, unggahan, pembatas, notifikasi] = await Promise.all([
         bersihkanSesi(),
@@ -597,7 +602,8 @@ function createHamasahApp(options) {
         const article = /^[a-z0-9-]{1,160}$/.test(slug) ? await articleStore.get(slug) : null;
         // "Tulisan lain" di akhir halaman: empat terbaru, supaya tersisa tiga setelah artikel ini disaring.
         const related = article ? (await articleStore.list({ limit: 4 })).items : [];
-        const page = articlePage.renderArticlePage({ template: articlePage.readTemplate(rootDirectory), article, origin, related });
+        const page = articlePage.renderArticlePage({ template: articlePage.readTemplate(rootDirectory), article, origin, related,
+          content: await siteContentService.untukHalaman() });
         response.writeHead(page.status, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff' });
         response.end(page.html);
         return;

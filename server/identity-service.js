@@ -161,14 +161,28 @@ async function verifyPassword(password, storedHash) {
       return [...accounts.values()].map(clone);
     },
     save(account) {
-      accounts.set(account.id, clone(account));
-      return clone(account);
+      const current = accounts.get(account.id);
+      if (current && account.version !== current.version) return null;
+      const saved = { ...account, lifecycle: account.lifecycle || (account.active ? 'active' : 'blocked'), version: current ? current.version + 1 : 0 };
+      accounts.set(account.id, clone(saved));
+      return clone(saved);
+    },
+    patch(id, version, changes) {
+      const account = accounts.get(id);
+      if (!account || account.version !== version) return null;
+      const allowed = ['name', 'email', 'role', 'active', 'lifecycle', 'passwordHash', 'resetTokenHash', 'resetExpiresAt', 'invitationTokenHash', 'invitationExpiresAt', 'invitedAt', 'updatedAt'];
+      if (Object.keys(changes).some(key => !allowed.includes(key))) throw new Error('Invalid account patch');
+      const saved = { ...account, ...changes, version: version + 1 };
+      if ((saved.lifecycle === 'active') !== saved.active || !['active', 'pending', 'blocked'].includes(saved.lifecycle)) throw new Error('Invalid account lifecycle');
+      accounts.set(id, clone(saved));
+      return clone(saved);
     },
     consumeResetToken(tokenHash, passwordHash, nowIso) {
       const account = [...accounts.values()].find((entry) => entry.active && entry.resetTokenHash === tokenHash && entry.resetExpiresAt > nowIso);
       if (!account) return null;
       accounts.set(account.id, {
         ...account,
+        version: account.version + 1,
         passwordHash,
         resetTokenHash: null,
         resetExpiresAt: null,
@@ -177,10 +191,12 @@ async function verifyPassword(password, storedHash) {
       return account.id;
     },
     consumeInvitationToken(tokenHash, passwordHash, nowIso) {
-      const account = [...accounts.values()].find((entry) => !entry.active && entry.invitationTokenHash === tokenHash && entry.invitationExpiresAt > nowIso);
+      const account = [...accounts.values()].find((entry) => entry.lifecycle === 'pending' && !entry.active && entry.invitationTokenHash === tokenHash && entry.invitationExpiresAt > nowIso);
       if (!account) return null;
       accounts.set(account.id, {
         ...account,
+        version: account.version + 1,
+        lifecycle: 'active',
         active: true,
         passwordHash,
         invitationTokenHash: null,
@@ -241,6 +257,7 @@ function publicAccount(account) {
     name: account.name,
     role: account.role,
     active: account.active,
+    lifecycle: account.lifecycle,
     createdAt: account.createdAt
   };
 }
@@ -257,6 +274,9 @@ function createIdentityService(options) {
   const onRoleChanged = config.onRoleChanged || async function tanpaTindakan() {};
   const consumedInvitationTokenHashes = new Set();
   const consumedResetTokenHashes = new Set();
+
+  const clearedTokens = { resetTokenHash: null, resetExpiresAt: null, invitationTokenHash: null, invitationExpiresAt: null };
+  const conflict = () => ({ ok: false, status: 409, code: 'ACCOUNT_CHANGED', error: 'Akun berubah. Silakan ulangi.' });
 
   async function createAccount(input) {
     const source = input || {};
@@ -279,6 +299,7 @@ function createIdentityService(options) {
       name,
       role,
       active: true,
+      lifecycle: 'active',
       passwordHash: await hashPassword(source.password),
       createdAt,
       updatedAt: createdAt,
@@ -300,7 +321,12 @@ function createIdentityService(options) {
       expiresAt: new Date(issuedAt.getTime() + sessionTtlFor(account.role)).toISOString(),
       lastSeenAt: issuedAt.toISOString()
     });
-    return { accessToken, account: publicAccount(account) };
+    const current = await accountStore.getById(account.id);
+    if (!current || !current.active || current.version !== account.version) {
+      await sessionStore.remove(hashSecret(accessToken));
+      return null;
+    }
+    return { accessToken, account: publicAccount(current) };
   }
 
   async function login(emailInput, password) {
@@ -311,7 +337,8 @@ function createIdentityService(options) {
     if (!account || !account.active || !cocok) {
       return { ok: false, error: 'Email atau kata sandi tidak tepat.' };
     }
-    return { ok: true, value: await createSession(account) };
+    const session = await createSession(account);
+    return session ? { ok: true, value: session } : conflict();
   }
 
   async function authenticate(accessToken) {
@@ -373,7 +400,9 @@ function createIdentityService(options) {
     if (account.id === actor.id && !active) {
       return { ok: false, error: 'Akun yang sedang dipakai tidak dapat dinonaktifkan sendiri.' };
     }
-    const disimpan = await accountStore.save({ ...account, active: Boolean(active), updatedAt: now().toISOString() });
+    if (active && account.lifecycle === 'pending') return { ok: false, error: 'Terima undangan terlebih dahulu.' };
+    const disimpan = await accountStore.patch(account.id, account.version, { active: Boolean(active), lifecycle: active ? 'active' : 'blocked', ...clearedTokens, updatedAt: now().toISOString() });
+    if (!disimpan) return conflict();
     const dicabut = active ? 0 : await logoutAll(accountId);
     return { ok: true, value: { account: publicAccount(disimpan), sessionsRevoked: dicabut } };
   }
@@ -418,7 +447,8 @@ function createIdentityService(options) {
         return { ok: false, error: 'Akun ini masih terhubung ke data santri. Lepaskan hubungannya dulu di halaman Monitoring.' };
       }
     }
-    const saved = await accountStore.save({ ...account, name, email, role, updatedAt: now().toISOString() });
+    const saved = await accountStore.patch(account.id, account.version, { name, email, role, ...(email !== account.email || role !== account.role ? clearedTokens : {}), updatedAt: now().toISOString() });
+    if (!saved) return conflict();
     if (role !== account.role) await onRoleChanged(accountId, account.role, role);
     const changed = ['name', 'email', 'role'].filter((key) => account[key] !== saved[key]);
     const sessionsRevoked = changed.includes('email') || changed.includes('role') ? await logoutAll(accountId) : 0;
@@ -440,13 +470,14 @@ function createIdentityService(options) {
       return { ok: false, error: 'Untuk akun sendiri, pakai menu Ganti kata sandi.' };
     }
     const kataSandi = kataSandiSementara();
-    const saved = await accountStore.save({
-      ...account,
+    const saved = await accountStore.patch(account.id, account.version, {
+      ...clearedTokens,
       passwordHash: await hashPassword(kataSandi),
       resetTokenHash: null,
       resetExpiresAt: null,
       updatedAt: now().toISOString()
     });
+    if (!saved) return conflict();
     const sessionsRevoked = await logoutAll(accountId);
     return { ok: true, value: { account: publicAccount(saved), temporaryPassword: kataSandi, sessionsRevoked } };
   }
@@ -475,12 +506,12 @@ function createIdentityService(options) {
     }
     const resetToken = crypto.randomBytes(32).toString('base64url');
     const resetExpiresAt = new Date(now().getTime() + RESET_TTL_MS).toISOString();
-    await accountStore.save({
-      ...account,
+    const saved = await accountStore.patch(account.id, account.version, {
       resetTokenHash: hashSecret(resetToken),
       resetExpiresAt,
       updatedAt: now().toISOString()
     });
+    if (!saved) return { ok: true, value: null };
     return { ok: true, value: { resetToken, resetExpiresAt, accountId: account.id, accountName: account.name } };
   }
 
@@ -501,7 +532,7 @@ function createIdentityService(options) {
     const invitationToken = crypto.randomBytes(32).toString('base64url');
     const invitationExpiresAt = new Date(now().getTime() + INVITATION_TTL_MS).toISOString();
     const account = await accountStore.save({
-      id: crypto.randomUUID(), email, name, role, active: false,
+      id: crypto.randomUUID(), email, name, role, active: false, lifecycle: 'pending',
       passwordHash: await hashPassword(crypto.randomBytes(48).toString('base64url')),
       resetTokenHash: null, resetExpiresAt: null,
       invitationTokenHash: hashSecret(invitationToken), invitationExpiresAt, invitedAt: createdAt,
@@ -512,16 +543,16 @@ function createIdentityService(options) {
 
   async function renewInvitation(accountId) {
     const account = await accountStore.getById(accountId);
-    if (!account || account.active) {
+    if (!account || account.lifecycle !== 'pending' || account.active) {
       return { ok: false, error: 'Undangan akun tidak dapat diperbarui.' };
     }
     const invitationToken = crypto.randomBytes(32).toString('base64url');
     const invitationExpiresAt = new Date(now().getTime() + INVITATION_TTL_MS).toISOString();
-    const updated = await accountStore.save({
-      ...account,
+    const updated = await accountStore.patch(account.id, account.version, {
       invitationTokenHash: hashSecret(invitationToken), invitationExpiresAt,
       invitedAt: now().toISOString(), updatedAt: now().toISOString()
     });
+    if (!updated) return conflict();
     return { ok: true, value: { account: publicAccount(updated), invitationToken, invitationExpiresAt } };
   }
 
@@ -567,16 +598,18 @@ function createIdentityService(options) {
     if (await verifyPassword(String(nextPassword), account.passwordHash)) {
       return { ok: false, error: 'Kata sandi baru harus berbeda dari kata sandi saat ini.' };
     }
-    await accountStore.save({
-      ...account,
+    const saved = await accountStore.patch(account.id, account.version, {
+      ...clearedTokens,
       passwordHash: await hashPassword(nextPassword),
       // Tautan reset yang masih berlaku ikut dibatalkan.
       resetTokenHash: null,
       resetExpiresAt: null,
       updatedAt: now().toISOString()
     });
+    if (!saved) return conflict();
     const sessionsRevoked = await logoutAll(accountId);
-    const session = await createSession(account);
+    const session = await createSession(saved);
+    if (!session) return conflict();
     return { ok: true, value: { accessToken: session.accessToken, account: session.account, sessionsRevoked } };
   }
 

@@ -159,24 +159,24 @@ function createPostgresStudentStore({ database } = {}) {
       return entry;
     },
 
-    async correctRecord(collection, recordId, correction) {
+    async correctRecord(collection, recordId, studentId, correction) {
       const definition = definitionOf(collection);
       return database.withTransaction(async (tx) => {
         // recorded_by_account_id ikut dibaca supaya hasil koreksi memuat pencatat
         // aslinya. Kolom itu tidak pernah masuk `allowed`, yang hanya dibentuk dari
         // definition.columns, jadi koreksi tidak bisa memindahkan jejak pelaku.
         const columns = ['id', 'student_id', 'occurred_at', ...definition.columns, 'created_at', 'recorded_by_account_id'];
-        const currentQuery = await tx.query(`SELECT ${columns.join(', ')} FROM ${definition.table} WHERE id = $1`, [recordId]);
+        const currentQuery = await tx.query(`SELECT ${columns.join(', ')} FROM ${definition.table} WHERE id = $1 AND student_id = $2 FOR UPDATE`, [recordId, studentId]);
         if (!currentQuery.rows[0]) return null;
         const previous = toRecord(definition, currentQuery.rows[0]);
         const allowed = definition.columns.filter((column) => Object.prototype.hasOwnProperty.call(correction.value || {}, column));
-        const values = [recordId];
+        const values = [recordId, studentId];
         const sets = [];
         allowed.forEach((column) => { values.push(correction.value[column]); sets.push(`${column} = $${values.length}`); });
         if (correction.value.occurredAt) { values.push(correction.value.occurredAt); sets.push(`occurred_at = $${values.length}`); }
         let updated = previous;
         if (sets.length) {
-          const result = await tx.query(`UPDATE ${definition.table} SET ${sets.join(', ')} WHERE id = $1 RETURNING ${columns.join(', ')}`, values);
+          const result = await tx.query(`UPDATE ${definition.table} SET ${sets.join(', ')} WHERE id = $1 AND student_id = $2 RETURNING ${columns.join(', ')}`, values);
           updated = toRecord(definition, result.rows[0]);
         }
         const pencatatId = updated.recordedByAccountId;

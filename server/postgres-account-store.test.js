@@ -27,7 +27,7 @@ async function run() {
       updatedAt: CREATED_AT
     };
     const saved = await store.save(account);
-    assert.deepEqual(saved, account);
+    assert.deepEqual(saved, { ...account, lifecycle: 'active', version: 0 });
     assert.equal(await store.count(), 1);
 
     assert.equal((await store.getByEmail('admin@hamasah.test')).id, account.id);
@@ -37,7 +37,7 @@ async function run() {
 
     // Menyimpan ulang akun yang sama memperbarui baris, tidak membuat baris baru.
     const updated = await store.save({
-      ...account,
+      ...saved,
       name: 'Admin Hamasah',
       resetTokenHash: 'hash-reset-uji',
       resetExpiresAt: '2026-09-15T00:30:00.000Z',

@@ -71,13 +71,9 @@ function createRequestAuth({ request, identityService, registrationService, appl
     async isCandidate(registrationId) {
       if (applicantService && typeof applicantService.authenticate === 'function') {
         const applicantSession = await applicantService.authenticate(token, registrationId);
-        if (applicantSession.ok) return true;
+        return applicantSession.ok;
       }
-      const record = await registrationService.store.get(registrationId);
-      if (!record || !record.accessTokenHash) {
-        return false;
-      }
-      return safeEqual(hashToken(token), record.accessTokenHash);
+      return false;
     }
   };
 }

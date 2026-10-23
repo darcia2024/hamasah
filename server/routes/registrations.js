@@ -36,8 +36,9 @@ module.exports = [
           metadata: { program: created.value.program }
         });
       }
+      const applicantSession = created.ok ? await services.applicantService.startSession(created.value.registrationId) : null;
       json(response, created.ok ? 201 : 422, created.ok
-        ? { registration: created.value, accessToken, accessCode }
+        ? { registration: created.value, accessToken: applicantSession.value.accessToken, accessCode }
         : publicError(created));
     }
   },
@@ -76,9 +77,8 @@ module.exports = [
       }
 
       // Selalu balas 202 agar nomor pendaftaran dan email tidak dapat ditebak.
-      const recovered = await services.applicantService.recoverAccessCode(registrationId, body.email);
-      if (recovered.ok && services.notificationService.canSend()) {
-        await services.notificationService.queueApplicantRecovery(recovered.value);
+      if (services.notificationService.canSend()) {
+        await services.applicantService.recoverAccessCode(registrationId, body.email);
       }
       json(response, 202, { message: 'Jika data cocok, kode akses baru akan dikirim ke email terdaftar.' });
     }

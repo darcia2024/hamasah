@@ -84,8 +84,12 @@ test('kelas daring: daftar, beli, lunas, lalu kelas terbuka', async () => {
     assert.deepEqual(santri.rows[0], { program: 'Hamasah Courses', city: 'Depok' });
 
     // Membeli menerbitkan tagihan; membeli lagi sebelum lunas memakai tagihan yang sama.
+    const concurrent = await Promise.all(Array.from({ length: 5 }, () => request(baseUrl, `/api/kelas/${courseId}/beli`, { method: 'POST', token: pembeli })));
+    assert.equal(concurrent.filter((r) => r.status === 201).length, 1);
+    assert.equal(new Set(concurrent.map((r) => r.body.order.invoiceNumber)).size, 1);
+    assert.equal((await database.query('SELECT count(*)::int AS n FROM invoices')).rows[0].n, 1);
     const beli = await request(baseUrl, `/api/kelas/${courseId}/beli`, { method: 'POST', token: pembeli });
-    assert.equal(beli.status, 201);
+    assert.equal(beli.status, 200);
     assert.match(beli.body.order.invoiceNumber, /^INV\/HI\/\d{4}\/\d{5}$/);
     assert.equal(beli.body.order.amount, 150000);
     const lagi = await request(baseUrl, `/api/kelas/${courseId}/beli`, { method: 'POST', token: pembeli });
@@ -105,6 +109,22 @@ test('kelas daring: daftar, beli, lunas, lalu kelas terbuka', async () => {
     assert.deepEqual(sesudah.body.enrolledCourseIds, [courseId]);
     const ruangBelajar = await request(baseUrl, `/api/students/${studentId}/courses`, { token: pembeli });
     assert.equal(ruangBelajar.body.items.length, 1);
+
+    // Simulate a committed payment whose enrollment side effect needs retry.
+    await database.query('DELETE FROM course_enrollments WHERE student_id = $1 AND course_id = $2', [studentId, courseId]);
+    const retry = await request(baseUrl, `/api/operations/invoices/${rows[0].invoice_id}/paid`, { method: 'PATCH', token: admin, body: { paidOn: new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date()), method: 'transfer', note: 'Retry detail' } });
+    assert.equal(retry.status, 200);
+    assert.equal(retry.body.paymentDetailSaved, true);
+    assert.equal(retry.body.invoice.payment.note, 'Retry detail');
+    assert.equal(retry.body.invoice.receiptNumber, lunas.body.invoice.receiptNumber);
+    assert.deepEqual((await request(baseUrl, '/api/kelas/saya', { token: pembeli })).body.enrolledCourseIds, [courseId]);
+    await database.query('DELETE FROM course_enrollments WHERE student_id = $1 AND course_id = $2', [studentId, courseId]);
+    const reconcile = await request(baseUrl, '/api/operations/invoices/reconcile-paid', { method: 'POST', token: admin, body: {} });
+    assert.equal(reconcile.status, 200);
+    assert.equal(reconcile.body.reconciled.length, 1);
+    assert.deepEqual(reconcile.body.failed, []);
+    assert.equal((await request(baseUrl, '/api/operations/invoices/reconcile-paid', { method: 'POST', token: pembeli, body: {} })).status, 403);
+    assert.equal((await request(baseUrl, '/api/operations/invoices/reconcile-paid', { method: 'POST', token: admin, body: {} })).body.checked, 0);
 
     // Sudah terdaftar: tidak bisa membeli lagi.
     assert.equal((await request(baseUrl, `/api/kelas/${courseId}/beli`, { method: 'POST', token: pembeli })).status, 409);

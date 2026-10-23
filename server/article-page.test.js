@@ -91,3 +91,12 @@ assert.ok(!hilang.html.includes('rel="canonical"'));
 assert.ok(!hilang.html.includes('og:title'));
 
 console.log('article page tests passed');
+
+// The early-return route can pass the same CMS snapshot as static public pages.
+const { BAWAAN } = require('./site-content.js');
+for (const article of [artikel, null]) {
+  const page = renderArticlePage({ template, article, origin: ORIGIN, content: { nilai: { ...BAWAAN, kontak: { ...BAWAAN.kontak, whatsapp: '6281111222333' } }, tersimpan: {} } });
+  assert.ok(page.html.includes('name="hamasah-whatsapp" content="6281111222333"'));
+  assert.ok(!page.html.includes('wa.me/6281288489997'));
+  assert.ok(!page.html.includes('wa.me/6287758619337'));
+}

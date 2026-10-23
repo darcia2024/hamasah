@@ -47,10 +47,10 @@ async function run() {
   const database = await createTestDatabase();
   try {
     await database.query(
-      `INSERT INTO accounts (id, email, name, role, active, password_hash) VALUES
-       ('00000000-0000-4000-8000-000000000001', 'admin@hamasah.test', 'Admin Uji', 'admin', TRUE, 'x'),
-       ('00000000-0000-4000-8000-000000000002', 'nonaktif@hamasah.test', 'Admin Lama', 'admin', FALSE, 'x'),
-       ('00000000-0000-4000-8000-000000000003', 'wali@hamasah.test', 'Wali', 'parent', TRUE, 'x')`
+      `INSERT INTO accounts (id, email, name, role, active, password_hash, lifecycle) VALUES
+       ('00000000-0000-4000-8000-000000000001', 'admin@hamasah.test', 'Admin Uji', 'admin', TRUE, 'x', 'active'),
+       ('00000000-0000-4000-8000-000000000002', 'nonaktif@hamasah.test', 'Admin Lama', 'admin', FALSE, 'x', 'blocked'),
+       ('00000000-0000-4000-8000-000000000003', 'wali@hamasah.test', 'Wali', 'parent', TRUE, 'x', 'active')`
     );
     const terkirim = [];
     const sender = { provider: 'test', configured: true, async send(message) { terkirim.push(message); return { id: `m${terkirim.length}` }; } };

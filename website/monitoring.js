@@ -151,7 +151,7 @@ function renderDashboard(data) {
   const copy = document.createElement('p'); copy.className = 'monitoring-student__meta'; copy.textContent = `${data.student.program} · Bergabung ${new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' }).format(new Date(data.student.joinDate))}`;
   const head = document.createElement('header'); head.className = 'monitoring-student__head'; head.append(title,copy);
   const metrics = document.createElement('div'); metrics.className = 'portal-metrics';
-  metrics.append(metric(data.attendance.rate === null ? '—' : `${data.attendance.rate}%`, 'Kehadiran kegiatan'), metric(String(data.achievements.length), 'Prestasi'), metric(String(data.discipline.length), 'Catatan disiplin'));
+  metrics.append(metric(data.attendance.rate === null ? 'Belum tersedia' : `${data.attendance.rate}%`, 'Kehadiran kegiatan'), metric(String(data.achievements.length), 'Prestasi'), metric(String(data.discipline.length), 'Catatan disiplin'));
   const activity = document.createElement('p'); activity.className = 'monitoring-student__activity'; activity.textContent = data.activities[0] ? `Kegiatan terakhir: ${data.activities[0].title}` : 'Belum ada catatan kegiatan terpisah. Presensi dan pembinaan dapat dilihat pada rekam jejak di bawah.';
   dashboard.replaceChildren(head, metrics, activity); dashboard.hidden = false;
   renderRecordTrail(data);
@@ -1161,10 +1161,46 @@ if (logoutButton) {
 const FOLLOW_STATUS={perlu:'Perlu ditangani',dipantau:'Dipantau',selesai:'Selesai'};
 function actionRow(title,description,status,actions,warning=false){const row=document.createElement('article');row.className='monitoring-action-row'+(warning?' is-overdue':'');const h=document.createElement('h4');h.textContent=title;const p=document.createElement('p');p.textContent=description;const badge=document.createElement('strong');badge.className='monitoring-action-row__status';badge.textContent=status;row.append(h,badge,p);if(actions){const group=document.createElement('div');group.className='monitoring-action-row__actions';group.append(...actions);row.append(group);}return row;}
 async function editFollowUp(item=null){const sid=item?item.studentId:studentSelect.value;if(!sid)return;const fields=[{nama:'title',label:'Judul pembinaan',nilai:item?.title||'',wajib:true},{nama:'target',label:'Target yang ingin dicapai',jenis:'textarea',nilai:item?.target||'',wajib:true},{nama:'dueOn',label:'Tenggat',jenis:'date',nilai:item?.dueOn||today(),wajib:true},{nama:'status',label:'Status',jenis:'select',nilai:item?.status||'perlu',pilihan:Object.entries(FOLLOW_STATUS)},{nama:'progressNote',label:'Catatan perkembangan',jenis:'textarea',nilai:item?.progressNote||''}];const result=await window.HamasahDialog.formulir({judul:item?'Perbarui tindak lanjut':'Tindak lanjut pembinaan',keterangan:item?.studentName||studentSelect.selectedOptions[0]?.textContent||'',bidang:fields,labelSimpan:'Simpan tindak lanjut',kirim:values=>kirimJson('/api/follow-ups'+(item?'/'+item.id:''),item?'PATCH':'POST',{...values,studentId:sid})});if(result){switchTab(document.querySelector('#tab-btn-followups'));}}
-async function muatTindakLanjut(){const status=document.querySelector('#followup-status'),list=document.querySelector('#followup-list');statusPanel(status,'Memuat…');try{const data=await kirimJson('/api/follow-ups','GET');if(!data.tersedia)throw Error('Terapkan pembaruan database di Pengaturan untuk menggunakan tindak lanjut.');const filter=document.querySelector('#followup-filter').value,items=data.items.filter(x=>filter==='semua'||(filter==='selesai'?x.status==='selesai':x.status!=='selesai'));list.replaceChildren(...items.map(item=>{const late=item.status!=='selesai'&&item.dueOn<today();return actionRow(item.studentName+' · '+item.title,item.target+(item.progressNote?' · Perkembangan: '+item.progressNote:''),FOLLOW_STATUS[item.status]+' · Tenggat '+new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeZone:'UTC'}).format(new Date(item.dueOn+'T00:00:00Z'))+(late?' · Melewati tenggat':''),[tombolKecil('Perbarui',()=>editFollowUp(item))],late);}));statusPanel(status,items.length?items.length+' tindak lanjut ditampilkan.':'Belum ada tindak lanjut pada pilihan ini.');}catch(e){list.replaceChildren();statusPanel(status,e.message,true);}}
+let followUpPage = 1;
+let followUpRequest = 0;
+async function muatTindakLanjut() {
+  const request = ++followUpRequest;
+  const status = document.querySelector('#followup-status');
+  const list = document.querySelector('#followup-list');
+  statusPanel(status, 'Memuat…');
+  try {
+    const filter = document.querySelector('#followup-filter').value;
+    const data = await kirimJson('/api/follow-ups?status=' + encodeURIComponent(filter) + '&page=' + followUpPage + '&limit=50', 'GET');
+    if (request !== followUpRequest) return;
+    if (!data.tersedia) throw Error('Terapkan pembaruan database di Pengaturan untuk menggunakan tindak lanjut.');
+    followUpPage = data.page;
+    const items = data.items;
+    list.replaceChildren(...items.map(item => {
+      const late = item.status !== 'selesai' && item.dueOn < today();
+      return actionRow(item.studentName + ' · ' + item.title,
+        item.target + (item.progressNote ? ' · Perkembangan: ' + item.progressNote : ''),
+        FOLLOW_STATUS[item.status] + ' · Tenggat ' + new Intl.DateTimeFormat('id-ID', {dateStyle:'medium',timeZone:'UTC'}).format(new Date(item.dueOn + 'T00:00:00Z')) + (late ? ' · Melewati tenggat' : ''),
+        [tombolKecil('Perbarui', () => editFollowUp(item))], late);
+    }));
+    if (data.pages > 1) {
+      const nav = document.createElement('div');
+      const previous = tombolKecil('Sebelumnya', () => { followUpPage = data.page - 1; muatTindakLanjut(); });
+      const next = tombolKecil('Berikutnya', () => { followUpPage = data.page + 1; muatTindakLanjut(); });
+      previous.disabled = data.page <= 1;
+      next.disabled = data.page >= data.pages;
+      nav.append(previous, document.createTextNode(' Halaman ' + data.page + ' / ' + data.pages + ' '), next);
+      list.append(nav);
+    }
+    statusPanel(status, items.length ? items.length + ' dari ' + data.total + ' tindak lanjut ditampilkan.' : 'Belum ada tindak lanjut pada pilihan ini.');
+  } catch (e) {
+    if (request !== followUpRequest) return;
+    list.replaceChildren();
+    statusPanel(status, e.message, true);
+  }
+}
 async function muatKepulangan(){const status=document.querySelector('#return-status'),list=document.querySelector('#return-list');statusPanel(status,'Memuat…');try{const data=await kirimJson('/api/leave?status='+ (document.querySelector('#return-filter').value==='semua'?'kepulangan':'belum-kembali'),'GET');if(!data.tersedia)throw Error('Data izin belum tersedia.');const all=document.querySelector('#return-filter').value==='semua',items=data.items.filter(x=>x.kind==='keluar-asrama'&&(all||!x.returnedAt));list.replaceChildren(...items.map(item=>{const late=item.returnState==='terlambat',scheduled=item.returnState==='terjadwal',actions=[];if(!item.returnedAt&&!scheduled)actions.push(tombolKecil('Sudah kembali',async()=>{const result=await window.HamasahDialog.formulir({judul:'Catat kepulangan '+item.studentName,keterangan:'Simpan setelah santri benar-benar kembali. Waktu kepulangan dicatat saat disimpan.',bidang:[{nama:'note',label:'Catatan kepulangan (opsional)',jenis:'textarea'}],labelSimpan:'Simpan kepulangan',kirim:values=>kirimJson('/api/leave/'+item.id+'/returned','POST',values)});if(result)await muatKepulangan();}));return actionRow(item.studentName,item.reason+' · Keluar: '+WAKTU_IZIN.format(new Date(item.startsAt))+' · Batas kembali: '+WAKTU_IZIN.format(new Date(item.endsAt))+(item.returnedAt?' · Kembali: '+WAKTU_IZIN.format(new Date(item.returnedAt)):'')+(item.returnNote?' · '+item.returnNote:''),item.returnedAt?'Sudah kembali':scheduled?'Terjadwal':late?'Melewati batas kembali':'Sedang di luar',actions,late);}));statusPanel(status,items.length?items.length+' izin keluar ditampilkan (maksimal 50, diurutkan dari batas kembali terdekat).':'Tidak ada izin keluar pada pilihan ini.');}catch(e){list.replaceChildren();statusPanel(status,e.message,true);}}
 document.querySelector('#add-followup').addEventListener('click',()=>editFollowUp());
-document.querySelector('#followup-filter').addEventListener('change',muatTindakLanjut);
+document.querySelector('#followup-filter').addEventListener('change',()=>{followUpPage=1;muatTindakLanjut();});
 document.querySelector('#return-filter').addEventListener('change',muatKepulangan);
 
 async function muatPenugasanMonitoring() {
@@ -1190,9 +1226,9 @@ async function muatPenugasanMonitoring() {
     const pending = daily ? daily.sholatBelum.reduce((sum, item) => sum + item.belum, 0) : null;
     const values = [
       [String((scope.students || []).length), 'Santri binaan', 'Dalam cakupan pemantauan', 'tracking'],
-      [pending === null ? '—' : String(pending), 'Presensi belum dicatat', daily ? `Catatan per santri × waktu sholat · ${daily.date}` : 'Data hari ini belum dapat dimuat', 'roll'],
-      [daily ? String(daily.izinMenunggu) : '—', 'Izin menunggu', 'Perlu keputusan musyrif', 'leave'],
-      [daily ? String(daily.pesanBelumDibaca) : '—', 'Pesan belum dibaca', 'Komunikasi dengan wali', 'family']
+      [pending === null ? 'Belum tersedia' : String(pending), 'Presensi belum dicatat', daily ? `Catatan per santri × waktu sholat · ${daily.date}` : 'Data hari ini belum dapat dimuat', 'roll'],
+      [daily ? String(daily.izinMenunggu) : 'Belum tersedia', 'Izin menunggu', 'Perlu keputusan musyrif', 'leave'],
+      [daily ? String(daily.pesanBelumDibaca) : 'Belum tersedia', 'Pesan belum dibaca', 'Komunikasi dengan wali', 'family']
     ];
     values.forEach(([value,label,caption,tab]) => {
       const button = document.createElement('button'); button.type = 'button'; button.className = 'monitoring-stat';

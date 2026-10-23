@@ -364,18 +364,20 @@ function createPostgresOperationsStore({ database } = {}) {
     },
 
     async saveInventory(item) {
-      const { rows } = await database.query(
-        `INSERT INTO inventory_items (id, name, location, quantity, updated_at)
-         VALUES ($1, $2, $3, $4, $5)
-         ON CONFLICT (id) DO UPDATE
-           SET name = EXCLUDED.name,
-               location = EXCLUDED.location,
-               quantity = EXCLUDED.quantity,
-               updated_at = EXCLUDED.updated_at
-         RETURNING id, name, location, quantity, updated_at, version`,
-        [item.id, item.name, item.location, item.quantity, item.updatedAt]
-      );
-      return toInventory(rows[0]);
+      return database.withTransaction(async (tx) => {
+        const inserted = await tx.query(`INSERT INTO inventory_items (id, name, location, quantity, updated_at)
+          VALUES ($1,$2,$3,$4,$5) ON CONFLICT (id) DO NOTHING RETURNING *`, [item.id, item.name, item.location, item.quantity, item.updatedAt]);
+        if (inserted.rows.length) {
+          await tx.query(`INSERT INTO inventory_movements
+            (id, inventory_item_id, direction, quantity, delta, before_quantity, after_quantity, reason, actor_account_id, created_at)
+            VALUES ($1,$2,'in',$3,$3,0,$3,'Saldo awal',$4,$5)`, [require('node:crypto').randomUUID(), item.id, item.quantity, item.actorAccountId || null, item.updatedAt]);
+          return toInventory(inserted.rows[0]);
+        }
+        const { rows } = await tx.query('SELECT quantity FROM inventory_items WHERE id = $1 FOR UPDATE', [item.id]);
+        if (Number(rows[0].quantity) !== item.quantity) return { error: 'Ubah stok melalui mutasi inventaris.' };
+        const updated = await tx.query(`UPDATE inventory_items SET name=$2, location=$3, updated_at=$4, version=version+1 WHERE id=$1 RETURNING *`, [item.id, item.name, item.location, item.updatedAt]);
+        return toInventory(updated.rows[0]);
+      });
     },
 
     // Mutasi dicatat sejak migrasi 022 dan tidak pernah dibaca. Tanpa jalur baca,
@@ -383,7 +385,7 @@ function createPostgresOperationsStore({ database } = {}) {
     // angka itu bisa ditelusuri.
     async listInventoryMovements(itemId) {
       const { rows } = await database.query(
-        `SELECT mutasi.id, mutasi.direction, mutasi.quantity, mutasi.reason, mutasi.created_at,
+        `SELECT mutasi.id, mutasi.direction, mutasi.quantity, mutasi.delta, mutasi.before_quantity, mutasi.after_quantity, mutasi.reason, mutasi.created_at,
                 mutasi.actor_account_id, pelaku.name AS actor_name
            FROM inventory_movements AS mutasi
            LEFT JOIN accounts AS pelaku ON pelaku.id = mutasi.actor_account_id
@@ -395,6 +397,9 @@ function createPostgresOperationsStore({ database } = {}) {
         id: row.id,
         direction: row.direction,
         quantity: Number(row.quantity),
+        delta: row.delta === null ? null : Number(row.delta),
+        beforeQuantity: row.before_quantity === null ? null : Number(row.before_quantity),
+        afterQuantity: row.after_quantity === null ? null : Number(row.after_quantity),
         reason: row.reason,
         createdAt: toIso(row.created_at),
         actorAccountId: row.actor_account_id || null,
@@ -409,8 +414,8 @@ function createPostgresOperationsStore({ database } = {}) {
         const delta = movement.direction === 'in' ? movement.quantity : movement.direction === 'out' ? -movement.quantity : movement.delta;
         const next = Number(item.quantity) + delta; if (next < 0) return { error: 'Stok tidak boleh negatif.' };
         await tx.query('UPDATE inventory_items SET quantity = $2, version = version + 1, updated_at = $3 WHERE id = $1', [itemId, next, movement.createdAt]);
-        await tx.query('INSERT INTO inventory_movements (id, inventory_item_id, direction, quantity, reason, actor_account_id, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)', [movement.id, itemId, movement.direction, movement.quantity, movement.reason, movement.actorAccountId || null, movement.createdAt]);
-        return { item: toInventory({ ...item, quantity: next, updated_at: movement.createdAt, version: Number(item.version || 1) + 1 }), movement: { ...movement, inventoryItemId: itemId, delta } };
+        await tx.query('INSERT INTO inventory_movements (id, inventory_item_id, direction, quantity, reason, actor_account_id, created_at, delta, before_quantity, after_quantity) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)', [movement.id, itemId, movement.direction, movement.quantity, movement.reason, movement.actorAccountId || null, movement.createdAt, delta, Number(item.quantity), next]);
+        return { item: toInventory({ ...item, quantity: next, updated_at: movement.createdAt, version: Number(item.version || 1) + 1 }), movement: { ...movement, inventoryItemId: itemId, delta, beforeQuantity: Number(item.quantity), afterQuantity: next } };
       });
     },
 

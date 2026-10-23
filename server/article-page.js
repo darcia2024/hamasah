@@ -150,12 +150,12 @@ function replaceHead(html, { title, description, robots }) {
 }
 
 // Mengembalikan { status, html }. article null berarti tidak ada atau belum terbit.
-function renderArticlePage({ template, article, origin, related = [] }) {
+function renderArticlePage({ template, article, origin, related = [], content = null }) {
   if (!article) {
     let html = replaceHead(template, { title: 'Artikel Tidak Ditemukan | Hamasah International', description: 'Artikel ini tidak ada atau belum diterbitkan.', robots: 'noindex' });
     html = html.replace(/\s*<link\s+rel="canonical"[^>]*>/i, '');
     html = html.replace(CONTENT_PATTERN, wrap(renderMissing())).replace(BREADCRUMB_PATTERN, wrap('Tidak Ditemukan'));
-    return { status: 404, html };
+    return { status: 404, html: require('./site-content.js').renderHalaman(html, content) };
   }
   const title = String(article.title || 'Artikel Hamasah');
   const description = String(article.excerpt || '').trim() || `${title}, Pena Hamasah.`;
@@ -170,7 +170,7 @@ function renderArticlePage({ template, article, origin, related = [] }) {
   }
   html = html.replace(CONTENT_PATTERN, wrap(renderArticle(article))).replace(BREADCRUMB_PATTERN, wrap(escapeHtml(title)));
   html = html.replace(RELATED_PATTERN, wrap(renderRelated(related.filter((item) => item.slug !== article.slug))));
-  return { status: 200, html };
+  return { status: 200, html: require('./site-content.js').renderHalaman(html, content) };
 }
 
 function readTemplate(rootDirectory) {

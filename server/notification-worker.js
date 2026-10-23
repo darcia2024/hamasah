@@ -47,9 +47,22 @@ function createNotificationWorker({ store, sender, notificationPayloadKey, appBa
     }
   }
 
-  async function runOnce({ limit = 10 } = {}) {
-    const claimed = await store.claim({ limit, now: now(), leaseMs });
+  async function runOnce({ limit = 10, maxDurationMs = Infinity } = {}) {
+    const deadline = Date.now() + maxDurationMs;
+    // Claim one item at a time when bounded, never lease a batch we cannot finish.
+    const bounded = Number.isFinite(maxDurationMs);
+    const claimed = bounded ? [] : await store.claim({ limit, now: now(), leaseMs });
     const results = [];
+    if (bounded) {
+      for (let i = 0; i < Math.min(100, Math.max(1, Number(limit) || 10)); i += 1) {
+        if (deadline - Date.now() < senderTimeoutMs + 1500) break;
+        const next = await store.claim({ limit: 1, now: now(), leaseMs });
+        if (!next.length) break;
+        claimed.push(next[0]);
+        results.push(await process(next[0]));
+      }
+      return { claimed: claimed.length, results };
+    }
     for (const item of claimed) results.push(await process(item));
     return { claimed: claimed.length, results };
   }

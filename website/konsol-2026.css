@@ -216,10 +216,8 @@ body.in-crm .k26-hero .coursue-hero-tag {
   color: var(--k26-gold-deep) !important;
 }
 body.in-crm .k26-hero .coursue-hero-tag::before {
-  content: "";
-  width: 18px;
-  height: 1px;
-  background: currentColor;
+  content: none;
+  display: none;
 }
 
 body.in-crm .k26-date {
@@ -513,9 +511,9 @@ body.staff-page {
   --fs-12: 13px;
   --fs-13: 14px;
   --fs-14: 15px;
-  /* Teks konsol memakai Source Sans 3 (dimuat hanya di halaman konsol); judul tetap
+  /* Teks konsol memakai Plus Jakarta Sans (dimuat hanya di halaman konsol); judul tetap
      Philosopher. Landing page dan halaman publik tetap Plus Jakarta Sans. */
-  --main-font: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --main-font: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   /* portal.css mengisi --apple-font-stack dari --main-font di :root, jadi nilainya sudah
      terkunci ke Plus Jakarta Sans sebelum sampai sini; dihitung ulang di body. */
   --apple-font-stack: var(--main-font);
@@ -652,3 +650,41 @@ body.staff-page.in-crm .admin-kpi__value { font-size: clamp(26px, 2.4vw, 32px) !
 
 /* Judul halaman LMS dan Monitoring mengikuti tipografi judul portal. */
 body.staff-page .crm-page-header .crm-summary-title.workspace-heading-serif { font-family: "Philosopher", Georgia, serif !important; font-weight: 700 !important; letter-spacing: 0 !important; }
+
+/* Plus Jakarta Sans memiliki bentuk lebih lebar; isi tetap padat dan terbaca. */
+body.staff-page { font-size: 15px; line-height: 1.55; }
+body.staff-page :is(.crm-summary-subtitle,.mus-note,.lms-card__desc,.lms-maddah-card__desc,.lms-course-detail__desc,.wali-report__body) { line-height: 1.6; }
+body.staff-page :is(input,select,textarea,button) { letter-spacing: 0; }
+@media(max-width:640px) {
+ body.staff-page { font-size: 14px; }
+ body.staff-page :is(input,select,textarea) { font-size: 16px; }
+}
+
+/* Bobot teks dashboard admin: informasi inti, deskripsi, dan keterangan. */
+body.staff-page.in-crm .admin-home .coursue-hero-subtitle { font-weight: 400 !important; line-height: 1.65 !important; color: #696357 !important; }
+body.staff-page.in-crm .admin-home .coursue-hero-subtitle strong { font-weight: 600; color: #393932; }
+body.staff-page.in-crm .admin-home :is(.admin-kpi__label,.admin-ops-figure__label,.admin-metric__label,.admin-card__label) { font-weight: 500 !important; }
+body.staff-page.in-crm .admin-home :is(.admin-kpi__note,.admin-section-note,.admin-card__meta,.admin-dorm-card__meta,.admin-ops-figure__note,.admin-ops-list__meta,.admin-empty) { font-weight: 400 !important; color: #716B61; line-height: 1.55; }
+body.staff-page.in-crm .admin-home :is(.admin-ops-list__name,.admin-metric__value,.admin-filter__label,.admin-ops-funnel__label) { font-weight: 500 !important; }
+body.staff-page.in-crm .admin-home :is(.admin-ops-lead strong,.admin-ops-funnel__value,.admin-ops-figure__value,.admin-table button) { font-weight: 600 !important; }
+body.staff-page.in-crm .admin-home .admin-ops-lead { font-weight: 400; line-height: 1.6; }
+body.staff-page.in-crm .admin-home .admin-table td { font-weight: 400; line-height: 1.55; }
+body.staff-page.in-crm .admin-home .admin-kpi__value { font-weight: 700 !important; }
+body.staff-page.in-crm .admin-home .admin-alert__title { font-weight: 600; line-height: 1.45; }
+body.staff-page.in-crm .admin-home .admin-alert__detail { font-weight: 400; line-height: 1.6; }
+body.staff-page.in-crm .admin-home .admin-alert__level { font-weight: 500; }
+
+/* Peran tipografi konsol: judul utama serif, subjudul dan isi sans. */
+body.staff-page :is(h1, h2, .crm-summary-title, .coursue-hero-title, .lms-learn__title, .lms-stage__title) {
+  font-family: "Philosopher", Georgia, serif !important;
+}
+body.staff-page.in-crm :is(h3, h4, h5, h6, p, label, small, input, select, textarea, button,
+  .crm-summary-subtitle, .coursue-hero-subtitle, .k26-date, .eyebrow,
+  .lms-card__title, .lms-continue__title, .lms-tutor__title, .lms-side__title,
+  .lms-maddah-poster__title, .beranda-class__next-title) {
+  font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+/* Contoh Arab tetap menggunakan font khusus agar harakat terbaca baik. */
+body.staff-page :is(.lms-prose__arabic, [lang="ar"]) {
+  font-family: "Traditional Naskh", "Traditional Arabic", serif !important;
+}

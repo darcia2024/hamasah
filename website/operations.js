@@ -195,14 +195,24 @@ function mutasiItemRow(mutasi) {
 
   const perubahan = document.createElement('p');
   perubahan.className = 'op-history__change';
-  const tanda = mutasi.direction === 'out' ? '\u2212' : '+';
-  perubahan.textContent = `${MOVEMENT_LABELS[mutasi.direction] || mutasi.direction} ${tanda}${mutasi.quantity} unit`;
+  const delta = Number.isFinite(mutasi.delta) ? mutasi.delta
+    : mutasi.direction === 'in' ? mutasi.quantity
+      : mutasi.direction === 'out' ? -mutasi.quantity : null;
+  const perubahanStok = delta === null ? 'perubahan bertanda tidak tercatat'
+    : `${delta < 0 ? '\u2212' : delta > 0 ? '+' : ''}${Math.abs(delta)} unit`;
+  perubahan.textContent = `${MOVEMENT_LABELS[mutasi.direction] || mutasi.direction} ${perubahanStok}`;
+
+  const saldo = document.createElement('p');
+  saldo.className = 'op-history__reason';
+  const sebelum = Number.isFinite(mutasi.beforeQuantity) ? `${mutasi.beforeQuantity} unit` : 'tidak tercatat';
+  const sesudah = Number.isFinite(mutasi.afterQuantity) ? `${mutasi.afterQuantity} unit` : 'tidak tercatat';
+  saldo.textContent = `Saldo sebelum: ${sebelum}. Saldo sesudah: ${sesudah}.`;
 
   const alasan = document.createElement('p');
   alasan.className = 'op-history__reason';
   alasan.textContent = `Catatan: ${mutasi.reason}`;
 
-  item.append(kepala, perubahan, alasan);
+  item.append(kepala, perubahan, saldo, alasan);
   return item;
 }
 
@@ -357,6 +367,7 @@ async function loadVisaReminders() {
     visaReminderList.replaceChildren(...hasil.items.map(visaReminderRow));
   } catch (error) {
     visaReminderList.replaceChildren(kosong(error.message));
+    panelRetry(visaReminderList, loadVisaReminders);
   }
 }
 
@@ -390,6 +401,7 @@ async function loadVisaDocuments() {
     visaDocumentList.replaceChildren(...hasil.items.map(visaDocumentRow));
   } catch (error) {
     visaDocumentList.replaceChildren(kosong(error.message));
+    panelRetry(visaDocumentList, loadVisaDocuments);
   }
 }
 
@@ -1107,20 +1119,44 @@ async function loadTunggakan() {
 }
 
 async function loadOperations() {
-  const result = await jsonRequest('/api/operations', { headers: headers() });
   await Promise.all([
-    loadInvoices(),
-    loadRingkasan().catch(() => { financeSummary.hidden = true; }),
-    loadTunggakan().catch((error) => feedback('#arrears-status', error.message, true)),
-    loadRiwayat().catch((error) => feedback('#history-status', error.message, true))
+    loadPanel('#invoice-list', loadInvoices),
+    loadPanel('#finance-summary', loadRingkasan, 'summary'),
+    loadPanel('#arrears-status', loadTunggakan),
+    loadPanel('#history-status', loadRiwayat),
+    loadPanel('#inventory-list', async () => {
+      const result = await jsonRequest('/api/operations', { headers: headers() });
+      renderInventory(result.inventory);
+    })
   ]);
-  renderInventory(result.inventory);
+}
+
+async function loadPanel(selector, load, key = '') {
+  const target = document.querySelector(selector);
+  const id = `${selector.slice(1)}-load-error${key}`;
+  let status = document.getElementById(id);
+  if (!status) {
+    status = document.createElement('div');
+    status.id = id;
+    status.className = 'form-status is-error';
+    status.setAttribute('role', 'status');
+    target.before(status);
+  }
+  status.replaceChildren();
+  try { await load(); } catch (error) {
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.className = 'button button--secondary';
+    retry.textContent = 'Coba lagi';
+    retry.addEventListener('click', () => loadPanel(selector, load, key));
+    status.append(document.createTextNode(`${error.message || 'Data belum dapat dimuat.'} `), retry);
+  }
 }
 
 // Tautan dari beranda Portal dan menu samping: #belum-dibayar, #menunggak, #tunggakan, #visa, #inventaris.
 function bukaDariAlamat() {
   const alamat = window.location.hash.slice(1);
-  if (!alamat) return;
+  if (!alamat) { switchOpTab(document.querySelector('#tab-btn-invoices')); return; }
   if (alamat === 'belum-dibayar') terapkanSaringan({ status: 'unpaid' });
   if (alamat === 'menunggak') terapkanSaringan({ status: 'unpaid', sort: 'oldest' });
   if (alamat === 'tunggakan') {
@@ -1128,9 +1164,10 @@ function bukaDariAlamat() {
     const bagian = document.querySelector('#tunggakan');
     if (bagian) { bagian.focus({ preventScroll: true }); bagian.scrollIntoView({ block: 'start' }); }
   }
+  if (alamat === 'riwayat') switchOpTab(document.querySelector('#tab-btn-history'));
   if (alamat === 'visa') switchOpTab(document.querySelector('#tab-btn-visa'));
   if (alamat === 'inventaris') switchOpTab(document.querySelector('#tab-btn-inventory'));
-  try { history.replaceState(null, '', window.location.pathname); } catch {}
+
 }
 
 // Subtab switcher
@@ -1142,6 +1179,26 @@ const opTabs = [
 ];
 
 function switchOpTab(clickedBtn) {
+  if (!clickedBtn) return;
+  const pilihan = {
+    'tab-btn-invoices': ['', 'Keuangan & SPP'],
+    'tab-btn-visa': ['visa', 'Visa & Paspor'],
+    'tab-btn-inventory': ['inventaris', 'Inventaris'],
+    'tab-btn-history': ['riwayat', 'Riwayat keuangan']
+  }[clickedBtn.id];
+  if (pilihan) {
+    const [hash, judul] = pilihan;
+    history.replaceState(null, '', location.pathname + location.search + (hash ? '#' + hash : ''));
+    document.title = judul + ' | Hamasah International';
+    document.querySelector('.crm-summary-title').textContent = judul;
+    document.querySelector('.crumb-active').textContent = judul;
+    staffNav.querySelectorAll('a').forEach((link) => {
+      const aktif = link.getAttribute('href') === 'operations' + (hash && hash !== 'riwayat' ? '#' + hash : '');
+      link.classList.toggle('is-active', aktif);
+      if (aktif) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+  }
   opTabs.forEach(({ btn, panel }) => {
     if (btn && panel) {
       const active = btn === clickedBtn;
@@ -1351,10 +1408,38 @@ document.querySelector('#inventory-form').addEventListener('submit', async (even
 });
 
 document.querySelector('#reload-operations').addEventListener('click', () => loadOperations().catch((error) => {
-  guardCopy.textContent = error.message;
+  feedback('#invoice-list-status', error.message, true);
 }));
 
 if (downloadReportButton) downloadReportButton.addEventListener('click', () => unduhLaporan());
+
+const checkCourseAccessButton = document.querySelector('#check-course-access');
+const retryCourseAccessButton = document.querySelector('#retry-course-access');
+
+async function checkCourseAccess() {
+  if (checkCourseAccessButton.disabled) return;
+  checkCourseAccessButton.disabled = true;
+  retryCourseAccessButton.hidden = true;
+  feedback('#course-access-status', 'Memeriksa akses kelas setelah pembayaran...');
+  try {
+    const result = await jsonRequest('/api/operations/invoices/reconcile-paid', {
+      method: 'POST', headers: headers()
+    });
+    const failed = result.failed.length;
+    feedback('#course-access-status', result.checked === 0
+      ? 'Semua akses kelas setelah pembayaran sudah sesuai.'
+      : `${result.checked} pembayaran diperiksa. Akses kelas untuk ${result.reconciled.length} pembayaran berhasil dipulihkan.${failed ? ` Masih ada ${failed} pembayaran yang perlu diperiksa kembali.` : ''}`, failed > 0);
+    retryCourseAccessButton.hidden = failed === 0;
+  } catch {
+    feedback('#course-access-status', 'Akses kelas belum dapat diperiksa. Silakan coba lagi.', true);
+    retryCourseAccessButton.hidden = false;
+  } finally {
+    checkCourseAccessButton.disabled = false;
+  }
+}
+
+checkCourseAccessButton.addEventListener('click', checkCourseAccess);
+retryCourseAccessButton.addEventListener('click', checkCourseAccess);
 
 if (visaStudentSelect) visaStudentSelect.addEventListener('change', () => loadVisaDocuments());
 
@@ -1432,18 +1517,27 @@ if (logoutButton) {
     consoleSection.hidden = false;
     document.body.classList.add('in-crm');
     renderStaffNav(staffNav, result.account.role, 'operations', result.account);
+    bukaDariAlamat();
+    window.addEventListener('hashchange', bukaDariAlamat);
     const muatData = async () => {
       // Daftar santri dimuat lebih dulu supaya panel visa menampilkan nama, bukan UUID.
-      await loadStudents().catch(() => {});
+      await loadPanel('#invoice-status', loadStudents, 'students');
       await Promise.all([loadOperations(), loadVisaReminders(), loadVisaDocuments()]);
     };
     window.hamasahSaatDataSegar(muatData);
     await muatData();
-    bukaDariAlamat();
-    window.addEventListener('hashchange', bukaDariAlamat);
   } catch (error) {
     guardCopy.textContent = error.message || 'Silakan masuk melalui Portal Hamasah.';
     const judul = guard.querySelector('h1');
     if (judul) judul.textContent = 'Akses operasional belum tersedia';
   }
 }());
+
+function panelRetry(target, load) {
+  const retry = document.createElement('button');
+  retry.type = 'button';
+  retry.className = 'button button--secondary';
+  retry.textContent = 'Coba lagi';
+  retry.addEventListener('click', () => { retry.disabled = true; load(); });
+  target.append(retry);
+}

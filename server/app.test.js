@@ -379,6 +379,10 @@ async function run() {
     const recoveryPayload = decryptNotificationPayload({ ciphertext: recoveryOutbox.rows[0].payload_ciphertext, nonce: recoveryOutbox.rows[0].payload_nonce, tag: recoveryOutbox.rows[0].payload_tag }, 'development-only-key');
     assert.equal(recoveryPayload.kind, 'applicant-recovery');
     assert.match(recoveryPayload.accessCode, /^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{10}$/);
+    assert.equal((await request(baseUrl, `/api/registrations/${registrationId}`, { headers: { Authorization: `Bearer ${created.body.accessToken}` } })).status, 401, 'Recovery revokes the original applicant session.');
+    const recoveredLogin = await request(baseUrl, '/api/applicant/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ registrationId, accessCode: recoveryPayload.accessCode }) });
+    assert.equal(recoveredLogin.status, 200);
+    created.body.accessToken = recoveredLogin.body.accessToken;
     const denied = await request(baseUrl, `/api/registrations/${registrationId}`);
     assert.equal(denied.status, 401);
 

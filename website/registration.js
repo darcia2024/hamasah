@@ -81,7 +81,7 @@ function syncProgramFields() {
 }
 
 function validateForm() {
-  const result = registrationDomain.validateApplicant(readRegistrationForm());
+  const result = registrationDomain.validateApplicant(readRegistrationForm(), { requireProfile: true });
   const errorByField = [
     [fields.fullName, result.errors.applicantName],
     [fields.phone, result.errors.phone],
@@ -91,6 +91,7 @@ function validateForm() {
     [fields.schoolOrigin, result.errors.schoolOrigin],
     [fields.program, result.errors.program],
     [fields.educationLevel, result.errors.educationLevel],
+    [fields.city, result.errors.city],
     [fields.guardianName, result.errors.guardianName],
     [fields.guardianPhone, result.errors.guardianPhone],
     [fields.guardianEmail, result.errors.guardianEmail],
@@ -247,7 +248,8 @@ form.addEventListener('submit', async (event) => {
   const isian = readRegistrationForm();
   // Tab WhatsApp dibuka sekarang, selagi masih dalam klik pengguna, lalu diarahkan setelah
   // server menjawab. Bila dibuka sesudah menunggu server, peramban memblokirnya.
-  const tabWa = window.open('', '_blank');
+  let tabWa = null;
+  try { tabWa = window.open('', '_blank'); } catch { /* The receipt provides a manual WhatsApp link. */ }
   try {
     const response = await fetch('/api/registrations', {
       method: 'POST',
@@ -257,23 +259,35 @@ form.addEventListener('submit', async (event) => {
     const contentType = response.headers.get('content-type') || '';
     const result = contentType.includes('application/json') ? await response.json() : {};
     if (!response.ok) {
+      Object.entries(result.errors || {}).forEach(([name, message]) => {
+        const field = name === 'applicantName' ? fields.fullName : fields[name];
+        if (field) setFieldError(field, message);
+      });
+      form.querySelector('[aria-invalid="true"]')?.focus();
       const messages = Object.values(result.errors || {});
       throw new Error(messages[0] || result.error || 'Layanan formulir belum dapat dihubungi.');
     }
-    sessionStorage.setItem('hamasahRegistration', JSON.stringify({
+    try { sessionStorage.setItem('hamasahRegistration', JSON.stringify({
       registrationId: result.registration.registrationId,
       accessToken: result.accessToken
-    }));
+    })); } catch { /* Receipt remains available when browser storage is disabled. */ }
     const urlAdmin = pesanUntukAdmin(isian, result.registration.registrationId);
-    if (tabWa && !tabWa.closed) {
-      tabWa.opener = null;
-      tabWa.location.href = urlAdmin;
+    showRegistrationReceipt(result.registration.registrationId, result.accessCode, urlAdmin);
+    let waOpened = false;
+    try {
+      if (tabWa && !tabWa.closed) {
+        tabWa.opener = null;
+        tabWa.location.href = urlAdmin;
+        waOpened = true;
+      }
+    } catch { /* Successful registration must remain successful if navigation is blocked. */ }
+    if (waOpened) {
       status.textContent = 'Data tersimpan. WhatsApp admin sudah terbuka di tab baru, tinggal tekan kirim.';
     } else {
       status.textContent = 'Data tersimpan. Tekan "Kirim pesan ke admin" untuk melanjutkan lewat WhatsApp.';
     }
     form.reset();
-    showRegistrationReceipt(result.registration.registrationId, result.accessCode, urlAdmin);
+    syncProgramFields();
     refreshRegistrationStatus();
   } catch (error) {
     if (tabWa && !tabWa.closed) tabWa.close();

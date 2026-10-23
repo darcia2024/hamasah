@@ -221,6 +221,7 @@ async function run() {
       { permission: 'leave.request', method: 'POST', path: () => `/api/students/${studentId}/leave`, body: () => ({}) },
       { permission: 'leave.request', method: 'POST', path: '/api/leave/00000000-0000-4000-8000-000000000000/batal' },
       { permission: 'leave.decide', method: 'GET', path: '/api/leave' },
+      { permission: 'leave.decide', method: 'POST', path: '/api/leave/00000000-0000-4000-8000-000000000000/returned', body: () => ({}) },
       { permission: 'students.manage', method: 'GET', path: '/api/presensi-asrama?mode=sholat&date=2026-10-01&prayer=subuh' },
       { permission: 'students.manage', method: 'GET', path: '/api/presensi-asrama/hari-ini' },
       { permission: 'students.manage', method: 'POST', path: '/api/presensi-asrama/sholat', body: () => ({ date: '2026-10-01', prayer: 'subuh', entries: [] }) },

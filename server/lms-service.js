@@ -150,6 +150,7 @@ function createMemoryLmsStore() {
     ,async getSubmission(studentId, materialId) { return clone(database.submissions.find((item) => item.studentId === studentId && item.materialId === materialId && item.status !== 'returned') || null); }
     ,async addSubmission(record) { database.submissions.push(clone(record)); return clone(record); }
     ,async listSubmissionsByCourse(courseId) { return clone(database.submissions.filter((item) => item.courseId === courseId)); }
+    ,async getSubmissionById(id) { return clone(database.submissions.find((entry) => entry.id === id) || null); }
     ,async reviewSubmission(id, review) { const item = database.submissions.find((entry) => entry.id === id); if (!item) return null; Object.assign(item, review); return clone(item); }
     ,async updateMaterial(courseId, materialId, value) { const course = database.courses[courseId]; const item = course && course.materials.find((entry) => entry.id === materialId); if (!item) return null; Object.assign(item, value, { version: (item.version || 1) + 1 }); return clone(item); }
     ,async setMaterialPositions(courseId, ids) { const course = database.courses[courseId]; if (!course) return; course.materials.forEach((item) => { item.position = ids.indexOf(item.id); }); course.materials.sort((a, b) => a.position - b.position); }
@@ -205,6 +206,10 @@ function createLmsService(options) {
       return false;
     }
     return Boolean(await canAccessStudent(studentId, actor));
+  }
+
+  async function canSubmit(studentId, actor) {
+    return Boolean(actor && actor.role === 'student' && await canAccessStudent(studentId, actor));
   }
 
   async function createCourse(input, actor) {
@@ -473,7 +478,7 @@ function createLmsService(options) {
   }
 
   async function completeMaterial(studentId, courseId, materialId, actor) {
-    if (!(await canStudy(studentId, actor))) {
+    if (!(await canSubmit(studentId, actor))) {
       return { ok: false, error: 'Akses pembelajaran tidak diizinkan.' };
     }
     if (!(await store.getEnrollments(studentId)).includes(courseId)) {
@@ -499,7 +504,7 @@ function createLmsService(options) {
   }
 
   async function submitQuiz(studentId, courseId, materialId, answers, actor) {
-    if (!(await canStudy(studentId, actor))) return { ok: false, error: 'Akses pembelajaran tidak diizinkan.' };
+    if (!(await canSubmit(studentId, actor))) return { ok: false, error: 'Akses pembelajaran tidak diizinkan.' };
     if (!(await store.getEnrollments(studentId)).includes(courseId)) return { ok: false, error: 'Santri belum terdaftar pada maddah ini.' };
     const course = await store.getCourse(courseId);
     const material = course && course.materials.find((entry) => entry.id === materialId);
@@ -518,7 +523,7 @@ function createLmsService(options) {
   }
 
   async function submitAssignment(studentId, courseId, materialId, input, actor) {
-    if (!(await canStudy(studentId, actor))) return { ok: false, error: 'Akses pembelajaran tidak diizinkan.' };
+    if (!(await canSubmit(studentId, actor))) return { ok: false, error: 'Akses pembelajaran tidak diizinkan.' };
     if (!(await store.getEnrollments(studentId)).includes(courseId)) return { ok: false, error: 'Santri belum terdaftar pada maddah ini.' };
     const course = await store.getCourse(courseId); const material = course && course.materials.find((entry) => entry.id === materialId);
     if (!material || material.type !== 'assignment') return { ok: false, error: 'Tugas tidak ditemukan.' };
@@ -631,6 +636,9 @@ function createLmsService(options) {
     if (!isStaff(actor)) return { ok: false, error: 'Akses guru atau admin diperlukan.' };
     const score = Number(input && input.score); const note = clean(input && input.note);
     if (!Number.isInteger(score) || score < 0 || score > 100 || note.length < 3) return { ok: false, error: 'Nilai dan catatan review belum valid.' };
+    const submission = await store.getSubmissionById(submissionId);
+    const course = submission && await store.getCourse(submission.courseId);
+    if (!course || !canManageCourse(course, actor)) return { ok: false, error: 'Submission tidak ditemukan.' };
     const saved = await store.reviewSubmission(submissionId, { status: 'reviewed', score, reviewerNote: note, reviewedAt: now(), reviewerAccountId: actor.id || null });
     if (saved && score >= ASSIGNMENT_PASSING_SCORE) await store.addCompletion({ id: crypto.randomUUID(), studentId: saved.studentId, courseId: saved.courseId, materialId: saved.materialId, completedAt: now() });
     return saved ? { ok: true, value: saved } : { ok: false, error: 'Submission tidak ditemukan.' };

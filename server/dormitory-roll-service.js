@@ -192,11 +192,12 @@ function createDormitoryRollService({ database, staffDormitories, recordPrayers,
     let kesehatan = [];
     if (ids.length && (await healthEnabled())) {
       const { rows } = await database.query(
-        `SELECT DISTINCT ON (h.student_id) h.student_id, s.name, h.condition, h.occurred_on::text AS tanggal
+        `SELECT * FROM (SELECT DISTINCT ON (h.student_id) h.student_id, s.name, h.condition, h.occurred_on::text AS tanggal
            FROM student_health_logs h JOIN students s ON s.id = h.student_id
           WHERE h.student_id = ANY($1::uuid[]) AND h.occurred_on >= ($2::date - 6)
-            AND h.condition IN ('sakit-ringan', 'perlu-perhatian', 'dirujuk')
-          ORDER BY h.student_id, h.occurred_on DESC`,
+            AND h.occurred_on <= $2::date
+          ORDER BY h.student_id, h.occurred_on DESC, h.created_at DESC, h.id DESC) latest
+          WHERE condition IN ('sakit-ringan', 'perlu-perhatian', 'dirujuk') ORDER BY student_id`,
         [ids, tanggal]
       );
       kesehatan = rows.map((row) => ({ studentId: row.student_id, name: row.name, condition: row.condition, date: row.tanggal }));

@@ -9,7 +9,7 @@ const CREATED_AT = '2026-09-15T00:00:00.000Z';
 async function insertAccount(database, role, email) {
   const id = crypto.randomUUID();
   await database.query(
-    'INSERT INTO accounts (id, email, name, role, password_hash) VALUES ($1, $2, $3, $4, $5)',
+    `INSERT INTO accounts (id, email, name, role, password_hash, lifecycle) VALUES ($1, $2, $3, $4, $5, 'active')`,
     [id, email, `Akun ${role}`, role, 'hash-uji']
   );
   return id;

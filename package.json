@@ -35,6 +35,7 @@
     "test": "node database/validate-schema.js && node --test"
   },
   "dependencies": {
+    "@vercel/functions": "3.10.3",
     "pg": "8.12.0"
   },
   "devDependencies": {

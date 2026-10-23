@@ -787,7 +787,10 @@ function rakitLayanan(database, jam) {
     async familyCanViewStudent() { return false; },
     now
   });
-  const lmsService = createLmsService({ store: createPostgresLmsStore({ database }), now });
+  // Synthetic learner identities exist only inside this admin-only demo seeder.
+  // They do not grant staff the right to submit as students through the app.
+  const lmsService = createLmsService({ store: createPostgresLmsStore({ database }), now,
+    canAccessStudent: async (studentId, actor) => actor.role === 'student' && actor.id === studentId });
   const registrationStore = createPostgresRegistrationStore({ database });
   const registrationService = registrationServiceModule.createRegistrationService({ store: registrationStore, now });
   const departureService = createDepartureService({
@@ -881,7 +884,7 @@ async function buatAkun(ctx, kataSandi) {
   // Pengisian yang sempat terputus bisa menyisakan akun dengan kata sandi lama. Semua
   // akun demo disamakan ke kata sandi yang baru ditampilkan.
   if (dibuat && dibuat < DEMO_ACCOUNTS.length) {
-    await ctx.database.query('UPDATE accounts SET password_hash = $1 WHERE email LIKE $2', [await identity.hashPassword(kataSandi), DEMO_EMAIL_PATTERN]);
+    await ctx.database.query('UPDATE accounts SET password_hash = $1, version = version + 1, reset_token_hash = NULL, reset_expires_at = NULL WHERE email LIKE $2', [await identity.hashPassword(kataSandi), DEMO_EMAIL_PATTERN]);
   }
   return dibuat;
 }
@@ -1249,6 +1252,7 @@ async function jalankanProgres(ctx, s, maddah, level, acak, mulai) {
   const lms = ctx.layanan.lmsService;
   const guru = ctx.aktor.guru;
   const studentId = ctx.santri[s.key].id;
+  const learner = { id: studentId, role: 'student' };
   let hari = mulai;
   for (const [urutan, materi] of maddah.materi.entries()) {
     if (urutan >= level) break;
@@ -1260,13 +1264,13 @@ async function jalankanProgres(ctx, s, maddah, level, acak, mulai) {
       for (let percobaan = 0; percobaan < 2; percobaan += 1) {
         const answers = {};
         soal.forEach((q, i) => { answers[i] = acak() < peluang ? q.answer : JAWABAN_SALAH[q.answer]; });
-        const hasil = await pada(ctx.jam, waktu(Math.max(hari - percobaan, 1), '20:10'), 'mengerjakan kuis', () => lms.submitQuiz(studentId, maddah.course.id, materialId, answers, guru));
+        const hasil = await pada(ctx.jam, waktu(Math.max(hari - percobaan, 1), '20:10'), 'mengerjakan kuis', () => lms.submitQuiz(studentId, maddah.course.id, materialId, answers, learner));
         if (hasil.attempt.passed) break;
         peluang = Math.min(peluang + 0.3, 0.97);
       }
     } else if (materi.type === 'assignment') {
       const bagus = acak() < 0.7;
-      const kiriman = await pada(ctx.jam, waktu(hari, '21:00'), 'mengirim tugas', () => lms.submitAssignment(studentId, maddah.course.id, materialId, { body: jawabanTugas(materi, s, bagus) }, guru));
+      const kiriman = await pada(ctx.jam, waktu(hari, '21:00'), 'mengirim tugas', () => lms.submitAssignment(studentId, maddah.course.id, materialId, { body: jawabanTugas(materi, s, bagus) }, learner));
       // Kiriman terbaru dibiarkan menunggu penilaian, supaya guru melihat antrean.
       if (hari > 3 && acak() < 0.75) {
         const score = bagus ? 82 + Math.floor(acak() * 14) : 60 + Math.floor(acak() * 18);
@@ -1278,7 +1282,7 @@ async function jalankanProgres(ctx, s, maddah, level, acak, mulai) {
         await pada(ctx.jam, waktu(hari - 2, '09:30'), 'menilai tugas', () => lms.reviewSubmission(kiriman.id, { score, note }, guru));
       }
     } else {
-      await pada(ctx.jam, waktu(hari, '19:45'), 'menyelesaikan materi', () => lms.completeMaterial(studentId, maddah.course.id, materialId, guru));
+      await pada(ctx.jam, waktu(hari, '19:45'), 'menyelesaikan materi', () => lms.completeMaterial(studentId, maddah.course.id, materialId, learner));
     }
   }
 }
@@ -1654,11 +1658,11 @@ async function gantiSandiDemo({ database, kataSandi }) {
   }
   const hashKode = await Promise.all(kodeBaru.map((item) => identity.hashPassword(item.kode)));
   await database.withTransaction(async (tx) => {
-    const akun = await tx.query('UPDATE accounts SET password_hash = $1 WHERE email LIKE $2 RETURNING id', [hash, DEMO_EMAIL_PATTERN]);
+    const akun = await tx.query('UPDATE accounts SET password_hash = $1, version = version + 1, reset_token_hash = NULL, reset_expires_at = NULL WHERE email LIKE $2 RETURNING id', [hash, DEMO_EMAIL_PATTERN]);
     const akunIds = akun.rows.map((row) => row.id);
     if (akunIds.length) await tx.query('DELETE FROM account_sessions WHERE account_id = ANY($1::uuid[])', [akunIds]);
     for (const [i, item] of kodeBaru.entries()) {
-      await tx.query('UPDATE registrations SET access_code_hash = $1 WHERE id = $2', [hashKode[i], item.row.id]);
+      await tx.query('UPDATE registrations SET access_code_hash = $1, access_token_hash = $3, row_version = row_version + 1 WHERE id = $2', [hashKode[i], item.row.id, crypto.randomBytes(32).toString('hex')]);
       await tx.query('DELETE FROM applicant_sessions WHERE registration_id = $1', [item.row.id]);
     }
   });

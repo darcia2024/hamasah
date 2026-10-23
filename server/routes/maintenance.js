@@ -37,6 +37,16 @@ const RUTE = {
 };
 
 module.exports = [
+  {
+    method: 'POST', pattern: /^\/api\/tasks\/notifications$/,
+    rateLimit: { rule: 'api-default', identity: ({ ip }) => ip },
+    async handler({ request, response, services }) {
+      const secret = services.maintenanceService.secret();
+      if (!secret) { json(response, 503, { error: 'Pengiriman terjadwal belum dikonfigurasi.' }); return; }
+      if (!safeEqual(getBearerToken(request), secret)) { json(response, 401, { error: 'Kunci penjadwal tidak cocok.' }); return; }
+      json(response, 200, { ok: true, processed: await services.maintenanceService.flushNotifications() });
+    }
+  },
   { method: 'POST', ...RUTE },
   { method: 'GET', ...RUTE }
 ];

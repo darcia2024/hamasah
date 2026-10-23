@@ -1,0 +1,37 @@
+name: Retry queued notifications
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: notification-retry
+  cancel-in-progress: false
+
+jobs:
+  deliver:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      APP_BASE_URL: ${{ vars.HAMASAH_APP_BASE_URL }}
+      MAINTENANCE_KEY: ${{ secrets.HAMASAH_MAINTENANCE_KEY }}
+    steps:
+      - name: Process a bounded notification batch
+        shell: bash
+        run: |
+          if [[ -z "$APP_BASE_URL" || -z "$MAINTENANCE_KEY" ]]; then
+            echo "Set HAMASAH_APP_BASE_URL variable and HAMASAH_MAINTENANCE_KEY secret to enable notification retries."
+            exit 1
+          fi
+          if [[ "$APP_BASE_URL" != https://* ]]; then
+            echo "HAMASAH_APP_BASE_URL must use HTTPS."
+            exit 1
+          fi
+          curl --silent --show-error --fail --max-time 25 \
+            --request POST \
+            --header "Authorization: Bearer $MAINTENANCE_KEY" \
+            --output /dev/null \
+            "${APP_BASE_URL%/}/api/tasks/notifications"

@@ -83,8 +83,8 @@ function createMemoryStudentStore() {
     async countInDormitory(dormitoryId) {
       return Object.values(database.students).filter((student) => student.dormitoryId === dormitoryId).length;
     },
-    async correctRecord(collection, recordId, correction) {
-      const record = database[collection].find((item) => item.id === recordId);
+    async correctRecord(collection, recordId, studentId, correction) {
+      const record = database[collection].find((item) => item.id === recordId && item.studentId === studentId);
       if (!record) return null;
       const previous = clone(record);
       database[collection] = database[collection].map((item) => item.id === recordId ? { ...item, ...clone(correction.value) } : item);
@@ -399,7 +399,7 @@ function createStudentPortalService(options) {
     const fields = collection === 'attendance' ? ['status', 'category', 'note'] : collection === 'evaluations' ? ['area', 'note'] : collection === 'violations' ? ['level', 'note'] : ['title', 'description'];
     fields.forEach((field) => { if (sourceValue[field] !== undefined) value[field] = clean(sourceValue[field]); });
     if (sourceValue.occurredAt !== undefined) value.occurredAt = clean(sourceValue.occurredAt);
-    const corrected = await store.correctRecord(collection, recordId, { value, reason, actorAccountId: actor.id || null, createdAt: now() });
+    const corrected = await store.correctRecord(collection, recordId, studentId, { value, reason, actorAccountId: actor.id || null, createdAt: now() });
     return corrected ? { ok: true, value: corrected.record } : { ok: false, error: 'Catatan tidak ditemukan.' };
   }
 
@@ -430,8 +430,9 @@ function createStudentPortalService(options) {
 
     const latestFirst = function byLatest(left, right) { return right.occurredAt.localeCompare(left.occurredAt); };
     const range = options || {};
-    const from = range.from ? new Date(range.from) : null;
-    const to = range.to ? new Date(`${range.to}T23:59:59.999Z`) : null;
+    if ((range.from && !tanggalKalender(range.from)) || (range.to && !tanggalKalender(range.to))) return { ok: false, error: 'Rentang tanggal tidak valid.' };
+    const from = range.from ? new Date(`${range.from}T00:00:00.000+07:00`) : null;
+    const to = range.to ? new Date(`${range.to}T23:59:59.999+07:00`) : null;
     if ((from && Number.isNaN(from.getTime())) || (to && Number.isNaN(to.getTime())) || (from && to && from > to)) return { ok: false, error: 'Rentang tanggal tidak valid.' };
     const withinRange = (entry) => (!from || new Date(entry.occurredAt) >= from) && (!to || new Date(entry.occurredAt) <= to);
     const attendance = (await store.byStudent('attendance', studentId)).filter(withinRange).sort(latestFirst);

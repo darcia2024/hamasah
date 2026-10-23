@@ -89,17 +89,27 @@
     pilihTampilan.setAttribute('aria-label', 'Tampilan kalender');
     const btnPekan = tombol('Pekan', 'kal__view');
     const btnBulan = tombol('Bulan', 'kal__view');
-    pilihTampilan.append(btnPekan, btnBulan);
+    const btnAgenda = tombol('Agenda', 'kal__view');
+    pilihTampilan.append(btnBulan, btnPekan, btnAgenda);
     alat.append(nav, pilihTampilan);
     const papan = el('div', 'kal__board');
     const panel = el('div', 'kal__day');
-    wadah.append(alat, papan, panel);
+    const legenda = el('div', 'kal__legend');
+    legenda.setAttribute('aria-label', 'Jenis kegiatan');
+    [['rutin','Kegiatan rutin'],['acara','Acara khusus'],['piket','Piket']].forEach(([kind,label]) => { const item = el('span',''); item.append(el('i', `kal__dot is-${kind}`),document.createTextNode(label)); legenda.append(item); });
+    wadah.append(alat, legenda, papan, panel);
 
-    mundur.addEventListener('click', () => { jangkar = tampilan === 'pekan' ? geser(jangkar, -7) : geserBulan(jangkar, -1); if (sempit() && tampilan === 'pekan') dipilih = geser(dipilih, -7); lukis(); });
-    maju.addEventListener('click', () => { jangkar = tampilan === 'pekan' ? geser(jangkar, 7) : geserBulan(jangkar, 1); if (sempit() && tampilan === 'pekan') dipilih = geser(dipilih, 7); lukis(); });
+    function navigasi(arah) {
+      jangkar = tampilan === 'bulan' ? geserBulan(jangkar, arah) : geser(jangkar, arah * 7);
+      dipilih = jangkar;
+      lukis();
+    }
+    mundur.addEventListener('click', () => navigasi(-1));
+    maju.addEventListener('click', () => navigasi(1));
     hariIni.addEventListener('click', () => { jangkar = today; dipilih = today; lukis(); });
     btnPekan.addEventListener('click', () => { tampilan = 'pekan'; jangkar = dipilih; lukis(); });
     btnBulan.addEventListener('click', () => { tampilan = 'bulan'; jangkar = dipilih; lukis(); });
+    btnAgenda.addEventListener('click', () => { tampilan = 'agenda'; jangkar = dipilih; lukis(); });
 
     function geserBulan(iso, n) {
       const d = keTanggal(iso);
@@ -148,8 +158,8 @@
 
       const semua = hari.flatMap(itemTanggal);
       const berjam = semua.filter((it) => it.startTime);
-      const mulaiJam = Math.max(0, Math.min(6, ...berjam.map((it) => Math.floor(menit(it.startTime) / 60))));
-      const akhirJam = Math.min(24, Math.max(21, ...berjam.map((it) => Math.ceil((menit(it.endTime) ?? menit(it.startTime) + 60) / 60))));
+      const mulaiJam = berjam.length ? Math.max(0, Math.min(...berjam.map((it) => Math.floor(menit(it.startTime) / 60))) - 1) : 7;
+      const akhirJam = berjam.length ? Math.min(24, Math.max(...berjam.map((it) => Math.ceil((menit(it.endTime) ?? menit(it.startTime) + 60) / 60))) + 1) : 18;
 
       const kisi = el('div', 'kal__week');
       // Kepala kolom.
@@ -228,7 +238,7 @@
       papan.replaceChildren(kisi);
       // Gulir kisi ke sekitar kegiatan pertama.
       requestAnimationFrame(() => {
-        const pertama = Math.min(...berjam.map((it) => menit(it.startTime)), 7 * 60);
+        const pertama = berjam.length ? Math.min(...berjam.map((it) => menit(it.startTime))) : mulaiJam * 60;
         badan.scrollTop = Math.max(0, ((pertama - mulaiJam * 60) / 60) * TINGGI_JAM - 12);
       });
     }
@@ -256,12 +266,16 @@
       const mulai = awalPekan(keIso(awalBulan));
       const kisi = el('div', 'kal__month');
       HARI_PENDEK.forEach((h) => kisi.append(el('span', 'kal__month-name', h)));
-      for (let i = 0; i < 42; i += 1) {
+      const akhirBulan = new Date(awalBulan.getTime()); akhirBulan.setUTCMonth(akhirBulan.getUTCMonth()+1); akhirBulan.setUTCDate(0);
+      const jumlahSel = Math.ceil((hariKe(keIso(awalBulan)) - 1 + akhirBulan.getUTCDate()) / 7) * 7;
+      for (let i = 0; i < jumlahSel; i += 1) {
         const iso = geser(mulai, i);
         const d = keTanggal(iso);
         const luar = d.getUTCMonth() !== awalBulan.getUTCMonth();
         const isi = itemTanggal(iso);
         const sel = tombol('', `kal__cell ${luar ? 'is-outside' : ''} ${iso === today ? 'is-today' : ''} ${iso === dipilih ? 'is-selected' : ''}`.trim(), `${TANGGAL_PANJANG.format(d)}, ${isi.length} kegiatan`);
+        sel.setAttribute('aria-pressed', String(iso === dipilih));
+        if (iso === today) sel.setAttribute('aria-current','date');
         sel.append(el('span', 'kal__cell-num', String(d.getUTCDate())));
         const daftar = el('span', 'kal__cell-list');
         // Bulan: acara ditonjolkan, kegiatan rutin cukup diringkas jumlahnya supaya kisi
@@ -300,7 +314,7 @@
       );
       kepala.append(teks);
       if (opsi.onTambah) {
-        const tambah = tombol(opsi.labelTambah || '+ Tambah di hari ini', 'kal__btn kal__btn--add');
+        const tambah = tombol(opsi.labelTambah || '+ Tambah kegiatan', 'kal__btn kal__btn--add', `Tambah kegiatan pada ${TANGGAL_PANJANG.format(d)}`);
         tambah.addEventListener('click', () => opsi.onTambah({ tanggal: dipilih, hari: hariKe(dipilih), jam: '' }));
         kepala.append(tambah);
       }
@@ -340,9 +354,25 @@
       btnBulan.classList.toggle('is-active', tampilan === 'bulan');
       btnPekan.setAttribute('aria-pressed', String(tampilan === 'pekan'));
       btnBulan.setAttribute('aria-pressed', String(tampilan === 'bulan'));
+      btnAgenda.classList.toggle('is-active', tampilan === 'agenda');
+      btnAgenda.setAttribute('aria-pressed', String(tampilan === 'agenda'));
       wadah.classList.toggle('is-month', tampilan === 'bulan');
-      if (tampilan === 'pekan') lukisPekan(); else lukisBulan();
+      if (tampilan === 'pekan') lukisPekan(); else if (tampilan === 'agenda') lukisAgenda(); else lukisBulan();
       lukisPanel();
+    }
+
+    function lukisAgenda() {
+      const awal = awalPekan(jangkar), akhir = geser(awal,6);
+      judul.textContent = `${keTanggal(awal).getUTCDate()} ${BULAN_PENDEK.format(keTanggal(awal))} – ${keTanggal(akhir).getUTCDate()} ${BULAN.format(keTanggal(akhir))}`;
+      const list = el('div','kal__agenda-week');
+      for(let i=0;i<7;i++) {
+        const iso=geser(awal,i), items=itemTanggal(iso), duties=piketTanggal(iso);
+        const button=tombol('',`kal__agenda-date ${iso===dipilih?'is-selected':''}`,`Lihat ${TANGGAL_PANJANG.format(keTanggal(iso))}`);
+        button.setAttribute('aria-pressed',String(iso===dipilih));
+        button.append(el('strong','',`${HARI_PENDEK[i]}, ${keTanggal(iso).getUTCDate()}`),el('span','',items.length?items.map(item=>`${rentang(item)} ${item.title}`).join(' · '):'Tidak ada kegiatan terjadwal'),el('span','kal__agenda-count',`${items.length} kegiatan${duties.length?` · ${duties.length} piket`:''}`));
+        button.addEventListener('click',()=>pilihHari(iso,{gulir:true}));list.append(button);
+      }
+      papan.replaceChildren(list);
     }
 
     // Lebar layar berubah (putar ponsel, ubah jendela): gambar ulang tampilan pekan.

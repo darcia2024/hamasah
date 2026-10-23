@@ -363,27 +363,36 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
       const akses = await aksesSantri(izin.studentId, actor, 'write');
       if (!akses.ok) return akses;
       if (izin.status !== 'menunggu') return { ok: false, status: 409, error: 'Izin ini sudah diputuskan atau dibatalkan.' };
-      const { rows: diubah } = await database.query(
-        `UPDATE student_leave_requests
-            SET status = $2, decision_note = $3, decided_by_account_id = $4, decided_at = $5
-          WHERE id = $1 AND status = 'menunggu'
-          RETURNING id`,
-        [id, decision, note, actor.id || null, now()]
-      );
-      if (!diubah.length) return { ok: false, status: 409, error: 'Izin ini baru saja diputuskan orang lain.' };
-      if (decision === 'disetujui') {
-        const catatan = await recordAttendance(izin.studentId, {
-          status: 'excused',
-          category: izin.kindLabel,
-          note: [izin.reason, note].filter(Boolean).join(' · ').slice(0, 500),
-          occurredAt: izin.startsAt
-        }, actor);
-        if (catatan && catatan.ok && catatan.value && catatan.value.id) {
-          await database.query('UPDATE student_leave_requests SET attendance_id = $2 WHERE id = $1', [id, catatan.value.id]);
+      return database.withTransaction(async (tx) => {
+        const locked = await tx.query('SELECT status FROM student_leave_requests WHERE id=$1 FOR UPDATE', [id]);
+        if (locked.rows[0]?.status !== 'menunggu') return { ok: false, status: 409, error: 'Izin ini sudah diputuskan atau dibatalkan.' };
+        let attendanceId = null;
+        if (decision === 'disetujui') {
+          // Approval and its session share one transaction. Never overwrite an incompatible session.
+          const sessionDate = tanggalJakarta(new Date(izin.startsAt));
+          const attendanceNote = [izin.reason, note].filter(Boolean).join(' · ').slice(0, 500);
+          const inserted = await tx.query(`INSERT INTO student_attendance
+            (id,student_id,status,category,note,occurred_at,session_date,recorded_by_account_id,created_at)
+            VALUES ($1,$2,'excused',$3,$4,$5,$6,$7,$8)
+            ON CONFLICT (student_id,session_date,category) DO NOTHING RETURNING id`,
+            [crypto.randomUUID(),izin.studentId,izin.kindLabel,attendanceNote,izin.startsAt,sessionDate,actor.id || null,now()]);
+          attendanceId = inserted.rows[0]?.id;
+          if (!attendanceId) {
+            const existing = await tx.query(`SELECT id,status,occurred_at,note FROM student_attendance
+              WHERE student_id=$1 AND session_date=$2 AND category=$3 FOR UPDATE`, [izin.studentId,sessionDate,izin.kindLabel]);
+            const entry = existing.rows[0];
+            if (!entry || entry.status !== 'excused' || iso(entry.occurred_at) !== izin.startsAt || (entry.note || '') !== attendanceNote) {
+              return { ok: false, status: 409, error: 'Sesi kehadiran sudah berisi catatan yang berbeda. Periksa sebelum menyetujui izin.' };
+            }
+            attendanceId = entry.id;
+          }
         }
-      }
-      const { rows: akhir } = await database.query(`${SELECT_LEAVE} WHERE l.id = $1`, [id]);
-      return { ok: true, value: toLeave(akhir[0]) };
+        await tx.query(`UPDATE student_leave_requests SET status=$2,decision_note=$3,
+          decided_by_account_id=$4,decided_at=$5,attendance_id=$6 WHERE id=$1`,
+          [id,decision,note,actor.id || null,now(),attendanceId]);
+        const { rows: akhir } = await tx.query(`${SELECT_LEAVE} WHERE l.id = $1`, [id]);
+        return { ok: true, value: toLeave(akhir[0]) };
+      });
     });
   }
 
@@ -522,10 +531,24 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
     });
   }
   function followUp(row) {return {id:row.id,studentId:row.student_id,studentName:row.student_name,title:row.title,target:row.target,dueOn:String(row.due_on).slice(0,10),status:row.status,progressNote:row.progress_note,updatedAt:iso(row.updated_at)};}
-  async function followUps(actor) {
+  async function followUps(actor, { status = 'semua', page = 1, limit = 50 } = {}) {
     if(!actor||!['admin','supervisor'].includes(actor.role))return {ok:false,status:403,error:'Hanya admin dan musyrif.'};
+    if (!['semua','aktif','perlu','dipantau','selesai'].includes(status)) return {ok:false,error:'Status tindak lanjut tidak dikenal.'};
+    page = Math.min(1000000, Math.max(1, Math.floor(Number(page) || 1)));
+    limit = Math.min(200, Math.max(1, Math.floor(Number(limit) || 50)));
     const ids=actor.role==='supervisor'?await staffDormitories(actor.id):null;
-    const result=await baca(async()=>{const {rows}=await database.query("SELECT f.*,f.due_on::text AS due_on,s.name AS student_name FROM student_follow_ups f JOIN students s ON s.id=f.student_id WHERE ($1::uuid[] IS NULL OR s.dormitory_id=ANY($1::uuid[])) ORDER BY (f.status='selesai'),f.due_on,f.created_at LIMIT 200",[ids]);return {tersedia:true,items:rows.map(followUp)};},{tersedia:false,items:[]});
+    const result=await baca(async()=> database.withTransaction(async tx => {
+      const where = `FROM student_follow_ups f JOIN students s ON s.id=f.student_id
+        WHERE ($1::uuid[] IS NULL OR s.dormitory_id=ANY($1::uuid[]))
+        AND ($2='semua' OR f.status=$2 OR ($2='aktif' AND f.status<>'selesai'))`;
+      const count = await tx.query('SELECT count(*)::int AS total '+where,[ids,status]);
+      const total = count.rows[0].total;
+      const pages = Math.max(1,Math.ceil(total/limit));
+      page = Math.min(page,pages);
+      const {rows}=await tx.query(`SELECT f.*,f.due_on::text AS due_on,s.name AS student_name ${where}
+        ORDER BY (f.status='selesai'),f.due_on,f.created_at,f.id LIMIT $3 OFFSET $4`,[ids,status,limit,(page-1)*limit]);
+      return {tersedia:true,items:rows.map(followUp),total,page,limit,pages};
+    }),{tersedia:false,items:[],total:0,page:1,limit,pages:1});
     return {ok:true,value:result};
   }
   async function saveFollowUp(id, input, actor) {

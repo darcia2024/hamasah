@@ -253,10 +253,11 @@
     bukaForm();
 
     const kalender = window.HamasahKalender.buat({
+      tampilan: 'bulan',
       rutin: data.schedule.filter((j) => j.kind === 'rutin'),
       acara: data.schedule.filter((j) => j.kind === 'acara'),
       today: data.today,
-      labelTambah: '+ Tambah di hari ini',
+      labelTambah: '+ Tambah kegiatan',
       onTambah: ({ tanggal, hari, jam }) => {
         bukaForm({ tanggal, hari, jam });
         tambahBagian.scrollIntoView({ behavior: 'smooth', block: 'start' });

@@ -78,7 +78,12 @@ async function run() {
     // Inventaris: upsert berdasarkan id, urut nama.
     const kasur = await store.saveInventory({ id: crypto.randomUUID(), name: 'Kasur asrama', location: 'Hay Asyir', quantity: 20, updatedAt: ISSUED_AT });
     await store.saveInventory({ id: crypto.randomUUID(), name: 'Almari', location: 'Hay Asyir', quantity: 10, updatedAt: ISSUED_AT });
-    await store.saveInventory({ ...kasur, quantity: 25, updatedAt: '2026-09-16T00:00:00.000Z' });
+    assert.ok((await store.saveInventory({ ...kasur, quantity: 25, updatedAt: '2026-09-16T00:00:00.000Z' })).error);
+    await store.applyInventoryMovement(kasur.id, { id: crypto.randomUUID(), direction: 'in', quantity: 5, reason: 'Tambahan uji', createdAt: ISSUED_AT });
+    const ledger = await store.listInventoryMovements(kasur.id);
+    assert.equal(ledger.length, 2);
+    assert.ok(ledger.some((m) => m.delta === 20 && m.beforeQuantity === 0 && m.afterQuantity === 20));
+    assert.ok(ledger.some((m) => m.delta === 5 && m.beforeQuantity === 20 && m.afterQuantity === 25));
     const inventaris = await store.listInventory();
     assert.deepEqual(inventaris.map((item) => item.name), ['Almari', 'Kasur asrama']);
     assert.equal(inventaris[1].quantity, 25);
@@ -112,7 +117,7 @@ async function run() {
     // Task R3.2. Koreksi invoice dicatat sejak migrasi 022 tetapi tidak pernah dibaca.
     const petugasId = crypto.randomUUID();
     await database.query(
-      `INSERT INTO accounts (id, email, name, role, password_hash) VALUES ($1, 'keuangan.uji@hamasah.test', 'Keuangan Uji', 'finance', 'hash-uji')`,
+      `INSERT INTO accounts (id, email, name, role, password_hash, lifecycle) VALUES ($1, 'keuangan.uji@hamasah.test', 'Keuangan Uji', 'finance', 'hash-uji', 'active')`,
       [petugasId]
     );
     const dikoreksi = await store.saveInvoice({
@@ -192,7 +197,7 @@ async function run() {
     const lemari = await store.saveInventory({
       id: crypto.randomUUID(), name: 'Lemari santri', location: 'Hay Asyir', quantity: 5, updatedAt: ISSUED_AT
     });
-    assert.deepEqual(await store.listInventoryMovements(lemari.id), []);
+    assert.equal((await store.listInventoryMovements(lemari.id))[0].reason, 'Saldo awal');
 
     const masuk = await store.applyInventoryMovement(lemari.id, {
       id: crypto.randomUUID(), direction: 'in', quantity: 3, reason: 'Pembelian tambahan',
@@ -206,7 +211,7 @@ async function run() {
     assert.equal(keluar.item.quantity, 6, 'Jumlah mengikuti ledger, bukan angka yang ditulis terpisah.');
 
     const mutasi = await store.listInventoryMovements(lemari.id);
-    assert.equal(mutasi.length, 2);
+    assert.equal(mutasi.length, 3);
     assert.equal(mutasi[0].direction, 'out', 'Mutasi terbaru di urutan pertama.');
     assert.equal(mutasi[0].quantity, 2);
     assert.equal(typeof mutasi[0].quantity, 'number');
@@ -218,7 +223,7 @@ async function run() {
       actorAccountId: null, createdAt: '2026-09-22T00:00:00.000Z'
     });
     assert.equal(gagal.error, 'Stok tidak boleh negatif.');
-    assert.equal((await store.listInventoryMovements(lemari.id)).length, 2, 'Mutasi yang ditolak tidak boleh tercatat.');
+    assert.equal((await store.listInventoryMovements(lemari.id)).length, 3, 'Mutasi yang ditolak tidak boleh tercatat.');
     assert.equal((await store.listInventory()).find((x) => x.id === lemari.id).quantity, 6);
 
     // Rincian pembayaran dan pengingat (migrasi 047).

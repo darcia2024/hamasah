@@ -137,9 +137,16 @@ async function run() {
     assert.deepEqual(unduh.body, PNG);
 
     // --- Isi yang menyamar ditolak ---
+    const invalidCourse = await request(baseUrl, 'POST', '/api/uploads', {
+      token: adminToken, body: { purpose: 'course-file', entityId: 'maddah-uji', fileName: 'materi.pdf', contentType: 'application/pdf', size: EXE.length }
+    });
+    assert.equal(invalidCourse.status, 422);
+    const course = await request(baseUrl, 'POST', '/api/courses', { token: adminToken,
+      body: { title: 'Maddah berkas uji', description: 'Materi dummy untuk pemeriksaan isi unggahan.' } });
+    assert.equal(course.status, 201);
     const mintaPdf = await request(baseUrl, 'POST', '/api/uploads', {
       token: adminToken,
-      body: { purpose: 'course-file', entityId: 'maddah-uji', fileName: 'materi.pdf', contentType: 'application/pdf', size: EXE.length }
+      body: { purpose: 'course-file', entityId: course.body.course.id, fileName: 'materi.pdf', contentType: 'application/pdf', size: EXE.length }
     });
     assert.equal(mintaPdf.status, 201);
     const menyamar = await request(baseUrl, 'PUT', `/api/uploads/${mintaPdf.body.upload.id}/content`, {

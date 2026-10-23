@@ -154,8 +154,9 @@ function createCourseShopService(options) {
   async function buy(courseId, actor) {
     const santri = await santriMilik(actor);
     if (!santri) return { ok: false, status: 403, error: 'Masuk dengan akun pembeli kelas lebih dulu.' };
-    const hasil = await aman(async () => {
-      const { rows: listing } = await database.query(
+    const hasil = await aman(() => database.withTransaction(async (tx) => {
+      await tx.query('SELECT id FROM students WHERE id = $1 FOR UPDATE', [santri.id]);
+      const { rows: listing } = await tx.query(
         `SELECT c.id, c.title, l.price_rupiah FROM course_listings l JOIN courses c ON c.id = l.course_id
           WHERE l.course_id = $1 AND l.published`,
         [courseId]
@@ -163,28 +164,28 @@ function createCourseShopService(options) {
       if (!listing.length) return { ok: false, status: 404, error: 'Kelas tidak ditemukan atau sedang tidak dijual.' };
       const kelas = listing[0];
 
-      const { rows: terdaftar } = await database.query(
+      const { rows: terdaftar } = await tx.query(
         'SELECT 1 FROM course_enrollments WHERE student_id = $1 AND course_id = $2', [santri.id, courseId]
       );
       if (terdaftar.length) return { ok: false, status: 409, error: 'Anda sudah terdaftar di kelas ini. Buka Ruang belajar untuk mulai.' };
 
-      const { rows: menunggu } = await database.query(
+      const { rows: menunggu } = await tx.query(
         `SELECT o.id, i.invoice_number, i.amount_rupiah FROM course_orders o JOIN invoices i ON i.id = o.invoice_id
-          WHERE o.student_id = $1 AND o.course_id = $2 AND i.status = 'unpaid'`,
+          WHERE o.student_id = $1 AND o.course_id = $2 AND i.status IN ('unpaid', 'paid')`,
         [santri.id, courseId]
       );
       if (menunggu.length) {
         return { ok: true, value: { orderId: menunggu[0].id, courseTitle: kelas.title, invoiceNumber: menunggu[0].invoice_number, amount: Number(menunggu[0].amount_rupiah), existing: true } };
       }
 
-      const tagihan = await operationsService.issueCourseInvoice(santri.id, `Kelas daring: ${kelas.title}`, Number(kelas.price_rupiah));
+      const tagihan = await operationsService.issueCourseInvoice(santri.id, `Kelas daring: ${kelas.title}`, Number(kelas.price_rupiah), tx);
       const orderId = crypto.randomUUID();
-      await database.query(
+      await tx.query(
         'INSERT INTO course_orders (id, student_id, course_id, invoice_id, created_at) VALUES ($1, $2, $3, $4, $5)',
         [orderId, santri.id, courseId, tagihan.id, now()]
       );
       return { ok: true, value: { orderId, courseTitle: kelas.title, invoiceNumber: tagihan.number, amount: tagihan.amount, existing: false } };
-    }, null);
+    }), null);
     return hasil || { ok: false, status: 503, error: BELUM_SIAP };
   }
 
@@ -192,11 +193,26 @@ function createCourseShopService(options) {
   // pembelinya didaftarkan ke maddah. Mengembalikan courseId yang dibuka, atau null.
   async function onInvoicePaid(invoiceId) {
     return aman(async () => {
-      const { rows } = await database.query('SELECT student_id, course_id FROM course_orders WHERE invoice_id = $1', [invoiceId]);
+      const { rows } = await database.query("SELECT o.student_id, o.course_id FROM course_orders o JOIN invoices i ON i.id = o.invoice_id WHERE o.invoice_id = $1 AND i.status = 'paid'", [invoiceId]);
       if (!rows.length) return null;
       await lmsStore.addEnrollment(rows[0].student_id, rows[0].course_id, now());
       return rows[0].course_id;
     }, null);
+  }
+
+  async function reconcilePaidInvoices(actor) {
+    if (!actor || !['admin', 'finance'].includes(actor.role)) return { ok: false, status: 403, error: 'Akses admin atau keuangan diperlukan.' };
+    const { rows } = await database.query(`SELECT o.invoice_id FROM course_orders o JOIN invoices i ON i.id = o.invoice_id
+      WHERE i.status = 'paid' AND NOT EXISTS (SELECT 1 FROM course_enrollments e WHERE e.student_id = o.student_id AND e.course_id = o.course_id)`);
+    const report = { checked: rows.length, reconciled: [], failed: [] };
+    for (const row of rows) {
+      try {
+        const courseId = await onInvoicePaid(row.invoice_id);
+        if (courseId) report.reconciled.push({ invoiceId: row.invoice_id, courseId });
+        else report.failed.push(row.invoice_id);
+      } catch { report.failed.push(row.invoice_id); }
+    }
+    return { ok: true, value: report };
   }
 
   // Konsol: semua maddah beserta harga dan status tampilnya (null bila belum pernah diatur).
@@ -232,7 +248,7 @@ function createCourseShopService(options) {
     return hasil || { ok: false, status: 503, error: BELUM_SIAP };
   }
 
-  return Object.freeze({ catalog, signup, myOverview, buy, onInvoicePaid, listListings, saveListing });
+  return Object.freeze({ catalog, signup, myOverview, buy, onInvoicePaid, reconcilePaidInvoices, listListings, saveListing });
 }
 
 module.exports = { PROGRAM_KELAS, createCourseShopService };

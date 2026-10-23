@@ -131,6 +131,13 @@ function ujiRender() {
   assert.ok(hasil.includes('<meta name="hamasah-whatsapp" content="6281234567890" />'));
   assert.ok(hasil.includes('<strong class="cost-figure">Per kelas</strong>'), 'Program lain tetap.');
 
+  for (const [page, key] of [['program-kuliah.html', 'kuliah'], ['program-mahad.html', 'mahad']]) {
+    const rendered = renderHalaman(halaman(page), konten);
+    assert.ok(rendered.includes(biaya.program[key].harga.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')));
+    assert.ok(!rendered.includes('6287758619337'));
+    assert.ok(!rendered.includes('0812-8848-9997'));
+    assert.ok(!/<dd data-biaya-rincian>Rp /.test(rendered));
+  }
   const teks = sesuaikanTeksKontak('WhatsApp admin: +62 812-8848-9997. Kantor Mesir: Sheikh Taha Dinary, Imarah 32, Lantai 1, Syaqqah 3, Hay Sabi, Nasr City, Kairo.', {
     ...BAWAAN.kontak, whatsapp: '6281234567890', alamatMesir: 'Jalan Baru 5\nKairo'
   });

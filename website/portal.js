@@ -1152,6 +1152,7 @@ function renderExecutiveDashboard(_daftarAwal, account) {
   const mainCol = document.createElement('div');
   mainCol.className = 'coursue-main-col';
   if (isSupervisor) mainCol.classList.add('mus-home');
+  if (isAdmin) mainCol.classList.add('admin-home');
   // Judul dan ringkasan hanya memakai peran dan jumlah dari data. Sebelumnya berisi
   // nama kawasan dan gedung operasional yang belum dikonfirmasi klien dan ditulis keras
   // di kode.
@@ -1192,6 +1193,21 @@ function renderExecutiveDashboard(_daftarAwal, account) {
     if (action) action.textContent = 'Catat presensi';
   }
   // Wali: tombol "Lihat mutaba'ah terkini" dihapus karena hanya membuka ananda pertama;
+  if (isAdmin && ringkasan) {
+    const subtitle = heroBanner.querySelector('.coursue-hero-subtitle');
+    subtitle.replaceChildren(document.createTextNode('Super Admin · '));
+    [
+      [ringkasan.summary.activeStudents, 'santri aktif'],
+      [ringkasan.summary.dormitories, 'asrama'],
+      [ringkasan.summary.supervisors, 'musyrif']
+    ].forEach(([value, label], index) => {
+      if (index) subtitle.append(document.createTextNode(', '));
+      const emphasis = document.createElement('strong');
+      emphasis.textContent = `${value} ${label}`;
+      subtitle.append(emphasis);
+    });
+    subtitle.append(document.createTextNode('.'));
+  }
   // setiap kartu ananda sudah bisa diketuk.
 
   // Selain admin, tidak ada kartu angka di bawah judul: jumlah santri sudah ada di

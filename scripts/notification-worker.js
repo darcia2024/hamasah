@@ -8,6 +8,7 @@ const { createEmailSender } = require('../server/email-service.js');
 const { createNotificationWorker } = require('../server/notification-worker.js');
 const { loadEnvironmentFile } = require('../database/migrate.js');
 const { readProductionConfig } = require('../server/production-config.js');
+const { createTemplateService } = require('../server/template-service.js');
 
 loadEnvironmentFile(path.join(__dirname, '..', '.env'), process.env);
 
@@ -23,27 +24,34 @@ async function main() {
     from: config.email.emailFrom,
     logger: console
   });
+  const templates = createTemplateService({ database });
   const worker = createNotificationWorker({
     store: createPostgresNotificationStore({ database }),
     sender,
     notificationPayloadKey: process.env.NOTIFICATION_PAYLOAD_KEY || process.env.IP_HASH_SECRET,
     appBaseUrl: config.email.appBaseUrl || process.env.APP_BASE_URL,
+    templates: async () => ({ email: await templates.ambil('email'), kop: await templates.ambil('kop') }),
     senderTimeoutMs: Number(process.env.NOTIFICATION_SENDER_TIMEOUT_MS || 10000)
   });
   const once = process.argv.includes('--once');
-  const intervalMs = Math.max(5000, Number(process.env.NOTIFICATION_WORKER_INTERVAL_MS || 30000));
+  const intervalMs = Math.max(5000, Number(process.env.NOTIFICATION_WORKER_INTERVAL_MS || 30000) || 30000);
   let timer = null;
   let stopped = false;
+  let inFlight = null;
 
   async function run() {
     if (stopped) return;
-    const result = await worker.runOnce({ limit: Number(process.env.NOTIFICATION_WORKER_BATCH_SIZE || 20) });
-    if (result.claimed > 0) console.log(`[notification-worker] ${result.claimed} item diproses.`);
+    if (inFlight) return inFlight;
+    inFlight = worker.runOnce({ limit: Number(process.env.NOTIFICATION_WORKER_BATCH_SIZE || 20) })
+      .then(result => { if (result.claimed > 0) console.log(`[notification-worker] ${result.claimed} item diproses.`); })
+      .finally(() => { inFlight = null; });
+    return inFlight;
   }
 
   async function shutdown(signal) {
     stopped = true;
-    if (timer) clearInterval(timer);
+    if (timer) clearTimeout(timer);
+    if (inFlight) await inFlight.catch(() => {});
     await database.close();
     console.log(`[notification-worker] berhenti (${signal}).`);
   }
@@ -51,7 +59,14 @@ async function main() {
   process.once('SIGTERM', () => shutdown('SIGTERM'));
   process.once('SIGINT', () => shutdown('SIGINT'));
   await run();
-  if (!once) timer = setInterval(() => run().catch((error) => console.error(`[notification-worker] gagal: ${error.message}`)), intervalMs);
+  const scheduleNext = () => {
+    if (stopped) return;
+    timer = setTimeout(async () => {
+      await run().catch((error) => console.error(`[notification-worker] gagal: ${error.message}`));
+      scheduleNext();
+    }, intervalMs);
+  };
+  if (!once) scheduleNext();
   else await shutdown('once');
 }
 

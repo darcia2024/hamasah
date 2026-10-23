@@ -381,6 +381,26 @@ function createPostgresRegistrationStore({ database } = {}) {
       });
     },
 
+    async recoverAccessCode(record, accessCodeHash, notification, updatedAt) {
+      return database.withTransaction(async (tx) => {
+        const result = await tx.query(
+          `UPDATE registrations SET access_code_hash = $2, access_token_hash = $3,
+             updated_at = $4, row_version = row_version + 1
+           WHERE id = $1 AND row_version = $5 RETURNING id`,
+          [record.id, accessCodeHash, crypto.randomBytes(32).toString('hex'), updatedAt, Number(record.version || 1)]
+        );
+        if (!result.rows.length) throw new Error('Data pendaftaran berubah. Coba pemulihan kembali.');
+        await tx.query('DELETE FROM applicant_sessions WHERE registration_id = $1', [record.id]);
+        await tx.query(
+          `INSERT INTO notification_outbox
+            (id, notification_type, recipient_email, provider, status, attempts, created_at, updated_at, payload_ciphertext, payload_nonce, payload_tag)
+           VALUES ($1, $2, $3, $4, 'pending', 0, $5, $5, $6, $7, $8)`,
+          [notification.id, notification.notificationType, notification.recipientEmail, notification.provider, notification.createdAt,
+            notification.payloadCiphertext, notification.payloadNonce, notification.payloadTag]
+        );
+      });
+    },
+
     async update(record) {
       return database.withTransaction(async (tx) => {
         // Kunci baris induk sebelum membaca/menulis snapshot. Child rows tidak lagi

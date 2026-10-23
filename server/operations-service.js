@@ -124,7 +124,7 @@ function createMemoryOperationsStore() {
     async paymentDetails(invoiceIds) {
       return new Map(invoiceIds.filter((id) => database.payments[id]).map((id) => [id, clone(database.payments[id])]));
     },
-    async savePaymentDetail(invoiceId, detail) { database.payments[invoiceId] = clone(detail); return true; },
+    async savePaymentDetail(invoiceId, detail) { database.payments[invoiceId] ||= clone(detail); return true; },
     async lastReminders(invoiceIds) {
       const peta = new Map();
       for (const item of database.reminders) {
@@ -142,7 +142,16 @@ function createMemoryOperationsStore() {
     async listVisaDocuments(studentId) { return Object.values(database.visaDocuments).filter((item) => !studentId || item.studentId === studentId).map(clone); },
     async listVisaHistory(studentId) { return (database.visaHistory[studentId] || []).map(clone).reverse(); },
     async listInventory() { return Object.values(database.inventory).map(clone); },
-    async saveInventory(value) { database.inventory[value.id] = { version: 1, ...clone(value) }; return clone(database.inventory[value.id]); },
+    async saveInventory(value) {
+      const old = database.inventory[value.id];
+      if (old && old.quantity !== value.quantity) return { error: 'Ubah stok melalui mutasi inventaris.' };
+      database.inventory[value.id] = { ...clone(value), version: (old?.version || 0) + 1 };
+      if (!old) {
+        const id = crypto.randomUUID();
+        database.inventoryMovements[id] = { id, inventoryItemId: value.id, direction: 'in', quantity: value.quantity, delta: value.quantity, beforeQuantity: 0, afterQuantity: value.quantity, reason: 'Saldo awal', actorAccountId: value.actorAccountId, createdAt: value.updatedAt };
+      }
+      return clone(database.inventory[value.id]);
+    },
     async listInventoryMovements(itemId) {
       return Object.values(database.inventoryMovements)
         .filter((item) => item.inventoryItemId === itemId)
@@ -150,6 +159,7 @@ function createMemoryOperationsStore() {
           id: item.id,
           direction: item.direction,
           quantity: item.quantity,
+          delta: item.delta, beforeQuantity: item.beforeQuantity, afterQuantity: item.afterQuantity,
           reason: item.reason,
           createdAt: item.createdAt,
           actorAccountId: item.actorAccountId || null,
@@ -162,7 +172,7 @@ function createMemoryOperationsStore() {
       const delta = movement.direction === 'in' ? movement.quantity : movement.direction === 'out' ? -movement.quantity : movement.delta;
       const quantity = item.quantity + delta; if (quantity < 0) return { error: 'Stok tidak boleh negatif.' };
       database.inventory[id] = { ...item, quantity, version: (item.version || 1) + 1, updatedAt: movement.createdAt };
-      database.inventoryMovements[movement.id] = { ...movement, inventoryItemId: id, delta };
+      database.inventoryMovements[movement.id] = { ...movement, inventoryItemId: id, delta, beforeQuantity: item.quantity, afterQuantity: quantity };
       return { item: clone(database.inventory[id]), movement: clone(database.inventoryMovements[movement.id]) };
     },
     async saveImportBatch(batch) { database.importBatches[batch.id] = clone(batch); return clone(batch); },
@@ -208,9 +218,9 @@ function createOperationsService(options) {
 
   // Tagihan pembelian kelas daring (server/course-shop-service.js). Tidak lewat route dan
   // tidak memeriksa peran: pemanggilnya sudah memastikan pembeli dan harga kelasnya.
-  async function issueCourseInvoice(studentId, description, amount) {
+  async function issueCourseInvoice(studentId, description, amount, transaction) {
     if (!Number.isInteger(amount) || amount <= 0 || amount > MAX_INVOICE_AMOUNT) throw new Error('Harga kelas tidak valid.');
-    return terbitkanInvoice(studentId, clean(description), amount);
+    return terbitkanInvoice(studentId, clean(description), amount, transaction);
   }
 
   // Pilihan santri untuk formulir tagihan satuan dan visa. Keuangan tidak punya izin
@@ -288,11 +298,12 @@ function createOperationsService(options) {
   }
 
   // Nomor dan penyimpanan satu tagihan, sama untuk tagihan satuan dan massal.
-  async function terbitkanInvoice(studentId, description, amount) {
+  async function terbitkanInvoice(studentId, description, amount, transaction) {
+    const invoiceStore = transaction ? require('./postgres-operations-store.js').createPostgresOperationsStore({ database: transaction }) : store;
     const issuedAt = now();
     const year = yearInJakarta(issuedAt);
-    const sequence = await store.nextSequence('invoice', year);
-    return store.saveInvoice({
+    const sequence = await invoiceStore.nextSequence('invoice', year);
+    return invoiceStore.saveInvoice({
       id: crypto.randomUUID(),
       number: documentNumber('INV', sequence, year),
       studentId,
@@ -395,7 +406,7 @@ function createOperationsService(options) {
     if (!rincian.ok) return rincian;
     // changed: false bila sudah lunas sebelumnya, supaya pemanggil tidak memicu notifikasi
     // pembayaran kedua untuk peristiwa yang sama (Task R8.3).
-    if (invoice.status === 'paid') return { ok: true, value: invoice, changed: false };
+    if (invoice.status === 'paid') return completePaid(invoice, false, rincian.value, actor);
 
     const paidAt = now();
     const year = yearInJakarta(paidAt);
@@ -410,16 +421,18 @@ function createOperationsService(options) {
     });
     if (!paid) {
       const terkini = await store.getInvoice(invoiceId);
-      return terkini ? { ok: true, value: terkini, changed: false } : { ok: false, error: 'Invoice tidak ditemukan.' };
+      return terkini && terkini.status === 'paid' ? completePaid(terkini, false, rincian.value, actor) : { ok: false, error: 'Invoice tidak dapat ditandai lunas.' };
     }
-    // Rincian disimpan setelah status lunas. Tanpa tabel (migrasi 047) tagihan tetap lunas,
-    // dan pemanggil diberi tahu rinciannya belum tersimpan.
+    return completePaid(paid, true, rincian.value, actor);
+  }
+
+  async function completePaid(paid, changed, detail, actor) {
     let paymentDetailSaved = null;
-    if (rincian.value && typeof store.savePaymentDetail === 'function') {
-      paymentDetailSaved = await store.savePaymentDetail(invoiceId, { ...rincian.value, recordedByAccountId: actor.id || null, recordedAt: paidAt });
+    if (detail && typeof store.savePaymentDetail === 'function') {
+      paymentDetailSaved = await store.savePaymentDetail(paid.id, { ...detail, recordedByAccountId: actor.id || null, recordedAt: now() });
     }
     const [lengkap] = await lengkapiTagihan([paid]);
-    return { ok: true, value: lengkap, changed: true, paymentDetailSaved };
+    return { ok: true, value: lengkap, changed, paymentDetailSaved };
   }
 
   // Pengingat tagihan ke wali: hanya tagihan belum dibayar, paling sering sekali per 24 jam.
@@ -560,9 +573,10 @@ function createOperationsService(options) {
       name,
       location,
       quantity,
+      actorAccountId: actor.id || null,
       updatedAt: now()
     });
-    return { ok: true, value: saved };
+    return saved.error ? { ok: false, error: saved.error } : { ok: true, value: saved };
   }
 
   async function listInventoryMovements(itemId, actor) {
@@ -581,7 +595,7 @@ function createOperationsService(options) {
       return { ok: false, error: 'Mutasi inventaris belum valid.' };
     }
     const delta = direction === 'in' ? quantity : direction === 'out' ? -quantity : Number(source.delta);
-    if (direction === 'correction' && (!Number.isInteger(delta) || delta === 0)) return { ok: false, error: 'Koreksi stok harus memiliki delta.' };
+    if (direction === 'correction' && (!Number.isSafeInteger(delta) || delta === 0 || Math.abs(delta) !== quantity)) return { ok: false, error: 'Koreksi stok harus memiliki delta.' };
     const result = await store.applyInventoryMovement(itemId, { id: crypto.randomUUID(), direction, quantity, delta, reason, actorAccountId: actor.id || null, createdAt: now() });
     if (!result) return { ok: false, error: 'Barang inventaris tidak ditemukan.' };
     if (result.error) return { ok: false, error: result.error };

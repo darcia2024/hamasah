@@ -192,8 +192,8 @@ const POLICIES = Object.freeze({
     visibility: 'private',
     contentTypes: Object.freeze(['application/pdf']),
     maxBytes: 20 * MB,
-    async canUpload({ actor }) {
-      return Boolean(actor) && roleHasPermission(actor.role, 'courses.manage');
+    async canUpload({ actor, entityId, services }) {
+      return Boolean(actor) && services.lmsService.canManageFiles(entityId, actor);
     },
     async canDownload({ actor, entityId, services }) {
       if (!actor) return false;

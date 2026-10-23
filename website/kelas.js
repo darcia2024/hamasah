@@ -186,7 +186,7 @@ function pesanKonfirmasi(order) {
   return `https://wa.me/${NOMOR_ADMIN}?text=${encodeURIComponent(baris.join('\n'))}`;
 }
 
-const LABEL_STATUS = { unpaid: 'Menunggu pembayaran', paid: 'Aktif', voided: 'Dibatalkan' };
+const LABEL_STATUS = { unpaid: 'Menunggu pembayaran', paid: 'Pembayaran diterima', voided: 'Dibatalkan' };
 
 function renderPesanan() {
   const ringkasan = keadaan.ringkasan;
@@ -208,7 +208,9 @@ function renderPesanan() {
     detail.textContent = `${order.invoiceNumber} · ${RUPIAH.format(order.amount)}`;
     const status = document.createElement('span');
     status.className = 'kelas-pesanan__status';
-    status.textContent = LABEL_STATUS[order.status] || order.status;
+    const aksesAktif = ringkasan.enrolledCourseIds.includes(order.courseId);
+    status.textContent = aksesAktif ? 'Aktif' : order.status === 'paid'
+      ? 'Pembayaran diterima, akses sedang disiapkan' : LABEL_STATUS[order.status] || order.status;
     kiri.append(judul, detail, status);
     li.append(kiri);
     if (order.status === 'unpaid') {
@@ -219,7 +221,7 @@ function renderPesanan() {
       wa.rel = 'noopener';
       wa.textContent = 'Konfirmasi lewat WhatsApp';
       li.append(wa);
-    } else if (order.status === 'paid') {
+    } else if (order.status === 'paid' && aksesAktif) {
       const belajar = document.createElement('a');
       belajar.className = 'button button--secondary';
       belajar.href = 'lms';

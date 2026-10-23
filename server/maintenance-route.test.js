@@ -43,6 +43,13 @@ test('perawatan terjadwal hanya berjalan dengan kunci yang benar', async () => {
 
     // 2. Tanpa header sama sekali, dan dengan kunci salah: sama-sama ditolak.
     assert.equal((await panggil(baseUrl, null)).status, 401);
+    const notify = async key => {
+      const response = await fetch(baseUrl + '/api/tasks/notifications', { method: 'POST', headers: key ? { Authorization: 'Bearer ' + key } : {} });
+      return response.status;
+    };
+    assert.equal(await notify(null), 401);
+    assert.equal(await notify('salah'), 401);
+    assert.equal(await notify(process.env.MAINTENANCE_KEY), 200);
     assert.equal((await panggil(baseUrl, 'kunci-salah')).status, 401);
 
     // 3. Baris pembatas laju yang sudah kedaluwarsa benar-benar dibuang.

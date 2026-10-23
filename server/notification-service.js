@@ -104,17 +104,19 @@ function createNotificationService({ store, sender, notificationPayloadKey = '',
     });
   }
 
-  async function queueApplicantRecovery({ email, name, registrationId, accessCode }) {
+  function prepareApplicantRecovery({ email, name, registrationId, accessCode }) {
     if (!notificationPayloadKey) throw new Error('Kunci payload notifikasi belum tersedia.');
     const payload = encryptNotificationPayload({ kind: 'applicant-recovery', name, registrationId, accessCode }, notificationPayloadKey);
-    return store.create({
+    return {
       id: crypto.randomUUID(), notificationType: NOTIFICATION_TYPES.PASSWORD_RESET,
       recipientEmail: email, provider: sender.provider, createdAt: now().toISOString(),
       payloadCiphertext: payload.ciphertext, payloadNonce: payload.nonce, payloadTag: payload.tag
-    });
+    };
   }
 
-  return Object.freeze({ canSend, list: (query) => store.list(query), queueApplicantRecovery, queueEvent, queuePasswordReset, sendApplicantRecovery, sendInvitation, sendPasswordReset, sendVisaReminderDigest });
+  async function queueApplicantRecovery(value) { return store.create(prepareApplicantRecovery(value)); }
+
+  return Object.freeze({ canSend, list: (query) => store.list(query), prepareApplicantRecovery, queueApplicantRecovery, queueEvent, queuePasswordReset, sendApplicantRecovery, sendInvitation, sendPasswordReset, sendVisaReminderDigest });
 }
 
 module.exports = { NOTIFICATION_TYPES, createNotificationService, escapeHtml };

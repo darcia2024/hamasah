@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
       used: 'Kode Akses sudah digunakan.'
     };
     statusMsg.textContent = message || labels[state] || '';
-    statusMsg.className = `form-status ${['invalid', 'expired', 'used'].includes(state) ? 'is-error' : state === 'valid' ? 'is-success' : ''}`;
+    statusMsg.className = `form-status ${['invalid', 'expired', 'used', 'error'].includes(state) ? 'is-error' : state === 'valid' ? 'is-success' : ''}`;
     recoveryCta.hidden = !['invalid', 'expired', 'used'].includes(state);
     if (accessTokenError) {
       accessTokenError.textContent = ['invalid', 'expired', 'used'].includes(state) ? statusMsg.textContent : '';
@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function classifyLookupError(error) {
+    if (![401, 403, 404, 410].includes(error?.status)) return 'error';
     const message = String(error?.message || '').toLowerCase();
     if (message.includes('kedaluwarsa') || message.includes('expired')) return 'expired';
     if (message.includes('sudah digunakan') || message.includes('already used')) return 'used';
@@ -371,9 +372,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || 'Nomor registrasi atau token akses tidak valid.');
+        const error = new Error(data.error || (res.status >= 500 ? 'Layanan belum tersedia. Silakan coba lagi.' : 'Nomor registrasi atau token akses tidak valid.'));
+        error.status = res.status;
+        throw error;
       }
 
       const reg = data.registration;
@@ -426,7 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       resultArea.hidden = true;
       if (heroSection) heroSection.hidden = false;
-      hapusSesi();
+      if ([401, 403, 404, 410].includes(err.status)) hapusSesi();
       setLookupState(classifyLookupError(err), err.message);
     } finally {
       submitBtn.disabled = false;
@@ -449,7 +452,11 @@ document.addEventListener('DOMContentLoaded', () => {
       body: JSON.stringify({ registrationId: id, accessCode })
     }).then(async (response) => {
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || 'Nomor pendaftaran atau kode akses tidak tepat.');
+      if (!response.ok) {
+        const error = new Error(data.error || (response.status >= 500 ? 'Layanan belum tersedia. Silakan coba lagi.' : 'Nomor pendaftaran atau kode akses tidak tepat.'));
+        error.status = response.status;
+        throw error;
+      }
       await fetchRegistration(id, data.accessToken);
     }).catch((error) => {
       setLookupState(classifyLookupError(error), error.message);

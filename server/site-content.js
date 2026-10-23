@@ -657,6 +657,8 @@ const RENDER = Object.freeze({
     const hasil = [wilayah('biaya.pengantar', `\n              ${nb(b.pengantar)}\n            `)];
     for (const kunci of PROGRAM) {
       const p = b.program[kunci];
+      if (kunci !== 'courses') hasil.push(wilayah(`biaya.${kunci}.nominal`, esc(p.harga)));
+      if (kunci === 'mahad') hasil.push(wilayah('biaya.mahad.catatan', esc(p.keterangan)));
       hasil.push(wilayah(`biaya.${kunci}.harga`, `
                 <span class="cost-currency">${esc(p.label)}</span>
                 <strong class="cost-figure">${esc(p.harga)}</strong>
@@ -805,12 +807,19 @@ function renderHalaman(html, konten, sekarang = new Date()) {
       if (hasil.includes(`<!--konten:${id}-->`)) hasil = gantiWilayah(hasil, id, isi);
     }
   }
+  if (konten.tersimpan?.biaya) {
+    hasil = hasil.replace(/(<dd data-biaya-rincian>)[\s\S]*?(<\/dd>)/g, (_, awal, akhir) => awal + 'Konfirmasi rincian terbaru ke admin' + akhir)
+      .replace(/(<li data-biaya-pengembalian>)[\s\S]*?(<\/li>)/g, (_, awal, akhir) => awal + 'Ketentuan pengembalian mengikuti informasi terbaru di <a href="biaya#faq">halaman biaya</a>.' + akhir);
+  }
   // Nomor WhatsApp muncul di banyak tautan dan teks, jadi diganti di seluruh halaman.
   const nomor = konten.nilai.kontak.whatsapp;
   if (nomor !== NOMOR_WA_BAWAAN) {
     hasil = hasil.replaceAll(`wa.me/${NOMOR_WA_BAWAAN}`, `wa.me/${nomor}`)
       .replaceAll(formatWhatsapp(NOMOR_WA_BAWAAN), formatWhatsapp(nomor));
   }
+  hasil = hasil.replace(/https:\/\/wa\.me\/6287758619337(?=[?"'])/g, () => 'https://wa.me/' + nomor);
+  hasil = hasil.replaceAll('0877-5861-9337', esc(formatWhatsapp(nomor)));
+  if (nomor !== NOMOR_WA_BAWAAN) hasil = hasil.replace(/(?:WA Admin [12]|WhatsApp Admin): (?:0812-8848-9997|0877-5861-9337)/g, () => 'WhatsApp Admin: ' + esc(formatWhatsapp(nomor)));
   // Skrip publik (assistant.js, kontak.js, website.js) membaca nomor dari sini.
   if (hasil.includes('</head>') && !hasil.includes('name="hamasah-whatsapp"')) {
     hasil = hasil.replace('</head>', `<meta name="hamasah-whatsapp" content="${nomor}" /></head>`);

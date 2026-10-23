@@ -1,6 +1,14 @@
 function createPostgresApplicantSessionStore({ database } = {}) {
   if (!database) throw new Error('createPostgresApplicantSessionStore membutuhkan database.');
   return {
+    async saveForCredential(session, verifiedCodeHash) {
+      return database.withTransaction(async tx => {
+        const current = await tx.query('SELECT access_code_hash FROM registrations WHERE id=$1 FOR UPDATE', [session.registrationId]);
+        if (!current.rows.length || (verifiedCodeHash && current.rows[0].access_code_hash !== verifiedCodeHash)) return false;
+        await tx.query('INSERT INTO applicant_sessions (token_hash, registration_id, expires_at, created_at) VALUES ($1, $2, $3, $4)', [session.tokenHash, session.registrationId, session.expiresAt, session.createdAt]);
+        return true;
+      });
+    },
     async save(session) {
       await database.query('INSERT INTO applicant_sessions (token_hash, registration_id, expires_at, created_at) VALUES ($1, $2, $3, $4)', [session.tokenHash, session.registrationId, session.expiresAt, session.createdAt]);
     },

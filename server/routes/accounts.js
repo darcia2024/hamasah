@@ -109,7 +109,7 @@ module.exports = [
           metadata: { active: hasil.value.account.active, sesiDicabut: hasil.value.sessionsRevoked }
         });
       }
-      json(response, hasil.ok ? 200 : 422, hasil.ok ? hasil.value : publicError(hasil));
+      json(response, hasil.ok ? 200 : (hasil.status || 422), hasil.ok ? hasil.value : publicError(hasil));
     }
   },
 

@@ -260,6 +260,15 @@ module.exports = [
   },
 
   {
+    method: 'POST',
+    pattern: /^\/api\/operations\/invoices\/reconcile-paid$/,
+    permission: 'finance.manage',
+    async handler({ response, services, auth }) {
+      const result = await services.courseShop.reconcilePaidInvoices(await auth.actor());
+      json(response, result.ok ? 200 : result.status || 422, result.ok ? result.value : publicError(result));
+    }
+  },
+  {
     method: 'PATCH',
     pattern: /^\/api\/operations\/invoices\/([\w-]+)\/paid$/,
     permission: 'finance.manage',
@@ -271,8 +280,7 @@ module.exports = [
           entityType: 'invoice', entityId: paid.value.id,
           metadata: { number: paid.value.number, receiptNumber: paid.value.receiptNumber, amount: paid.value.amount, metode: paid.value.payment ? paid.value.payment.method : null }
         });
-        if (paid.changed) {
-          await services.eventNotifier.invoicePaid(paid.value);
+        if (paid.value.status === 'paid') {
           // Tagihan pembelian kelas daring: pembelinya langsung terdaftar di maddah itu.
           const kelasDibuka = await services.courseShop.onInvoicePaid(paid.value.id);
           if (kelasDibuka) {
@@ -283,6 +291,7 @@ module.exports = [
           }
         }
       }
+      if (paid.ok && paid.changed) await services.eventNotifier.invoicePaid(paid.value);
       json(response, paid.ok ? 200 : 422, paid.ok ? { invoice: paid.value, paymentDetailSaved: paid.paymentDetailSaved } : publicError(paid));
     }
   },

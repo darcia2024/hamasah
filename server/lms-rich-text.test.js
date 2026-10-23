@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
-const { blocks } = require('./lms-rich-text.js');
+const { blocks } = require('../website/lms-rich-text.js');
 test('reading preserves heading levels, grouped lists, Arabic, and literal unsafe HTML', () => {
   const parsed = blocks('# Tujuan\n\n- Satu\n- Dua\n\n## Pembahasan\n\n### Contoh\n\nالطَّالِبُ حَاضِرٌ\n\n1. Jawab\n2. Jelaskan\n\n<script>alert(1)</script>');
   assert.deepEqual(parsed.filter(b=>b.type==='heading').map(b=>b.level), [1,2,3]);

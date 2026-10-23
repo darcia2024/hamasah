@@ -157,7 +157,9 @@ module.exports = [
         tooManyRequests(response, jatah.retryAfterSeconds, TOO_MANY_REQUESTS);
         return;
       }
-      const issued = await services.identityService.issuePasswordReset(body.email);
+      const issued = services.notificationService.canSend()
+        ? await services.identityService.issuePasswordReset(body.email)
+        : { ok: true, value: null };
       // Email reset diantrekan, tidak dikirim di dalam request: dulu request untuk email
       // terdaftar menunggu penyedia email (ratusan ms) sedangkan email lain langsung dijawab,
       // sehingga keberadaan akun terbaca dari waktu respons. Status kirim tercatat di outbox.

@@ -16,6 +16,7 @@
 //     karena memori proses hilang setiap instance mati.
 
 const path = require('node:path');
+const { waitUntil } = require('@vercel/functions');
 const { createHamasahApp } = require('../server/app.js');
 const { appOptionsFromConfig, readProductionConfig } = require('../server/production-config.js');
 const { createRequestId, errorFields, logEvent } = require('../server/http/request-log.js');
@@ -75,7 +76,11 @@ function buatHandler() {
     // Pekerjaannya dipanggil cron lewat POST /api/tasks/maintenance.
     auditRetention: false
   });
-  return app.requestListener();
+  const listener = app.requestListener();
+  listener.flushNotifications = () => app.notificationService.canSend()
+    ? app.notificationWorker.runOnce({ limit: 20, maxDurationMs: 20000 })
+    : Promise.resolve();
+  return listener;
 }
 
 module.exports = async function handler(request, response) {
@@ -113,6 +118,18 @@ module.exports = async function handler(request, response) {
       restoredPath: new URL(request.url, 'http://localhost').pathname,
       headerNames: Object.keys(request.headers || {}).sort().join(',')
     });
+  }
+  const finished = new Promise((resolve) => {
+    response.once('finish', resolve);
+    response.once('close', resolve);
+  });
+  // Vercel retains this task after the response. Run for every API request,
+  // not only matching accounts, so reset responses remain non-enumerating.
+  const isApi = new URL(request.url, 'http://localhost').pathname.startsWith('/api/');
+  if (isApi) {
+    waitUntil(finished.then(() => listener.flushNotifications()).catch((error) => {
+      logEvent('error', 'notification_flush_failed', { ...errorFields(error) });
+    }));
   }
   return listener(request, response);
 };

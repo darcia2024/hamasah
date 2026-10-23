@@ -105,7 +105,7 @@ function gambarDaftarAkun(accounts) {
     name.textContent = account.name;
     const state = document.createElement('span');
     state.className = account.active ? 'portal-account__state is-active' : 'portal-account__state';
-    state.textContent = account.active ? 'Aktif' : 'Nonaktif';
+    state.textContent = account.lifecycle === 'pending' ? 'Menunggu undangan' : account.active ? 'Aktif' : 'Diblokir';
     head.append(name, state);
 
     const copy = document.createElement('span');
@@ -114,7 +114,7 @@ function gambarDaftarAkun(accounts) {
     const aksi = document.createElement('div');
     aksi.className = 'portal-account__actions';
     aksi.append(tombol('Ubah', () => ubahAkun(account)));
-    aksi.append(tombol(account.active ? 'Nonaktifkan' : 'Aktifkan', (button) => ubahStatusAktif(account, button)));
+    aksi.append(tombol(account.lifecycle === 'pending' ? 'Blokir' : account.active ? 'Nonaktifkan' : 'Aktifkan', (button) => ubahStatusAktif(account, button)));
     if (!currentAccount || account.id !== currentAccount.id) {
       aksi.append(tombol('Kata sandi sementara', (button) => buatSandiSementara(account, button)));
     }
@@ -129,7 +129,7 @@ async function ubahStatusAktif(account, button) {
   if (account.active && !window.confirm(`Nonaktifkan akun ${account.name}? Sesi di semua perangkatnya ikut berakhir.`)) return;
   button.disabled = true;
   try {
-    const result = await kirimJson(`/api/accounts/${encodeURIComponent(account.id)}/active`, 'PATCH', { active: !account.active });
+    const result = await kirimJson(`/api/accounts/${encodeURIComponent(account.id)}/active`, 'PATCH', { active: account.lifecycle === 'pending' ? false : !account.active });
     setStatus(actionStatus, result.account && result.account.active
       ? `Akun ${account.name} diaktifkan.`
       : `Akun ${account.name} dinonaktifkan. ${result.sessionsRevoked || 0} sesi dicabut.`);
