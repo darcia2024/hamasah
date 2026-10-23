@@ -5605,7 +5605,9 @@ table,
 
 .staff-reg-card {
   display: grid;
-  gap: 8px;
+  grid-template-columns: 44px minmax(0, 1fr) minmax(150px, 200px) 16px;
+  align-items: center;
+  gap: 16px;
   width: 100%;
   padding: 16px 18px;
   font: inherit;
@@ -5615,11 +5617,11 @@ table,
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 16px;
   cursor: pointer;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .staff-reg-card:hover {
-  border-color: var(--md-sys-color-primary);
+  border-color: #E7C766;
   box-shadow: var(--crm-shadow-card-hover);
 }
 
@@ -5628,41 +5630,61 @@ table,
   outline-offset: 2px;
 }
 
+.staff-reg-card__avatar {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  font-size: var(--fs-14);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #5C4300;
+  background: #FFF3CC;
+  border-radius: 50%;
+}
+
+.staff-reg-card.is-perbaikan .staff-reg-card__avatar { color: #8E2A23; background: #FBE9E7; }
+.staff-reg-card.is-siap .staff-reg-card__avatar,
+.staff-reg-card.is-selesai .staff-reg-card__avatar { color: #1F5B3A; background: #E3F1E8; }
+.staff-reg-card.is-batal .staff-reg-card__avatar { color: #5F5C57; background: #EFEDE8; }
+
+.staff-reg-card__main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
 .staff-reg-card__top {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4px 12px;
+  align-items: center;
+  gap: 4px 10px;
 }
 
 .staff-reg-card__name {
   font-size: var(--fs-16);
   font-weight: 600;
+  line-height: 1.3;
 }
 
+/* Pil status: warna lembut, nada mengikuti NADA_STATUS di staff.js. */
 .staff-reg-card__status {
-  font-size: var(--fs-14);
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  font-size: var(--fs-12, 12px);
   font-weight: 600;
-  color: var(--md-sys-color-on-surface-variant);
+  line-height: 1.5;
+  color: #4A4844;
+  background: #F1EFEA;
+  border-radius: 999px;
 }
 
-.staff-reg-card__status.is-baru {
-  color: var(--gold-dark);
-}
-
-.staff-reg-card__status.is-perbaikan {
-  color: var(--md-sys-color-error);
-}
-
+.staff-reg-card__status.is-baru { color: #5C4300; background: #FFF3CC; }
+.staff-reg-card__status.is-perbaikan { color: #8E2A23; background: #FBE9E7; }
 .staff-reg-card__status.is-siap,
-.staff-reg-card__status.is-selesai {
-  color: var(--md-sys-color-tertiary);
-}
-
-.staff-reg-card__status.is-batal {
-  color: var(--md-sys-color-outline);
-}
+.staff-reg-card__status.is-selesai { color: #1F5B3A; background: #E3F1E8; }
+.staff-reg-card__status.is-batal { color: #6B6862; background: #EFEDE8; }
 
 .staff-reg-card__meta {
   font-size: var(--fs-14);
@@ -5670,9 +5692,64 @@ table,
   overflow-wrap: anywhere;
 }
 
+.staff-reg-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.staff-reg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  font-size: var(--fs-12, 12px);
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface-variant);
+  background: #FFFFFF;
+  border: 1px solid #E4E1DA;
+  border-radius: 999px;
+}
+
+.staff-reg-chip.is-late {
+  font-weight: 600;
+  color: #8E2A23;
+  background: #FBE9E7;
+  border-color: #F3C9C3;
+}
+
+.staff-reg-chip.is-late::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: #B4372F;
+  border-radius: 50%;
+}
+
+.staff-reg-card__side {
+  display: grid;
+  gap: 6px;
+}
+
+.staff-reg-card__progress-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: var(--fs-12, 12px);
+  color: var(--md-sys-color-outline);
+}
+
+.staff-reg-card__progress-label strong {
+  font-size: var(--fs-14);
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+}
+
 .staff-reg-card__progress {
   display: block;
-  height: 4px;
+  height: 6px;
   overflow: hidden;
   background: var(--md-sys-color-surface-container);
   border-radius: 999px;
@@ -5686,33 +5763,66 @@ table,
   border-radius: 999px;
 }
 
-.staff-reg-card__foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: var(--fs-13);
+.staff-reg-card.is-siap .staff-reg-card__progress-fill,
+.staff-reg-card.is-selesai .staff-reg-card__progress-fill { background: #3E8A5C; }
+.staff-reg-card.is-batal .staff-reg-card__progress-fill { background: #B5B1AA; }
+
+.staff-reg-card__updated {
+  font-size: var(--fs-12, 12px);
   color: var(--md-sys-color-outline);
 }
 
+/* Panah garis 1,5 px yang diputar, sesuai aturan gaya garis di DESIGN.md. */
 .staff-reg-card__open {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 8px;
-  font-size: var(--fs-14);
-  font-weight: 600;
-  color: var(--md-sys-color-on-surface);
+  justify-self: end;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--md-sys-color-outline);
+  border-bottom: 1.5px solid var(--md-sys-color-outline);
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease, border-color 0.15s ease;
 }
 
-/* Panah garis 1,5 px yang diputar, sesuai aturan gaya garis di DESIGN.md. */
-.staff-reg-card__open::after {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
-  transform: rotate(-45deg);
+.staff-reg-card:hover .staff-reg-card__open {
+  border-color: #856000;
+  transform: translateX(2px) rotate(-45deg);
+}
+
+#registration-list-status:not(.is-error):not(:empty) {
+  padding: 0;
+  font-size: var(--fs-14);
+  text-align: left;
+  color: var(--md-sys-color-on-surface-variant);
+  background: none;
+  border: 0;
+}
+
+@media (max-width: 640px) {
+  .staff-reg-card {
+    grid-template-columns: 40px minmax(0, 1fr) 12px;
+    align-items: start;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .staff-reg-card__avatar { width: 40px; height: 40px; }
+
+  .staff-reg-card__side {
+    grid-column: 2 / 3;
+    grid-row: 2;
+  }
+
+  .staff-reg-card__open {
+    grid-column: 3;
+    grid-row: 1;
+    margin-top: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .staff-reg-card,
+  .staff-reg-card__open { transition: none; }
+  .staff-reg-card:hover .staff-reg-card__open { transform: rotate(-45deg); }
 }
 
 /* Pop up detail. Ditempel ke <body>, di luar .crm-canvas, jadi gaya tombolnya diatur
@@ -5907,11 +6017,6 @@ table,
   .staff-reg-dialog__body {
     max-height: 100dvh;
     padding: 0 16px 24px;
-  }
-
-  .staff-reg-card__foot {
-    flex-direction: column;
-    align-items: flex-start;
   }
 }
 
@@ -7048,15 +7153,6 @@ button.santri-juz__cell:focus-visible {
   font-weight: 600;
 }
 
-.staff-reg-card__age {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  font-size: var(--fs-13);
-  color: var(--md-sys-color-on-surface-variant);
-}
-
-.staff-reg-card__age .is-late,
 .agenda-row.is-overdue .agenda-row__due {
   color: var(--md-sys-color-error);
   font-weight: 600;

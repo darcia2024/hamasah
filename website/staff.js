@@ -276,54 +276,68 @@ function renderRegistrations(items) {
   items.forEach((registration) => registrationList.append(kartuPendaftar(registration)));
 }
 
+function inisialNama(nama) {
+  const kata = String(nama || '').trim().split(/\s+/).filter(Boolean);
+  if (!kata.length) return '?';
+  return (kata[0][0] + (kata.length > 1 ? kata[kata.length - 1][0] : '')).toUpperCase();
+}
+
+// Satu baris per pendaftar: inisial, identitas, tanda yang perlu dilihat, lalu progres
+// di kolom kanan. Seluruh baris adalah tombol yang membuka pop up detail.
 function kartuPendaftar(registration) {
-  const kartu = elemen('button', 'staff-reg-card');
+  const nada = NADA_STATUS[registration.status] || 'proses';
+  const kartu = elemen('button', `staff-reg-card is-${nada}`);
   kartu.type = 'button';
   kartu.setAttribute('aria-haspopup', 'dialog');
 
+  const avatar = elemen('span', 'staff-reg-card__avatar', inisialNama(registration.applicant.applicantName));
+  avatar.setAttribute('aria-hidden', 'true');
+
+  const utama = elemen('span', 'staff-reg-card__main');
   const atas = elemen('span', 'staff-reg-card__top');
   atas.append(
     elemen('span', 'staff-reg-card__name', registration.applicant.applicantName),
-    elemen('span', `staff-reg-card__status is-${NADA_STATUS[registration.status] || 'proses'}`, LABEL_STATUS_PENDAFTAR[registration.status] || registration.statusLabel)
+    elemen('span', `staff-reg-card__status is-${nada}`, LABEL_STATUS_PENDAFTAR[registration.status] || registration.statusLabel)
   );
-
   const info = elemen('span', 'staff-reg-card__meta', [
     registration.registrationId,
     LABEL_PROGRAM[registration.program] || registration.program,
     registration.applicant.city
   ].filter(Boolean).join(' · '));
+  utama.append(atas, info);
 
-  const progres = elemen('span', 'staff-reg-card__progress');
-  progres.setAttribute('aria-hidden', 'true');
-  const isiProgres = elemen('span', 'staff-reg-card__progress-fill');
-  isiProgres.style.width = `${Math.max(0, Math.min(100, registration.progress || 0))}%`;
-  progres.append(isiProgres);
-
-  const tanda = [];
-  if (registration.departure) tanda.push(registration.departure.name);
-  const langkahTerbuka = (registration.nextSteps || []).filter((step) => !step.doneAt).length;
-  if (langkahTerbuka) tanda.push(`${langkahTerbuka} tindak lanjut`);
+  // Tanda: merah untuk yang terlambat, netral untuk informasi.
+  const tanda = elemen('span', 'staff-reg-card__chips');
+  const chip = (teks, telat) => tanda.append(elemen('span', `staff-reg-chip${telat ? ' is-late' : ''}`, teks));
+  const umur = teksUmurPendaftar(registration);
+  if (umur) chip(umur, registration.status === 'submitted' && selisihHari(registration.createdAt) > STALE_HARI);
+  const lewat = langkahLewatTenggat(registration);
+  if (lewat) chip(`${lewat} tindak lanjut lewat tenggat`, true);
   const dokumen = registration.documents || [];
   const ditolak = dokumen.filter((d) => d.reviewStatus === 'rejected').length;
   const menunggu = dokumen.filter((d) => (d.reviewStatus || 'pending') === 'pending').length;
-  if (menunggu) tanda.push(`${menunggu} dokumen menunggu review`);
-  if (ditolak) tanda.push(`${ditolak} dokumen ditolak`);
+  if (ditolak) chip(`${ditolak} dokumen ditolak`, true);
+  if (menunggu) chip(`${menunggu} dokumen menunggu review`);
+  const langkahTerbuka = (registration.nextSteps || []).filter((step) => !step.doneAt).length;
+  if (langkahTerbuka && !lewat) chip(`${langkahTerbuka} tindak lanjut`);
+  if (registration.departure) chip(registration.departure.name);
+  if (tanda.children.length) utama.append(tanda);
 
-  const umur = teksUmurPendaftar(registration);
-  const lewat = langkahLewatTenggat(registration);
-  const usia = elemen('span', 'staff-reg-card__age');
-  if (umur) usia.append(elemen('span', registration.status === 'submitted' && selisihHari(registration.createdAt) > STALE_HARI ? 'is-late' : '', umur));
-  if (lewat) usia.append(elemen('span', 'is-late', `${lewat} tindak lanjut lewat tenggat`));
+  const persen = Math.round(Math.max(0, Math.min(100, registration.progress || 0)));
+  const sisi = elemen('span', 'staff-reg-card__side');
+  const labelProgres = elemen('span', 'staff-reg-card__progress-label');
+  labelProgres.append(elemen('span', '', 'Progres'), elemen('strong', '', `${persen}%`));
+  const progres = elemen('span', 'staff-reg-card__progress');
+  progres.setAttribute('aria-hidden', 'true');
+  const isiProgres = elemen('span', 'staff-reg-card__progress-fill');
+  isiProgres.style.width = `${persen}%`;
+  progres.append(isiProgres);
+  sisi.append(labelProgres, progres, elemen('span', 'staff-reg-card__updated', `Diperbarui ${formatWaktu(registration.updatedAt || registration.createdAt)}`));
 
-  const bawah = elemen('span', 'staff-reg-card__foot');
-  bawah.append(
-    elemen('span', 'staff-reg-card__updated', `Diperbarui ${formatWaktu(registration.updatedAt || registration.createdAt)}${tanda.length ? ` · ${tanda.join(' · ')}` : ''}`),
-    elemen('span', 'staff-reg-card__open', 'Buka detail')
-  );
+  const panah = elemen('span', 'staff-reg-card__open');
+  panah.setAttribute('aria-hidden', 'true');
 
-  kartu.append(atas, info, progres);
-  if (usia.children.length) kartu.append(usia);
-  kartu.append(bawah);
+  kartu.append(avatar, utama, sisi, panah);
   kartu.addEventListener('click', () => bukaDetailPendaftar(registration));
   return kartu;
 }
