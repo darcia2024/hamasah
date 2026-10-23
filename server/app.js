@@ -124,6 +124,7 @@ function createHamasahApp(options) {
   }
   const ownsDatabase = !config.database;
   const appEnvironment = config.appEnvironment || readAppEnvironment(process.env);
+  const manualWhatsapp = config.notificationChannel === 'whatsapp-manual';
   // X-Forwarded-For hanya dipercaya kalau aplikasi memang di belakang proxy platform.
   const trustProxy = config.trustProxy === undefined ? process.env.TRUST_PROXY === 'true' : Boolean(config.trustProxy);
   // Hitungan percobaan disimpan di database begitu database tersedia. Versi memori
@@ -147,6 +148,7 @@ function createHamasahApp(options) {
   });
   const registrationConversionService = config.registrationConversionService || createRegistrationConversionService({
     database,
+    manualWhatsapp, appBaseUrl: config.appBaseUrl || config.email?.appBaseUrl || '',
     notificationPayloadKey: config.notificationPayloadKey || process.env.NOTIFICATION_PAYLOAD_KEY || process.env.IP_HASH_SECRET || 'development-only-key'
   });
   const applicantSessionStore = config.applicantSessionStore || createPostgresApplicantSessionStore({ database });
@@ -180,8 +182,8 @@ function createHamasahApp(options) {
   });
   const notificationStore = config.notificationStore || createPostgresNotificationStore({ database });
   const email = config.email || { driver: ['development', 'test'].includes(appEnvironment) ? 'console' : 'disabled' };
-  const emailSender = config.emailSender || createEmailSender({
-    driver: email.driver,
+  const emailSender = (manualWhatsapp ? null : config.emailSender) || createEmailSender({
+    driver: manualWhatsapp ? 'disabled' : email.driver,
     apiKey: email.resendApiKey,
     from: email.emailFrom,
     logger: config.logger || console
@@ -380,6 +382,7 @@ function createHamasahApp(options) {
   // Di serverless tidak ada worker yang menyala terus, jadi antrean email (undangan,
   // tagihan, email ke wali) ikut dikirim setiap kali rute perawatan dipanggil.
   async function kirimAntreanNotifikasi() {
+    if (manualWhatsapp) return 0;
     try {
       const hasil = await notificationWorker.runOnce({ limit: 20, maxDurationMs: 20000 });
       return hasil.claimed;
@@ -424,6 +427,17 @@ function createHamasahApp(options) {
   });
 
   const services = Object.freeze({
+    manualCommunications: {
+      invoiceDrafts: (invoice) => require('./manual-whatsapp.js').invoiceDrafts(database, invoice, config.appBaseUrl || email.appBaseUrl || ''),
+      async canPrepareInvitation(actor, accountId) {
+        if (actor.role === 'admin') return true;
+        if (actor.role !== 'registration-officer') return false;
+        const { rows } = await database.query(`SELECT a.id FROM accounts a WHERE a.id=$1 AND a.role IN ('student','parent')
+          AND EXISTS (SELECT 1 FROM students s WHERE s.registration_id IS NOT NULL AND
+            (s.student_account_id=a.id OR EXISTS (SELECT 1 FROM student_parent_accounts pa WHERE pa.student_id=s.id AND pa.parent_account_id=a.id)))`, [accountId]);
+        return rows.length > 0;
+      }
+    },
     residenceService,
     maintenanceService,
     studentPhotoService,
@@ -517,7 +531,7 @@ function createHamasahApp(options) {
         url,
         params,
         services,
-        config: { bootstrapKey, rootDirectory, appBaseUrl: email.appBaseUrl || '' },
+        config: { bootstrapKey, rootDirectory, appBaseUrl: config.appBaseUrl || email.appBaseUrl || '', manualWhatsapp },
         ip,
         rateLimit: rateLimiter,
         auth,
@@ -739,6 +753,7 @@ function createHamasahApp(options) {
     ? Boolean(config.inProcessNotificationWorker)
     : (process.env.NOTIFICATION_WORKER_IN_PROCESS ? process.env.NOTIFICATION_WORKER_IN_PROCESS === 'true' : appEnvironment === 'development');
   function startNotificationWorker() {
+    if (manualWhatsapp) return;
     async function kirim() {
       try {
         const hasil = await notificationWorker.runOnce({ limit: 20 });

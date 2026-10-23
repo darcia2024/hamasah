@@ -1,3 +1,9 @@
+# Kanal saat ini: WhatsApp manual
+
+Sejak perubahan komunikasi 23 Oktober 2026, kanal bawaan adalah `whatsapp-manual`.
+Panduan scheduler email di bawah hanya untuk mode email lama; tidak diperlukan untuk
+presentasi atau pengiriman WhatsApp manual. Lihat [KOMUNIKASI_WHATSAPP_MANUAL.md](KOMUNIKASI_WHATSAPP_MANUAL.md).
+
 # Pengiriman email pada Vercel Hobby
 
 Email baru tetap disimpan di outbox terenkripsi. Adaptor Vercel menggunakan `@vercel/functions` waitUntil setelah respons API selesai untuk mengirim antrean tanpa menunda respons reset/pendaftaran. Worker mengklaim satu pesan setiap langkah dan berhenti sebelum budget 20 detik habis; pesan yang belum diklaim tetap siap diproses. Maintenance harian tetap menjadi cadangan.

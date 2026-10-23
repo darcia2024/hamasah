@@ -9,7 +9,7 @@ function normalizeEmail(value) {
   return String(value || '').trim().toLocaleLowerCase('en-US');
 }
 
-function createRegistrationConversionService({ database, notificationPayloadKey = 'development-only-key', now = () => new Date() } = {}) {
+function createRegistrationConversionService({ database, notificationPayloadKey = 'development-only-key', manualWhatsapp = false, appBaseUrl = '', now = () => new Date() } = {}) {
   if (!database) throw new Error('createRegistrationConversionService membutuhkan database.');
 
   async function conversionSummary(tx, studentId, studentAccountId, parentAccountId) {
@@ -147,6 +147,7 @@ function createRegistrationConversionService({ database, notificationPayloadKey 
           [studentId, parentAccountId]
         );
         for (const account of accountsToInvite) {
+          if (manualWhatsapp) continue;
           const encrypted = encryptNotificationPayload(
             { accountId: account.id, email: account.email, invitationToken: account.invitationToken },
             notificationPayloadKey
@@ -158,7 +159,10 @@ function createRegistrationConversionService({ database, notificationPayloadKey 
           );
         }
         const summary = await conversionSummary(tx, studentId, studentAccountId, parentAccountId);
-        return { ok: true, value: { studentId, studentAccountId, parentAccountId, invitationsQueued: accountsToInvite.length, alreadyConverted: false, ...summary } };
+        return { ok: true, value: { studentId, studentAccountId, parentAccountId, invitationsQueued: manualWhatsapp ? 0 : accountsToInvite.length,
+          ...(manualWhatsapp ? { channel: 'whatsapp-manual', whatsapp: accountsToInvite.map(account => require('./manual-whatsapp.js').invitationDraft(
+            { ...account, name: summary.accounts.find(a => a.id === account.id)?.role === 'parent' ? registration.guardian_name || 'Wali santri' : registration.applicant_name },
+            `${appBaseUrl}/aktivasi#token=${encodeURIComponent(account.invitationToken)}`)) } : {}), alreadyConverted: false, ...summary } };
       });
     } catch (error) {
       if (error && error.code === '23505') return { ok: false, error: 'Data konversi bentrok dengan akun atau santri yang sudah ada.' };

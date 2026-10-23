@@ -134,6 +134,7 @@ function attachForgotPasswordForm() {
       const data = await requestJson('/api/auth/password-reset-request', { email: form.elements.email.value });
       form.reset();
       setStatus(status, data.message, 'success');
+      if (data.whatsapp) window.HamasahManualWhatsapp.append(status, data.whatsapp);
     } catch (error) {
       setStatus(status, error.message, 'error');
     } finally {

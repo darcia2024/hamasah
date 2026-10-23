@@ -12,6 +12,20 @@ async function withDeparture(services, registration) {
 }
 
 module.exports = [
+  {
+    method: 'POST', pattern: /^\/api\/registrations\/(HI-REG-\d{4}-\d{5})\/access-code$/,
+    permission: 'registrations.update-status',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const body = await readBody();
+      if (body.confirmedOwner !== true) { json(response, 422, { error: 'Verifikasi identitas pemilik pendaftaran sebelum menerbitkan kode baru.' }); return; }
+      const result = await services.applicantService.recoverForStaff(params[0], await auth.actor());
+      if (!result.ok) { json(response, result.status || 422, publicError(result)); return; }
+      const value = result.value;
+      await services.auditService.record({ action: ACTIONS.PASSWORD_RESET_REQUESTED, actor: await auth.actor(), ip,
+        entityType: 'registration', entityId: params[0], metadata: { channel: 'whatsapp-manual', credentialRotated: true } });
+      json(response, 200, { whatsapp: require('../manual-whatsapp.js').draft(`Assalamu'alaikum ${value.name},\n\nKode Akses baru untuk pendaftaran ${value.registrationId}: ${value.accessCode}\n\nGunakan kode ini di halaman Cek status. Kode lama dan sesi sebelumnya sudah tidak berlaku. Jangan bagikan kode kepada orang lain.\n\nWassalamu'alaikum,\nTim Hamasah International`, { phone: value.phone, recipientName: value.name }) });
+    }
+  },
   // Pendaftaran publik. Token akses dikembalikan sekali saja; yang disimpan hanya hash-nya.
   {
     method: 'POST',
@@ -67,7 +81,7 @@ module.exports = [
   {
     method: 'POST',
     pattern: /^\/api\/applicant\/recovery$/,
-    async handler({ response, services, readBody, rateLimit, ip }) {
+    async handler({ response, services, readBody, rateLimit, ip, config }) {
       const body = await readBody();
       const registrationId = String(body.registrationId || '').trim().toUpperCase();
       const limit = await rateLimit.check('applicant-recovery', `${ip}:${registrationId}`);
@@ -76,7 +90,11 @@ module.exports = [
         return;
       }
 
-      // Selalu balas 202 agar nomor pendaftaran dan email tidak dapat ditebak.
+      // Selalu balas sama agar nomor pendaftaran dan email tidak dapat ditebak.
+      if (config.manualWhatsapp) {
+        json(response, 202, { message: 'Hubungi petugas melalui WhatsApp untuk verifikasi dan pemulihan Kode Akses. Kode lama tetap berlaku sampai petugas memproses pemulihan.', whatsapp: await require('../manual-whatsapp.js').supportDraft(services, 'pemulihan Kode Akses pendaftaran') });
+        return;
+      }
       if (services.notificationService.canSend()) {
         await services.applicantService.recoverAccessCode(registrationId, body.email);
       }

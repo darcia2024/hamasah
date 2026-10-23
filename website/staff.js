@@ -218,7 +218,16 @@ function renderConversionResult(conversion) {
   });
   const next = document.createElement('p');
   next.className = 'conversion-result__next';
-  next.textContent = 'Langkah berikutnya: akun menerima email aktivasi, membuat kata sandi, lalu masuk ke portal sesuai perannya.';
+  next.textContent = conversion.channel === 'whatsapp-manual' ? 'Bagikan undangan melalui WhatsApp pribadi ke pemilik akun. Penerima membuat kata sandi lalu masuk ke portal.' : 'Bagikan tautan aktivasi kepada pemilik akun, lalu penerima membuat kata sandi dan masuk ke portal.';
+  if (conversion.whatsapp && conversion.whatsapp.length) {
+    const share = document.createElement('button'); share.type = 'button'; share.className = 'button button--primary'; share.textContent = 'Buka undangan WhatsApp';
+    share.addEventListener('click', () => window.HamasahManualWhatsapp.show(conversion.whatsapp)); next.append(document.createElement('br'), share);
+  }
+  (conversion.accounts || []).filter(a => !a.active).forEach(account => {
+    const button = document.createElement('button'); button.type = 'button'; button.className = 'button button--secondary'; button.textContent = `Siapkan undangan ${account.role === 'parent' ? 'wali' : 'santri'}`;
+    button.addEventListener('click', async () => { try { const result = await kirimPerubahan(`/api/accounts/${encodeURIComponent(account.id)}/invitation`, 'POST'); if (result.whatsapp) await window.HamasahManualWhatsapp.show(result.whatsapp); } catch(error) { conversionResult.append(document.createTextNode(error.message)); } });
+    next.append(button);
+  });
   conversionResult.append(title, copy, list, next);
 }
 
@@ -433,12 +442,20 @@ function bagianRingkasan(registration) {
   const daftar = elemen('dl', 'staff-reg-facts');
   const fakta = (judul, nilai) => daftar.append(elemen('dt', '', judul), elemen('dd', '', nilai || 'Belum diisi'));
   fakta('WhatsApp calon', registration.applicant.phone);
+  const recover = elemen('button', 'button button--secondary', 'Siapkan Kode Akses baru lewat WhatsApp'); recover.type = 'button';
+  recover.addEventListener('click', async () => {
+    if (!window.confirm('Identitas pemilik pendaftaran sudah diverifikasi? Kode lama dan semua sesi pendaftar akan dicabut. Bagikan kode baru hanya kepada pemilik melalui nomor WhatsApp yang tercatat.')) return;
+    recover.disabled = true;
+    try { const result = await kirimPerubahan(`/api/registrations/${encodeURIComponent(registration.registrationId)}/access-code`, 'POST', { confirmedOwner: true }); await window.HamasahManualWhatsapp.show(result.whatsapp); }
+    catch (error) { statusDialogPendaftar.textContent = error.message; }
+    finally { recover.disabled = false; }
+  });
   fakta('Wali', [registration.applicant.guardianName, registration.applicant.guardianPhone].filter(Boolean).join(' · '));
   fakta('Pendidikan', registration.applicant.educationLevel);
   fakta('Domisili', registration.applicant.city);
   fakta('Progres', `${registration.progress}%`);
   fakta('Mendaftar', formatWaktu(registration.createdAt));
-  return bagian('Data pendaftar', daftar);
+  return bagian('Data pendaftar', daftar, recover);
 }
 
 function bagianStatus(registration) {
@@ -624,7 +641,7 @@ function bagianKonversi(registration) {
       renderConversionResult(conversion);
       return conversion.alreadyConverted
         ? `Pendaftaran sudah terhubung ke santri (${conversion.studentId}).`
-        : `Santri berhasil dibuat (${conversion.studentId}). ${conversion.invitationsQueued} undangan masuk antrean.`;
+        : `Santri berhasil dibuat (${conversion.studentId}). ${conversion.channel === 'whatsapp-manual' ? 'Undangan WhatsApp siap dibagikan.' : `${conversion.invitationsQueued} undangan masuk antrean.`}`;
     });
   });
   return bagian('Jadikan santri', elemen('p', 'staff-reg-empty', 'Membuat data santri dan undangan akun wali dari pendaftaran ini.'), convert);
@@ -900,9 +917,9 @@ async function loadNotifications() {
     notificationList.replaceChildren();
     const catatan = document.createElement('p');
     catatan.className = 'monitoring-hint';
-    catatan.textContent = 'Pengiriman email belum dikonfigurasi. Sistem tidak mengirim pemberitahuan otomatis, jadi kabar ke pendaftar dan wali dilakukan manual oleh tim.';
+    catatan.textContent = result.channel === 'whatsapp-manual' ? 'Komunikasi memakai WhatsApp manual. Gunakan tombol WhatsApp di detail pendaftaran atau undangan akun. Pilih penerima dan tekan Kirim sendiri; sistem tidak menganggap pesan sudah terkirim.' : 'Pengiriman otomatis tidak aktif. Kabari pendaftar dan wali melalui tombol WhatsApp di detail pendaftaran.';
     notificationList.append(catatan);
-    notificationListStatus.textContent = 'Email nonaktif.';
+    notificationListStatus.textContent = 'Pengiriman WhatsApp dilakukan oleh petugas.';
     return;
   }
 
@@ -925,7 +942,8 @@ async function loadNotifications() {
           const resendResponse = await fetch(`/api/accounts/${encodeURIComponent(item.accountId)}/invitation`, { method: 'POST', headers: authHeaders() });
           const resendResult = await resendResponse.json();
           if (!resendResponse.ok) throw new Error(resendResult.error || 'Undangan belum dapat dikirim ulang.');
-          notificationListStatus.textContent = 'Undangan baru masuk antrean pengiriman.';
+          notificationListStatus.textContent = resendResult.whatsapp ? 'Undangan WhatsApp siap, belum dikirim.' : 'Undangan baru masuk antrean pengiriman.';
+          if (resendResult.whatsapp) await window.HamasahManualWhatsapp.show(resendResult.whatsapp);
           notificationListStatus.className = 'form-status is-success';
           await loadNotifications();
         } catch (error) {

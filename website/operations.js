@@ -353,7 +353,12 @@ function visaReminderRow(item) {
     tanda.textContent = hari === 0 ? 'Kedaluwarsa hari ini' : `${hari} hari lagi`;
   }
 
-  baris.append(utama, tanda);
+  const wa = document.createElement('button'); wa.type = 'button'; wa.className = 'button button--secondary op-action'; wa.textContent = 'Siapkan pengingat WhatsApp';
+  wa.addEventListener('click', () => {
+    const message = `Assalamu'alaikum,\n\nPengingat ${VISA_DOCUMENT_LABELS[item.document] || item.document} untuk ${studentLabel(item.studentId, item.studentName)}: masa berlaku sampai ${tanggalIndonesia(item.expiresAt)}. Mohon koordinasikan pengecekan berkas dan proses perpanjangan dengan tim Hamasah. Rincian terbaru tersedia di ${location.origin}/portal.\n\nWassalamu'alaikum,\nTim Hamasah International`;
+    window.HamasahManualWhatsapp.show({ recipientName: 'Pemilik dokumen atau wali yang bersangkutan', requiresContactSelection: true, message, url: `https://wa.me/?text=${encodeURIComponent(message)}` });
+  });
+  baris.append(utama, tanda, wa);
   return baris;
 }
 
@@ -660,16 +665,16 @@ async function tandaiLunas(invoice) {
 }
 
 async function kirimPengingat(invoice, tombol) {
-  if (!window.confirm(`Kirim email pengingat tagihan ${invoice.number} ke wali ${studentLabel(invoice.studentId, invoice.studentName)}?`)) return;
   tombol.disabled = true;
   try {
     const hasil = await jsonRequest(`/api/operations/invoices/${encodeURIComponent(invoice.id)}/pengingat`, { method: 'POST', headers: headers() });
-    feedback('#invoice-list-status', `Pengingat ${invoice.number} dikirim ke ${hasil.recipients} wali.`);
+    feedback('#invoice-list-status', hasil.whatsapp ? 'Pesan siap. Pilih penerima dan tekan Kirim di WhatsApp.' : `Pengingat ${invoice.number} dikirim ke ${hasil.recipients} wali.`);
+    if (hasil.whatsapp) await window.HamasahManualWhatsapp.show(hasil.whatsapp);
     await loadInvoices();
   } catch (error) {
     tombol.disabled = false;
     feedback('#invoice-list-status', error.message, true);
-  }
+  } finally { tombol.disabled = false; }
 }
 
 function tanggalPendek(iso) {
@@ -745,7 +750,7 @@ function invoiceRow(invoice) {
     const ingat = document.createElement('button');
     ingat.type = 'button';
     ingat.className = 'button button--secondary op-action';
-    ingat.textContent = 'Kirim pengingat';
+    ingat.textContent = 'Kabari wali lewat WhatsApp';
     ingat.addEventListener('click', () => kirimPengingat(invoice, ingat));
     aksi.append(bayar, ingat);
   }
@@ -753,6 +758,8 @@ function invoiceRow(invoice) {
   // Kuitansi hanya ada untuk invoice lunas. Endpoint menolak selain itu dengan 404,
   // jadi tombolnya tidak ditampilkan daripada menjanjikan sesuatu yang pasti gagal.
   if (invoice.status === 'paid') {
+    const wa = document.createElement('button'); wa.type = 'button'; wa.className = 'button button--secondary op-action'; wa.textContent = 'Kabari pelunasan lewat WhatsApp';
+    wa.addEventListener('click', () => kirimPengingat(invoice, wa)); aksi.append(wa);
     const kuitansi = document.createElement('button');
     kuitansi.type = 'button';
     kuitansi.className = 'button button--secondary op-action';
@@ -1231,7 +1238,7 @@ document.querySelector('#invoice-form').addEventListener('submit', async (event)
       })
     });
     event.target.reset();
-    feedback('#invoice-status', `Invoice ${result.invoice.number} berhasil dibuat.${kirimEmail ? ' Email tagihan dikirim ke wali yang terhubung (bila email aktif).' : ''}`);
+    feedback('#invoice-status', `Invoice ${result.invoice.number} berhasil dibuat. Gunakan tombol WhatsApp pada daftar invoice untuk mengabari wali.`);
     await loadOperations();
   } catch (error) {
     feedback('#invoice-status', error.message, true);

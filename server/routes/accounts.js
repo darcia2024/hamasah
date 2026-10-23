@@ -1,5 +1,6 @@
 const { json, publicError } = require('../http/respond.js');
 const { ACTIONS } = require('../audit-service.js');
+const { invitationDraft } = require('../manual-whatsapp.js');
 
 module.exports = [
   {
@@ -7,7 +8,7 @@ module.exports = [
     pattern: /^\/api\/accounts\/invitations$/,
     permission: 'accounts.manage',
     async handler({ response, services, config, readBody, auth, ip }) {
-      if (!services.notificationService.canSend()) {
+      if (!config.manualWhatsapp && !services.notificationService.canSend()) {
         json(response, 503, { error: 'Layanan email belum dikonfigurasi.' });
         return;
       }
@@ -18,6 +19,12 @@ module.exports = [
       }
       const value = invited.value;
       const activationUrl = `${config.appBaseUrl || 'http://localhost:4273'}/aktivasi#token=${encodeURIComponent(value.invitationToken)}`;
+      if (config.manualWhatsapp) {
+        await services.auditService.record({ action: ACTIONS.ACCOUNT_INVITED, actor: await auth.actor(), ip,
+          entityType: 'account', entityId: value.account.id, metadata: { channel: 'whatsapp-manual', delivered: false } });
+        json(response, 201, { account: value.account, whatsapp: invitationDraft(value.account, activationUrl) });
+        return;
+      }
       const sent = await services.notificationService.sendInvitation({ email: value.account.email, name: value.account.name, activationUrl });
       await services.auditService.record({
         action: ACTIONS.ACCOUNT_INVITED, actor: await auth.actor(), ip,
@@ -38,7 +45,10 @@ module.exports = [
     pattern: /^\/api\/accounts\/([\w-]+)\/invitation$/,
     permission: 'accounts.invitation-send',
     async handler({ response, services, config, auth, params, ip }) {
-      if (!services.notificationService.canSend()) {
+      if (config.manualWhatsapp && !(await services.manualCommunications.canPrepareInvitation(await auth.actor(), params[0]))) {
+        json(response, 403, { error: 'Undangan akun ini hanya dapat disiapkan oleh admin.' }); return;
+      }
+      if (!config.manualWhatsapp && !services.notificationService.canSend()) {
         json(response, 503, { error: 'Layanan email belum dikonfigurasi.' });
         return;
       }
@@ -49,6 +59,12 @@ module.exports = [
       }
       const value = renewed.value;
       const activationUrl = `${config.appBaseUrl || 'http://localhost:4273'}/aktivasi#token=${encodeURIComponent(value.invitationToken)}`;
+      if (config.manualWhatsapp) {
+        await services.auditService.record({ action: ACTIONS.ACCOUNT_INVITATION_RENEWED, actor: await auth.actor(), ip,
+          entityType: 'account', entityId: value.account.id, metadata: { channel: 'whatsapp-manual', delivered: false } });
+        json(response, 200, { account: value.account, whatsapp: invitationDraft(value.account, activationUrl) });
+        return;
+      }
       const sent = await services.notificationService.sendInvitation({ email: value.account.email, name: value.account.name, activationUrl });
       await services.auditService.record({
         action: ACTIONS.ACCOUNT_INVITATION_RENEWED, actor: await auth.actor(), ip,
@@ -80,7 +96,7 @@ module.exports = [
     method: 'GET',
     pattern: /^\/api\/notifications$/,
     permission: 'accounts.invitation-send',
-    async handler({ response, services, url }) {
+    async handler({ response, services, url, config }) {
       const daftar = await services.notificationService.list({
         limit: url.searchParams.get('limit'), offset: url.searchParams.get('offset'),
         recipientEmail: url.searchParams.get('email'), status: url.searchParams.get('status')
@@ -88,7 +104,7 @@ module.exports = [
       // Konsol perlu tahu apakah email benar-benar dikirim. Bila pengiriman email
       // tidak dikonfigurasi, pemberitahuan ke pendaftar dilakukan manual oleh tim,
       // dan konsol harus mengatakannya apa adanya.
-      json(response, 200, { ...daftar, emailEnabled: services.notificationService.canSend() });
+      json(response, 200, { ...daftar, channel: config.manualWhatsapp ? 'whatsapp-manual' : 'email', emailEnabled: services.notificationService.canSend() });
     }
   },
 

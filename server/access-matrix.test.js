@@ -340,6 +340,7 @@ async function run() {
       {
         permission: 'registrations.convert', method: 'POST', path: () => `/api/registrations/${registrationId}/convert`
       },
+        { permission: 'registrations.update-status', method: 'POST', path: () => `/api/registrations/${registrationId}/access-code`, body: () => ({ confirmedOwner: false }) },
       { permission: 'departures.manage', method: 'GET', path: '/api/departures' },
       { permission: 'departures.manage', method: 'POST', path: '/api/departures', body: () => ({ name: `Kloter Matriks ${Math.random().toString(36).slice(2, 6)}` }) },
       { permission: 'departures.manage', method: 'PATCH', path: '/api/departures/00000000-0000-4000-8000-000000000000', body: () => ({ status: 'confirmed' }) },

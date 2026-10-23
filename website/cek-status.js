@@ -510,6 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || 'Permintaan belum dapat diproses.');
       recoveryStatus.textContent = data.message || 'Jika data cocok, kode akses baru akan dikirim ke email terdaftar.';
+      if (data.whatsapp) window.HamasahManualWhatsapp.append(recoveryStatus, data.whatsapp);
       recoveryStatus.className = 'form-status is-success';
     } catch (error) {
       recoveryStatus.textContent = error.message;

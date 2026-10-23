@@ -85,6 +85,12 @@ const ATTENDANCE_LABELS = Object.freeze({
   absent: 'Tidak hadir'
 });
 
+document.querySelector('#share-followup-whatsapp').addEventListener('click', () => {
+  const name = studentSelect.selectedOptions[0]?.textContent || 'ananda';
+  const message = `Assalamu'alaikum Bapak/Ibu wali ${name},\n\nTerdapat pembaruan pembinaan ananda di portal Hamasah International. Silakan masuk ke ${location.origin}/portal untuk melihat presensi, hafalan, dan tindak lanjut terbaru.\n\nWassalamu'alaikum,\nMusyrif Hamasah International`;
+  window.HamasahManualWhatsapp.show({ recipientName: 'Wali santri, pilih kontak yang terhubung', message, url: `https://wa.me/?text=${encodeURIComponent(message)}` });
+});
+
 // Kelima koleksi digabung jadi satu daftar berurut waktu, karena yang ingin dilihat
 // musyrif adalah "apa yang terjadi terakhir pada santri ini", bukan lima daftar terpisah.
 const RECORD_TRAIL_KINDS = Object.freeze([
@@ -1014,7 +1020,15 @@ async function muatPengumuman() {
     announcementList.replaceChildren(...(data.items.length ? data.items.map((item) => barisTeladan(
       item.title,
       `${PENERIMA[item.audience]} · ${item.dormitoryName || 'Semua asrama'}${item.expiresOn ? ` · sampai ${item.expiresOn}` : ''} · ${item.body}`,
-      item.canDelete ? tombolKecil('Hapus', (tombol) => hapusPengumuman(item, tombol)) : null
+      (() => {
+        const actions = document.createElement('div'); actions.className = 'mus-actions';
+        actions.append(tombolKecil('Bagikan lewat WhatsApp', () => {
+          const message = `Assalamu'alaikum,\n\n${item.title}\n${item.body}\n\nUntuk: ${PENERIMA[item.audience]}${item.dormitoryName ? ` · ${item.dormitoryName}` : ''}.\nInformasi terbaru tersedia di ${location.origin}/portal.\n\nWassalamu'alaikum,\nTim Hamasah International`;
+          window.HamasahManualWhatsapp.show({ recipientName: PENERIMA[item.audience], requiresContactSelection: true, message, url: `https://wa.me/?text=${encodeURIComponent(message)}` });
+        }));
+        if (item.canDelete) actions.append(tombolKecil('Hapus', tombol => hapusPengumuman(item, tombol)));
+        return actions;
+      })()
     )) : [barisTeladan('Belum ada pengumuman yang berlaku.', '', null)]));
   } catch (error) {
     statusPanel(announcementStatus, error.message || 'Pengumuman belum dapat dimuat.', true);

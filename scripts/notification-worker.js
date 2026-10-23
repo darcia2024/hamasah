@@ -14,6 +14,7 @@ loadEnvironmentFile(path.join(__dirname, '..', '.env'), process.env);
 
 async function main() {
   const config = readProductionConfig(process.env);
+  if (config.notificationChannel === 'whatsapp-manual') { console.log('[notification-worker] Mode WhatsApp manual; email otomatis tidak dijalankan.'); return; }
   if (config.email.driver === 'disabled') {
     throw new Error('EMAIL_DRIVER masih disabled; worker tidak dijalankan.');
   }

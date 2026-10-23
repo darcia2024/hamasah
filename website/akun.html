@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="staff.css?v=10b485d34d" />
     <link rel="stylesheet" href="portal.css?v=1fb9273814" />
     <link rel="stylesheet" href="fields.css?v=9cd65bf0c8" />
-    <link rel="stylesheet" href="konsol-2026.css?v=d709ad324d" />
+    <link rel="stylesheet" href="konsol-2026.css?v=f589c34eb1" />
     <script src="session-hint.js?v=b0562827f3"></script>
     <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
          supaya pindah menu tidak menampilkan kerangka kosong. Lihat portal.css. -->
@@ -121,8 +121,8 @@
             <div class="crm-white-card">
               <div class="crm-white-card-header">
                 <div>
-                  <h3>Undang lewat email</h3>
-                  <p>Cara yang disarankan. Penerima membuat kata sandinya sendiri lewat tautan aktivasi.</p>
+                  <h3>Undang lewat WhatsApp</h3>
+                  <p>Siapkan tautan aktivasi, lalu bagikan ke WhatsApp pribadi pemilik akun. Penerima membuat kata sandinya sendiri.</p>
                 </div>
               </div>
               <form method="post" id="invite-form" class="staff-form accounts-form">
@@ -140,7 +140,7 @@
                     <option value="student">Santri</option>
                     <option value="admin">Super Admin</option>
                   </select>
-                <button class="button button--primary" type="submit">Kirim undangan</button>
+                <button class="button button--primary" type="submit">Siapkan undangan WhatsApp</button>
                 <p id="invite-form-status" class="form-status" role="status" aria-live="polite"></p>
               </form>
             </div>
@@ -149,7 +149,7 @@
               <div class="crm-white-card-header">
                 <div>
                   <h3>Buat akun dengan kata sandi</h3>
-                  <p>Untuk yang belum bisa menerima email. Berikan kata sandinya langsung dan minta segera diganti.</p>
+                  <p>Alternatif bila penerima belum bisa membuka tautan aktivasi. Berikan kata sandi secara pribadi dan minta segera diganti.</p>
                 </div>
               </div>
               <form method="post" id="create-account-form" class="staff-form accounts-form">
@@ -204,8 +204,9 @@
 
     <script src="internal-shell.js?v=e52888fcf0"></script>
     <script src="nav.js?v=26656a0635"></script>
-    <script src="akun.js?v=8f7e94bfca"></script>
+    <script src="akun.js?v=0cbe900f30"></script>
     <div id="konsol-siap" hidden></div>
     <script src="text-punctuation.js?v=75080432b5" defer></script>
-  </body>
+    <script src="manual-whatsapp.js?v=5cfbf5ede2"></script>
+</body>
 </html>

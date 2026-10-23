@@ -381,7 +381,8 @@ function createPostgresRegistrationStore({ database } = {}) {
       });
     },
 
-    async recoverAccessCode(record, accessCodeHash, notification, updatedAt) {
+    async recoverAccessCode(record, accessCodeHash, notification, updatedAt, deliveryMode = 'email') {
+      if (!notification && deliveryMode !== 'manual') throw new Error('Payload pemulihan wajib tersedia.');
       return database.withTransaction(async (tx) => {
         const result = await tx.query(
           `UPDATE registrations SET access_code_hash = $2, access_token_hash = $3,
@@ -391,7 +392,7 @@ function createPostgresRegistrationStore({ database } = {}) {
         );
         if (!result.rows.length) throw new Error('Data pendaftaran berubah. Coba pemulihan kembali.');
         await tx.query('DELETE FROM applicant_sessions WHERE registration_id = $1', [record.id]);
-        await tx.query(
+        if (notification) await tx.query(
           `INSERT INTO notification_outbox
             (id, notification_type, recipient_email, provider, status, attempts, created_at, updated_at, payload_ciphertext, payload_nonce, payload_tag)
            VALUES ($1, $2, $3, $4, 'pending', 0, $5, $5, $6, $7, $8)`,

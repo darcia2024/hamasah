@@ -148,13 +148,17 @@ module.exports = [
   {
     method: 'POST',
     pattern: /^\/api\/auth\/password-reset-request$/,
-    async handler({ response, services, readBody, rateLimit, ip }) {
+    async handler({ response, services, readBody, rateLimit, ip, config }) {
       const body = await readBody();
       const email = String(body.email || '').trim().toLocaleLowerCase('en-US');
       // Dibatasi per email supaya tidak bisa dipakai membanjiri kotak masuk orang lain.
       const jatah = await rateLimit.check('password-reset-request', email);
       if (!jatah.allowed) {
         tooManyRequests(response, jatah.retryAfterSeconds, TOO_MANY_REQUESTS);
+        return;
+      }
+      if (config.manualWhatsapp) {
+        json(response, 202, { message: 'Hubungi admin melalui WhatsApp untuk verifikasi pemilik akun dan bantuan pemulihan. Kata sandi lama tetap berlaku sampai pemulihan diproses.', whatsapp: await require('../manual-whatsapp.js').supportDraft(services, 'pemulihan akun portal') });
         return;
       }
       const issued = services.notificationService.canSend()

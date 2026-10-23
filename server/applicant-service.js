@@ -69,6 +69,15 @@ function createApplicantService({ registrationStore, sessionStore, prepareRecove
     if (!registration || registration.id !== session.registrationId) return { ok: false, error: 'Akses pendaftaran tidak diizinkan.' };
     return { ok: true, value: registration };
   }
+  async function recoverForStaff(registrationId, actor) {
+    if (!actor || !['admin', 'registration-officer'].includes(actor.role)) return { ok: false, status: 403, error: 'Akses petugas diperlukan.' };
+    const registration = await registrationStore.get(registrationId);
+    if (!registration) return { ok: false, status: 404, error: 'Pendaftaran tidak ditemukan.' };
+    const accessCode = createAccessCode();
+    await registrationStore.recoverAccessCode(registration, await hashPassword(accessCode), null, now().toISOString(), 'manual');
+    return { ok: true, value: { registrationId: registration.registrationId, name: registration.applicant.applicantName,
+      phone: registration.applicant.phone, accessCode } };
+  }
   async function logout(token) {
     if (typeof sessionStore.remove === 'function') await sessionStore.remove(hashToken(token || ''));
     return { ok: true };
@@ -77,7 +86,7 @@ function createApplicantService({ registrationStore, sessionStore, prepareRecove
     if (typeof sessionStore.removeExpired !== 'function') return 0;
     return sessionStore.removeExpired(now().toISOString());
   }
-  return Object.freeze({ authenticate, createAccessCode, hashAccessCode: hashPassword, login, logout, purgeExpiredSessions, recoverAccessCode, startSession });
+  return Object.freeze({ authenticate, createAccessCode, hashAccessCode: hashPassword, login, logout, purgeExpiredSessions, recoverAccessCode, recoverForStaff, startSession });
 }
 
 module.exports = { ACCESS_CODE_ALPHABET, SESSION_TTL_MS, createAccessCode, createApplicantService };

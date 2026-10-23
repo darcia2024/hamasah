@@ -118,6 +118,11 @@ function gambarDaftarAkun(accounts) {
     if (!currentAccount || account.id !== currentAccount.id) {
       aksi.append(tombol('Kata sandi sementara', (button) => buatSandiSementara(account, button)));
     }
+    if (account.lifecycle === 'pending') aksi.append(tombol('Siapkan undangan WhatsApp', async () => {
+      try { const result = await kirimJson(`/api/accounts/${encodeURIComponent(account.id)}/invitation`, 'POST');
+        if (result.whatsapp) await window.HamasahManualWhatsapp.show(result.whatsapp);
+      } catch (error) { setStatus(actionStatus, error.message, true); }
+    }));
 
     item.append(head, copy, aksi);
     return item;
@@ -168,15 +173,8 @@ async function buatSandiSementara(account, button) {
   try {
     const hasil = await kirimJson(`/api/accounts/${encodeURIComponent(account.id)}/password-reset`, 'POST');
     setStatus(actionStatus, '');
-    await window.HamasahDialog.pesan({
-      judul: `Kata sandi sementara ${account.name}`,
-      isi: [
-        'Berikan kata sandi ini langsung ke pemilik akun, misalnya lewat WhatsApp pribadi. Kata sandi hanya ditampilkan sekali.',
-        'Setelah masuk, minta pemilik akun menggantinya lewat menu Ganti kata sandi.'
-      ],
-      labelRahasia: `Masuk dengan email ${account.email}`,
-      rahasia: hasil.temporaryPassword
-    });
+    const message = `Assalamu'alaikum ${account.name},\n\nBerikut akses sementara akun Hamasah International:\nEmail: ${account.email}\nKata sandi sementara: ${hasil.temporaryPassword}\n\nSegera ganti kata sandi melalui menu akun setelah masuk. Pesan ini pribadi; jangan dibagikan kepada orang lain.\n\nWassalamu'alaikum,\nAdmin Hamasah International`;
+    await window.HamasahManualWhatsapp.show({ recipientName: account.name, message, url: `https://wa.me/?text=${encodeURIComponent(message)}` });
   } catch (error) {
     setStatus(actionStatus, error.message || 'Kata sandi sementara belum dapat dibuat.', true);
   } finally {
@@ -207,7 +205,7 @@ accountForm.addEventListener('submit', async (event) => {
 // terkirim; itu dibedakan dari galat validasi.
 inviteForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  setStatus(inviteFormStatus, 'Mengirim undangan...');
+  setStatus(inviteFormStatus, 'Menyiapkan undangan...');
   try {
     const result = await kirimJson('/api/accounts/invitations', 'POST', {
       name: document.querySelector('#invite-name').value,
@@ -215,7 +213,9 @@ inviteForm.addEventListener('submit', async (event) => {
       role: document.querySelector('#invite-role').value
     });
     inviteForm.reset();
-    setStatus(inviteFormStatus, `Undangan terkirim ke ${result.account.email}. Tautan aktivasi berlaku terbatas.`);
+    setStatus(inviteFormStatus, result.whatsapp ? 'Undangan siap dibagikan melalui WhatsApp. Belum dikirim.' : `Undangan terkirim ke ${result.account.email}. Tautan aktivasi berlaku terbatas.`);
+    if (result.whatsapp) await window.HamasahManualWhatsapp.show(result.whatsapp);
+    await loadAccounts();
   } catch (error) {
     if (error.result && error.result.account) {
       inviteForm.reset();

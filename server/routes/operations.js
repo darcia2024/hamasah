@@ -112,8 +112,16 @@ module.exports = [
     method: 'POST',
     pattern: /^\/api\/operations\/invoices\/([\w-]+)\/pengingat$/,
     permission: 'finance.manage',
-    async handler({ response, services, auth, params, ip }) {
+    async handler({ response, services, auth, params, ip, config }) {
       const actor = await auth.actor();
+      if (config.manualWhatsapp) {
+        const invoice = await services.operationsService.getInvoice(params[0], actor);
+        if (!invoice || invoice.status === 'voided') { json(response, 404, { error: 'Tagihan tidak tersedia.' }); return; }
+        const whatsapp = await services.manualCommunications.invoiceDrafts(invoice);
+        if (!whatsapp.length) { json(response, 422, { error: 'Hubungkan akun wali aktif ke santri sebelum menyiapkan pesan.' }); return; }
+        json(response, 200, { channel: 'whatsapp-manual', whatsapp, sent: false });
+        return;
+      }
       const siap = await services.operationsService.prepareReminder(params[0], actor);
       if (!siap.ok) { json(response, siap.status || 422, publicError(siap)); return; }
       if (!services.eventNotifier.tersedia || !services.eventNotifier.tersedia()) {

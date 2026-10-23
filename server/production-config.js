@@ -95,7 +95,9 @@ function readProductionConfig(environment) {
     ? requiredEnvironment(values, 'STORAGE_BUCKET', appEnvironment)
     : optionalEnvironment(values, 'STORAGE_BUCKET');
   const storagePublicBucket = optionalEnvironment(values, 'STORAGE_PUBLIC_BUCKET');
-  const email = readEmailConfig(values, appEnvironment);
+  const notificationChannel = optionalEnvironment(values, 'NOTIFICATION_CHANNEL') || 'whatsapp-manual';
+  if (!['whatsapp-manual', 'email'].includes(notificationChannel)) throw new Error('NOTIFICATION_CHANNEL harus whatsapp-manual atau email.');
+  const email = readEmailConfig(notificationChannel === 'whatsapp-manual' ? { ...values, EMAIL_DRIVER: 'disabled' } : values, appEnvironment);
 
   // Driver penyimpanan berkas. 'local' menyimpan ke disk dan hanya untuk
   // pengembangan: berkasnya ikut hilang setiap kali container diganti.
@@ -137,7 +139,8 @@ function readProductionConfig(environment) {
     storageDriver,
     supabaseUrl,
     supabaseServiceRoleKey,
-    email
+    email,
+    notificationChannel
   });
 }
 
@@ -159,6 +162,7 @@ function appOptionsFromConfig(config) {
     supabaseUrl: config.supabaseUrl,
     supabaseServiceRoleKey: config.supabaseServiceRoleKey,
     email: config.email,
+    notificationChannel: config.notificationChannel,
     appBaseUrl: config.email.appBaseUrl
   };
 }

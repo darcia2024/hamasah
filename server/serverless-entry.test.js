@@ -30,7 +30,7 @@ const ENV_PRODUCTION = Object.freeze({
 test('appOptionsFromConfig mengoper seluruh konfigurasi yang dibutuhkan app', () => {
   const config = readProductionConfig({
     ...ENV_PRODUCTION,
-    EMAIL_DRIVER: 'resend',
+    NOTIFICATION_CHANNEL: 'email', EMAIL_DRIVER: 'resend',
     RESEND_API_KEY: 're_tiruan',
     EMAIL_FROM: 'Hamasah <noreply@hamasah.example>'
   });

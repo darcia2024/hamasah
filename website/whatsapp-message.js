@@ -85,6 +85,14 @@
       }
     }
 
+    const departure = registration.departure;
+    if (departure && registration.status !== 'cancelled') {
+      baris.push('', `Kloter: ${departure.name || 'Belum ditetapkan'}`);
+      if (departure.plannedDate) baris.push(`Rencana berangkat: ${departure.plannedDate}`);
+      if (departure.origin) baris.push(`Berangkat dari: ${departure.origin}`);
+      if (departure.statusLabel) baris.push(`Status kloter: ${departure.statusLabel}`);
+      baris.push('Jadwal dapat berubah. Periksa informasi terbaru di halaman Cek status.');
+    }
     if (statusUrl && registration.status !== 'cancelled') {
       baris.push('', t.cekStatus.replaceAll('{tautan}', statusUrl));
     }

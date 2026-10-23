@@ -46,6 +46,7 @@ async function main() {
   }
   loadEnvironmentFile(path.join(__dirname, '..', '.env'), process.env);
   const config = readProductionConfig(process.env);
+  if (config.notificationChannel === 'whatsapp-manual') { console.log('[visa-reminder-worker] Pengingat tersedia di dashboard; pengiriman WhatsApp dilakukan manual.'); return; }
   const database = createDatabase({ connectionString: config.databaseUrl });
   try {
     const sender = createEmailSender({ driver: config.email.driver, apiKey: config.email.resendApiKey, from: config.email.emailFrom, logger: console });

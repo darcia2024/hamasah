@@ -713,6 +713,13 @@ body.staff-page.in-crm .crm-canvas :is(
 }
 
 /* Grid/flex children may shrink to the viewport, including long names and URLs. */
+.manual-whatsapp-dialog { box-sizing: border-box; width: min(600px, calc(100% - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; }
+.manual-whatsapp-dialog .op-dialog__body { display: grid; gap: 14px; padding: 20px; }
+.manual-whatsapp-dialog :is(h3, p) { margin: 0; }
+.manual-whatsapp-dialog label { display: grid; gap: 8px; }
+.manual-whatsapp-dialog .staff-note-box { display: grid; gap: 12px; margin-block: 16px; }
+.manual-whatsapp-dialog textarea { box-sizing: border-box; width: 100%; max-width: 100%; resize: vertical; font: inherit; line-height: 1.5; }
+.manual-whatsapp-dialog .button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 body.in-crm :is(.crm-shell, .crm-workspace, .crm-canvas, .portal-dashboard,
   .crm-canvas > *, .admin-home > *, .mus-home > *, .lms-app > *) {
   min-width: 0;

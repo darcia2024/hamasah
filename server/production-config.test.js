@@ -22,7 +22,10 @@ const config = readProductionConfig({
 });
 assert.equal(config.storageBucket, 'hamasah-private-documents');
 assert.equal(config.appEnvironment, 'development');
-assert.equal(config.email.driver, 'console');
+assert.equal(config.email.driver, 'disabled');
+assert.equal(config.notificationChannel, 'whatsapp-manual');
+assert.equal(readProductionConfig({ DATABASE_URL, EMAIL_DRIVER: 'resend' }).email.driver, 'disabled', 'Manual WA does not require email credentials.');
+assert.throws(() => readProductionConfig({ DATABASE_URL, NOTIFICATION_CHANNEL: 'unknown' }), /NOTIFICATION_CHANNEL/);
 
 // Di luar production, bucket dan bootstrap key tidak wajib.
 const staging = readProductionConfig({ APP_ENV: 'staging', DATABASE_URL, IP_HASH_SECRET, ...SITE, ...STORAGE });
@@ -41,11 +44,11 @@ assert.equal(production.bootstrapKey, '');
 
 const resend = readProductionConfig({
   APP_ENV: 'production', DATABASE_URL, IP_HASH_SECRET, ...SITE, ...STORAGE, STORAGE_BUCKET: 'bucket',
-  EMAIL_DRIVER: 'resend', RESEND_API_KEY: 're_test_key', EMAIL_FROM: 'Hamasah <noreply@example.test>', APP_BASE_URL: 'https://hamasahinternational.com/'
+  NOTIFICATION_CHANNEL: 'email', EMAIL_DRIVER: 'resend', RESEND_API_KEY: 're_test_key', EMAIL_FROM: 'Hamasah <noreply@example.test>', APP_BASE_URL: 'https://hamasahinternational.com/'
 });
 assert.equal(resend.email.driver, 'resend');
 assert.equal(resend.email.appBaseUrl, 'https://hamasahinternational.com');
-assert.throws(() => readProductionConfig({ APP_ENV: 'production', DATABASE_URL, IP_HASH_SECRET, ...SITE, ...STORAGE, STORAGE_BUCKET: 'bucket', EMAIL_DRIVER: 'console' }), /EMAIL_DRIVER 'console'/);
+assert.throws(() => readProductionConfig({ APP_ENV: 'production', DATABASE_URL, IP_HASH_SECRET, ...SITE, ...STORAGE, STORAGE_BUCKET: 'bucket', NOTIFICATION_CHANNEL: 'email', EMAIL_DRIVER: 'console' }), /EMAIL_DRIVER 'console'/);
 assert.throws(() => readProductionConfig({ APP_ENV: 'production', DATABASE_URL, IP_HASH_SECRET, ...STORAGE, STORAGE_BUCKET: 'bucket', EMAIL_DRIVER: 'resend', RESEND_API_KEY: 'x', EMAIL_FROM: 'a@b.test' }), /APP_BASE_URL/);
 
 // Jika bootstrap key diisi, panjangnya tetap diperiksa.

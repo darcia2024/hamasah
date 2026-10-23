@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="staff.css?v=10b485d34d" />
     <link rel="stylesheet" href="portal.css?v=1fb9273814" />
     <link rel="stylesheet" href="fields.css?v=9cd65bf0c8" />
-    <link rel="stylesheet" href="konsol-2026.css?v=d709ad324d" />
+    <link rel="stylesheet" href="konsol-2026.css?v=f589c34eb1" />
     <script src="session-hint.js?v=b0562827f3"></script>
     <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
          supaya pindah menu tidak menampilkan kerangka kosong. Lihat portal.css. -->
@@ -171,7 +171,7 @@
                 <label for="invoice-amount">Nominal pembayaran (Rp)</label>
                 <input id="invoice-amount" type="number" min="1" placeholder="Contoh: 1500000" required />
               </div>
-              <label class="op-check"><input type="checkbox" id="invoice-email" checked /> Kirim email tagihan ke wali</label>
+              <input type="checkbox" id="invoice-email" hidden /><p>Setelah tagihan tersimpan, gunakan tombol WhatsApp pada daftar invoice untuk mengabari wali.</p>
               <button class="button button--primary staff-form__submit" type="submit">
                 <span>Terbitkan invoice</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
@@ -198,7 +198,7 @@
               </div>
               <button class="button button--secondary staff-form__submit" type="submit">Lihat pratinjau</button>
 
-              <label class="op-check"><input type="checkbox" id="bulk-email" checked /> Kirim email tagihan ke wali</label>
+              <input type="checkbox" id="bulk-email" hidden /><p>Setelah tagihan tersimpan, gunakan tombol WhatsApp pada daftar invoice untuk mengabari wali.</p>
               <div id="bulk-preview" class="bulk-preview" hidden>
                 <p id="bulk-summary" class="bulk-preview__summary"></p>
                 <details id="bulk-targets">
@@ -442,8 +442,9 @@
 
     <script src="internal-shell.js?v=e52888fcf0"></script>
     <script src="nav.js?v=26656a0635"></script>
-    <script src="operations.js?v=f87564eead"></script>
+    <script src="operations.js?v=759cd1e2b2"></script>
     <div id="konsol-siap" hidden></div>
     <script src="text-punctuation.js?v=75080432b5" defer></script>
-  </body>
+    <script src="manual-whatsapp.js?v=5cfbf5ede2"></script>
+</body>
 </html>
