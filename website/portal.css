@@ -8072,3 +8072,102 @@ button.santri-juz__cell:focus-visible {
     font-size: 26px;
   }
 }
+/* Perlu perhatian, dikelompokkan per orang (24 Oktober 2026). Satu blok per santri berisi
+   semua peringatannya, baris ringkas dengan garis pemisah. Tingkat dibaca dari titik:
+   merah segera, emas pekan ini, abu untuk diketahui; hanya "Segera" ditulis sebagai label.
+   Jumlah per tingkat tampil sekali di kepala panel. */
+.attn-head { align-items: center; }
+.attn-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--md-sys-color-on-surface-variant);
+}
+.attn-count { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--md-sys-color-on-surface); }
+.attn-count::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #8F8C86; }
+.attn-count.is-tinggi::before { background: #B4372F; }
+.attn-count.is-sedang::before { background: #C9960A; }
+.attn-updated { color: var(--md-sys-color-outline); }
+
+.attn-list { list-style: none; margin: 4px 0 0; padding: 0; }
+.attn-group {
+  display: grid;
+  gap: 8px;
+  padding: 14px 0;
+  border-top: 1px solid var(--md-sys-color-surface-container, #EEEBE4);
+}
+.attn-group:first-child { border-top: 0; padding-top: 6px; }
+.attn-group__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.attn-group__name { font-size: var(--fs-16); font-weight: 600; line-height: 1.35; color: var(--md-sys-color-on-surface); }
+.attn-action {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 10px 0 14px;
+  border: 1px solid #E4E1DA;
+  border-radius: 999px;
+  background: #FFFFFF;
+  font: inherit;
+  font-size: var(--fs-13);
+  font-weight: 600;
+  line-height: 1;
+  color: #5C4300;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.attn-action svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.15s ease; }
+.attn-action:hover { background: #FFF6D9; border-color: #E7C766; }
+.attn-action:hover svg { transform: translateX(2px); }
+.attn-action:focus-visible { outline: 2px solid #856000; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .attn-action, .attn-action svg { transition: none; } }
+
+.attn-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.attn-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: 2px 20px;
+  align-items: baseline;
+  padding-left: 18px;
+  font-size: var(--fs-14);
+  line-height: 1.45;
+}
+.attn-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #8F8C86;
+}
+.attn-item.is-tinggi::before { background: #B4372F; }
+.attn-item.is-sedang::before { background: #C9960A; }
+.attn-item--full { grid-template-columns: minmax(0, 1fr); }
+.attn-item__issue { font-weight: 500; color: var(--md-sys-color-on-surface); }
+.attn-item__detail { font-size: var(--fs-13); color: var(--md-sys-color-on-surface-variant); }
+.attn-badge {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #FBE9E7;
+  color: #8E2A23;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  vertical-align: 1px;
+}
+
+@media (max-width: 640px) {
+  .attn-item { grid-template-columns: minmax(0, 1fr); }
+  .attn-group__head { flex-wrap: wrap; }
+}

@@ -83,19 +83,41 @@
   // ---------------------------------------------------------------------------
   // Perlu perhatian
 
-  function tautanMonitoring() {
-    const link = el('a', 'admin-link', 'Buka Monitoring');
-    link.href = 'monitoring';
-    return link;
+  // Peringatan dikelompokkan per orang: satu santri = satu blok berisi semua masalahnya,
+  // supaya santri dengan empat peringatan tidak muncul sebagai empat kartu. Peringatan
+  // santri berjudul "Nama: masalah"; asrama dan musyrif menjadi kelompok sendiri-sendiri.
+  // Server sudah mengurutkan dari yang paling mendesak, jadi urutan kelompok mengikuti
+  // peringatan pertamanya. Tingkat dibaca dari titik berwarna (merah segera, emas pekan
+  // ini, abu untuk diketahui); hanya "Segera" yang ditulis sebagai label.
+  function kelompokPerhatian(alerts) {
+    const kelompok = [];
+    const perSantri = new Map();
+    alerts.forEach((alert) => {
+      const pisah = alert.studentId ? alert.title.indexOf(': ') : -1;
+      const nama = pisah > 0 ? alert.title.slice(0, pisah) : alert.title;
+      const masalah = pisah > 0 ? alert.title.slice(pisah + 2) : alert.detail;
+      const butir = { level: alert.level, masalah: masalah.charAt(0).toUpperCase() + masalah.slice(1), detail: pisah > 0 ? alert.detail : '' };
+      if (alert.studentId && perSantri.has(alert.studentId)) { perSantri.get(alert.studentId).butir.push(butir); return; }
+      const baru = { nama, studentId: alert.studentId || null, butir: [butir] };
+      if (alert.studentId) perSantri.set(alert.studentId, baru);
+      kelompok.push(baru);
+    });
+    return kelompok;
   }
 
   function perhatian(data, { onOpenStudent }) {
     const wadah = el('section', 'admin-alerts');
     wadah.id = 'admin-perhatian';
     wadah.tabIndex = -1;
-    const kepala = el('div', 'admin-section-head');
-    kepala.append(el('h3', 'admin-section-title', 'Perlu perhatian'),
-      el('p', 'admin-section-note', `Diperbarui ${WAKTU.format(new Date(data.generatedAt))}`));
+    const kepala = el('div', 'admin-section-head attn-head');
+    const jumlah = (level) => data.alerts.filter((a) => a.level === level).length;
+    const ringkas = el('p', 'attn-summary');
+    ['tinggi', 'sedang', 'info'].forEach((level) => {
+      const n = jumlah(level);
+      if (n) ringkas.append(el('span', `attn-count is-${level}`, `${n} ${LABEL_TINGKAT[level].toLowerCase()}`));
+    });
+    ringkas.append(el('span', 'attn-updated', `Diperbarui ${WAKTU.format(new Date(data.generatedAt))}`));
+    kepala.append(el('h3', 'admin-section-title', 'Perlu perhatian'), ringkas);
     wadah.append(kepala);
 
     if (!data.alerts.length) {
@@ -103,30 +125,59 @@
       return wadah;
     }
 
-    const daftar = el('ul', 'admin-alert-list');
-    data.alerts.forEach((alert, indeks) => {
-      const item = el('li', `admin-alert admin-alert--${alert.level}`);
-      if (indeks >= PERHATIAN_AWAL) item.hidden = true;
-      const isi = el('div', 'admin-alert__body');
-      isi.append(el('p', 'admin-alert__level', LABEL_TINGKAT[alert.level] || alert.level), el('p', 'admin-alert__title', alert.title), el('p', 'admin-alert__detail', alert.detail));
-      item.append(isi);
-      if (alert.studentId) {
-        const buka = el('button', 'admin-link', 'Buka santri');
+    const grup = kelompokPerhatian(data.alerts);
+    const daftar = el('ul', 'attn-list');
+    grup.forEach((g, indeks) => {
+      const li = el('li', `attn-group is-${g.butir[0].level}`);
+      if (indeks >= PERHATIAN_AWAL) li.hidden = true;
+      const atas = el('div', 'attn-group__head');
+      atas.append(el('strong', 'attn-group__name', g.nama));
+      // Tombol berbingkai kecil dengan panah, bukan tautan bergaris bawah: aksinya jelas
+      // terlihat bisa diklik dan sejajar rapi di kanan setiap kelompok.
+      const tombolAksi = (node, teks) => {
+        node.className = 'attn-action';
+        node.append(el('span', '', teks));
+        const panah = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        panah.setAttribute('viewBox', '0 0 16 16');
+        panah.setAttribute('aria-hidden', 'true');
+        const garis = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        garis.setAttribute('d', 'M6 3.5 10.5 8 6 12.5');
+        panah.append(garis);
+        node.append(panah);
+        return node;
+      };
+      if (g.studentId) {
+        const buka = tombolAksi(el('button'), 'Buka santri');
         buka.type = 'button';
-        buka.addEventListener('click', () => onOpenStudent(alert.studentId));
-        item.append(buka);
+        buka.setAttribute('aria-label', `Buka santri ${g.nama}`);
+        buka.addEventListener('click', () => onOpenStudent(g.studentId));
+        atas.append(buka);
       } else {
-        item.append(tautanMonitoring());
+        const link = tombolAksi(el('a'), 'Buka Monitoring');
+        link.href = 'monitoring';
+        atas.append(link);
       }
-      daftar.append(item);
+      const butir = el('ul', 'attn-items');
+      g.butir.forEach((b) => {
+        const baris = el('li', `attn-item is-${b.level}${b.detail ? '' : ' attn-item--full'}`);
+        const teks = el('span', 'attn-item__text');
+        if (b.level === 'tinggi') teks.append(el('span', 'attn-badge', 'Segera'));
+        else teks.append(el('span', 'sr-only', `${LABEL_TINGKAT[b.level]}: `));
+        teks.append(el('span', 'attn-item__issue', b.masalah));
+        baris.append(teks);
+        if (b.detail) baris.append(el('span', 'attn-item__detail', b.detail));
+        butir.append(baris);
+      });
+      li.append(atas, butir);
+      daftar.append(li);
     });
     wadah.append(daftar);
 
-    if (data.alerts.length > PERHATIAN_AWAL) {
-      const semua = el('button', 'button button--secondary admin-more', `Tampilkan semua (${data.alerts.length})`);
+    if (grup.length > PERHATIAN_AWAL) {
+      const semua = el('button', 'button button--secondary admin-more', `Tampilkan semua (${grup.length})`);
       semua.type = 'button';
       semua.addEventListener('click', () => {
-        daftar.querySelectorAll('.admin-alert[hidden]').forEach((item) => { item.hidden = false; });
+        daftar.querySelectorAll('.attn-group[hidden]').forEach((item) => { item.hidden = false; });
         semua.remove();
       });
       wadah.append(semua);
