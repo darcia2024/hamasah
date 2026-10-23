@@ -644,8 +644,8 @@ body.staff-page.in-crm .admin-kpi__value { font-size: clamp(26px, 2.4vw, 32px) !
   body.in-crm .crm-canvas { padding: 20px 16px 64px; }
   body.in-crm .coursue-hero-banner.k26-hero { padding: 28px 22px 24px !important; border-radius: 22px !important; }
   body.in-crm .coursue-hero-banner.k26-hero::after { inset: 0 0 0 30%; opacity: 0.6; }
-  body.in-crm .k26-shortcuts { flex-wrap: nowrap; overflow-x: auto; margin-right: -22px; padding-right: 22px; scrollbar-width: none; }
-  body.in-crm .k26-shortcuts a { flex: none; }
+  body.in-crm .k26-shortcuts { flex-wrap: wrap; margin-right: 0; padding-right: 0; }
+  body.in-crm .k26-shortcuts a { flex: 0 1 auto; min-width: 0; max-width: 100%; white-space: normal; }
 }
 
 /* Judul halaman LMS dan Monitoring mengikuti tipografi judul portal. */
@@ -710,4 +710,49 @@ body.staff-page.in-crm .crm-canvas :is(
 ) {
   font-size: 13px !important;
   line-height: 1.5 !important;
+}
+
+/* Grid/flex children may shrink to the viewport, including long names and URLs. */
+body.in-crm :is(.crm-shell, .crm-workspace, .crm-canvas, .portal-dashboard,
+  .crm-canvas > *, .admin-home > *, .mus-home > *, .lms-app > *) {
+  min-width: 0;
+  max-width: 100%;
+}
+body.in-crm .crm-canvas { box-sizing: border-box; width: 100%; }
+body.in-crm .crm-canvas :is(p, h1, h2, h3, h4, dd, .form-status) {
+  overflow-wrap: anywhere;
+}
+body.in-crm .crm-canvas :is(img, video, iframe, input, select, textarea) {
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* All navigation stays visible; no sideways swipe is required to find a tab. */
+body.staff-page.in-crm :is(.crm-subtabs-row, .mus-tabs, .asr-tabs) {
+  flex-wrap: wrap;
+  overflow-x: visible;
+  min-width: 0;
+  max-width: 100%;
+}
+body.staff-page.in-crm :is(.crm-subtabs-row, .mus-tabs, .asr-tabs) > button {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  height: auto;
+  min-height: 44px;
+}
+@media (max-width: 640px) {
+  body.staff-page.in-crm :is(.crm-subtabs-row, .mus-tabs, .asr-tabs) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  body.staff-page.in-crm :is(.crm-subtabs-row, .mus-tabs, .asr-tabs) > button {
+    width: 100%;
+    justify-content: flex-start;
+    text-align: left;
+    padding: 10px 12px;
+    line-height: 1.4;
+  }
 }
