@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Philosopher:wght@700&display=swap" rel="stylesheet" />
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=2d72a1bd8f" />
-    <link rel="stylesheet" href="staff.css?v=10b485d34d" />
+    <link rel="stylesheet" href="staff.css?v=ec35294f55" />
     <link rel="stylesheet" href="portal.css?v=353ad89919" />
     <link rel="stylesheet" href="fields.css?v=9cd65bf0c8" />
     <link rel="stylesheet" href="konsol-2026.css?v=f589c34eb1" />
@@ -612,9 +612,12 @@
                 </div>
               </div>
               <form id="roll-filter" class="roll-filter" novalidate>
-                <div class="roll-filter__mode" role="radiogroup" aria-label="Jenis presensi">
-                  <label><input type="radio" name="roll-mode" value="sholat" checked /> Sholat</label>
-                  <label><input type="radio" name="roll-mode" value="kegiatan" /> Kegiatan</label>
+                <div class="roll-filter__field">
+                  <span id="roll-mode-label">Jenis presensi</span>
+                  <div class="roll-filter__mode" role="radiogroup" aria-labelledby="roll-mode-label">
+                    <label><input type="radio" name="roll-mode" value="sholat" checked /> Sholat</label>
+                    <label><input type="radio" name="roll-mode" value="kegiatan" /> Kegiatan</label>
+                  </div>
                 </div>
                 <label class="roll-filter__field">Tanggal <input id="roll-date" type="date" /></label>
                 <label class="roll-filter__field" id="roll-dormitory-field">Asrama <select id="roll-dormitory" class="monitoring-select"></select></label>
@@ -635,8 +638,18 @@
               </form>
               <p id="roll-status" class="form-status" role="status" aria-live="polite"></p>
               <form id="roll-form" class="roll-form" novalidate hidden>
+                <div class="roll-head">
+                  <div>
+                    <strong id="roll-title" class="roll-head__title"></strong>
+                    <span class="roll-head__hint">Pilihan awal sudah terisi; ubah hanya santri yang berbeda.</span>
+                  </div>
+                  <div id="roll-counts" class="roll-head__counts"></div>
+                </div>
                 <ul id="roll-list" class="roll-list"></ul>
-                <button class="button button--primary" type="submit" id="roll-save">Simpan presensi</button>
+                <div class="roll-foot">
+                  <span id="roll-foot-note" class="roll-foot__note"></span>
+                  <button class="button button--primary" type="submit" id="roll-save">Simpan presensi</button>
+                </div>
               </form>
             </div>
           </div>
@@ -766,7 +779,7 @@
     <script src="nav.js?v=26656a0635"></script>
     <script src="student-picker.js?v=e59fd6a323"></script>
     <script src="perjalanan-santri.js?v=c6fa27f00b"></script>
-    <script src="monitoring.js?v=3c889391cd"></script>
+    <script src="monitoring.js?v=921ad05ac6"></script>
     <div id="konsol-siap" hidden></div>
     <script src="text-punctuation.js?v=75080432b5" defer></script>
     <script src="manual-whatsapp.js?v=5cfbf5ede2"></script>

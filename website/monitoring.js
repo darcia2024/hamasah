@@ -806,6 +806,11 @@ const rollPrayer = document.querySelector('#roll-prayer');
 const rollCategory = document.querySelector('#roll-category');
 const STATUS_SHOLAT = [['berjamaah', 'Berjamaah'], ['munfarid', 'Munfarid'], ['tidak', 'Tidak'], ['izin', 'Izin']];
 const STATUS_KEGIATAN = [['present', 'Hadir'], ['late', 'Terlambat'], ['excused', 'Izin'], ['absent', 'Alpa']];
+// Warna pilihan yang terpilih: hijau baik, kuning kurang, merah tidak hadir, abu izin.
+const NADA_PRESENSI = Object.freeze({
+  berjamaah: 'baik', present: 'baik', munfarid: 'kurang', late: 'kurang',
+  tidak: 'absen', absent: 'absen', izin: 'izin', excused: 'izin'
+});
 let rollData = null;
 
 function modePresensi() {
@@ -866,15 +871,45 @@ function gambarDaftarPresensi() {
     return;
   }
   const belum = rollData.students.filter((item) => !item.status).length;
-  statusPanel(rollStatus, `${rollData.students.length} santri · ${belum} belum dicatat.`);
+  const terkunciSemua = sholat ? 0 : rollData.students.length - belum;
+  statusPanel(rollStatus, '');
+  const tanggal = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(`${rollData.date}T00:00:00Z`));
+  const judul = sholat ? `Sholat ${rollPrayer.selectedOptions[0]?.textContent || rollData.prayer}` : rollData.category;
+  document.querySelector('#roll-title').textContent = `${judul} · ${tanggal}`;
+  const hitung = (teks, kelas) => {
+    const node = document.createElement('span');
+    node.className = `roll-count${kelas ? ` ${kelas}` : ''}`;
+    node.textContent = teks;
+    return node;
+  };
+  document.querySelector('#roll-counts').replaceChildren(
+    hitung(`${rollData.students.length} santri`),
+    hitung(`${belum} belum dicatat`, belum ? 'is-pending' : ''),
+    hitung(`${rollData.students.length - belum} sudah dicatat`, rollData.students.length - belum ? 'is-done' : '')
+  );
+  const akanDisimpan = rollData.students.length - terkunciSemua;
+  document.querySelector('#roll-foot-note').textContent = akanDisimpan
+    ? `${akanDisimpan} santri akan disimpan sesuai pilihan di atas.`
+    : 'Semua santri sudah tercatat untuk kegiatan ini.';
   rollList.replaceChildren(...rollData.students.map((santri, indeks) => {
     const baris = document.createElement('li');
     baris.className = 'roll-row';
     const terkunci = !sholat && Boolean(santri.status);
     if (terkunci) baris.classList.add('is-locked');
-    const nama = document.createElement('span');
+    const kata = santri.name.trim().split(/\s+/);
+    const avatar = document.createElement('span');
+    avatar.className = 'roll-row__avatar';
+    avatar.setAttribute('aria-hidden', 'true');
+    avatar.textContent = (kata[0][0] + (kata.length > 1 ? kata[kata.length - 1][0] : '')).toUpperCase();
+    const identitas = document.createElement('span');
+    identitas.className = 'roll-row__who';
+    const nama = document.createElement('strong');
     nama.className = 'roll-row__name';
     nama.textContent = santri.name;
+    const keterangan = document.createElement('span');
+    keterangan.className = `roll-row__note ${santri.status ? 'is-done' : 'is-pending'}`;
+    keterangan.textContent = santri.status ? (terkunci ? 'Sudah dicatat' : 'Sudah dicatat, bisa diubah') : 'Belum dicatat';
+    identitas.append(nama, keterangan);
     const grup = document.createElement('fieldset');
     grup.className = 'roll-row__options';
     const legend = document.createElement('legend');
@@ -884,7 +919,7 @@ function gambarDaftarPresensi() {
     const nilai = santri.status || pilihan[0][0];
     pilihan.forEach(([kode, label]) => {
       const opsi = document.createElement('label');
-      opsi.className = 'roll-option';
+      opsi.className = `roll-option is-${NADA_PRESENSI[kode]}`;
       const radio = document.createElement('input');
       radio.type = 'radio';
       radio.name = `roll-${indeks}`;
@@ -895,10 +930,7 @@ function gambarDaftarPresensi() {
       opsi.append(radio, document.createTextNode(label));
       grup.append(opsi);
     });
-    const keterangan = document.createElement('span');
-    keterangan.className = 'roll-row__note';
-    keterangan.textContent = santri.status ? (terkunci ? 'Sudah dicatat' : 'Sudah dicatat, bisa diubah') : 'Belum dicatat';
-    baris.append(nama, grup, keterangan);
+    baris.append(avatar, identitas, grup);
     return baris;
   }));
   rollForm.hidden = false;
