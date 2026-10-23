@@ -717,29 +717,55 @@ async function unduhKuitansi(invoice, tombol) {
   }
 }
 
+// Kartu invoice: santri dan keterangan di kiri, nominal dan status di kanan, nomor dan
+// tanggal di baris kecil, lalu aksi di kaki kartu (aksi utama kiri, koreksi kanan).
 function invoiceRow(invoice) {
+  const telat = invoice.status === 'unpaid' && umurHari(invoice.issuedAt) > TUNGGAKAN_HARI;
   const baris = document.createElement('div');
-  baris.className = 'op-row';
+  baris.className = `op-row invoice-card is-${invoice.status}${telat ? ' is-late' : ''}`;
 
-  const utama = document.createElement('div');
-  utama.className = 'op-row__main';
-  const judul = document.createElement('strong');
-  judul.textContent = `${invoice.number} · Rp${invoice.amount.toLocaleString('id-ID')}`;
+  const atas = document.createElement('div');
+  atas.className = 'invoice-card__top';
+  const siapa = document.createElement('div');
+  siapa.className = 'invoice-card__who';
+  const nama = document.createElement('strong');
+  nama.textContent = studentLabel(invoice.studentId, invoice.studentName);
   const rinci = document.createElement('span');
-  rinci.textContent = `${studentLabel(invoice.studentId, invoice.studentName)} · ${invoice.description}`;
-  const waktu = document.createElement('span');
-  waktu.className = invoice.status === 'unpaid' && umurHari(invoice.issuedAt) > TUNGGAKAN_HARI ? 'op-row__date is-late' : 'op-row__date';
-  waktu.textContent = teksTanggalInvoice(invoice);
-  utama.append(judul, rinci, waktu);
+  rinci.textContent = invoice.description;
+  siapa.append(nama, rinci);
 
+  const nilai = document.createElement('div');
+  nilai.className = 'invoice-card__value';
+  const nominal = document.createElement('strong');
+  nominal.className = 'invoice-card__amount';
+  nominal.textContent = `Rp${invoice.amount.toLocaleString('id-ID')}`;
   const status = document.createElement('span');
   status.className = `op-status op-status--${invoice.status}`;
-  status.textContent = invoice.status === 'paid' && invoice.receiptNumber
-    ? `Lunas · ${invoice.receiptNumber}`
-    : INVOICE_STATUS_LABELS[invoice.status] || invoice.status;
+  status.textContent = INVOICE_STATUS_LABELS[invoice.status] || invoice.status;
+  nilai.append(nominal, status);
+  atas.append(siapa, nilai);
 
+  const meta = document.createElement('p');
+  meta.className = 'invoice-card__meta';
+  const nomor = document.createElement('span');
+  nomor.className = 'invoice-card__number';
+  nomor.textContent = invoice.number;
+  const waktu = document.createElement('span');
+  waktu.className = telat ? 'is-late' : '';
+  waktu.textContent = teksTanggalInvoice(invoice);
+  meta.append(nomor, waktu);
+  if (invoice.status === 'paid' && invoice.receiptNumber) {
+    const kwt = document.createElement('span');
+    kwt.textContent = `Kuitansi ${invoice.receiptNumber}`;
+    meta.append(kwt);
+  }
+
+  const kaki = document.createElement('div');
+  kaki.className = 'invoice-card__foot';
   const aksi = document.createElement('div');
   aksi.className = 'op-row__actions';
+  const aksiLain = document.createElement('div');
+  aksiLain.className = 'invoice-card__more';
 
   if (invoice.status === 'unpaid') {
     const bayar = document.createElement('button');
@@ -772,22 +798,22 @@ function invoiceRow(invoice) {
   if (invoice.status === 'unpaid') {
     const koreksi = document.createElement('button');
     koreksi.type = 'button';
-    koreksi.className = 'button button--secondary op-action';
+    koreksi.className = 'invoice-link';
     koreksi.textContent = 'Koreksi';
     koreksi.addEventListener('click', () => bukaDialogInvoice(invoice, 'koreksi'));
 
     const batal = document.createElement('button');
     batal.type = 'button';
-    batal.className = 'button button--secondary op-action';
+    batal.className = 'invoice-link is-danger';
     batal.textContent = 'Batalkan';
     batal.addEventListener('click', () => bukaDialogInvoice(invoice, 'batal'));
 
-    aksi.append(koreksi, batal);
+    aksiLain.append(koreksi, batal);
   }
 
   const riwayatTombol = document.createElement('button');
   riwayatTombol.type = 'button';
-  riwayatTombol.className = 'button button--secondary op-action';
+  riwayatTombol.className = 'invoice-link';
   const riwayatWadah = document.createElement('div');
   riwayatWadah.className = 'op-history';
 
@@ -804,10 +830,11 @@ function invoiceRow(invoice) {
     else riwayatTerbuka.delete(invoice.id);
     setRiwayat(terbuka);
   });
-  aksi.append(riwayatTombol);
+  aksiLain.append(riwayatTombol);
   setRiwayat(riwayatTerbuka.has(invoice.id));
 
-  baris.append(utama, status, aksi, riwayatWadah);
+  kaki.append(aksi, aksiLain);
+  baris.append(atas, meta, kaki, riwayatWadah);
   return baris;
 }
 

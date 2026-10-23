@@ -8267,3 +8267,234 @@ button.santri-juz__cell:focus-visible {
   .attn-item { grid-template-columns: minmax(0, 1fr); }
   .attn-group__head { flex-wrap: wrap; }
 }
+/* ==========================================================================
+   Daftar invoice di halaman Keuangan (operations.js invoiceRow): kartu dengan garis
+   warna status di kiri, nominal menonjol di kanan, aksi di kaki kartu.
+   ========================================================================== */
+.invoice-filter-row {
+  grid-template-columns: minmax(0, 2.2fr) repeat(3, minmax(0, 1fr));
+}
+
+.invoice-filter-row :is(input, select) {
+  width: 100%;
+  min-width: 0;
+}
+
+.invoice-report-row {
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #FCFBF8;
+  border: 1px solid #E4E1DA;
+  border-radius: 12px;
+}
+
+.invoice-report-row > span:first-child {
+  margin-right: 4px;
+  font-weight: 600 !important;
+  color: var(--md-sys-color-on-surface);
+}
+
+.invoice-report-row > .button {
+  margin-left: auto;
+}
+
+#invoice-list {
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.op-row.invoice-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: stretch;
+  gap: 10px;
+  padding: 16px 20px 0 22px;
+  overflow: hidden;
+  background: #FFFFFF;
+  border: 1px solid #E4E1DA;
+  border-radius: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.op-row.invoice-card:hover {
+  border-color: #D9D3C6;
+  box-shadow: 0 2px 10px rgba(54, 54, 56, 0.06);
+}
+
+/* Garis status di tepi kiri: emas menunggu, merah tunggakan lama, hijau lunas, abu batal. */
+.op-row.invoice-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: #E7C766;
+}
+
+.op-row.invoice-card.is-late::before { background: #B4372F; }
+.op-row.invoice-card.is-paid::before { background: #3E8A5C; }
+.op-row.invoice-card.is-voided::before { background: #C9C5BD; }
+
+.invoice-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 20px;
+}
+
+.invoice-card__who {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.invoice-card__who strong {
+  font-size: var(--fs-16);
+  color: var(--md-sys-color-on-surface);
+}
+
+.invoice-card__who span {
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-on-surface-variant);
+  overflow-wrap: anywhere;
+}
+
+.invoice-card__value {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.invoice-card__amount {
+  font-size: var(--fs-18, 18px);
+  font-variant-numeric: tabular-nums;
+  color: var(--md-sys-color-on-surface);
+  white-space: nowrap;
+}
+
+.op-row.invoice-card.is-voided .invoice-card__amount {
+  color: var(--md-sys-color-outline);
+  text-decoration: line-through;
+}
+
+.invoice-card .op-status--paid {
+  color: #1F5B3A;
+  background: #E3F1E8;
+}
+
+.invoice-card .op-status--unpaid {
+  color: #5C4300;
+  background: #FFF3CC;
+}
+
+.op-row.invoice-card.is-late .op-status--unpaid {
+  color: #8E2A23;
+  background: #FBE9E7;
+}
+
+.invoice-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 0;
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--md-sys-color-outline);
+}
+
+.invoice-card__meta > span + span::before {
+  content: '·';
+  margin: 0 8px;
+  color: #C9C5BD;
+}
+
+.invoice-card__number {
+  font-variant-numeric: tabular-nums;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.invoice-card__meta .is-late {
+  font-weight: 600 !important;
+  color: var(--md-sys-color-error);
+}
+
+.invoice-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin: 4px -20px 0 -22px;
+  padding: 12px 20px 12px 22px;
+  background: #FCFBF8;
+  border-top: 1px solid #EFECE6;
+}
+
+.invoice-card__more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Aksi sekunder (koreksi, batal, riwayat) sebagai tautan ringan agar aksi utama menonjol. */
+.invoice-link {
+  min-height: 36px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: var(--fs-13);
+  color: var(--md-sys-color-on-surface-variant);
+  background: none;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.invoice-link:hover {
+  color: var(--md-sys-color-on-surface);
+  background: #F3F0E9;
+}
+
+.invoice-link.is-danger:hover {
+  color: #8E2A23;
+  background: #FBE9E7;
+}
+
+.invoice-link:focus-visible {
+  outline: 2px solid #856000;
+  outline-offset: 1px;
+}
+
+.invoice-card .op-history[hidden] {
+  display: none;
+}
+
+.invoice-card .op-history {
+  margin: 0 0 16px;
+  padding-top: 12px;
+}
+
+.invoice-card__foot + .op-history {
+  margin-top: -4px;
+}
+
+#check-course-access {
+  margin-top: 20px;
+}
+
+@media (max-width: 900px) {
+  .invoice-filter-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .invoice-filter-row > :first-child { grid-column: 1 / -1; }
+}
+
+@media (max-width: 640px) {
+  .op-row.invoice-card { padding: 14px 14px 0 16px; }
+  .invoice-card__top { flex-direction: column; }
+  .invoice-card__value { grid-auto-flow: column; align-items: center; justify-items: start; }
+  .invoice-card__meta { flex-direction: column; gap: 2px; }
+  .invoice-card__meta > span + span::before { content: none; }
+  .invoice-card__foot { margin: 4px -14px 0 -16px; padding: 12px 14px 12px 16px; }
+  .invoice-card__foot .op-row__actions { width: 100%; }
+  .invoice-report-row > .button { margin-left: 0; }
+}
