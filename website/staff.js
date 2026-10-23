@@ -296,7 +296,7 @@ function kartuPendaftar(registration) {
   const utama = elemen('span', 'staff-reg-card__main');
   const atas = elemen('span', 'staff-reg-card__top');
   atas.append(
-    elemen('span', 'staff-reg-card__name', registration.applicant.applicantName),
+    elemen('strong', 'staff-reg-card__name', registration.applicant.applicantName),
     elemen('span', `staff-reg-card__status is-${nada}`, LABEL_STATUS_PENDAFTAR[registration.status] || registration.statusLabel)
   );
   const info = elemen('span', 'staff-reg-card__meta', [
