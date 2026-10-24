@@ -806,3 +806,10 @@ body.staff-page.in-crm #panel-registrations .crm-toolbar-filters { width: 100%; 
 body.staff-page.in-crm #panel-registrations .crm-toolbar-filters > input[type="search"] { flex: 2 1 240px; }
 body.staff-page.in-crm #panel-registrations .crm-toolbar-filters > select { flex: 1 1 170px; }
 body.staff-page.in-crm #panel-registrations .crm-toolbar-filters > .button { margin-left: auto; }
+
+/* Angka pada tab aktif: teks gelap di atas emas. Aturan lama memberi angka putih (rasio 1,69:1,
+   di bawah batas 4,5:1) karena tab aktif dulu berwarna arang. */
+body.in-crm .crm-pill-btn.is-active .crm-pill-count {
+  color: #262628 !important;
+  border-color: rgba(38, 38, 40, 0.45) !important;
+}
