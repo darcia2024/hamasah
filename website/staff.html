@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="staff.css?v=ec35294f55" />
     <link rel="stylesheet" href="portal.css?v=b149cb6150" />
     <link rel="stylesheet" href="fields.css?v=9cd65bf0c8" />
-    <link rel="stylesheet" href="konsol-2026.css?v=f589c34eb1" />
+    <link rel="stylesheet" href="konsol-2026.css?v=db4cd265e0" />
     <script src="session-hint.js?v=b0562827f3"></script>
     <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
          supaya pindah menu tidak menampilkan kerangka kosong. Lihat portal.css. -->
@@ -146,9 +146,19 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
               <span>Pena Hamasah (terbitkan artikel)</span>
             </button>
-            <button type="button" class="crm-pill-btn" id="tab-btn-notifications"><span>Notifikasi akun</span></button>
-            <button type="button" class="crm-pill-btn" id="tab-btn-import"><span>Import operasional</span></button>
-            <button type="button" class="crm-pill-btn" id="tab-btn-inquiries"><span>Pesan konsultasi</span><span class="crm-pill-count" id="badge-inquiry-count">0</span></button>
+            <button type="button" class="crm-pill-btn" id="tab-btn-notifications">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 16V11a6 6 0 0 0-12 0v5l-2 2h16z"/><path d="M10 21h4"/></svg>
+              <span>Notifikasi akun</span>
+            </button>
+            <button type="button" class="crm-pill-btn" id="tab-btn-import">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Import operasional</span>
+            </button>
+            <button type="button" class="crm-pill-btn" id="tab-btn-inquiries">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span>Pesan konsultasi</span>
+              <span class="crm-pill-count" id="badge-inquiry-count">0</span>
+            </button>
           </div>
 
           <!-- Tab Panel 1: Registrations List -->
@@ -161,9 +171,9 @@
                 <select id="registration-program-filter" class="registration-status-filter" aria-label="Saring program"><option value="">Semua program</option><option value="kuliah-al-azhar">Kuliah S1 Al-Azhar</option><option value="mahad-al-azhar">Ma'had Al-Azhar</option><option value="hamasah-courses">Hamasah Courses</option></select>
                 <select id="registration-departure-filter" class="registration-status-filter" aria-label="Saring kloter"><option value="">Semua kloter</option><option value="none">Belum punya kloter</option></select>
                 <select id="registration-sort" class="registration-status-filter" aria-label="Urutan"><option value="updated">Terbaru diperbarui</option><option value="stale">Terlama belum diproses</option></select>
+                <select id="registration-status-filter" class="registration-status-filter" aria-label="Filter status"><option value="">Semua status</option><option value="submitted">Data dikirim</option><option value="document-review">Pemeriksaan berkas</option><option value="needs-revision">Perlu perbaikan</option><option value="academic-preparation">Persiapan akademik</option><option value="ready-for-departure">Siap keberangkatan</option><option value="completed">Selesai</option><option value="cancelled">Dibatalkan</option></select>
                 <label class="registration-overdue-filter"><input type="checkbox" id="registration-overdue-filter" /> Tindak lanjut lewat tenggat</label>
                 <button type="button" class="button button--primary" id="registration-manual">Tambah pendaftar manual</button>
-                <select id="registration-status-filter" class="registration-status-filter" aria-label="Filter status"><option value="">Semua status</option><option value="submitted">Data dikirim</option><option value="document-review">Pemeriksaan berkas</option><option value="needs-revision">Perlu perbaikan</option><option value="academic-preparation">Persiapan akademik</option><option value="ready-for-departure">Siap keberangkatan</option><option value="completed">Selesai</option><option value="cancelled">Dibatalkan</option></select>
               </div>
             </div>
             <!-- Kloter keberangkatan: dibuat di sini, ditugaskan dari kartu pendaftar. -->

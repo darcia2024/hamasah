@@ -1277,11 +1277,12 @@ async function muatPenugasanMonitoring() {
       [daily ? String(daily.pesanBelumDibaca) : 'Belum tersedia', 'Pesan belum dibaca', 'Komunikasi dengan wali', 'family']
     ];
     values.forEach(([value,label,caption,tab]) => {
-      const button = document.createElement('button'); button.type = 'button'; button.className = 'monitoring-stat';
-      const number = document.createElement('strong'); number.textContent = value;
-      const text = document.createElement('span'); text.className = 'monitoring-stat__label'; text.textContent = label;
-      const detail = document.createElement('span'); detail.textContent = caption;
-      button.append(number,text,detail); button.addEventListener('click', () => { switchTab(document.querySelector(`#tab-btn-${tab}`)); document.querySelector('#monitoring-subtabs').scrollIntoView({behavior:'smooth',block:'start'}); }); stats.append(button);
+      // Komponen kartu angka yang sama dengan Pendaftaran dan Keuangan: label, angka, catatan.
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'admin-kpi monitoring-kpi';
+      const text = document.createElement('p'); text.className = 'admin-kpi__label'; text.textContent = label;
+      const number = document.createElement('p'); number.className = 'admin-kpi__value'; number.textContent = value;
+      const detail = document.createElement('p'); detail.className = 'admin-kpi__note'; detail.textContent = caption;
+      button.append(text,number,detail); button.addEventListener('click', () => { switchTab(document.querySelector(`#tab-btn-${tab}`)); document.querySelector('#monitoring-subtabs').scrollIntoView({behavior:'smooth',block:'start'}); }); stats.append(button);
     });
   } catch {
     title.textContent = 'Penugasan belum dapat dimuat';
