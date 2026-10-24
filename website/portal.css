@@ -8483,6 +8483,156 @@ button.santri-juz__cell:focus-visible {
   margin-top: 20px;
 }
 
+/* Kartu inventaris: satu kartu per aset, tiga kartu per baris. */
+#inventory-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+  align-items: start;
+}
+
+#inventory-list > .form-status,
+#inventory-list > .inventory-summary {
+  grid-column: 1 / -1;
+}
+
+.inventory-summary {
+  margin: 0;
+  font-size: var(--fs-13);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.inventory-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px 18px 0;
+  overflow: hidden;
+  background: #FFFFFF;
+  border: 1px solid #E4E1DA;
+  border-radius: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.inventory-card:hover {
+  border-color: #D9D3C6;
+  box-shadow: 0 2px 10px rgba(54, 54, 56, 0.06);
+}
+
+.inventory-card.is-empty {
+  border-color: #F0CFCB;
+}
+
+.inventory-card__top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.inventory-card__icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: #856000;
+  background: #FFF3CC;
+  border-radius: 12px;
+}
+
+.inventory-card__who {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.inventory-card__who strong {
+  font-size: var(--fs-16);
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+  overflow-wrap: anywhere;
+}
+
+.inventory-card__location {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  font-size: var(--fs-13);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.inventory-card__location > span {
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding-top: 2px;
+  color: var(--md-sys-color-outline);
+}
+
+.inventory-card__stock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 6px;
+  padding-top: 12px;
+  border-top: 1px solid #EFECE6;
+}
+
+.inventory-card__qty {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--md-sys-color-on-surface);
+}
+
+.inventory-card.is-empty .inventory-card__qty {
+  color: #8E2A23;
+}
+
+.inventory-card__unit {
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-outline);
+}
+
+.inventory-card__stock .op-status {
+  margin-left: auto;
+}
+
+.inventory-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin: 0 -18px;
+  padding: 12px 18px;
+  background: #FCFBF8;
+  border-top: 1px solid #EFECE6;
+}
+
+.inventory-card .op-history[hidden] {
+  display: none;
+}
+
+.inventory-card .op-history {
+  margin: -2px 0 16px;
+  padding-top: 12px;
+}
+
+.inventory-card__foot + .op-history {
+  margin-top: -2px;
+}
+
+@media (max-width: 1100px) {
+  #inventory-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  #inventory-list { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* Kartu visa: satu kartu per santri aktif, tiga kartu per baris. */
 #visa-reminder-list {
   display: grid;

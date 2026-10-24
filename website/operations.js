@@ -237,20 +237,51 @@ async function muatRiwayatMutasi(itemId, wadah) {
   }
 }
 
-function inventoryRow(item) {
-  const baris = document.createElement('div');
-  baris.className = 'op-row';
+// Ikon statis (tanpa data pengguna), jadi aman dipasang lewat innerHTML.
+const IKON_ASET = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>';
+const IKON_LOKASI = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>';
 
-  const utama = document.createElement('div');
-  utama.className = 'op-row__main';
+function inventoryRow(item) {
+  const baris = document.createElement('article');
+  baris.className = 'inventory-card';
+  if (item.quantity === 0) baris.classList.add('is-empty');
+
+  const atas = document.createElement('div');
+  atas.className = 'inventory-card__top';
+  const ikon = document.createElement('span');
+  ikon.className = 'inventory-card__icon';
+  ikon.innerHTML = IKON_ASET;
+  const siapa = document.createElement('div');
+  siapa.className = 'inventory-card__who';
   const judul = document.createElement('strong');
-  judul.textContent = `${item.name} \u00b7 ${item.quantity} unit`;
-  const rinci = document.createElement('span');
-  rinci.textContent = item.location;
-  utama.append(judul, rinci);
+  judul.textContent = item.name;
+  const lokasi = document.createElement('span');
+  lokasi.className = 'inventory-card__location';
+  const ikonLokasi = document.createElement('span');
+  ikonLokasi.innerHTML = IKON_LOKASI;
+  lokasi.append(ikonLokasi, document.createTextNode(item.location));
+  siapa.append(judul, lokasi);
+  atas.append(ikon, siapa);
+
+  // Angka stok dibuat menonjol; stok nol dinyatakan lewat kata, bukan hanya warna.
+  const stok = document.createElement('div');
+  stok.className = 'inventory-card__stock';
+  const jumlah = document.createElement('span');
+  jumlah.className = 'inventory-card__qty';
+  jumlah.textContent = item.quantity.toLocaleString('id-ID');
+  const satuan = document.createElement('span');
+  satuan.className = 'inventory-card__unit';
+  satuan.textContent = 'unit';
+  stok.append(jumlah, satuan);
+  if (item.quantity === 0) {
+    const habis = document.createElement('span');
+    habis.className = 'op-status op-status--overdue';
+    habis.textContent = 'Stok habis';
+    stok.append(habis);
+  }
 
   const aksi = document.createElement('div');
-  aksi.className = 'op-row__actions';
+  aksi.className = 'inventory-card__foot';
 
   const catat = document.createElement('button');
   catat.type = 'button';
@@ -260,7 +291,7 @@ function inventoryRow(item) {
 
   const riwayatTombol = document.createElement('button');
   riwayatTombol.type = 'button';
-  riwayatTombol.className = 'button button--secondary op-action';
+  riwayatTombol.className = 'invoice-link';
   const riwayatWadah = document.createElement('div');
   riwayatWadah.className = 'op-history';
 
@@ -281,7 +312,7 @@ function inventoryRow(item) {
   aksi.append(catat, riwayatTombol);
   setRiwayat(mutasiTerbuka.has(item.id));
 
-  baris.append(utama, aksi, riwayatWadah);
+  baris.append(atas, stok, aksi, riwayatWadah);
   return baris;
 }
 
@@ -290,7 +321,11 @@ function renderInventory(items) {
     inventoryList.replaceChildren(kosong('Belum ada aset inventaris. Tambahkan lewat formulir di atas.'));
     return;
   }
-  inventoryList.replaceChildren(...items.map(inventoryRow));
+  const totalUnit = items.reduce((jumlah, item) => jumlah + item.quantity, 0);
+  const ringkasan = document.createElement('p');
+  ringkasan.className = 'inventory-summary';
+  ringkasan.textContent = `${items.length.toLocaleString('id-ID')} aset · ${totalUnit.toLocaleString('id-ID')} unit di semua lokasi`;
+  inventoryList.replaceChildren(ringkasan, ...items.map(inventoryRow));
 }
 
 // ---- Task R3.3: panel visa dan berkas visa ----
