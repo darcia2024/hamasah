@@ -282,8 +282,9 @@ function inisialNama(nama) {
   return (kata[0][0] + (kata.length > 1 ? kata[kata.length - 1][0] : '')).toUpperCase();
 }
 
-// Satu baris per pendaftar: inisial, identitas, tanda yang perlu dilihat, lalu progres
-// di kolom kanan. Seluruh baris adalah tombol yang membuka pop up detail.
+// Satu kartu per pendaftar, tiga per baris: inisial dan nama, nomor pendaftaran, pil status,
+// program dan kota, progres, lalu tanda yang perlu dilihat. Seluruh kartu adalah tombol
+// yang membuka pop up detail.
 function kartuPendaftar(registration) {
   const nada = NADA_STATUS[registration.status] || 'proses';
   const kartu = elemen('button', `staff-reg-card is-${nada}`);
@@ -293,18 +294,19 @@ function kartuPendaftar(registration) {
   const avatar = elemen('span', 'staff-reg-card__avatar', inisialNama(registration.applicant.applicantName));
   avatar.setAttribute('aria-hidden', 'true');
 
-  const utama = elemen('span', 'staff-reg-card__main');
-  const atas = elemen('span', 'staff-reg-card__top');
-  atas.append(
+  const kepala = elemen('span', 'staff-reg-card__head');
+  const identitas = elemen('span', 'staff-reg-card__main');
+  identitas.append(
     elemen('strong', 'staff-reg-card__name', registration.applicant.applicantName),
-    elemen('span', `staff-reg-card__status is-${nada}`, LABEL_STATUS_PENDAFTAR[registration.status] || registration.statusLabel)
+    elemen('span', 'staff-reg-card__id', registration.registrationId)
   );
+  kepala.append(avatar, identitas);
+
+  const status = elemen('span', `staff-reg-card__status is-${nada}`, LABEL_STATUS_PENDAFTAR[registration.status] || registration.statusLabel);
   const info = elemen('span', 'staff-reg-card__meta', [
-    registration.registrationId,
     LABEL_PROGRAM[registration.program] || registration.program,
     registration.applicant.city
   ].filter(Boolean).join(' · '));
-  utama.append(atas, info);
 
   // Tanda: merah untuk yang terlambat, netral untuk informasi.
   const tanda = elemen('span', 'staff-reg-card__chips');
@@ -321,7 +323,6 @@ function kartuPendaftar(registration) {
   const langkahTerbuka = (registration.nextSteps || []).filter((step) => !step.doneAt).length;
   if (langkahTerbuka && !lewat) chip(`${langkahTerbuka} tindak lanjut`);
   if (registration.departure) chip(registration.departure.name);
-  if (tanda.children.length) utama.append(tanda);
 
   const persen = Math.round(Math.max(0, Math.min(100, registration.progress || 0)));
   const sisi = elemen('span', 'staff-reg-card__side');
@@ -332,12 +333,16 @@ function kartuPendaftar(registration) {
   const isiProgres = elemen('span', 'staff-reg-card__progress-fill');
   isiProgres.style.width = `${persen}%`;
   progres.append(isiProgres);
-  sisi.append(labelProgres, progres, elemen('span', 'staff-reg-card__updated', `Diperbarui ${formatWaktu(registration.updatedAt || registration.createdAt)}`));
+  sisi.append(labelProgres, progres);
 
   const panah = elemen('span', 'staff-reg-card__open');
   panah.setAttribute('aria-hidden', 'true');
+  const kaki = elemen('span', 'staff-reg-card__foot');
+  kaki.append(elemen('span', 'staff-reg-card__updated', `Diperbarui ${formatWaktu(registration.updatedAt || registration.createdAt)}`), panah);
 
-  kartu.append(avatar, utama, sisi, panah);
+  kartu.append(kepala, status, info, sisi);
+  if (tanda.children.length) kartu.append(tanda);
+  kartu.append(kaki);
   kartu.addEventListener('click', () => bukaDetailPendaftar(registration));
   return kartu;
 }
