@@ -1176,32 +1176,117 @@ const LABEL_RIWAYAT = {
 const historyMore = document.querySelector('#history-more');
 let riwayatTampil = 0;
 
+// Ikon statis (tanpa data pengguna), jadi aman dipasang lewat innerHTML.
+const ikonRiwayat = (isi) => `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${isi}</svg>`;
+const GAYA_RIWAYAT = {
+  'invoice.created': { tone: 'terbit', ikon: ikonRiwayat('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 12v6M9 15h6"/>') },
+  'invoice.bulk-created': { tone: 'terbit', ikon: ikonRiwayat('<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>') },
+  'invoice.paid': { tone: 'lunas', ikon: ikonRiwayat('<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/>') },
+  'invoice.corrected': { tone: 'koreksi', ikon: ikonRiwayat('<path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z"/>') },
+  'invoice.voided': { tone: 'batal', ikon: ikonRiwayat('<circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/>') },
+  'invoice.receipt-downloaded': { tone: 'netral', ikon: ikonRiwayat('<path d="M12 4v11"/><path d="M7.5 11l4.5 4.5 4.5-4.5"/><path d="M5 20h14"/>') },
+  'invoice.reminder-sent': { tone: 'netral', ikon: ikonRiwayat('<path d="M18 16V11a6 6 0 0 0-12 0v5l-2 2h16z"/><path d="M10 21h4"/>') }
+};
+const GAYA_RIWAYAT_LAIN = { tone: 'netral', ikon: ikonRiwayat('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>') };
+
+const FORMAT_HARI_RIWAYAT = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+const FORMAT_JAM_RIWAYAT = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
+const rupiahRiwayat = (nilai) => `Rp${Number(nilai).toLocaleString('id-ID')}`;
+
+function chipRiwayat(label, nilai) {
+  const chip = document.createElement('span');
+  chip.className = 'ledger-chip';
+  const nama = document.createElement('span');
+  nama.className = 'ledger-chip__label';
+  nama.textContent = label;
+  const isi = document.createElement('span');
+  isi.className = 'ledger-chip__value';
+  isi.textContent = nilai;
+  chip.append(nama, isi);
+  return chip;
+}
+
 function riwayatRow(item) {
-  const baris = document.createElement('div');
-  baris.className = 'op-row';
-  const utama = document.createElement('div');
-  utama.className = 'op-row__main';
-  const judul = document.createElement('strong');
   const m = item.metadata || {};
-  const sasaran = item.action === 'invoice.bulk-created'
-    ? `${m.jumlah} tagihan "${m.keterangan}" (${m.nomorAwal} sampai ${m.nomorAkhir})`
-    : [m.number, m.receiptNumber, m.amount ? `Rp${Number(m.amount).toLocaleString('id-ID')}` : ''].filter(Boolean).join(' · ');
-  judul.textContent = `${item.actorName || 'Sistem'} ${LABEL_RIWAYAT[item.action] || item.action}`;
-  const rinci = document.createElement('span');
-  rinci.textContent = [sasaran, item.action === 'invoice.reminder-sent' && m.penerima ? `${m.penerima} wali` : ''].filter(Boolean).join(' · ');
-  const waktu = document.createElement('span');
-  waktu.className = 'op-row__date';
-  waktu.textContent = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Jakarta' }).format(new Date(item.occurredAt));
-  utama.append(judul, rinci, waktu);
-  baris.append(utama);
+  const gaya = GAYA_RIWAYAT[item.action] || GAYA_RIWAYAT_LAIN;
+  const baris = document.createElement('li');
+  baris.className = 'ledger-entry';
+
+  const ikon = document.createElement('span');
+  ikon.className = 'ledger-entry__icon';
+  ikon.dataset.tone = gaya.tone;
+  ikon.innerHTML = gaya.ikon;
+
+  const utama = document.createElement('div');
+  utama.className = 'ledger-entry__main';
+  const judul = document.createElement('p');
+  judul.className = 'ledger-entry__title';
+  const pelaku = document.createElement('strong');
+  pelaku.textContent = item.actorName || 'Sistem';
+  const aksi = document.createElement('span');
+  aksi.textContent = ` ${LABEL_RIWAYAT[item.action] || item.action}`;
+  judul.append(pelaku, aksi);
+
+  const rujukan = document.createElement('div');
+  rujukan.className = 'ledger-entry__refs';
+  if (item.action === 'invoice.bulk-created') {
+    rujukan.append(chipRiwayat('Tagihan', `${m.jumlah} × ${m.keterangan}`));
+    if (m.nomorAwal) rujukan.append(chipRiwayat('Nomor', `${m.nomorAwal} → ${m.nomorAkhir}`));
+  } else {
+    if (m.number) rujukan.append(chipRiwayat('Invoice', m.number));
+    if (m.receiptNumber) rujukan.append(chipRiwayat('Kuitansi', m.receiptNumber));
+    if (item.action === 'invoice.reminder-sent' && m.penerima) rujukan.append(chipRiwayat('Penerima', `${m.penerima} wali`));
+  }
+  utama.append(judul);
+  if (rujukan.children.length) utama.append(rujukan);
+
+  // Nominal rata kanan seperti buku besar. Hanya yang benar-benar menambah kas diberi tanda +;
+  // yang dibatalkan dicoret.
+  const sisi = document.createElement('div');
+  sisi.className = 'ledger-entry__side';
+  if (m.amount && item.action !== 'invoice.bulk-created') {
+    const nominal = document.createElement('span');
+    nominal.className = `ledger-entry__amount ledger-entry__amount--${gaya.tone}`;
+    nominal.textContent = `${item.action === 'invoice.paid' ? '+' : ''}${rupiahRiwayat(m.amount)}`;
+    sisi.append(nominal);
+  }
+  const waktu = document.createElement('time');
+  waktu.className = 'ledger-entry__time';
+  waktu.dateTime = item.occurredAt;
+  waktu.textContent = `${FORMAT_JAM_RIWAYAT.format(new Date(item.occurredAt)).replace(':', '.')} WIB`;
+  sisi.append(waktu);
+
+  baris.append(ikon, utama, sisi);
   return baris;
+}
+
+// Kejadian dikelompokkan per hari (WIB). Saat "Muat lebih banyak", kelompok hari terakhir
+// diteruskan jika harinya sama, bukan dibuat ulang.
+function tambahRiwayat(items) {
+  items.forEach((item) => {
+    const hari = FORMAT_HARI_RIWAYAT.format(new Date(item.occurredAt));
+    let kelompok = operationsList.lastElementChild;
+    if (!kelompok || kelompok.dataset.hari !== hari) {
+      kelompok = document.createElement('section');
+      kelompok.className = 'ledger-day';
+      kelompok.dataset.hari = hari;
+      const judul = document.createElement('h4');
+      judul.className = 'ledger-day__title';
+      judul.textContent = hari;
+      const daftar = document.createElement('ol');
+      daftar.className = 'ledger-day__list';
+      kelompok.append(judul, daftar);
+      operationsList.append(kelompok);
+    }
+    kelompok.querySelector('.ledger-day__list').append(riwayatRow(item));
+  });
 }
 
 async function loadRiwayat({ append = false } = {}) {
   const offset = append ? riwayatTampil : 0;
   const hasil = await jsonRequest(`/api/operations/riwayat?limit=30&offset=${offset}`, { headers: headers() });
   if (!append) operationsList.replaceChildren();
-  operationsList.append(...hasil.items.map(riwayatRow));
+  tambahRiwayat(hasil.items);
   riwayatTampil = offset + hasil.items.length;
   historyMore.hidden = riwayatTampil >= hasil.total;
   feedback('#history-status', hasil.total ? '' : 'Belum ada kejadian keuangan yang tercatat.');

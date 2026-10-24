@@ -8483,6 +8483,144 @@ button.santri-juz__cell:focus-visible {
   margin-top: 20px;
 }
 
+/* Riwayat keuangan: buku besar per hari. Tiap kejadian punya ikon bertanda warna,
+   nomor rujukan sebagai label, dan nominal rata kanan. */
+#operations-list {
+  gap: 22px;
+  margin-top: 16px;
+}
+
+.ledger-day__title {
+  margin: 0 0 8px;
+  font-size: var(--fs-13);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.ledger-day__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: #FFFFFF;
+  border: 1px solid #E4E1DA;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.ledger-entry {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+}
+
+.ledger-entry + .ledger-entry {
+  border-top: 1px solid #EFECE6;
+}
+
+.ledger-entry__icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: #5B5750;
+  background: #F3F0E9;
+  border-radius: 10px;
+}
+
+.ledger-entry__icon[data-tone="terbit"] { color: #856000; background: #FFF3CC; }
+.ledger-entry__icon[data-tone="lunas"] { color: #1F5B3A; background: #E3F1E8; }
+.ledger-entry__icon[data-tone="koreksi"] { color: #1F4E79; background: #E4EEF8; }
+.ledger-entry__icon[data-tone="batal"] { color: #8E2A23; background: #FBE9E7; }
+
+.ledger-entry__main {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ledger-entry__title {
+  margin: 0;
+  font-size: var(--fs-14);
+  color: var(--md-sys-color-on-surface-variant);
+  overflow-wrap: anywhere;
+}
+
+.ledger-entry__title strong {
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+}
+
+.ledger-entry__refs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ledger-chip {
+  display: inline-flex;
+  align-items: stretch;
+  max-width: 100%;
+  font-size: var(--fs-12);
+  border: 1px solid #E4E1DA;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ledger-chip__label {
+  padding: 2px 8px;
+  color: var(--md-sys-color-outline);
+  background: #FCFBF8;
+  border-right: 1px solid #E4E1DA;
+}
+
+.ledger-chip__value {
+  padding: 2px 8px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  overflow-wrap: anywhere;
+}
+
+.ledger-entry__side {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  text-align: right;
+}
+
+.ledger-entry__amount {
+  font-size: var(--fs-16);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--md-sys-color-on-surface);
+}
+
+.ledger-entry__amount--lunas { color: #1F5B3A; }
+
+.ledger-entry__amount--batal {
+  color: var(--md-sys-color-outline);
+  text-decoration: line-through;
+}
+
+.ledger-entry__time {
+  font-size: var(--fs-12);
+  font-variant-numeric: tabular-nums;
+  color: var(--md-sys-color-outline);
+}
+
+#history-more {
+  margin-top: 16px;
+}
+
+@media (max-width: 640px) {
+  .ledger-entry { grid-template-columns: 36px minmax(0, 1fr); padding: 12px 14px; }
+  .ledger-entry__side { grid-column: 2; justify-items: start; grid-auto-flow: column; gap: 10px; text-align: left; }
+}
+
 /* Kartu inventaris: satu kartu per aset, tiga kartu per baris. */
 #inventory-list {
   display: grid;
