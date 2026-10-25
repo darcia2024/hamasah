@@ -1,3 +1,7 @@
+# Plus Jakarta Sans (rapor PDF)
+
+`PlusJakartaSans-Regular.ttf`, `-Bold.ttf`, and `-Italic.ttf` are the static TrueType instances served by Google Fonts (v12), downloaded 26 October 2026 and not modified. They are embedded in the student report PDF (`server/student-report-pdf.js`). Licensed under the SIL Open Font License 1.1; see `PlusJakartaSans-OFL.txt`.
+
 # Arabic font
 
 `ka-traditional-naskh.woff2` is the unmodified webfont provided by Khalid Muhammad Al-Horr, **KA Traditional Naskh (v 2.0)**.

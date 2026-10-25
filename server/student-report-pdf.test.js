@@ -5,7 +5,7 @@ const path = require('node:path');
 const { createDocumentPdf, pdfLiteral } = require('./pdf.js');
 const { textWidth } = require('./pdf-canvas.js');
 const { decodePng } = require('./pdf-image.js');
-const { buildStudentReport, createStudentReportPdf } = require('./student-report-pdf.js');
+const { buildStudentReport, createStudentReportPdf, fontRapor } = require('./student-report-pdf.js');
 
 // Offset xref harus menunjuk tepat ke awal setiap objek, kalau tidak pembaca PDF menolak.
 function assertValidPdf(buffer) {
@@ -46,12 +46,16 @@ const courses = [{ title: 'Fathul Qorib', progress: 50, totalMaterials: 2, compl
 const text = assertValidPdf(createStudentReportPdf(dashboard, { courses, generatedAt: new Date('2026-09-30T10:00:00Z') }));
 const runs = textRuns(text).map((run) => run.value);
 assert.ok(text.includes(pdfLiteral('Santri (Uji) \\ Contoh')), 'kurung dan backslash di-escape');
-assert.ok(runs.includes('Santri (Uji) \\ Contoh'));
+assert.ok(runs.includes('Rapor Santri (Uji) \\ Contoh'));
+assert.ok(runs.includes('Contoh'), 'nama belakang dicetak tebal terpisah');
+assert.ok(text.includes('/BaseFont /PlusJakartaSans-Regular') && text.includes('/BaseFont /PlusJakartaSans-Bold') && text.includes('/FontFile2'), 'font Plus Jakarta Sans tertanam');
+assert.ok(text.includes(' Tm (hamasah international) Tj'), 'nama lembaga tegak di tepi halaman');
 assert.ok(runs.includes('3 dari 4 sesi hadir atau terlambat (75%).'));
 for (const keterangan of ['Hadir 2', 'Terlambat 1', 'Tidak hadir 1']) assert.ok(runs.includes(keterangan), keterangan);
 assert.ok(!runs.includes('Izin / sakit 0'), 'status tanpa catatan tidak dicetak');
 assert.ok(runs.includes('Fathul Qorib') && runs.includes('1 dari 2 materi selesai (50%)'));
-assert.ok(runs.includes('Periode rapor: 1 September 2026 sampai 30 September 2026'));
+assert.equal(buildStudentReport(dashboard, { courses }).period, '1 September 2026 sampai 30 September 2026');
+assert.ok(runs.includes('Periode: ') && runs.some((run) => run.startsWith('1 September 2026')));
 assert.ok(runs.includes('Belum ada kegiatan tercatat pada periode ini.'));
 assert.ok(runs.includes('Tidak ada catatan disiplin pada periode ini.'));
 assert.ok(runs.includes('Membantu teman \x97 rajin'), 'tanda pisah em sebagai byte WinAnsi 0x97');
@@ -68,6 +72,7 @@ assert.ok(pesanKosong.includes('Belum ada presensi tercatat pada periode ini.'))
 assert.ok(pesanKosong.includes('Santri belum terdaftar pada maddah mana pun.'));
 assert.equal(kosong.stats.find((stat) => stat.label === 'Kehadiran').value, '-');
 assert.ok(!JSON.stringify(kosong).match(/\bnull\b|NaN|undefined/));
+assert.ok(kosong.summary.includes('presensi kelas belum tercatat'), 'paragraf pembuka tidak mengarang angka');
 assert.ok(buildStudentReport(dashboard, { courses: null }).sections.some((section) => section.empty === 'Data maddah tidak tersedia untuk akun ini.'));
 
 // Banyak catatan: berlanjut ke halaman berikutnya, penomoran halaman benar.
@@ -77,10 +82,12 @@ const halaman = Number(multi.match(/\/Count (\d+)/)[1]);
 assert.ok(halaman >= 2, `harus lebih dari satu halaman, dapat ${halaman}`);
 assert.ok(multi.includes(pdfLiteral(`Halaman ${halaman} dari ${halaman}`)));
 assert.ok(multi.includes(pdfLiteral('Ditampilkan 20 kegiatan terbaru.')));
-assert.ok(multi.includes(pdfLiteral('LANJUTAN RAPOR')), 'halaman lanjutan menyebut pemilik rapor');
-// Tidak ada teks yang melewati tepi kanan kolom (lebar dihitung dari metrik huruf).
+assert.ok(multi.includes(pdfLiteral('Lanjutan rapor')), 'halaman lanjutan menyebut pemilik rapor');
+// Tidak ada teks yang melewati tepi kanan kolom (lebar dihitung dari metrik font tertanam).
+const fonts = fontRapor();
+assert.ok(fonts && fonts.regular.widths[65 - 32] > 0, 'lebar huruf terbaca dari berkas TTF');
 for (const run of textRuns(multi)) {
-  const right = run.x + textWidth(run.value, run.size, run.font, run.spacing);
+  const right = run.x + textWidth(run.value, run.size, run.font, run.spacing, fonts);
   assert.ok(right <= 556, `${run.value} berakhir di ${right.toFixed(1)}`);
 }
 

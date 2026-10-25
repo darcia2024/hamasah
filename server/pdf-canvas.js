@@ -24,15 +24,21 @@ const WIDTH_BOLD = [
 ];
 const FONTS = Object.freeze({ regular: 'F1', bold: 'F2', italic: 'F3' });
 
-function textWidth(text, size, font = 'regular', spacing = 0) {
+// fonts: font tertanam dari parseTrueType ({ regular, bold, italic }); tanpa itu Helvetica.
+function textWidth(text, size, font = 'regular', spacing = 0, fonts = null) {
+  const embedded = fonts && (fonts[font] || fonts.regular);
   const table = font === 'bold' ? WIDTH_BOLD : WIDTH_REGULAR;
   const bytes = winAnsiBytes(text);
-  const units = bytes.reduce((sum, byte) => sum + (byte >= 32 && byte <= 126 ? table[byte - 32] : 556), 0);
+  const units = bytes.reduce((sum, byte) => {
+    if (embedded) return sum + (byte >= 32 ? embedded.widths[byte - 32] : 0);
+    return sum + (byte >= 32 && byte <= 126 ? table[byte - 32] : 556);
+  }, 0);
   return (units * size) / 1000 + spacing * Math.max(0, bytes.length - 1);
 }
 
 // Memenggal teks per kata menurut lebar sebenarnya; kata yang terlalu panjang dipotong.
-function wrapWidth(text, size, font, maxWidth) {
+function wrapWidth(text, size, font, maxWidth, fonts = null) {
+  const textWidth = (value, ukuran, jenis) => measure(value, ukuran, jenis, 0, fonts);
   const lines = [];
   for (const paragraph of String(text ?? '').split(/\r?\n/)) {
     let line = '';
@@ -54,6 +60,8 @@ function wrapWidth(text, size, font, maxWidth) {
   return lines;
 }
 
+const measure = textWidth;
+
 function color(hex) {
   const value = String(hex).replace('#', '');
   return [0, 2, 4].map((i) => (parseInt(value.slice(i, i + 2), 16) / 255).toFixed(3)).join(' ');
@@ -62,9 +70,10 @@ function color(hex) {
 const n = (value) => Number(value.toFixed(2));
 
 class PdfCanvas {
-  constructor({ width = 595, height = 842 } = {}) {
+  constructor({ width = 595, height = 842, fonts = null } = {}) {
     this.width = width;
     this.height = height;
+    this.fonts = fonts;
     this.pages = [];
     this.images = [];
     this.addPage();
@@ -84,14 +93,32 @@ class PdfCanvas {
     this.ops.push(`${color(stroke)} RG ${width} w ${n(x1)} ${n(y1)} m ${n(x2)} ${n(y2)} l S`);
   }
 
+  measure(value, size, font = 'regular', spacing = 0) {
+    return textWidth(value, size, font, spacing, this.fonts);
+  }
+
+  wrap(value, size, font, maxWidth) {
+    return wrapWidth(value, size, font, maxWidth, this.fonts);
+  }
+
+  // Bidang segi banyak terisi; points: [[x, y], ...].
+  polygon(points, fill) {
+    this.ops.push(`${color(fill)} rg ${points.map(([x, y], i) => `${n(x)} ${n(y)} ${i ? 'l' : 'm'}`).join(' ')} h f`);
+  }
+
   circle(cx, cy, r, fill) {
     const k = r * 0.5523;
     this.ops.push(`${color(fill)} rg ${n(cx + r)} ${n(cy)} m ${n(cx + r)} ${n(cy + k)} ${n(cx + k)} ${n(cy + r)} ${n(cx)} ${n(cy + r)} c ${n(cx - k)} ${n(cy + r)} ${n(cx - r)} ${n(cy + k)} ${n(cx - r)} ${n(cy)} c ${n(cx - r)} ${n(cy - k)} ${n(cx - k)} ${n(cy - r)} ${n(cx)} ${n(cy - r)} c ${n(cx + k)} ${n(cy - r)} ${n(cx + r)} ${n(cy - k)} ${n(cx + r)} ${n(cy)} c f`);
   }
 
   // align: left | right | center terhadap x. spacing: jarak antarhuruf (untuk label kapital).
-  text(x, y, value, { size = 10, font = 'regular', fill = '#1F1B10', align = 'left', spacing = 0 } = {}) {
-    const width = textWidth(value, size, font, spacing);
+  // vertical: teks diputar 90 derajat, dibaca dari bawah ke atas mulai titik (x, y).
+  text(x, y, value, { size = 10, font = 'regular', fill = '#1F1B10', align = 'left', spacing = 0, vertical = false } = {}) {
+    const width = this.measure(value, size, font, spacing);
+    if (vertical) {
+      this.ops.push(`BT ${color(fill)} rg /${FONTS[font]} ${size} Tf ${spacing} Tc 0 1 -1 0 ${n(x)} ${n(y)} Tm (${pdfLiteral(value)}) Tj ET`);
+      return width;
+    }
     const left = align === 'right' ? x - width : align === 'center' ? x - width / 2 : x;
     this.ops.push(`BT ${color(fill)} rg /${FONTS[font]} ${size} Tf ${spacing} Tc ${n(left)} ${n(y)} Td (${pdfLiteral(value)}) Tj ET`);
     return width;
@@ -105,15 +132,24 @@ class PdfCanvas {
   }
 
   toBuffer() {
-    // Objek: 1 katalog, 2 daftar halaman, 3-5 font, lalu pasangan gambar (SMask, RGB),
-    // lalu pasangan halaman (halaman, isi).
+    // Objek: 1 katalog, 2 daftar halaman, 3-5 font (F1-F3), lalu pasangan gambar (SMask, RGB),
+    // lalu pasangan font tertanam (deskriptor, berkas), lalu pasangan halaman (halaman, isi).
     const objects = [];
     const imageStart = 6;
-    const pageStart = imageStart + this.images.length * 2;
+    const embedded = ['regular', 'bold', 'italic'].map((key) => (this.fonts && this.fonts[key]) || null);
+    const fontStart = imageStart + this.images.length * 2;
+    const pageStart = fontStart + embedded.filter(Boolean).length * 2;
     const kids = this.pages.map((_, index) => `${pageStart + index * 2} 0 R`).join(' ');
     objects.push('<< /Type /Catalog /Pages 2 0 R >>');
     objects.push(`<< /Type /Pages /Kids [${kids}] /Count ${this.pages.length} >>`);
-    for (const base of ['Helvetica', 'Helvetica-Bold', 'Helvetica-Oblique']) objects.push(`<< /Type /Font /Subtype /Type1 /BaseFont /${base} /Encoding /WinAnsiEncoding >>`);
+    const descriptors = [];
+    ['Helvetica', 'Helvetica-Bold', 'Helvetica-Oblique'].forEach((base, index) => {
+      const font = embedded[index];
+      if (!font) { objects.push(`<< /Type /Font /Subtype /Type1 /BaseFont /${base} /Encoding /WinAnsiEncoding >>`); return; }
+      const descriptor = fontStart + descriptors.length * 2;
+      descriptors.push(font);
+      objects.push(`<< /Type /Font /Subtype /TrueType /BaseFont /${font.baseName} /FirstChar 32 /LastChar 255 /Widths [${font.widths.join(' ')}] /Encoding /WinAnsiEncoding /FontDescriptor ${descriptor} 0 R >>`);
+    });
     const binary = [];
     this.images.forEach((image, index) => {
       const mask = imageStart + index * 2;
@@ -121,6 +157,13 @@ class PdfCanvas {
       binary[mask + 1] = image.rgb;
       objects.push(`<< /Type /XObject /Subtype /Image /Width ${image.width} /Height ${image.height} /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode /Length ${image.alpha.length} >>`);
       objects.push(`<< /Type /XObject /Subtype /Image /Width ${image.width} /Height ${image.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode /SMask ${mask} 0 R /Length ${image.rgb.length} >>`);
+    });
+    descriptors.forEach((font, index) => {
+      const file = fontStart + index * 2 + 1;
+      binary[file] = font.file;
+      const flags = 32 + (font.italicAngle ? 64 : 0);
+      objects.push(`<< /Type /FontDescriptor /FontName /${font.baseName} /Flags ${flags} /FontBBox [${font.bbox.join(' ')}] /ItalicAngle ${font.italicAngle} /Ascent ${font.ascent} /Descent ${font.descent} /CapHeight ${font.capHeight} /StemV 80 /FontFile2 ${file} 0 R >>`);
+      objects.push(`<< /Filter /FlateDecode /Length1 ${font.length1} /Length ${font.file.length} >>`);
     });
     const xobjects = this.images.length ? ` /XObject << ${this.images.map((_, index) => `/Im${index + 1} ${imageStart + index * 2 + 1} 0 R`).join(' ')} >>` : '';
     this.pages.forEach((ops, index) => {
