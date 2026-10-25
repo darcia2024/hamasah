@@ -78,100 +78,14 @@
     });
   }
   tabs(document.getElementById('tabs-fitur'));
-  tabs(document.getElementById('tabs-nyata'));
+  tabs(document.getElementById('tabs-layar'));
 
-  // ---- Mockup musyrif: kotak presensi yang bisa diubah.
-  const pres = document.getElementById('pres');
-  if (pres) {
-    const names = ['Santri A', 'Santri B', 'Santri C'];
-    const times = ['Subuh', 'Dzuhur', 'Ashar', 'Maghrib', 'Isya'];
-    const start = [['J', 'J', 'M', 'J', 'J'], ['J', 'I', 'I', 'J', '–'], ['M', 'J', 'J', '–', '–']];
-    const order = ['J', 'M', 'I', '–'];
-    pres.append(document.createElement('span'));
-    times.forEach((t) => { const b = document.createElement('b'); b.textContent = t; pres.append(b); });
-    names.forEach((name, r) => {
-      const label = document.createElement('span');
-      label.className = 'n';
-      label.textContent = name;
-      pres.append(label);
-      start[r].forEach((value, c) => {
-        const cell = document.createElement('button');
-        cell.type = 'button';
-        cell.className = 'cell';
-        cell.dataset.s = value;
-        cell.textContent = value;
-        cell.setAttribute('aria-label', `${name}, ${times[c]}: ${value}`);
-        cell.addEventListener('click', () => {
-          const next = order[(order.indexOf(cell.dataset.s) + 1) % order.length];
-          cell.dataset.s = next;
-          cell.textContent = next;
-          cell.setAttribute('aria-label', `${name}, ${times[c]}: ${next}`);
-        });
-        pres.append(cell);
-      });
-    });
-  }
-
-  // ---- Mockup keuangan: tandai lunas, nomor kuitansi terbit, total bertambah.
-  const invBox = document.getElementById('invs');
-  const sum = document.getElementById('sum-paid');
-  if (invBox && sum) {
-    const invoices = [
-      { no: 'INV/HI/2026/00004', desc: 'SPP Oktober 2026', amount: 1500000 },
-      { no: 'INV/HI/2026/00005', desc: 'Biaya visa', amount: 2750000 },
-      { no: 'INV/HI/2026/00006', desc: 'Uang asrama', amount: 900000 }
-    ];
-    let paid = 900000;
-    let receipt = 3;
-    invoices.forEach((inv) => {
-      const row = document.createElement('div');
-      row.className = 'inv';
-      const no = document.createElement('strong'); no.textContent = inv.no;
-      const amount = document.createElement('span'); amount.className = 'amt'; amount.textContent = `Rp ${rupiah(inv.amount)}`;
-      const desc = document.createElement('span'); desc.textContent = inv.desc;
-      const filler = document.createElement('span');
-      const state = document.createElement('div'); state.className = 'st';
-      const chip = document.createElement('span'); chip.className = 'mk-chip is-red'; chip.textContent = 'Belum lunas';
-      const button = document.createElement('button'); button.type = 'button'; button.className = 'mk-btn'; button.textContent = 'Tandai lunas';
-      button.addEventListener('click', () => {
-        paid += inv.amount;
-        receipt += 1;
-        sum.textContent = `Rp ${rupiah(paid)}`;
-        chip.className = 'mk-chip is-green pop';
-        chip.textContent = `Lunas · KWT/HI/2026/${String(receipt).padStart(5, '0')}`;
-        button.remove();
-      });
-      state.append(chip, button);
-      row.append(no, amount, desc, filler, state);
-      invBox.append(row);
-    });
-  }
-
-  // ---- Mockup santri dan guru: satu klik mengubah status.
-  function oneShot(buttonId, chipId, text, chipClass) {
-    const button = document.getElementById(buttonId);
-    const chip = document.getElementById(chipId);
-    if (!button || !chip) return;
-    button.addEventListener('click', () => {
-      chip.className = `mk-chip ${chipClass} pop`;
-      chip.textContent = text;
-      button.remove();
-    });
-  }
-  oneShot('izin-btn', 'izin-chip', 'Disetujui musyrif · presensi tercatat izin', 'is-green is-start');
-  oneShot('nilai-btn', 'nilai-chip', 'Nilai 85 · materi ditandai selesai', 'is-green');
-
-  // ---- Saringan audit.
-  const filterButtons = Array.from(document.querySelectorAll('[data-f]'));
-  const openItems = Array.from(document.querySelectorAll('#open-list li'));
-  filterButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const filter = button.dataset.f;
-      filterButtons.forEach((b) => b.setAttribute('aria-pressed', String(b === button)));
-      openItems.forEach((li) => { li.hidden = !(filter === 'all' || li.dataset.who === filter); });
-    });
+  // ---- Penanda bernomor di atas tangkapan layar: posisi dalam persen dari data-x/data-y.
+  document.querySelectorAll('.hot[data-x][data-y]').forEach((dot) => {
+    dot.style.left = `${Number(dot.dataset.x)}%`;
+    dot.style.top = `${Number(dot.dataset.y)}%`;
+    dot.setAttribute('aria-hidden', 'true');
   });
-
   // ---- Tutorial per peran.
   // m = indeks menu sidebar yang disorot saat langkah itu diputar.
   const ROLES = [
@@ -239,6 +153,7 @@
         ['Portal Utama', 'Tugas hari ini dan ringkasan santri di asrama yang dipegang.'],
         ['Presensi asrama', 'Sholat lima waktu dan kegiatan, sekaligus satu asrama.'],
         ['Pembinaan santri', 'Catatan pembinaan, setoran hafalan, dan kesehatan bila fitur dinyalakan.'],
+        ['Cerita AI', 'Tulis cerita singkat hari itu; AI mengusulkan catatan per santri untuk ditinjau sebelum disimpan.'],
         ['Izin santri', 'Setujui atau tolak pengajuan; presensi ikut tercatat. Kepulangan izin dicatat di tab sendiri.'],
         ['Tindak lanjut pembinaan', 'Target dan tenggat pembinaan per santri.'],
         ['Pesan wali', 'Pesan dan doa dari wali santri di asramanya.'],
@@ -275,10 +190,10 @@
         ['Susun kuis', 'Tulis pertanyaan dan tandai jawaban benar. Lulus 70, tiga percobaan.', 1],
         ['Daftarkan santri', 'Tab Santri: pilih santri yang mengikuti maddah.', 1],
         ['Nilai tugas', 'Tab Penilaian. Nilai 70 ke atas menandai materi selesai.', 1],
-        ['Isi panduan Study Partner', 'Poin penting dan tanya jawab panduan, supaya jawabannya tidak melebar.', 1]
+        ['Isi panduan asisten belajar', 'Poin penting dan tanya jawab panduan, supaya jawaban AI tidak melebar.', 1]
       ],
       no: ['Maddah milik guru lain.', 'Data pribadi santri di luar maddahnya.', 'Keuangan dan monitoring asrama.'],
-      tip: 'Ringkasan dan poin penting dari guru adalah satu-satunya sumber jawaban Study Partner.'
+      tip: 'Ringkasan dan poin penting dari guru adalah satu-satunya sumber jawaban asisten belajar.'
     },
     {
       key: 'keuangan', label: 'Keuangan', av: 'KU',
@@ -338,7 +253,8 @@
       menu: ['Portal Utama', 'Ruang belajar (LMS)'],
       open: [
         ['Beranda santri', 'Kelas online, perkembanganku, izin, dan kegiatan terbaru.'],
-        ['Ruang belajar', 'Maddah yang diikuti: materi, kuis, tugas, dan Study Partner.'],
+        ['Ruang belajar', 'Maddah yang diikuti: video pertemuan, modul PDF, kuis, dan tugas.'],
+        ['Tanya asisten belajar', 'Asisten AI di setiap pertemuan, menjawab dari materi pengajar.'],
         ['Izin', 'Ajukan izin keluar asrama dan batalkan bila perlu.'],
         ['Iqamah', 'Sisa masa berlaku dan lapor tanggal baru setelah perpanjangan.'],
         ['Jadwal asrama', 'Jadwal, agenda, dan piket.'],
@@ -348,7 +264,7 @@
         ['Lanjutkan belajar', 'Kartu Lanjutkan belajar di beranda membuka materi terakhir.', 1],
         ['Kerjakan kuis', 'Tiga percobaan, lulus 70.', 1],
         ['Kirim tugas', 'Sekali kirim, lalu tunggu nilai dari guru.', 1],
-        ['Tanya Study Partner', 'Jawaban hanya dari materi guru di maddah itu.', 1],
+        ['Tanya asisten belajar', 'Minta penjelasan sederhana atau contoh; jawaban hanya dari materi guru.', 1],
         ['Ajukan izin', 'Isi waktu dan keperluan, lalu pantau keputusan musyrif.', 0],
         ['Lapor iqamah', 'Isi tanggal baru setelah iqamah diperpanjang.', 0]
       ],
