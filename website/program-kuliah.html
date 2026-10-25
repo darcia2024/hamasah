@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Philosopher:wght@700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="website-core.css?v=2d72a1bd8f" />
     <link rel="stylesheet" href="website-public.css?v=541fe1fa0d" />
-    <link rel="stylesheet" href="landing.css?v=fe47352989" />
+    <link rel="stylesheet" href="landing.css?v=fe4f481a85" />
     <link rel="stylesheet" href="fields.css?v=9cd65bf0c8" />
   </head>
   <body>
@@ -248,27 +248,37 @@
           </header>
 
           <div class="lp-fees">
-            <div class="lp-panel">
+            <article class="lp-panel lp-fee-card">
               <div class="lp-panel__row">
-                <h3>Berangkat dari Indonesia</h3>
+                <header class="lp-fee-card__head">
+                  <span class="lp-fee-card__tag">Jalur 1</span>
+                  <h3>Berangkat dari Indonesia</h3>
+                  <p>Untuk calon yang masih di Indonesia. Dibayar per tahap, bukan sekaligus.</p>
+                </header>
                 <dl class="lp-fee-list">
                   <div><dt>Pendaftaran, verifikasi dokumen, dan Tahdid Mustawa</dt><dd><!--konten:biaya.kuliah.nominal-->Rp 1.100.000<!--/konten:biaya.kuliah.nominal--></dd></div>
                   <div><dt>Karantina daring bersama <span class="lp-nb">Al-Azhar</span> dan ujian muadalah</dt><dd data-biaya-rincian>Rp 2.800.000</dd></div>
-                  <div><dt>Keberangkatan ke Kairo, program asrama</dt><dd data-biaya-rincian>Rp 20.000.000</dd></div>
-                  <div><dt>Keberangkatan ke Kairo, program non-asrama</dt><dd data-biaya-rincian>Rp 18.500.000</dd></div>
+                  <div class="lp-fee-opsi"><dt>Keberangkatan ke Kairo, program asrama</dt><dd data-biaya-rincian>Rp 20.000.000</dd></div>
+                  <div class="lp-fee-opsi"><dt>Keberangkatan ke Kairo, program non-asrama</dt><dd data-biaya-rincian>Rp 18.500.000</dd></div>
+                  <div class="lp-fee-total"><dt>Perkiraan total</dt><dd data-biaya-rincian>Rp 22.400.000 – 23.900.000</dd></div>
                 </dl>
               </div>
-            </div>
-            <div class="lp-panel">
+            </article>
+            <article class="lp-panel lp-fee-card">
               <div class="lp-panel__row">
-                <h3>Sudah berada di Mesir</h3>
+                <header class="lp-fee-card__head">
+                  <span class="lp-fee-card__tag">Jalur 2</span>
+                  <h3>Sudah berada di Mesir</h3>
+                  <p>Untuk calon yang sudah tinggal di Mesir, tanpa biaya keberangkatan.</p>
+                </header>
                 <dl class="lp-fee-list">
                   <div><dt>Pendaftaran dan verifikasi dokumen</dt><dd data-biaya-rincian>Rp 500.000</dd></div>
                   <div><dt>Karantina daring bersama <span class="lp-nb">Al-Azhar</span> dan ujian muadalah</dt><dd data-biaya-rincian>Rp 2.800.000</dd></div>
                   <div><dt>Pemberkasan dan administrasi kuliah</dt><dd data-biaya-rincian>Rp 5.000.000</dd></div>
+                  <div class="lp-fee-total"><dt>Perkiraan total</dt><dd data-biaya-rincian>Rp 8.300.000</dd></div>
                 </dl>
               </div>
-            </div>
+            </article>
           </div>
 
           <aside class="lp-docs">

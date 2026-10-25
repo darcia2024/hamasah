@@ -2088,6 +2088,238 @@ main h1.lp-h2 {
   border-top: 1px solid var(--lp-line);
 }
 
+/* Rincian biaya sebagai kartu harga: kepala berwarna, tiap tahap bernomor,
+   pilihan asrama/non-asrama dikotakkan, dan perkiraan total di bawah. */
+.lp-fees .lp-fee-card {
+  overflow: hidden;
+  border: 1px solid var(--lp-line);
+  border-radius: var(--lp-radius);
+  background: var(--md-sys-color-surface);
+  box-shadow: var(--lp-card-shadow);
+}
+
+.lp-fees .lp-fee-card > .lp-panel__row {
+  padding: 0;
+}
+
+.lp-fee-card__head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 22px 24px 20px;
+  border-bottom: 1px solid var(--lp-line);
+  background: var(--md-sys-color-primary-container);
+}
+
+.lp-fee-card__tag {
+  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-primary-container);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+main .lp-fee-card__head h3 {
+  margin: 0;
+  font-size: var(--fs-20);
+}
+
+.lp-fee-card__head p {
+  margin: 0;
+  font-size: var(--fs-14);
+  line-height: 1.5;
+  color: var(--lp-soft);
+}
+
+.lp-fee-card .lp-fee-list {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 24px 24px;
+  counter-reset: tahap;
+}
+
+.lp-fee-card .lp-fee-list div,
+.lp-fee-card .lp-fee-list div:first-child {
+  grid-template-columns: 28px minmax(0, 1fr);
+  column-gap: 14px;
+  row-gap: 4px;
+  align-items: start;
+  padding: 16px 0;
+}
+
+.lp-fee-card .lp-fee-list div::before {
+  counter-increment: tahap;
+  content: counter(tahap);
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.lp-fee-card .lp-fee-list dt {
+  font-size: var(--fs-16);
+  color: var(--lp-ink);
+}
+
+.lp-fee-card .lp-fee-list dd {
+  font-size: var(--fs-20);
+  font-weight: 700;
+  white-space: normal;
+  color: var(--md-sys-color-on-primary-container);
+}
+
+/* Kartu berisi satu harga saja (ma'had): tanpa nomor, angkanya dibesarkan. */
+.lp-fee-card .lp-fee-list div:only-child {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.lp-fee-card .lp-fee-list div:only-child::before {
+  content: none;
+}
+
+.lp-fee-card .lp-fee-list div:only-child dd {
+  font-size: var(--fs-24, 24px);
+}
+
+/* Dua pilihan keberangkatan: satu tahap, pilih salah satu. */
+.lp-fee-card .lp-fee-list .lp-fee-opsi {
+  margin-inline: -12px;
+  padding: 14px 12px;
+  border-top: 0;
+  border-radius: 14px;
+  background: var(--md-sys-color-secondary-container);
+}
+
+.lp-fee-card .lp-fee-list .lp-fee-opsi + .lp-fee-opsi {
+  margin-top: 8px;
+}
+
+.lp-fee-card .lp-fee-list .lp-fee-opsi + .lp-fee-opsi::before {
+  counter-increment: none;
+  content: "atau";
+  background: none;
+  color: var(--lp-soft);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Perkiraan total: pita emas di dasar kartu. */
+.lp-fee-card .lp-fee-list .lp-fee-total {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin: 12px -12px 0;
+  padding: 16px;
+  border-top: 0;
+  border-radius: 14px;
+  background: var(--md-sys-color-primary);
+}
+
+.lp-fee-card .lp-fee-list .lp-fee-total::before {
+  content: none;
+}
+
+.lp-fee-card .lp-fee-list .lp-fee-total dt {
+  font-size: var(--fs-14);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-on-primary);
+}
+
+.lp-fee-card .lp-fee-list .lp-fee-total dd {
+  font-size: var(--fs-20);
+  color: var(--md-sys-color-on-primary);
+}
+
+/* Cakupan biaya di kartu ma'had. */
+.lp-fee-card .lp-fee-list + .lp-checks {
+  margin: 0 24px 24px;
+  padding-top: 20px;
+}
+
+.lp-fee-card .lp-fee-list:has(+ .lp-checks) {
+  padding-bottom: 4px;
+}
+
+.lp-fees ~ .lp-fee-notes {
+  padding: 16px 18px 16px 36px;
+  border-radius: 16px;
+  background: var(--lp-tint);
+}
+
+@media (max-width: 640px) {
+  .lp-fees {
+    gap: 20px;
+  }
+
+  .lp-fee-card__head {
+    padding: 18px 18px 16px;
+  }
+
+  .lp-fee-card .lp-fee-list {
+    padding: 2px 18px 18px;
+  }
+
+  .lp-fee-card .lp-fee-list div,
+  .lp-fee-card .lp-fee-list div:first-child {
+    column-gap: 12px;
+    padding: 14px 0;
+  }
+
+  .lp-fee-card .lp-fee-list dt {
+    font-size: var(--fs-14);
+  }
+
+  .lp-fee-card .lp-fee-list dd {
+    font-size: var(--fs-18);
+  }
+
+  .lp-fee-card .lp-fee-list .lp-fee-opsi {
+    margin-inline: -10px;
+    padding: 12px 10px;
+  }
+
+  .lp-fee-card .lp-fee-list .lp-fee-total {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-inline: -10px;
+    padding: 14px;
+  }
+
+  .lp-fee-card .lp-fee-list + .lp-checks {
+    margin: 0 18px 18px;
+  }
+
+  /* Daftar "yang termasuk biaya" lebih rapat supaya tidak memanjang. */
+  #biaya .lp-docs {
+    padding: 20px 18px;
+    border-radius: var(--lp-radius);
+  }
+
+  #biaya .lp-docs .lp-checks {
+    gap: 10px;
+    padding: 0;
+  }
+
+  #biaya .lp-checks li {
+    font-size: var(--fs-14);
+    line-height: 1.5;
+  }
+}
+
 /* ==========================================================================
    Pena Hamasah di beranda: tampilan majalah. Satu artikel utama bersampul besar
    di kiri, tiga artikel lain bersampul kecil di kanan. Tanpa kotak dan nomor
