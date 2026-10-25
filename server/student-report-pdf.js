@@ -38,15 +38,13 @@ function inisial(nama) {
   return (huruf.length > 1 ? [huruf[0], huruf[huruf.length - 1]] : huruf).map((kata) => kata[0].toUpperCase()).join('') || '?';
 }
 
+const persen = (jumlah, total) => (total ? `${Math.round((jumlah * 100) / total)}%` : '-');
+
 const kapital = (teks) => String(teks || '').replace(/^./, (huruf) => huruf.toUpperCase());
 
 const LABEL_HAFALAN = Object.freeze({ lancar: 'lancar', 'kurang-lancar': 'kurang lancar', ulang: 'perlu diulang' });
 const LABEL_KONDISI = Object.freeze({ sehat: 'Sehat', 'sakit-ringan': 'Sakit ringan', 'perlu-perhatian': 'Perlu perhatian', dirujuk: 'Dirujuk ke fasilitas kesehatan' });
 
-const WARNA = Object.freeze({
-  emas: '#E7B10C', emasMuda: '#F4CF55', emasTua: '#7A5800', tinta: '#1F1B10', redup: '#6B6250',
-  krem: '#FFF7DC', garis: '#E9DDB4', abu: '#C9BC97', abuTua: '#8C8270', putih: '#FFFFFF'
-});
 
 // Model rapor: semua teks yang tercetak, tanpa urusan tata letak.
 // care: ringkasan dari student-care-service (atau null). Kesehatan di rapor selalu versi
@@ -65,8 +63,10 @@ function buildStudentReport(dashboard, { courses = null, care = null, generatedA
   } else {
     kehadiran.intro = `${attendance.present} dari ${attendance.total} sesi hadir atau terlambat (${attendance.rate}%).`;
     const perStatus = attendance.byStatus || {};
-    const warna = { present: WARNA.emas, late: WARNA.emasMuda, excused: WARNA.abu, absent: WARNA.abuTua };
-    kehadiran.segments = Object.entries(STATUS_KEHADIRAN).filter(([key]) => perStatus[key]).map(([key, label]) => ({ label, count: perStatus[key], fill: warna[key] }));
+    kehadiran.table = {
+      columns: [{ title: 'Status', width: 0.5 }, { title: 'Jumlah sesi', width: 0.25, align: 'right' }, { title: 'Persentase', width: 0.25, align: 'right' }],
+      rows: Object.entries(STATUS_KEHADIRAN).filter(([key]) => perStatus[key]).map(([key, label]) => [label, String(perStatus[key]), persen(perStatus[key], attendance.total)])
+    };
     stats.push({ label: 'Kehadiran', value: `${attendance.rate}%`, note: `${attendance.present} dari ${attendance.total} sesi`, ratio: attendance.rate / 100 });
   }
   sections.push(kehadiran);
@@ -79,19 +79,24 @@ function buildStudentReport(dashboard, { courses = null, care = null, generatedA
     } else {
       const t = care.prayers.totals;
       sholat.intro = `${care.prayers.recorded} waktu sholat tercatat, ${t.berjamaah} di antaranya berjamaah (${care.prayers.berjamaahRate}%).`;
-      sholat.segments = [
-        { label: 'Berjamaah', count: t.berjamaah, fill: WARNA.emas },
-        { label: 'Munfarid', count: t.munfarid, fill: WARNA.emasMuda },
-        { label: 'Izin', count: t.izin, fill: WARNA.abu },
-        { label: 'Tidak sholat', count: t.tidak, fill: WARNA.abuTua }
-      ];
+      sholat.table = {
+        columns: [{ title: 'Status', width: 0.5 }, { title: 'Jumlah waktu', width: 0.25, align: 'right' }, { title: 'Persentase', width: 0.25, align: 'right' }],
+        rows: [['Berjamaah', t.berjamaah], ['Munfarid', t.munfarid], ['Izin', t.izin], ['Tidak sholat', t.tidak]]
+          .map(([label, jumlah]) => [label, String(jumlah), persen(jumlah, care.prayers.recorded)])
+      };
       stats.push({ label: 'Sholat berjamaah', value: `${care.prayers.berjamaahRate}%`, note: `${t.berjamaah} dari ${care.prayers.recorded} waktu`, ratio: care.prayers.berjamaahRate / 100 });
     }
     sections.push(sholat);
 
     sections.push({
       title: 'Setoran hafalan',
-      entries: care.memorization.map((setoran) => ({ date: setoran.occurredOn, label: `${setoran.kind === 'ziyadah' ? 'Ziyadah' : 'Murajaah'} ${setoran.portion}`, text: `${kapital(LABEL_HAFALAN[setoran.grade] || setoran.grade)}${setoran.note ? `. ${setoran.note}` : ''}` })),
+      entries: [],
+      ...(care.memorization.length ? {
+        table: {
+          columns: [{ title: 'Tanggal', width: 0.2 }, { title: 'Setoran', width: 0.32 }, { title: 'Kelancaran', width: 0.2 }, { title: 'Catatan', width: 0.28 }],
+          rows: care.memorization.map((setoran) => [tanggal(setoran.occurredOn, 'short'), `${setoran.kind === 'ziyadah' ? 'Ziyadah' : 'Murajaah'} ${setoran.portion}`, kapital(LABEL_HAFALAN[setoran.grade] || setoran.grade), setoran.note || '-'])
+        }
+      } : {}),
       empty: 'Belum ada setoran hafalan pada periode ini.'
     });
     stats.push({ label: 'Setoran hafalan', value: String(care.memorization.length), note: care.memorization.length ? 'setoran tercatat' : 'Belum ada setoran' });
@@ -99,7 +104,13 @@ function buildStudentReport(dashboard, { courses = null, care = null, generatedA
     if (care.health !== null) {
       sections.push({
         title: 'Kesehatan',
-        entries: care.health.map((catatan) => ({ date: catatan.occurredOn, label: LABEL_KONDISI[catatan.condition] || catatan.condition, text: catatan.parentNote || '' })),
+        entries: [],
+        ...(care.health.length ? {
+          table: {
+            columns: [{ title: 'Tanggal', width: 0.2 }, { title: 'Kondisi', width: 0.25 }, { title: 'Catatan untuk wali', width: 0.55 }],
+            rows: care.health.map((catatan) => [tanggal(catatan.occurredOn, 'short'), LABEL_KONDISI[catatan.condition] || catatan.condition, catatan.parentNote || '-'])
+          }
+        } : {}),
         empty: 'Tidak ada catatan kesehatan pada periode ini.'
       });
     }
@@ -108,7 +119,12 @@ function buildStudentReport(dashboard, { courses = null, care = null, generatedA
   const maddah = { title: 'Progres maddah', note: 'Per tanggal rapor dibuat.', entries: [] };
   if (courses === null) maddah.empty = 'Data maddah tidak tersedia untuk akun ini.';
   else if (!courses.length) maddah.empty = 'Santri belum terdaftar pada maddah mana pun.';
-  else maddah.bars = courses.map((course) => ({ label: course.title, note: `${course.completedMaterials} dari ${course.totalMaterials} materi selesai (${course.progress}%)`, ratio: course.progress / 100 }));
+  else {
+    maddah.table = {
+      columns: [{ title: 'Maddah', width: 0.55 }, { title: 'Materi selesai', width: 0.27, align: 'right' }, { title: 'Progres', width: 0.18, align: 'right' }],
+      rows: courses.map((course) => [course.title, `${course.completedMaterials} dari ${course.totalMaterials}`, `${course.progress}%`])
+    };
+  }
   sections.push(maddah);
 
   const catatan = (entries, judul, isi) => (entries || []).map((entry) => ({ date: entry.occurredAt, label: judul(entry), text: isi(entry) }));
@@ -170,204 +186,170 @@ function fontRapor() {
   return fontCache;
 }
 
-// Tata letak A4 mengikuti CV satu halaman: kotak inisial di kiri atas, nama besar rata
-// kanan dengan garis miring emas, keterangan santri di balik garis pemisah, paragraf
-// pembuka, lalu kolom kiri (ringkasan, lembaga) dan kolom kanan bergaris linimasa
-// (catatan per bagian) yang boleh berlanjut ke halaman berikut.
+// Tata letak A4 gaya CV sederhana: logo dan nama di kiri atas, judul dokumen di kanan atas,
+// lalu baris-baris dengan label abu-abu di kiri dan isinya di kanan. Hampir tanpa warna;
+// emasnya cukup dari logo.
 const HALAMAN = Object.freeze({ lebar: 595, tinggi: 842 });
-const KIRI = Object.freeze({ x: 62, kanan: 204 });
-const KANAN = Object.freeze({ garis: 236, x: 252, kanan: 551, atas: 798, bawah: 70 });
-const NAMA_KANAN = 380;
+// Margin kiri dan kanan sama persis: 48 pt dari tepi kertas.
+const LABEL_X = 48;
+const ISI = Object.freeze({ x: 196, kanan: HALAMAN.lebar - LABEL_X, atas: 760, bawah: 70 });
+const ABU = Object.freeze({ judul: '#333333', teks: '#555555', redup: '#8C8C8C' });
 
 function createStudentReportPdf(dashboard, options = {}) {
   const model = buildStudentReport(dashboard, options);
   const pdf = new PdfCanvas({ ...HALAMAN, fonts: fontRapor() });
-  const lebarKanan = KANAN.kanan - KANAN.x;
+  const lebar = ISI.kanan - ISI.x;
   let y = 0;
-  let garisAtas = null;
 
-  function tepiHalaman() {
-    pdf.rect(30, 170, 0.8, 642, WARNA.tinta);
-    pdf.text(34, 64, model.institution.name.toLowerCase(), { size: 8, fill: WARNA.redup, spacing: 1.2, vertical: true });
-  }
-  // Garis linimasa kolom kanan ditutup di setiap akhir halaman.
-  function tutupGaris() {
-    if (garisAtas !== null && garisAtas > y) pdf.rect(KANAN.garis - 0.4, y - 4, 0.8, garisAtas - y + 4, WARNA.tinta);
-  }
   function halamanBaru() {
-    tutupGaris();
     pdf.addPage();
-    tepiHalaman();
-    pdf.text(KIRI.x, 790, model.name, { size: 10, font: 'bold', fill: WARNA.tinta });
-    pdf.text(KIRI.x, 777, 'Lanjutan rapor', { size: 8, font: 'italic', fill: WARNA.redup });
-    y = KANAN.atas;
-    if (garisAtas !== null) garisAtas = KANAN.atas + 8;
+    pdf.text(LABEL_X, 790, model.name, { size: 10, font: 'bold', fill: ABU.judul });
+    pdf.text(ISI.kanan, 790, 'Lanjutan rapor', { size: 8.5, font: 'italic', fill: ABU.redup, align: 'right' });
+    y = ISI.atas + 8;
   }
-  function pastikan(tinggi) { if (y - tinggi < KANAN.bawah) halamanBaru(); }
-  function paragraf(x, teks, lebar, gaya, jarak = 1.5) {
-    for (const baris of pdf.wrap(teks, gaya.size, gaya.font || 'regular', lebar)) {
+  function pastikan(tinggi) { if (y - tinggi < ISI.bawah) halamanBaru(); }
+  // Paragraf rata kiri-kanan; baris terakhir tetap rata kiri.
+  function paragraf(teks, gaya, jarak = 1.5, x = ISI.x, lebarBaris = lebar) {
+    const semua = pdf.wrap(teks, gaya.size, gaya.font || 'regular', lebarBaris);
+    semua.forEach((baris, i) => {
       pastikan(gaya.size * jarak);
       y -= gaya.size * jarak;
-      pdf.text(x, y, baris, gaya);
+      pdf.text(x, y, baris, { ...gaya, justify: i < semua.length - 1 ? lebarBaris : 0 });
+    });
+  }
+  // Tabel sederhana selebar kolom isi: kepala krem, baris dipisah garis tipis, sel dipenggal
+  // per kata. Kepala diulang bila tabel berlanjut ke halaman berikutnya.
+  function tabel({ columns, rows }, adaPengantar) {
+    const pad = 7;
+    const lebarKolom = columns.map((kolom) => kolom.width * lebar);
+    const xKolom = lebarKolom.map((_, i) => ISI.x + lebarKolom.slice(0, i).reduce((a, b) => a + b, 0));
+    const isiSel = (teks, i, gaya) => {
+      const x = columns[i].align === 'right' ? xKolom[i] + lebarKolom[i] - pad : xKolom[i] + pad;
+      return { x, gaya: { ...gaya, align: columns[i].align === 'right' ? 'right' : 'left' }, baris: pdf.wrap(teks, gaya.size, gaya.font || 'regular', lebarKolom[i] - pad * 2) };
+    };
+    function kepala() {
+      pastikan(42);
+      pdf.rect(ISI.x, y - 20, lebar, 20, '#F7F2E2');
+      columns.forEach((kolom, i) => {
+        const sel = isiSel(kolom.title, i, { size: 8.5, font: 'bold', fill: ABU.judul });
+        pdf.text(sel.x, y - 13.5, sel.baris[0], sel.gaya);
+      });
+      y -= 20;
+    }
+    if (adaPengantar) y -= 8;
+    kepala();
+    for (const baris of rows) {
+      const sel = baris.map((teks, i) => isiSel(String(teks), i, { size: 9, fill: ABU.teks }));
+      const tinggi = Math.max(...sel.map((s) => s.baris.length)) * 12 + 10;
+      if (y - tinggi < ISI.bawah) { halamanBaru(); kepala(); }
+      sel.forEach((s) => s.baris.forEach((teks, i) => pdf.text(s.x, y - 16 - i * 12, teks, s.gaya)));
+      y -= tinggi;
+      pdf.rect(ISI.x, y, lebar, 0.6, '#E4E0D6');
     }
   }
-  function centang(yy) { pdf.rect(KANAN.garis - 3.5, yy + 3, 7, 0.8, WARNA.tinta); }
+
+  // Satu baris CV: label abu-abu di kiri sejajar baris pertama isinya.
+  function baris(label, isi) {
+    pastikan(70);
+    y -= 34;
+    pdf.text(LABEL_X, y - 1, label, { size: 13, fill: ABU.redup });
+    y += 13;
+    isi();
+  }
 
   // Kepala.
-  tepiHalaman();
-  pdf.rect(KIRI.x, 632, 114, 210, WARNA.krem);
   const gambar = logo();
-  if (gambar) pdf.image(gambar, KIRI.x + 41, 760, 32, (32 * gambar.height) / gambar.width);
-  pdf.text(KIRI.x + 57, 692, model.initials, { size: 46, font: 'bold', fill: WARNA.emasTua, align: 'center' });
-  pdf.polygon([[KIRI.x, 652], [KIRI.x, 672], [KIRI.x + 40, 632], [KIRI.x + 20, 632]], WARNA.emas);
+  if (gambar) pdf.image(gambar, LABEL_X, 758, 30, (30 * gambar.height) / gambar.width);
+  const xNama = gambar ? LABEL_X + 42 : LABEL_X;
+  let ukuranNama = 22;
+  while (ukuranNama > 14 && pdf.measure(model.name, ukuranNama, 'bold') > 300 - xNama) ukuranNama -= 1;
+  pdf.text(xNama, 776, model.name, { size: ukuranNama, font: 'bold', fill: ABU.judul });
+  pdf.text(xNama, 762, model.institution.name, { size: 9, font: 'bold', fill: ABU.redup });
+  pdf.text(ISI.kanan, 776, model.title, { size: 12, font: 'bold', fill: ABU.judul, align: 'right' });
+  pdf.text(ISI.kanan, 762, model.period, { size: 8.5, fill: ABU.redup, align: 'right' });
 
-  pdf.rect(392, 744, 0.8, 98, WARNA.tinta);
-  pdf.circle(392.4, 744, 1.6, WARNA.tinta);
-
-  const kata = String(model.name).trim().split(/\s+/);
-  const depan = kata.length > 1 ? kata.slice(0, -1).join(' ') : '';
-  const belakang = kata[kata.length - 1] || '';
-  const ruangNama = NAMA_KANAN - (KIRI.x + 130);
-  let besar = 36;
-  while (besar > 18 && pdf.measure(belakang, besar, 'bold') > ruangNama) besar -= 1;
-  let kecil = 21;
-  while (kecil > 12 && pdf.measure(depan, kecil, 'bold') > ruangNama - 18) kecil -= 1;
-  if (depan) {
-    const lebarDepan = pdf.text(NAMA_KANAN, 778, depan, { size: kecil, font: 'bold', fill: WARNA.tinta, align: 'right' });
-    const x = NAMA_KANAN - lebarDepan - 15;
-    pdf.polygon([[x, 776], [x + 5, 776], [x + 12, 796], [x + 7, 796]], WARNA.emas);
-  }
-  pdf.text(NAMA_KANAN, 744, belakang, { size: besar, font: 'bold', fill: WARNA.tinta, align: 'right' });
-  const lebarJudul = pdf.text(NAMA_KANAN, 708, model.title.toUpperCase(), { size: 9.5, fill: WARNA.tinta, spacing: 0.8, align: 'right' });
-  pdf.rect(NAMA_KANAN - lebarJudul - 12, 700, 0.8, 24, WARNA.tinta);
-
-  // Keterangan santri di sebelah kanan garis pemisah, seperti baris kontak di CV.
-  let ky = 800;
-  for (const [label, nilai] of [...model.profile, ['Periode', model.period]]) {
-    const awalan = `${label}: `;
-    const lebarLabel = pdf.measure(awalan, 7.8, 'bold');
-    const baris = pdf.wrap(nilai, 7.8, 'regular', KANAN.kanan - 404 - lebarLabel);
-    pdf.text(404, ky, awalan, { size: 7.8, font: 'bold', fill: WARNA.tinta });
-    baris.forEach((isi, i) => {
-      pdf.text(404 + lebarLabel, ky, isi, { size: 7.8, fill: WARNA.redup });
-      if (i < baris.length - 1) ky -= 11;
-    });
-    ky -= 13;
-  }
-
-  // Paragraf pembuka.
-  y = Math.min(ky - 6, 684);
-  paragraf(KANAN.garis, model.summary, KANAN.kanan - KANAN.garis, { size: 8.5, fill: WARNA.redup }, 1.6);
-  const awalKolom = Math.min(y, 640) - 40;
-
-  // Kolom kiri: ringkasan angka dan kop lembaga.
-  ky = awalKolom;
-  function judulKiri(teks) {
-    pdf.text(KIRI.x, ky, teks.toUpperCase(), { size: 12, font: 'bold', fill: WARNA.tinta, spacing: 0.6 });
-    ky -= 20;
-  }
-  judulKiri('Ringkasan');
-  pdf.text(KIRI.x, ky, '// ANGKA PERIODE INI', { size: 7.5, font: 'bold', fill: WARNA.tinta, spacing: 0.4 });
-  ky -= 16;
-  for (const stat of model.stats) {
-    pdf.circle(KIRI.x + 3, ky + 3, 1.5, WARNA.tinta);
-    pdf.text(KIRI.x + 13, ky, stat.label, { size: 8.5, fill: WARNA.redup });
-    pdf.text(KIRI.kanan, ky, stat.value, { size: 8.5, font: 'bold', fill: WARNA.tinta, align: 'right' });
-    ky -= 15;
-  }
-  ky -= 18;
-  judulKiri('Lembaga');
-  for (const [teks, gaya] of [[model.institution.name, { size: 8.5, font: 'bold' }], [model.institution.address, { size: 8 }], [model.institution.contact, { size: 8 }]]) {
-    if (!teks) continue;
-    for (const baris of pdf.wrap(teks, gaya.size, gaya.font || 'regular', KIRI.kanan - KIRI.x)) {
-      pdf.text(KIRI.x, ky, baris, { ...gaya, fill: gaya.font ? WARNA.tinta : WARNA.redup });
-      ky -= gaya.size * 1.5;
-    }
-  }
-
-  // Kolom kanan: setiap bagian seperti "Pengalaman kerja" di CV.
-  y = awalKolom + 12;
-  garisAtas = awalKolom + 16;
-  model.sections.forEach((bagian, urutan) => {
-    // Judul bagian tidak boleh sendirian di dasar halaman.
-    pastikan(110);
-    y -= urutan ? 30 : 12;
-    pdf.text(KANAN.x, y, bagian.title.toUpperCase(), { size: 12, font: 'bold', fill: WARNA.tinta, spacing: 0.6 });
-    centang(y);
-    if (bagian.note) paragraf(KANAN.x, bagian.note, lebarKanan, { size: 7.5, font: 'italic', fill: WARNA.redup });
-    y -= 4;
-
-    if (bagian.empty && !bagian.entries.length && !bagian.bars && !bagian.intro) {
-      paragraf(KANAN.x, bagian.empty, lebarKanan, { size: 8.5, font: 'italic', fill: WARNA.redup });
-      return;
-    }
-    if (bagian.intro) paragraf(KANAN.x, bagian.intro, lebarKanan, { size: 8.5, fill: WARNA.tinta });
-
-    // Rincian kehadiran atau sholat sebagai butir sejajar.
-    if (bagian.segments) {
-      pastikan(16);
+  y = 730;
+  baris('Santri', () => {
+    paragraf(model.summary, { size: 10, font: 'italic', fill: ABU.redup }, 1.45);
+    y -= 8;
+    for (const [label, nilai] of model.profile) {
+      const awalan = `${label} `;
+      const lebarLabel = pdf.measure(awalan, 9.5, 'bold');
+      const isi = pdf.wrap(nilai, 9.5, 'regular', lebar - lebarLabel);
+      pastikan(14);
       y -= 14;
-      let x = KANAN.x + 10;
-      for (const s of bagian.segments) {
-        const teks = `${s.label} ${s.count}`;
-        const w = pdf.measure(teks, 8.5) + 24;
-        if (x + w > KANAN.kanan) { x = KANAN.x + 10; pastikan(13); y -= 13; }
-        pdf.circle(x - 7, y + 3, 1.5, WARNA.tinta);
-        pdf.text(x, y, teks, { size: 8.5, fill: WARNA.redup });
-        x += w;
-      }
+      pdf.text(ISI.x, y, awalan, { size: 9.5, font: 'bold', fill: ABU.judul });
+      isi.forEach((teks, i) => {
+        if (i) { y -= 13; }
+        pdf.text(ISI.x + lebarLabel, y, teks, { size: 9.5, fill: ABU.teks });
+      });
     }
-
-    // Progres per maddah: judul tebal, keterangan miring, batang tipis.
-    (bagian.bars || []).forEach((batang, index) => {
-      const judul = pdf.wrap(batang.label, 9.5, 'bold', lebarKanan);
-      pastikan(34 + judul.length * 13);
-      y -= index ? 18 : 10;
-      judul.forEach((baris) => {
-        y -= 13;
-        pdf.text(KANAN.x, y, baris, { size: 9.5, font: 'bold', fill: WARNA.tinta });
-      });
-      y -= 12;
-      pdf.text(KANAN.x, y, batang.note, { size: 8.5, font: 'italic', fill: WARNA.tinta });
-      y -= 9;
-      pdf.rect(KANAN.x, y, 150, 3, WARNA.garis);
-      pdf.rect(KANAN.x, y, 150 * Math.min(1, Math.max(0, batang.ratio)), 3, WARNA.emas);
-    });
-
-    // Catatan bertanggal: judul tebal, tanggal miring, lalu isinya.
-    bagian.entries.forEach((entry, index) => {
-      const judul = pdf.wrap(entry.label, 9.5, 'bold', lebarKanan);
-      const isi = entry.text ? pdf.wrap(entry.text, 8.5, 'regular', lebarKanan) : [];
-      pastikan(Math.min(28 + judul.length * 13 + isi.length * 12.6, 76));
-      y -= index ? 14 : 8;
-      judul.forEach((baris) => {
-        pastikan(13);
-        y -= 13;
-        pdf.text(KANAN.x, y, baris, { size: 9.5, font: 'bold', fill: WARNA.tinta });
-      });
-      y -= 12;
-      pdf.text(KANAN.x, y, tanggal(entry.date), { size: 8.5, font: 'italic', fill: WARNA.tinta });
-      isi.forEach((baris) => {
-        pastikan(12.6);
-        y -= 12.6;
-        pdf.text(KANAN.x, y, baris, { size: 8.5, fill: WARNA.redup });
-      });
-    });
-    if (bagian.after) { y -= 4; paragraf(KANAN.x, bagian.after, lebarKanan, { size: 7.5, font: 'italic', fill: WARNA.redup }); }
   });
-  tutupGaris();
-  garisAtas = null;
+
+  // Ringkasan seperti kolom "Skills": angka besar, keterangan di bawahnya.
+  baris('Ringkasan', () => {
+    const kolom = lebar / model.stats.length;
+    const awal = y;
+    let terendah = y;
+    model.stats.forEach((stat, i) => {
+      let ky = awal - 16;
+      const x = ISI.x + i * kolom;
+      pdf.text(x, ky, stat.value, { size: 14, font: 'bold', fill: ABU.judul });
+      for (const teks of [stat.label, stat.note]) {
+        for (const isi of pdf.wrap(teks, 9, 'regular', kolom - 10)) {
+          ky -= 13;
+          pdf.text(x, ky, isi, { size: 9, fill: ABU.teks });
+        }
+      }
+      terendah = Math.min(terendah, ky);
+    });
+    y = terendah;
+  });
+
+  for (const bagian of model.sections) {
+    baris(bagian.title, () => {
+      if (bagian.note) paragraf(bagian.note, { size: 8.5, font: 'italic', fill: ABU.redup });
+      if (bagian.empty && !bagian.entries.length && !bagian.table && !bagian.intro) {
+        paragraf(bagian.empty, { size: 9.5, font: 'italic', fill: ABU.redup });
+        return;
+      }
+      if (bagian.intro) paragraf(bagian.intro, { size: 10, fill: ABU.teks });
+
+      if (bagian.table) tabel(bagian.table, Boolean(bagian.intro || bagian.note));
+
+      const entri = bagian.entries.map((e) => ({ label: e.label, sub: tanggal(e.date), text: e.text }));
+      entri.forEach((e, index) => {
+        const judul = pdf.wrap(e.label, 11.5, 'bold', lebar);
+        const isi = e.text ? pdf.wrap(e.text, 9.5, 'regular', lebar) : [];
+        pastikan(Math.min(32 + judul.length * 15 + isi.length * 14, 80));
+        if (index || bagian.intro || bagian.note) y -= 12;
+        judul.forEach((teks) => {
+          pastikan(15);
+          y -= 15;
+          pdf.text(ISI.x, y, teks, { size: 11.5, font: 'bold', fill: ABU.judul });
+        });
+        y -= 13;
+        pdf.text(ISI.x, y, e.sub, { size: 9, font: 'italic', fill: ABU.redup });
+        isi.forEach((teks, i) => {
+          pastikan(14);
+          y -= 14;
+          pdf.text(ISI.x, y, teks, { size: 9.5, fill: ABU.teks, justify: i < isi.length - 1 ? lebar : 0 });
+        });
+      });
+      if (bagian.after) { y -= 4; paragraf(bagian.after, { size: 8.5, font: 'italic', fill: ABU.redup }); }
+    });
+  }
 
   pastikan(40);
-  y -= 26;
-  paragraf(KANAN.x, model.closing, lebarKanan, { size: 7.5, font: 'italic', fill: WARNA.redup });
+  y -= 30;
+  paragraf(model.closing, { size: 8, font: 'italic', fill: ABU.redup });
 
   // Kaki setiap halaman.
   const total = pdf.pages.length;
   pdf.pages.forEach((ops, index) => {
     pdf.ops = ops;
-    pdf.text(KIRI.x, 40, `Rapor ${model.name}`, { size: 7.5, fill: WARNA.redup });
-    pdf.text(KANAN.kanan, 40, `Halaman ${index + 1} dari ${total}`, { size: 7.5, font: 'bold', fill: WARNA.emasTua, align: 'right' });
+    pdf.text(LABEL_X, 40, `Rapor ${model.name}`, { size: 7.5, fill: ABU.redup });
+    pdf.text(ISI.kanan, 40, `Halaman ${index + 1} dari ${total}`, { size: 7.5, fill: ABU.redup, align: 'right' });
   });
   return pdf.toBuffer();
 }

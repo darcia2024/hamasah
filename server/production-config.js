@@ -129,8 +129,14 @@ function readProductionConfig(environment) {
     throw new Error('HAMASAH_BOOTSTRAP_KEY harus terdiri dari minimal 32 karakter.');
   }
 
+  // PIN pratinjau website (server/http/site-pin.js). Di production bawaannya 0001 selama
+  // website belum dibuka untuk umum; SITE_PIN=off mematikannya, nilai lain menggantinya.
+  const sitePinMentah = optionalEnvironment(values, 'SITE_PIN');
+  const sitePin = sitePinMentah ? (sitePinMentah === 'off' ? '' : sitePinMentah) : (isProduction ? '0001' : '');
+
   return Object.freeze({
     appEnvironment,
+    sitePin,
     databaseUrl,
     bootstrapKey,
     ipHashSecret,
@@ -154,6 +160,7 @@ function appOptionsFromConfig(config) {
   return {
     databaseUrl: config.databaseUrl,
     appEnvironment: config.appEnvironment,
+    sitePin: config.sitePin,
     ipHashSecret: config.ipHashSecret,
     bootstrapKey: config.bootstrapKey,
     storageDriver: config.storageDriver,

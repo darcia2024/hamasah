@@ -257,7 +257,7 @@ async function run() {
     assert.equal(rapor.headers.get('cache-control'), 'no-store');
     const raporTeks = Buffer.from(await rapor.arrayBuffer()).toString('latin1');
     assert.ok(raporTeks.startsWith('%PDF-1.4') && raporTeks.includes('(Rapor Fikri Santri)'));
-    assert.ok(raporTeks.includes('(Periode: )') && raporTeks.includes('1 Januari 2026') && raporTeks.includes('31 Desember 2026'), 'Rapor memakai periode dari parameter.');
+    assert.ok(raporTeks.includes('(1 Januari 2026 sampai 31 Desember 2026)'), 'Rapor memakai periode dari parameter.');
     assert.equal((await fetch(`${baseUrl}/api/students/${studentId}/report.pdf`, { headers: waliLainHeaders })).status, 403);
     assert.equal((await fetch(`${baseUrl}/api/students/${studentId}/report.pdf`)).status, 401);
     const accounts = await request(baseUrl, '/api/accounts', { headers: adminHeaders });
@@ -312,7 +312,7 @@ async function run() {
     assert.equal((await request(baseUrl, `/api/students/${studentId}/courses`, { headers: parentHeaders })).status, 403, 'Isi LMS tetap tertutup untuk wali.');
     assert.equal((await request(baseUrl, `/api/students/${studentId}/course-progress`, { headers: waliLainHeaders })).status, 403, 'Wali lain ditolak.');
     const raporDenganMaddah = Buffer.from(await (await fetch(`${baseUrl}/api/students/${studentId}/report.pdf`, { headers: parentHeaders })).arrayBuffer()).toString('latin1');
-    assert.ok(raporDenganMaddah.includes('1 dari 1 materi selesai \\(100%\\)'), 'Rapor wali memuat progres maddah.');
+    assert.ok(raporDenganMaddah.includes('(1 dari 1)') && raporDenganMaddah.includes('(100%)'), 'Rapor wali memuat progres maddah.');
     const studyHelp = await request(baseUrl, `/api/students/${studentId}/courses/${courseId}/materials/${materialCreated.body.material.id}/study-help`, {
       method: 'POST', headers: studentHeaders,
       body: JSON.stringify({ question: 'Apa fungsi khabar?' })

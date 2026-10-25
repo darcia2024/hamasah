@@ -1,0 +1,84 @@
+/* Halaman PIN pratinjau (server/http/site-pin.js). Emas dan putih, seperti website. */
+:root {
+  --page: #FFFDF7;
+  --ink: #1F1B10;
+  --muted: #6B6250;
+  --line: #E6D59C;
+  --gold: #E7B10C;
+  --on-gold: #1F1600;
+  --error: #9A2B12;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding-block: 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: radial-gradient(600px 360px at 50% 0%, #FFF3C9, transparent 70%), var(--page);
+  color: var(--ink);
+  font: 400 16px/1.6 "Plus Jakarta Sans", Arial, sans-serif;
+}
+
+.pin {
+  width: min(380px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.pin__logo { width: 56px; height: auto; margin-bottom: 8px; }
+
+.pin h1 { margin: 0; font-size: 22px; line-height: 1.3; font-weight: 700; text-wrap: balance; }
+
+.pin > p { margin: 0 0 12px; color: var(--muted); font-size: 15px; }
+
+.pin__form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #FFFFFF;
+  box-shadow: 0 18px 40px -24px rgba(122, 88, 0, 0.35);
+  text-align: left;
+}
+
+.pin__label { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; color: var(--muted); }
+
+.pin__input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font: 600 22px/1.2 "Plus Jakarta Sans", Arial, sans-serif;
+  letter-spacing: 0.4em;
+  text-align: center;
+  color: var(--ink);
+  background: #FFFFFF;
+}
+
+.pin__input:focus { outline: 3px solid rgba(231, 177, 12, 0.45); outline-offset: 1px; border-color: var(--gold); }
+
+.pin__error { margin: 0; font-size: 14px; color: var(--error); }
+
+.pin__button {
+  margin-top: 4px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--gold);
+  color: var(--on-gold);
+  font: 700 15px/1.2 "Plus Jakarta Sans", Arial, sans-serif;
+  cursor: pointer;
+}
+
+.pin__button:hover { background: #F4CF55; }

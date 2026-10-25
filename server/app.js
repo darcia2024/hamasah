@@ -41,7 +41,8 @@ const { createLocalStorage } = require('./storage/local.js');
 const { createSupabaseStorage } = require('./storage/supabase.js');
 const { json, tooManyRequests } = require('./http/respond.js');
 const serverTiming = require('./http/server-timing.js');
-const { MAX_REQUEST_BODY_BYTES, RequestBodyError, readJsonBody } = require('./http/body.js');
+const { MAX_REQUEST_BODY_BYTES, RequestBodyError, readJsonBody, readRawBody } = require('./http/body.js');
+const { createSitePin } = require('./http/site-pin.js');
 const { serveStaticFile } = require('./http/static.js');
 const seo = require('./seo.js');
 const speculationRules = require('./http/speculation-rules.js');
@@ -241,6 +242,8 @@ function createHamasahApp(options) {
   });
   // Host untuk URL absolut di tag bagikan dan sitemap (Phase R7).
   const siteBaseUrl = String(config.appBaseUrl || email.appBaseUrl || process.env.APP_BASE_URL || '').replace(/\/+$/, '');
+  // Gerbang PIN pratinjau (server/http/site-pin.js). Mati bila sitePin kosong.
+  const sitePin = createSitePin({ pin: config.sitePin, secret: config.ipHashSecret || process.env.IP_HASH_SECRET || DEV_IP_HASH_SECRET });
   const auditStore = config.auditStore || createPostgresAuditStore({ database });
   const auditService = config.auditService || createAuditService({
     store: auditStore,
@@ -561,6 +564,14 @@ function createHamasahApp(options) {
     applyHeaders(response, isApi ? securityHeaders.forApi() : securityHeaders.forDocument());
     response.setHeader('X-Request-Id', requestId);
     try {
+      if (sitePin) {
+        if (url.pathname === sitePin.ALAMAT_KIRIM && request.method === 'POST') {
+          const secure = Boolean(request.socket.encrypted || siteBaseUrl.startsWith('https://') || (trustProxy && request.headers['x-forwarded-proto'] === 'https'));
+          sitePin.kirim(request, response, await readRawBody(request, 2048), { secure });
+          return;
+        }
+        if (!isApi && ['GET', 'HEAD'].includes(request.method) && sitePin.tahan(request, response, url)) return;
+      }
       if (isApi) {
         const handled = await handleApi(request, response, url);
         if (!handled) {
@@ -618,7 +629,7 @@ function createHamasahApp(options) {
         const related = article ? (await articleStore.list({ limit: 4 })).items : [];
         const page = articlePage.renderArticlePage({ template: articlePage.readTemplate(rootDirectory), article, origin, related,
           content: await siteContentService.untukHalaman() });
-        response.writeHead(page.status, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff' });
+        response.writeHead(page.status, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff', ...(sitePin ? { 'Vercel-CDN-Cache-Control': 'no-store' } : {}) });
         response.end(page.html);
         return;
       }
@@ -632,6 +643,8 @@ function createHamasahApp(options) {
         rootDirectory,
         request,
         search: url.search,
+        // Di balik gerbang PIN, halaman tidak boleh disimpan CDN untuk pengunjung lain.
+        privateHtml: Boolean(sitePin),
         transformHtml: (relativePath, html) => {
           const dihias = seo.decoratePublicPage(relativePath, html, origin);
           const nama = relativePath.replace(/^website\//, '');

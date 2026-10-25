@@ -113,15 +113,18 @@ class PdfCanvas {
 
   // align: left | right | center terhadap x. spacing: jarak antarhuruf (untuk label kapital).
   // vertical: teks diputar 90 derajat, dibaca dari bawah ke atas mulai titik (x, y).
-  text(x, y, value, { size = 10, font = 'regular', fill = '#1F1B10', align = 'left', spacing = 0, vertical = false } = {}) {
+  // justify: lebar target; spasi antarkata dilebarkan (operator Tw) sampai baris pas selebar itu.
+  text(x, y, value, { size = 10, font = 'regular', fill = '#1F1B10', align = 'left', spacing = 0, vertical = false, justify = 0 } = {}) {
     const width = this.measure(value, size, font, spacing);
     if (vertical) {
-      this.ops.push(`BT ${color(fill)} rg /${FONTS[font]} ${size} Tf ${spacing} Tc 0 1 -1 0 ${n(x)} ${n(y)} Tm (${pdfLiteral(value)}) Tj ET`);
+      this.ops.push(`BT ${color(fill)} rg /${FONTS[font]} ${size} Tf ${spacing} Tc 0 Tw 0 1 -1 0 ${n(x)} ${n(y)} Tm (${pdfLiteral(value)}) Tj ET`);
       return width;
     }
+    const spasi = (String(value).match(/ /g) || []).length;
+    const tambah = justify && spasi && justify > width ? n((justify - width) / spasi) : 0;
     const left = align === 'right' ? x - width : align === 'center' ? x - width / 2 : x;
-    this.ops.push(`BT ${color(fill)} rg /${FONTS[font]} ${size} Tf ${spacing} Tc ${n(left)} ${n(y)} Td (${pdfLiteral(value)}) Tj ET`);
-    return width;
+    this.ops.push(`BT ${color(fill)} rg /${FONTS[font]} ${size} Tf ${spacing} Tc ${tambah} Tw ${n(left)} ${n(y)} Td (${pdfLiteral(value)}) Tj ET`);
+    return tambah ? justify : width;
   }
 
   // image: hasil decodePng. Gambar yang sama cukup disimpan sekali.

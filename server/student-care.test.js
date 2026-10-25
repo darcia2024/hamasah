@@ -82,9 +82,10 @@ async function run() {
       assert.equal(rapor.status, 200, nama);
       const teks = Buffer.from(await rapor.arrayBuffer()).toString('latin1');
       assert.ok(teks.includes('4 waktu sholat tercatat, 2 di antaranya berjamaah \\(50%\\).'), nama);
-      for (const keterangan of ['Berjamaah 2', 'Munfarid 0', 'Tidak sholat 1', 'Izin 1']) assert.ok(teks.includes(`(${keterangan})`), `${nama}: ${keterangan}`);
+      // Tabel sholat: status, jumlah waktu, persentase.
+      for (const sel of ['Berjamaah', 'Munfarid', 'Tidak sholat', 'Izin', '50%', '25%']) assert.ok(teks.includes(`(${sel})`), `${nama}: ${sel}`);
       assert.ok(teks.includes('(Ziyadah An-Naba 1-20)') && teks.includes('(Lancar)'), nama);
-      assert.ok(teks.includes('(Sakit ringan)') && teks.includes('(Ananda demam ringan dan sudah membaik.)'), nama);
+      assert.ok(teks.includes('(Sakit ringan)') && teks.includes('Ananda demam ringan'), nama);
       assert.ok(!teks.includes('Demam 38') && !teks.includes('Paracetamol'), `${nama}: detail medis tidak tercetak di rapor`);
     }
 

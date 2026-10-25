@@ -113,7 +113,9 @@ function compressedVariant(filePath, etag, encoding, content) {
 // kosong (test dan pemanggil lama): hasilnya berkas apa adanya tanpa validasi.
 // `transform(html)` (opsional, hanya HTML) mengembalikan isi pengganti, mis. halaman publik
 // yang diberi tag bagikan; ETag-nya lalu dihitung dari isi hasil, bukan dari berkas.
-function sendFile(response, request, filePath, search, transform) {
+// `privateHtml`: HTML hanya untuk peramban ini (mis. di balik gerbang PIN), jadi CDN tidak
+// boleh menyimpannya.
+function sendFile(response, request, filePath, search, transform, privateHtml = false) {
   const extension = path.extname(filePath).toLocaleLowerCase('en-US');
   const stat = fs.statSync(filePath);
   let content = null;
@@ -132,6 +134,10 @@ function sendFile(response, request, filePath, search, transform) {
     'Cache-Control': cacheControlFor(extension, search),
     'Vercel-CDN-Cache-Control': cdnCacheControlFor(extension, search)
   };
+  if (privateHtml && extension === '.html') {
+    headers['Cache-Control'] = 'private, no-cache';
+    headers['Vercel-CDN-Cache-Control'] = 'no-store';
+  }
   const compressible = COMPRESSIBLE.has(extension);
   if (compressible) headers.Vary = 'Accept-Encoding';
 
@@ -232,7 +238,7 @@ function alihkan(response, lokasi) {
   response.end();
 }
 
-function serveStaticFile(response, { pathname, rootDirectory, request, search, transformHtml }) {
+function serveStaticFile(response, { pathname, rootDirectory, request, search, transformHtml, privateHtml = false }) {
   const ambil = !request || ['GET', 'HEAD'].includes(request.method);
   let requestedPath = pathname === '/' ? '/website/' : pathname;
   if (ambil) {
@@ -311,7 +317,7 @@ function serveStaticFile(response, { pathname, rootDirectory, request, search, t
   }
 
   const relativePath = path.relative(rootPath, filePath).split(path.sep).join('/');
-  sendFile(response, request, filePath, search, transformHtml && ((html) => transformHtml(relativePath, html)));
+  sendFile(response, request, filePath, search, transformHtml && ((html) => transformHtml(relativePath, html)), privateHtml);
 }
 
 module.exports = { MIME_TYPES, SERVABLE_EXTENSIONS, sendFile, serveStaticFile };

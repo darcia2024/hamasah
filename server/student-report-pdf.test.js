@@ -25,9 +25,9 @@ function assertValidPdf(buffer) {
 // Teks yang tercetak, dibaca balik dari operator "Tj" (dengan font, ukuran, dan posisinya).
 function textRuns(text) {
   const runs = [];
-  for (const match of text.matchAll(/\/F(\d) ([\d.]+) Tf ([\d.-]+) Tc ([\d.-]+) [\d.-]+ Td \(((?:\\.|[^\\)])*)\) Tj/g)) {
-    const value = match[5].replace(/\\([0-7]{3}|.)/g, (_, code) => (code.length === 3 ? String.fromCharCode(parseInt(code, 8)) : code));
-    runs.push({ font: { 1: 'regular', 2: 'bold', 3: 'italic' }[match[1]], size: Number(match[2]), spacing: Number(match[3]), x: Number(match[4]), value });
+  for (const match of text.matchAll(/\/F(\d) ([\d.]+) Tf ([\d.-]+) Tc ([\d.-]+) Tw ([\d.-]+) [\d.-]+ Td \(((?:\\.|[^\\)])*)\) Tj/g)) {
+    const value = match[6].replace(/\\([0-7]{3}|.)/g, (_, code) => (code.length === 3 ? String.fromCharCode(parseInt(code, 8)) : code));
+    runs.push({ font: { 1: 'regular', 2: 'bold', 3: 'italic' }[match[1]], size: Number(match[2]), spacing: Number(match[3]), wordSpacing: Number(match[4]), x: Number(match[5]), value });
   }
   return runs;
 }
@@ -47,20 +47,22 @@ const text = assertValidPdf(createStudentReportPdf(dashboard, { courses, generat
 const runs = textRuns(text).map((run) => run.value);
 assert.ok(text.includes(pdfLiteral('Santri (Uji) \\ Contoh')), 'kurung dan backslash di-escape');
 assert.ok(runs.includes('Rapor Santri (Uji) \\ Contoh'));
-assert.ok(runs.includes('Contoh'), 'nama belakang dicetak tebal terpisah');
+assert.ok(runs.includes('Santri (Uji) \\ Contoh'), 'nama santri di kepala rapor');
 assert.ok(text.includes('/BaseFont /PlusJakartaSans-Regular') && text.includes('/BaseFont /PlusJakartaSans-Bold') && text.includes('/FontFile2'), 'font Plus Jakarta Sans tertanam');
-assert.ok(text.includes(' Tm (hamasah international) Tj'), 'nama lembaga tegak di tepi halaman');
+for (const label of ['Santri', 'Ringkasan', 'Kehadiran', 'Progres maddah', 'Catatan disiplin']) assert.ok(runs.includes(label), `label baris ${label}`);
 assert.ok(runs.includes('3 dari 4 sesi hadir atau terlambat (75%).'));
-for (const keterangan of ['Hadir 2', 'Terlambat 1', 'Tidak hadir 1']) assert.ok(runs.includes(keterangan), keterangan);
-assert.ok(!runs.includes('Izin / sakit 0'), 'status tanpa catatan tidak dicetak');
-assert.ok(runs.includes('Fathul Qorib') && runs.includes('1 dari 2 materi selesai (50%)'));
+const model = buildStudentReport(dashboard, { courses });
+const tabelHadir = model.sections.find((s) => s.title === 'Kehadiran').table;
+assert.deepEqual(tabelHadir.rows, [['Hadir', '2', '50%'], ['Terlambat', '1', '25%'], ['Tidak hadir', '1', '25%']], 'status tanpa catatan tidak masuk tabel');
+for (const sel of ['Status', 'Jumlah sesi', 'Persentase', 'Hadir', 'Terlambat', 'Tidak hadir', '50%']) assert.ok(runs.includes(sel), `sel ${sel}`);
+assert.ok(!runs.includes('Izin / sakit'));
+assert.ok(runs.includes('Fathul Qorib') && runs.includes('1 dari 2') && runs.includes('Materi selesai'), 'tabel progres maddah');
 assert.equal(buildStudentReport(dashboard, { courses }).period, '1 September 2026 sampai 30 September 2026');
-assert.ok(runs.includes('Periode: ') && runs.some((run) => run.startsWith('1 September 2026')));
+assert.ok(runs.includes('1 September 2026 sampai 30 September 2026'), 'periode di kepala rapor');
 assert.ok(runs.includes('Belum ada kegiatan tercatat pada periode ini.'));
 assert.ok(runs.includes('Tidak ada catatan disiplin pada periode ini.'));
 assert.ok(runs.includes('Membantu teman \x97 rajin'), 'tanda pisah em sebagai byte WinAnsi 0x97');
 assert.ok(text.includes('\\227'), 'tanda pisah em ditulis sebagai byte WinAnsi');
-assert.ok(runs.includes('SC'), 'inisial dari nama santri');
 assert.ok(text.includes('/Subtype /Image'), 'logo lembaga ikut tercetak');
 // Tidak ada nilai atau predikat karangan.
 for (const karangan of ['Mumtaz', 'Predikat', 'Indeks Prestasi', 'Sangat Sehat']) assert.ok(!text.includes(karangan), karangan);
@@ -87,8 +89,16 @@ assert.ok(multi.includes(pdfLiteral('Lanjutan rapor')), 'halaman lanjutan menyeb
 const fonts = fontRapor();
 assert.ok(fonts && fonts.regular.widths[65 - 32] > 0, 'lebar huruf terbaca dari berkas TTF');
 for (const run of textRuns(multi)) {
-  const right = run.x + textWidth(run.value, run.size, run.font, run.spacing, fonts);
-  assert.ok(right <= 556, `${run.value} berakhir di ${right.toFixed(1)}`);
+  const right = run.x + textWidth(run.value, run.size, run.font, run.spacing, fonts) + run.wordSpacing * (run.value.match(/ /g) || []).length;
+  assert.ok(run.x >= 47.9, `${run.value} mulai di ${run.x}`);
+  assert.ok(right <= 547.1, `${run.value} berakhir di ${right.toFixed(1)}`);
+}
+// Margin kiri dan kanan sama: 48 pt dari tepi.
+const lurus = textRuns(multi).filter((run) => run.wordSpacing > 0);
+assert.ok(lurus.length > 0, 'paragraf panjang rata kiri-kanan');
+for (const run of lurus) {
+  const right = run.x + textWidth(run.value, run.size, run.font, run.spacing, fonts) + run.wordSpacing * (run.value.match(/ /g) || []).length;
+  assert.ok(Math.abs(right - 547) < 0.3, `${run.value} rata kanan di ${right.toFixed(2)}`);
 }
 
 // Logo PNG berpalet terbaca dengan ukuran aslinya.
