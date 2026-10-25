@@ -132,4 +132,4 @@ function createDocumentPdf({ blocks = [], footer = '' } = {}) {
   return Buffer.from(output, 'latin1');
 }
 
-module.exports = { createDocumentPdf, pdfLiteral, wrapText };
+module.exports = { createDocumentPdf, pdfLiteral, winAnsiBytes, wrapText };

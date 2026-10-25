@@ -256,7 +256,7 @@ async function run() {
     assert.equal(rapor.headers.get('content-type'), 'application/pdf');
     assert.equal(rapor.headers.get('cache-control'), 'no-store');
     const raporTeks = Buffer.from(await rapor.arrayBuffer()).toString('latin1');
-    assert.ok(raporTeks.startsWith('%PDF-1.4') && raporTeks.includes('(Nama: Fikri Santri)'));
+    assert.ok(raporTeks.startsWith('%PDF-1.4') && raporTeks.includes('(Fikri Santri)'));
     assert.ok(raporTeks.includes('Periode rapor: 1 Januari 2026 sampai 31 Desember 2026'));
     assert.equal((await fetch(`${baseUrl}/api/students/${studentId}/report.pdf`, { headers: waliLainHeaders })).status, 403);
     assert.equal((await fetch(`${baseUrl}/api/students/${studentId}/report.pdf`)).status, 401);

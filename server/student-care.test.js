@@ -81,9 +81,10 @@ async function run() {
       const rapor = await fetch(`${baseUrl}/api/students/${id}/report.pdf?from=2026-09-01&to=2026-09-30`, { headers });
       assert.equal(rapor.status, 200, nama);
       const teks = Buffer.from(await rapor.arrayBuffer()).toString('latin1');
-      assert.ok(teks.includes('4 waktu sholat tercatat: 2 berjamaah \\(50%\\), 0 munfarid, 1 tidak sholat, 1 izin.'), nama);
-      assert.ok(teks.includes('Ziyadah An-Naba 1-20 \\(lancar\\)'), nama);
-      assert.ok(teks.includes('Sakit ringan. Ananda demam ringan dan sudah membaik.'), nama);
+      assert.ok(teks.includes('4 waktu sholat tercatat, 2 di antaranya berjamaah \\(50%\\).'), nama);
+      for (const keterangan of ['Berjamaah 2', 'Munfarid 0', 'Tidak sholat 1', 'Izin 1']) assert.ok(teks.includes(`(${keterangan})`), `${nama}: ${keterangan}`);
+      assert.ok(teks.includes('(Ziyadah An-Naba 1-20)') && teks.includes('(Lancar)'), nama);
+      assert.ok(teks.includes('(Sakit ringan)') && teks.includes('(Ananda demam ringan dan sudah membaik.)'), nama);
       assert.ok(!teks.includes('Demam 38') && !teks.includes('Paracetamol'), `${nama}: detail medis tidak tercetak di rapor`);
     }
 
