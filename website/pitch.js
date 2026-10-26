@@ -115,7 +115,7 @@
         ['Cek tiap pagi', 'Buka Portal Utama dan lihat daftar yang perlu ditangani. Kalau ada perubahan yang dipertanyakan, cek di Jejak Audit.', 0]
       ],
       no: ['Melihat kata sandi orang lain. Admin hanya bisa menggantinya dengan kata sandi sementara.', 'Menghapus tagihan atau catatan kas. Yang salah dibatalkan dengan alasan, dan catatannya tetap ada.'],
-      tip: 'Sebaiknya akun Super Admin dipegang sedikit orang saja. Apa pun yang dilakukan admin tercatat di Jejak Audit.'
+      tip: 'Saran saya, akun Super Admin cukup dipegang sedikit orang. Apa pun yang dilakukan admin tercatat di Jejak Audit.'
     },
     {
       key: 'petugas', label: 'Petugas pendaftaran', av: 'PP',
@@ -133,7 +133,7 @@
         ['Pesan konsultasi', 'Pertanyaan yang masuk dari formulir kontak di website.']
       ],
       steps: [
-        ['Buka pendaftar baru', 'Lihat Daftar calon santri masuk. Kartu dengan tanda merah artinya sudah lebih dari 3 hari belum disentuh.', 1],
+        ['Buka pendaftar baru', 'Lihat Daftar calon santri masuk. Kartu yang ada tanda merahnya berarti sudah lebih dari 3 hari belum diperiksa.', 1],
         ['Periksa berkasnya', 'Buka kartunya, lihat dokumennya, lalu setujui atau tolak. Kalau ditolak, tulis alasannya.', 1],
         ['Ubah tahapnya', 'Dari Data dikirim, ke Pemeriksaan berkas, lalu Persiapan akademik, sampai Siap keberangkatan.', 1],
         ['Catat tindak lanjut', 'Beri tenggat. Kalau lewat, otomatis muncul di Agenda tindak lanjut.', 1],
@@ -142,7 +142,7 @@
         ['Jadikan santri', 'Pendaftar yang sudah selesai diubah jadi santri, supaya bisa masuk asrama dan kelas.', 1]
       ],
       no: ['Tagihan dan kuitansi.', 'Catatan pembinaan dan absen santri.', 'Membuat atau memblokir akun. Petugas hanya bisa mengirim ulang undangan.'],
-      tip: 'Paling enak mulai hari dari Agenda tindak lanjut, karena yang terlambat langsung kelihatan di sana.'
+      tip: 'Paling enak mulai hari dari Agenda tindak lanjut. Yang terlambat langsung kelihatan di situ.'
     },
     {
       key: 'musyrif', label: 'Musyrif asrama', av: 'MS',
@@ -170,7 +170,7 @@
         ['Catat uang kas', 'Di Kelola Asrama, tab Uang kas, catat pemasukan, pengeluaran, dan iuran.', 2]
       ],
       no: ['Santri di asrama lain.', 'Tagihan dan keuangan lembaga.', 'Menambah santri, memindah asrama, atau menghubungkan akun wali. Itu bagian Super Admin.'],
-      tip: 'Kalau dicatat di hari yang sama, halaman wali selalu terisi. Admin juga bisa melihat musyrif yang belum mencatat.'
+      tip: 'Kalau dicatat di hari yang sama, halaman wali selalu terisi. Admin juga bisa lihat musyrif mana yang belum mencatat.'
     },
     {
       key: 'guru', label: 'Guru / Asatidz', av: 'GA',
@@ -193,7 +193,7 @@
         ['Isi panduan untuk asisten AI', 'Tulis poin penting dan contoh tanya jawab, supaya jawaban asistennya tidak melenceng.', 1]
       ],
       no: ['Maddah milik guru lain.', 'Data pribadi santri di luar maddahnya.', 'Keuangan dan catatan asrama.'],
-      tip: 'Asisten AI hanya menjawab dari ringkasan dan poin penting yang ditulis guru. Makin jelas tulisannya, makin bagus jawabannya.'
+      tip: 'Asisten AI cuma menjawab dari ringkasan dan poin penting yang ditulis guru. Jadi makin jelas tulisannya, makin bagus juga jawabannya.'
     },
     {
       key: 'keuangan', label: 'Keuangan', av: 'KU',
@@ -269,7 +269,7 @@
         ['Lapor iqamah', 'Isi tanggal barunya setelah iqamah diperpanjang.', 0]
       ],
       no: ['Data santri lain.', 'Nilai dan tugas santri lain.', 'Kunci jawaban kuis.'],
-      tip: 'Perkembangan yang dilihat santri sama persis dengan yang dilihat walinya.'
+      tip: 'Perkembangan yang dilihat santri sama dengan yang dilihat walinya.'
     },
     {
       key: 'pendaftar', label: 'Calon pendaftar', av: 'CP',
