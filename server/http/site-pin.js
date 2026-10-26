@@ -1,5 +1,5 @@
 // Gerbang PIN pratinjau: selama website belum dibuka untuk umum, setiap halaman (kecuali
-// /pitch) meminta PIN dulu. Ini pagar ringan untuk pratinjau, bukan pengganti login:
+// /pitch dan /internal) meminta PIN dulu. Ini pagar ringan untuk pratinjau, bukan pengganti login:
 // API, CSS, JS, dan gambar tetap terbuka, dan data di portal tetap dijaga sesi masing-masing.
 //
 // Setelah PIN benar, peramban menyimpan cookie HttpOnly berisi HMAC dari PIN (bukan PIN-nya),
@@ -10,7 +10,8 @@ const crypto = require('node:crypto');
 
 const COOKIE = 'hi_pratinjau';
 const ALAMAT_KIRIM = '/api/pratinjau/pin';
-const BEBAS = new Set(['/pitch', '/pitch.html', '/website/pitch', '/website/pitch.html']);
+// Halaman presentasi (pitch dan tutorial workspace internal) boleh dibuka tanpa PIN.
+const BEBAS = new Set(['pitch', 'internal'].flatMap((nama) => [`/${nama}`, `/${nama}.html`, `/website/${nama}`, `/website/${nama}.html`]));
 const TIGA_PULUH_HARI = 30 * 24 * 60 * 60;
 
 function escapeHtml(value) {

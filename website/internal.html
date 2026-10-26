@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="Tutorial workspace internal Hamasah International: cara pakai portal untuk Super Admin, petugas pendaftaran, musyrif, guru, dan keuangan." />
+    <title>Tutorial Workspace Internal</title>
+    <link rel="icon" href="../assets/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Philosopher:wght@700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="internal.css?v=bf3c989dc5" />
+  </head>
+  <body>
+    <a class="skip-link" href="#bab">Lewati ke materi</a>
+
+    <header class="top">
+      <a class="brand" href="#bab-0" aria-label="Ke bab pertama"><img src="../assets/logo-hamasah-300.webp" alt="Hamasah International" width="300" height="88" /></a>
+      <div class="top-title">
+        <strong>Tutorial workspace internal</strong>
+        <span id="posisi" aria-live="polite">Bab 1</span>
+      </div>
+      <div class="top-actions">
+        <button type="button" class="ghost" id="tombol-catatan" aria-pressed="false" title="Tampilkan catatan saya (N)">Catatan saya</button>
+        <button type="button" class="ghost" id="tombol-layar" title="Layar penuh (F)">Layar penuh</button>
+      </div>
+      <div class="progress" aria-hidden="true"><i id="progress-bar"></i></div>
+    </header>
+
+    <div class="layout">
+      <nav class="daftar" aria-label="Daftar bab">
+        <p class="daftar-judul">Daftar bab</p>
+        <ol id="daftar-bab"></ol>
+        <ul class="daftar-kunci" aria-label="Tombol pintas">
+          <li><kbd>←</kbd> <kbd>→</kbd> pindah langkah</li>
+          <li><kbd>N</kbd> catatan saya</li>
+          <li><kbd>F</kbd> layar penuh</li>
+        </ul>
+      </nav>
+
+      <main id="bab" class="bab" tabindex="-1">
+        <div class="bab-kepala">
+          <h1 id="bab-judul">Tutorial workspace internal</h1>
+          <p class="bab-ringkas" id="bab-ringkas">Panduan presentasi portal staf Hamasah International, satu bab per menu.</p>
+          <p class="bab-peran" id="bab-peran" aria-label="Peran yang memakai menu ini"></p>
+          <div class="bab-buka" id="bab-buka"></div>
+        </div>
+
+        <noscript><p class="noscript">Halaman ini butuh JavaScript untuk menampilkan bab dan langkahnya.</p></noscript>
+
+        <aside class="catatan" id="catatan" hidden aria-label="Catatan pembicara">
+          <p class="catatan-judul">Catatan saya <span>(hanya untuk saya, tekan N untuk menyembunyikan)</span></p>
+          <ul id="catatan-isi"></ul>
+        </aside>
+
+        <div class="isi">
+          <section class="langkah" aria-labelledby="langkah-judul">
+            <div class="langkah-kepala">
+              <h2 id="langkah-judul">Langkah-langkahnya</h2>
+              <span id="langkah-posisi"></span>
+            </div>
+            <ol id="langkah-daftar"></ol>
+
+            <section class="batas" id="batas" hidden>
+              <h2>Perlu diingat</h2>
+              <ul id="batas-isi"></ul>
+            </section>
+          </section>
+
+          <figure class="tampilan" id="tampilan">
+            <img id="tampilan-gambar" src="../assets/internal/portal.jpg" alt="Portal Utama untuk Super Admin" width="1366" height="860" />
+            <figcaption id="tampilan-teks">Tampilan asli dengan data demo.</figcaption>
+          </figure>
+        </div>
+
+        <div class="navigasi">
+          <button type="button" class="btn btn-line" id="tombol-sebelum">Sebelumnya</button>
+          <button type="button" class="btn btn-gold" id="tombol-lanjut">Lanjut</button>
+        </div>
+      </main>
+    </div>
+
+    <script src="internal.js?v=980f09bdb3"></script>
+  </body>
+</html>
