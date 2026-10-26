@@ -1,319 +1,316 @@
 'use strict';
 
-// Tutorial workspace internal (/internal): satu bab per menu, dipakai saat presentasi.
-// Nama menu dan tab disamakan dengan aplikasinya (nav.js, staff.html, monitoring.html,
-// asrama.js, lms-studio.js, operations.html, akun.js, pengaturan.html). Kalau ada menu
-// yang berganti nama, perbarui teks di bawah juga.
+// Tutorial aplikasi kerja Hamasah (/internal): satu bab per menu, dipakai saat presentasi.
+// Bahasanya sengaja sederhana, untuk orang yang belum pernah memakai aplikasi seperti ini.
+// Nama menu dan bagian tetap ditulis persis seperti di aplikasinya (nav.js, staff.html,
+// monitoring.html, asrama.js, lms-studio.js, operations.html, akun.js, pengaturan.html),
+// supaya mudah ditunjuk di layar. Kalau ada menu yang berganti nama, perbarui teks di sini juga.
 
 (function () {
   const BAB = [
     {
-      judul: 'Kenalan dulu dengan workspace internal',
-      peran: ['Semua staf'],
-      ringkas: 'Workspace internal ini tempat tim Hamasah bekerja: pendaftaran, asrama, kelas, keuangan, sampai isi website. Semua staf masuk lewat pintu yang sama, lalu menu yang muncul menyesuaikan perannya.',
-      buka: [['Buka portal', '/portal']],
+      judul: 'Mengenal aplikasi kerja Hamasah',
+      peran: ['Semua tim'],
+      ringkas: 'Ini aplikasi tempat seluruh tim Hamasah bekerja, dari mengurus pendaftar sampai mencatat uang. Semua dikerjakan di satu tempat, jadi tidak perlu lagi mencatat di buku atau banyak file terpisah.',
+      buka: [['Buka aplikasinya', '/portal']],
+      gambar: ['portal', 'Halaman depan aplikasi untuk admin utama: menu di kiri dan ringkasan kondisi lembaga'],
       langkah: [
-        ['Satu alamat untuk semua', 'Semua staf masuk lewat /portal. Tidak ada aplikasi terpisah untuk tiap bagian.'],
-        ['Lima peran internal', 'Super Admin, Petugas Pendaftaran, Musyrif Asrama, Guru / Asatidz, dan Keuangan. Wali dan santri juga masuk lewat portal, tapi bukan bagian dari tutorial ini.'],
-        ['Menu ikut peran', 'Petugas pendaftaran cuma lihat Pendaftaran. Keuangan cuma lihat Keuangan, Visa, dan Inventaris. Super Admin lihat semuanya.'],
-        ['Semua tercatat', 'Hampir setiap perubahan tercatat di Jejak Audit: siapa yang mengubah, apa, dan kapan.']
+        ['Satu pintu masuk untuk semua', 'Semua orang membuka alamat yang sama, yaitu /portal. Tidak ada aplikasi lain yang perlu dipasang.'],
+        ['Ada lima jenis tugas', 'Admin utama, petugas pendaftaran, musyrif (pembina asrama), guru, dan keuangan. Wali dan santri juga bisa masuk, tapi mereka tidak dibahas di sini.'],
+        ['Menu menyesuaikan tugas', 'Petugas pendaftaran hanya melihat menu Pendaftaran. Keuangan hanya melihat menu uang. Admin utama melihat semuanya. Jadi kalau ada menu yang tidak muncul, itu normal.'],
+        ['Semua perubahan ada catatannya', 'Aplikasi mencatat siapa mengubah apa dan kapan. Gunanya supaya semua orang lebih hati-hati dan mudah dilacak kalau ada salah paham.']
       ],
       catatan: [
-        'Buka dengan tujuan: hari ini kita belajar kerja harian di portal, bukan teori.',
-        'Tanyakan siapa pegang peran apa, supaya nanti fokus ke bab yang relevan.',
-        'Tekankan: kalau menu tidak muncul, itu memang bukan bagian perannya, bukan error.'
+        'Buka dengan tujuan: hari ini kita belajar kerja sehari-hari di aplikasi, bukan teori.',
+        'Tanyakan siapa memegang tugas apa, supaya nanti bisa fokus ke bab yang paling cocok.',
+        'Tekankan: kalau sebuah menu tidak muncul, itu memang bukan bagian tugasnya, bukan kerusakan.'
       ],
       batas: []
     },
     {
-      judul: 'Masuk dan berkeliling',
-      peran: ['Semua staf'],
-      ringkas: 'Cara masuk, membaca sidebar, dan apa yang dilakukan kalau lupa kata sandi.',
-      buka: [['Halaman masuk', '/portal']],
+      judul: 'Cara masuk dan mengenal tampilan',
+      peran: ['Semua tim'],
+      ringkas: 'Cara masuk ke aplikasi, cara membaca menu di sebelah kiri, dan apa yang dilakukan kalau lupa kata sandi.',
+      buka: [['Buka halaman masuk', '/portal']],
+      gambar: ['masuk', 'Halaman masuk: isi email dan kata sandi, lalu tekan Masuk'],
       langkah: [
-        ['Masuk', 'Buka /portal, isi email dan kata sandi akun masing-masing, lalu tekan Masuk.'],
-        ['Kenali sidebar', 'Menu ada di kiri. Di HP, buka lewat tombol Menu di pojok kiri atas.'],
-        ['Tombol di atas', 'Perbarui data untuk memuat ulang angka terbaru. Nama akun di kanan atas untuk keluar.'],
-        ['Lupa kata sandi', 'Hubungi Super Admin. Admin bisa membuatkan kata sandi sementara dari Kelola Akun.'],
-        ['Selesai kerja', 'Keluar dari akun kalau memakai komputer bersama.']
+        ['Masuk', 'Buka /portal, isi email dan kata sandi milik sendiri, lalu tekan tombol Masuk.'],
+        ['Kenali menu di kiri', 'Semua menu ada di bagian kiri layar. Di HP, menunya dibuka lewat tombol Menu di pojok kiri atas.'],
+        ['Tombol di bagian atas', 'Tombol "Perbarui data" memuat ulang angka terbaru. Nama Anda di pojok kanan atas dipakai untuk keluar.'],
+        ['Kalau lupa kata sandi', 'Minta tolong admin utama. Admin akan membuatkan kata sandi sementara yang bisa diganti setelah masuk.'],
+        ['Setelah selesai bekerja', 'Tekan Keluar, terutama kalau memakai komputer bersama.']
       ],
       catatan: [
-        'Demokan login pakai akun demo, jangan pakai akun pribadi di layar.',
-        'Tunjukkan versi HP juga, karena musyrif kebanyakan pakai HP.'
+        'Demokan masuk pakai akun contoh, jangan pakai akun pribadi di layar.',
+        'Tunjukkan juga tampilan di HP, karena pembina asrama kebanyakan memakai HP.'
       ],
-      batas: ['Admin tidak bisa melihat kata sandi siapa pun. Admin hanya bisa menggantinya dengan kata sandi sementara.']
+      batas: ['Admin tidak bisa melihat kata sandi siapa pun. Admin hanya bisa menggantinya dengan yang sementara.']
     },
     {
-      judul: 'Portal Utama untuk Super Admin',
-      peran: ['Super Admin'],
-      ringkas: 'Halaman pertama setelah admin masuk. Dari sini kelihatan kondisi lembaga dan apa yang perlu segera ditangani.',
+      judul: 'Halaman utama admin: apa yang perlu diurus hari ini',
+      peran: ['Admin utama'],
+      ringkas: 'Ini halaman pertama yang dilihat admin setelah masuk. Isinya gambaran singkat kondisi lembaga dan daftar hal yang perlu segera diurus.',
       buka: [['Buka Portal Utama', '/portal']],
+      gambar: ['perhatian', 'Kotak "Perlu perhatian": daftar masalah yang dikelompokkan per santri'],
       langkah: [
-        ['Baca angka utama', 'Santri aktif, keterisian asrama, musyrif aktif, dan jumlah hal yang perlu perhatian.'],
-        ['Cek panel Perlu perhatian', 'Isinya dikelompokkan per santri: visa atau paspor yang mau habis, catatan pelanggaran, asrama tanpa musyrif, sampai musyrif yang belum mencatat.'],
-        ['Buka santri', 'Tekan Buka santri untuk langsung masuk ke detail santri itu, lengkap dengan fotonya.'],
-        ['Pindah tab Santri, Asrama, Musyrif', 'Tab Santri berisi tabel semua santri (bisa difilter per asrama atau "Perlu perhatian saja"). Tab Asrama dan Musyrif berisi kartu ringkas.'],
-        ['Data demo', 'Kartu Data demo dipakai untuk mengisi, mengganti kata sandi, atau menghapus data contoh. Jangan dihapus selama masih dipakai untuk presentasi.']
+        ['Baca angka di atas', 'Ada jumlah santri, berapa kamar asrama yang terisi, jumlah pembina, dan berapa hal yang perlu perhatian.'],
+        ['Lihat kotak "Perlu perhatian"', 'Isinya hal-hal yang harus ditindaklanjuti, misalnya paspor atau visa yang hampir habis, santri yang melanggar aturan, atau asrama yang belum punya pembina.'],
+        ['Buka santri yang bermasalah', 'Tekan "Buka santri" untuk langsung melihat data lengkap santri itu.'],
+        ['Pindah ke Santri, Asrama, atau Musyrif', 'Tiga tombol di bawahnya menampilkan daftar santri, daftar asrama, atau daftar pembina asrama (musyrif).'],
+        ['Data contoh', 'Kotak "Data demo" dipakai untuk mengisi data contoh saat latihan. Jangan dihapus selama masih dipakai untuk presentasi.']
       ],
       catatan: [
-        'Ini bab paling penting untuk pimpinan: tunjukkan bahwa masalah langsung kelihatan tanpa buka banyak menu.',
-        'Klik satu santri dari Perlu perhatian supaya alurnya terasa.'
+        'Ini bab paling penting untuk pimpinan: masalah langsung kelihatan tanpa harus membuka banyak menu.',
+        'Klik satu santri dari kotak Perlu perhatian supaya alurnya terasa nyata.'
       ],
-      batas: ['Data demo ikut terlihat di semua menu. Bedakan dengan data asli waktu sudah mulai dipakai.']
+      batas: ['Data contoh ikut tampil di semua menu. Bedakan dari data asli saat aplikasi sudah dipakai sungguhan.']
     },
     {
-      judul: 'Kelola Akun',
-      peran: ['Super Admin'],
-      ringkas: 'Tempat membuat akun tim, wali, dan santri, mengganti peran, dan menonaktifkan akun.',
+      judul: 'Kelola Akun: membuat dan mengatur pengguna',
+      peran: ['Admin utama'],
+      ringkas: 'Tempat membuat akun untuk tim, wali, dan santri, mengubah tugas seseorang, dan menutup akun orang yang sudah tidak bertugas.',
       buka: [['Buka Kelola Akun', '/akun']],
+      gambar: ['akun', 'Halaman Kelola Akun'],
       langkah: [
-        ['Undang lewat WhatsApp', 'Isi nama, nomor WhatsApp, dan peran. Sistem menyiapkan pesan berisi tautan aktivasi, lalu admin yang mengirimnya.'],
-        ['Atau buat akun dengan kata sandi', 'Kalau orangnya ada di dekat kita, akun bisa langsung dibuat dengan kata sandi awal.'],
-        ['Cek Daftar akun', 'Akun yang belum diaktifkan bisa dikirimi ulang lewat Siapkan undangan WhatsApp.'],
-        ['Kata sandi sementara', 'Untuk yang lupa kata sandi. Berikan langsung ke orangnya, jangan lewat grup.'],
-        ['Nonaktifkan', 'Untuk orang yang sudah tidak bertugas. Semua sesinya di perangkat lain ikut keluar.']
+        ['Mengundang lewat WhatsApp', 'Isi nama, nomor WhatsApp, dan tugasnya. Aplikasi menyiapkan pesan berisi tautan aktivasi, lalu admin yang mengirimnya sendiri lewat WhatsApp.'],
+        ['Atau langsung buat akun', 'Kalau orangnya ada di dekat Anda, akun bisa langsung dibuat dengan kata sandi awal.'],
+        ['Cek "Daftar akun"', 'Di sini kelihatan siapa yang sudah aktif dan siapa yang belum. Yang belum aktif bisa diundang ulang.'],
+        ['Kata sandi sementara', 'Dipakai untuk orang yang lupa kata sandi. Berikan langsung ke orangnya, jangan lewat grup.'],
+        ['Menutup akun', 'Pilih "Nonaktifkan" untuk orang yang sudah tidak bertugas. Akunnya langsung keluar dari semua perangkat.']
       ],
       catatan: [
-        'Sarankan akun Super Admin dipegang sedikit orang saja.',
-        'Jelaskan bahwa satu akun wali bisa terhubung ke beberapa anak (dihubungkan di Monitoring).'
+        'Sarankan akun admin utama dipegang sedikit orang saja.',
+        'Jelaskan bahwa satu akun wali bisa dihubungkan ke beberapa anak (dihubungkan lewat menu Monitoring Asrama).'
       ],
-      batas: ['Akun tidak dihapus, cukup dinonaktifkan, supaya riwayatnya tetap ada.']
+      batas: ['Akun tidak dihapus, hanya dinonaktifkan, supaya riwayatnya tetap tersimpan.']
     },
     {
-      judul: 'Pendaftaran',
-      peran: ['Petugas Pendaftaran', 'Super Admin'],
-      ringkas: 'Semua calon santri dari formulir website masuk ke sini, sampai siap berangkat dan dijadikan santri.',
+      judul: 'Pendaftaran: mengurus calon santri',
+      peran: ['Petugas pendaftaran', 'Admin utama'],
+      ringkas: 'Semua orang yang mendaftar lewat website masuk ke sini. Petugas mengurusnya langkah demi langkah sampai calon santri siap berangkat.',
       buka: [['Buka Pendaftaran', '/staff']],
+      gambar: ['pendaftaran', 'Halaman Pendaftaran: jumlah pendaftar di tiap tahap dan daftar nama pendaftar'],
       langkah: [
-        ['Daftar calon santri masuk', 'Tiap pendaftar tampil sebagai satu baris: tahap, progres, dan tanda merah kalau sudah terlalu lama belum diperiksa.'],
-        ['Buka detail pendaftar', 'Klik barisnya. Di dalam ada data diri, berkas, catatan, tindak lanjut, dan riwayat tahap.'],
-        ['Periksa berkas', 'Setujui atau tolak tiap dokumen. Kalau ditolak, tulis alasannya supaya pendaftar tahu apa yang diperbaiki.'],
-        ['Ubah tahap', 'Data dikirim → Pemeriksaan berkas → Persiapan akademik → Siap keberangkatan → Selesai. Ada juga Perlu perbaikan dan Dibatalkan.'],
-        ['Catat tindak lanjut', 'Beri tenggat. Semua tindak lanjut yang belum selesai terkumpul di tab Agenda tindak lanjut.'],
-        ['Masukkan ke kloter', 'Atur kloter di bagian Kloter keberangkatan, lalu pilih kloternya di detail pendaftar. Jadwalnya muncul di halaman cek status pendaftar.'],
-        ['Kabari lewat WhatsApp', 'Siapkan pesan dari detail pendaftar, baca ulang, lalu kirim.'],
-        ['Konversi jadi santri', 'Pendaftar yang sudah selesai dikonversi jadi santri supaya bisa masuk asrama dan kelas.']
+        ['Lihat daftar pendaftar', 'Setiap pendaftar tampil sebagai satu kartu: nama, tahap sekarang, dan tanda merah kalau sudah terlalu lama belum diurus.'],
+        ['Buka data pendaftar', 'Klik kartunya. Isinya data diri, berkas yang diunggah, catatan, dan riwayat tahap.'],
+        ['Periksa berkas', 'Setujui atau tolak tiap dokumen. Kalau ditolak, tulis alasannya supaya pendaftar tahu apa yang harus diperbaiki.'],
+        ['Pindahkan ke tahap berikutnya', 'Urutannya: Data dikirim, Pemeriksaan berkas, Persiapan akademik, Siap keberangkatan, lalu Selesai. Ada juga status Perlu perbaikan dan Dibatalkan.'],
+        ['Catat hal yang harus ditindaklanjuti', 'Misalnya "minta paspor", lengkap dengan batas waktunya. Semua yang belum selesai terkumpul di bagian "Agenda tindak lanjut".'],
+        ['Masukkan ke rombongan berangkat', 'Atur rombongan di bagian "Kloter keberangkatan", lalu pilih rombongan untuk tiap pendaftar. Jadwalnya otomatis tampil di halaman cek status milik pendaftar.'],
+        ['Kabari lewat WhatsApp', 'Aplikasi menyiapkan isi pesannya. Baca dulu, lalu kirim sendiri.'],
+        ['Jadikan santri', 'Kalau semua tahap sudah selesai, tekan tombol untuk menjadikannya santri supaya bisa masuk asrama dan kelas.']
       ],
       catatan: [
-        'Sebut tab lain sekilas: Pena Hamasah (artikel), Notifikasi akun, Import operasional, Pesan konsultasi.',
-        'Tunjukkan tombol Tambah pendaftar manual untuk yang daftar lewat telepon atau datang langsung.'
+        'Sebut sekilas bagian lain di halaman ini: Pena Hamasah (artikel), Notifikasi akun, Import operasional, Pesan konsultasi.',
+        'Tunjukkan tombol "Tambah pendaftar manual" untuk orang yang mendaftar lewat telepon atau datang langsung.'
       ],
-      batas: ['Petugas tidak bisa membuka tagihan, catatan pembinaan, atau membuat akun. Petugas hanya bisa mengirim ulang undangan.']
+      batas: ['Petugas pendaftaran tidak bisa membuka tagihan, catatan pembinaan, atau membuat akun. Petugas hanya bisa mengirim ulang undangan.']
     },
     {
-      judul: 'Monitoring Asrama: kerja harian musyrif',
-      peran: ['Musyrif Asrama', 'Super Admin'],
-      ringkas: 'Tempat musyrif mencatat absen, pembinaan, dan izin santri di asrama yang dipegangnya.',
-      buka: [['Buka Monitoring', '/monitoring']],
+      judul: 'Monitoring Asrama: pekerjaan harian pembina',
+      peran: ['Pembina asrama (musyrif)', 'Admin utama'],
+      ringkas: 'Tempat pembina asrama mencatat siapa yang hadir sholat atau kegiatan, perkembangan santri, dan izin keluar santri.',
+      buka: [['Buka Monitoring Asrama', '/monitoring']],
+      gambar: ['presensi', 'Bagian "Presensi asrama": daftar santri dengan pilihan Berjamaah, Munfarid, Tidak, atau Izin'],
       langkah: [
-        ['Presensi asrama', 'Pilih Sholat atau Kegiatan, tanggal, dan waktu sholat, lalu Tampilkan daftar. Yang belum dicatat sudah otomatis Berjamaah atau Hadir, jadi cukup ganti yang beda lalu Simpan presensi.'],
-        ['Pembinaan santri', 'Pilih santrinya, lalu catat pembinaan, setoran hafalan (ziyadah atau murajaah), dan prestasi.'],
-        ['Izin santri', 'Setujui atau tolak pengajuan izin keluar. Kepulangannya dicatat di tab Kepulangan izin.'],
-        ['Tindak lanjut pembinaan', 'Target dan tenggat pembinaan per santri. Yang lewat tenggat ditandai.'],
-        ['Pesan wali dan Pengumuman', 'Baca pesan dan doa dari wali, lalu tulis pengumuman untuk santri dan wali di asrama itu.'],
-        ['Santri teladan', 'Pilih santri teladan bulanan.']
+        ['Catat kehadiran di "Presensi asrama"', 'Pilih Sholat atau Kegiatan, tanggal, dan waktu sholat, lalu tekan "Tampilkan daftar". Semua santri sudah otomatis terisi hadir, jadi cukup ubah yang berbeda lalu tekan "Simpan presensi".'],
+        ['Catat perkembangan santri', 'Di "Pembinaan santri": pilih santrinya, lalu tulis catatan pembinaan, setoran hafalan Al-Qur\'an (hafalan baru atau mengulang hafalan lama), dan prestasinya.'],
+        ['Jawab permintaan izin', 'Di "Izin santri": setujui atau tolak pengajuan izin keluar. Kepulangan santri yang izin dicatat di "Kepulangan izin".'],
+        ['Pantau target pembinaan', 'Di "Tindak lanjut pembinaan": target dan batas waktu untuk tiap santri. Yang terlambat diberi tanda.'],
+        ['Baca pesan wali dan buat pengumuman', 'Di "Pesan wali" ada pesan dan doa dari orang tua. Di "Pengumuman" Anda bisa menulis kabar untuk santri dan wali di asrama itu.'],
+        ['Pilih santri teladan', 'Di "Santri teladan", pilih santri terbaik bulan ini.']
       ],
       catatan: [
-        'Demokan Presensi asrama dari awal sampai simpan, ini yang dipakai tiap hari.',
-        'Sebut juga Cerita AI di Portal Utama musyrif: cerita singkat soal hari itu, AI menyusun usulan catatan per santri, musyrif cek dulu sebelum disimpan.',
-        'Ingatkan: kalau dicatat di hari yang sama, halaman wali selalu terisi.'
+        'Demokan "Presensi asrama" dari awal sampai simpan, karena inilah yang dikerjakan setiap hari.',
+        'Sebut juga "Cerita AI" di halaman utama pembina: pembina menulis cerita singkat tentang hari itu, lalu AI menyusunnya menjadi usulan catatan per santri. Pembina tetap memeriksa dulu sebelum disimpan.',
+        'Ingatkan: kalau dicatat di hari yang sama, halaman milik wali selalu terisi.'
       ],
-      batas: ['Musyrif hanya melihat santri di asrama yang dipegangnya.']
+      batas: ['Pembina hanya bisa melihat santri di asrama yang menjadi tanggung jawabnya.']
     },
     {
-      judul: 'Monitoring Asrama: bagian Super Admin',
-      peran: ['Super Admin'],
-      ringkas: 'Beberapa tab di Monitoring hanya muncul untuk admin, karena menentukan siapa melihat santri yang mana.',
-      buka: [['Buka Monitoring', '/monitoring']],
+      judul: 'Monitoring Asrama: bagian khusus admin',
+      peran: ['Admin utama'],
+      ringkas: 'Beberapa bagian di Monitoring Asrama hanya muncul untuk admin, karena bagian ini menentukan siapa boleh melihat santri yang mana.',
+      buka: [['Buka Monitoring Asrama', '/monitoring']],
+      gambar: ['monitoring-admin', 'Bagian "Kelola Asrama & Musyrif" di Monitoring Asrama'],
       langkah: [
-        ['Profil santri baru', 'Tambah santri yang tidak lewat jalur pendaftaran online.'],
-        ['Penempatan Kamar & Asrama', 'Tempatkan santri ke asrama dan kamarnya.'],
-        ['Kelola Asrama & Musyrif', 'Tambah gedung asrama, lalu tugaskan musyrif pembinanya.'],
-        ['Hubungkan akun wali', 'Hubungkan akun wali dengan santri. Satu wali bisa dihubungkan ke beberapa anak.']
+        ['Menambah santri baru', 'Di "Profil santri baru": untuk santri yang tidak mendaftar lewat website.'],
+        ['Menempatkan santri', 'Di "Penempatan Kamar & Asrama": pilih santri, lalu tentukan asrama dan kamarnya.'],
+        ['Mengatur asrama dan pembinanya', 'Di "Kelola Asrama & Musyrif": tambahkan gedung asrama, lalu tentukan pembina yang bertanggung jawab.'],
+        ['Menghubungkan orang tua', 'Di "Hubungkan akun wali": sambungkan akun orang tua dengan anaknya. Satu orang tua bisa dihubungkan ke beberapa anak.']
       ],
       catatan: [
-        'Urutannya penting waktu awal pakai: asrama dulu, musyrif, santri, baru hubungkan wali.'
+        'Urutan saat pertama kali dipakai itu penting: asrama dulu, lalu pembina, lalu santri, terakhir hubungkan wali.'
       ],
-      batas: ['Musyrif tidak bisa menambah santri, memindah asrama, atau menghubungkan akun wali.']
+      batas: ['Pembina asrama tidak bisa menambah santri, memindahkan asrama, atau menghubungkan akun orang tua.']
     },
     {
-      judul: 'Kelola Asrama',
-      peran: ['Musyrif Asrama', 'Super Admin'],
-      ringkas: 'Urusan rumah tangga asrama: jadwal, piket, uang kas, barang, foto, dan iqamah.',
+      judul: 'Kelola Asrama: urusan rumah tangga asrama',
+      peran: ['Pembina asrama (musyrif)', 'Admin utama'],
+      ringkas: 'Untuk mengurus keperluan asrama sehari-hari: jadwal, giliran piket, uang kas, barang, foto, dan masa berlaku izin tinggal.',
       buka: [['Buka Kelola Asrama', '/asrama']],
+      gambar: ['asrama', 'Halaman Kelola Asrama'],
       langkah: [
-        ['Kalender', 'Jadwal mingguan dan agenda asrama dalam tampilan kalender.'],
-        ['Piket', 'Atur siapa piket kapan. Santri melihat piketnya di beranda.'],
-        ['Uang kas', 'Catat pemasukan, pengeluaran, dan iuran. Saldo dihitung otomatis.'],
-        ['Inventaris', 'Daftar barang asrama, jumlah, dan kondisinya.'],
-        ['Galeri', 'Foto kegiatan asrama.'],
-        ['Iqamah', 'Pantau masa berlaku iqamah santri dan laporan perpanjangannya.']
+        ['Kalender', 'Jadwal mingguan dan acara asrama dalam bentuk kalender.'],
+        ['Piket', 'Atur siapa piket di hari apa. Santri bisa melihat gilirannya di halaman mereka.'],
+        ['Uang kas', 'Catat uang masuk, uang keluar, dan iuran. Sisa uangnya dihitung otomatis.'],
+        ['Inventaris', 'Daftar barang asrama beserta jumlah dan kondisinya.'],
+        ['Galeri', 'Kumpulan foto kegiatan asrama.'],
+        ['Iqamah', 'Iqamah adalah izin tinggal di Mesir. Di sini terlihat kapan masa berlakunya habis dan siapa yang perlu memperpanjang.']
       ],
       catatan: [
-        'Tunjukkan Uang kas: catatan yang salah dibatalkan dengan alasan, bukan dihapus.'
+        'Tunjukkan "Uang kas": catatan yang salah tidak dihapus, tapi dibatalkan dengan menyebut alasannya.'
       ],
-      batas: ['Catatan kas tidak bisa dihapus. Yang salah dibatalkan dengan alasan, dan catatannya tetap ada.']
+      batas: ['Catatan uang kas tidak bisa dihapus. Yang salah dibatalkan dengan alasan, dan catatannya tetap tersimpan.']
     },
     {
-      judul: 'LMS: kelas online',
-      peran: ['Guru / Asatidz', 'Super Admin'],
-      ringkas: 'Guru menyiapkan maddah, materi, kuis, dan tugas. Santri belajar dari HP.',
+      judul: 'LMS: kelas online untuk santri',
+      peran: ['Guru', 'Admin utama'],
+      ringkas: 'LMS adalah ruang kelas di internet. Guru menyiapkan pelajaran, latihan soal, dan tugas, lalu santri belajar lewat HP.',
       buka: [['Buka LMS', '/lms']],
+      gambar: ['lms', 'Halaman LMS Maddah (maddah artinya mata pelajaran)'],
       langkah: [
-        ['Buat maddah', 'Isi judul dan deskripsi singkat.'],
-        ['Tambah materi di tab Kurikulum', 'Pilih jenisnya: bacaan, video YouTube, PDF, kuis, atau tugas. Materi bisa diurutkan, diubah, atau diarsipkan.'],
-        ['Susun kuis', 'Tulis pertanyaan dan tandai jawaban yang benar. Nilai lulusnya 70, santri boleh mencoba tiga kali.'],
-        ['Daftarkan santri', 'Di tab Santri, pilih siapa saja yang ikut. Progres tiap santri juga kelihatan di sini.'],
-        ['Nilai tugas', 'Di tab Penilaian. Nilai 70 ke atas otomatis dianggap selesai.'],
-        ['Lihat sebagai santri', 'Cek tampilannya dari sisi santri sebelum materinya dibuka.']
+        ['Buat mata pelajaran', 'Di sini disebut "maddah". Cukup isi judul dan penjelasan singkat.'],
+        ['Isi materinya di bagian "Kurikulum"', 'Pilih jenisnya: bacaan, video YouTube, file PDF, kuis, atau tugas. Urutannya bisa diatur, diubah, atau disimpan dulu tanpa ditampilkan.'],
+        ['Susun kuis', 'Tulis pertanyaan dan tandai jawaban yang benar. Nilai lulusnya 70, dan santri boleh mencoba sampai tiga kali.'],
+        ['Daftarkan santri', 'Di bagian "Santri", pilih siapa saja yang ikut. Di sini juga kelihatan sejauh mana belajar tiap santri.'],
+        ['Beri nilai tugas', 'Di bagian "Penilaian". Nilai 70 ke atas otomatis dianggap selesai.'],
+        ['Lihat sebagai santri', 'Cek dulu tampilan dari sisi santri sebelum materi dibuka.']
       ],
       catatan: [
-        'Tunjukkan asisten belajar: santri bisa tanya di tiap pertemuan, jawabannya dari ringkasan materi yang ditulis guru.',
+        'Tunjukkan asisten belajar: santri bisa bertanya di setiap pertemuan, dan jawabannya diambil dari ringkasan yang ditulis guru.',
         'Pesan untuk guru: makin jelas ringkasan dan poin pentingnya, makin bagus jawaban asistennya.'
       ],
-      batas: ['Guru hanya melihat maddah yang dipegangnya.']
+      batas: ['Guru hanya bisa melihat mata pelajaran yang dipegangnya.']
     },
     {
-      judul: 'Keuangan & SPP',
-      peran: ['Keuangan', 'Super Admin'],
-      ringkas: 'Tagihan, kuitansi, tunggakan, dan laporan. Semua tagihan dalam rupiah.',
-      buka: [['Buka Keuangan', '/operations']],
+      judul: 'Keuangan & SPP: tagihan dan pembayaran',
+      peran: ['Keuangan', 'Admin utama'],
+      ringkas: 'Tempat membuat tagihan, mencatat pembayaran, mencetak kuitansi, dan memantau siapa yang belum membayar. Semua dalam rupiah.',
+      buka: [['Buka Keuangan & SPP', '/operations']],
+      gambar: ['keuangan', 'Halaman Keuangan & SPP: ringkasan tunggakan dan daftar tagihan'],
       langkah: [
-        ['Terbitkan tagihan', 'Pilih Satu santri atau Banyak santri sekaligus, isi keterangan dan nominal, lalu terbitkan.'],
-        ['Kabari wali', 'Di kartu invoice, tekan Kabari wali lewat WhatsApp, baca ulang pesannya, lalu kirim.'],
-        ['Tandai lunas', 'Setelah uangnya masuk. Nomor kuitansi keluar otomatis.'],
-        ['Unduh kuitansi', 'Kuitansi PDF tersedia untuk invoice yang sudah lunas, bisa diunduh keuangan maupun wali.'],
-        ['Koreksi atau batalkan', 'Wajib pakai alasan. Semua koreksi bisa dilihat di Riwayat koreksi dan tab Riwayat keuangan.'],
-        ['Pantau tunggakan', 'Tabel Tunggakan per santri diurutkan dari total terbesar. Tagihan yang lebih dari 30 hari ditandai merah.'],
-        ['Laporan CSV', 'Pilih rentang bulan di bilah Laporan tagihan, lalu Unduh laporan CSV.']
+        ['Buat tagihan', 'Pilih "Satu santri" atau "Banyak santri sekaligus", isi keterangan dan jumlahnya, lalu terbitkan.'],
+        ['Kabari wali', 'Di kartu tagihan, tekan "Kabari wali lewat WhatsApp", baca pesannya, lalu kirim.'],
+        ['Tandai sudah lunas', 'Lakukan ini setelah uangnya benar-benar diterima. Nomor kuitansi muncul otomatis.'],
+        ['Unduh kuitansi', 'Kuitansi berbentuk PDF dan bisa diunduh oleh bagian keuangan maupun orang tua.'],
+        ['Memperbaiki atau membatalkan', 'Wajib menulis alasannya. Semua perbaikan tercatat di "Riwayat koreksi" dan "Riwayat keuangan".'],
+        ['Pantau yang belum bayar', 'Tabel "Tunggakan" mengurutkan santri dari yang tunggakannya terbesar. Tagihan yang lewat dari 30 hari diberi tanda merah.'],
+        ['Unduh laporan', 'Pilih rentang bulan di bagian "Laporan tagihan", lalu unduh laporannya sebagai file yang bisa dibuka di Excel.']
       ],
       catatan: [
-        'Demokan satu siklus: terbitkan → kabari → tandai lunas → unduh kuitansi.',
+        'Demokan satu siklus penuh: buat tagihan, kabari wali, tandai lunas, unduh kuitansi.',
         'Kalau ada pembayaran dalam pound Mesir, tetap dicatat dalam rupiah secara manual.'
       ],
-      batas: ['Tagihan tidak bisa dihapus. Yang salah dikoreksi atau dibatalkan dengan alasan.']
+      batas: ['Tagihan tidak bisa dihapus. Yang salah diperbaiki atau dibatalkan dengan menulis alasannya.']
     },
     {
       judul: 'Visa, Paspor, dan Inventaris',
-      peran: ['Keuangan', 'Super Admin'],
-      ringkas: 'Dua menu ini ada di halaman Keuangan, tapi punya menu sendiri di sidebar supaya cepat dibuka.',
+      peran: ['Keuangan', 'Admin utama'],
+      ringkas: 'Dua menu ini letaknya di halaman Keuangan, tapi dibuatkan menu sendiri di sebelah kiri supaya cepat dibuka.',
       buka: [['Buka Visa & Paspor', '/operations#visa'], ['Buka Inventaris', '/operations#inventaris']],
+      gambar: ['visa', 'Pelacak visa pelajar: satu kartu per santri berisi masa berlaku paspor dan visa'],
       langkah: [
-        ['Tracker visa pelajar', 'Kartu visa semua santri aktif, diurutkan dari yang paling mendesak. Yang sudah lewat ditandai merah.'],
-        ['Perbarui berkas visa', 'Catat tanggal berlaku baru dan berkas pendukungnya.'],
-        ['Inventaris & Sarana Asrama', 'Daftar aset, lalu catat pergerakan stok: barang masuk dan keluar.'],
-        ['Riwayat keuangan', 'Catatan per hari: tagihan terbit, lunas, dikoreksi, dan dibatalkan.']
+        ['Pelacak visa', 'Satu kartu untuk setiap santri aktif. Yang paling mendesak ditaruh di paling atas, dan yang sudah lewat masa berlakunya diberi warna merah.'],
+        ['Memperbarui data visa', 'Catat tanggal berlaku yang baru dan unggah berkas pendukungnya.'],
+        ['Inventaris', 'Daftar barang milik asrama. Setiap barang yang masuk atau keluar dicatat supaya jumlahnya selalu cocok.'],
+        ['Riwayat keuangan', 'Catatan per hari tentang tagihan yang terbit, dibayar, diperbaiki, dan dibatalkan.']
       ],
       catatan: [
-        'Visa yang mau habis juga muncul di panel Perlu perhatian di Portal Utama admin.'
+        'Visa yang hampir habis juga muncul di kotak "Perlu perhatian" di halaman utama admin.'
       ],
       batas: []
     },
     {
-      judul: 'Jejak Audit',
-      peran: ['Super Admin'],
-      ringkas: 'Catatan siapa melakukan apa dan kapan, di seluruh aplikasi.',
+      judul: 'Jejak Audit: catatan siapa melakukan apa',
+      peran: ['Admin utama'],
+      ringkas: 'Catatan otomatis tentang siapa mengubah apa dan kapan, di seluruh aplikasi. Anggap saja seperti kamera CCTV untuk data.',
       buka: [['Buka Jejak Audit', '/audit']],
+      gambar: ['audit', 'Halaman Jejak Audit'],
       langkah: [
-        ['Saring kejadian', 'Pakai Filter riwayat kejadian: menurut peran, jenis kejadian, atau tanggal.'],
-        ['Baca timeline', 'Tiap baris berisi pelaku, tindakan, dan waktunya.'],
-        ['Pakai saat ada pertanyaan', 'Misalnya "siapa yang membatalkan tagihan ini?" atau "kapan status pendaftar ini berubah?".']
+        ['Saring kejadian', 'Gunakan "Filter riwayat kejadian" untuk memilih berdasarkan tugas seseorang, jenis kejadian, atau tanggal.'],
+        ['Baca daftarnya', 'Tiap baris berisi siapa yang melakukan, apa yang dilakukan, dan jam berapa.'],
+        ['Kapan dipakai', 'Misalnya saat ada yang bertanya "siapa yang membatalkan tagihan ini?" atau "kapan status pendaftar ini berubah?".']
       ],
       catatan: [
-        'Tekankan: ini yang bikin semua orang lebih hati-hati, dan memudahkan kalau ada salah paham.'
+        'Tekankan: karena semua tercatat, orang jadi lebih hati-hati, dan kalau ada salah paham mudah dicari penyebabnya.'
       ],
-      batas: ['Masa simpan jejak audit diatur di Pengaturan.']
+      batas: ['Berapa lama catatan ini disimpan diatur di menu Pengaturan.']
     },
     {
       judul: 'Konten Website dan Template',
-      peran: ['Super Admin'],
-      ringkas: 'Mengubah isi website dan isi dokumen tanpa perlu programmer.',
+      peran: ['Admin utama'],
+      ringkas: 'Untuk mengubah tulisan di website dan isi dokumen tanpa perlu meminta bantuan programmer.',
       buka: [['Buka Konten Website', '/konten'], ['Buka Template', '/template']],
+      gambar: ['konten', 'Halaman Konten Website'],
       langkah: [
-        ['Konten Website', 'Ubah biaya, program, kontak, testimoni, tanya jawab, dan pengumuman. Ada pratinjau sebelum disimpan.'],
-        ['Template pesan WhatsApp', 'Atur isi pesan yang disiapkan sistem, misalnya pengingat tagihan.'],
-        ['Template dokumen', 'Atur kop surat, nomor rekening, dan nama penanda tangan di PDF kuitansi.']
+        ['Konten Website', 'Ubah biaya, program, kontak, testimoni, tanya jawab, dan pengumuman. Ada pratinjau untuk melihat hasilnya sebelum disimpan.'],
+        ['Template pesan WhatsApp', 'Atur bunyi pesan yang disiapkan aplikasi, misalnya pesan pengingat tagihan.'],
+        ['Template dokumen', 'Atur kop surat, nomor rekening, dan nama penanda tangan yang tercetak di kuitansi PDF.']
       ],
       catatan: [
-        'Demokan ubah satu angka biaya, lihat pratinjaunya, lalu batalkan supaya website tidak berubah.'
+        'Demokan mengubah satu angka biaya, lihat pratinjaunya, lalu batalkan supaya website tidak ikut berubah.'
       ],
-      batas: ['Perubahan di Konten Website langsung tampil di website umum setelah disimpan.']
+      batas: ['Perubahan di Konten Website langsung terlihat di website umum begitu disimpan.']
     },
     {
-      judul: 'Pengaturan',
-      peran: ['Super Admin'],
-      ringkas: 'Saklar fitur dan pengaturan yang berlaku untuk seluruh aplikasi.',
+      judul: 'Pengaturan: saklar fitur aplikasi',
+      peran: ['Admin utama'],
+      ringkas: 'Tempat menyalakan atau mematikan fitur tertentu, dan mengatur hal-hal yang berlaku untuk seluruh aplikasi.',
       buka: [['Buka Pengaturan', '/pengaturan']],
+      gambar: ['pengaturan', 'Halaman Pengaturan'],
       langkah: [
-        ['Pendaftaran', 'Buka atau tutup pendaftaran online, periode penerimaan, pesan saat pendaftaran ditutup, dan rekening pembayaran.'],
-        ['Asisten otomatis', 'Nyalakan atau matikan asisten di website dan asisten belajar LMS, serta batas pertanyaan per akun per jam.'],
-        ['Data pribadi', 'Saklar catatan kesehatan santri dan masa simpan jejak audit.'],
-        ['Pembaruan database', 'Dipakai tim teknis kalau ada pembaruan sistem.']
+        ['Pendaftaran', 'Buka atau tutup pendaftaran online, tentukan periode penerimaan, tulis pesan saat pendaftaran ditutup, dan isi rekening pembayaran.'],
+        ['Asisten otomatis', 'Nyalakan atau matikan asisten di website dan asisten belajar di kelas online, termasuk batas berapa kali satu akun boleh bertanya dalam satu jam.'],
+        ['Data pribadi', 'Saklar untuk catatan kesehatan santri, dan pengaturan berapa lama catatan riwayat disimpan.'],
+        ['Pembaruan database', 'Bagian ini hanya untuk tim teknis saat aplikasi diperbarui. Tidak perlu disentuh.']
       ],
       catatan: [
         'Jelaskan bahwa catatan kesehatan baru dinyalakan setelah kebijakan privasinya siap dan diputuskan Ust. Aji.'
       ],
-      batas: ['Pembaruan database sebaiknya hanya dijalankan tim teknis.']
+      batas: ['"Pembaruan database" sebaiknya hanya dijalankan oleh tim teknis.']
     },
     {
-      judul: 'Rutinitas harian dan penutup',
-      peran: ['Semua staf'],
-      ringkas: 'Kalau semua orang mengerjakan bagiannya tiap hari, halaman wali dan dashboard pimpinan selalu terisi.',
-      buka: [['Buka portal', '/portal']],
+      judul: 'Kerja harian tiap tugas, lalu tanya jawab',
+      peran: ['Semua tim'],
+      ringkas: 'Kalau setiap orang mengerjakan bagiannya tiap hari, halaman milik orang tua dan halaman pimpinan akan selalu terisi data terbaru.',
+      buka: [['Buka aplikasinya', '/portal']],
+      gambar: ['portal', 'Halaman depan aplikasi untuk admin utama'],
       langkah: [
-        ['Super Admin', 'Tiap pagi buka Portal Utama dan cek Perlu perhatian.'],
-        ['Petugas pendaftaran', 'Mulai dari Agenda tindak lanjut, lalu pendaftar yang bertanda merah.'],
-        ['Musyrif', 'Isi Presensi asrama tiap waktu sholat, jawab izin, dan catat setoran hafalan.'],
-        ['Guru', 'Unggah materi pertemuan dan nilai tugas yang masuk.'],
-        ['Keuangan', 'Terbitkan tagihan di awal bulan, tandai lunas begitu uang masuk.'],
-        ['Kalau ada kendala', 'Catat halamannya dan apa yang terjadi, lalu kabari saya. Screenshot sangat membantu.']
+        ['Admin utama', 'Setiap pagi buka halaman utama dan lihat kotak "Perlu perhatian".'],
+        ['Petugas pendaftaran', 'Mulai dari "Agenda tindak lanjut", lalu pendaftar yang bertanda merah.'],
+        ['Pembina asrama', 'Isi "Presensi asrama" tiap waktu sholat, jawab permintaan izin, dan catat setoran hafalan.'],
+        ['Guru', 'Unggah materi untuk pertemuan berikutnya dan beri nilai pada tugas yang masuk.'],
+        ['Keuangan', 'Buat tagihan di awal bulan, dan tandai lunas begitu uangnya masuk.'],
+        ['Kalau ada kendala', 'Catat halaman mana dan apa yang terjadi, lalu kabari tim teknis. Foto layarnya sangat membantu.']
       ],
       catatan: [
-        'Tutup dengan rencana uji coba: tiap peran dicoba langsung oleh orang yang nanti memakainya.',
+        'Tutup dengan rencana uji coba: setiap tugas dicoba langsung oleh orang yang nanti memakainya.',
         'Buka sesi tanya jawab.'
       ],
       batas: []
     }
   ];
 
-  // Tangkapan layar asli tiap bab (assets/internal, data demo lokal), dicocokkan lewat judul bab.
-  const GAMBAR = {
-    'Kenalan dulu dengan workspace internal': ['portal', 'Portal Utama Super Admin: sidebar menu, angka utama, dan pintasan ke tiap bagian'],
-    'Masuk dan berkeliling': ['masuk', 'Halaman masuk portal untuk santri, wali, dan staf'],
-    'Portal Utama untuk Super Admin': ['perhatian', 'Panel Perlu perhatian di Portal Utama, dikelompokkan per santri'],
-    'Kelola Akun': ['akun', 'Halaman Kelola Akun'],
-    'Pendaftaran': ['pendaftaran', 'Halaman Pendaftaran calon santri dengan angka per tahap dan daftar pendaftar'],
-    'Monitoring Asrama: kerja harian musyrif': ['presensi', 'Tab Presensi asrama: daftar santri dengan pilihan Berjamaah, Munfarid, Tidak, Izin'],
-    'Monitoring Asrama: bagian Super Admin': ['monitoring-admin', 'Tab Kelola Asrama & Musyrif di Monitoring Asrama'],
-    'Kelola Asrama': ['asrama', 'Halaman Kelola Asrama'],
-    'LMS: kelas online': ['lms', 'Halaman LMS Maddah'],
-    'Keuangan & SPP': ['keuangan', 'Halaman Keuangan & SPP dengan ringkasan tunggakan dan tagihan'],
-    'Visa, Paspor, dan Inventaris': ['visa', 'Tracker visa pelajar: kartu per santri dengan masa berlaku paspor dan visa'],
-    'Jejak Audit': ['audit', 'Halaman Jejak Audit'],
-    'Konten Website dan Template': ['konten', 'Halaman Konten Website'],
-    'Pengaturan': ['pengaturan', 'Halaman Pengaturan'],
-    'Rutinitas harian dan penutup': ['portal', 'Portal Utama Super Admin']
-  };
-
-  // Tangkapan layar per langkah (urutannya sama dengan daftar langkah tiap bab). Langkah tanpa
-  // entri memakai gambar bab di atas. Gambar dibuat ulang dengan .claude/checks/internal-shots.cjs.
-  const LANGKAH_GAMBAR = {
-    'Kenalan dulu dengan workspace internal': ['portal', 'portal', 'portal', 'audit'],
-    'Masuk dan berkeliling': ['masuk', 'portal', 'portal', 'masuk', 'portal'],
-    'Portal Utama untuk Super Admin': ['portal-angka', 'perhatian', 'santri-detail', 'portal-tabel', 'portal-demo'],
-    'Kelola Akun': ['akun', 'akun-buat', 'akun-daftar', 'akun-daftar', 'akun-daftar'],
-    'Pendaftaran': ['pendaftaran', 'pendaftaran-detail', 'pendaftaran-detail', 'pendaftaran-detail-tengah', 'pendaftaran-agenda', 'pendaftaran-kloter', 'pendaftaran-detail-bawah', 'pendaftaran-detail-bawah'],
-    'Monitoring Asrama: kerja harian musyrif': ['presensi', 'monitoring-pembinaan', 'monitoring-izin', 'monitoring-tindaklanjut', 'monitoring-pesan', 'monitoring-teladan'],
-    'Monitoring Asrama: bagian Super Admin': ['monitoring-santribaru', 'monitoring-penempatan', 'monitoring-admin', 'monitoring-wali'],
-    'Kelola Asrama': ['asrama-kalender', 'asrama-piket', 'asrama-kas', 'asrama-inventaris', 'asrama-galeri', 'asrama-iqamah'],
-    'LMS: kelas online': ['lms', 'lms-kurikulum', 'lms-kurikulum', 'lms-santri', 'lms-penilaian', 'lms-kurikulum'],
-    'Keuangan & SPP': ['keuangan', 'keuangan-invoice', 'keuangan-invoice', 'keuangan-invoice', 'keuangan-invoice', 'keuangan-tunggakan', 'keuangan-invoice'],
-    'Visa, Paspor, dan Inventaris': ['visa', 'visa', 'inventaris', 'keuangan-riwayat'],
-    'Jejak Audit': ['audit', 'audit-timeline', 'audit-timeline'],
-    'Konten Website dan Template': ['konten', 'template', 'template'],
-    'Pengaturan': ['pengaturan', 'pengaturan-ai', 'pengaturan-data', 'pengaturan-db'],
-    'Rutinitas harian dan penutup': ['portal', 'pendaftaran-agenda', 'presensi', 'lms-kurikulum', 'keuangan-invoice', 'portal']
-  };
+  // Tangkapan layar per langkah, urutannya sama dengan bab dan langkah di atas. Langkah tanpa
+  // gambar sendiri memakai gambar bab. Dibuat ulang dengan .claude/checks/internal-shots.cjs.
+  const LANGKAH_GAMBAR = [
+    ['portal', 'portal', 'portal', 'audit'],
+    ['masuk', 'portal', 'portal', 'masuk', 'portal'],
+    ['portal-angka', 'perhatian', 'santri-detail', 'portal-tabel', 'portal-demo'],
+    ['akun', 'akun-buat', 'akun-daftar', 'akun-daftar', 'akun-daftar'],
+    ['pendaftaran', 'pendaftaran-detail', 'pendaftaran-detail', 'pendaftaran-detail-tengah', 'pendaftaran-agenda', 'pendaftaran-kloter', 'pendaftaran-detail-bawah', 'pendaftaran-detail-bawah'],
+    ['presensi', 'monitoring-pembinaan', 'monitoring-izin', 'monitoring-tindaklanjut', 'monitoring-pesan', 'monitoring-teladan'],
+    ['monitoring-santribaru', 'monitoring-penempatan', 'monitoring-admin', 'monitoring-wali'],
+    ['asrama-kalender', 'asrama-piket', 'asrama-kas', 'asrama-inventaris', 'asrama-galeri', 'asrama-iqamah'],
+    ['lms', 'lms-kurikulum', 'lms-kurikulum', 'lms-santri', 'lms-penilaian', 'lms-kurikulum'],
+    ['keuangan', 'keuangan-invoice', 'keuangan-invoice', 'keuangan-invoice', 'keuangan-invoice', 'keuangan-tunggakan', 'keuangan-invoice'],
+    ['visa', 'visa', 'inventaris', 'keuangan-riwayat'],
+    ['audit', 'audit-timeline', 'audit-timeline'],
+    ['konten', 'template', 'template'],
+    ['pengaturan', 'pengaturan-ai', 'pengaturan-data', 'pengaturan-db'],
+    ['portal', 'pendaftaran-agenda', 'presensi', 'lms-kurikulum', 'keuangan-invoice', 'portal']
+  ];
 
   const $ = (id) => document.getElementById(id);
   const el = (tag, className, text) => {
@@ -368,8 +365,8 @@
       return a;
     }));
 
-    const dasar = GAMBAR[b.judul] || GAMBAR['Kenalan dulu dengan workspace internal'];
-    const khusus = (LANGKAH_GAMBAR[b.judul] || [])[langkah];
+    const dasar = b.gambar;
+    const khusus = (LANGKAH_GAMBAR[bab] || [])[langkah];
     const berkas = khusus || dasar[0];
     const keterangan = khusus ? b.langkah[langkah][0] : dasar[1];
     const gambarBab = $('tampilan-gambar');
@@ -377,7 +374,7 @@
     gambarBab.alt = keterangan;
     $('tampilan-teks').textContent = `${keterangan}. Tampilan asli dengan data demo.`;
     // Muat gambar langkah berikutnya lebih dulu supaya pindah langkah tidak berkedip.
-    const berikut = (LANGKAH_GAMBAR[b.judul] || [])[langkah + 1];
+    const berikut = (LANGKAH_GAMBAR[bab] || [])[langkah + 1];
     if (berikut) new Image().src = `../assets/internal/${berikut}.jpg`;
 
     $('catatan-isi').replaceChildren(...b.catatan.map((t) => el('li', '', t)));
