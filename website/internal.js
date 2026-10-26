@@ -295,6 +295,26 @@
     'Rutinitas harian dan penutup': ['portal', 'Portal Utama Super Admin']
   };
 
+  // Tangkapan layar per langkah (urutannya sama dengan daftar langkah tiap bab). Langkah tanpa
+  // entri memakai gambar bab di atas. Gambar dibuat ulang dengan .claude/checks/internal-shots.cjs.
+  const LANGKAH_GAMBAR = {
+    'Kenalan dulu dengan workspace internal': ['portal', 'portal', 'portal', 'audit'],
+    'Masuk dan berkeliling': ['masuk', 'portal', 'portal', 'masuk', 'portal'],
+    'Portal Utama untuk Super Admin': ['portal-angka', 'perhatian', 'santri-detail', 'portal-tabel', 'portal-demo'],
+    'Kelola Akun': ['akun', 'akun-buat', 'akun-daftar', 'akun-daftar', 'akun-daftar'],
+    'Pendaftaran': ['pendaftaran', 'pendaftaran-detail', 'pendaftaran-detail', 'pendaftaran-detail-tengah', 'pendaftaran-agenda', 'pendaftaran-kloter', 'pendaftaran-detail-bawah', 'pendaftaran-detail-bawah'],
+    'Monitoring Asrama: kerja harian musyrif': ['presensi', 'monitoring-pembinaan', 'monitoring-izin', 'monitoring-tindaklanjut', 'monitoring-pesan', 'monitoring-teladan'],
+    'Monitoring Asrama: bagian Super Admin': ['monitoring-santribaru', 'monitoring-penempatan', 'monitoring-admin', 'monitoring-wali'],
+    'Kelola Asrama': ['asrama-kalender', 'asrama-piket', 'asrama-kas', 'asrama-inventaris', 'asrama-galeri', 'asrama-iqamah'],
+    'LMS: kelas online': ['lms', 'lms-kurikulum', 'lms-kurikulum', 'lms-santri', 'lms-penilaian', 'lms-kurikulum'],
+    'Keuangan & SPP': ['keuangan', 'keuangan-invoice', 'keuangan-invoice', 'keuangan-invoice', 'keuangan-invoice', 'keuangan-tunggakan', 'keuangan-invoice'],
+    'Visa, Paspor, dan Inventaris': ['visa', 'visa', 'inventaris', 'keuangan-riwayat'],
+    'Jejak Audit': ['audit', 'audit-timeline', 'audit-timeline'],
+    'Konten Website dan Template': ['konten', 'template', 'template'],
+    'Pengaturan': ['pengaturan', 'pengaturan-ai', 'pengaturan-data', 'pengaturan-db'],
+    'Rutinitas harian dan penutup': ['portal', 'pendaftaran-agenda', 'presensi', 'lms-kurikulum', 'keuangan-invoice', 'portal']
+  };
+
   const $ = (id) => document.getElementById(id);
   const el = (tag, className, text) => {
     const node = document.createElement(tag);
@@ -348,11 +368,17 @@
       return a;
     }));
 
-    const [berkas, keterangan] = GAMBAR[b.judul] || GAMBAR['Kenalan dulu dengan workspace internal'];
+    const dasar = GAMBAR[b.judul] || GAMBAR['Kenalan dulu dengan workspace internal'];
+    const khusus = (LANGKAH_GAMBAR[b.judul] || [])[langkah];
+    const berkas = khusus || dasar[0];
+    const keterangan = khusus ? b.langkah[langkah][0] : dasar[1];
     const gambarBab = $('tampilan-gambar');
     if (!gambarBab.src.endsWith(`/${berkas}.jpg`)) gambarBab.src = `../assets/internal/${berkas}.jpg`;
     gambarBab.alt = keterangan;
     $('tampilan-teks').textContent = `${keterangan}. Tampilan asli dengan data demo.`;
+    // Muat gambar langkah berikutnya lebih dulu supaya pindah langkah tidak berkedip.
+    const berikut = (LANGKAH_GAMBAR[b.judul] || [])[langkah + 1];
+    if (berikut) new Image().src = `../assets/internal/${berikut}.jpg`;
 
     $('catatan-isi').replaceChildren(...b.catatan.map((t) => el('li', '', t)));
     $('catatan').hidden = !catatanTerbuka;
