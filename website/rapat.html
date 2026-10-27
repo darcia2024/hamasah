@@ -475,264 +475,242 @@
       <div id="panel-report" role="tabpanel" aria-labelledby="tab-report" hidden>
         <div class="wrap prd-wrap"><article class="prd" id="prd">
   <header class="prd__kepala">
-    <p class="prd__kicker">PRD · Draf 1.0</p>
-    <h1>Platform Hamasah International</h1>
-    <p class="prd__lead">Dokumen ini merangkum apa yang mau dibangun, untuk siapa, dan urutannya. Sumbernya rapat 27 Oktober 2026. Isinya untuk dicek bersama tim Hamasah dan tim pengembang.</p>
-    <p class="prd__catatan">Tolong diingat: ini rangkuman dari apa yang dibicarakan di rapat, bukan hasil audit kode. Fitur yang “sudah didemokan” belum tentu sudah lolos uji.</p>
+    <p class="prd__kicker">PRD · Draf 1.1 · Rapat 27 Oktober 2026</p>
+    <h1>Platform Hamasah</h1>
+    <p class="prd__lead">Satu aplikasi untuk mengurus santri, asrama, hafalan, laporan ke wali, dokumen, dan inventaris.</p>
+    <p class="prd__catatan">Isi dokumen ini diambil dari omongan di rapat, belum dicek ke kode. Yang “sudah didemokan” belum tentu sudah lolos uji.</p>
     <nav class="prd__toc" aria-label="Daftar isi PRD">
-      <a href="#prd-latar">Latar belakang</a>
+      <a href="#prd-tujuan">Tujuan</a>
       <a href="#prd-peran">Pengguna</a>
       <a href="#prd-fitur">Fitur</a>
       <a href="#prd-batas">Batas pekerjaan</a>
-      <a href="#prd-tahap">Tahap pengerjaan</a>
+      <a href="#prd-tahap">Tahap</a>
       <a href="#prd-putusan">Keputusan</a>
       <a href="#prd-booklet">Booklet</a>
       <a href="#prd-langkah">Langkah berikutnya</a>
-      <a href="#prd-hati">Perlu hati-hati</a>
     </nav>
   </header>
 
-  <section class="prd__bagian" id="prd-latar">
-    <h2>1. Latar belakang dan tujuan</h2>
-    <p>Hamasah sudah punya website yang didemokan. Dari rapat, kebutuhannya ternyata lebih luas: satu platform yang mengurus santri, asrama, musyrif, pembinaan, laporan ke wali, administrasi, inventaris, dan pembelajaran.</p>
-    <p>Yang ingin dicapai:</p>
+  <section class="prd__bagian" id="prd-tujuan">
+    <h2>1. Tujuan</h2>
     <ul>
-      <li>Unit Mesir dan Indonesia ada di satu sistem, tapi akses dan laporannya dipisah per lokasi.</li>
-      <li>Data sekitar 108 santri masuk lewat impor, bukan diketik satu-satu.</li>
-      <li>Setiap orang hanya melihat data yang memang haknya.</li>
-      <li>Pekerjaan harian musyrif dan admin, dari absensi sampai pengingat dokumen, tercatat di satu tempat.</li>
+      <li>Mesir dan Indonesia dalam satu sistem. Data dan laporannya dipisah per lokasi.</li>
+      <li>Data sekitar 108 santri dimasukkan lewat impor file, bukan diketik satu per satu.</li>
+      <li>Setiap orang hanya melihat data yang menjadi haknya.</li>
+      <li>Kerja harian musyrif dan admin tercatat di satu tempat.</li>
     </ul>
-    <p>Pembayaran dan kelas berbayar tetap di layanan masing-masing, dengan opsi disambungkan nanti. Booklet kompetisi dikerjakan sebagai proyek terpisah.</p>
+    <p><strong>Tidak termasuk:</strong> pembayaran dan kelas berbayar (tetap di layanan masing-masing, bisa disambungkan nanti) dan booklet kompetisi (proyek terpisah).</p>
   </section>
 
   <section class="prd__bagian" id="prd-peran">
-    <h2>2. Siapa yang memakai</h2>
+    <h2>2. Pengguna</h2>
     <dl class="prd__dl">
-      <dt>Admin</dt><dd>Boleh lebih dari satu. Mengurus data, akun, pengumuman, dokumen, dan hak akses.</dd>
-      <dt>Musyrif dan musyrifah</dt><dd>Hanya melihat santri dan asrama yang jadi tanggung jawabnya.</dd>
-      <dt>Santri</dt><dd>Punya portal sendiri: pelajaran (LMS), laporan, progres hafalan, dan catatan pembinaan pribadi yang tidak otomatis terlihat wali.</dd>
-      <dt>Wali</dt><dd>Melihat profil anak, absensi, hafalan, rapor, tagihan (kalau sudah tersambung), galeri, dan pengumuman. Satu wali bisa punya beberapa anak, asal hubungannya diverifikasi dulu.</dd>
+      <dt>Admin</dt><dd>Mengurus data, akun, pengumuman, dokumen, dan hak akses. Boleh lebih dari satu.</dd>
+      <dt>Musyrif dan musyrifah</dt><dd>Hanya melihat santri dan asrama yang menjadi tanggung jawabnya.</dd>
+      <dt>Santri</dt><dd>Belajar lewat LMS, melihat laporan dan progres hafalan, dan punya catatan pribadi yang tidak otomatis terlihat wali.</dd>
+      <dt>Wali</dt><dd>Melihat data anak: absensi, hafalan, rapor, tagihan, foto kegiatan, dan pengumuman. Satu wali bisa punya beberapa anak, setelah hubungannya diverifikasi.</dd>
       <dt>Petugas</dt><dd>Akun untuk tugas operasional. Hak aksesnya ikut diaudit.</dd>
     </dl>
   </section>
 
   <section class="prd__bagian" id="prd-fitur">
-    <h2>3. Fitur yang dibahas</h2>
-    <p>Ada 13 modul, dikelompokkan jadi empat. Di tiap modul, bagian “Masih terbuka” berisi hal yang belum pasti. Kode seperti D04 menunjuk ke daftar keputusan di bagian 6.</p>
+    <h2>3. Fitur</h2>
+    <p>13 modul dalam empat kelompok. Kode seperti D04 menunjuk ke bagian 6.</p>
 
     <h3>Orang dan data</h3>
 
     <h4>Struktur dan asrama</h4>
-    <p>Mesir dan Indonesia dikelola terpisah di sistem yang sama. Susunannya dari atas ke bawah: lokasi, asrama, kamar, lalu penempatan santri. Yang dicatat: kapasitas, gender, penghuni, musyrif penanggung jawab, perpindahan, dan riwayatnya.</p>
+    <p>Susunannya: lokasi, asrama, kamar, penempatan santri. Dicatat kapasitas, gender, penghuni, musyrif penanggung jawab, dan riwayat pindah.</p>
     <ul>
-      <li>Mesir kira-kira punya 9 asrama: 5 putra dan 4 putri.</li>
-      <li>Kamar boleh ber-AC, tanpa AC, atau campuran. AC sifatnya opsional, sesuai kesepakatan penghuni.</li>
-      <li>Di Indonesia ada karantina atau pembinaan per batch (misalnya sekitar 3 bulan) dan ada yang durasinya fleksibel. Riwayat peserta bisa berlanjut ke Mesir.</li>
+      <li>Mesir sekitar 9 asrama (5 putra, 4 putri).</li>
+      <li>Kamar boleh ber-AC, tanpa AC, atau campuran.</li>
+      <li>Indonesia: pembinaan per batch (sekitar 3 bulan) atau durasi fleksibel. Peserta bisa lanjut ke Mesir.</li>
     </ul>
-    <p class="prd__terbuka"><strong>Masih terbuka:</strong> jumlah final, nama, alamat, kapasitas, dan fasilitas tiap asrama belum divalidasi (D01).</p>
+    <p class="prd__terbuka"><strong>Belum pasti:</strong> jumlah, nama, alamat, kapasitas, dan fasilitas asrama (D01).</p>
 
     <h4>Data santri, wali, dan akun</h4>
-    <p>Sekitar 108 santri sekarang. Santri baru bisa ditambah berkala, atau diimpor dari CSV/XLSX (misalnya dari Google Form) lewat pratinjau, pemetaan kolom, pengecekan duplikat, dan laporan error.</p>
     <ul>
-      <li>Datanya mencakup identitas, sekolah atau ma’had/universitas, tingkat, asrama, status izin, riwayat pembinaan, dokumen identitas, dan status administrasi.</li>
-      <li>Satu wali bisa tertaut ke beberapa anak. Hubungannya diverifikasi sebelum akun aktif.</li>
-      <li>Akun ada untuk admin, musyrif/musyrifah, santri, wali, dan petugas, dengan audit hak akses.</li>
-      <li>PDF scan pendaftaran offline diunggah ke profil santri dan disimpan privat.</li>
-      <li>Jangan pakai password default yang dibagikan bersama, dan jangan kirim kredensial lewat grup. Pakai undangan atau reset password privat.</li>
+      <li>Impor dari CSV atau XLSX: ada pratinjau, pemetaan kolom, cek duplikat, dan laporan error.</li>
+      <li>Data: identitas, sekolah atau kampus, tingkat, asrama, status izin, riwayat pembinaan, dokumen, dan status administrasi.</li>
+      <li>Akun untuk admin, musyrif, santri, wali, dan petugas. Wali aktif setelah hubungannya dengan anak diverifikasi.</li>
+      <li>PDF pendaftaran offline diunggah ke profil santri dan disimpan privat.</li>
+      <li>Tanpa password bersama. Akun dibuat lewat undangan atau reset password privat.</li>
     </ul>
 
     <h4>Portal wali, santri, dan komunikasi</h4>
-    <p>Wali dan santri punya portal sendiri. Admin bisa mengumumkan ke kelompok tertentu.</p>
     <ul>
-      <li>Wali bisa mengirim keluhan, saran, apresiasi, atau masukan secara privat ke admin. Masukan itu diverifikasi dulu sebelum dipakai untuk menilai personel.</li>
-      <li>Pengumuman bisa dikirim ke santri, wali, musyrif, atau kelompok tertentu, dengan notifikasi di aplikasi.</li>
-      <li>Template pesan WhatsApp disediakan, tinggal salin. Pencatatan komunikasinya harus menjaga privasi.</li>
+      <li>Wali bisa mengirim keluhan, saran, atau apresiasi ke admin secara privat. Diverifikasi dulu sebelum dipakai menilai personel.</li>
+      <li>Admin mengirim pengumuman ke santri, wali, musyrif, atau kelompok tertentu, dengan notifikasi di aplikasi.</li>
+      <li>Template pesan WhatsApp tinggal disalin.</li>
     </ul>
 
     <h3>Kegiatan dan pembinaan</h3>
 
-    <h4>Kegiatan, absensi, dan pembinaan</h4>
-    <p>Semua kegiatan dicatat, dari halaqah subuh sampai izin pulang. Yang wajib: halaqah subuh/tahfidz, sekolah atau ma’had/kuliah, kajian sore, belajar malam atau LMS bersama, kegiatan Jumat, kebersihan, dan acara insidental.</p>
+    <h4>Kegiatan, absensi, dan izin</h4>
     <ul>
-      <li>Daftar kegiatan dinamis: jadwal, jenis, target peserta, petugas, absensi, alasan izin atau sakit, bukti, dan histori.</li>
-      <li>Perizinan santri mencakup keluar sebentar, sakit, dan pulang ke Indonesia, lengkap dengan tanggal berangkat dan kembali, status persetujuan, serta dampaknya ke absensi.</li>
+      <li>Kegiatan wajib: halaqah subuh, sekolah atau kuliah, kajian sore, belajar malam, kegiatan Jumat, kebersihan, dan acara dadakan.</li>
+      <li>Tiap kegiatan punya jadwal, peserta, petugas, absensi, alasan izin atau sakit, bukti, dan riwayat.</li>
+      <li>Izin santri: keluar sebentar, sakit, atau pulang ke Indonesia. Dicatat tanggal pergi dan kembali, status persetujuan, dan dampaknya ke absensi.</li>
     </ul>
-    <p class="prd__terbuka"><strong>Masih terbuka:</strong> diskon pembayaran saat santri pulang (pernah disebut 50%) belum disetujui, jadi jangan diterapkan otomatis (D04).</p>
+    <p class="prd__terbuka"><strong>Belum pasti:</strong> diskon tagihan saat santri pulang (pernah disebut 50%) belum disetujui. Jangan dibuat otomatis (D04).</p>
 
-    <h4>Tahfidz dan rapor digital</h4>
-    <p>Setoran hafalan tercatat rapi dan jadi dasar rapor bulanan.</p>
+    <h4>Tahfidz dan rapor</h4>
     <ul>
-      <li>Buku setoran memuat tanggal, surat, ayat awal dan akhir, hafalan baru atau murajaah, penguji, catatan kualitas, dan rekap bulanan.</li>
-      <li>Total juz, capaian, dan tren bulanan maupun tahunan bisa dipantau. Ayat yang sama tidak dihitung sebagai hafalan baru berulang kali.</li>
-      <li>Rapor bulanan (rencananya nilai A/B/C) dihitung dari kehadiran, hafalan, dan partisipasi. Wali bisa melihat laporan dan riwayatnya.</li>
+      <li>Buku setoran: tanggal, surat, ayat, hafalan baru atau murajaah, penguji, catatan kualitas, dan rekap bulanan.</li>
+      <li>Total juz dan perkembangan bulanan bisa dipantau. Ayat yang sama tidak dihitung hafalan baru berkali-kali.</li>
+      <li>Rapor bulanan (rencananya nilai A/B/C) dari kehadiran, hafalan, dan partisipasi. Wali bisa melihatnya.</li>
     </ul>
-    <p class="prd__terbuka"><strong>Masih terbuka:</strong> rumus nilai, ambang nilai, siapa yang boleh mengoreksi, dan format rapor (D03).</p>
+    <p class="prd__terbuka"><strong>Belum pasti:</strong> rumus nilai, batas nilai, siapa yang boleh mengoreksi, dan format rapor (D03).</p>
 
     <h4>KPI musyrif dan musyrifah</h4>
-    <p>Penilaian bulanan dan rekap tahunan oleh atasan.</p>
     <ul>
-      <li>Indikatornya: pendampingan tahfidz, kontrol sekolah, kajian, LMS malam, administrasi, kebersihan, dan tanggung jawab operasional.</li>
-      <li>Tugas tambahan juga dihitung: merawat santri sakit, belanja kebutuhan, bayar sewa, urusan institusi, panitia kegiatan, serta tugas masak dan bersih-bersih.</li>
-      <li>Perlu dipertimbangkan ketepatan laporan, kualitas tindak lanjut, pemeriksaan inventaris, dan masukan yang sudah diverifikasi.</li>
-      <li>Hasil kerja musyrif harus dibedakan dari perilaku santri yang di luar kendalinya.</li>
+      <li>Dinilai atasan tiap bulan, direkap tiap tahun.</li>
+      <li>Yang dinilai: pendampingan tahfidz, kontrol sekolah, kajian, LMS malam, administrasi, kebersihan, dan tugas operasional.</li>
+      <li>Tugas tambahan juga dihitung: merawat santri sakit, belanja, bayar sewa, panitia kegiatan, masak dan bersih-bersih.</li>
+      <li>Hasil kerja musyrif dipisahkan dari perilaku santri yang di luar kendalinya.</li>
     </ul>
-    <p class="prd__terbuka"><strong>Masih terbuka:</strong> bobot, cara verifikasi, mekanisme banding, reward bulanan dan tahunan, serta siapa yang boleh melihat skor (D03).</p>
+    <p class="prd__terbuka"><strong>Belum pasti:</strong> bobot nilai, cara verifikasi, mekanisme banding, reward, dan siapa yang boleh melihat skor (D03).</p>
 
     <h3>Administrasi dan aset</h3>
 
-    <h4>Monitoring administrasi dan dokumen</h4>
-    <p>Paspor, iqamah, dan dokumen lain dipantau, dengan peringatan dini sebelum kedaluwarsa.</p>
+    <h4>Monitoring dokumen</h4>
     <ul>
-      <li>Yang dipantau: paspor, iqamah, masa berlaku, dan status dokumen. Patokan peringatan 6 bulan sebelum habis sempat dibahas.</li>
+      <li>Paspor, iqamah, dan dokumen lain dipantau masa berlakunya. Peringatan muncul sebelum habis (patokan 6 bulan sempat dibahas).</li>
       <li>Lapor diri, lapor pendidikan, masalah pendidikan (ma’sum), dan urusan konsuler harus bisa ditindaklanjuti.</li>
-      <li>Pengingat muncul di Kelola Asrama untuk musyrif terkait, dan di Monitoring Pusat untuk admin lintas asrama.</li>
-      <li>Tiap peringatan punya penanggung jawab, prioritas, status tindak lanjut, tanggal selesai, dan bukti.</li>
-      <li>Santri yang mengundurkan diri berstatus keluar dan diarsipkan. Akun dan datanya tidak dihapus.</li>
+      <li>Peringatan tampil di Kelola Asrama (untuk musyrif) dan Monitoring Pusat (untuk admin).</li>
+      <li>Tiap peringatan punya penanggung jawab, prioritas, status, tanggal selesai, dan bukti.</li>
+      <li>Santri yang mundur diberi status keluar dan diarsipkan. Datanya tidak dihapus.</li>
     </ul>
-    <p class="prd__terbuka"><strong>Masih terbuka:</strong> rapat menyebut empat jenis surat, tapi baru tiga yang jelas: pernyataan masuk wali, surat keluar santri, dan pernyataan keluar wali. Satu lagi perlu dikonfirmasi (D05). Surat pelepasan tanggung jawab juga perlu ditinjau secara hukum, karena belum tentu menghapus semua kewajiban.</p>
+    <p class="prd__terbuka"><strong>Belum pasti:</strong> rapat menyebut empat jenis surat, tapi baru tiga yang jelas (pernyataan masuk wali, surat keluar santri, pernyataan keluar wali). Satu lagi perlu dikonfirmasi (D05). Surat pelepasan tanggung jawab juga perlu ditinjau secara hukum.</p>
 
     <h4>Inventaris dan AC patungan</h4>
-    <p>Setiap barang asrama tercatat, termasuk siapa yang ikut membiayai AC.</p>
     <ul>
-      <li>Tiap unit dicatat: nama, kode, kategori, lokasi, foto, jumlah, kondisi, status, tanggal beli, sumber dana, pemilik, perawatan, dan inspeksi bulanan.</li>
-      <li>Contoh aset Hamasah: AC, mesin cuci, ranjang, sofa, kulkas, karpet. Barang pribadi santri dipisahkan.</li>
-      <li>Beberapa AC dibeli patungan oleh Hamasah dan sebagian santri, dengan sumbangan yang tidak sama: ada yang ikut beli, ada yang hanya menanggung biaya pasang, ada yang tidak menyumbang.</li>
-      <li>Dicatat siapa menyumbang berapa, bukti transaksi, hak pengembalian, dan riwayat pembayaran.</li>
-      <li>Musyrif memperbarui kondisi inventaris tiap bulan, lengkap dengan foto bukti.</li>
+      <li>Tiap barang dicatat: nama, kode, kategori, lokasi, foto, jumlah, kondisi, tanggal beli, sumber dana, pemilik, dan perawatan.</li>
+      <li>Contoh: AC, mesin cuci, ranjang, sofa, kulkas, karpet. Barang pribadi santri dipisah.</li>
+      <li>Sebagian AC dibeli patungan oleh Hamasah dan santri dengan jumlah berbeda-beda. Dicatat siapa bayar berapa, bukti, hak pengembalian, dan riwayat bayar.</li>
+      <li>Musyrif memperbarui kondisi barang tiap bulan, dengan foto.</li>
     </ul>
-    <p class="prd__terbuka"><strong>Masih terbuka:</strong> contoh pengembalian Rp1 juta saat santri keluar jangan diterapkan otomatis sebelum ada daftar hak yang disahkan (D06).</p>
+    <p class="prd__terbuka"><strong>Belum pasti:</strong> pengembalian Rp1 juta saat santri keluar baru contoh. Jangan dibuat otomatis sebelum daftar hak disahkan (D06).</p>
 
     <h4>Galeri dokumentasi</h4>
-    <p>Foto kegiatan per asrama yang bisa dilihat wali.</p>
     <ul>
-      <li>Galeri disusun per asrama menurut tanggal, jenis kegiatan, keterangan, dan pengunggah. Wali hanya melihat yang relevan untuk anaknya.</li>
-      <li>Unggah foto tidak wajib di hari tanpa kegiatan. Foto dioptimasi dan butuh izin publikasi.</li>
-      <li>Video kegiatan dan pelajaran sebaiknya ditaruh di layanan video eksternal, bukan disimpan besar-besaran di database.</li>
+      <li>Foto kegiatan per asrama, dengan tanggal, jenis kegiatan, keterangan, dan pengunggah. Wali hanya melihat yang terkait anaknya.</li>
+      <li>Unggah foto tidak wajib di hari tanpa kegiatan. Foto butuh izin publikasi.</li>
+      <li>Video disimpan di layanan video eksternal, bukan di database.</li>
     </ul>
-    <p class="prd__terbuka"><strong>Masih terbuka:</strong> hak akses galeri dan izin publikasi foto (D09).</p>
+    <p class="prd__terbuka"><strong>Belum pasti:</strong> siapa boleh melihat galeri dan aturan izin publikasi foto (D09).</p>
 
-    <h4>Audit trail dan tata kelola</h4>
-    <p>Semua aktivitas penting tercatat: siapa, melakukan apa, dan kapan.</p>
+    <h4>Audit trail</h4>
     <ul>
-      <li>Jejak audit mencakup login, unggah, unduh, edit, hapus, perubahan kelas, dan aktivitas sensitif lainnya.</li>
-      <li>Akses dan masa simpan log dibatasi. Audit juga memeriksa tampilan yang didemokan, konsistensi database, RLS, dan izin per peran.</li>
-      <li>Bug visual yang ketemu saat audit ikut diperbaiki, termasuk halaman iqamah yang disebut bertabrakan.</li>
+      <li>Login, unggah, unduh, edit, hapus, ubah kelas, dan aktivitas sensitif lain dicatat: siapa, apa, kapan.</li>
+      <li>Akses dan lama simpan log dibatasi.</li>
+      <li>Audit juga memeriksa tampilan demo, konsistensi database, RLS, dan izin per peran. Bug visual yang ketemu ikut diperbaiki, termasuk halaman iqamah yang bertabrakan.</li>
     </ul>
 
     <h3>Keuangan, belajar, dan website</h3>
 
-    <h4>LMS internal dan learning eksternal</h4>
-    <p>LMS internal gratis untuk santri Hamasah. Kelas berbayar untuk publik tetap di website learning yang terpisah.</p>
+    <h4>LMS dan kelas eksternal</h4>
     <ul>
-      <li>LMS internal berisi materi, video pembelajaran, akses santri, dan pemantauan sesi belajar.</li>
-      <li>YouTube Embed atau Unlisted disarankan karena murah. Tapi tautan Unlisted bisa dibagikan siapa saja, jadi bukan kontrol akses yang kuat.</li>
-      <li>Absensi belajar bersama dicatat atau diverifikasi musyrif. Video yang sekadar dibuka tidak dianggap hadir.</li>
-      <li>Website Hamasah cukup menampilkan informasi dan tautan ke kelas berbayar.</li>
+      <li>LMS internal gratis untuk santri Hamasah: materi, video, dan pemantauan sesi belajar.</li>
+      <li>Video lewat YouTube Embed atau Unlisted (murah). Tautan Unlisted bisa dibagikan siapa saja, jadi bukan pengaman yang kuat.</li>
+      <li>Kehadiran belajar bersama dicatat musyrif. Video yang sekadar dibuka tidak dianggap hadir.</li>
+      <li>Kelas berbayar publik tetap di website learning terpisah. Website Hamasah hanya menampilkan info dan tautannya.</li>
     </ul>
-    <p class="prd__terbuka"><strong>Masih terbuka:</strong> branding perlu diselaraskan dengan Mas Rahman (IT website learning), dan status landing page eksternal belum pasti (D13).</p>
+    <p class="prd__terbuka"><strong>Belum pasti:</strong> branding perlu diselaraskan dengan Mas Rahman (IT website learning), dan status landing page eksternal belum jelas (D13).</p>
 
-    <h4>Keuangan, Sendit, dan pengingat tagihan</h4>
-    <p>Pembayaran sudah punya aplikasi sendiri. Pertanyaannya: tetap di sana atau pindah.</p>
+    <h4>Pembayaran, Sendit, dan pengingat tagihan</h4>
     <ul>
-      <li>Website pembayaran lama sudah punya portal wali, tagihan berkala, riwayat, gateway Sendit, dan pembaruan status. Jangan dibangun ulang sebelum diaudit.</li>
-      <li>Opsi A memakai API, webhook, atau akses resmi. Jangan berasumsi ada akses langsung ke database Sendit. Arsitekturnya dikonfirmasi dulu dengan tim IT.</li>
-      <li>Pengingat dikirim sekitar tiga kali sebulan, hanya untuk tagihan yang belum lunas.</li>
-      <li>Cara paling murah: tombol WhatsApp click-to-chat dengan pesan yang sudah terisi, admin tinggal menekan Kirim.</li>
-      <li>Fonnte bisa kirim massal lewat API, tapi berbayar dan berisiko untuk akun karena integrasinya tidak resmi.</li>
+      <li>Website pembayaran lama sudah punya portal wali, tagihan berkala, riwayat, dan gateway Sendit. Jangan dibangun ulang sebelum diaudit.</li>
+      <li>Opsi A memakai API atau akses resmi. Jangan berasumsi bisa masuk langsung ke database Sendit. Konfirmasi dulu ke tim IT.</li>
+      <li>Pengingat sekitar tiga kali sebulan, hanya untuk tagihan yang belum lunas.</li>
+      <li>Cara termurah: tombol WhatsApp dengan pesan yang sudah terisi, admin tinggal menekan Kirim.</li>
+      <li>Fonnte bisa kirim massal lewat API, tapi berbayar dan berisiko untuk akun karena tidak resmi.</li>
     </ul>
-    <p class="prd__terbuka"><strong>Masih terbuka:</strong></p>
+    <p class="prd__terbuka"><strong>Belum pasti:</strong></p>
     <ul class="prd__terbuka-ul">
       <li>Opsi A (pembayaran tetap di aplikasi lama, statusnya tampil di Hamasah) atau Opsi B (pindah penuh) (D07).</li>
-      <li>Harga Fonnte Rp25.000 per 1.000 pesan baru angka dari rapat dan harus diverifikasi. Klik chat bukan bukti pesan terkirim (D08).</li>
-      <li>Tarif pendaftaran disebut mulai Rp1 juta. Biaya listrik, cicilan, refund, dan biaya yang tidak bisa dikembalikan perlu divalidasi (D11).</li>
+      <li>Harga Fonnte Rp25.000 per 1.000 pesan baru angka dari rapat, harus dicek. Klik chat bukan bukti pesan terkirim (D08).</li>
+      <li>Tarif pendaftaran disebut mulai Rp1 juta. Biaya listrik, cicilan, refund, dan biaya yang tidak bisa dikembalikan perlu dicek (D11).</li>
     </ul>
 
     <h4>CMS, landing page, dan PWA</h4>
-    <p>Isi website bisa diatur sendiri, dan aplikasinya bisa dipasang di HP.</p>
     <ul>
       <li>CMS mengatur isi landing page: testimoni asli, kontak resmi, fasilitas, program, harga, artikel, dan pengumuman.</li>
-      <li>Fasilitas yang disebut: ranjang, kasur, bantal, lemari, selimut, kulkas, mesin cuci, pemanas dan filter air, Wi-Fi, listrik, air minum, katering dua kali sehari, tahfidz, kajian, dan musyrif. AC opsional. Laundry masih sebatas ide.</li>
-      <li>Program tambahan: seminar atau dauroh, organisasi santri, olahraga, dan LMS.</li>
-      <li>Artikel, karya tulis santri, dan sayembara bisa dikembangkan bertahap. Fokus website tetap profil dan layanan.</li>
-      <li>PWA untuk santri dan wali: desain mobile, manifest, ikon, dan sesi yang aman. Di iPhone, pasangnya lewat Add to Home Screen.</li>
+      <li>Fasilitas yang disebut: ranjang, kasur, bantal, lemari, selimut, kulkas, mesin cuci, pemanas dan filter air, Wi-Fi, listrik, air minum, katering dua kali sehari, tahfidz, kajian, dan musyrif. AC opsional. Laundry baru ide.</li>
+      <li>Program tambahan: seminar, organisasi santri, olahraga, dan LMS.</li>
+      <li>Artikel dan karya tulis santri dikembangkan bertahap. Fokus website tetap profil dan layanan.</li>
+      <li>PWA untuk santri dan wali: tampilan mobile, ikon, sesi aman. Di iPhone dipasang lewat Add to Home Screen.</li>
     </ul>
-    <p class="prd__terbuka"><strong>Masih terbuka:</strong> nomor kontak resmi (disebut berakhiran 97) perlu diverifikasi. Untuk AI assistant, tentukan dulu kasus pemakaian, sumber data, dan kontrol aksesnya sebelum dikembangkan. Yang baru diperlihatkan masih terbatas dan belum optimal (D12).</p>
+    <p class="prd__terbuka"><strong>Belum pasti:</strong> nomor kontak resmi (disebut berakhiran 97) harus diverifikasi. AI assistant baru ditunjukkan terbatas dan belum optimal, jadi tentukan dulu fungsi, sumber data, dan kontrol aksesnya (D12).</p>
   </section>
 
   <section class="prd__bagian" id="prd-batas">
     <h2>4. Batas pekerjaan</h2>
-    <p>Pekerjaan dipilah supaya perbaikan bug tidak tercampur dengan permintaan baru.</p>
     <dl class="prd__dl">
-      <dt>Perbaikan yang sudah ada</dt><dd>Misalnya tampilan iqamah yang bertabrakan, data atau kontak yang keliru, dan alur yang error. Masuk daftar QA dan diperbaiki sesuai kontrak.</dd>
-      <dt>Penyempurnaan</dt><dd>Portal wali dan santri, galeri, detail tahfidz, dan notifikasi. Dibandingkan dulu dengan scope awal sebelum disetujui.</dd>
-      <dt>Ekspansi besar</dt><dd>Multi-lokasi Indonesia, KPI, AC patungan, integrasi pembayaran, dan AI. Effort, biaya, dan waktunya dihitung ulang.</dd>
-      <dt>Proyek desain terpisah</dt><dd>Booklet kompetisi, konten Instagram, dan press release. Punya brief dan penawaran sendiri.</dd>
+      <dt>Perbaikan yang sudah ada</dt><dd>Tampilan iqamah bertabrakan, data atau kontak keliru, alur error. Masuk daftar QA, diperbaiki sesuai kontrak.</dd>
+      <dt>Penyempurnaan</dt><dd>Portal wali dan santri, galeri, detail tahfidz, notifikasi. Dibandingkan dulu dengan scope awal.</dd>
+      <dt>Ekspansi besar</dt><dd>Multi-lokasi Indonesia, KPI, AC patungan, integrasi pembayaran, AI. Effort, biaya, dan waktu dihitung ulang.</dd>
+      <dt>Proyek desain terpisah</dt><dd>Booklet kompetisi, konten Instagram, press release. Brief dan penawaran sendiri.</dd>
     </dl>
   </section>
 
   <section class="prd__bagian" id="prd-tahap">
     <h2>5. Tahap pengerjaan</h2>
-    <p>Dikerjakan lima tahap. Estimasi waktu dan biaya menyusul setelah audit kode dan database yang sudah ada.</p>
+    <p>Estimasi waktu dan biaya menyusul setelah audit kode dan database.</p>
     <ol class="prd__tahap">
-      <li><strong>P0. Rapikan yang sudah ada.</strong> Memperbaiki bug tampilan, autentikasi, RLS, backup, dan QA portal yang sekarang. Selesai kalau alur yang ada sudah aman dan bisa diuji.</li>
-      <li><strong>P1. Operasional inti.</strong> Master data, impor, asrama, absensi, tahfidz, rapor, dan KPI. Selesai kalau data nyata sudah masuk dan peran utama berjalan.</li>
-      <li><strong>P2. Administrasi.</strong> Pengingat, surat, izin, inventaris, galeri, dan masukan. Selesai kalau alurnya terverifikasi dan tercatat di audit.</li>
-      <li><strong>P3. Sambungan ke layanan lain.</strong> Pembayaran, WhatsApp, LMS, dan PWA. Selesai kalau sambungan dan pengujian ujung ke ujung berhasil.</li>
-      <li><strong>P4. Pengembangan lanjutan.</strong> AI, editorial lanjutan, dan otomasi tambahan. Selesai kalau ruang lingkup dan biayanya disetujui terpisah.</li>
+      <li><strong>P0. Rapikan yang ada.</strong> Bug tampilan, login, RLS, backup, dan QA portal. Selesai kalau alur yang ada aman dan bisa diuji.</li>
+      <li><strong>P1. Operasional inti.</strong> Master data, impor, asrama, absensi, tahfidz, rapor, KPI. Selesai kalau data nyata masuk dan peran utama berjalan.</li>
+      <li><strong>P2. Administrasi.</strong> Pengingat, surat, izin, inventaris, galeri, masukan. Selesai kalau alurnya terverifikasi dan tercatat di audit.</li>
+      <li><strong>P3. Sambungan layanan lain.</strong> Pembayaran, WhatsApp, LMS, PWA. Selesai kalau sambungan dan uji ujung ke ujung berhasil.</li>
+      <li><strong>P4. Lanjutan.</strong> AI, editorial, otomasi tambahan. Selesai kalau ruang lingkup dan biaya disetujui terpisah.</li>
     </ol>
   </section>
 
   <section class="prd__bagian" id="prd-putusan">
-    <h2>6. Keputusan yang masih ditunggu</h2>
-    <p>Sebelum keputusan ini dijawab pemiliknya, belum ada komitmen final untuk bagian yang bersangkutan.</p>
+    <h2>6. Keputusan yang ditunggu</h2>
+    <p>Selama belum dijawab, bagian terkait belum final.</p>
     <ol class="prd__putusan">
-      <li><span class="prd__kode">D01</span> Final daftar asrama, kamar, kapasitas, penanggung jawab, dan lokasi. <em>Operasional Hamasah.</em></li>
-      <li><span class="prd__kode">D02</span> Contoh Google Form/Sheet, dokumen, dan format impor 108 santri. <em>Admin Hamasah.</em></li>
-      <li><span class="prd__kode">D03</span> Kriteria nilai A/B/C, bobot KPI, dan reward. <em>Pimpinan Hamasah.</em></li>
-      <li><span class="prd__kode">D04</span> Kebijakan izin pulang, diskon tagihan, dan penanganan ma’sum. <em>Pimpinan dan Keuangan.</em></li>
-      <li><span class="prd__kode">D05</span> Daftar empat surat, template, penandatangan, dan prosedur keluar. <em>Admin dan Legal.</em></li>
-      <li><span class="prd__kode">D06</span> Daftar AC patungan, sumbangan tiap orang, nominal refund, dan bukti. <em>Keuangan dan Asrama.</em></li>
-      <li><span class="prd__kode">D07</span> Akses integrasi aplikasi pembayaran dan dokumentasi Sendit. <em>Tim IT pembayaran.</em></li>
-      <li><span class="prd__kode">D08</span> Pilih WhatsApp manual, Fonnte, atau penyedia resmi. <em>Pimpinan dan Keuangan.</em></li>
-      <li><span class="prd__kode">D09</span> Hak akses galeri, izin publikasi foto, dan pesan privat santri. <em>Pimpinan dan Wali.</em></li>
-      <li><span class="prd__kode">D10</span> Detail program batch Indonesia, durasi, dan transisi ke Mesir. <em>Tim Indonesia.</em></li>
-      <li><span class="prd__kode">D11</span> Tarif terbaru, refund, fasilitas, dan kontak resmi landing page. <em>Ustadz Doni dan Admin.</em></li>
-      <li><span class="prd__kode">D12</span> Ruang lingkup AI, PWA, dan artikel untuk fase pertama. <em>Product owner.</em></li>
-      <li><span class="prd__kode">D13</span> Status website learning eksternal dan penyelarasan desain. <em>Mas Rahman dan Tim IT.</em></li>
+      <li><span class="prd__kode">D01</span> Daftar asrama, kamar, kapasitas, penanggung jawab, lokasi. <em>Operasional</em></li>
+      <li><span class="prd__kode">D02</span> Contoh Google Form/Sheet, dokumen, dan format impor 108 santri. <em>Admin</em></li>
+      <li><span class="prd__kode">D03</span> Kriteria nilai A/B/C, bobot KPI, reward. <em>Pimpinan</em></li>
+      <li><span class="prd__kode">D04</span> Kebijakan izin pulang, diskon tagihan, penanganan ma’sum. <em>Pimpinan, Keuangan</em></li>
+      <li><span class="prd__kode">D05</span> Empat surat: daftar, template, penandatangan, prosedur keluar. <em>Admin, Legal</em></li>
+      <li><span class="prd__kode">D06</span> Daftar AC patungan, jumlah bayar tiap orang, refund, bukti. <em>Keuangan, Asrama</em></li>
+      <li><span class="prd__kode">D07</span> Akses integrasi pembayaran dan dokumentasi Sendit. <em>Tim IT pembayaran</em></li>
+      <li><span class="prd__kode">D08</span> Pilih WhatsApp manual, Fonnte, atau penyedia resmi. <em>Pimpinan, Keuangan</em></li>
+      <li><span class="prd__kode">D09</span> Akses galeri, izin publikasi foto, pesan privat santri. <em>Pimpinan, Wali</em></li>
+      <li><span class="prd__kode">D10</span> Program batch Indonesia, durasi, transisi ke Mesir. <em>Tim Indonesia</em></li>
+      <li><span class="prd__kode">D11</span> Tarif terbaru, refund, fasilitas, kontak resmi landing page. <em>Ustadz Doni, Admin</em></li>
+      <li><span class="prd__kode">D12</span> Ruang lingkup AI, PWA, dan artikel untuk fase pertama. <em>Product owner</em></li>
+      <li><span class="prd__kode">D13</span> Status website learning eksternal dan penyelarasan desain. <em>Mas Rahman, Tim IT</em></li>
     </ol>
   </section>
 
   <section class="prd__bagian" id="prd-booklet">
     <h2>7. Proyek terpisah: booklet kompetisi dan takrim</h2>
-    <p>Ini tugas desain di luar website. Materi mentah juknis sudah dipegang panitia, tapi belum diserahkan dalam percakapan rapat.</p>
+    <p>Tugas desain di luar website. Materi mentah juknis ada di panitia, belum diserahkan.</p>
     <dl class="prd__dl">
-      <dt>Hari acara</dt><dd>7 Desember 2026. Kompetisi keilmuan dan takrim.</dd>
-      <dt>Target publikasi</dt><dd>2 sampai 3 November, paling lambat 4 November menurut pembicaraan.</dd>
-      <dt>Tanggal lain</dt><dd>5 November disebut juga, tapi fungsinya perlu dikonfirmasi.</dd>
-      <dt>Audiens</dt><dd>Pelajar dan mahasiswa ASEAN di Mesir. Pilihan Bahasa Indonesia dan Inggris.</dd>
-      <dt>Cabang lomba</dt><dd>Esai, syair Arab, karya tulis, videografi, dan penghargaan akademik. Daftar finalnya dari panitia.</dd>
-      <dt>Mitra</dt><dd>PPMI Mesir, rumah binaan, pesantren, dan forum ASEAN.</dd>
-      <dt>Hasil utama</dt><dd>Booklet PDF juknis yang rapi, menarik, dan siap dibagikan.</dd>
-      <dt>Hasil tambahan</dt><dd>Ide carousel 4 slide dan konsep press release. Pamflet, logo, dan landing page belum disepakati.</dd>
+      <dt>Acara</dt><dd>7 Desember 2026. Kompetisi keilmuan dan takrim.</dd>
+      <dt>Publikasi</dt><dd>2 sampai 3 November, paling lambat 4 November. Tanggal 5 November juga disebut, fungsinya perlu dikonfirmasi.</dd>
+      <dt>Audiens</dt><dd>Pelajar dan mahasiswa ASEAN di Mesir. Bahasa Indonesia dan Inggris.</dd>
+      <dt>Lomba</dt><dd>Esai, syair Arab, karya tulis, videografi, penghargaan akademik. Daftar final dari panitia.</dd>
+      <dt>Mitra</dt><dd>PPMI Mesir, rumah binaan, pesantren, forum ASEAN.</dd>
+      <dt>Hasil</dt><dd>Booklet PDF juknis. Tambahan: ide carousel 4 slide dan konsep press release. Pamflet, logo, dan landing page belum disepakati.</dd>
+      <dt>Yang dibutuhkan</dt><dd>File mentah juknis, hadiah tiap lomba, syarat dan ketentuan, timeline, tautan pendaftaran, identitas visual acara, konfirmasi PPMI.</dd>
     </dl>
-    <p>Yang dibutuhkan lebih dulu: file mentah juknis, hadiah tiap lomba, syarat dan ketentuan, timeline, tautan pendaftaran, identitas visual acara, dan konfirmasi dari PPMI.</p>
   </section>
 
   <section class="prd__bagian" id="prd-langkah">
     <h2>8. Langkah berikutnya</h2>
     <ol class="prd__langkah">
-      <li>Kirim notulen ini ke Ustadz Doni dan tim untuk koreksi fakta dan persetujuan prioritas.</li>
-      <li>Minta akses audit kode dan database yang ada, contoh akun tiap peran, dan contoh data riil yang sudah disamarkan.</li>
-      <li>Kumpulkan daftar asrama, daftar santri, template surat, kebijakan KPI, inventaris, dan data sumbangan AC.</li>
-      <li>Jadwalkan pembahasan integrasi pembayaran dengan tim IT terkait, dan sinkronisasi learning eksternal dengan Mas Rahman.</li>
-      <li>Buat backlog dengan status: existing, bug, enhancement, new scope, atau deferred. Estimasi menyusul setelah audit.</li>
-      <li>Untuk acara: minta draft booklet, daftar lomba, hadiah, ketentuan, identitas acara, dan keputusan tanggal publikasi.</li>
+      <li>Kirim dokumen ini ke Ustadz Doni dan tim untuk dikoreksi dan disetujui prioritasnya.</li>
+      <li>Minta akses audit kode dan database, contoh akun tiap peran, dan contoh data riil yang disamarkan.</li>
+      <li>Kumpulkan daftar asrama, daftar santri, template surat, kebijakan KPI, inventaris, dan data patungan AC.</li>
+      <li>Jadwalkan bahas integrasi pembayaran dengan tim IT, dan sinkronisasi learning eksternal dengan Mas Rahman.</li>
+      <li>Buat backlog dengan status: existing, bug, enhancement, new scope, atau deferred.</li>
+      <li>Untuk acara: minta draft booklet, daftar lomba, hadiah, ketentuan, identitas acara, dan tanggal publikasi final.</li>
     </ol>
-  </section>
-
-  <section class="prd__bagian" id="prd-hati">
-    <h2>9. Hal yang perlu hati-hati</h2>
-    <p>Dokumen ini tidak memuat kredensial, nomor pribadi, atau data sensitif santri. Kebijakan privasi, perlindungan anak, persetujuan dokumentasi, pengembalian sumbangan, dan surat pelepasan tanggung jawab perlu diperiksa sesuai hukum dan praktik yang berlaku. Belum ada komitmen teknis final sebelum aplikasi yang ada diperiksa.</p>
+    <p class="prd__catatan">Dokumen ini tidak memuat kredensial atau data pribadi santri. Soal privasi, perlindungan anak, izin dokumentasi, pengembalian uang, dan surat pelepasan tanggung jawab perlu dicek secara hukum. Belum ada komitmen teknis final sebelum aplikasi yang ada diperiksa.</p>
   </section>
 </article></div>
       </div>
