@@ -20,3 +20,7 @@ https://www.dr-khalid.net/font-detail.php?slug=خط-النسخ-التقليدي-
 Official WOFF2 download: https://www.dr-khalid.net/download.php?file_id=57
 
 Downloaded 22 October 2026. The LMS uses the CSS family alias `Traditional Naskh`, limited to Arabic Unicode ranges, to preserve the existing Latin typography. The font file and its internal attribution have not been modified. This is not represented as a SIL/Open Font License font.
+
+# Cabinet Grotesk and Satoshi (/rapat)
+
+`rapat/cabinet-grotesk-{700,800}.woff2` and `rapat/satoshi-{400,500,700}.woff2` are the WOFF2 files served by Fontshare (https://www.fontshare.com), downloaded 28 October 2026 and not modified. Both are distributed by the Indian Type Foundry under the Fontshare Free Font License (free for personal and commercial use). They are used only by `website/rapat.css`.
