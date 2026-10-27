@@ -10,8 +10,9 @@ const crypto = require('node:crypto');
 
 const COOKIE = 'hi_pratinjau';
 const ALAMAT_KIRIM = '/api/pratinjau/pin';
-// Halaman presentasi (pitch dan tutorial workspace internal) boleh dibuka tanpa PIN.
-const BEBAS = new Set(['pitch', 'internal'].flatMap((nama) => [`/${nama}`, `/${nama}.html`, `/website/${nama}`, `/website/${nama}.html`]));
+// Halaman presentasi (pitch, tutorial workspace internal, dan penawaran Qohiroh Center)
+// boleh dibuka tanpa PIN, karena dibagikan ke orang yang tidak memegang PIN.
+const BEBAS = new Set(['pitch', 'internal', 'qohiroh'].flatMap((nama) => [`/${nama}`, `/${nama}.html`, `/website/${nama}`, `/website/${nama}.html`]));
 const TIGA_PULUH_HARI = 30 * 24 * 60 * 60;
 
 function escapeHtml(value) {

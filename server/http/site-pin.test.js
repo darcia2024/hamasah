@@ -17,7 +17,7 @@ const gerbang = createSitePin({ pin: '0001', secret: 'rahasia-uji' });
 
 // Halaman dijaga, kecuali pitch; aset dan API tidak.
 for (const alamat of ['/', '/biaya', '/program-kuliah', '/staff', '/biaya.html', '/website/']) assert.ok(gerbang.halamanDijaga(alamat), alamat);
-for (const alamat of ['/pitch', '/pitch.html', '/website/pitch.html', '/internal', '/internal.html', '/pitch.css', '/internal.css', '/assets/logo-emblem-gold.png', '/website-core.css']) assert.ok(!gerbang.halamanDijaga(alamat), alamat);
+for (const alamat of ['/pitch', '/pitch.html', '/website/pitch.html', '/internal', '/internal.html', '/qohiroh', '/qohiroh.html', '/website/qohiroh.html', '/pitch.css', '/internal.css', '/qohiroh.css', '/assets/logo-emblem-gold.png', '/website-core.css']) assert.ok(!gerbang.halamanDijaga(alamat), alamat);
 
 // Tanpa cookie: halaman PIN, tidak disimpan CDN, alamat kembali ikut di formulir.
 const res = jawaban();
