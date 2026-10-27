@@ -2,7 +2,7 @@
  * hero: Stage, the head on slate at the left, the Cairo photograph at the right with the product in smoked glass over its foot · nav: floating glass pill, wordmark, four anchors, one action · footer: one mast line, wordmark first · imagery: two repo photographs (Unsplash, credited in the footer) and cropped captures of the running product · signature: the product's real screens in one glass pane that changes with the role · dusk: haze/periwinkle-apricot/glass
  * axes: dark/grotesk-sans/cool · contrast: pass · fold: pass · v2.0.0 */
 /* Hallmark · dismissed 29 · backdrop blur sits on .nav__bar and .glass, Dusk's own product surface over the photograph and slate, each with its lit inset edge and no glow behind it · glass is the theme's material */
-/* Hallmark · dismissed 49 · the six role rows are list rows that hold a title and a sentence and are meant to wrap, no button label wraps */
+/* Hallmark · dismissed 49 · the feature rows are list rows that hold a title and a sentence and are meant to wrap, no button label wraps */
 /* Hallmark · pre-emit critique: P4 H4 E4 S3 R4 V3 · weakest: S, the page could sit under any studio's name; led with the product's own roles and screens instead of claims about the client, who is not described at all because nothing about them is known */
 
 :root {
@@ -92,26 +92,31 @@ p { text-wrap: pretty; }
 .band { padding-block: var(--space-3xl); background: var(--color-paper-2); color: var(--color-ink); }
 .band--well { background: var(--color-paper-3); color: var(--color-ink); }
 
-/* Tour: a ruled list of roles beside one glass pane. */
-.tour { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-2xl); align-items: start; }
-.tour__head { display: grid; gap: var(--space-md); }
-.roles { margin-top: var(--space-lg); border-top: var(--rule-hair) solid var(--color-rule); }
-.role { position: relative; display: grid; gap: var(--space-2xs); width: 100%; padding: var(--space-md) var(--space-md) var(--space-md) var(--space-lg); border: 0; border-bottom: var(--rule-hair) solid var(--color-rule); background: none; text-align: left; cursor: pointer; transition: background-color var(--dur-micro) var(--ease-out); }
-.role strong { font: 500 var(--text-lg)/1.3 var(--font-display); color: var(--color-muted); transition: color var(--dur-micro) var(--ease-out); }
-.role span { display: none; color: var(--color-ink-2); font-size: var(--text-sm); line-height: 1.5; max-width: 44ch; }
-.role::before { content: ""; position: absolute; left: 0; top: var(--space-md); bottom: var(--space-md); width: var(--space-3xs); border-radius: var(--radius-pill); background: transparent; }
-.role:hover { background: color-mix(in oklab, var(--color-light) 4%, transparent); }
-.role:hover strong { color: var(--color-ink); }
-.role:active { background: color-mix(in oklab, var(--color-light) 7%, transparent); }
-.role.is-on strong { color: var(--color-ink); }
-.role.is-on span { display: block; }
-.role.is-on::before { background: var(--color-accent); }
-.tour__stage { position: sticky; top: calc(var(--nav-h) + var(--space-md)); }
-.pane { padding: var(--space-xs); }
-.pane--phone { display: grid; justify-items: center; }
-.pane--phone img { width: auto; max-height: 34rem; }
-.pane--phone figcaption { justify-self: stretch; }
-
+/* Tour: roles as chips, the chosen role's features as a ruled list, one glass pane that follows. */
+.head { display: grid; gap: var(--space-md); margin-bottom: var(--space-2xl); max-width: 60ch; }
+.tour { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: var(--col-gap); align-items: start; }
+.tour__nav { display: grid; gap: var(--space-lg); min-width: 0; }
+.who { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.who__item { min-height: 40px; padding: 0 var(--space-md); border: 0; border-radius: var(--radius-pill); background: color-mix(in oklab, var(--color-light) 5%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-light) 12%, transparent); color: var(--color-ink-2); font-size: var(--text-sm); cursor: pointer; transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out); }
+.who__item:hover { background: color-mix(in oklab, var(--color-light) 10%, transparent); color: var(--color-ink); }
+.who__item:active { background: color-mix(in oklab, var(--color-light) 14%, transparent); }
+.who__item.is-on { background: var(--color-accent); color: var(--color-accent-ink); box-shadow: none; font-weight: 600; }
+.feats { border-top: var(--rule-hair) solid var(--color-rule); }
+.feat { position: relative; display: grid; gap: var(--space-2xs); width: 100%; padding: var(--space-sm) var(--space-md) var(--space-sm) var(--space-lg); border: 0; border-bottom: var(--rule-hair) solid var(--color-rule); background: none; text-align: left; cursor: pointer; transition: background-color var(--dur-micro) var(--ease-out); }
+.feat strong { font: 500 var(--text-md)/1.3 var(--font-display); color: var(--color-muted); transition: color var(--dur-micro) var(--ease-out); }
+.feat span { display: none; color: var(--color-ink-2); font-size: var(--text-sm); line-height: 1.5; max-width: 44ch; }
+.feat::before { content: ""; position: absolute; left: 0; top: var(--space-sm); bottom: var(--space-sm); width: var(--space-3xs); border-radius: var(--radius-pill); background: transparent; }
+.feat:hover { background: color-mix(in oklab, var(--color-light) 4%, transparent); }
+.feat:hover strong { color: var(--color-ink); }
+.feat:active { background: color-mix(in oklab, var(--color-light) 7%, transparent); }
+.feat.is-on strong { color: var(--color-ink); }
+.feat.is-on span { display: block; }
+.feat.is-on::before { background: var(--color-accent); }
+.tour__pane { position: sticky; top: calc(var(--nav-h) + var(--space-md)); padding: var(--space-xs); }
+.tour__pane img { width: 100%; }
+.tour__pane.pane--phone { display: grid; justify-items: center; }
+.tour__pane.pane--phone img { width: auto; max-height: 38rem; }
+.tour__pane.pane--phone figcaption { justify-self: stretch; }
 /* The statement band: one sentence, then four plain facts. */
 .band__grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-2xl); align-items: start; }
 .band__grid > div { display: grid; gap: var(--space-md); }
@@ -136,6 +141,27 @@ p { text-wrap: pretty; }
 .steps__list strong { font: 500 var(--text-title)/1.25 var(--font-display); }
 .steps__list li > span:last-child { color: var(--color-ink-2); font-size: var(--text-sm); }
 
+/* Documents: two PDFs on bone wells, a caption under each. */
+.docs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--col-gap); align-items: start; }
+.doc { display: grid; gap: var(--space-md); }
+.doc__paper { padding: var(--space-lg); border-radius: var(--radius-card); background: var(--color-well); }
+.doc__paper img { width: 100%; border-radius: var(--radius-inner); box-shadow: var(--shadow-card); }
+.doc figcaption { display: grid; gap: var(--space-2xs); }
+.doc figcaption strong { font: 500 var(--text-title)/1.25 var(--font-display); }
+.doc figcaption span { color: var(--color-ink-2); font-size: var(--text-sm); max-width: 48ch; }
+
+/* Access matrix: one row per menu, one column per role. */
+.matrix-wrap { overflow-x: auto; border-top: var(--rule-hair) solid var(--color-rule); }
+.matrix { width: 100%; min-width: 46rem; border-collapse: collapse; font-size: var(--text-sm); }
+.matrix th, .matrix td { padding: var(--space-sm) var(--space-md); border-bottom: var(--rule-hair) solid var(--color-rule); text-align: center; }
+.matrix thead th { color: var(--color-muted); font-weight: 500; }
+.matrix th[scope="row"] { text-align: left; font-weight: 500; color: var(--color-ink); }
+.matrix thead th:first-child { text-align: left; }
+.matrix td.y { color: var(--color-accent); font-weight: 600; }
+.matrix td.n::before { content: ""; display: block; width: var(--space-md); height: var(--rule-hair); margin-inline: auto; background: var(--color-rule); }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
 /* Close: the invitation beside the second photograph. */
 .close { padding-block: var(--space-4xl); }
 .close__grid { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: var(--space-2xl); align-items: center; }
@@ -154,7 +180,8 @@ p { text-wrap: pretty; }
   .rows > div { gap: var(--space-lg); }
   .hero__visual { padding-bottom: 0; }
   .hero__pane { position: relative; left: 0; width: 88%; margin: calc(-1 * var(--space-2xl)) 0 0 auto; }
-  .tour__stage, .ledger__head { position: static; }
+  .tour__pane, .ledger__head { position: static; }
+  .docs { grid-template-columns: minmax(0, 1fr); }
   .steps__list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .section { padding-block: var(--space-3xl); }
   .nav__links { display: none; }
@@ -170,5 +197,5 @@ p { text-wrap: pretty; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .btn, .nav__links a, .role, .role strong { transition: none; }
+  .btn, .nav__links a, .who__item, .feat, .feat strong { transition: none; }
 }
