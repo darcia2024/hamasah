@@ -1,7 +1,8 @@
-/* Hallmark · v2.0.0 · shape: proposal ledger, feature-led · genre: modern-minimal · theme: custom (by request: green and gold sampled from the Qohiroh Center logo, Onest + Manrope) · job: hire · draw: manual · surface: absolute · posture: committed
+/* Hallmark · v2.0.0 · shape: reference deck (the PERISA pitch layout), chapters 01 to 15 · genre: modern-minimal · theme: custom (by request: green and gold sampled from the Qohiroh Center logo, Onest + Manrope) · job: hire · draw: manual · surface: absolute · posture: committed
  * hero: Stage, the head on deep green over a muted Cairo photograph, the product's first screen at the right · nav: sticky white bar, logo and wordmark, six anchors, one action · footer: one mast line, wordmark first · imagery: two repo photographs (Unsplash, credited in the footer) and captures of the running product re-skinned in the logo's green and gold · signature: nine feature cards that each open the real screen in the role tour
  * axes: light/grotesk-sans/cool · contrast: pass · fold: pass */
 /* Hallmark · dismissed 58 · a proposal read on request by a decision-maker: the words are nine feature rows and ledger rows of one idea each, and no screen holds more than one section's worth */
+/* Hallmark · waive 47b · two device frames per stage, a laptop and a phone with real captures inside · the user asked for the reference deck's laptop and phone layout */
 /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, one green family carries most of the page, so the yellow is held for actions and the one gold rule on each card */
 
 @font-face { font-family: "Onest"; font-style: normal; font-weight: 400 800; font-display: swap; src: url("../assets/fonts/qohiroh/onest-latin.woff2") format("woff2"); }
@@ -22,7 +23,7 @@
   --font-display: "Onest", ui-sans-serif, system-ui, sans-serif;
   --weight-h1: 700; --weight-h2: 650; --weight-h3: 600;
   --font-body: "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --radius-card: 16px; --radius-inner: 10px; --radius-pill: 999px;
+  --radius-card: 16px; --radius-stage: 28px; --radius-inner: 10px; --radius-pill: 999px;
 
   --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px;
   --space-xl: 40px; --space-2xl: 64px; --space-3xl: 96px; --space-4xl: 128px;
@@ -79,17 +80,34 @@ p { text-wrap: pretty; }
 .nav__links a { padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-pill); color: var(--ink-2); font-size: var(--text-sm); text-decoration: none; white-space: nowrap; transition: color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out); }
 .nav__links a:hover { color: var(--green-800); background: var(--green-50); }
 
-/* Hero: deep green over the Cairo photograph, the product's first screen beside the head. */
-.hero { min-height: calc(100svh - var(--nav-h)); display: flex; align-items: center; padding-block: var(--space-xl); background: linear-gradient(105deg, color-mix(in srgb, var(--green-950) 97%, transparent) 0%, color-mix(in srgb, var(--green-900) 93%, transparent) 46%, color-mix(in srgb, var(--green-700) 82%, transparent) 100%), url("../assets/cairo-skyline.webp") 70% 40% / cover; color: var(--on-dark); }
-.hero__grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-2xl); align-items: center; }
-.hero__copy { display: grid; gap: var(--space-lg); justify-items: start; }
-.lede { font-size: var(--text-lg); line-height: 1.5; color: var(--on-dark-2); max-width: 30ch; }
+/* Cover: a small line for whom it is for, the head at the left, one sentence and the actions at the right, then the product on a soft stage. */
+.hero { padding: var(--space-2xl) 0 var(--space-3xl); background: var(--paper); }
+.hero__untuk { margin-bottom: var(--space-xl); color: var(--muted); font-size: var(--text-sm); }
+.hero__kepala { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--space-2xl); align-items: end; margin-bottom: var(--space-2xl); }
+.hero h1 { color: var(--green-950); }
+.hero__samping { display: grid; gap: var(--space-lg); justify-items: start; padding-bottom: var(--space-xs); }
+.lede { max-width: 36ch; color: var(--ink-2); font-size: var(--text-lg); line-height: 1.5; }
+.btn--outline { background: transparent; color: var(--green-800); box-shadow: inset 0 0 0 1px var(--green-300); }
+.btn--outline:hover { background: var(--green-50); }
+.btn--outline:active { transform: translateY(1px); }
 
+/* Device stage: a laptop, and a phone laid over its corner. Real captures inside both frames. */
+.stage { position: relative; padding: var(--space-xl) var(--space-xl) var(--space-lg); border-radius: var(--radius-stage); background: var(--green-50); border: 1px solid var(--rule); }
+.stage--hero { padding: var(--space-2xl) var(--space-2xl) var(--space-xl); }
+.laptop { width: 100%; }
+.stage--hero .laptop { width: 88%; }
+.laptop__screen { padding: var(--space-xs) var(--space-xs) var(--space-sm); border-radius: 16px 16px 6px 6px; background: var(--green-950); box-shadow: var(--shadow-card); }
+.laptop__screen img { width: 100%; border-radius: 6px; }
+.laptop__base { height: var(--space-sm); margin-inline: -2%; border-radius: 0 0 16px 16px; background: var(--green-800); }
+.phone { width: min(24%, 15rem); padding: var(--space-xs); border-radius: 28px; background: var(--green-950); box-shadow: var(--shadow-card); }
+.phone img { width: 100%; border-radius: 21px; }
+.phone--tindih { position: absolute; right: var(--space-lg); bottom: var(--space-lg); }
+.stage--hero .phone--tindih { right: var(--space-xl); bottom: var(--space-xl); }
+.keterangan { margin-top: var(--space-md); color: var(--muted); font-size: var(--text-sm); }
 /* A captured product screen on a white frame. */
 .shot { padding: var(--space-xs); border-radius: var(--radius-card); background: var(--white); box-shadow: var(--shadow-card); border: 1px solid var(--rule); }
 .shot img { width: 100%; border-radius: var(--radius-inner); }
 .shot figcaption { padding: var(--space-xs) var(--space-xs) var(--space-2xs); color: var(--muted); font-size: var(--text-sm); }
-.hero__shot { border-color: transparent; box-shadow: var(--shadow-hero); }
 
 /* Sections */
 .section { padding-block: var(--space-4xl); }
@@ -157,14 +175,40 @@ p { text-wrap: pretty; }
 .fontdemo__b { font: 600 var(--text-lg)/1.2 var(--font-body); color: var(--ink); }
 .brandlogo { width: min(100%, 22rem); height: auto; padding: var(--space-md) var(--space-lg); border-radius: var(--radius-card); background: var(--white); border: 1px solid var(--rule); }
 
-/* Steps: four rows with large numerals. */
-.steps { display: grid; gap: var(--space-xl); }
-.steps__list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--col-gap); }
-.steps__list li { display: grid; gap: var(--space-xs); align-content: start; padding-top: var(--space-md); border-top: 2px solid var(--green-200); }
-.steps__no { font: 700 var(--text-display)/1 var(--font-display); color: var(--green-600); font-variant-numeric: tabular-nums; }
-.steps__list strong { font: 600 var(--text-title)/1.25 var(--font-display); }
-.steps__list li > span:last-child { color: var(--ink-2); font-size: var(--text-sm); }
-
+/* Chapters: a number, a large head, one sentence, then a composition. Backgrounds alternate paper, soft green, and deep green. */
+.sekilas { padding-block: 0 var(--space-3xl); background: var(--paper); }
+.fakta { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--space-lg); padding-top: var(--space-lg); border-top: 1px solid var(--rule); }
+.fakta dt { margin-bottom: var(--space-2xs); color: var(--green-900); font: 600 var(--text-title)/1.2 var(--font-display); }
+.fakta dd { color: var(--muted); font-size: var(--text-sm); line-height: 1.5; }
+.bab { padding-block: var(--space-4xl); background: var(--paper); }
+.bab--lembut { background: var(--green-50); border-block: 1px solid var(--rule); }
+.bab--gelap { background: var(--green-900); color: var(--on-dark); }
+.bab--gelap .sub, .bab--gelap .rows dd { color: var(--on-dark-2); }
+.bab--gelap .rows > div { border-color: var(--rule-dark); }
+.bab__kepala { display: grid; gap: var(--space-md); margin-bottom: var(--space-2xl); max-width: 62ch; }
+.bab__no { color: var(--green-600); font: 600 var(--text-md)/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.bab--gelap .bab__no { color: var(--yellow); }
+.belah { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: var(--col-gap); align-items: start; }
+.butir li { display: grid; gap: var(--space-2xs); padding-block: var(--space-md); border-top: 1px solid var(--rule); }
+.butir li:last-child { border-bottom: 1px solid var(--rule); }
+.butir strong { font: 600 var(--text-md)/1.3 var(--font-display); }
+.butir span { color: var(--muted); font-size: var(--text-sm); line-height: 1.5; }
+.kartu-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-lg); }
+.kartu { display: grid; align-content: start; gap: var(--space-xs); padding: var(--space-md) var(--space-md) var(--space-lg); border: 1px solid var(--rule); border-radius: var(--radius-card); background: var(--white); }
+.kartu__gambar { aspect-ratio: 4 / 3; margin-bottom: var(--space-xs); overflow: hidden; border-radius: var(--radius-inner); background: var(--green-100); }
+.kartu__gambar img { width: 100%; height: 100%; object-fit: cover; object-position: top left; }
+.kartu p { color: var(--muted); font-size: var(--text-sm); line-height: 1.5; }
+.ponsel-baris { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-lg); }
+.ponsel-baris li { display: grid; gap: var(--space-md); align-content: start; justify-items: center; }
+.ponsel-baris .phone { width: min(100%, 15rem); }
+.ponsel-baris p { display: grid; gap: var(--space-2xs); justify-self: stretch; }
+.ponsel-baris strong { font: 600 var(--text-md)/1.3 var(--font-display); }
+.ponsel-baris span { color: var(--muted); font-size: var(--text-sm); line-height: 1.5; }
+.tahap-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--col-gap); }
+.tahap { display: grid; gap: var(--space-sm); align-content: start; padding-top: var(--space-md); border-top: 2px solid var(--green-200); }
+.tahap__no { color: var(--green-600); font: 600 var(--text-sm)/1 var(--font-display); }
+.tahap__waktu { color: var(--muted); font-size: var(--text-sm); }
+.docs { margin-top: var(--space-3xl); }
 /* Documents: two PDFs on soft green wells, a caption under each. */
 .docs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--col-gap); align-items: start; }
 .doc { display: grid; gap: var(--space-md); }
@@ -208,12 +252,17 @@ p { text-wrap: pretty; }
 }
 
 @media (max-width: 960px) {
-  .hero { min-height: 0; }
-  .hero__grid, .tour, .ledger, .close__grid { grid-template-columns: minmax(0, 1fr); gap: var(--space-xl); }
+  .hero__kepala, .belah, .tour, .ledger, .close__grid { grid-template-columns: minmax(0, 1fr); gap: var(--space-xl); }
+  .hero__kepala { align-items: start; }
+  .kartu-grid, .ponsel-baris, .fakta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tahap-grid { grid-template-columns: minmax(0, 1fr); }
+  .stage, .stage--hero { padding: var(--space-lg); }
+  .stage--hero .laptop { width: 100%; }
+  .phone--tindih, .stage--hero .phone--tindih { position: relative; right: auto; bottom: auto; width: min(38%, 13rem); margin: calc(-1 * var(--space-2xl)) 0 0 auto; }
   .rows > div { gap: var(--space-lg); }
   .tour__pane, .ledger__head { position: static; }
   .docs { grid-template-columns: minmax(0, 1fr); }
-  .steps__list, .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .section { padding-block: var(--space-3xl); }
   .nav__links { display: none; }
 }
@@ -221,7 +270,8 @@ p { text-wrap: pretty; }
 @media (max-width: 640px) {
   .fgrid { grid-template-columns: minmax(0, 1fr); }
   .rows > div { grid-template-columns: minmax(0, 1fr); gap: var(--space-2xs); }
-  .steps__list, .facts { grid-template-columns: minmax(0, 1fr); }
+  .facts, .kartu-grid, .fakta { grid-template-columns: minmax(0, 1fr); }
+  .ponsel-baris { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md); }
   .swatch { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .nav__brand span { display: none; }
 }

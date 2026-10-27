@@ -83,9 +83,7 @@
       ponsel: true,
       fitur: [
         ['Ananda dan hal yang perlu diperhatikan', 'Semua ananda yang terhubung muncul di satu akun, lengkap dengan tagihan atau iqamah yang perlu diurus.', 'wali-1', 'Halaman wali di HP: ananda dan hal yang perlu diperhatikan'],
-        ['Laporan 30 hari', 'Ringkasan bulan ini: sholat berjamaah, kehadiran kegiatan, dan setoran hafalan.', 'wali-2', 'Halaman wali di HP: laporan 30 hari terakhir'],
-        ['Sholat dan kegiatan', 'Rekap sholat lima waktu per hari dan kehadiran kegiatan asrama.', 'wali-3', 'Halaman wali di HP: rekap sholat dan kegiatan'],
-        ['Hafalan Al-Qur’an', 'Juz yang sudah dihafal dan mutu setoran terakhir.', 'wali-4', 'Halaman wali di HP: hafalan Al-Qur’an']
+        ['Laporan 30 hari', 'Ringkasan bulan ini: sholat berjamaah, kehadiran kegiatan, dan setoran hafalan.', 'wali-2', 'Halaman wali di HP: laporan 30 hari terakhir']
       ]
     },
     {
@@ -120,8 +118,8 @@
     const lihat = document.getElementById('aksi-lihat');
     const hero = document.querySelector('.hero [data-wa]');
     if (lihat && hero) {
-      lihat.classList.replace('btn--primary', 'btn--ghost');
-      hero.classList.replace('btn--ghost', 'btn--primary');
+      lihat.classList.replace('btn--primary', 'btn--outline');
+      hero.classList.replace('btn--outline', 'btn--primary');
     }
   }
 
