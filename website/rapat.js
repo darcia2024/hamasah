@@ -139,4 +139,168 @@
     });
   });
   segarkanAksi();
+  // Tampilan Report: ringkasan angka yang dihitung dari isi halaman ini (modul, keputusan, catatan "Perlu dicek").
+  const tabbar = $('tabbar');
+  const tabInfo = $('tab-info');
+  const tabReport = $('tab-report');
+  const panelInfo = $('panel-info');
+  const panelReport = $('panel-report');
+  const el = (tag, kelas, teks) => {
+    const n = document.createElement(tag);
+    if (kelas) n.className = kelas;
+    if (teks !== undefined) n.textContent = teks;
+    return n;
+  };
+  const angkaID = (n) => String(n);
+
+  const kelompok = Array.from(document.querySelectorAll('.grup')).map((g) => ({
+    nama: g.querySelector('.grup__kepala h3').textContent,
+    modul: Array.from(g.querySelectorAll('.mod')).map((m) => ({
+      no: m.querySelector('.mod__no').textContent,
+      nama: m.querySelector('h4').textContent,
+      id: m.id,
+      poin: m.querySelectorAll('.butir li').length,
+      cek: m.querySelectorAll('.mod__awas li').length,
+    })),
+  }));
+  kelompok.forEach((k) => {
+    k.poin = k.modul.reduce((a, m) => a + m.poin, 0);
+    k.cek = k.modul.reduce((a, m) => a + m.cek, 0);
+  });
+  const semuaModul = kelompok.flatMap((k) => k.modul.map((m) => ({ ...m, kelompok: k.nama })));
+  const totalPoin = semuaModul.reduce((a, m) => a + m.poin, 0);
+  const totalCek = semuaModul.reduce((a, m) => a + m.cek, 0);
+
+  let pilihKelompok = -1; // -1 = semua
+  let hanyaCek = false;
+
+  function sel(teks, kelas) { return el('td', kelas, teks); }
+  function barisTabel(sel1, sel2, sel3, sel4, total, bar) {
+    const tr = el('tr', total ? 'is-total' : '');
+    const th = el('th', '', sel1);
+    th.scope = 'row';
+    if (bar !== undefined) {
+      const b = el('span', 'lap__bar');
+      b.append(el('i', `l${Math.round(bar * 10)}`));
+      th.append(b);
+    }
+    tr.append(th, sel(sel2, 'num'), sel(sel3, 'num'), sel(sel4, 'num'));
+    return tr;
+  }
+  function tabel(kepala, isi) {
+    const t = el('table', 'lap__t');
+    const h = el('thead');
+    const hr = el('tr');
+    kepala.forEach((k, i) => { const th = el('th', i ? 'num' : '', k); th.scope = 'col'; hr.append(th); });
+    h.append(hr);
+    const b = el('tbody');
+    isi.forEach((r) => b.append(r));
+    t.append(h, b);
+    return t;
+  }
+
+  function gambarAngka() {
+    const jawab = baris.filter((li) => li.querySelector('input').checked).length;
+    const data = [
+      [baris.length - jawab, 'Keputusan menunggu', `${jawab} dari ${baris.length} sudah dijawab`],
+      [semuaModul.length, 'Modul dibahas', `${kelompok.length} kelompok`],
+      [totalCek, 'Catatan perlu dicek', `di ${semuaModul.filter((m) => m.cek).length} modul`],
+    ];
+    const dl = $('lap-angka');
+    dl.textContent = '';
+    data.forEach(([n, label, ket]) => {
+      const d = el('div', 'lap__a');
+      const dd = el('dd', 'lap__n', angkaID(n));
+      d.append(el('dt', 'lap__l', label), dd, el('p', 'lap__k', ket));
+      dl.append(d);
+    });
+  }
+
+  function gambarStrip() {
+    const strip = $('lap-strip');
+    strip.textContent = '';
+    const sel0 = [...kelompok.map((k) => ({ nama: k.nama, n: k.modul.length })), { nama: 'Total', n: semuaModul.length }];
+    sel0.forEach((s, i) => {
+      const idx = i === kelompok.length ? -1 : i;
+      const b = el('button', 'lap__hari');
+      b.type = 'button';
+      b.setAttribute('aria-pressed', String(pilihKelompok === idx));
+      if (pilihKelompok === idx) b.classList.add('is-on');
+      b.append(el('span', 'lap__hari-n', s.nama), el('strong', 'lap__hari-v', `${s.n} modul`));
+      b.addEventListener('click', () => { pilihKelompok = idx; gambarStrip(); gambarEntri(); });
+      strip.append(b);
+    });
+  }
+
+  function gambarEntri() {
+    const ul = $('lap-entri');
+    ul.textContent = '';
+    const daftar = semuaModul.filter((m) => (pilihKelompok < 0 || m.kelompok === kelompok[pilihKelompok].nama) && (!hanyaCek || m.cek));
+    daftar.forEach((m) => {
+      const li = el('li', 'lap__e');
+      const a = el('a', 'lap__e-tautan');
+      a.href = `#${m.id}`;
+      a.append(el('span', 'lap__e-no', m.no));
+      const teks = el('span', 'lap__e-teks');
+      teks.append(el('strong', '', m.nama), el('span', 'lap__e-sub', m.kelompok));
+      a.append(teks);
+      if (m.cek) a.append(el('span', 'lap__tag', `${m.cek} perlu dicek`));
+      a.append(el('span', 'lap__e-v', `${m.poin} poin`));
+      a.addEventListener('click', () => { tampil('info'); });
+      li.append(a);
+      ul.append(li);
+    });
+    $('lap-kosong').hidden = daftar.length > 0;
+  }
+
+  function gambarTabel() {
+    const maks = Math.max(...kelompok.map((k) => k.poin));
+    const isi = kelompok.map((k) => barisTabel(k.nama, String(k.modul.length), String(k.poin), String(k.cek), false, k.poin / maks));
+    isi.push(barisTabel('Total', String(semuaModul.length), String(totalPoin), String(totalCek), true));
+    const r = $('lap-rincian');
+    r.textContent = '';
+    r.append(tabel(['Kelompok', 'Modul', 'Poin', 'Perlu dicek'], isi));
+
+    const nama = chip.map((c) => c.dataset.pemilik).filter((p) => p !== 'semua');
+    const maksP = Math.max(...nama.map((p) => baris.filter((li) => li.dataset.pemilik.split('|').includes(p)).length));
+    const isiP = nama.map((p) => {
+      const milik = baris.filter((li) => li.dataset.pemilik.split('|').includes(p));
+      const jawab = milik.filter((li) => li.querySelector('input').checked).length;
+      return barisTabel(p, String(milik.length), String(jawab), String(milik.length - jawab), false, milik.length / maksP);
+    });
+    const jawabSemua = baris.filter((li) => li.querySelector('input').checked).length;
+    isiP.push(barisTabel('Keputusan unik', String(baris.length), String(jawabSemua), String(baris.length - jawabSemua), true));
+    const p = $('lap-pemilik');
+    p.textContent = '';
+    p.append(tabel(['Pemilik', 'Keputusan', 'Dijawab', 'Menunggu'], isiP));
+  }
+
+  function gambarLaporan() { gambarAngka(); gambarStrip(); gambarEntri(); gambarTabel(); }
+
+  function tampil(nama) {
+    const rep = nama === 'report';
+    panelInfo.hidden = rep;
+    panelReport.hidden = !rep;
+    $('menu').hidden = rep;
+    document.body.classList.toggle('lihat-report', rep);
+    tabInfo.classList.toggle('is-on', !rep);
+    tabReport.classList.toggle('is-on', rep);
+    tabInfo.setAttribute('aria-selected', String(!rep));
+    tabReport.setAttribute('aria-selected', String(rep));
+    tabInfo.tabIndex = rep ? -1 : 0;
+    tabReport.tabIndex = rep ? 0 : -1;
+    if (rep) { gambarLaporan(); window.scrollTo(0, 0); }
+  }
+  tabInfo.addEventListener('click', () => tampil('info'));
+  tabReport.addEventListener('click', () => tampil('report'));
+  [tabInfo, tabReport].forEach((t) => t.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { const ke = t === tabInfo ? tabReport : tabInfo; ke.focus(); ke.click(); }
+  }));
+  document.querySelectorAll('[data-lap]').forEach((b) => b.addEventListener('click', () => {
+    hanyaCek = b.dataset.lap === 'awas';
+    document.querySelectorAll('[data-lap]').forEach((x) => x.classList.toggle('is-on', x === b));
+    gambarEntri();
+  }));
+  tabbar.hidden = false;
+  if (location.hash === '#report') tampil('report');
 })();
