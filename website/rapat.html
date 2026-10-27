@@ -7,7 +7,7 @@
     <meta name="description" content="Hasil rapat Hamasah 27 Oktober 2026: apa yang dibahas, 13 modul yang dibutuhkan, 13 keputusan yang ditunggu, urutan pengerjaan, dan langkah berikutnya." />
     <title>Hasil rapat 27 Oktober 2026 | Hamasah</title>
     <link rel="icon" href="../assets/favicon.png" />
-    <link rel="stylesheet" href="rapat.css?v=1e4e0545a8" />
+    <link rel="stylesheet" href="rapat.css?v=487bbc2c0f" />
   </head>
   <body>
     <a class="skip-link" href="#isi">Lewati ke isi</a>
@@ -645,58 +645,19 @@
 
   <section class="prd__bagian" id="prd-bangun">
     <h2>4. Yang perlu dibangun</h2>
-    <p>Daftar ini disusun dari tahap yang disepakati di rapat. Mana yang sudah ada dan mana yang benar-benar baru baru bisa dipastikan setelah audit kode, jadi anggap ini daftar kerja awal.</p>
-
-    <h4>Tahap P0: rapikan yang sudah ada</h4>
-    <ul>
-      <li>Benerin tampilan iqamah yang bertabrakan.</li>
-      <li>Cek data dan kontak yang keliru, serta alur yang error.</li>
-      <li>Periksa keamanan: login, RLS, dan backup.</li>
-      <li>QA seluruh portal yang sekarang.</li>
-    </ul>
-
-    <h4>Tahap P1: operasional inti</h4>
-    <ul>
-      <li>Impor data 108 santri dari file.</li>
-      <li>Struktur asrama dan kamar, untuk Mesir dan Indonesia.</li>
-      <li>Absensi kegiatan dan perizinan santri.</li>
-      <li>Buku setoran tahfidz dan rapor bulanan.</li>
-      <li>Penilaian KPI musyrif dan musyrifah.</li>
-    </ul>
-
-    <h4>Tahap P2: administrasi</h4>
-    <ul>
-      <li>Pemantauan dokumen dan pengingat kedaluwarsa.</li>
-      <li>Surat-surat beserta template dan penandatangannya.</li>
-      <li>Inventaris dan catatan AC patungan.</li>
-      <li>Galeri foto dengan izin publikasi.</li>
-      <li>Kotak masukan privat dari wali.</li>
-      <li>Audit trail untuk semua aktivitas penting.</li>
-    </ul>
-
-    <h4>Tahap P3: sambungan ke layanan lain</h4>
-    <ul>
-      <li>Sambungan ke pembayaran (Sendit), sesuai opsi A atau B yang diputuskan.</li>
-      <li>Pengingat tagihan lewat WhatsApp.</li>
-      <li>LMS internal dan tautan ke kelas eksternal.</li>
-      <li>PWA buat santri dan wali.</li>
-    </ul>
-
-    <h4>Tahap P4: lanjutan</h4>
-    <ul>
-      <li>AI assistant.</li>
-      <li>Artikel dan fitur editorial.</li>
-      <li>Otomasi tambahan.</li>
-    </ul>
-
-    <h4>Belum jelas masuk tahap mana</h4>
-    <ul>
-      <li>CMS dan landing page (isi, testimoni, harga, fasilitas).</li>
-      <li>Portal wali dan santri, termasuk pengumuman dan notifikasi.</li>
-    </ul>
-
-    <p>Selesai tiap tahap: P0 kalau alur yang ada sudah aman dan bisa diuji. P1 kalau data nyata sudah masuk dan peran utama jalan. P2 kalau alurnya terverifikasi dan tercatat di audit. P3 kalau sambungan dan uji ujung ke ujung berhasil. P4 kalau ruang lingkup dan biayanya disetujui terpisah. Estimasi waktu dan biaya menyusul setelah audit.</p>
-    <p><strong>Beda jenis pekerjaan:</strong> perbaikan bug masuk kontrak. Penyempurnaan (portal, galeri, tahfidz, notifikasi) dibandingkan dulu dengan scope awal. Ekspansi besar (multi-lokasi Indonesia, KPI, AC patungan, pembayaran, AI) dihitung ulang effort, biaya, dan waktunya. Booklet, konten Instagram, dan press release itu proyek desain sendiri.</p>
+    <p>Disusun dari tahap di rapat. Mana yang sudah ada dan mana yang baru, pastinya setelah audit kode.</p>
+    <div class="prd__tabel"><table class="prd__t">
+      <thead><tr><th scope="col">Tahap</th><th scope="col">Yang dikerjakan</th><th scope="col">Selesai kalau</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">P0<br><span>Rapikan</span></th><td>Tampilan iqamah bertabrakan. Data, kontak, dan alur yang error. Login, RLS, backup. QA semua portal.</td><td>Alur yang ada aman dan bisa diuji</td></tr>
+        <tr><th scope="row">P1<br><span>Operasional inti</span></th><td>Impor 108 santri. Asrama dan kamar (Mesir dan Indonesia). Absensi dan izin. Setoran tahfidz dan rapor. KPI musyrif.</td><td>Data nyata masuk, peran utama jalan</td></tr>
+        <tr><th scope="row">P2<br><span>Administrasi</span></th><td>Pantau dokumen dan pengingat. Surat dan template. Inventaris dan AC patungan. Galeri dan izin foto. Kotak masukan wali. Audit trail.</td><td>Alur terverifikasi dan tercatat di audit</td></tr>
+        <tr><th scope="row">P3<br><span>Sambungan</span></th><td>Pembayaran (Sendit, opsi A atau B). Pengingat tagihan WhatsApp. LMS dan tautan kelas eksternal. PWA.</td><td>Sambungan dan uji ujung ke ujung berhasil</td></tr>
+        <tr><th scope="row">P4<br><span>Lanjutan</span></th><td>AI assistant. Artikel dan editorial. Otomasi tambahan.</td><td>Ruang lingkup dan biaya disetujui terpisah</td></tr>
+        <tr><th scope="row">Belum ada tahap</th><td>CMS dan landing page. Portal wali dan santri (pengumuman, notifikasi).</td><td>Tahap ditentukan setelah audit</td></tr>
+      </tbody>
+    </table></div>
+    <p>Jenis pekerjaan: bug masuk kontrak. Penyempurnaan (portal, galeri, tahfidz, notifikasi) dibandingkan dulu dengan scope awal. Ekspansi besar (multi-lokasi Indonesia, KPI, AC patungan, pembayaran, AI) dihitung ulang biaya dan waktunya. Booklet, konten Instagram, dan press release itu proyek desain sendiri. Estimasi menyusul setelah audit.</p>
   </section>
 
   <section class="prd__bagian" id="prd-putusan">
@@ -735,14 +696,17 @@
 
   <section class="prd__bagian" id="prd-langkah">
     <h2>7. Langkah selanjutnya</h2>
-    <ol class="prd__langkah">
-      <li>Kirim dokumen ini ke Ustadz Doni dan tim, minta dikoreksi dan dipilihkan prioritasnya.</li>
-      <li>Minta akses buat audit kode dan database, contoh akun tiap peran, dan contoh data riil yang sudah disamarkan.</li>
-      <li>Kumpulkan bahan: daftar asrama, daftar santri, template surat, kebijakan KPI, inventaris, dan data patungan AC.</li>
-      <li>Jadwalkan obrolan soal integrasi pembayaran dengan tim IT, dan soal learning eksternal dengan Mas Rahman.</li>
-      <li>Setelah audit, bikin backlog dengan status: existing, bug, enhancement, new scope, atau deferred. Dari situ baru ada estimasi.</li>
-      <li>Buat acara, minta draft booklet, daftar lomba, hadiah, ketentuan, identitas acara, dan tanggal publikasi final.</li>
-    </ol>
+    <div class="prd__tabel"><table class="prd__t">
+      <thead><tr><th scope="col">#</th><th scope="col">Langkah</th><th scope="col">Dengan siapa</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">1</th><td>Kirim dokumen ini, minta dikoreksi dan dipilihkan prioritasnya</td><td>Ustadz Doni dan tim</td></tr>
+        <tr><th scope="row">2</th><td>Minta akses audit kode dan database, contoh akun tiap peran, contoh data riil yang disamarkan</td><td>Tim pengembang lama</td></tr>
+        <tr><th scope="row">3</th><td>Kumpulkan daftar asrama, daftar santri, template surat, kebijakan KPI, inventaris, data patungan AC</td><td>Admin, Operasional, Keuangan</td></tr>
+        <tr><th scope="row">4</th><td>Jadwalkan bahas integrasi pembayaran dan learning eksternal</td><td>Tim IT pembayaran, Mas Rahman</td></tr>
+        <tr><th scope="row">5</th><td>Setelah audit, buat backlog (existing, bug, enhancement, new scope, deferred) lalu estimasi</td><td>Tim pengembang</td></tr>
+        <tr><th scope="row">6</th><td>Acara: minta draft booklet, daftar lomba, hadiah, ketentuan, identitas acara, tanggal publikasi final</td><td>Panitia, PPMI</td></tr>
+      </tbody>
+    </table></div>
     <p class="prd__catatan">Dokumen ini nggak memuat kredensial atau data pribadi santri. Soal privasi, perlindungan anak, izin dokumentasi, pengembalian uang, dan surat pelepasan tanggung jawab perlu dicek secara hukum. Belum ada komitmen teknis final sebelum aplikasi yang ada diperiksa.</p>
   </section>
 </article></div>

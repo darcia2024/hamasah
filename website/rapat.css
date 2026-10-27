@@ -296,5 +296,11 @@ body.lihat-report { background: var(--page); }
 .prd__kode { display: inline-block; min-width: 2.8em; color: var(--gold-ink); font-weight: 700; font-variant-numeric: tabular-nums; }
 .prd__putusan em { color: var(--muted); font-size: 15px; font-style: normal; }
 .prd__putusan em::before { content: "· "; }
-@media (max-width: 720px) { .prd { font-size: 16.5px; } .prd__lead { font-size: 18px; } }
+.prd__tabel { margin: 8px 0 12px; overflow-x: auto; }
+.prd__t { width: 100%; border-collapse: collapse; font-size: 15px; line-height: 1.5; }
+.prd__t th, .prd__t td { padding: 10px 14px 10px 0; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.prd__t thead th { color: var(--muted); font-size: 13px; font-weight: 500; }
+.prd__t tbody th { width: 96px; color: var(--ink); font-weight: 700; }
+.prd__t tbody th span { color: var(--muted); font-size: 13px; font-weight: 400; }
+.prd__t td:last-child { width: 28%; }@media (max-width: 720px) { .prd { font-size: 16.5px; } .prd__lead { font-size: 18px; } }
 @media print { .tabbar { display: none; } .prd { max-width: none; font-size: 11.5pt; } .prd__toc { display: none; } .prd h4 { break-after: avoid; } }
