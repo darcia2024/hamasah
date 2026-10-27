@@ -1,10 +1,11 @@
-/* Hallmark · v2.0.0 · shape: reference deck (the PERISA pitch layout), chapters 01 to 15 · genre: modern-minimal · theme: custom (by request: green and gold sampled from the Qohiroh Center logo, Onest + Manrope) · job: hire · draw: manual · surface: absolute · posture: committed
+/* Hallmark · v2.0.0 · shape: reference deck (the PERISA pitch layout), chapters 01 to 15 · genre: modern-minimal · theme: custom (by request: green and gold sampled from the Qohiroh Center logo, Bricolage Grotesque + Manrope) · job: hire · draw: manual · surface: absolute · posture: committed
  * hero: Stage, the head on deep green over a muted Cairo photograph, the product's first screen at the right · nav: sticky white bar, logo and wordmark, six anchors, one action · footer: one mast line, wordmark first · imagery: two repo photographs (Unsplash, credited in the footer) and captures of the running product re-skinned in the logo's green and gold · signature: nine feature cards that each open the real screen in the role tour
  * axes: light/grotesk-sans/cool · contrast: pass · fold: pass */
 /* Hallmark · dismissed 58 · a proposal read on request by a decision-maker: the words are nine feature rows and ledger rows of one idea each, and no screen holds more than one section's worth */
 /* Hallmark · waive 47b · two device frames per stage, a laptop and a phone with real captures inside · the user asked for the reference deck's laptop and phone layout */
 /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, one green family carries most of the page, so the yellow is held for actions and the one gold rule on each card */
 
+@font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-weight: 400; font-display: swap; src: url("../assets/fonts/qohiroh/bricolage-grotesque-latin.woff2") format("woff2"); }
 @font-face { font-family: "Onest"; font-style: normal; font-weight: 400 800; font-display: swap; src: url("../assets/fonts/qohiroh/onest-latin.woff2") format("woff2"); }
 @font-face { font-family: "Manrope"; font-style: normal; font-weight: 400 700; font-display: swap; src: url("../assets/fonts/qohiroh/manrope-latin.woff2") format("woff2"); }
 
@@ -20,8 +21,8 @@
   --focus: #145410;
   --shadow-card: 0 1px 2px rgba(10, 42, 6, 0.06), 0 18px 40px -22px rgba(10, 42, 6, 0.35);
   --shadow-hero: 0 0 0 4px color-mix(in srgb, var(--yellow) 85%, transparent), 0 40px 80px -32px rgba(4, 20, 2, 0.6);
-  --font-display: "Onest", ui-sans-serif, system-ui, sans-serif;
-  --weight-h1: 700; --weight-h2: 650; --weight-h3: 600;
+  --font-display: "Bricolage Grotesque", "Onest", ui-sans-serif, system-ui, sans-serif;
+  --weight-h1: 700; --weight-h2: 700; --weight-h3: 700;
   --font-body: "Manrope", ui-sans-serif, system-ui, sans-serif;
   --radius-card: 16px; --radius-stage: 28px; --radius-inner: 10px; --radius-pill: 999px;
 

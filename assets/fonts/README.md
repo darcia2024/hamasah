@@ -6,6 +6,10 @@
 
 `qohiroh/onest-latin.woff2` and `qohiroh/manrope-latin.woff2` are the Latin subsets of the Onest (weights 400 to 800) and Manrope (weights 400 to 700) variable fonts served by Google Fonts, downloaded 27 October 2026 and not modified. Both are licensed under the SIL Open Font License 1.1; see `Onest-OFL.txt` and `Manrope-OFL.txt`. They are used by `website/qohiroh.css` and by the screenshots of the Qohiroh proposal.
 
+# Bricolage Grotesque (Qohiroh proposal headings)
+
+`qohiroh/bricolage-grotesque-latin.woff2` is the Latin subset of Bricolage Grotesque, copied unmodified on 27 October 2026 from the self-hosted copy used by the reference pitch page (https://presentasiyayasan.vercel.app/vendor/fonts/bricolage-grotesque-latin.woff2). Bricolage Grotesque is licensed under the SIL Open Font License 1.1. It sets the headings of `website/qohiroh.css`, declared as one regular face with headings at weight 700, the same as the reference.
+
 # Arabic font
 
 `ka-traditional-naskh.woff2` is the unmodified webfont provided by Khalid Muhammad Al-Horr, **KA Traditional Naskh (v 2.0)**.
