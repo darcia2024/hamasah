@@ -4,7 +4,7 @@
 // Isi NOMOR_WA (format 62812xxxxxxx, tanpa tanda plus) supaya tombol diskusi muncul.
 // Selama kosong, tombolnya tersembunyi dan halaman memakai kalimat penutup biasa.
 // Gambar dibuat ulang dengan .claude/checks/qohiroh-shots.cjs dan qohiroh-docs.cjs. Tema warna dan
-// font mockup (hijau dan emas dari logo, Clash Display dan Manrope) ada di .claude/checks/qohiroh-tema.cjs;
+// font mockup (hijau dan emas dari logo, Onest dan Manrope) ada di .claude/checks/qohiroh-tema.cjs;
 // logo mockup diambil dari assets/qohiroh/logo-mark.png (dibuat oleh qohiroh-logo.cjs dari logo asli),
 // jadi ulangi kedua skrip setelah logo diganti.
 
@@ -13,7 +13,7 @@
   const PESAN_WA = 'Assalamu’alaikum. Saya dari Qohiroh Center, sudah membaca penawaran sistemnya dan ingin berdiskusi.';
   const FOLDER = '../assets/qohiroh/m/';
   // Naikkan VERSI (dan ?v= di qohiroh.html) setiap gambar diambil ulang, karena gambar disimpan peramban sehari.
-  const VERSI = '20261027b';
+  const VERSI = '20261027c';
   const alamatGambar = (berkas) => `${FOLDER}${berkas}.jpg?v=${VERSI}`;
 
   // Tiap peran punya daftar fitur: [judul, penjelasan, berkas gambar, teks pengganti gambar].
