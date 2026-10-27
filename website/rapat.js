@@ -139,197 +139,12 @@
     });
   });
   segarkanAksi();
-  // Tampilan PRD: dokumen persyaratan produk yang disusun dari isi tab Info, jadi tidak ada angka atau teks ganda untuk dirawat.
+  // Tab Info / PRD. PRD adalah teks statis di halaman, skrip hanya berpindah tampilan.
   const tabbar = $('tabbar');
   const tabInfo = $('tab-info');
   const tabPrd = $('tab-report');
   const panelInfo = $('panel-info');
   const panelPrd = $('panel-report');
-  const el = (tag, kelas, teks) => {
-    const n = document.createElement(tag);
-    if (kelas) n.className = kelas;
-    if (teks !== undefined) n.textContent = teks;
-    return n;
-  };
-  const teks = (akar, sel) => { const n = akar.querySelector(sel); return n ? n.textContent.trim() : ''; };
-  const tabel = (kepala, isi, kelas) => {
-    const t = el('table', `prd__t ${kelas || ''}`.trim());
-    const h = el('thead');
-    const hr = el('tr');
-    kepala.forEach((k) => { const th = el('th', '', k); th.scope = 'col'; hr.append(th); });
-    h.append(hr);
-    const b = el('tbody');
-    isi.forEach((baris2) => {
-      const tr = el('tr');
-      baris2.forEach((s, i) => {
-        const sel = el(i === 0 ? 'th' : 'td');
-        if (i === 0) sel.scope = 'row';
-        if (s instanceof Node) sel.append(s); else sel.textContent = s;
-        tr.append(sel);
-      });
-      b.append(tr);
-    });
-    t.append(h, b);
-    const bungkus = el('div', 'prd__tabel');
-    bungkus.append(t);
-    return bungkus;
-  };
-  const daftar = (butir, kelas) => { const ul = el('ul', kelas || 'prd__ul'); butir.forEach((b) => ul.append(el('li', '', b))); return ul; };
-  const label = (t, jenis) => el('span', `prd__lb prd__lb--${jenis}`, t);
-
-  function susunPrd() {
-    const akar = $('prd');
-    if (akar.dataset.siap) return;
-    akar.dataset.siap = '1';
-    const toc = [];
-    let no = 0;
-    const bagian = (judul, id) => {
-      no += 1;
-      const s = el('section', 'prd__bagian');
-      s.id = id;
-      const h = el('h2', '', `${no}. ${judul}`);
-      s.append(h);
-      toc.push([`${no}. ${judul}`, id]);
-      akar.append(s);
-      return s;
-    };
-    const isiKartu = Array.from(document.querySelectorAll('.intisari__kartu'));
-
-    // Kepala dokumen
-    const kepala = el('header', 'prd__kepala');
-    kepala.append(el('p', 'prd__kicker', 'Product Requirements Document'), el('h1', '', 'Platform Hamasah International'));
-    kepala.append(tabel(['Keterangan', 'Isi'], [
-      ['Status', 'Draf versi kerja 1.0, menunggu koreksi fakta dan persetujuan prioritas'],
-      ['Sumber', 'Notulen rapat 27 Oktober 2026'],
-      ['Pembaca', 'Tim Hamasah dan tim pengembang'],
-      ['Batasan', 'Rangkuman ucapan di rapat, bukan hasil audit kode. “Sudah didemokan” belum berarti sudah lolos uji.'],
-    ], 'prd__t--meta'));
-    akar.append(kepala);
-
-    // 1. Ringkasan
-    let s = bagian('Ringkasan', 'prd-ringkasan');
-    s.append(el('p', '', teks(isiKartu[0], 'p')));
-    s.append(el('p', '', teks(isiKartu[1], 'p')));
-
-    // 2. Tujuan dan di luar lingkup
-    s = bagian('Tujuan dan di luar lingkup', 'prd-tujuan');
-    s.append(el('h3', '', 'Tujuan'));
-    s.append(daftar([
-      'Satu platform untuk santri, asrama, musyrif, pembinaan, laporan wali, administrasi, inventaris, dan LMS.',
-      'Unit Mesir dan Indonesia berada di satu sistem, dengan akses dan laporan dipisah per lokasi.',
-      'Data nyata (sekitar 108 santri) masuk lewat impor, dan tiap peran hanya melihat data yang menjadi haknya.',
-    ]));
-    s.append(el('h3', '', 'Di luar lingkup'));
-    s.append(daftar([
-      'Pembayaran dan kelas berbayar tetap di layanan masing-masing, dengan opsi disambungkan.',
-      'Booklet kompetisi dan konten promosi dikerjakan sebagai proyek desain terpisah (lihat bagian 8).',
-      'Ruang lingkup AI, editorial lanjutan, dan otomasi tambahan disetujui terpisah (tahap P4).',
-    ]));
-
-    // 3. Pengguna dan peran
-    s = bagian('Pengguna dan peran', 'prd-peran');
-    s.append(tabel(['Peran', 'Akses menurut notulen'], [
-      ['Admin', 'Boleh lebih dari satu. Mengelola data, akun, pengumuman, dokumen, dan audit hak akses.'],
-      ['Musyrif dan musyrifah', 'Hanya melihat santri dan asrama yang menjadi tanggung jawabnya.'],
-      ['Santri', 'Portal LMS, laporan, progres hafalan, dan catatan pembinaan pribadi yang tidak otomatis terlihat wali.'],
-      ['Wali', 'Portal anak: profil, absensi, tahfidz, rapor, tagihan (bila terintegrasi), galeri, pengumuman. Satu wali bisa tertaut ke beberapa anak setelah relasinya diverifikasi.'],
-      ['Petugas', 'Akun untuk tugas operasional, dengan hak akses diaudit.'],
-    ]));
-
-    // 4. Persyaratan fungsional
-    s = bagian('Persyaratan fungsional', 'prd-fr');
-    s.append(el('p', 'prd__catatan', 'Nomor modul mengikuti notulen (2.1 sampai 2.13). Persyaratan ditulis dari poin rincian tiap modul. Butir yang belum pasti dikaitkan ke keputusan di bagian 7.'));
-    document.querySelectorAll('.grup').forEach((g) => {
-      s.append(el('h3', 'prd__grup', teks(g, '.grup__kepala h3')));
-      g.querySelectorAll('.mod').forEach((m) => {
-        const no2 = teks(m, '.mod__no');
-        const kotak = el('div', 'prd__mod');
-        kotak.id = `prd-m${no2.replace('.', '-')}`;
-        const h = el('h4', '');
-        h.append(el('span', 'prd__id', `FR-${no2}`), document.createTextNode(` ${teks(m, 'h4')}`));
-        kotak.append(h, el('p', 'prd__desk', teks(m, '.mod__ringkas')));
-        const butir = Array.from(m.querySelectorAll('.butir li'));
-        if (butir.length) {
-          const ol = el('ol', 'prd__req');
-          butir.forEach((b, k) => {
-            const li = el('li');
-            li.append(el('span', 'prd__rid', `${no2}.${k + 1}`), el('span', '', (b.dataset.asli || b.textContent).trim()));
-            ol.append(li);
-          });
-          kotak.append(ol);
-        }
-        const awas = Array.from(m.querySelectorAll('.mod__awas li'));
-        if (awas.length) {
-          const q = el('div', 'prd__tanya');
-          q.append(el('strong', '', 'Pertanyaan terbuka'));
-          const ul = el('ul');
-          awas.forEach((a) => {
-            const li = el('li');
-            li.append(document.createTextNode((a.dataset.asli || a.textContent).trim()));
-            if (a.dataset.ref) li.append(label(a.dataset.ref, 'ref'));
-            ul.append(li);
-          });
-          q.append(ul);
-          kotak.append(q);
-        }
-        s.append(kotak);
-      });
-    });
-
-    // 5. Klasifikasi perubahan
-    s = bagian('Klasifikasi pekerjaan', 'prd-klasifikasi');
-    s.append(el('p', '', 'Pekerjaan dipilah supaya revisi bug tidak tercampur dengan permintaan baru.'));
-    s.append(tabel(['Golongan', 'Contoh', 'Perlakuan'], Array.from(document.querySelectorAll('.batas__kartu')).map((k) => [
-      teks(k, 'h4'), teks(k, '.batas__contoh'), teks(k, 'p:last-child').replace(/^Perlakuan:\s*/, ''),
-    ])));
-
-    // 6. Fase rilis
-    s = bagian('Fase rilis', 'prd-fase');
-    s.append(tabel(['Fase', 'Cakupan', 'Kriteria selesai'], Array.from(document.querySelectorAll('.tahap__kartu')).map((k) => {
-      const dd = k.querySelectorAll('dd');
-      const nama = el('span');
-      nama.append(el('strong', '', teks(k, '.tahap__kode')), document.createTextNode(` ${teks(k, 'h3')}`));
-      const isi = el('span');
-      isi.append(document.createTextNode(dd[0].textContent.trim()));
-      return [nama, isi, dd[1].textContent.trim()];
-    })));
-    s.append(el('p', 'prd__catatan', 'Estimasi waktu dan biaya menyusul setelah audit kode dan database yang ada.'));
-
-    // 7. Keputusan terbuka
-    s = bagian('Keputusan terbuka', 'prd-keputusan');
-    const jawab = (li) => li.querySelector('input').checked;
-    s.append(el('p', '', 'Belum ada komitmen final untuk butir di bawah sebelum dijawab pemiliknya. Status mengikuti centang di tab Info (disimpan di perangkat ini).'));
-    s.append(tabel(['ID', 'Keputusan', 'Pemilik', 'Status'], baris.map((li) => [
-      li.dataset.id, teks(li, '.putusan__isi'), teks(li, '.putusan__pemilik'), label(jawab(li) ? 'Dijawab' : 'Terbuka', jawab(li) ? 'ok' : 'buka'),
-    ])));
-
-    // 8. Proyek terpisah
-    s = bagian('Proyek terpisah: booklet kompetisi dan takrim', 'prd-booklet');
-    s.append(el('p', '', document.querySelector('#booklet .kepala__sub').textContent.trim()));
-    const rinci = Array.from(document.querySelectorAll('#booklet .tanggal')).map((t) => [teks(t, 'span'), `${teks(t, 'strong')}. ${teks(t, 'small')}`])
-      .concat(Array.from(document.querySelectorAll('#booklet .rinci > div')).map((d) => [teks(d, 'dt'), teks(d, 'dd')]));
-    s.append(tabel(['Butir', 'Keterangan'], rinci));
-    s.append(el('h3', '', 'Dibutuhkan lebih dulu'));
-    s.append(daftar(Array.from(document.querySelectorAll('.butuh__daftar li')).map((x) => x.textContent.trim())));
-
-    // 9. Langkah berikutnya
-    s = bagian('Langkah berikutnya', 'prd-langkah');
-    const ol = el('ol', 'prd__ul prd__ul--no');
-    Array.from(document.querySelectorAll('#daftar-aksi li')).forEach((li) => ol.append(el('li', '', teks(li, '.aksi__isi'))));
-    s.append(ol);
-
-    // 10. Risiko dan catatan
-    s = bagian('Risiko dan catatan', 'prd-risiko');
-    s.append(el('p', '', teks(document.querySelector('.hati'), 'p')));
-
-    // Daftar isi
-    const nav = el('nav', 'prd__toc');
-    nav.setAttribute('aria-label', 'Daftar isi PRD');
-    nav.append(el('strong', '', 'Isi dokumen'));
-    toc.forEach(([t, id]) => { const a = el('a', '', t); a.href = `#${id}`; nav.append(a); });
-    akar.prepend(nav);
-  }
-
   function tampil(nama) {
     const prd = nama === 'prd';
     panelInfo.hidden = prd;
@@ -342,13 +157,8 @@
     tabPrd.setAttribute('aria-selected', String(prd));
     tabInfo.tabIndex = prd ? -1 : 0;
     tabPrd.tabIndex = prd ? 0 : -1;
-    if (prd) {
-      const akar = $('prd');
-      akar.querySelectorAll('.prd__bagian,.prd__toc,.prd__kepala').forEach((n) => n.remove());
-      delete akar.dataset.siap;
-      susunPrd();
-      window.scrollTo(0, 0);
-    }
+    if (prd) window.scrollTo(0, 0);
+
   }
   tabInfo.addEventListener('click', () => tampil('info'));
   tabPrd.addEventListener('click', () => tampil('prd'));
