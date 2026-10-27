@@ -139,168 +139,222 @@
     });
   });
   segarkanAksi();
-  // Tampilan Report: ringkasan angka yang dihitung dari isi halaman ini (modul, keputusan, catatan "Perlu dicek").
+  // Tampilan PRD: dokumen persyaratan produk yang disusun dari isi tab Info, jadi tidak ada angka atau teks ganda untuk dirawat.
   const tabbar = $('tabbar');
   const tabInfo = $('tab-info');
-  const tabReport = $('tab-report');
+  const tabPrd = $('tab-report');
   const panelInfo = $('panel-info');
-  const panelReport = $('panel-report');
+  const panelPrd = $('panel-report');
   const el = (tag, kelas, teks) => {
     const n = document.createElement(tag);
     if (kelas) n.className = kelas;
     if (teks !== undefined) n.textContent = teks;
     return n;
   };
-  const angkaID = (n) => String(n);
-
-  const kelompok = Array.from(document.querySelectorAll('.grup')).map((g) => ({
-    nama: g.querySelector('.grup__kepala h3').textContent,
-    modul: Array.from(g.querySelectorAll('.mod')).map((m) => ({
-      no: m.querySelector('.mod__no').textContent,
-      nama: m.querySelector('h4').textContent,
-      id: m.id,
-      poin: m.querySelectorAll('.butir li').length,
-      cek: m.querySelectorAll('.mod__awas li').length,
-    })),
-  }));
-  kelompok.forEach((k) => {
-    k.poin = k.modul.reduce((a, m) => a + m.poin, 0);
-    k.cek = k.modul.reduce((a, m) => a + m.cek, 0);
-  });
-  const semuaModul = kelompok.flatMap((k) => k.modul.map((m) => ({ ...m, kelompok: k.nama })));
-  const totalPoin = semuaModul.reduce((a, m) => a + m.poin, 0);
-  const totalCek = semuaModul.reduce((a, m) => a + m.cek, 0);
-
-  let pilihKelompok = -1; // -1 = semua
-  let hanyaCek = false;
-
-  function sel(teks, kelas) { return el('td', kelas, teks); }
-  function barisTabel(sel1, sel2, sel3, sel4, total, bar) {
-    const tr = el('tr', total ? 'is-total' : '');
-    const th = el('th', '', sel1);
-    th.scope = 'row';
-    if (bar !== undefined) {
-      const b = el('span', 'lap__bar');
-      b.append(el('i', `l${Math.round(bar * 10)}`));
-      th.append(b);
-    }
-    tr.append(th, sel(sel2, 'num'), sel(sel3, 'num'), sel(sel4, 'num'));
-    return tr;
-  }
-  function tabel(kepala, isi) {
-    const t = el('table', 'lap__t');
+  const teks = (akar, sel) => { const n = akar.querySelector(sel); return n ? n.textContent.trim() : ''; };
+  const tabel = (kepala, isi, kelas) => {
+    const t = el('table', `prd__t ${kelas || ''}`.trim());
     const h = el('thead');
     const hr = el('tr');
-    kepala.forEach((k, i) => { const th = el('th', i ? 'num' : '', k); th.scope = 'col'; hr.append(th); });
+    kepala.forEach((k) => { const th = el('th', '', k); th.scope = 'col'; hr.append(th); });
     h.append(hr);
     const b = el('tbody');
-    isi.forEach((r) => b.append(r));
+    isi.forEach((baris2) => {
+      const tr = el('tr');
+      baris2.forEach((s, i) => {
+        const sel = el(i === 0 ? 'th' : 'td');
+        if (i === 0) sel.scope = 'row';
+        if (s instanceof Node) sel.append(s); else sel.textContent = s;
+        tr.append(sel);
+      });
+      b.append(tr);
+    });
     t.append(h, b);
-    return t;
-  }
+    const bungkus = el('div', 'prd__tabel');
+    bungkus.append(t);
+    return bungkus;
+  };
+  const daftar = (butir, kelas) => { const ul = el('ul', kelas || 'prd__ul'); butir.forEach((b) => ul.append(el('li', '', b))); return ul; };
+  const label = (t, jenis) => el('span', `prd__lb prd__lb--${jenis}`, t);
 
-  function gambarAngka() {
-    const jawab = baris.filter((li) => li.querySelector('input').checked).length;
-    const data = [
-      [baris.length - jawab, 'Keputusan menunggu', `${jawab} dari ${baris.length} sudah dijawab`],
-      [semuaModul.length, 'Modul dibahas', `${kelompok.length} kelompok`],
-      [totalCek, 'Catatan perlu dicek', `di ${semuaModul.filter((m) => m.cek).length} modul`],
-    ];
-    const dl = $('lap-angka');
-    dl.textContent = '';
-    data.forEach(([n, label, ket]) => {
-      const d = el('div', 'lap__a');
-      const dd = el('dd', 'lap__n', angkaID(n));
-      d.append(el('dt', 'lap__l', label), dd, el('p', 'lap__k', ket));
-      dl.append(d);
+  function susunPrd() {
+    const akar = $('prd');
+    if (akar.dataset.siap) return;
+    akar.dataset.siap = '1';
+    const toc = [];
+    let no = 0;
+    const bagian = (judul, id) => {
+      no += 1;
+      const s = el('section', 'prd__bagian');
+      s.id = id;
+      const h = el('h2', '', `${no}. ${judul}`);
+      s.append(h);
+      toc.push([`${no}. ${judul}`, id]);
+      akar.append(s);
+      return s;
+    };
+    const isiKartu = Array.from(document.querySelectorAll('.intisari__kartu'));
+
+    // Kepala dokumen
+    const kepala = el('header', 'prd__kepala');
+    kepala.append(el('p', 'prd__kicker', 'Product Requirements Document'), el('h1', '', 'Platform Hamasah International'));
+    kepala.append(tabel(['Keterangan', 'Isi'], [
+      ['Status', 'Draf versi kerja 1.0, menunggu koreksi fakta dan persetujuan prioritas'],
+      ['Sumber', 'Notulen rapat 27 Oktober 2026'],
+      ['Pembaca', 'Tim Hamasah dan tim pengembang'],
+      ['Batasan', 'Rangkuman ucapan di rapat, bukan hasil audit kode. “Sudah didemokan” belum berarti sudah lolos uji.'],
+    ], 'prd__t--meta'));
+    akar.append(kepala);
+
+    // 1. Ringkasan
+    let s = bagian('Ringkasan', 'prd-ringkasan');
+    s.append(el('p', '', teks(isiKartu[0], 'p')));
+    s.append(el('p', '', teks(isiKartu[1], 'p')));
+
+    // 2. Tujuan dan di luar lingkup
+    s = bagian('Tujuan dan di luar lingkup', 'prd-tujuan');
+    s.append(el('h3', '', 'Tujuan'));
+    s.append(daftar([
+      'Satu platform untuk santri, asrama, musyrif, pembinaan, laporan wali, administrasi, inventaris, dan LMS.',
+      'Unit Mesir dan Indonesia berada di satu sistem, dengan akses dan laporan dipisah per lokasi.',
+      'Data nyata (sekitar 108 santri) masuk lewat impor, dan tiap peran hanya melihat data yang menjadi haknya.',
+    ]));
+    s.append(el('h3', '', 'Di luar lingkup'));
+    s.append(daftar([
+      'Pembayaran dan kelas berbayar tetap di layanan masing-masing, dengan opsi disambungkan.',
+      'Booklet kompetisi dan konten promosi dikerjakan sebagai proyek desain terpisah (lihat bagian 8).',
+      'Ruang lingkup AI, editorial lanjutan, dan otomasi tambahan disetujui terpisah (tahap P4).',
+    ]));
+
+    // 3. Pengguna dan peran
+    s = bagian('Pengguna dan peran', 'prd-peran');
+    s.append(tabel(['Peran', 'Akses menurut notulen'], [
+      ['Admin', 'Boleh lebih dari satu. Mengelola data, akun, pengumuman, dokumen, dan audit hak akses.'],
+      ['Musyrif dan musyrifah', 'Hanya melihat santri dan asrama yang menjadi tanggung jawabnya.'],
+      ['Santri', 'Portal LMS, laporan, progres hafalan, dan catatan pembinaan pribadi yang tidak otomatis terlihat wali.'],
+      ['Wali', 'Portal anak: profil, absensi, tahfidz, rapor, tagihan (bila terintegrasi), galeri, pengumuman. Satu wali bisa tertaut ke beberapa anak setelah relasinya diverifikasi.'],
+      ['Petugas', 'Akun untuk tugas operasional, dengan hak akses diaudit.'],
+    ]));
+
+    // 4. Persyaratan fungsional
+    s = bagian('Persyaratan fungsional', 'prd-fr');
+    s.append(el('p', 'prd__catatan', 'Nomor modul mengikuti notulen (2.1 sampai 2.13). Persyaratan ditulis dari poin rincian tiap modul. Butir yang belum pasti dikaitkan ke keputusan di bagian 7.'));
+    document.querySelectorAll('.grup').forEach((g) => {
+      s.append(el('h3', 'prd__grup', teks(g, '.grup__kepala h3')));
+      g.querySelectorAll('.mod').forEach((m) => {
+        const no2 = teks(m, '.mod__no');
+        const kotak = el('div', 'prd__mod');
+        kotak.id = `prd-m${no2.replace('.', '-')}`;
+        const h = el('h4', '');
+        h.append(el('span', 'prd__id', `FR-${no2}`), document.createTextNode(` ${teks(m, 'h4')}`));
+        kotak.append(h, el('p', 'prd__desk', teks(m, '.mod__ringkas')));
+        const butir = Array.from(m.querySelectorAll('.butir li'));
+        if (butir.length) {
+          const ol = el('ol', 'prd__req');
+          butir.forEach((b, k) => {
+            const li = el('li');
+            li.append(el('span', 'prd__rid', `${no2}.${k + 1}`), el('span', '', (b.dataset.asli || b.textContent).trim()));
+            ol.append(li);
+          });
+          kotak.append(ol);
+        }
+        const awas = Array.from(m.querySelectorAll('.mod__awas li'));
+        if (awas.length) {
+          const q = el('div', 'prd__tanya');
+          q.append(el('strong', '', 'Pertanyaan terbuka'));
+          const ul = el('ul');
+          awas.forEach((a) => {
+            const li = el('li');
+            li.append(document.createTextNode((a.dataset.asli || a.textContent).trim()));
+            if (a.dataset.ref) li.append(label(a.dataset.ref, 'ref'));
+            ul.append(li);
+          });
+          q.append(ul);
+          kotak.append(q);
+        }
+        s.append(kotak);
+      });
     });
+
+    // 5. Klasifikasi perubahan
+    s = bagian('Klasifikasi pekerjaan', 'prd-klasifikasi');
+    s.append(el('p', '', 'Pekerjaan dipilah supaya revisi bug tidak tercampur dengan permintaan baru.'));
+    s.append(tabel(['Golongan', 'Contoh', 'Perlakuan'], Array.from(document.querySelectorAll('.batas__kartu')).map((k) => [
+      teks(k, 'h4'), teks(k, '.batas__contoh'), teks(k, 'p:last-child').replace(/^Perlakuan:\s*/, ''),
+    ])));
+
+    // 6. Fase rilis
+    s = bagian('Fase rilis', 'prd-fase');
+    s.append(tabel(['Fase', 'Cakupan', 'Kriteria selesai'], Array.from(document.querySelectorAll('.tahap__kartu')).map((k) => {
+      const dd = k.querySelectorAll('dd');
+      const nama = el('span');
+      nama.append(el('strong', '', teks(k, '.tahap__kode')), document.createTextNode(` ${teks(k, 'h3')}`));
+      const isi = el('span');
+      isi.append(document.createTextNode(dd[0].textContent.trim()));
+      return [nama, isi, dd[1].textContent.trim()];
+    })));
+    s.append(el('p', 'prd__catatan', 'Estimasi waktu dan biaya menyusul setelah audit kode dan database yang ada.'));
+
+    // 7. Keputusan terbuka
+    s = bagian('Keputusan terbuka', 'prd-keputusan');
+    const jawab = (li) => li.querySelector('input').checked;
+    s.append(el('p', '', 'Belum ada komitmen final untuk butir di bawah sebelum dijawab pemiliknya. Status mengikuti centang di tab Info (disimpan di perangkat ini).'));
+    s.append(tabel(['ID', 'Keputusan', 'Pemilik', 'Status'], baris.map((li) => [
+      li.dataset.id, teks(li, '.putusan__isi'), teks(li, '.putusan__pemilik'), label(jawab(li) ? 'Dijawab' : 'Terbuka', jawab(li) ? 'ok' : 'buka'),
+    ])));
+
+    // 8. Proyek terpisah
+    s = bagian('Proyek terpisah: booklet kompetisi dan takrim', 'prd-booklet');
+    s.append(el('p', '', document.querySelector('#booklet .kepala__sub').textContent.trim()));
+    const rinci = Array.from(document.querySelectorAll('#booklet .tanggal')).map((t) => [teks(t, 'span'), `${teks(t, 'strong')}. ${teks(t, 'small')}`])
+      .concat(Array.from(document.querySelectorAll('#booklet .rinci > div')).map((d) => [teks(d, 'dt'), teks(d, 'dd')]));
+    s.append(tabel(['Butir', 'Keterangan'], rinci));
+    s.append(el('h3', '', 'Dibutuhkan lebih dulu'));
+    s.append(daftar(Array.from(document.querySelectorAll('.butuh__daftar li')).map((x) => x.textContent.trim())));
+
+    // 9. Langkah berikutnya
+    s = bagian('Langkah berikutnya', 'prd-langkah');
+    const ol = el('ol', 'prd__ul prd__ul--no');
+    Array.from(document.querySelectorAll('#daftar-aksi li')).forEach((li) => ol.append(el('li', '', teks(li, '.aksi__isi'))));
+    s.append(ol);
+
+    // 10. Risiko dan catatan
+    s = bagian('Risiko dan catatan', 'prd-risiko');
+    s.append(el('p', '', teks(document.querySelector('.hati'), 'p')));
+
+    // Daftar isi
+    const nav = el('nav', 'prd__toc');
+    nav.setAttribute('aria-label', 'Daftar isi PRD');
+    nav.append(el('strong', '', 'Isi dokumen'));
+    toc.forEach(([t, id]) => { const a = el('a', '', t); a.href = `#${id}`; nav.append(a); });
+    akar.prepend(nav);
   }
-
-  function gambarStrip() {
-    const strip = $('lap-strip');
-    strip.textContent = '';
-    const sel0 = [...kelompok.map((k) => ({ nama: k.nama, n: k.modul.length })), { nama: 'Total', n: semuaModul.length }];
-    sel0.forEach((s, i) => {
-      const idx = i === kelompok.length ? -1 : i;
-      const b = el('button', 'lap__hari');
-      b.type = 'button';
-      b.setAttribute('aria-pressed', String(pilihKelompok === idx));
-      if (pilihKelompok === idx) b.classList.add('is-on');
-      b.append(el('span', 'lap__hari-n', s.nama), el('strong', 'lap__hari-v', `${s.n} modul`));
-      b.addEventListener('click', () => { pilihKelompok = idx; gambarStrip(); gambarEntri(); });
-      strip.append(b);
-    });
-  }
-
-  function gambarEntri() {
-    const ul = $('lap-entri');
-    ul.textContent = '';
-    const daftar = semuaModul.filter((m) => (pilihKelompok < 0 || m.kelompok === kelompok[pilihKelompok].nama) && (!hanyaCek || m.cek));
-    daftar.forEach((m) => {
-      const li = el('li', 'lap__e');
-      const a = el('a', 'lap__e-tautan');
-      a.href = `#${m.id}`;
-      a.append(el('span', 'lap__e-no', m.no));
-      const teks = el('span', 'lap__e-teks');
-      teks.append(el('strong', '', m.nama), el('span', 'lap__e-sub', m.kelompok));
-      a.append(teks);
-      if (m.cek) a.append(el('span', 'lap__tag', `${m.cek} perlu dicek`));
-      a.append(el('span', 'lap__e-v', `${m.poin} poin`));
-      a.addEventListener('click', () => { tampil('info'); });
-      li.append(a);
-      ul.append(li);
-    });
-    $('lap-kosong').hidden = daftar.length > 0;
-  }
-
-  function gambarTabel() {
-    const maks = Math.max(...kelompok.map((k) => k.poin));
-    const isi = kelompok.map((k) => barisTabel(k.nama, String(k.modul.length), String(k.poin), String(k.cek), false, k.poin / maks));
-    isi.push(barisTabel('Total', String(semuaModul.length), String(totalPoin), String(totalCek), true));
-    const r = $('lap-rincian');
-    r.textContent = '';
-    r.append(tabel(['Kelompok', 'Modul', 'Poin', 'Perlu dicek'], isi));
-
-    const nama = chip.map((c) => c.dataset.pemilik).filter((p) => p !== 'semua');
-    const maksP = Math.max(...nama.map((p) => baris.filter((li) => li.dataset.pemilik.split('|').includes(p)).length));
-    const isiP = nama.map((p) => {
-      const milik = baris.filter((li) => li.dataset.pemilik.split('|').includes(p));
-      const jawab = milik.filter((li) => li.querySelector('input').checked).length;
-      return barisTabel(p, String(milik.length), String(jawab), String(milik.length - jawab), false, milik.length / maksP);
-    });
-    const jawabSemua = baris.filter((li) => li.querySelector('input').checked).length;
-    isiP.push(barisTabel('Keputusan unik', String(baris.length), String(jawabSemua), String(baris.length - jawabSemua), true));
-    const p = $('lap-pemilik');
-    p.textContent = '';
-    p.append(tabel(['Pemilik', 'Keputusan', 'Dijawab', 'Menunggu'], isiP));
-  }
-
-  function gambarLaporan() { gambarAngka(); gambarStrip(); gambarEntri(); gambarTabel(); }
 
   function tampil(nama) {
-    const rep = nama === 'report';
-    panelInfo.hidden = rep;
-    panelReport.hidden = !rep;
-    $('menu').hidden = rep;
-    document.body.classList.toggle('lihat-report', rep);
-    tabInfo.classList.toggle('is-on', !rep);
-    tabReport.classList.toggle('is-on', rep);
-    tabInfo.setAttribute('aria-selected', String(!rep));
-    tabReport.setAttribute('aria-selected', String(rep));
-    tabInfo.tabIndex = rep ? -1 : 0;
-    tabReport.tabIndex = rep ? 0 : -1;
-    if (rep) { gambarLaporan(); window.scrollTo(0, 0); }
+    const prd = nama === 'prd';
+    panelInfo.hidden = prd;
+    panelPrd.hidden = !prd;
+    $('menu').hidden = prd;
+    document.body.classList.toggle('lihat-report', prd);
+    tabInfo.classList.toggle('is-on', !prd);
+    tabPrd.classList.toggle('is-on', prd);
+    tabInfo.setAttribute('aria-selected', String(!prd));
+    tabPrd.setAttribute('aria-selected', String(prd));
+    tabInfo.tabIndex = prd ? -1 : 0;
+    tabPrd.tabIndex = prd ? 0 : -1;
+    if (prd) {
+      const akar = $('prd');
+      akar.querySelectorAll('.prd__bagian,.prd__toc,.prd__kepala').forEach((n) => n.remove());
+      delete akar.dataset.siap;
+      susunPrd();
+      window.scrollTo(0, 0);
+    }
   }
   tabInfo.addEventListener('click', () => tampil('info'));
-  tabReport.addEventListener('click', () => tampil('report'));
-  [tabInfo, tabReport].forEach((t) => t.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { const ke = t === tabInfo ? tabReport : tabInfo; ke.focus(); ke.click(); }
-  }));
-  document.querySelectorAll('[data-lap]').forEach((b) => b.addEventListener('click', () => {
-    hanyaCek = b.dataset.lap === 'awas';
-    document.querySelectorAll('[data-lap]').forEach((x) => x.classList.toggle('is-on', x === b));
-    gambarEntri();
+  tabPrd.addEventListener('click', () => tampil('prd'));
+  [tabInfo, tabPrd].forEach((t) => t.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { const ke = t === tabInfo ? tabPrd : tabInfo; ke.focus(); ke.click(); }
   }));
   tabbar.hidden = false;
-  if (location.hash === '#report') tampil('report');
+  if (location.hash === '#prd' || location.hash === '#report') tampil('prd');
 })();
