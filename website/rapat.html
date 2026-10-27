@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="Master notulen dan register kebutuhan rapat Hamasah, 27 Oktober 2026: modul yang dibahas, keputusan yang dibutuhkan, prioritas pengerjaan, dan rencana aksi." />
+    <title>Notulen rapat 27 Oktober 2026 | Hamasah</title>
+    <link rel="icon" href="../assets/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Philosopher:wght@700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="rapat.css?v=9947d0ecaf" />
+  </head>
+  <body>
+    <a class="skip-link" href="#isi">Lewati ke isi</a>
+
+    <header class="atas">
+      <div class="atas__bar">
+        <a class="merek" href="#ringkasan" aria-label="Hamasah International, ke awal catatan"><img src="../assets/logo-hamasah-300.webp" alt="Hamasah International" width="300" height="88" /></a>
+        <span class="atas__judul">Notulen rapat 27 Oktober 2026</span>
+        <button type="button" class="tombol tombol--garis" id="cetak">Cetak atau simpan PDF</button>
+      </div>
+    </header>
+
+    <div class="halaman">
+      <aside class="samping" aria-label="Daftar isi">
+        <div class="samping__isi">
+          <p class="samping__judul">Daftar isi</p>
+          <nav>
+            <ol class="toc" id="toc">
+              <li><a href="#ringkasan">Ringkasan eksekutif</a></li>
+              <li><a href="#status">1. Status keputusan</a></li>
+              <li>
+                <a href="#modul">2. Modul dan kebutuhan</a>
+                <ol class="toc__anak">
+                  <li><a href="#m2-1">2.1 Struktur dan asrama</a></li>
+                  <li><a href="#m2-2">2.2 Data santri dan akun</a></li>
+                  <li><a href="#m2-3">2.3 Kegiatan dan absensi</a></li>
+                  <li><a href="#m2-4">2.4 Tahfidz dan rapor</a></li>
+                  <li><a href="#m2-5">2.5 KPI musyrif</a></li>
+                  <li><a href="#m2-6">2.6 Portal dan komunikasi</a></li>
+                  <li><a href="#m2-7">2.7 Administrasi dan dokumen</a></li>
+                  <li><a href="#m2-8">2.8 Inventaris dan AC</a></li>
+                  <li><a href="#m2-9">2.9 Galeri</a></li>
+                  <li><a href="#m2-10">2.10 LMS dan learning</a></li>
+                  <li><a href="#m2-11">2.11 Keuangan dan Sendit</a></li>
+                  <li><a href="#m2-12">2.12 CMS, landing, PWA</a></li>
+                  <li><a href="#m2-13">2.13 Audit dan tata kelola</a></li>
+                </ol>
+              </li>
+              <li><a href="#keputusan">3. Keputusan yang dibutuhkan</a></li>
+              <li><a href="#prioritas">4. Prioritas implementasi</a></li>
+              <li><a href="#booklet">5. Proyek booklet</a></li>
+              <li><a href="#scope">6. Register scope</a></li>
+              <li><a href="#aksi">7. Rencana aksi segera</a></li>
+              <li><a href="#catatan">8. Catatan kehati-hatian</a></li>
+            </ol>
+          </nav>
+        </div>
+      </aside>
+
+      <main id="isi" class="isi">
+        <section class="sampul" id="ringkasan">
+          <p class="sampul__atas">Hamasah, versi kerja 1.0</p>
+          <h1>Master notulen dan register kebutuhan</h1>
+          <p class="sampul__sub">Konsolidasi seluruh transkrip rapat, 27 Oktober 2026. Untuk validasi bersama tim Hamasah dan tim pengembang.</p>
+          <dl class="angka" aria-label="Isi dokumen sekilas">
+            <div><dt>13</dt><dd>bagian modul</dd></div>
+            <div><dt>13</dt><dd>keputusan terbuka</dd></div>
+            <div><dt>5</dt><dd>tahap prioritas</dd></div>
+            <div><dt>6</dt><dd>rencana aksi</dd></div>
+          </dl>
+        </section>
+
+        <section class="blok">
+          <h2>Ringkasan eksekutif</h2>
+          <p class="baca">Rapat membahas audit dan penyempurnaan website Hamasah yang sudah didemokan, serta sejumlah kebutuhan baru. Arah sistem: platform terintegrasi untuk pengelolaan santri, asrama, musyrif/musyrifah, pembinaan, laporan wali, administrasi, inventaris, dan LMS. Beberapa layanan tetap terpisah (pembayaran dan learning berbayar), dengan opsi integrasi. Pembahasan terakhir juga membuka pekerjaan desain booklet kompetisi/takrim yang harus dicatat sebagai proyek terpisah.</p>
+          <div class="catatan catatan--penting" role="note">
+            <strong>Penting</strong>
+            <p>Dokumen ini merangkum pernyataan dalam rapat, bukan hasil audit repository. Status “sudah ada/didemokan” tidak membuktikan fitur telah lolos uji. Usulan teknis dibedakan dari keputusan yang telah dikonfirmasi.</p>
+          </div>
+        </section>
+
+        <section class="blok" id="status">
+          <h2><span class="no">1</span>Status keputusan dan batas scope</h2>
+          <p class="baca">Empat kategori ini dipakai untuk membaca seluruh catatan di bawah.</p>
+          <ul class="status-grid">
+            <li class="status status--demo"><strong>Sudah didemokan</strong><span>Tampilan atau fungsi diperlihatkan; tetap perlu QA dan verifikasi data.</span></li>
+            <li class="status status--prinsip"><strong>Disepakati secara prinsip</strong><span>Arah kebutuhan jelas; detail operasional dan acceptance criteria belum lengkap.</span></li>
+            <li class="status status--usulan"><strong>Usulan</strong><span>Saran dari diskusi atau penyusun; perlu persetujuan pemilik proyek.</span></li>
+            <li class="status status--tunda"><strong>Tertunda atau perlu keputusan</strong><span>Belum dapat dianggap scope implementasi final.</span></li>
+          </ul>
+        </section>
+
+        <section class="blok" id="modul">
+          <h2><span class="no">2</span>Modul dan kebutuhan fungsional</h2>
+          <div class="cari">
+            <label for="cari-modul">Cari di semua modul</label>
+            <input id="cari-modul" type="search" placeholder="Contoh: Sendit, AC, KPI, iqamah" autocomplete="off" />
+            <p class="cari__hasil" id="cari-hasil" role="status" aria-live="polite"></p>
+          </div>
+
+          <article class="modul" id="m2-1">
+            <h3><span class="no">2.1</span>Struktur organisasi, lokasi, asrama, kamar</h3>
+            <ul class="butir">
+              <li>Kelola unit Mesir dan Bogor/Indonesia dengan pemisahan akses serta laporan per lokasi.</li>
+              <li>Mesir diperkirakan memiliki sekitar 9 asrama (5 banin, 4 banat); jumlah final, daftar nama, alamat, kapasitas dan jenis fasilitas harus divalidasi.</li>
+              <li>Hierarki: lokasi → asrama → kamar → penempatan santri; catat kapasitas, gender, penghuni, musyrif penanggung jawab, perpindahan dan riwayat.</li>
+              <li>Kamar dapat ber-AC, non-AC atau fasilitas campuran. AC bersifat opsional menurut ketersediaan dan kesepakatan penghuni.</li>
+              <li>Indonesia menjalankan karantina/pembinaan per batch (misalnya sekitar 3 bulan) maupun durasi fleksibel; riwayat peserta dapat berlanjut ke Mesir.</li>
+            </ul>
+          </article>
+
+          <article class="modul" id="m2-2">
+            <h3><span class="no">2.2</span>Master data santri, wali dan akun</h3>
+            <ul class="butir">
+              <li>Sekitar 108 santri existing; dukung tambah santri secara berkala dan impor CSV/XLSX dari Google Forms/Sheets, dengan pratinjau, pemetaan kolom, deteksi duplikat dan laporan error.</li>
+              <li>Data santri meliputi identitas, sekolah/ma’had/universitas, tingkat, asrama, status izin, riwayat pembinaan, dokumen identitas dan status administrasi.</li>
+              <li>Wali dapat ditautkan ke satu atau beberapa anak; verifikasi relasi dan akses sebelum aktivasi. Musyrif hanya mengakses santri/asrama tanggung jawabnya.</li>
+              <li>Kelola akun admin (bisa lebih dari satu), musyrif/musyrifah, santri, wali dan petugas sesuai role; audit hak akses.</li>
+              <li>Dokumen PDF scan pendaftaran offline diunggah ke profil santri; file sensitif disimpan privat.</li>
+              <li>Hindari password default bersama dan penyebaran kredensial di grup. Gunakan invitation/reset password privat dan Supabase Auth Admin API bila relevan.</li>
+            </ul>
+          </article>
+
+          <article class="modul" id="m2-3">
+            <h3><span class="no">2.3</span>Kegiatan, absensi dan pembinaan</h3>
+            <ul class="butir">
+              <li>Kegiatan wajib: halaqah subuh/tahfidz, sekolah atau ma’had/kuliah, kajian sore, belajar malam/LMS bersama, kegiatan Jumat, kebersihan, serta acara insidental.</li>
+              <li>Master kegiatan dinamis: jadwal, jenis, target peserta, petugas, absensi, alasan izin/sakit, bukti dan histori.</li>
+              <li>Perizinan santri: keluar singkat, sakit, pulang Indonesia, tanggal berangkat-kembali, status persetujuan, dampak absensi.</li>
+              <li class="butir--awas">Aturan diskon pembayaran saat santri pulang (pernah disebut kemungkinan 50%) BELUM disetujui; jangan otomatis diterapkan.</li>
+            </ul>
+          </article>
+
+          <article class="modul" id="m2-4">
+            <h3><span class="no">2.4</span>Tahfidz dan rapor digital</h3>
+            <ul class="butir">
+              <li>Buku setoran digital: tanggal, surat, ayat awal/akhir, hafalan baru vs murajaah, penilai/penguji, catatan kualitas dan rekap bulanan.</li>
+              <li>Pantau total juz, capaian dan tren bulanan/tahunan; hindari menghitung ayat yang sama sebagai hafalan baru berulang.</li>
+              <li>Rapor santri bulanan (rencana nilai A/B/C) berdasarkan kehadiran, hafalan dan partisipasi; wali melihat laporan dan histori.</li>
+              <li class="butir--awas">Formula, ambang nilai, otorisasi koreksi dan format rapor belum diputuskan.</li>
+            </ul>
+          </article>
+
+          <article class="modul" id="m2-5">
+            <h3><span class="no">2.5</span>KPI musyrif/musyrifah</h3>
+            <ul class="butir">
+              <li>Penilaian bulanan dan rekap tahunan oleh atasan; indikator mencakup pendampingan tahfidz, kontrol sekolah, kajian, LMS malam, administrasi, kebersihan dan tanggung jawab operasional.</li>
+              <li>Tugas tambahan: merawat santri sakit, belanja kebutuhan, bayar sewa/ijar, pengurusan institusi, panitia kegiatan, tugas masak/bersih.</li>
+              <li>Pertimbangkan ketepatan laporan, kualitas tindak lanjut, pemeriksaan inventaris dan feedback terverifikasi; bedakan hasil kerja musyrif dari perilaku santri di luar kendalinya.</li>
+              <li class="butir--awas">Bobot, verifikasi, mekanisme banding, reward bulanan/tahunan dan hak akses skor perlu disepakati.</li>
+            </ul>
+          </article>
+
+          <article class="modul" id="m2-6">
+            <h3><span class="no">2.6</span>Portal wali, santri, komunikasi dan pengumuman</h3>
+            <ul class="butir">
+              <li>Portal wali: profil anak, status pendidikan, absensi, tahfidz, rapor, tagihan (bila terintegrasi), galeri dan pengumuman.</li>
+              <li>Portal santri: LMS, laporan, progres hafalan, pesan/catatan pembinaan pribadi yang tidak otomatis terlihat wali.</li>
+              <li>Wali dapat menyampaikan keluhan, saran, apresiasi atau feedback privat kepada admin; verifikasi sebelum dipakai dalam evaluasi personel.</li>
+              <li>Admin membuat pengumuman dengan segmentasi penerima (santri, wali, musyrif, kelompok tertentu) dan notifikasi dalam aplikasi.</li>
+              <li>Template pesan WhatsApp siap salin; pencatatan komunikasi perlu mempertimbangkan privasi.</li>
+            </ul>
+          </article>
+
+          <article class="modul" id="m2-7">
+            <h3><span class="no">2.7</span>Monitoring administrasi dan dokumen</h3>
+            <ul class="butir">
+              <li>Pantau paspor, iqamah, masa berlaku dan status dokumen; peringatan dini saat mendekati kedaluwarsa, termasuk patokan 6 bulan yang dibahas.</li>
+              <li>Status lapor diri, lapor pendidikan, ma’sum/masalah pendidikan, dan urusan konsuler perlu dapat ditindaklanjuti.</li>
+              <li>Reminder operasional muncul di Kelola Asrama untuk musyrif terkait dan Monitoring Pusat untuk admin lintas asrama.</li>
+              <li>Setiap alert memiliki penanggung jawab, prioritas, status tindak lanjut, tanggal penyelesaian dan bukti.</li>
+              <li class="butir--awas">Dokumen masuk/keluar: rapat menyebut total empat surat, tetapi baru tiga jenis eksplisit (pernyataan masuk wali, surat keluar santri, pernyataan keluar wali); satu jenis perlu konfirmasi.</li>
+              <li>Pengunduran diri bukan penghapusan akun/data: gunakan status keluar dan arsip. Surat pelepasan tanggung jawab perlu peninjauan hukum; tidak otomatis menghapus seluruh kewajiban.</li>
+            </ul>
+          </article>
+
+          <article class="modul" id="m2-8">
+            <h3><span class="no">2.8</span>Inventaris per asrama dan AC patungan</h3>
+            <ul class="butir">
+              <li>Catat unit aset: nama, kode, kategori, lokasi, foto, jumlah, kondisi, status, tanggal beli, sumber dana, pemilik, perawatan dan inspeksi bulanan.</li>
+              <li>Contoh aset Hamasah: AC, mesin cuci, ranjang, sofa, kulkas, karpet. Barang pribadi santri dibedakan dari aset Hamasah.</li>
+              <li>Terdapat beberapa AC hasil patungan Hamasah dan sebagian santri; kontribusi tidak merata: pembelian, biaya pemasangan saja, atau tanpa kontribusi.</li>
+              <li class="butir--awas">Catat relasi individu-kontribusi-aset, bukti transaksi, hak pengembalian dan histori pembayaran. Contoh pengembalian Rp1 juta saat keluar tidak boleh diterapkan otomatis tanpa daftar hak yang disahkan.</li>
+              <li>Musyrif memperbarui kondisi inventaris setiap bulan disertai foto bukti.</li>
+            </ul>
+          </article>
+
+          <article class="modul" id="m2-9">
+            <h3><span class="no">2.9</span>Galeri dokumentasi</h3>
+            <ul class="butir">
+              <li>Galeri per asrama berdasarkan tanggal, jenis kegiatan, caption dan pengunggah; wali melihat dokumentasi yang relevan.</li>
+              <li>Upload tidak wajib pada hari tanpa kegiatan; dukung foto dengan optimasi, thumbnail, object storage, CDN dan izin publikasi.</li>
+              <li>Video kegiatan dan LMS direkomendasikan memakai hosting video eksternal; jangan simpan video besar langsung di database.</li>
+            </ul>
+          </article>
+
+          <article class="modul" id="m2-10">
+            <h3><span class="no">2.10</span>LMS internal dan learning eksternal</h3>
+            <ul class="butir">
+              <li>LMS internal gratis bagi santri Hamasah: materi, video pembelajaran, akses santri dan pemantauan sesi belajar.</li>
+              <li>YouTube Embed/Unlisted disarankan untuk biaya rendah; tautan Unlisted tetap dapat dibagikan dan bukan kontrol akses kuat.</li>
+              <li>Absensi belajar bersama dicatat/diverifikasi musyrif, bukan disimpulkan dari video yang sekadar dibuka.</li>
+              <li>Kelas berbayar untuk publik tetap menggunakan website learning terpisah; website Hamasah cukup menampilkan informasi dan tautan.</li>
+              <li>Perlu koordinasi branding/tampilan dengan Mas Rahman (IT website learning); status pembangunan landing page eksternal belum pasti.</li>
+            </ul>
+          </article>
+
+          <article class="modul" id="m2-11">
+            <h3><span class="no">2.11</span>Keuangan, Sendit dan pengingat tagihan</h3>
+            <ul class="butir">
+              <li>Website pembayaran lama sudah mempunyai portal wali, tagihan berkala, riwayat, gateway Sendit dan update status; jangan membangun ulang sebelum audit.</li>
+              <li>Opsi A: pembayaran tetap di aplikasi lama, ringkasan transaksi/status tampil di Hamasah melalui API/webhook/akses yang sah. Opsi B: migrasi penuh; belum diputuskan.</li>
+              <li>Jangan menganggap tersedia akses langsung ke database Sendit; konfirmasi arsitektur dengan tim IT.</li>
+              <li>Reminder sekitar tiga kali per bulan, hanya untuk tagihan yang belum lunas.</li>
+              <li>Opsi biaya rendah: tombol WhatsApp click-to-chat dengan pesan terisi, admin tetap menekan Send. Opsi Fonnte: API pengiriman massal dengan biaya dan risiko akun karena integrasi tidak resmi.</li>
+              <li>Harga Fonnte Rp25.000/1.000 pesan hanya angka yang disebut di rapat dan harus diverifikasi; status klik chat bukan bukti pesan terkirim.</li>
+              <li>Tarif pendaftaran disebut mulai Rp1 juta; biaya listrik, cicilan, refund dan biaya tak dapat dikembalikan perlu validasi dari brosur/penanggung jawab.</li>
+            </ul>
+          </article>
+
+          <article class="modul" id="m2-12">
+            <h3><span class="no">2.12</span>CMS, publikasi, landing page dan PWA</h3>
+            <ul class="butir">
+              <li>CMS mengatur konten landing page, testimoni asli, kontak resmi, fasilitas, program, harga, artikel dan pengumuman.</li>
+              <li>Fasilitas: ranjang, kasur, bantal, lemari, selimut, kulkas, mesin cuci, pemanas/filter air, Wi-Fi, listrik, minum, katering dua kali sehari (siang/sore), tahfidz, kajian, musyrif; AC opsional.</li>
+              <li>Laundry masih ide, belum fasilitas aktif. Program tambahan: seminar/dauroh, organisasi santri, olahraga, LMS.</li>
+              <li>Artikel/berita, karya tulis santri, sayembara dan rubrik editorial dapat dikembangkan bertahap; website Hamasah tetap mengutamakan profil dan layanan.</li>
+              <li>Testimoni dapat berupa carousel; verifikasi nomor kontak resmi (disebut nomor berakhiran 97).</li>
+              <li>PWA untuk santri/wali: desain mobile, manifest, ikon, sesi aman; di iPhone instalasi biasanya lewat Add to Home Screen, tidak selalu popup.</li>
+              <li>AI assistant sudah diperlihatkan secara terbatas namun belum optimal; tetapkan use case, sumber data dan kontrol akses sebelum pengembangan.</li>
+            </ul>
+          </article>
+
+          <article class="modul" id="m2-13">
+            <h3><span class="no">2.13</span>Audit trail dan tata kelola</h3>
+            <ul class="butir">
+              <li>Jejak audit untuk login, upload, download, edit, hapus, perubahan kelas dan aktivitas sensitif, lengkap aktor dan waktu.</li>
+              <li>Log perlu pembatasan akses dan retensi; audit terhadap tampilan yang didemokan, konsistensi database, RLS dan validasi izin per peran.</li>
+              <li>Perbaiki bug visual yang muncul pada audit, termasuk halaman iqamah yang disebut bertabrakan.</li>
+            </ul>
+          </article>
+          <p class="kosong" id="cari-kosong" hidden>Tidak ada modul yang cocok. Coba kata lain.</p>
+        </section>
+
+        <section class="blok" id="keputusan">
+          <h2><span class="no">3</span>Keputusan, pertanyaan dan dependensi kritis</h2>
+          <p class="baca">Tiga belas hal yang menunggu jawaban. Saring menurut pemilik keputusan, lalu centang yang sudah dijawab; centangnya tersimpan di perangkat ini saja.</p>
+          <div class="saring" id="saring" role="group" aria-label="Saring menurut pemilik keputusan">
+            <button type="button" class="chip is-on" data-pemilik="semua">Semua</button>
+            <button type="button" class="chip" data-pemilik="Operasional">Operasional</button>
+            <button type="button" class="chip" data-pemilik="Admin">Admin</button>
+            <button type="button" class="chip" data-pemilik="Pimpinan">Pimpinan</button>
+            <button type="button" class="chip" data-pemilik="Keuangan">Keuangan</button>
+            <button type="button" class="chip" data-pemilik="Legal">Legal</button>
+            <button type="button" class="chip" data-pemilik="Asrama">Asrama</button>
+            <button type="button" class="chip" data-pemilik="Wali">Wali</button>
+            <button type="button" class="chip" data-pemilik="Tim IT">Tim IT</button>
+            <button type="button" class="chip" data-pemilik="Tim Indonesia">Tim Indonesia</button>
+            <button type="button" class="chip" data-pemilik="Ustadz Doni">Ustadz Doni</button>
+            <button type="button" class="chip" data-pemilik="Product owner">Product owner</button>
+            <button type="button" class="chip" data-pemilik="Mas Rahman">Mas Rahman</button>
+          </div>
+          <p class="hitung" id="hitung-putusan" role="status" aria-live="polite"></p>
+          <div class="tabel-wrap">
+            <table class="tabel" id="tabel-putusan">
+              <caption class="sr-only">Daftar keputusan yang dibutuhkan beserta pemiliknya</caption>
+              <thead><tr><th scope="col" class="kolom-cek"><span class="sr-only">Sudah dijawab</span></th><th scope="col">ID</th><th scope="col">Pertanyaan atau keputusan yang dibutuhkan</th><th scope="col">Pemilik keputusan</th></tr></thead>
+              <tbody>
+                <tr data-id="D01" data-pemilik="Operasional"><td class="kolom-cek"><input type="checkbox" aria-label="D01 sudah dijawab" /></td><th scope="row">D01</th><td>Final daftar asrama, kamar, kapasitas, penanggung jawab dan lokasi</td><td>Operasional Hamasah</td></tr>
+                <tr data-id="D02" data-pemilik="Admin"><td class="kolom-cek"><input type="checkbox" aria-label="D02 sudah dijawab" /></td><th scope="row">D02</th><td>Contoh Google Form/Sheet, dokumen dan format impor 108 santri</td><td>Admin Hamasah</td></tr>
+                <tr data-id="D03" data-pemilik="Pimpinan"><td class="kolom-cek"><input type="checkbox" aria-label="D03 sudah dijawab" /></td><th scope="row">D03</th><td>Kriteria nilai A/B/C, bobot KPI dan reward</td><td>Pimpinan Hamasah</td></tr>
+                <tr data-id="D04" data-pemilik="Pimpinan|Keuangan"><td class="kolom-cek"><input type="checkbox" aria-label="D04 sudah dijawab" /></td><th scope="row">D04</th><td>Kebijakan izin pulang, diskon tagihan, dan penanganan ma’sum</td><td>Pimpinan / Keuangan</td></tr>
+                <tr data-id="D05" data-pemilik="Admin|Legal"><td class="kolom-cek"><input type="checkbox" aria-label="D05 sudah dijawab" /></td><th scope="row">D05</th><td>Daftar empat surat, template, penandatangan dan prosedur keluar</td><td>Admin / Legal</td></tr>
+                <tr data-id="D06" data-pemilik="Keuangan|Asrama"><td class="kolom-cek"><input type="checkbox" aria-label="D06 sudah dijawab" /></td><th scope="row">D06</th><td>Daftar AC patungan, kontribusi individu, nominal refund dan bukti</td><td>Keuangan / Asrama</td></tr>
+                <tr data-id="D07" data-pemilik="Tim IT"><td class="kolom-cek"><input type="checkbox" aria-label="D07 sudah dijawab" /></td><th scope="row">D07</th><td>Akses integrasi aplikasi pembayaran dan dokumentasi Sendit</td><td>Tim IT pembayaran</td></tr>
+                <tr data-id="D08" data-pemilik="Pimpinan|Keuangan"><td class="kolom-cek"><input type="checkbox" aria-label="D08 sudah dijawab" /></td><th scope="row">D08</th><td>Pilih WhatsApp manual, Fonnte, atau penyedia resmi</td><td>Pimpinan / Keuangan</td></tr>
+                <tr data-id="D09" data-pemilik="Pimpinan|Wali"><td class="kolom-cek"><input type="checkbox" aria-label="D09 sudah dijawab" /></td><th scope="row">D09</th><td>Hak akses galeri, izin publikasi foto, dan pesan privat santri</td><td>Pimpinan / Wali</td></tr>
+                <tr data-id="D10" data-pemilik="Tim Indonesia"><td class="kolom-cek"><input type="checkbox" aria-label="D10 sudah dijawab" /></td><th scope="row">D10</th><td>Detail program batch Indonesia, durasi dan transisi ke Mesir</td><td>Tim Indonesia</td></tr>
+                <tr data-id="D11" data-pemilik="Ustadz Doni|Admin"><td class="kolom-cek"><input type="checkbox" aria-label="D11 sudah dijawab" /></td><th scope="row">D11</th><td>Tarif terbaru, refund, fasilitas dan kontak resmi landing page</td><td>Ustadz Doni / Admin</td></tr>
+                <tr data-id="D12" data-pemilik="Product owner"><td class="kolom-cek"><input type="checkbox" aria-label="D12 sudah dijawab" /></td><th scope="row">D12</th><td>Ruang lingkup AI, PWA dan artikel fase pertama</td><td>Product owner</td></tr>
+                <tr data-id="D13" data-pemilik="Mas Rahman|Tim IT"><td class="kolom-cek"><input type="checkbox" aria-label="D13 sudah dijawab" /></td><th scope="row">D13</th><td>Status website learning eksternal dan penyelarasan desain</td><td>Mas Rahman / Tim IT</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="blok" id="prioritas">
+          <h2><span class="no">4</span>Prioritas implementasi yang diusulkan</h2>
+          <ol class="tahap">
+            <li class="tahap__item"><span class="tahap__kode">P0</span><div><h3>Audit dan stabilisasi</h3><p><strong>Fokus.</strong> Bug UI, autentikasi, RLS, backup, QA portal existing.</p><p><strong>Kriteria keluar.</strong> Alur existing aman dan dapat diuji.</p></div></li>
+            <li class="tahap__item"><span class="tahap__kode">P1</span><div><h3>Operasional inti</h3><p><strong>Fokus.</strong> Master data, import, asrama, absensi, tahfidz, rapor, KPI.</p><p><strong>Kriteria keluar.</strong> Data nyata dan role utama berjalan.</p></div></li>
+            <li class="tahap__item"><span class="tahap__kode">P2</span><div><h3>Administrasi</h3><p><strong>Fokus.</strong> Reminder, surat, izin, inventaris, galeri, feedback.</p><p><strong>Kriteria keluar.</strong> Workflow terverifikasi dan audit tercatat.</p></div></li>
+            <li class="tahap__item"><span class="tahap__kode">P3</span><div><h3>Integrasi</h3><p><strong>Fokus.</strong> Pembayaran, WA, LMS, PWA.</p><p><strong>Kriteria keluar.</strong> Integrasi dan pengujian end-to-end.</p></div></li>
+            <li class="tahap__item"><span class="tahap__kode">P4</span><div><h3>Pengembangan lanjutan</h3><p><strong>Fokus.</strong> AI, editorial lanjutan, otomasi tambahan.</p><p><strong>Kriteria keluar.</strong> Scope dan biaya disetujui terpisah.</p></div></li>
+          </ol>
+          <p class="catatan-kecil">Urutan ini merupakan rekomendasi, bukan persetujuan bahwa semua pekerjaan termasuk kontrak awal.</p>
+        </section>
+
+        <section class="blok" id="booklet">
+          <h2><span class="no">5</span>Proyek terpisah: booklet kompetisi dan takrim Hamasah</h2>
+          <p class="baca">Bagian akhir rapat membahas potensi penugasan desain yang terpisah dari website. Materi mentah juknis sudah dimiliki panitia dan belum diserahkan dalam percakapan ini.</p>
+          <dl class="rinci">
+            <div><dt>Acara</dt><dd>Kompetisi keilmuan dan takrim; tanggal acara disebut 7 Desember 2026</dd></div>
+            <div><dt>Audiens</dt><dd>Pelajar/mahasiswa ASEAN di Mesir; opsi Bahasa Indonesia dan Inggris</dd></div>
+            <div><dt>Cabang</dt><dd>Esai, syair Arab, karya tulis, videografi, penghargaan akademik; daftar final dari panitia</dd></div>
+            <div><dt>Mitra</dt><dd>PPMI Mesir, rumah binaan, pesantren, forum ASEAN</dd></div>
+            <div class="rinci--tanggal"><dt>Target publikasi</dt><dd>2–3 November; paling lambat 4 November (menurut pembicaraan)</dd></div>
+            <div><dt>Tanggal lain</dt><dd>5 November disebut; fungsi tanggal perlu dikonfirmasi</dd></div>
+            <div><dt>Output inti</dt><dd>Booklet PDF juknis yang rapi, menarik dan siap dibagikan</dd></div>
+            <div><dt>Output potensial</dt><dd>Ide carousel 4 slide, konsep press release; desain pamflet/logo/landing page belum disepakati</dd></div>
+            <div><dt>Dependensi</dt><dd>File mentah, hadiah per lomba, syarat, timeline, tautan pendaftaran, identitas visual, konfirmasi PPMI</dd></div>
+          </dl>
+        </section>
+
+        <section class="blok" id="scope">
+          <h2><span class="no">6</span>Register scope: jangan campurkan dengan revisi bug</h2>
+          <ul class="scope-grid">
+            <li class="scope scope--bug"><h3>Perbaikan existing</h3><p class="scope__contoh">Tampilan iqamah bertabrakan, data/kontak keliru, alur existing error</p><p><strong>Perlakuan.</strong> Masuk daftar QA dan perbaikan sesuai kontrak</p></li>
+            <li class="scope scope--tambah"><h3>Penyempurnaan</h3><p class="scope__contoh">Portal wali/santri, galeri, tahfidz detail, notifikasi</p><p><strong>Perlakuan.</strong> Bandingkan dengan scope awal sebelum disetujui</p></li>
+            <li class="scope scope--besar"><h3>Ekspansi besar</h3><p class="scope__contoh">Multi-lokasi Indonesia, KPI, AC patungan, integrasi pembayaran, AI</p><p><strong>Perlakuan.</strong> Estimasi ulang effort, biaya dan timeline</p></li>
+            <li class="scope scope--desain"><h3>Proyek desain terpisah</h3><p class="scope__contoh">Booklet kompetisi, konten IG, press release</p><p><strong>Perlakuan.</strong> Brief dan penawaran tersendiri</p></li>
+          </ul>
+        </section>
+
+        <section class="blok" id="aksi">
+          <h2><span class="no">7</span>Rencana aksi segera</h2>
+          <p class="hitung" id="hitung-aksi" role="status" aria-live="polite"></p>
+          <ul class="aksi" id="daftar-aksi">
+            <li><label><input type="checkbox" data-aksi="A1" /><span>Kirim notulen ini kepada Ustadz Doni/tim untuk koreksi faktual dan persetujuan prioritas.</span></label></li>
+            <li><label><input type="checkbox" data-aksi="A2" /><span>Minta akses audit kode dan database existing, contoh akun tiap role, serta contoh data riil yang telah disamarkan.</span></label></li>
+            <li><label><input type="checkbox" data-aksi="A3" /><span>Kumpulkan daftar asrama, daftar santri, template surat, kebijakan KPI, inventaris dan data kontribusi AC.</span></label></li>
+            <li><label><input type="checkbox" data-aksi="A4" /><span>Jadwalkan pembahasan integrasi pembayaran dengan tim IT terkait, serta sinkronisasi learning eksternal dengan Mas Rahman.</span></label></li>
+            <li><label><input type="checkbox" data-aksi="A5" /><span>Buat backlog dengan status: existing / bug / enhancement / new scope / deferred; estimasi setelah audit.</span></label></li>
+            <li><label><input type="checkbox" data-aksi="A6" /><span>Untuk event, minta draft booklet, daftar lomba, hadiah, ketentuan, identitas acara dan keputusan tanggal publikasi.</span></label></li>
+          </ul>
+        </section>
+
+        <section class="blok" id="catatan">
+          <h2><span class="no">8</span>Catatan kehati-hatian</h2>
+          <div class="catatan" role="note">
+            <p>Dokumen ini tidak memuat detail kredensial, nomor pribadi atau data sensitif santri. Kebijakan privasi, perlindungan anak, persetujuan dokumentasi, ketentuan pengembalian kontribusi, dan surat pelepasan tanggung jawab perlu pemeriksaan sesuai hukum dan praktik yang berlaku. Tidak ada komitmen teknis final tanpa pemeriksaan aplikasi existing.</p>
+          </div>
+          <p class="sumber">Disusun dari transkrip rapat yang dikirim bertahap dalam percakapan. Sebagian transkrip berasal dari speech-to-text dan mungkin mengandung istilah atau nama yang perlu dikoreksi oleh peserta rapat.</p>
+        </section>
+      </main>
+    </div>
+
+    <footer class="kaki">
+      <span>Hamasah, notulen rapat 27 Oktober 2026, versi kerja 1.0</span>
+    </footer>
+
+    <script src="rapat.js?v=9f0fe1b2eb"></script>
+  </body>
+</html>
