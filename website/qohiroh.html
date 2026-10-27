@@ -4,21 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="robots" content="noindex, nofollow" />
-    <meta name="description" content="Penawaran sistem portal kerja untuk Qohiroh Center: pendaftaran, asrama, kelas online, keuangan, dokumen PDF, dan portal wali dalam satu aplikasi, lengkap dengan tampilan tiap peran." />
+    <meta name="description" content="Penawaran sistem kerja untuk Qohiroh Center: pendaftaran, keberangkatan, asrama, kelas online, keuangan, dokumen PDF, dan portal wali, lengkap dengan tampilan tiap peran." />
     <title>Penawaran sistem untuk Qohiroh Center</title>
     <link rel="icon" href="../assets/qohiroh/logo-q.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Wix+Madefor+Display:wght@400;500;600&family=Wix+Madefor+Text:wght@400;500;600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="qohiroh.css?v=4dcd0ccd57" />
+    <link rel="preload" href="../assets/fonts/qohiroh/spacegrotesk-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="../assets/fonts/qohiroh/geist-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="qohiroh.css?v=2044433743" />
   </head>
   <body>
     <a class="skip-link" href="#isi">Lewati ke isi</a>
 
     <header class="nav">
       <div class="nav__bar">
-        <a class="nav__brand" href="#atas">Qohiroh Center</a>
+        <a class="nav__brand" href="#atas" aria-label="Qohiroh Center, ke atas halaman"><img src="../assets/qohiroh/logo-q.png" alt="" width="36" height="36" /><span>Qohiroh Center</span></a>
         <nav class="nav__links" aria-label="Isi halaman">
+          <a href="#fitur">Fitur</a>
           <a href="#tampilan">Tampilan</a>
           <a href="#dokumen">Dokumen</a>
           <a href="#akses">Akses</a>
@@ -33,57 +33,137 @@
       <section class="hero" id="atas">
         <div class="wrap hero__grid">
           <div class="hero__copy">
-            <h1>Portal kerja untuk Qohiroh Center</h1>
-            <p class="lede">Pendaftaran, asrama, kelas, keuangan, dan kabar untuk wali, di satu tempat.</p>
+            <h1>Sistem kerja untuk Qohiroh Center</h1>
+            <p class="lede">Pendaftaran, keberangkatan, asrama, kelas, keuangan, dan kabar untuk wali, di satu tempat.</p>
             <div class="actions">
-              <a class="btn btn--primary" id="aksi-lihat" href="#tampilan">Lihat tampilannya</a>
+              <a class="btn btn--primary" id="aksi-lihat" href="#fitur">Lihat fiturnya</a>
               <a class="btn btn--ghost" href="#diskusi" data-wa hidden>Diskusikan lewat WhatsApp</a>
             </div>
           </div>
-          <div class="hero__visual">
-            <figure class="hero__photo">
-              <img src="../assets/cairo-skyline.webp" alt="Masjid dengan menara di tengah kota Kairo dalam kabut tipis" width="1200" height="801" fetchpriority="high" />
-            </figure>
-            <figure class="glass hero__pane">
-              <img src="../assets/qohiroh/m/admin-portal.jpg" alt="Beranda pimpinan di Qohiroh Portal: angka santri, asrama, tagihan, dan hal yang perlu perhatian" width="1366" height="860" />
-              <figcaption>Contoh tampilan sistem dengan identitas Qohiroh dan data contoh.</figcaption>
-            </figure>
-          </div>
+          <figure class="shot hero__shot">
+            <img src="../assets/qohiroh/m/admin-portal.jpg" alt="Beranda pimpinan di Qohiroh Portal: angka santri, asrama, tagihan, dan hal yang perlu perhatian" width="1366" height="860" fetchpriority="high" />
+          </figure>
         </div>
       </section>
 
-      <section class="section" id="tampilan">
+      <section class="section" id="fitur">
+        <div class="wrap">
+          <div class="head">
+            <h2>Sembilan bagian yang bisa dipilih</h2>
+            <p class="sub">Untuk urusan yang Qohiroh Center kerjakan sehari-hari. Tiap bagian bisa dipakai sendiri atau digabung.</p>
+          </div>
+          <ul class="fgrid">
+            <li class="fcard">
+              <h3>Pendaftaran calon santri</h3>
+              <p>Semua pendaftar masuk ke satu daftar, dari formulir sampai siap berangkat.</p>
+              <ul class="fcard__pts">
+                <li>Tahap dan progres tiap pendaftar, dengan tanda untuk yang terlalu lama belum diperiksa.</li>
+                <li>Berkas disetujui atau ditolak, lengkap dengan alasannya.</li>
+                <li>Pesan WhatsApp disiapkan sistem, dikirim oleh petugas.</li>
+              </ul>
+              <button type="button" class="fcard__link" data-peran="1" data-fitur="1">Lihat tampilannya</button>
+            </li>
+            <li class="fcard">
+              <h3>Gelombang keberangkatan</h3>
+              <p>Jadwal berangkat tiap kelompok rapi dan bisa dilihat pendaftar.</p>
+              <ul class="fcard__pts">
+                <li>Buat gelombang dengan nama, tanggal, dan kota asal.</li>
+                <li>Pendaftar dimasukkan ke gelombangnya, jadwalnya tampil di halaman cek status.</li>
+                <li>Visa dan paspor dipantau dari tanggal berlakunya.</li>
+              </ul>
+              <button type="button" class="fcard__link" data-peran="1" data-fitur="5">Lihat tampilannya</button>
+            </li>
+            <li class="fcard">
+              <h3>Asrama dan pembinaan</h3>
+              <p>Pembina mencatat tiap hari, wali ikut melihat hasilnya.</p>
+              <ul class="fcard__pts">
+                <li>Presensi sholat dan kegiatan satu asrama sekaligus.</li>
+                <li>Setoran hafalan, prestasi, dan catatan pembinaan per santri.</li>
+                <li>Izin keluar, uang kas, inventaris, dan masa berlaku iqamah.</li>
+              </ul>
+              <button type="button" class="fcard__link" data-peran="2" data-fitur="1">Lihat tampilannya</button>
+            </li>
+            <li class="fcard">
+              <h3>Kelas online</h3>
+              <p>Santri belajar dari HP, guru menyiapkan semuanya dari satu halaman.</p>
+              <ul class="fcard__pts">
+                <li>Bacaan, video, PDF, kuis, dan tugas dalam satu maddah.</li>
+                <li>Penilaian tugas dan progres tiap santri.</li>
+                <li>Pertemuan dengan poin penting dan asisten belajar.</li>
+              </ul>
+              <button type="button" class="fcard__link" data-peran="3" data-fitur="1">Lihat tampilannya</button>
+            </li>
+            <li class="fcard">
+              <h3>Keuangan dan tagihan</h3>
+              <p>Setiap tagihan dan kuitansi punya nomor, dan tiap perubahan tercatat.</p>
+              <ul class="fcard__pts">
+                <li>Tagihan untuk satu santri atau banyak santri sekaligus.</li>
+                <li>Tunggakan diurutkan dari total terbesar.</li>
+                <li>Koreksi dan pembatalan wajib disertai alasan.</li>
+              </ul>
+              <button type="button" class="fcard__link" data-peran="4" data-fitur="2">Lihat tampilannya</button>
+            </li>
+            <li class="fcard">
+              <h3>Portal wali dan santri</h3>
+              <p>Wali tahu kabar ananda tanpa menunggu laporan bulanan.</p>
+              <ul class="fcard__pts">
+                <li>Laporan 30 hari: sholat, kegiatan, dan setoran hafalan.</li>
+                <li>Tagihan dan iqamah yang perlu diurus tampil di depan.</li>
+                <li>Santri membuka jadwal, izin, dan kelasnya sendiri.</li>
+              </ul>
+              <button type="button" class="fcard__link" data-peran="5" data-fitur="0">Lihat tampilannya</button>
+            </li>
+            <li class="fcard">
+              <h3>Beranda pimpinan</h3>
+              <p>Kondisi lembaga dalam satu halaman, tanpa membuka banyak menu.</p>
+              <ul class="fcard__pts">
+                <li>Santri aktif, keterisian asrama, tagihan, dan kehadiran.</li>
+                <li>Hal yang perlu perhatian, dikelompokkan per santri.</li>
+                <li>Jejak audit: siapa mengubah apa dan kapan.</li>
+              </ul>
+              <button type="button" class="fcard__link" data-peran="0" data-fitur="1">Lihat tampilannya</button>
+            </li>
+            <li class="fcard">
+              <h3>Rapor dan kuitansi PDF</h3>
+              <p>Dokumen langsung jadi dari catatan yang sudah ada.</p>
+              <ul class="fcard__pts">
+                <li>Kop, rekening, dan penanda tangan diatur sendiri.</li>
+                <li>Bagian yang belum ada catatannya ditulis kosong, tidak dikarang.</li>
+                <li>Dibuat dengan warna dan font Qohiroh Center.</li>
+              </ul>
+              <a class="fcard__link" href="#dokumen">Lihat contohnya</a>
+            </li>
+            <li class="fcard">
+              <h3>Asisten AI</h3>
+              <p>Menjawab dari materi sendiri, bukan dari tebakan.</p>
+              <ul class="fcard__pts">
+                <li>Teman belajar santri di tiap pertemuan.</li>
+                <li>Penjawab pertanyaan calon santri dan wali di website.</li>
+                <li>Bantuan menyusun catatan harian pembina.</li>
+              </ul>
+              <a class="fcard__link" href="#asisten">Lihat cara kerjanya</a>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="band band--soft" id="tampilan">
         <div class="wrap">
           <div class="head">
             <h2>Setiap peran punya layar sendiri</h2>
-            <p class="sub">Pilih peran, lalu pilih fiturnya. Semua gambar adalah tampilan asli, bukan rancangan.</p>
+            <p class="sub">Pilih peran, lalu pilih fiturnya. Semua gambar adalah tampilan asli dengan warna dan font Qohiroh, bukan rancangan.</p>
           </div>
           <div class="tour" id="tour">
             <div class="tour__nav">
               <div class="who" role="tablist" aria-label="Peran" id="tour-peran"></div>
               <ul class="feats" id="tour-fitur"></ul>
             </div>
-            <figure class="glass tour__pane" id="tour-pane">
+            <figure class="shot tour__pane" id="tour-pane">
               <img id="tour-gambar" src="../assets/qohiroh/m/admin-portal.jpg" alt="Beranda pimpinan di Qohiroh Portal" width="1366" height="860" loading="lazy" />
               <figcaption id="tour-teks">Data contoh, bukan data lembaga.</figcaption>
             </figure>
           </div>
           <noscript><p class="note">Pilihan peran butuh JavaScript. Peran yang tersedia: pimpinan, petugas pendaftaran, pembina asrama, guru, keuangan, wali santri, dan santri.</p></noscript>
-        </div>
-      </section>
-
-      <section class="band" id="aman">
-        <div class="wrap band__grid">
-          <div>
-            <h2>Satu catatan, dilihat oleh yang berhak</h2>
-            <p class="sub">Wali, pembina, guru, dan keuangan membuka data yang sama, sesuai perannya.</p>
-          </div>
-          <dl class="facts">
-            <div><dt>Akses sesuai peran</dt><dd>Wali dan santri hanya membuka data yang terhubung ke akunnya.</dd></div>
-            <div><dt>Kata sandi</dt><dd>Disimpan dalam bentuk acak, bukan apa adanya.</dd></div>
-            <div><dt>Dokumen</dt><dd>Paspor dan ijazah disimpan di penyimpanan privat.</dd></div>
-            <div><dt>Riwayat</dt><dd>Koreksi dan pembatalan tercatat: siapa, dan kapan.</dd></div>
-          </dl>
         </div>
       </section>
 
@@ -106,7 +186,7 @@
         </div>
       </section>
 
-      <section class="band band--well" id="asisten">
+      <section class="band band--deep" id="asisten">
         <div class="wrap ledger">
           <div class="ledger__head">
             <h2>Asisten AI yang menjawab dari materi sendiri</h2>
@@ -144,10 +224,39 @@
               </tbody>
             </table>
           </div>
+          <dl class="facts">
+            <div><dt>Akses sesuai peran</dt><dd>Wali dan santri hanya membuka data yang terhubung ke akunnya.</dd></div>
+            <div><dt>Kata sandi</dt><dd>Disimpan dalam bentuk acak, bukan apa adanya.</dd></div>
+            <div><dt>Dokumen</dt><dd>Paspor dan ijazah disimpan di penyimpanan privat.</dd></div>
+            <div><dt>Riwayat</dt><dd>Koreksi dan pembatalan tercatat: siapa, dan kapan.</dd></div>
+          </dl>
         </div>
       </section>
 
-      <section class="band" id="rencana">
+      <section class="band band--soft" id="sesuai">
+        <div class="wrap ledger">
+          <div class="ledger__head">
+            <h2>Dibuat sesuai identitas Qohiroh Center</h2>
+            <p class="sub">Yang Anda lihat di halaman ini sudah memakai warna dan font Qohiroh. Sisanya disesuaikan saat sistem disiapkan.</p>
+            <ul class="swatch" aria-label="Warna dan font">
+              <li class="swatch__chip swatch__chip--tua"><span>Hijau tua</span></li>
+              <li class="swatch__chip swatch__chip--hijau"><span>Hijau</span></li>
+              <li class="swatch__chip swatch__chip--sage"><span>Sage</span></li>
+              <li class="swatch__chip swatch__chip--emas"><span>Kuning</span></li>
+            </ul>
+            <p class="fontdemo"><span class="fontdemo__a">Space Grotesk</span> untuk judul, <span class="fontdemo__b">Geist</span> untuk isi.</p>
+          </div>
+          <dl class="rows">
+            <div><dt>Nama dan logo</dt><dd>Nama lembaga dan logo tampil di sidebar, halaman masuk, dan dokumen PDF. Logo dikirim oleh Qohiroh Center.</dd></div>
+            <div><dt>Warna dan font</dt><dd>Hijau dan kuning dari identitas Qohiroh, dengan Space Grotesk dan Geist, di seluruh aplikasi.</dd></div>
+            <div><dt>Istilah</dt><dd>Kata seperti kloter, maddah, dan musyrif bisa diganti dengan istilah yang biasa dipakai tim.</dd></div>
+            <div><dt>Kop dokumen</dt><dd>Kop, rekening, dan penanda tangan di rapor dan kuitansi diatur dari menu Template.</dd></div>
+            <div><dt>Data awal</dt><dd>Akun tim, asrama, pembina, dan santri diisi bersama sebelum mulai dipakai.</dd></div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="section" id="rencana">
         <div class="wrap steps">
           <div class="head">
             <h2>Usulan rencana sebulan</h2>
@@ -162,7 +271,7 @@
         </div>
       </section>
 
-      <section class="section" id="putusan">
+      <section class="band" id="putusan">
         <div class="wrap ledger">
           <div class="ledger__head">
             <h2>Lima hal yang perlu diputuskan pimpinan</h2>
@@ -178,7 +287,7 @@
         </div>
       </section>
 
-      <section class="band band--well" id="biaya">
+      <section class="band band--soft" id="biaya">
         <div class="wrap ledger">
           <div class="ledger__head">
             <h2>Biaya dibahas setelah kebutuhan jelas</h2>
@@ -218,6 +327,6 @@
       </div>
     </footer>
 
-    <script src="qohiroh.js?v=7a753a5f98"></script>
+    <script src="qohiroh.js?v=c59ef97a02"></script>
   </body>
 </html>

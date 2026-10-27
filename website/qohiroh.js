@@ -3,7 +3,9 @@
 // Halaman penawaran /qohiroh: pilihan peran dan fitur di bagian Tampilan, serta tombol WhatsApp.
 // Isi NOMOR_WA (format 62812xxxxxxx, tanpa tanda plus) supaya tombol diskusi muncul.
 // Selama kosong, tombolnya tersembunyi dan halaman memakai kalimat penutup biasa.
-// Gambar dibuat ulang dengan .claude/checks/qohiroh-shots.cjs dan qohiroh-docs.cjs.
+// Gambar dibuat ulang dengan .claude/checks/qohiroh-shots.cjs dan qohiroh-docs.cjs. Tema warna dan
+// font mockup (hijau-kuning Qohiroh, Space Grotesk dan Geist) ada di .claude/checks/qohiroh-tema.cjs;
+// logo mockup diambil dari assets/qohiroh/logo-q.png, jadi ulangi kedua skrip setelah logo diganti.
 
 (function () {
   const NOMOR_WA = '';
@@ -187,4 +189,15 @@
   }
 
   gambarUlang();
+
+  // Tombol "Lihat tampilannya" di kartu fitur membuka peran dan fitur yang sesuai di bagian Tampilan.
+  document.querySelectorAll('[data-peran]').forEach((tombol) => {
+    tombol.addEventListener('click', () => {
+      peranAktif = Number(tombol.dataset.peran) || 0;
+      fiturAktif = Number(tombol.dataset.fitur) || 0;
+      gambarUlang();
+      const pelan = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      document.getElementById('tampilan').scrollIntoView({ behavior: pelan ? 'auto' : 'smooth' });
+    });
+  });
 })();
