@@ -2,9 +2,9 @@
 
 `PlusJakartaSans-Regular.ttf`, `-Bold.ttf`, and `-Italic.ttf` are the static TrueType instances served by Google Fonts (v12), downloaded 26 October 2026 and not modified. They are embedded in the student report PDF (`server/student-report-pdf.js`). Licensed under the SIL Open Font License 1.1; see `PlusJakartaSans-OFL.txt`.
 
-# Geist and Space Grotesk (Qohiroh proposal)
+# Clash Display and Manrope (Qohiroh proposal)
 
-`qohiroh/geist-latin.woff2` and `qohiroh/spacegrotesk-latin.woff2` are the Latin subsets of the variable fonts (weights 400 to 700) served by Google Fonts, downloaded 27 October 2026 and not modified. They are used by `website/qohiroh.css` and by the screenshots of the Qohiroh proposal. Both are licensed under the SIL Open Font License 1.1; see `Geist-OFL.txt` and `SpaceGrotesk-OFL.txt`.
+`qohiroh/clashdisplay-500.woff2`, `-600.woff2`, and `-700.woff2` are Clash Display from Fontshare (Indian Type Foundry), downloaded 27 October 2026 and not modified. Licensed under the ITF Free Font License (FFL), which allows commercial and web use; see `ClashDisplay-FFL.txt`. `qohiroh/manrope-latin.woff2` is the Latin subset of the Manrope variable font (weights 400 to 700) served by Google Fonts, licensed under the SIL Open Font License 1.1; see `Manrope-OFL.txt`. They are used by `website/qohiroh.css` and by the screenshots of the Qohiroh proposal.
 
 # Arabic font
 

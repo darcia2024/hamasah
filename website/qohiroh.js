@@ -4,13 +4,17 @@
 // Isi NOMOR_WA (format 62812xxxxxxx, tanpa tanda plus) supaya tombol diskusi muncul.
 // Selama kosong, tombolnya tersembunyi dan halaman memakai kalimat penutup biasa.
 // Gambar dibuat ulang dengan .claude/checks/qohiroh-shots.cjs dan qohiroh-docs.cjs. Tema warna dan
-// font mockup (hijau-kuning Qohiroh, Space Grotesk dan Geist) ada di .claude/checks/qohiroh-tema.cjs;
-// logo mockup diambil dari assets/qohiroh/logo-q.png, jadi ulangi kedua skrip setelah logo diganti.
+// font mockup (hijau dan emas dari logo, Clash Display dan Manrope) ada di .claude/checks/qohiroh-tema.cjs;
+// logo mockup diambil dari assets/qohiroh/logo-mark.png (dibuat oleh qohiroh-logo.cjs dari logo asli),
+// jadi ulangi kedua skrip setelah logo diganti.
 
 (function () {
   const NOMOR_WA = '';
   const PESAN_WA = 'Assalamu’alaikum. Saya dari Qohiroh Center, sudah membaca penawaran sistemnya dan ingin berdiskusi.';
   const FOLDER = '../assets/qohiroh/m/';
+  // Naikkan VERSI (dan ?v= di qohiroh.html) setiap gambar diambil ulang, karena gambar disimpan peramban sehari.
+  const VERSI = '20261027b';
+  const alamatGambar = (berkas) => `${FOLDER}${berkas}.jpg?v=${VERSI}`;
 
   // Tiap peran punya daftar fitur: [judul, penjelasan, berkas gambar, teks pengganti gambar].
   const PERAN = [
@@ -176,8 +180,8 @@
       return li;
     }));
     const [judul, , berkas, alt] = peran.fitur[fiturAktif];
-    const src = `${FOLDER}${berkas}.jpg`;
-    if (!gambar.src.endsWith(`/${berkas}.jpg`)) gambar.src = src;
+    const src = alamatGambar(berkas);
+    if (gambar.getAttribute('src') !== src) gambar.src = src;
     gambar.alt = alt;
     gambar.width = peran.ponsel ? 780 : 1366;
     gambar.height = peran.ponsel ? 1688 : 860;
@@ -185,7 +189,7 @@
     teks.textContent = `${judul}. Data contoh, bukan data lembaga.`;
     // Muat gambar fitur berikutnya lebih dulu supaya pindah tidak berkedip.
     const berikut = peran.fitur[fiturAktif + 1];
-    if (berikut) new Image().src = `${FOLDER}${berikut[2]}.jpg`;
+    if (berikut) new Image().src = alamatGambar(berikut[2]);
   }
 
   gambarUlang();

@@ -1,32 +1,34 @@
-/* Hallmark · v2.0.0 · shape: proposal ledger, feature-led · genre: modern-minimal · theme: custom (by request: palette from @qohirohcenter, Space Grotesk + Geist) · job: hire · draw: manual · surface: absolute · posture: committed
- * hero: Stage, the head on deep green over a muted Cairo photograph, the product's first screen at the right · nav: sticky white bar, logo and wordmark, six anchors, one action · footer: one mast line, wordmark first · imagery: two repo photographs (Unsplash, credited in the footer) and captures of the running product re-skinned in Qohiroh's green and yellow · signature: nine feature cards that each open the real screen in the role tour
+/* Hallmark · v2.0.0 · shape: proposal ledger, feature-led · genre: modern-minimal · theme: custom (by request: green and gold sampled from the Qohiroh Center logo, Clash Display + Manrope) · job: hire · draw: manual · surface: absolute · posture: committed
+ * hero: Stage, the head on deep green over a muted Cairo photograph, the product's first screen at the right · nav: sticky white bar, logo and wordmark, six anchors, one action · footer: one mast line, wordmark first · imagery: two repo photographs (Unsplash, credited in the footer) and captures of the running product re-skinned in the logo's green and gold · signature: nine feature cards that each open the real screen in the role tour
  * axes: light/grotesk-sans/cool · contrast: pass · fold: pass */
 /* Hallmark · dismissed 58 · a proposal read on request by a decision-maker: the words are nine feature rows and ledger rows of one idea each, and no screen holds more than one section's worth */
 /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, one green family carries most of the page, so the yellow is held for actions and the one gold rule on each card */
 
-@font-face { font-family: "Space Grotesk"; font-style: normal; font-weight: 400 700; font-display: swap; src: url("../assets/fonts/qohiroh/spacegrotesk-latin.woff2") format("woff2"); }
-@font-face { font-family: "Geist"; font-style: normal; font-weight: 400 700; font-display: swap; src: url("../assets/fonts/qohiroh/geist-latin.woff2") format("woff2"); }
+@font-face { font-family: "Clash Display"; font-style: normal; font-weight: 500; font-display: swap; src: url("../assets/fonts/qohiroh/clashdisplay-500.woff2") format("woff2"); }
+@font-face { font-family: "Clash Display"; font-style: normal; font-weight: 600; font-display: swap; src: url("../assets/fonts/qohiroh/clashdisplay-600.woff2") format("woff2"); }
+@font-face { font-family: "Clash Display"; font-style: normal; font-weight: 700; font-display: swap; src: url("../assets/fonts/qohiroh/clashdisplay-700.woff2") format("woff2"); }
+@font-face { font-family: "Manrope"; font-style: normal; font-weight: 400 700; font-display: swap; src: url("../assets/fonts/qohiroh/manrope-latin.woff2") format("woff2"); }
 
 :root {
-  /* Qohiroh Center: greens and yellow sampled from the Instagram posts and the logo. */
-  --green-950: #0e2b21; --green-900: #14402f; --green-800: #1b5340; --green-700: #206050; --green-600: #2a7358; --green-500: #308060;
-  --green-300: #60a080; --green-200: #a9cdb8; --green-100: #d4ebdf; --green-50: #edf6f1;
-  --paper: #f6faf7; --white: #ffffff;
-  --yellow: #e0b010; --yellow-hi: #edc43a; --yellow-ink: #6b5000;
-  --ink: #13261e; --ink-2: #324a3f; --muted: #4f6259;
-  --rule: #d4e3da; --rule-dark: #2a5a47;
-  --on-dark: #f3faf6; --on-dark-2: #c9e2d4;
-  --focus: #1b5340;
-  --shadow-card: 0 1px 2px rgba(14, 43, 33, 0.06), 0 18px 40px -22px rgba(14, 43, 33, 0.35);
-  --shadow-hero: 0 0 0 4px color-mix(in srgb, var(--yellow) 85%, transparent), 0 40px 80px -32px rgba(5, 18, 13, 0.6);
-  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Geist", ui-sans-serif, system-ui, sans-serif;
+  /* Qohiroh Center: green and gold sampled from the pixels of the logo (#186C00, #0C5400, #FCCC24, #D89C0C). */
+  --green-950: #0a2a06; --green-900: #0f3d0a; --green-800: #145410; --green-700: #1a6c06; --green-600: #2a8312; --green-500: #3a9a1e;
+  --green-300: #7dbf62; --green-200: #b7dba6; --green-100: #dcefd0; --green-50: #eff7e9;
+  --paper: #f8fbf4; --white: #ffffff;
+  --yellow: #fccc24; --yellow-hi: #fdd94f; --gold-deep: #d89c0c; --yellow-ink: #6b4a00;
+  --ink: #12200e; --ink-2: #2f4528; --muted: #4a5c42;
+  --rule: #d8e6cf; --rule-dark: #2a5a1c;
+  --on-dark: #f4faee; --on-dark-2: #cfe5c2;
+  --focus: #145410;
+  --shadow-card: 0 1px 2px rgba(10, 42, 6, 0.06), 0 18px 40px -22px rgba(10, 42, 6, 0.35);
+  --shadow-hero: 0 0 0 4px color-mix(in srgb, var(--yellow) 85%, transparent), 0 40px 80px -32px rgba(4, 20, 2, 0.6);
+  --font-display: "Clash Display", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Manrope", ui-sans-serif, system-ui, sans-serif;
   --radius-card: 16px; --radius-inner: 10px; --radius-pill: 999px;
 
   --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px;
   --space-xl: 40px; --space-2xl: 64px; --space-3xl: 96px; --space-4xl: 128px;
-  --text-sm: 0.9375rem; --text-md: 1.0625rem; --text-lg: 1.25rem; --text-title: 1.375rem;
-  --text-section: clamp(2rem, 3.2vw, 2.75rem); --text-display: clamp(2.5rem, 4.8vw, 4.25rem);
+  --text-sm: 0.9375rem; --text-md: 1rem; --text-lg: 1.1875rem; --text-title: 1.375rem;
+  --text-section: clamp(2rem, 3.2vw, 2.75rem); --text-display: clamp(2.25rem, 4.2vw, 3.5rem);
   --container: 1240px; --gutter: clamp(var(--space-md), 4vw, var(--space-2xl)); --nav-h: 4.5rem;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1); --dur-micro: 140ms;
   --z-nav: 20; --col-gap: var(--space-2xl);
@@ -41,7 +43,7 @@ h1, h2, h3, p, ul, ol, dl, dd, figure { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
 a { color: inherit; }
 button { font: inherit; color: inherit; }
-h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.02em; line-height: 1.08; text-wrap: balance; overflow-wrap: break-word; min-width: 0; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.012em; line-height: 1.1; text-wrap: balance; overflow-wrap: break-word; min-width: 0; }
 h1 { font-size: var(--text-display); font-weight: 700; }
 h2 { font-size: var(--text-section); }
 h3 { font-size: var(--text-title); line-height: 1.2; }
@@ -73,7 +75,7 @@ p { text-wrap: pretty; }
 .nav { position: sticky; top: 0; z-index: var(--z-nav); height: var(--nav-h); padding-inline: var(--gutter); display: flex; align-items: center; background: var(--white); border-bottom: 1px solid var(--rule); }
 .nav__bar { display: flex; align-items: center; gap: var(--space-lg); width: 100%; max-width: var(--container); margin-inline: auto; }
 .nav__brand { display: inline-flex; align-items: center; gap: var(--space-sm); margin-right: auto; font: 600 var(--text-md)/1 var(--font-display); text-decoration: none; white-space: nowrap; }
-.nav__brand img { width: 36px; height: 36px; border-radius: 50%; }
+.nav__brand img { width: auto; height: 34px; }
 .nav__links { display: flex; gap: var(--space-2xs); }
 .nav__links a { padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-pill); color: var(--ink-2); font-size: var(--text-sm); text-decoration: none; white-space: nowrap; transition: color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out); }
 .nav__links a:hover { color: var(--green-800); background: var(--green-50); }
@@ -147,13 +149,14 @@ p { text-wrap: pretty; }
 /* Customisation: the palette and the two faces, shown as themselves. */
 .swatch { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-xs); }
 .swatch__chip { display: flex; align-items: flex-end; min-height: 4.5rem; padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-inner); font-size: var(--text-sm); font-weight: 500; }
-.swatch__chip--tua { background: var(--green-900); color: var(--on-dark); }
-.swatch__chip--hijau { background: var(--green-500); color: var(--white); }
-.swatch__chip--sage { background: var(--green-300); color: var(--green-950); }
+.swatch__chip--tua { background: var(--green-800); color: var(--on-dark); }
+.swatch__chip--hijau { background: var(--green-700); color: var(--white); }
+.swatch__chip--muda { background: var(--green-300); color: var(--green-950); }
 .swatch__chip--emas { background: var(--yellow); color: var(--green-950); }
 .fontdemo { color: var(--ink-2); }
 .fontdemo__a { font: 600 var(--text-lg)/1.2 var(--font-display); color: var(--ink); }
-.fontdemo__b { font: 500 var(--text-lg)/1.2 var(--font-body); color: var(--ink); }
+.fontdemo__b { font: 600 var(--text-lg)/1.2 var(--font-body); color: var(--ink); }
+.brandlogo { width: min(100%, 22rem); height: auto; padding: var(--space-md) var(--space-lg); border-radius: var(--radius-card); background: var(--white); border: 1px solid var(--rule); }
 
 /* Steps: four rows with large numerals. */
 .steps { display: grid; gap: var(--space-xl); }
