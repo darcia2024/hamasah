@@ -13,7 +13,7 @@
   const PESAN_WA = 'Assalamu’alaikum. Saya dari Qohiroh Center, sudah membaca penawaran sistemnya dan ingin berdiskusi.';
   const FOLDER = '../assets/qohiroh/m/';
   // Naikkan VERSI (dan ?v= di qohiroh.html) setiap gambar diambil ulang, karena gambar disimpan peramban sehari.
-  const VERSI = '20261027c';
+  const VERSI = '20261027d';
   const alamatGambar = (berkas) => `${FOLDER}${berkas}.jpg?v=${VERSI}`;
 
   // Tiap peran punya daftar fitur: [judul, penjelasan, berkas gambar, teks pengganti gambar].
