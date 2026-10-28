@@ -143,7 +143,13 @@ module.exports = [
     pattern: /^\/api\/students\/([\w-]+)$/,
     permission: 'students.edit',
     async handler({ response, services, auth, params, readBody, ip }) {
-      const hasil = await services.studentPortalService.updateStudent(params[0], await readBody(), await auth.actor());
+      const isi = await readBody();
+      const hasil = await services.studentPortalService.updateStudent(params[0], isi, await auth.actor());
+      if (hasil.ok && hasil.changed.includes('status')) {
+        // Riwayat status melekat pada santri, lengkap dengan alasannya (statusReason, opsional).
+        await services.studentProfileService.recordStatusChange(params[0], hasil.previousStatus, hasil.value.status, isi && isi.statusReason, await auth.actor());
+        await services.auditService.record({ action: ACTIONS.STUDENT_STATUS_CHANGED, actor: await auth.actor(), ip, entityType: 'student', entityId: params[0], metadata: { from: hasil.previousStatus, to: hasil.value.status } });
+      }
       if (hasil.ok && hasil.changed.length) {
         // Hanya nama kolom dan status yang dicatat, bukan isi data pribadinya.
         await services.auditService.record({

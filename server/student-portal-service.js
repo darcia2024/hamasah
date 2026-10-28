@@ -5,7 +5,9 @@ const STAFF_ROLES = Object.freeze(['admin', 'supervisor']);
 const VIEWER_ROLES = Object.freeze(['admin', 'supervisor', 'parent', 'student']);
 const ATTENDANCE_STATUSES = Object.freeze(['present', 'late', 'excused', 'absent']);
 const GENDERS = Object.freeze(['putra', 'putri']);
-const STUDENT_STATUSES = Object.freeze(['active', 'inactive', 'graduated']);
+// active: aktif. leave: cuti atau izin panjang. graduated: selesai. withdrawn: mengundurkan diri.
+// inactive: nonaktif (keluar atau berhenti). archived: arsip. Selain active, santri dilepas dari asramanya.
+const STUDENT_STATUSES = Object.freeze(['active', 'leave', 'graduated', 'withdrawn', 'inactive', 'archived']);
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -383,7 +385,7 @@ function createStudentPortalService(options) {
     }
     const changed = ['name', 'program', 'city', 'joinDate', 'birthDate', 'gender', 'status']
       .filter((key) => (student[key] || null) !== (saved[key] || null));
-    return { ok: true, value: saved, changed, releasedFromDormitory: Boolean(student.dormitoryId && !dormitoryId) };
+    return { ok: true, value: saved, changed, previousStatus: student.status, releasedFromDormitory: Boolean(student.dormitoryId && !dormitoryId) };
   }
 
   async function correctRecord(studentId, collection, recordId, input, actor) {

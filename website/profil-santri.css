@@ -1,0 +1,48 @@
+﻿/* Profil santri terintegrasi (profil-santri.js): sepuluh tab dalam satu panel. */
+.ps-wrap { margin-top: 16px; }
+.ps { display: grid; gap: 12px; padding: 18px; border-radius: 18px; background: #fff; box-shadow: var(--k26-shadow); }
+.ps-head h3 { margin: 0; font-size: 20px; }
+.ps-head p { margin: 2px 0 0; color: var(--k26-muted, #6B6B70); font-size: 14px; }
+.ps-tabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; border-bottom: 1px solid var(--k26-line, #E2DED6); scrollbar-width: thin; }
+.ps-tab { flex: none; min-height: 40px; padding: 0 14px; border: 0; border-bottom: 3px solid transparent; background: none; color: var(--k26-muted, #6B6B70); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.ps-tab:hover { color: var(--k26-ink, #262628); }
+.ps-tab.is-on { border-bottom-color: var(--k26-gold, #E7B10C); color: var(--k26-ink, #262628); }
+.ps-body { display: grid; gap: 12px; min-width: 0; }
+.ps-stack { display: grid; gap: 18px; }
+.ps-section { display: grid; gap: 8px; }
+.ps-section__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; }
+.ps-section__head h4 { margin: 0; font-size: 16px; font-weight: 700; }
+.ps-small { min-height: 34px; padding: 0 12px; font-size: 13px; }
+.ps-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px 20px; margin: 0; }
+.ps-field { display: grid; gap: 2px; min-width: 0; }
+.ps-field dt { color: var(--k26-muted, #6B6B70); font-size: 12.5px; font-weight: 600; }
+.ps-field dd { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+.ps-field dd.is-empty { color: #A8A59C; font-style: italic; }
+.ps-field small { color: var(--k26-muted, #6B6B70); font-size: 12px; }
+.ps-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.ps-list li { display: grid; gap: 2px; padding: 10px 0; border-top: 1px solid var(--k26-line, #E2DED6); }
+.ps-list li:first-child { border-top: 0; }
+.ps-meta { margin: 0; color: var(--k26-muted, #6B6B70); font-size: 13px; line-height: 1.45; }
+.ps-empty { margin: 0; color: var(--k26-muted, #6B6B70); font-size: 14px; }
+.ps-warning { margin: 0; padding: 10px 14px; border-radius: 12px; background: #FFF3CC; color: #5C4300; font-size: 14px; }
+.ps-flash { margin: 0; padding: 8px 12px; border-radius: 10px; background: #E3F1E8; color: #1F5B3A; font-size: 14px; }
+.ps-form .ps-flash:empty { display: none; }
+.ps-statusrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.ps-chip { display: inline-block; padding: 2px 10px; border-radius: 999px; background: #EFEBE2; color: #5B5850; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.ps-chip--ok { background: #E3F1E8; color: #1F5B3A; }
+.ps-chip--waspada { background: #FFF3CC; color: #5C4300; }
+.ps-chip--bahaya { background: #FBE9E7; color: #8E2A23; }
+.ps-chip--info { background: #E4EEF8; color: #264B73; }
+.ps-docstate { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.ps-docstate__item { display: grid; gap: 6px; justify-items: start; padding: 12px 14px; border: 1px solid var(--k26-line, #E2DED6); border-radius: 14px; }
+.ps-docs { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.ps-docs li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 10px 0; border-top: 1px solid var(--k26-line, #E2DED6); }
+.ps-docs li:first-child { border-top: 0; }
+.ps-docs__info { display: grid; gap: 2px; min-width: 0; }
+.ps-docs__actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.ps-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px 14px; align-items: end; }
+.ps-form__field { display: grid; gap: 4px; font-size: 13px; font-weight: 600; }
+.ps-form__field input, .ps-form__field select { min-height: 40px; padding: 8px 10px; border: 1px solid var(--k26-line, #E2DED6); border-radius: 10px; background: #fff; font: inherit; font-size: 14px; font-weight: 400; }
+.ps-form .ps-flash, .ps-form .ps-small { grid-column: 1 / -1; justify-self: start; }
+.ps-link { color: var(--k26-gold-deep, #856000); font-size: 14px; font-weight: 600; }
+@media (max-width: 640px) { .ps { padding: 14px; border-radius: 0; } .ps-fields { grid-template-columns: 1fr; } }

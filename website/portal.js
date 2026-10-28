@@ -116,7 +116,7 @@ function renderBadgeIcon(icon) {
 const ATTENDANCE_LABELS = Object.freeze({ present: 'Hadir', late: 'Terlambat', excused: 'Izin / sakit', absent: 'Tidak hadir' });
 const ATTENDANCE_TYPES = Object.freeze({ present: 'complete', late: 'pending', excused: 'pending', absent: 'absent' });
 const PRAYER_PATTERN = /sholat|salat|shalat|subuh|shubuh|dzuhur|zuhur|dhuhur|ashar|asar|maghrib|magrib|isya|isha|berjamaah|jamaah/i;
-const STUDENT_STATUS_LABELS = Object.freeze({ active: 'Aktif', inactive: 'Tidak aktif', graduated: 'Lulus' });
+const STUDENT_STATUS_LABELS = Object.freeze({ active: 'Aktif', leave: 'Cuti atau izin panjang', graduated: 'Selesai (lulus)', withdrawn: 'Mengundurkan diri', inactive: 'Tidak aktif', archived: 'Arsip' });
 
 function formatTanggalPanjang(isoDate) {
   if (!isoDate) return '';
@@ -1100,12 +1100,23 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
   perjalanan.className = keluarga ? 'santri-journey santri-journey--ringkasan' : 'santri-journey';
   perjalanan.hidden = true;
 
+  // Profil lengkap (profil-santri.js): sepuluh tab yang memuat seluruh informasi santri. Diisi sesudah dashboard tampil.
+  const profilLengkap = document.createElement('section');
+  profilLengkap.className = 'ps-wrap';
+  profilLengkap.setAttribute('aria-label', 'Profil santri');
+  if (window.HamasahProfilSantri) {
+    window.HamasahProfilSantri.render(profilLengkap, { student, dashboard, care, account, headers: requestHeaders(), unduh: downloadWithSession })
+      .catch(() => { profilLengkap.hidden = true; });
+  } else {
+    profilLengkap.hidden = true;
+  }
+
   const profil = keluarga ? kartuProfilKeluarga(dashboard, care, account) : summaryCard;
   if (keluarga) {
     panelRingkasan.append(perjalanan);
-    studentDashboard.append(profil, subtabsRow, toolbar, panelsContainer);
+    studentDashboard.append(profil, profilLengkap, subtabsRow, toolbar, panelsContainer);
   } else {
-    studentDashboard.append(summaryCard, perjalanan, subtabsRow, toolbar, panelsContainer);
+    studentDashboard.append(summaryCard, profilLengkap, perjalanan, subtabsRow, toolbar, panelsContainer);
   }
   studentDashboard.classList.add('crm-view-enter');
   studentDashboard.hidden = false;

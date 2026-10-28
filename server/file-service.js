@@ -40,8 +40,8 @@ function createFileService(options = {}) {
     return policy.visibility === 'public' ? buckets.public : buckets.private;
   }
 
-  async function konteks(actor, auth, entityId) {
-    return { actor, auth, entityId: String(entityId || ''), services };
+  async function konteks(actor, auth, entityId, record = null) {
+    return { actor, auth, entityId: String(entityId || ''), services, record };
   }
 
   // Langkah 1: memeriksa izin dan aturan, lalu menyiapkan baris pending.
@@ -232,7 +232,7 @@ function createFileService(options = {}) {
     if (!policy) {
       return { ok: false, status: 404, error: 'Berkas tidak ditemukan.' };
     }
-    if (!(await policy.canDownload(await konteks(actor, auth, record.entityId)))) {
+    if (!(await policy.canDownload(await konteks(actor, auth, record.entityId, record)))) {
       return { ok: false, status: 403, error: 'Anda tidak memiliki akses ke berkas ini.' };
     }
 

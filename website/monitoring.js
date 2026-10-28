@@ -430,7 +430,7 @@ async function hapusAsrama(asrama, tombol) {
   }
 }
 
-const LABEL_STATUS_SANTRI = Object.freeze([['active', 'Aktif'], ['inactive', 'Nonaktif (keluar atau berhenti)'], ['graduated', 'Lulus']]);
+const LABEL_STATUS_SANTRI = Object.freeze([['active', 'Aktif'], ['leave', 'Cuti atau izin panjang'], ['graduated', 'Selesai (lulus)'], ['withdrawn', 'Mengundurkan diri'], ['inactive', 'Nonaktif (keluar atau berhenti)'], ['archived', 'Arsip']]);
 
 async function ubahSantri() {
   if (!santriTerpilih) return;
@@ -456,7 +456,7 @@ async function ubahSantri() {
   if (hasil.releasedFromDormitory) {
     await window.HamasahDialog.pesan({
       judul: 'Data santri diperbarui',
-      isi: [`${hasil.student.name} ditandai ${hasil.student.status === 'graduated' ? 'lulus' : 'nonaktif'} dan sudah dilepas dari asramanya.`]
+      isi: [`${hasil.student.name} ditandai ${(LABEL_STATUS_SANTRI.find(([nilai]) => nilai === hasil.student.status) || [null, hasil.student.status])[1].toLowerCase()} dan sudah dilepas dari asramanya.`]
     });
   }
 }

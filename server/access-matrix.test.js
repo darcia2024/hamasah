@@ -169,6 +169,11 @@ async function run() {
       { permission: 'dormitory-management.manage', method: 'PATCH', path: () => `/api/asrama/${dormitoryId}/kamar/00000000-0000-4000-8000-000000000000`, body: () => ({ name: '' }) },
       { permission: 'dormitory-management.manage', method: 'DELETE', path: () => `/api/asrama/${dormitoryId}/kamar/00000000-0000-4000-8000-000000000000` },
       { permission: 'dormitories.manage', method: 'PUT', path: () => `/api/asrama/${dormitoryId}/lokasi`, body: () => ({ locationId: '00000000-0000-4000-8000-000000000000' }) },
+      // Profil santri terintegrasi (migrasi 061).
+      { permission: 'students.read', method: 'GET', path: '/api/students/00000000-0000-4000-8000-000000000000/profil' },
+      { permission: 'students.manage', method: 'PATCH', path: '/api/students/00000000-0000-4000-8000-000000000000/profil', body: () => ({ phone: '1' }) },
+      { permission: 'students.manage', method: 'POST', path: '/api/students/00000000-0000-4000-8000-000000000000/dokumen', body: () => ({ kind: 'paspor' }) },
+      { permission: 'students.manage', method: 'DELETE', path: '/api/students/00000000-0000-4000-8000-000000000000/dokumen/00000000-0000-4000-8000-000000000001' },
       // Lokasi, program, dan batch (migrasi 060). Id yang tidak ada: tidak ada yang tersimpan.
       { permission: 'programs.manage', method: 'GET', path: '/api/pembinaan/lokasi' },
       { permission: 'programs.manage', method: 'GET', path: '/api/pembinaan/lokasi/00000000-0000-4000-8000-000000000000' },

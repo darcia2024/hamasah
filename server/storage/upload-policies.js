@@ -148,6 +148,22 @@ const POLICIES = Object.freeze({
     }
   }),
 
+  // Dokumen pribadi santri (paspor, iqamah, identitas, ijazah, surat, kesehatan). Privat. Yang
+  // mengunggah: admin dan musyrif yang berhak menulis data santri itu. Yang membuka mengikuti
+  // visibilitas tiap dokumen (admin, staf, keluarga) lewat studentProfileService.bolehUnduh.
+  'student-document': Object.freeze({
+    entityType: 'student',
+    visibility: 'private',
+    contentTypes: DOKUMEN,
+    maxBytes: 5 * MB,
+    async canUpload({ actor, entityId, services }) {
+      if (!actor || !['admin', 'supervisor'].includes(actor.role)) return false;
+      return (await services.studentPortalService.accessFor(entityId, actor)).write;
+    },
+    async canDownload({ actor, record, services }) {
+      return Boolean(actor && record) && services.studentProfileService.bolehUnduh(record.id, actor);
+    }
+  }),
   // Foto kegiatan santri. Pembatasan asrama untuk musyrif ikut berlaku, karena
   // pemeriksaannya memakai dashboard santri yang sudah dibatasi.
   'student-media': Object.freeze({

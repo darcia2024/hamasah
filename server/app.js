@@ -54,6 +54,7 @@ const { createAdminOverviewService } = require('./admin-overview-service.js');
 const { createCentralMonitoringService } = require('./central-monitoring-service.js');
 const { createDormitoryRoomService } = require('./dormitory-room-service.js');
 const { createProgramService } = require('./program-service.js');
+const { createStudentProfileService } = require('./student-profile-service.js');
 const { createStudentJourneyService } = require('./student-journey-service.js');
 const { createStudentLifeService } = require('./student-life-service.js');
 const { createDormitoryRollService } = require('./dormitory-roll-service.js');
@@ -87,6 +88,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/central-monitoring.js'),
   ...require('./routes/dormitory-rooms.js'),
   ...require('./routes/programs.js'),
+  ...require('./routes/student-profile.js'),
   ...require('./routes/admin-demo.js'),
   ...require('./routes/settings.js'),
   ...require('./routes/site-content.js'),
@@ -232,6 +234,7 @@ function createHamasahApp(options) {
     healthEnabled: kesehatanAktif
   });
   const adminOverviewService = config.adminOverviewService || createAdminOverviewService({ database, healthEnabled: kesehatanAktif });
+  const studentProfileService = config.studentProfileService || createStudentProfileService({ database, accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor) });
   const programService = config.programService || createProgramService({ database, accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor) });
   const dormitoryRoomService = config.dormitoryRoomService || createDormitoryRoomService({ database, staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId) });
   const centralMonitoringService = config.centralMonitoringService || createCentralMonitoringService({ database, healthEnabled: kesehatanAktif, staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId) });
@@ -385,7 +388,8 @@ function createHamasahApp(options) {
       get studentPortalService() { return studentPortalService; },
       get lmsService() { return lmsService; },
       get operationsStore() { return operationsStore; },
-      get dormitoryManagementService() { return dormitoryManagementService; }
+      get dormitoryManagementService() { return dormitoryManagementService; },
+      get studentProfileService() { return studentProfileService; }
     }
   });
 
@@ -459,6 +463,7 @@ function createHamasahApp(options) {
     centralMonitoringService,
     dormitoryRoomService,
     programService,
+    studentProfileService,
     demoDataService,
     settingsService,
     siteContentService,
