@@ -53,6 +53,12 @@
     return kartu;
   }
 
+  // Santri yang tidak aktif tapi tetap tercatat: cuti, mengundurkan diri, selesai, dan arsip.
+  function statusLain(s) {
+    const bagian = [['cuti panjang', s.onLeaveStudents], ['mengundurkan diri', s.withdrawnStudents], ['selesai', s.graduatedStudents], ['nonaktif', s.inactiveStudents], ['arsip', s.archivedStudents]]
+      .filter(([, jumlah]) => jumlah > 0).map(([label, jumlah]) => `${jumlah} ${label}`);
+    return bagian.length ? `Di luar santri aktif: ${bagian.join(', ')}. ` : '';
+  }
   // tanpaMonitoring: Monitoring pusat sudah menampilkan santri aktif, musyrif aktif, dan jumlah
   // yang perlu perhatian, jadi kartu itu tidak diulang di sini.
   function kpi(data, { tanpaMonitoring = false } = {}) {
@@ -79,7 +85,7 @@
     grid.append(...(tanpaMonitoring ? kartu.filter((node) => !diulang.includes(node.querySelector('.admin-kpi__label').textContent)) : kartu));
     const program = s.programs.map((p) => `${p.label} ${p.count}`).join(', ');
     const rincian = el('p', 'admin-kpi-detail',
-      `${tanpaMonitoring ? `Santri aktif: ${s.activeStudents} (${s.putra} putra, ${s.putri} putri${s.unplaced ? `, ${s.unplaced} belum berasrama` : ''}). ` : ''}${program ? `Program: ${program}. ` : ''}${s.withoutParentAccount} santri belum terhubung ke akun wali.${s.truncated ? ' Daftar dipotong pada 1000 santri pertama.' : ''}`);
+      `${tanpaMonitoring ? `Santri aktif: ${s.activeStudents} (${s.putra} putra, ${s.putri} putri${s.unplaced ? `, ${s.unplaced} belum berasrama` : ''}). ` : ''}${program ? `Program: ${program}. ` : ''}${statusLain(s)}${s.withoutParentAccount} santri belum terhubung ke akun wali.${s.truncated ? ' Daftar dipotong pada 1000 santri pertama.' : ''}`);
     wadah.append(grid, rincian);
     return wadah;
   }

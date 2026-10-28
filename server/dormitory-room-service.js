@@ -96,7 +96,7 @@ function createDormitoryRoomService({ database, staffDormitories, now = () => ne
       note: row.note || '',
       supervisorId: row.supervisor_account_id || null,
       supervisorName: row.supervisor_name || null,
-      occupants: daftar.map((s) => ({ id: s.id, name: s.name })),
+      occupants: daftar.map((s) => ({ id: s.id, name: s.name, onLeave: s.status === 'leave' })),
       occupied: daftar.length,
       free: Math.max(0, kapasitas - daftar.length),
       state: keadaanKamar(daftar.length, kapasitas)
@@ -114,10 +114,10 @@ function createDormitoryRoomService({ database, staffDormitories, now = () => ne
     );
     let santri;
     try {
-      santri = await ambil(`SELECT id, name, room_id FROM students WHERE dormitory_id = $1 AND status = 'active' ORDER BY name`, [dormitoryId]);
+      santri = await ambil(`SELECT id, name, room_id, status FROM students WHERE dormitory_id = $1 AND status IN ('active', 'leave') ORDER BY name`, [dormitoryId]);
     } catch (error) {
       if (!tabelBelumAda(error)) throw error;
-      santri = (await ambil(`SELECT id, name FROM students WHERE dormitory_id = $1 AND status = 'active' ORDER BY name`, [dormitoryId])).map((s) => ({ ...s, room_id: null }));
+      santri = (await ambil(`SELECT id, name, status FROM students WHERE dormitory_id = $1 AND status IN ('active', 'leave') ORDER BY name`, [dormitoryId])).map((s) => ({ ...s, room_id: null }));
     }
     let kamar;
     let riwayat;
@@ -166,7 +166,7 @@ function createDormitoryRoomService({ database, staffDormitories, now = () => ne
         location: lokasi,
         supervisors: musyrif,
         rooms,
-        unplaced: santri.filter((s) => !s.room_id || !idKamar.has(s.room_id)).map((s) => ({ id: s.id, name: s.name })),
+        unplaced: santri.filter((s) => s.status !== 'leave' && (!s.room_id || !idKamar.has(s.room_id))).map((s) => ({ id: s.id, name: s.name })),
         history: riwayat.map((h) => ({ id: h.id, studentId: h.student_id, studentName: h.student_name, from: h.from_label, to: h.to_label, reason: h.reason, movedBy: h.moved_by || null, movedAt: iso(h.moved_at) })),
         summary: {
           rooms: rooms.length,
@@ -177,7 +177,8 @@ function createDormitoryRoomService({ database, staffDormitories, now = () => ne
           full: rooms.filter((k) => ['penuh', 'melebihi'].includes(k.state)).length,
           withAc: rooms.filter((k) => k.hasAc).length,
           withoutAc: rooms.filter((k) => !k.hasAc).length,
-          unplaced: santri.length - berkamar.length
+          held: berkamar.filter((s) => s.status === 'leave').length,
+          unplaced: santri.filter((s) => s.status !== 'leave').length - berkamar.filter((s) => s.status !== 'leave').length
         }
       }
     };
@@ -232,7 +233,7 @@ function createDormitoryRoomService({ database, staffDormitories, now = () => ne
       const baca = await bacaKamarInput({ ...{ name: kamar.name, capacity: kamar.capacity, hasAc: kamar.has_ac, note: kamar.note, supervisorId: kamar.supervisor_account_id }, ...input }, dormitoryId, roomId);
       if (!baca.ok) return baca;
       const k = baca.value;
-      const [{ jumlah }] = await ambil(`SELECT count(*)::int AS jumlah FROM students WHERE room_id = $1 AND dormitory_id = $2 AND status = 'active'`, [roomId, dormitoryId]);
+      const [{ jumlah }] = await ambil(`SELECT count(*)::int AS jumlah FROM students WHERE room_id = $1 AND dormitory_id = $2 AND status IN ('active', 'leave')`, [roomId, dormitoryId]);
       if (k.kapasitas < jumlah) return { ok: false, status: 409, error: `Kamar ini dihuni ${jumlah} santri, kapasitasnya tidak bisa di bawah itu. Pindahkan dulu sebagian penghuninya.` };
       await ambil(
         `UPDATE dormitory_rooms SET name = $3, capacity = $4, has_ac = $5, note = $6, supervisor_account_id = $7, updated_at = now()
@@ -249,7 +250,7 @@ function createDormitoryRoomService({ database, staffDormitories, now = () => ne
     return tulis(async () => {
       const kamar = await ambilKamar(dormitoryId, roomId);
       if (!kamar) return { ok: false, status: 404, error: 'Kamar tidak ditemukan.' };
-      const [{ jumlah }] = await ambil(`SELECT count(*)::int AS jumlah FROM students WHERE room_id = $1 AND dormitory_id = $2 AND status = 'active'`, [roomId, dormitoryId]);
+      const [{ jumlah }] = await ambil(`SELECT count(*)::int AS jumlah FROM students WHERE room_id = $1 AND dormitory_id = $2 AND status IN ('active', 'leave')`, [roomId, dormitoryId]);
       if (jumlah > 0) return { ok: false, status: 409, error: `Kamar ini masih dihuni ${jumlah} santri. Pindahkan penghuninya dulu.` };
       await ambil('DELETE FROM dormitory_rooms WHERE id = $1 AND dormitory_id = $2', [roomId, dormitoryId]);
       return { ok: true, value: { id: roomId } };
@@ -272,7 +273,7 @@ function createDormitoryRoomService({ database, staffDormitories, now = () => ne
     const alasan = bersih(sumber.reason, 300);
     if (!adaId(tujuanId)) return { ok: false, status: 422, error: 'Pilih asrama tujuan.' };
     return tulis(async () => {
-      const santri = (await ambil(`SELECT id, name, gender, dormitory_id, room_id FROM students WHERE id = $1 AND status = 'active'`, [studentId]))[0];
+      const santri = (await ambil(`SELECT id, name, gender, dormitory_id, room_id FROM students WHERE id = $1 AND status IN ('active', 'leave')`, [studentId]))[0];
       if (!santri) return { ok: false, status: 404, error: 'Santri aktif tidak ditemukan.' };
       const milik = await asramaBoleh(actor);
       if (milik !== null) {
@@ -293,7 +294,7 @@ function createDormitoryRoomService({ database, staffDormitories, now = () => ne
         if (kamarTujuan) {
           // Kunci baris kamar supaya dua pemindahan bersamaan tidak sama-sama mengambil kursi terakhir.
           await ambil('SELECT id FROM dormitory_rooms WHERE id = $1 FOR UPDATE', [kamarTujuan.id], tx);
-          const [{ jumlah }] = await ambil(`SELECT count(*)::int AS jumlah FROM students WHERE room_id = $1 AND dormitory_id = $2 AND status = 'active' AND id <> $3`, [kamarTujuan.id, tujuan.id, santri.id], tx);
+          const [{ jumlah }] = await ambil(`SELECT count(*)::int AS jumlah FROM students WHERE room_id = $1 AND dormitory_id = $2 AND status IN ('active', 'leave') AND id <> $3`, [kamarTujuan.id, tujuan.id, santri.id], tx);
           if (jumlah >= Number(kamarTujuan.capacity)) return { ok: false, status: 409, error: `Kamar ${kamarTujuan.name} sudah penuh (${jumlah} dari ${kamarTujuan.capacity}).` };
         }
         await ambil('UPDATE students SET dormitory_id = $2, room_id = $3, updated_at = now() WHERE id = $1', [santri.id, tujuan.id, kamarTujuan ? kamarTujuan.id : null], tx);

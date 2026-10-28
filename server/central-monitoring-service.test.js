@@ -114,6 +114,13 @@ async function run() {
     assert.equal(negaraDariWilayah('Bogor, Jawa Barat'), 'Mesir', 'Hanya yang jelas menyebut Indonesia.');
     assert.equal(negaraDariWilayah('Hayy Sabi, Kairo'), 'Mesir');
 
+    // Santri cuti panjang tidak dihitung aktif, tapi angkanya dipisah.
+    const sebelumCuti = (await layanan.overview(ADMIN)).value.totals;
+    await database.query(`UPDATE students SET status = 'leave' WHERE id = (SELECT id FROM students WHERE status = 'active' LIMIT 1)`);
+    const sesudahCuti = (await layanan.overview(ADMIN)).value.totals;
+    assert.equal(sesudahCuti.activeStudents, sebelumCuti.activeStudents - 1);
+    assert.equal(sesudahCuti.onLongLeave, (sebelumCuti.onLongLeave || 0) + 1);
+    await database.query(`UPDATE students SET status = 'active' WHERE status = 'leave'`);
     // Absensi hari ini dirinci per kegiatan, per waktu sholat, dan per asrama.
     const absen = v.attendanceToday;
     assert.deepEqual(absen.prayers.map((p) => p.prayer), ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya']);

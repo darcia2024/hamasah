@@ -92,7 +92,7 @@ async function run() {
     assert.deepEqual([k1.occupied, k1.free, k1.state, k1.hasAc, k1.supervisorName], [2, 0, 'penuh', true, 'Musyrif A']);
     const k2 = gambaran.rooms.find((k) => k.name === '102');
     assert.deepEqual([k2.occupied, k2.free, k2.state, k2.hasAc], [0, 3, 'kosong', false]);
-    assert.deepEqual(gambaran.summary, { rooms: 2, capacity: 5, occupied: 2, free: 3, empty: 1, full: 1, withAc: 1, withoutAc: 1, unplaced: 1 });
+    assert.deepEqual(gambaran.summary, { rooms: 2, capacity: 5, occupied: 2, free: 3, empty: 1, full: 1, withAc: 1, withoutAc: 1, held: 0, unplaced: 1 });
     assert.deepEqual(gambaran.unplaced.map((s) => s.name), ['Eko']);
     assert.deepEqual(gambaran.supervisors.map((s) => s.name), ['Musyrif A']);
     assert.equal(gambaran.location, null, 'Asrama baru belum menempel ke lokasi sampai admin mengaturnya.');
@@ -131,6 +131,20 @@ async function run() {
     assert.equal((await api('DELETE', `/api/asrama/${A.id}/kamar/${kamar2.body.id}`, tMusyrif)).status, 409);
     assert.equal((await api('DELETE', `/api/asrama/${A.id}/kamar/${kamar1.body.id}`, tMusyrif)).status, 200);
 
+    // Cuti menahan kamar: tetap terhitung dalam kapasitas dan tampil sebagai penghuni yang cuti.
+    assert.equal((await api('PATCH', `/api/students/${bilal.id}`, admin, { status: 'leave' })).status, 200);
+    const saatCuti = (await api('GET', `/api/asrama/${A.id}/kamar`, tMusyrif)).body;
+    const kamarCuti = saatCuti.rooms.find((k) => k.id === kamar2.body.id);
+    assert.ok(kamarCuti.occupants.some((s) => s.name === 'Bilal' && s.onLeave === true));
+    assert.equal(saatCuti.summary.held, 1);
+    assert.equal((await api('PATCH', `/api/students/${bilal.id}`, admin, { status: 'active' })).status, 200);
+    assert.ok((await api('GET', `/api/asrama/${A.id}/kamar`, tMusyrif)).body.rooms.find((k) => k.id === kamar2.body.id).occupants.some((s) => s.name === 'Bilal' && !s.onLeave), 'Setelah aktif kembali, kamar yang sama tetap miliknya.');
+    // Mengundurkan diri melepas kamarnya, dan kamar lama tidak hidup lagi bila ditempatkan kembali di asrama yang sama.
+    assert.equal((await api('PATCH', `/api/students/${bilal.id}`, admin, { status: 'withdrawn' })).status, 200);
+    assert.equal((await api('PATCH', `/api/students/${bilal.id}`, admin, { status: 'active' })).status, 200);
+    assert.equal((await api('PATCH', `/api/students/${bilal.id}/placement`, admin, { dormitoryId: A.id, gender: 'putra' })).status, 200);
+    assert.ok(!(await api('GET', `/api/asrama/${A.id}/kamar`, tMusyrif)).body.rooms.some((k) => k.occupants.some((s) => s.name === 'Bilal')), 'Kamar lama tidak kembali sendiri.');
+    assert.equal((await tempatkan(tMusyrif, bilal.id, A.id, kamar2.body.id)).status, 200);
     // Pemindahan lewat jalur lama (ganti asrama) tidak meninggalkan kamar yang salah.
     assert.equal((await api('PATCH', `/api/students/${bilal.id}/placement`, admin, { dormitoryId: B.id, gender: 'putra' })).status, 200);
     const setelahJalurLama = (await api('GET', `/api/asrama/${A.id}/kamar`, tMusyrif)).body;

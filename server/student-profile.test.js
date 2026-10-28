@@ -112,6 +112,16 @@ async function run() {
       assert.deepEqual(lihat.status.history, [], 'Riwayat status hanya untuk staf.');
     }
 
+    // Nomor identitas tersimpan terenkripsi di database, bukan teks biasa.
+    const mentah = (await database.query('SELECT passport_number, iqamah_number FROM student_profiles WHERE student_id = $1', [ahmad.id])).rows[0];
+    assert.match(mentah.passport_number, /^enc1\./);
+    assert.match(mentah.iqamah_number, /^enc1\./);
+    assert.ok(!mentah.passport_number.includes('A1234567') && !mentah.iqamah_number.includes('IQ9988776'));
+
+    // Wali terhubung tampil; email wali hanya untuk staf.
+    assert.deepEqual((await api('GET', `/api/students/${ahmad.id}/profil`, admin)).body.guardians.map((w) => [w.name, w.email]), [['Wali Ahmad', 'wali@uji.test']]);
+    assert.deepEqual((await api('GET', `/api/students/${ahmad.id}/profil`, tWali)).body.guardians.map((w) => [w.name, w.email]), [['Wali Ahmad', null]]);
+
     // Tanggal paspor dari data visa dihitung otomatis; status manual menang.
     await database.query(`INSERT INTO visa_tracking (student_id, status, passport_expires_at, visa_expires_at) VALUES ($1, 'collecting-documents', '2026-12-01', '2026-10-01')`, [ahmad.id]);
     profil = (await api('GET', `/api/students/${ahmad.id}/profil`, admin)).body;
@@ -126,13 +136,18 @@ async function run() {
     assert.equal((await api('PATCH', `/api/students/${ahmad.id}`, admin, { status: 'ngawur' })).status, 422);
     const cuti = await api('PATCH', `/api/students/${ahmad.id}`, admin, { status: 'leave', statusReason: 'Cuti satu semester karena sakit.' });
     assert.equal(cuti.status, 200, JSON.stringify(cuti.body));
-    assert.equal(cuti.body.releasedFromDormitory, true);
+    assert.equal(cuti.body.releasedFromDormitory, false, 'Cuti menahan tempat di asrama.');
     profil = (await api('GET', `/api/students/${ahmad.id}/profil`, admin)).body;
     assert.deepEqual([profil.status.value, profil.status.label], ['leave', 'Cuti atau izin panjang']);
+    assert.equal(profil.placement.dormitory.name, 'Asrama A', 'Tempat tetap ditahan selama cuti.');
     assert.deepEqual([profil.status.history[0].from, profil.status.history[0].to, profil.status.history[0].reason, profil.status.history[0].changedBy], ['Aktif', 'Cuti atau izin panjang', 'Cuti satu semester karena sakit.', 'Admin Uji']);
+    // Mengundurkan diri melepas dari asrama; kembali aktif perlu ditempatkan ulang.
+    const mundur = await api('PATCH', `/api/students/${ahmad.id}`, admin, { status: 'withdrawn', statusReason: 'Pindah ke Indonesia.' });
+    assert.equal(mundur.body.releasedFromDormitory, true);
+    assert.equal((await api('GET', `/api/students/${ahmad.id}/profil`, admin)).body.placement.dormitory, null);
     assert.equal((await api('PATCH', `/api/students/${ahmad.id}`, admin, { status: 'active' })).status, 200);
     assert.equal((await api('PATCH', `/api/students/${ahmad.id}/placement`, admin, { dormitoryId: A.id, gender: 'putra' })).status, 200);
-    assert.equal((await database.query(`SELECT count(*)::int AS n FROM audit_events WHERE action = 'student.status-changed'`)).rows[0].n, 2);
+    assert.equal((await database.query(`SELECT count(*)::int AS n FROM audit_events WHERE action = 'student.status-changed'`)).rows[0].n, 3);
 
     // Dokumen pribadi: unggah lewat jalur berkas privat, daftarkan dengan visibilitas.
     async function unggah(token, entityId) {

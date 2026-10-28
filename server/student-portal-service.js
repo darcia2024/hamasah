@@ -371,7 +371,8 @@ function createStudentPortalService(options) {
       return { ok: false, error: 'Status santri tidak dikenal.' };
     }
 
-    const dormitoryId = status === 'active' ? student.dormitoryId : null;
+    // Cuti (leave) menahan tempat di asrama dan kamarnya; status lain melepasnya.
+    const dormitoryId = ['active', 'leave'].includes(status) ? student.dormitoryId : null;
     if (dormitoryId && gender && gender !== student.gender) {
       const asrama = await getDormitory(dormitoryId);
       if (asrama && asrama.gender !== gender) {

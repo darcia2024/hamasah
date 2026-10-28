@@ -18,6 +18,7 @@
 // menampilkan data dasar (available: false) dan penyimpanan dibalas 409 dengan arahan ke Pengaturan.
 
 const crypto = require('node:crypto');
+const { enkripsi, dekripsi } = require('./field-encryption.js');
 
 const HARI_MS = 24 * 60 * 60 * 1000;
 const PASPOR_HAMPIR_HARI = 180;
@@ -33,6 +34,8 @@ const DATABASE_BELUM_SIAP = 'Database belum diperbarui untuk profil santri. Tera
 const KOLOM_KONTAK = Object.freeze({ phone: 30, email: 120, homeAddress: 300, emergencyName: 80, emergencyPhone: 30 });
 const KOLOM_PENDIDIKAN = Object.freeze({ educationLevel: 60, institution: 120, major: 120, educationNote: 300 });
 const KOLOM_ADMIN = Object.freeze({ birthPlace: 80, nationality: 60, passportNumber: 40, iqamahNumber: 40 });
+// Nomor identitas disimpan terenkripsi (field-encryption.js).
+const KOLOM_TERENKRIPSI = Object.freeze(['passportNumber', 'iqamahNumber']);
 const SNAKE = Object.freeze({
   phone: 'phone', email: 'email', homeAddress: 'home_address', emergencyName: 'emergency_name', emergencyPhone: 'emergency_phone',
   educationLevel: 'education_level', institution: 'institution', major: 'major', educationNote: 'education_note',
@@ -85,7 +88,7 @@ function keadaanDokumen(tanggal, hariIni, hampirHari, manual) {
   return { state, label: { kedaluwarsa: 'Kedaluwarsa', 'hampir-kedaluwarsa': 'Hampir kedaluwarsa', aktif: 'Aktif' }[state], expiresOn: teksTanggal(tanggal), daysLeft: sisa };
 }
 
-function createStudentProfileService({ database, accessFor, now = () => new Date() } = {}) {
+function createStudentProfileService({ database, accessFor, identityKey = 'development-only-key', now = () => new Date() } = {}) {
   if (!database || typeof accessFor !== 'function') throw new Error('createStudentProfileService membutuhkan database dan accessFor.');
 
   async function ambil(sql, params = []) {
@@ -167,7 +170,7 @@ function createStudentProfileService({ database, accessFor, now = () => new Date
            LEFT JOIN accounts acc ON acc.id = h.changed_by_account_id WHERE h.student_id = $1 ORDER BY h.changed_at DESC LIMIT 30`, [studentId]
         );
         kasus = await bacaBoleh(() => ambil(
-          `SELECT c.kind, c.status, c.note, to_char(c.due_on, 'YYYY-MM-DD') AS due_on FROM student_cases c
+          `SELECT c.kind, c.ref, c.status, c.note, to_char(c.due_on, 'YYYY-MM-DD') AS due_on FROM student_cases c
            WHERE c.student_id = $1 AND c.status <> 'selesai' AND c.kind IN ('lapor-diri', 'lapor-pendidikan', 'status-pendidikan') ORDER BY c.due_on NULLS LAST`, [studentId]
         ), []);
       }
@@ -203,7 +206,10 @@ function createStudentProfileService({ database, accessFor, now = () => new Date
       `SELECT h.from_label, h.to_label, h.reason, h.moved_at FROM placement_history h WHERE h.student_id = $1 ORDER BY h.moved_at DESC LIMIT 20`, [studentId]
     )).map((row) => ({ from: row.from_label, to: row.to_label, reason: row.reason || '', movedAt: iso(row.moved_at) })), []);
 
+    const wali = await ambil(`SELECT acc.id, acc.name, acc.email FROM student_parent_accounts sp JOIN accounts acc ON acc.id = sp.parent_account_id WHERE sp.student_id = $1 ORDER BY acc.name`, [studentId]);
     const p = profil || {};
+    const nomorPaspor = dekripsi(p.passport_number, identityKey);
+    const nomorIqamah = dekripsi(p.iqamah_number, identityKey);
     const kontak = staf || actor.role === 'student' || actor.role === 'parent';
     return {
       ok: true,
@@ -219,8 +225,8 @@ function createStudentProfileService({ database, accessFor, now = () => new Date
           emergencyName: kontak ? (p.emergency_name || '') : '', emergencyPhone: kontak ? (p.emergency_phone || '') : ''
         },
         identifiers: {
-          passportNumber: admin ? (p.passport_number || '') : samarkan(p.passport_number),
-          iqamahNumber: admin ? (p.iqamah_number || '') : samarkan(p.iqamah_number),
+          passportNumber: admin ? nomorPaspor : samarkan(nomorPaspor),
+          iqamahNumber: admin ? nomorIqamah : samarkan(nomorIqamah),
           masked: !admin
         },
         education: {
@@ -234,7 +240,8 @@ function createStudentProfileService({ database, accessFor, now = () => new Date
           dormitory: siswa.dormitory_id ? { id: siswa.dormitory_id, name: siswa.dormitory_name } : null,
           room: kamar, supervisors: pembina, history: penempatan
         },
-        administrativeCases: kasus.map((k) => ({ kind: k.kind, status: k.status, note: k.note || '', dueOn: k.due_on || null })),
+        administrativeCases: kasus.map((k) => ({ kind: k.kind, ref: k.ref, status: k.status, note: k.note || '', dueOn: k.due_on || null })),
+        guardians: wali.map((w) => ({ id: w.id, name: w.name, email: staf ? w.email : null })),
         documents: dokumen,
         options: { documentKinds: Object.entries(JENIS_DOKUMEN).map(([id, label]) => ({ id, label })), visibilities: Object.entries(VISIBILITAS).filter(([id]) => id !== 'admin' || admin).map(([id, label]) => ({ id, label })), statuses: Object.entries(STATUS_SANTRI).map(([id, label]) => ({ id, label })), educationStatuses: Object.entries(STATUS_PENDIDIKAN).map(([id, label]) => ({ id, label })), passportStates: Object.entries(STATE_PASPOR).map(([id, label]) => ({ id, label })) },
         can: {
@@ -257,7 +264,11 @@ function createStudentProfileService({ database, accessFor, now = () => new Date
     const ditolak = Object.keys(sumber).filter((k) => (KOLOM_ADMIN[k] && !admin));
     if (ditolak.length) return { ok: false, status: 403, error: 'Tempat lahir, kewarganegaraan, dan nomor paspor atau iqamah hanya diubah admin.' };
     const nilai = {};
-    Object.entries(boleh).forEach(([kunci, maks]) => { if (sumber[kunci] !== undefined) nilai[SNAKE[kunci]] = bersih(sumber[kunci], maks); });
+    Object.entries(boleh).forEach(([kunci, maks]) => {
+      if (sumber[kunci] === undefined) return;
+      const teks = bersih(sumber[kunci], maks);
+      nilai[SNAKE[kunci]] = KOLOM_TERENKRIPSI.includes(kunci) ? enkripsi(teks, identityKey) : teks;
+    });
     if (nilai.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nilai.email)) return { ok: false, status: 422, error: 'Alamat email belum valid.' };
     if (sumber.studyYear !== undefined) {
       const tahun = sumber.studyYear === null || sumber.studyYear === '' ? null : Number(sumber.studyYear);
@@ -364,7 +375,18 @@ function createStudentProfileService({ database, accessFor, now = () => new Date
     }
   }
 
-  return Object.freeze({ profile, updateProfile, recordStatusChange, addDocument, archiveDocument, bolehUnduh });
+  // Santri yang dilepas dari asrama tidak membawa kamarnya; tanpa ini kamar lama hidup lagi bila ia ditempatkan kembali di asrama yang sama.
+  async function releaseRoom(studentId) {
+    if (!adaId(studentId)) return { ok: false, status: 404, error: 'Santri tidak ditemukan.' };
+    try {
+      await ambil('UPDATE students SET room_id = NULL WHERE id = $1 AND room_id IS NOT NULL', [studentId]);
+    } catch (error) {
+      if (!tabelBelumAda(error)) throw error;
+    }
+    return { ok: true, value: { studentId } };
+  }
+
+  return Object.freeze({ profile, updateProfile, recordStatusChange, addDocument, archiveDocument, bolehUnduh, releaseRoom });
 }
 
 module.exports = { createStudentProfileService, samarkan, keadaanDokumen, STATUS_SANTRI };

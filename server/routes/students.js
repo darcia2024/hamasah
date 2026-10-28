@@ -145,6 +145,7 @@ module.exports = [
     async handler({ response, services, auth, params, readBody, ip }) {
       const isi = await readBody();
       const hasil = await services.studentPortalService.updateStudent(params[0], isi, await auth.actor());
+      if (hasil.ok && hasil.releasedFromDormitory) await services.studentProfileService.releaseRoom(params[0]);
       if (hasil.ok && hasil.changed.includes('status')) {
         // Riwayat status melekat pada santri, lengkap dengan alasannya (statusReason, opsional).
         await services.studentProfileService.recordStatusChange(params[0], hasil.previousStatus, hasil.value.status, isi && isi.statusReason, await auth.actor());

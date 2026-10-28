@@ -199,7 +199,7 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
     const kesehatan = Boolean(typeof kesehatanAktif === 'function' ? await kesehatanAktif() : kesehatanAktif);
     const sejakSakit = new Date(saatIni.getTime() - SAKIT_MAKS_HARI * HARI_MS).toISOString().slice(0, 10);
 
-    const [santri, asramaBaca, musyrif, pembina, izin, sakit, kegiatan, sholat, visa, masalah] = await Promise.all([
+    const [santri, asramaBaca, musyrif, pembina, izin, sakit, kegiatan, sholat, visa, masalah, cuti] = await Promise.all([
       ambil(
         `SELECT id, name, program, gender, dormitory_id FROM students
          WHERE status = 'active' ORDER BY name LIMIT $1`,
@@ -231,7 +231,9 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
                 to_char(visa_expires_at, 'YYYY-MM-DD') AS iqamah
          FROM visa_tracking`
       ),
-      ambilBoleh(SELECT_MASALAH)
+      ambilBoleh(SELECT_MASALAH),
+      // Santri cuti atau izin panjang tidak dihitung aktif, tapi tempatnya ditahan; angkanya dipisah.
+      ambil(`SELECT id, program, dormitory_id FROM students WHERE status = 'leave'`)
     ]);
 
     const terpotong = santri.length > BATAS_SANTRI;
@@ -423,6 +425,11 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
         totals: {
           activeStudents: lingkup.length,
           onLeave: sedangIzin.length,
+          onLongLeave: cuti.filter((row) => {
+            const tempat = row.dormitory_id ? asramaPer.get(row.dormitory_id) : null;
+            const negara = tempat ? tempat.country : 'Belum berasrama';
+            return (!filter.negara || negara === filter.negara) && (!filter.asrama || row.dormitory_id === filter.asrama) && (!filter.jenjang || kelompokProgram(row.program) === filter.jenjang);
+          }).length,
           homeLeave: sedangIzin.filter((s) => izinPer.get(s.id) === 'pulang-indonesia').length,
           sick: sedangSakit.length,
           dormitories: totalAsrama,

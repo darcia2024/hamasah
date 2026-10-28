@@ -434,8 +434,6 @@ function petunjukBayar(invoice, student, payment, rupiah) {
 
 // Tab yang terakhir dibuka per santri, supaya mengganti periode tidak melempar kembali ke
 // tab pertama. Hanya tab yang memakai periode yang menampilkan pilihan periode.
-const tabTerakhir = new Map();
-const TAB_BERPERIODE = new Set(['mutabaah', 'sholat', 'talaqqi', 'kesehatan']);
 
 function inisialNama(nama) {
   const kata = String(nama || '').trim().split(/\s+/).filter(Boolean);
@@ -708,19 +706,6 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
   const attendanceEntries = dashboard.attendance.entries || [];
   const prayerEntries = attendanceEntries.filter((entry) => PRAYER_PATTERN.test(entry.category || ''));
 
-  const tabDefs = [
-    ...(keluarga ? [{ id: 'ringkasan', label: 'Ringkasan', icon: TAB_ICONS.home }] : []),
-    { id: 'mutabaah', label: "Mutaba'ah & ibadah", icon: TAB_ICONS.clock, count: attendanceEntries.length },
-    { id: 'sholat', label: 'Sholat berjamaah', icon: TAB_ICONS.mosque, count: care ? care.prayers.recorded : prayerEntries.length },
-    { id: 'talaqqi', label: 'Talaqqi & tahfidz', icon: TAB_ICONS.award, count: dashboard.achievements.length + (care ? care.memorization.length : 0) },
-    { id: 'dorm', label: 'Asrama', icon: TAB_ICONS.home },
-    { id: 'lms', label: 'Maddah (LMS)', icon: TAB_ICONS.book },
-    { id: 'admin', label: 'Rapor & ringkasan', icon: TAB_ICONS.file }
-  ];
-
-  const subtabsRow = document.createElement('div');
-  subtabsRow.className = 'crm-subtabs-row';
-
   // Toolbar: hanya kontrol periode yang benar-benar menyaring data. Penanda tanggal
   // "Pekan Ini: 15 Sep - 21 Sep 2026" dan dropdown "Semua Aktivitas" dulu hanya
   // menampilkan teks tanpa menyaring apa pun, dan tombol "Input Mutaba'ah" tidak
@@ -769,9 +754,6 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
     actions.innerHTML = '<a class="crm-btn-primary-yellow" href="monitoring"><span>Catat di Monitoring</span></a>';
     toolbar.append(actions);
   }
-
-  const panelsContainer = document.createElement('div');
-  panelsContainer.className = 'crm-panels';
 
   // Panel 1: Mutaba'ah & Ibadah
   const panelMutabaah = document.createElement('div');
@@ -824,25 +806,6 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
     });
   } else if (!(care && care.memorization.length)) {
     panelTalaqqi.append(createEmptyState('Belum ada capaian talaqqi atau setoran hafalan yang tercatat.'));
-  }
-
-  // Panel 4: Asrama. Dulu berisi nama gedung, katering, AC, dan Wi-Fi yang ditulis keras
-  // untuk setiap santri. Kini hanya asrama tempat santri ini ditempatkan.
-  const panelDorm = document.createElement('div');
-  panelDorm.className = 'crm-card-stack';
-  panelDorm.hidden = true;
-  if (student.dormitory) {
-    panelDorm.append(createRecordCard({
-      badgeIcon: 'building',
-      title: student.dormitory.name,
-      subtitle: student.dormitory.area || '',
-      statusText: 'Ditempatkan',
-      statusType: 'complete'
-    }));
-  } else {
-    panelDorm.append(createEmptyState(student.dormitoryId
-      ? 'Santri ini sudah ditempatkan, tetapi rincian asramanya belum dapat dimuat.'
-      : 'Santri ini belum ditempatkan di asrama.'));
   }
 
   // Panel 5: Maddah (LMS)
@@ -960,8 +923,6 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
     downloadWithSession(`/api/students/${encodeURIComponent(student.id)}/report${reportSuffix}`, `ringkasan-${student.id}.csv`, reportButton.querySelector('span'));
   });
 
-  const panels = [panelMutabaah, panelSholat, panelTalaqqi, panelDorm, panelLms, panelAdmin];
-
   // Tab Ringkasan (wali dan santri): catatan pembina terbaru, lalu kartu dari
   // perjalanan-santri.js (pengumuman, hari ini, izin, doa, roadmap, peta juz, teladan).
   let panelRingkasan = null;
@@ -984,11 +945,12 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
       catatan.append(kepala, isiCatatan);
       panelRingkasan.append(catatan);
     }
-    panels.unshift(panelRingkasan);
   }
 
   // Panel Kesehatan: hanya bila fitur kesehatan aktif (care.health bukan null). Wali dan santri
   // menerima kondisi dan catatan untuk wali; keluhan dan tindakan hanya ada pada data staf.
+  let panelKesehatan = null;
+  let panelTagihan = null;
   if (care && care.health !== null) {
     const panelHealth = document.createElement('div');
     panelHealth.className = 'crm-card-stack';
@@ -1006,8 +968,7 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
         }));
       });
     }
-    tabDefs.push({ id: 'kesehatan', label: 'Kesehatan', icon: TAB_ICONS.clock, count: care.health.length });
-    panels.push(panelHealth);
+    panelKesehatan = panelHealth;
   }
 
   // Panel 7: Tagihan & Kuitansi. Untuk wali (santri yang terhubung), santri itu sendiri, dan admin; peran
@@ -1075,23 +1036,14 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
       .catch((error) => {
         list.replaceChildren(createEmptyState(error.message));
       });
-    tabDefs.push({ id: 'billing', label: 'Tagihan & kuitansi', icon: TAB_ICONS.file });
-    panels.push(panelBilling);
+    panelTagihan = panelBilling;
   }
 
-  const idxTerakhir = tabDefs.findIndex((def) => def.id === tabTerakhir.get(student.id));
-  const awal = idxTerakhir >= 0 ? idxTerakhir : 0;
-  const aturToolbar = (def) => { toolbar.hidden = !TAB_BERPERIODE.has(def.id); };
-  subtabsRow.setAttribute('aria-label', 'Bagian rekam jejak');
-  buildTabs(tabDefs, panels, subtabsRow, {
-    awal,
-    onChange(def) {
-      tabTerakhir.set(student.id, def.id);
-      aturToolbar(def);
-    }
-  });
-  aturToolbar(tabDefs[awal]);
-  panelsContainer.append(...panels);
+  // Panel lama (mutaba'ah, sholat, talaqqi, kesehatan, rapor, maddah, tagihan, ringkasan) tidak lagi
+  // punya baris tab sendiri; semuanya dipasang di tab-tab profil-santri.js supaya hanya ada satu set tab.
+  panelMutabaah.hidden = false;
+  [panelSholat, panelTalaqqi, panelLms, panelAdmin, panelKesehatan, panelTagihan].forEach((panel) => { if (panel) panel.hidden = false; });
+  const legacy = { ringkasan: panelRingkasan, mutabaah: panelMutabaah, sholat: panelSholat, kesehatan: panelKesehatan, talaqqi: panelTalaqqi, rapor: panelAdmin, lms: panelLms, tagihan: panelTagihan, toolbar };
 
   // Hari ini, roadmap studi, dan santri teladan (perjalanan-santri.js). Diisi setelah
   // dashboard tampil; kartu yang datanya kosong tidak muncul. Untuk wali dan santri
@@ -1105,7 +1057,8 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
   profilLengkap.className = 'ps-wrap';
   profilLengkap.setAttribute('aria-label', 'Profil santri');
   if (window.HamasahProfilSantri) {
-    window.HamasahProfilSantri.render(profilLengkap, { student, dashboard, care, account, headers: requestHeaders(), unduh: downloadWithSession })
+    legacy.perjalanan = perjalanan;
+    window.HamasahProfilSantri.render(profilLengkap, { student, dashboard, care, account, headers: requestHeaders(), unduh: downloadWithSession, legacy })
       .catch(() => { profilLengkap.hidden = true; });
   } else {
     profilLengkap.hidden = true;
@@ -1114,9 +1067,9 @@ function renderCrmDashboard(dashboard, account, onBack, care = null) {
   const profil = keluarga ? kartuProfilKeluarga(dashboard, care, account) : summaryCard;
   if (keluarga) {
     panelRingkasan.append(perjalanan);
-    studentDashboard.append(profil, profilLengkap, subtabsRow, toolbar, panelsContainer);
+    studentDashboard.append(profil, profilLengkap);
   } else {
-    studentDashboard.append(summaryCard, profilLengkap, perjalanan, subtabsRow, toolbar, panelsContainer);
+    studentDashboard.append(summaryCard, profilLengkap);
   }
   studentDashboard.classList.add('crm-view-enter');
   studentDashboard.hidden = false;

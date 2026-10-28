@@ -17,6 +17,9 @@
   const LABEL_KASUS = { 'lapor-diri': 'Lapor diri', 'lapor-pendidikan': 'Lapor pendidikan', 'status-pendidikan': 'Status pendidikan' };
   const GENDER = { putra: 'Putra', putri: 'Putri' };
 
+  // Tab yang terakhir dibuka per santri, supaya memuat ulang profil tidak melempar kembali ke tab pertama.
+  const tabTerakhir = new Map();
+
   function el(tag, className, text) {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -118,22 +121,28 @@
     wadah.append(judul);
     if (!profil) {
       wadah.append(kosong(galatProfil || 'Profil belum dapat dimuat.'));
+      // Panel rekam jejak tetap tampil berurutan walau profil tidak termuat, supaya tidak ada data yang hilang dari layar.
+      const legacy = ctx.legacy || {};
+      ['ringkasan', 'toolbar', 'mutabaah', 'sholat', 'talaqqi', 'kesehatan', 'rapor', 'lms', 'tagihan'].forEach((kunci) => { if (legacy[kunci]) wadah.append(legacy[kunci]); });
+      if (legacy.perjalanan && !['parent', 'student'].includes(account.role)) wadah.append(legacy.perjalanan);
       return;
     }
     const pesanDb = profil.available ? null : el('p', 'ps-warning', 'Sebagian profil menunggu pembaruan database (migrasi 061). Data dasar tetap tampil; admin dapat menerapkannya di halaman Pengaturan.');
     if (pesanDb) wadah.append(pesanDb);
 
     const staf = ['admin', 'supervisor'].includes(account.role);
-    const keuangan = account.role !== 'supervisor';
+    const keluarga = ['parent', 'student'].includes(account.role);
+    const legacy = ctx.legacy || {};
     const state = { profil };
     const muatUlang = async (pesan) => {
       state.profil = await ambilJson(`/api/students/${id}/profil`, headers);
       state.pesan = pesan || '';
       gambarTab();
     };
-    const ctxTab = { ...ctx, id, staf, state, muatUlang };
+    const ctxTab = { ...ctx, id, staf, keluarga, legacy, state, muatUlang };
 
     const TAB = [
+      ...(legacy.ringkasan ? [['ringkasan', 'Ringkasan', tabRingkasan]] : []),
       ['pribadi', 'Data pribadi', tabPribadi],
       ['pendidikan', 'Pendidikan', tabPendidikan],
       ['tahfidz', 'Tahfidz', tabTahfidz],
@@ -142,10 +151,10 @@
       ['asrama', 'Asrama dan kamar', tabAsrama],
       ['absensi', 'Absensi dan izin', tabAbsensi],
       ['dokumen', 'Dokumen', tabDokumen],
-      ...(keuangan ? [['tagihan', 'Tagihan', tabTagihan]] : []),
+      ...(legacy.tagihan ? [['tagihan', 'Tagihan dan kuitansi', tabTagihan]] : []),
       ['riwayat', 'Riwayat', tabRiwayat]
     ];
-    let aktif = 'pribadi';
+    let aktif = tabTerakhir.get(student.id) && TAB.some(([kunci]) => kunci === tabTerakhir.get(student.id)) ? tabTerakhir.get(student.id) : TAB[0][0];
     const bar = el('div', 'ps-tabs');
     bar.setAttribute('role', 'tablist');
     const isi = el('div', 'ps-body');
@@ -155,7 +164,7 @@
     async function gambarTab() {
       bar.replaceChildren();
       TAB.forEach(([kunci, label]) => {
-        const b = tombol(label, `ps-tab${kunci === aktif ? ' is-on' : ''}`, () => { aktif = kunci; state.pesan = ''; gambarTab(); });
+        const b = tombol(label, `ps-tab${kunci === aktif ? ' is-on' : ''}`, () => { aktif = kunci; tabTerakhir.set(student.id, kunci); state.pesan = ''; gambarTab(); });
         b.setAttribute('role', 'tab');
         b.setAttribute('aria-selected', String(kunci === aktif));
         bar.append(b);
@@ -266,6 +275,13 @@
 
   // ------------------------------------------------------------------ tab
 
+  // Wali dan santri: catatan pembina terbaru, pengumuman, izin, doa, roadmap, dan peta juz (kartu dari portal.js dan perjalanan-santri.js).
+  function tabRingkasan(ctx) {
+    const wadah = el('div', 'ps-stack');
+    wadah.append(ctx.legacy.ringkasan);
+    return wadah;
+  }
+
   function tabPribadi(ctx) {
     const { profil } = ctx.state;
     const p = profil.personal;
@@ -284,6 +300,18 @@
       ['Kontak darurat', [p.emergencyName, p.emergencyPhone].filter(Boolean).join(', ')]
     ]));
     if (profil.can.editContact) kontak.kepala.append(tombol('Ubah kontak', null, () => dialogKontak(ctx).catch((e) => window.alert(e.message))));
+    const wali = seksi('Wali');
+    if (!profil.guardians.length) wali.wadah.append(kosong('Belum ada akun wali yang terhubung. Hubungkan lewat halaman Monitoring.'));
+    else {
+      const ul = el('ul', 'ps-list');
+      profil.guardians.forEach((w) => {
+        const li = el('li');
+        li.append(el('strong', '', w.name));
+        if (w.email) li.append(el('p', 'ps-meta', w.email));
+        ul.append(li);
+      });
+      wali.wadah.append(ul);
+    }
     const identitas = seksi('Nomor identitas', daftarField([
       ['Nomor paspor', profil.identifiers.passportNumber, profil.identifiers.masked && profil.identifiers.passportNumber ? '(tersamar, penuh hanya untuk admin)' : ''],
       ['Nomor iqamah', profil.identifiers.iqamahNumber, profil.identifiers.masked && profil.identifiers.iqamahNumber ? '(tersamar, penuh hanya untuk admin)' : '']
@@ -291,6 +319,7 @@
     const status = seksi('Status santri');
     const baris = el('div', 'ps-statusrow');
     baris.append(chip(profil.status.label, profil.status.value === 'active' ? 'ok' : 'waspada'));
+    if (profil.status.value === 'leave') baris.append(el('span', 'ps-meta', 'Tempat di asrama dan kamar ditahan selama cuti.'));
     if (profil.can.changeStatus) baris.append(tombol('Ubah status', null, () => dialogStatus(ctx).catch((e) => window.alert(e.message))));
     status.wadah.append(baris);
     if (profil.status.history.length) {
@@ -302,8 +331,31 @@
       });
       status.wadah.append(ul);
     }
-    wadah.append(data.wadah, kontak.wadah, identitas.wadah, status.wadah);
+    wadah.append(data.wadah, kontak.wadah, wali.wadah, identitas.wadah, status.wadah);
     return wadah;
+  }
+  async function dialogUrusan(ctx) {
+    const hasil = await window.HamasahDialog.formulir({
+      judul: 'Catat urusan administrasi',
+      keterangan: 'Batas waktu dipakai untuk hitung mundur yang dilihat admin di Monitoring pusat.',
+      bidang: [
+        { nama: 'kind', label: 'Jenis urusan', jenis: 'select', pilihan: Object.entries(LABEL_KASUS), nilai: 'lapor-pendidikan', wajib: true },
+        { nama: 'dueOn', label: 'Batas waktu', jenis: 'date', nilai: '', wajib: true },
+        { nama: 'note', label: 'Catatan', jenis: 'textarea', nilai: '', wajib: true }
+      ],
+      labelSimpan: 'Catat urusan',
+      kirim: (nilai) => kirimJson('POST', '/api/musyrif/urusan', ctx.headers, { studentId: ctx.student.id, ...nilai })
+    });
+    if (hasil) await ctx.muatUlang('Urusan dicatat.');
+  }
+
+  async function ubahUrusan(ctx, kasus, status) {
+    try {
+      await kirimJson('PATCH', '/api/musyrif/urusan', ctx.headers, { studentId: ctx.student.id, kind: kasus.kind, ref: kasus.ref, status });
+      await ctx.muatUlang('Status urusan diperbarui.');
+    } catch (error) {
+      window.alert(error.message);
+    }
   }
 
   function tabPendidikan(ctx) {
@@ -330,57 +382,63 @@
     );
     dok.wadah.append(baris);
     wadah.append(pendidikan.wadah, dok.wadah);
-    if (profil.administrativeCases.length) {
-      const kasus = seksi('Urusan administrasi yang berjalan');
-      const ul = el('ul', 'ps-list');
-      profil.administrativeCases.forEach((k) => {
-        const li = el('li');
-        li.append(el('strong', '', LABEL_KASUS[k.kind] || k.kind), el('p', 'ps-meta', [k.dueOn ? `Batas ${tanggal(k.dueOn)}` : '', k.note].filter(Boolean).join(' · ')));
-        ul.append(li);
-      });
-      kasus.wadah.append(ul);
+    if (ctx.staf) {
+      const kasus = seksi('Urusan administrasi (lapor diri, lapor pendidikan, status pendidikan)');
+      if (profil.can.editContact) kasus.kepala.append(tombol('Catat urusan', null, () => dialogUrusan(ctx).catch((x) => window.alert(x.message))));
+      if (!profil.administrativeCases.length) kasus.wadah.append(kosong('Tidak ada urusan administrasi yang berjalan.'));
+      else {
+        const ul = el('ul', 'ps-list');
+        profil.administrativeCases.forEach((k) => {
+          const li = el('li');
+          const atas = el('div', 'ps-statusrow');
+          atas.append(el('strong', '', LABEL_KASUS[k.kind] || k.kind), chip(k.status === 'diproses' ? 'Sedang diproses' : 'Baru', k.status === 'diproses' ? 'info' : 'waspada'));
+          if (profil.can.editContact) {
+            if (k.status === 'baru') atas.append(tombol('Mulai proses', null, () => ubahUrusan(ctx, k, 'diproses')));
+            atas.append(tombol('Tandai selesai', null, () => ubahUrusan(ctx, k, 'selesai')));
+          }
+          li.append(atas, el('p', 'ps-meta', [k.dueOn ? `Batas ${tanggal(k.dueOn)}` : '', k.note].filter(Boolean).join(' · ')));
+          ul.append(li);
+        });
+        kasus.wadah.append(ul);
+      }
       wadah.append(kasus.wadah);
     }
-    return wadah;
-  }
-
-  function tabTahfidz(ctx) {
-    const hafalan = ctx.care && ctx.care.memorization ? ctx.care.memorization : [];
-    const wadah = el('div', 'ps-stack');
-    const s = seksi('Setoran hafalan terbaru');
-    if (!hafalan.length) {
-      s.wadah.append(kosong('Belum ada setoran hafalan yang dicatat.'));
-    } else {
-      const ul = el('ul', 'ps-list');
-      hafalan.slice(0, 10).forEach((h) => {
-        const li = el('li');
-        li.append(el('strong', '', `${JENIS_HAFALAN[h.kind] || h.kind}: ${h.portion}`), el('p', 'ps-meta', [tanggal(h.occurredOn), NILAI_HAFALAN[h.grade] || h.grade, h.note].filter(Boolean).join(' · ')));
-        ul.append(li);
-      });
-      s.wadah.append(ul);
+    if (ctx.legacy && ctx.legacy.lms) {
+      const lms = seksi('Maddah (LMS)');
+      lms.wadah.append(ctx.legacy.lms);
+      wadah.append(lms.wadah);
     }
-    wadah.append(s.wadah);
     return wadah;
   }
-
+  function tabTahfidz(ctx) {
+    const wadah = el('div', 'ps-stack');
+    if (ctx.legacy && ctx.legacy.toolbar) wadah.append(ctx.legacy.toolbar);
+    const s = seksi('Setoran hafalan dan capaian');
+    if (ctx.legacy && ctx.legacy.talaqqi) s.wadah.append(ctx.legacy.talaqqi);
+    else s.wadah.append(kosong('Belum ada setoran hafalan yang dicatat.'));
+    wadah.append(s.wadah);
+    // Staf: indikator, roadmap studi, dan peta juz (kartu dari perjalanan-santri.js).
+    if (!ctx.keluarga && ctx.legacy && ctx.legacy.perjalanan) wadah.append(ctx.legacy.perjalanan);
+    return wadah;
+  }
   function tabRapor(ctx) {
     const d = ctx.dashboard;
     const wadah = el('div', 'ps-stack');
-    const ringkas = seksi('Rapor');
+    if (ctx.legacy && ctx.legacy.toolbar) wadah.append(ctx.legacy.toolbar);
+    const ringkas = seksi('Ringkasan rapor');
     ringkas.wadah.append(daftarField([
       ['Kehadiran kegiatan', d.attendance.rate === null ? '' : `${d.attendance.rate}% hadir (${d.attendance.present || 0} dari ${d.attendance.total || 0})`],
       ['Catatan pembina terakhir', d.evaluations.length ? d.evaluations[0].note : ''],
       ['Prestasi tercatat', d.achievements.length ? `${d.achievements.length} prestasi` : '']
     ]));
-    const unduh = tombol('Unduh rapor (PDF)', 'button button--primary ps-small', () => ctx.unduh(`/api/students/${ctx.id}/report`, `rapor-${ctx.student.name.replace(/[^\w]+/g, '-').toLowerCase()}.pdf`, unduh));
-    ringkas.kepala.append(unduh);
     wadah.append(ringkas.wadah);
+    if (ctx.legacy && ctx.legacy.rapor) wadah.append(ctx.legacy.rapor);
     return wadah;
   }
-
   function tabPembinaan(ctx) {
     const d = ctx.dashboard;
     const wadah = el('div', 'ps-stack');
+    if (ctx.legacy && ctx.legacy.toolbar) wadah.append(ctx.legacy.toolbar);
     const bagian = (judul, daftar, isi) => {
       const s = seksi(judul);
       if (!daftar.length) s.wadah.append(kosong('Belum ada catatan.'));
@@ -398,7 +456,6 @@
     );
     return wadah;
   }
-
   function tabAsrama(ctx) {
     const { placement } = ctx.state.profil;
     const wadah = el('div', 'ps-stack');
@@ -433,23 +490,25 @@
   async function tabAbsensi(ctx) {
     const d = ctx.dashboard;
     const wadah = el('div', 'ps-stack');
+    if (ctx.legacy && ctx.legacy.toolbar) wadah.append(ctx.legacy.toolbar);
     const absen = seksi('Absensi kegiatan');
     absen.wadah.append(daftarField([
       ['Kehadiran', d.attendance.rate === null ? '' : `${d.attendance.rate}% hadir (${d.attendance.present || 0} dari ${d.attendance.total || 0})`],
       ['Tidak hadir tanpa keterangan', d.attendance.byStatus && d.attendance.byStatus.absent ? `${d.attendance.byStatus.absent} kali` : 'Tidak ada'],
       ['Izin', d.attendance.byStatus && d.attendance.byStatus.excused ? `${d.attendance.byStatus.excused} kali` : 'Tidak ada']
     ]));
-    const recent = d.attendance.entries.slice(0, 8);
-    if (recent.length) {
-      const ul = el('ul', 'ps-list');
-      recent.forEach((a) => {
-        const li = el('li');
-        li.append(el('strong', '', a.category), el('p', 'ps-meta', [waktu(a.occurredAt), { present: 'Hadir', late: 'Terlambat', excused: 'Izin', absent: 'Tidak hadir' }[a.status] || a.status, a.note].filter(Boolean).join(' · ')));
-        ul.append(li);
-      });
-      absen.wadah.append(ul);
-    }
+    if (ctx.legacy && ctx.legacy.mutabaah) absen.wadah.append(ctx.legacy.mutabaah);
     wadah.append(absen.wadah);
+    if (ctx.legacy && ctx.legacy.sholat) {
+      const sholat = seksi('Sholat berjamaah');
+      sholat.wadah.append(ctx.legacy.sholat);
+      wadah.append(sholat.wadah);
+    }
+    if (ctx.legacy && ctx.legacy.kesehatan) {
+      const sakit = seksi('Kesehatan dan sakit');
+      sakit.wadah.append(ctx.legacy.kesehatan);
+      wadah.append(sakit.wadah);
+    }
     const izin = seksi('Riwayat izin dan kepulangan');
     try {
       const data = await ambilJson(`/api/students/${ctx.id}/leave`, ctx.headers);
@@ -470,8 +529,6 @@
     wadah.append(izin.wadah);
     return wadah;
   }
-
-  // Unggah dokumen: minta tempat, kirim isi, lalu daftarkan dengan jenis dan visibilitas.
   async function unggahDokumen(ctx, berkas, isian) {
     const minta = await kirimJson('POST', '/api/uploads', ctx.headers, { purpose: 'student-document', entityId: ctx.student.id, fileName: berkas.name, contentType: berkas.type, size: berkas.size });
     const fileId = encodeURIComponent(minta.upload.id);
@@ -561,34 +618,11 @@
     return wadah;
   }
 
-  async function tabTagihan(ctx) {
+  function tabTagihan(ctx) {
     const wadah = el('div', 'ps-stack');
-    const s = seksi('Tagihan');
-    try {
-      const data = await ambilJson(`/api/students/${ctx.id}/invoices`, ctx.headers);
-      const daftar = Array.isArray(data) ? data : (data.items || data.invoices || []);
-      if (!daftar.length) s.wadah.append(kosong('Belum ada tagihan.'));
-      else {
-        const belum = daftar.filter((t) => t.status === 'unpaid');
-        s.wadah.append(daftarField([
-          ['Belum dibayar', belum.length ? `${belum.length} tagihan, ${RUPIAH.format(belum.reduce((jumlah, t) => jumlah + Number(t.amount || 0), 0))}` : 'Tidak ada'],
-          ['Total tagihan', `${daftar.length} tagihan`]
-        ]));
-        const ul = el('ul', 'ps-list');
-        daftar.slice(0, 12).forEach((t) => {
-          const li = el('li');
-          li.append(el('strong', '', `${t.description}, ${RUPIAH.format(Number(t.amount || 0))}`), el('p', 'ps-meta', [STATUS_TAGIHAN[t.status] || t.status, t.number, t.issuedAt ? waktu(t.issuedAt) : ''].filter(Boolean).join(' · ')));
-          ul.append(li);
-        });
-        s.wadah.append(ul);
-      }
-    } catch (error) {
-      s.wadah.append(kosong(error.status === 403 ? 'Tagihan tidak dibuka untuk peran Anda.' : error.message));
-    }
-    wadah.append(s.wadah);
+    wadah.append(ctx.legacy.tagihan);
     return wadah;
   }
-
   async function tabRiwayat(ctx) {
     const { profil } = ctx.state;
     const wadah = el('div', 'ps-stack');
