@@ -39,6 +39,7 @@ const ROLE_NAV_LABELS = Object.freeze({
     monitoring: 'Monitoring Asrama',
     asrama: 'Kelola Asrama',
     pembinaan: 'Program & Batch',
+    impor: 'Impor Santri',
     lms: 'LMS Maddah',
     operations: 'Keuangan & SPP',
     akun: 'Kelola Akun',
@@ -111,6 +112,16 @@ const STAFF_NAV_LINKS = Object.freeze([
     badge: null,
     badgeType: null,
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>'
+  },
+  // Impor santri massal dari Excel atau Google Sheets (impor.js). Hanya admin.
+  {
+    href: 'impor',
+    label: 'Impor Santri',
+    page: 'impor',
+    roles: ['admin'],
+    badge: null,
+    badgeType: null,
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
   },
   {
     href: 'lms',

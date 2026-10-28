@@ -1,0 +1,52 @@
+﻿/* Impor santri massal (impor.js). Memakai gaya Kelola Asrama (asrama.css) untuk bagian umum. */
+.ip-steps { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 16px; padding: 0; list-style: none; }
+.ip-step { padding: 6px 14px; border-radius: 999px; background: #EFEBE2; color: #5B5850; font-size: 13.5px; font-weight: 600; }
+.ip-step.is-on { background: var(--k26-ink, #262628); color: #fff; }
+.ip-card { display: grid; gap: 12px; margin-bottom: 16px; padding: 18px; border-radius: 16px; background: #fff; border: 1px solid var(--k26-line, #E2DED6); }
+.ip-card h3 { margin: 0; font-size: 18px; }
+.ip-note { margin: 0; color: var(--k26-muted, #6B6B70); font-size: 14px; line-height: 1.5; }
+.ip-warning { margin: 0; padding: 10px 14px; border-radius: 12px; background: #FFF3CC; color: #5C4300; font-size: 14px; }
+.ip-status { min-height: 0; margin: 0; color: var(--k26-gold-deep, #856000); font-size: 14px; }
+.ip-status:empty { display: none; }
+.ip-status.is-galat { color: #8E2A23; }
+.ip-small { min-height: 36px; padding: 0 14px; font-size: 14px; }
+.ip-file { padding: 10px; border: 1px dashed var(--k26-line, #E2DED6); border-radius: 12px; background: var(--k26-ivory, #FBFAF6); font: inherit; }
+.ip-list { display: grid; gap: 4px; margin: 0; padding-left: 20px; font-size: 14.5px; }
+.ip-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.ip-map { display: grid; gap: 8px; }
+.ip-map__row { display: grid; grid-template-columns: minmax(180px, 260px) minmax(180px, 260px) minmax(0, 1fr); align-items: center; gap: 8px 14px; font-size: 14px; font-weight: 600; }
+.ip-map__row select { min-height: 38px; padding: 0 10px; border: 1px solid var(--k26-line, #E2DED6); border-radius: 10px; background: #fff; font: inherit; font-size: 14px; font-weight: 400; }
+.ip-map__sample { overflow: hidden; color: var(--k26-muted, #6B6B70); font-size: 13px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+.ip-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.ip-summary__item { display: grid; gap: 2px; padding: 12px 14px; border-radius: 12px; background: #F6F4EE; }
+.ip-summary__item strong { font-size: 26px; font-variant-numeric: tabular-nums; }
+.ip-summary__item span { color: var(--k26-muted, #6B6B70); font-size: 13px; font-weight: 600; }
+.ip-summary__item--siap { background: #E3F1E8; }
+.ip-summary__item--peringatan { background: #FFF3CC; }
+.ip-summary__item--bermasalah { background: #FBE9E7; }
+.ip-summary__item--duplikat { background: #E4EEF8; }
+.ip-filter { display: flex; flex-wrap: wrap; gap: 6px; }
+.ip-tab { min-height: 36px; padding: 0 14px; border: 1px solid var(--k26-line, #E2DED6); border-radius: 999px; background: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.ip-tab.is-on { border-color: var(--k26-ink, #262628); background: var(--k26-ink, #262628); color: #fff; }
+.ip-table-wrap { overflow-x: auto; border: 1px solid var(--k26-line, #E2DED6); border-radius: 12px; }
+.ip-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ip-table th, .ip-table td { padding: 9px 12px; border-bottom: 1px solid var(--k26-line, #E2DED6); text-align: left; vertical-align: top; }
+.ip-table thead th { background: #FAFAF7; color: var(--k26-muted, #6B6B70); font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.ip-table tbody tr:last-child td { border-bottom: 0; }
+.ip-table tr.is-bermasalah { background: #FFF8F7; }
+.ip-table tr.is-duplikat { background: #F5F9FD; }
+.ip-chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.ip-chip--siap { background: #E3F1E8; color: #1F5B3A; }
+.ip-chip--peringatan { background: #FFF3CC; color: #5C4300; }
+.ip-chip--bermasalah { background: #FBE9E7; color: #8E2A23; }
+.ip-chip--duplikat { background: #E4EEF8; color: #264B73; }
+.ip-chip--netral { background: #EFEBE2; color: #5B5850; }
+.ip-msgs { display: grid; gap: 3px; margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 1.4; }
+.ip-msgs .is-error { color: #8E2A23; }
+.ip-msgs .is-dup { color: #264B73; }
+.ip-msgs .is-warn { color: #7A5800; }
+.ip-msgs .is-info { color: var(--k26-muted, #6B6B70); }
+.ip-history { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.ip-history li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--k26-line, #E2DED6); }
+.ip-history li:first-child { border-top: 0; }
+@media (max-width: 760px) { .ip-map__row { grid-template-columns: 1fr; } }

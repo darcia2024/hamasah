@@ -55,6 +55,7 @@ const { createCentralMonitoringService } = require('./central-monitoring-service
 const { createDormitoryRoomService } = require('./dormitory-room-service.js');
 const { createProgramService } = require('./program-service.js');
 const { createStudentProfileService } = require('./student-profile-service.js');
+const { createStudentImportService } = require('./student-import-service.js');
 const { createStudentJourneyService } = require('./student-journey-service.js');
 const { createStudentLifeService } = require('./student-life-service.js');
 const { createDormitoryRollService } = require('./dormitory-roll-service.js');
@@ -89,6 +90,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/dormitory-rooms.js'),
   ...require('./routes/programs.js'),
   ...require('./routes/student-profile.js'),
+  ...require('./routes/student-imports.js'),
   ...require('./routes/admin-demo.js'),
   ...require('./routes/settings.js'),
   ...require('./routes/site-content.js'),
@@ -442,6 +444,17 @@ function createHamasahApp(options) {
     staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId)
   });
 
+  const studentImportService = config.studentImportService || createStudentImportService({
+    database,
+    studentPortalService,
+    studentProfileService,
+    dormitoryRoomService,
+    identityService,
+    // Undangan dikirim lewat email bila tersedia. Tautan aktivasi tidak disimpan; bila email tidak sampai,
+    // undangan dikirim ulang dari halaman Kelola Akun.
+    sendInvitation: ({ email, name, token }) => notificationService.sendInvitation({ email, name, activationUrl: `/aktivasi#token=${encodeURIComponent(token)}` })
+  });
+
   const services = Object.freeze({
     manualCommunications: {
       invoiceDrafts: (invoice) => require('./manual-whatsapp.js').invoiceDrafts(database, invoice, config.appBaseUrl || email.appBaseUrl || ''),
@@ -464,6 +477,7 @@ function createHamasahApp(options) {
     dormitoryRoomService,
     programService,
     studentProfileService,
+    studentImportService,
     demoDataService,
     settingsService,
     siteContentService,
