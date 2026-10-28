@@ -228,7 +228,7 @@ function createHamasahApp(options) {
     healthEnabled: kesehatanAktif
   });
   const adminOverviewService = config.adminOverviewService || createAdminOverviewService({ database, healthEnabled: kesehatanAktif });
-  const centralMonitoringService = config.centralMonitoringService || createCentralMonitoringService({ database, healthEnabled: kesehatanAktif });
+  const centralMonitoringService = config.centralMonitoringService || createCentralMonitoringService({ database, healthEnabled: kesehatanAktif, staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId) });
   const departureService = config.departureService || createDepartureService({
     store: createPostgresDepartureStore({ database }),
     async registrationExists(registrationId) { return Boolean(await registrationStore.get(registrationId)); }

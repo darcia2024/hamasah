@@ -154,6 +154,10 @@ async function run() {
       { permission: 'monitoring.read', method: 'GET', path: '/api/admin/monitoring-pusat' },
       { permission: 'monitoring.manage', method: 'POST', path: '/api/admin/monitoring-pusat/masalah', body: () => ({ kind: 'lapor-diri', note: '' }) },
       { permission: 'monitoring.manage', method: 'PATCH', path: '/api/admin/monitoring-pusat/masalah', body: () => ({ kind: 'nol', status: 'baru' }) },
+      { permission: 'monitoring.manage', method: 'PUT', path: '/api/admin/monitoring-pusat/asrama/00000000-0000-4000-8000-000000000000/negara', body: () => ({ country: 'Narnia' }) },
+      { permission: 'urusan.manage', method: 'GET', path: '/api/musyrif/urusan' },
+      { permission: 'urusan.manage', method: 'POST', path: '/api/musyrif/urusan', body: () => ({ kind: 'lapor-diri', note: '' }) },
+      { permission: 'urusan.manage', method: 'PATCH', path: '/api/musyrif/urusan', body: () => ({ kind: 'nol', status: 'baru' }) },
       { permission: 'overview.dormitory', method: 'GET', path: '/api/musyrif/ringkasan' },
       // Kelola Asrama (migrasi 050). Isian tidak valid atau id yang tidak ada: tidak ada yang tersimpan.
       { permission: 'dormitory-management.manage', method: 'GET', path: '/api/asrama' },

@@ -1389,20 +1389,31 @@ function renderExecutiveDashboard(_daftarAwal, account) {
     });
   }
   const berandaPeran = berandaWali || berandaMusyrif;
+  // Catatan pembinaan harian (kehadiran, sholat, hafalan, kesehatan, tagihan). Paspor dan
+  // iqamah sudah ditangani Monitoring pusat, jadi tidak diulang di sini.
+  const catatanPembinaanLipat = (data) => {
+    const sisa = data.alerts.filter((alert) => !['visa', 'paspor'].includes(alert.kind));
+    const lipat = document.createElement('details');
+    lipat.className = 'admin-fold';
+    const judul = document.createElement('summary');
+    judul.textContent = `Catatan pembinaan harian (${sisa.length})`;
+    lipat.append(judul, window.HamasahAdminOverview.perhatian(data, { onOpenStudent: bukaSantri, judul: 'Catatan pembinaan harian', kecuali: ['visa', 'paspor'], id: 'admin-catatan' }));
+    return lipat;
+  };
   mainCol.append(
     heroBanner,
-    ...(ringkasan ? [window.HamasahAdminOverview.kpi(ringkasan)] : []),
+    // Admin: Monitoring pusat paling atas (angka hari ini, absensi, urusan administrasi santri).
+    // Kartu angka lama di bawahnya tinggal yang belum dicakup monitoring (asrama, kehadiran,
+    // tagihan), dan catatan pembinaan harian dilipat supaya tidak tampil sebagai daftar kedua.
+    ...(ringkasan && window.HamasahMonitoringPusat ? [window.HamasahMonitoringPusat.render({ headers: requestHeaders, onOpenStudent: bukaSantri })] : []),
+    ...(ringkasan ? [window.HamasahAdminOverview.kpi(ringkasan, { tanpaMonitoring: Boolean(window.HamasahMonitoringPusat) })] : []),
     // Super admin: pendaftaran, belajar, dan keuangan di layar yang sama (beranda-admin.js).
     ...(isAdmin && window.HamasahBerandaAdmin ? [window.HamasahBerandaAdmin.operasional(requestHeaders())] : []),
-    // Monitoring pusat memegang paspor dan iqamah (dengan status tindak lanjut); catatan
-    // pembinaan lain (kehadiran, sholat, kesehatan, tagihan, ...) tetap di daftar ini.
     ...(ringkasan && window.HamasahMonitoringPusat
-      ? [
-        window.HamasahMonitoringPusat.render({ headers: requestHeaders, onOpenStudent: bukaSantri }),
-        window.HamasahAdminOverview.perhatian(ringkasan, { onOpenStudent: bukaSantri, judul: 'Catatan pembinaan', kecuali: ['visa', 'paspor'], id: 'admin-catatan' })
-      ]
+      ? [catatanPembinaanLipat(ringkasan)]
       : ringkasan ? [window.HamasahAdminOverview.perhatian(ringkasan, { onOpenStudent: bukaSantri })] : []),
     ...(isSupervisor ? [kartuTugasMusyrif()] : []),
+    ...(isSupervisor && window.HamasahUrusanSantri ? [window.HamasahUrusanSantri.render({ headers: requestHeaders })] : []),
     ...(berandaPeran ? [berandaPeran] : [subtabsRow, panelsContainer]),
     ...(kartuDemo ? [kartuDemo] : [])
   );

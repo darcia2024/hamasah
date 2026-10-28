@@ -1,17 +1,20 @@
-// Monitoring pusat di dashboard admin: angka hari ini, absensi hari ini, dan daftar masalah santri
-// beserta status tindak lanjutnya. Data dari /api/admin/monitoring-pusat (server/central-monitoring-service.js).
+// Monitoring pusat di dashboard admin: angka hari ini, absensi hari ini, dan daftar urusan
+// administrasi santri beserta status tindak lanjutnya. Data dari /api/admin/monitoring-pusat
+// (server/central-monitoring-service.js).
 //
 // Semua isi dibangun lewat textContent; tidak ada data dari server yang masuk innerHTML.
 (function initMonitoringPusat() {
   const WAKTU = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
   const TANGGAL = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
   const LABEL_STATUS = Object.freeze({ baru: 'Baru', diproses: 'Sedang diproses', selesai: 'Selesai' });
+  const LABEL_SHOLAT = Object.freeze({ subuh: 'Subuh', dzuhur: 'Dzuhur', ashar: 'Ashar', maghrib: 'Maghrib', isya: 'Isya' });
   const JENIS_MANUAL = Object.freeze([
-    ['lapor-diri', 'Lapor diri belum selesai'],
-    ['lapor-pendidikan', 'Lapor pendidikan belum selesai'],
-    ['status-pendidikan', 'Status pendidikan bermasalah']
+    ['lapor-diri', 'Lapor diri'],
+    ['lapor-pendidikan', 'Lapor pendidikan'],
+    ['status-pendidikan', 'Status pendidikan']
   ]);
   const TAB_STATUS = Object.freeze([['aktif', 'Belum selesai'], ['baru', 'Baru'], ['diproses', 'Sedang diproses'], ['selesai', 'Selesai'], ['semua', 'Semua']]);
+  const BARIS_AWAL = 10;
 
   function el(tag, className, text) {
     const node = document.createElement(tag);
@@ -27,6 +30,29 @@
     return node;
   }
 
+  // Tabel kecil untuk rincian absensi. Kolom pertama menjadi judul baris.
+  function tabelKecil(kepala, baris) {
+    const bungkus = el('div', 'mp-table-wrap');
+    const tabel = el('table', 'mp-table');
+    const thead = el('thead');
+    const hr = el('tr');
+    kepala.forEach((k, i) => { const th = el('th', i ? 'num' : '', k); th.scope = 'col'; hr.append(th); });
+    thead.append(hr);
+    const tbody = el('tbody');
+    baris.forEach((cells) => {
+      const tr = el('tr');
+      cells.forEach((teks, i) => {
+        const sel = el(i === 0 ? 'th' : 'td', i ? 'num' : '', teks);
+        if (i === 0) sel.scope = 'row';
+        tr.append(sel);
+      });
+      tbody.append(tr);
+    });
+    tabel.append(thead, tbody);
+    bungkus.append(tabel);
+    return bungkus;
+  }
+
   function render({ headers, onOpenStudent }) {
     const akar = el('section', 'mp');
     akar.id = 'admin-perhatian';
@@ -36,6 +62,7 @@
     const filter = { country: '', dormitoryId: '', level: '', kind: '', status: 'aktif' };
     let data = null;
     let sedangMuat = false;
+    let tampilSemua = false;
 
     const kepala = el('div', 'mp-head');
     const judul = el('div', 'mp-head__title');
@@ -54,20 +81,21 @@
       ['country', 'Negara', 'Semua negara'],
       ['dormitoryId', 'Asrama', 'Semua asrama'],
       ['level', 'Jenjang pendidikan', 'Semua jenjang'],
-      ['kind', 'Jenis masalah', 'Semua jenis']
+      ['kind', 'Jenis urusan', 'Semua jenis']
     ];
     FILTER.forEach(([kunci, label, semua]) => {
       const kotak = el('label', 'mp-filter');
       kotak.append(el('span', 'mp-filter__label', label));
       const select = el('select', 'mp-filter__select');
       select.append(new Option(semua, ''));
-      select.addEventListener('change', () => { filter[kunci] = select.value; muat(); });
+      select.addEventListener('change', () => { filter[kunci] = select.value; tampilSemua = false; muat(); });
       kotak.append(select);
       filterBar.append(kotak);
       pilihan[kunci] = { select, semua };
     });
     const reset = tombol('Atur ulang', 'mp-reset', () => {
       Object.assign(filter, { country: '', dormitoryId: '', level: '', kind: '', status: 'aktif' });
+      tampilSemua = false;
       muat();
     });
     filterBar.append(reset);
@@ -77,7 +105,8 @@
     const kartuAngka = el('div', 'mp-kpis');
     const kartuAbsensi = el('div', 'mp-card mp-attendance');
     const kartuMasalah = el('div', 'mp-card mp-cases');
-    akar.append(kepala, filterBar, status, kartuAngka, kartuAbsensi, kartuMasalah);
+    const kartuNegara = el('details', 'mp-country');
+    akar.append(kepala, filterBar, status, kartuAngka, kartuAbsensi, kartuMasalah, kartuNegara);
 
     function isiPilihan(select, semuaTeks, daftar, nilai) {
       select.replaceChildren(new Option(semuaTeks, ''));
@@ -88,11 +117,10 @@
     function gambarFilter() {
       const o = data.options;
       isiPilihan(pilihan.country.select, pilihan.country.semua, o.countries.map((n) => [n, n]), filter.country);
-      isiPilihan(pilihan.dormitoryId.select, pilihan.dormitoryId.semua, o.dormitories.map((d) => [d.id, `${d.name}${d.country ? ` (${d.country})` : ''}`]), filter.dormitoryId);
+      isiPilihan(pilihan.dormitoryId.select, pilihan.dormitoryId.semua, o.dormitories.map((d) => [d.id, `${d.name} (${d.country})`]), filter.dormitoryId);
       isiPilihan(pilihan.level.select, pilihan.level.semua, o.levels.map((n) => [n, n]), filter.level);
       isiPilihan(pilihan.kind.select, pilihan.kind.semua, o.kinds.map((k) => [k.id, k.label]), filter.kind);
-      const aktif = filter.country || filter.dormitoryId || filter.level || filter.kind || filter.status !== 'aktif';
-      reset.hidden = !aktif;
+      reset.hidden = !(filter.country || filter.dormitoryId || filter.level || filter.kind || filter.status !== 'aktif');
     }
 
     function angka(label, nilai, catatan, nada) {
@@ -103,12 +131,14 @@
 
     function gambarAngka() {
       const t = data.totals;
+      const urgen = data.cases.urgent;
       kartuAngka.replaceChildren(
         angka('Santri aktif', t.activeStudents, t.truncated ? 'Dibatasi 1000 santri pertama' : 'Sesuai saringan di atas'),
         angka('Santri izin', t.onLeave, 'Izin disetujui yang sedang berjalan', t.onLeave ? 'info' : ''),
-        angka('Santri sakit', t.sick, data.healthEnabled ? 'Catatan kesehatan 3 hari terakhir' : 'Hanya dari izin sakit; catatan kesehatan belum aktif', t.sick ? 'warn' : ''),
-        angka('Asrama', t.dormitories, 'Asrama yang berpenghuni'),
-        angka('Musyrif aktif', t.supervisors, 'Seluruh lembaga')
+        angka('Santri sakit', t.sick, data.healthEnabled ? 'Catatan kesehatan 3 hari terakhir' : 'Dari izin sakit; catatan kesehatan belum aktif', t.sick ? 'warn' : ''),
+        angka('Asrama', t.dormitories, 'Yang berpenghuni'),
+        angka('Musyrif aktif', t.supervisors, 'Seluruh lembaga'),
+        angka('Perlu segera', urgen, urgen ? 'Urusan yang mendesak' : 'Tidak ada yang mendesak', urgen ? 'danger' : '')
       );
     }
 
@@ -132,12 +162,30 @@
       return d;
     }
 
+    function rincianAsrama(asrama) {
+      const ul = el('ul', 'mp-dorms');
+      asrama.forEach((a) => {
+        const li = el('li', 'mp-dorm');
+        const atas = el('div', 'mp-dorm__top');
+        atas.append(el('strong', '', a.name), el('span', 'mp-dorm__meta', `${a.country} · Musyrif: ${a.supervisors.length ? a.supervisors.join(', ') : 'belum ada'}`));
+        const sudah = a.notReported === 0;
+        const kosong = a.reported === 0 && a.prayersFilled === 0;
+        const label = sudah ? 'Semua sudah dilaporkan' : kosong ? 'Belum ada yang diisi' : `${a.notReported} santri belum dilaporkan`;
+        const badge = el('span', `mp-chip ${sudah ? 'mp-chip--ok' : 'mp-chip--wait'}`, label);
+        const info = el('p', 'mp-dorm__info', `${a.reported} dari ${a.students} santri sudah dilaporkan · ${a.activitiesFilled} kegiatan dan ${a.prayersFilled} dari 5 waktu sholat sudah diisi.`);
+        li.append(atas, badge, info);
+        if (a.notReportedStudents.length) li.append(daftarNama('Santri yang belum dilaporkan', a.notReportedStudents.map((s) => ({ ...s, dormitory: null })), ''));
+        ul.append(li);
+      });
+      return ul;
+    }
+
     function gambarAbsensi() {
       const a = data.attendanceToday;
       const total = data.totals.activeStudents;
       kartuAbsensi.replaceChildren();
       const atas = el('div', 'mp-card__head');
-      atas.append(el('h4', 'mp-card__title', 'Absensi kegiatan hari ini'), el('span', 'mp-card__meta', TANGGAL.format(new Date(`${data.today}T00:00:00Z`))));
+      atas.append(el('h4', 'mp-card__title', 'Absensi hari ini'), el('span', 'mp-card__meta', TANGGAL.format(new Date(`${data.today}T00:00:00Z`))));
       kartuAbsensi.append(atas);
       if (!total) {
         kartuAbsensi.append(el('p', 'mp-empty', 'Tidak ada santri pada saringan ini.'));
@@ -146,7 +194,7 @@
       const izinTotal = a.excused + a.onLeaveUnrecorded;
       const bagian = [
         ['present', 'Hadir', a.present], ['late', 'Terlambat', a.late], ['excused', 'Izin', izinTotal],
-        ['absent', 'Belum hadir', a.absent], ['pending', 'Belum dilaporkan', a.notReported]
+        ['absent', 'Tidak hadir', a.absent], ['pending', 'Belum dilaporkan', a.notReported]
       ];
       const bar = el('div', 'mp-bar');
       bar.setAttribute('role', 'img');
@@ -164,15 +212,29 @@
         legenda.append(li);
       });
       kartuAbsensi.append(bar, legenda);
-      if (a.recordedStudents === 0) {
-        kartuAbsensi.append(el('p', 'mp-note', 'Belum ada absensi yang dicatat hari ini.'));
-      }
-      const daftar = el('div', 'mp-names-wrap');
-      daftar.append(
-        daftarNama('Belum hadir', a.absentStudents, 'Tidak ada santri yang dicatat tidak hadir.'),
-        daftarNama('Belum dilaporkan', a.notReportedStudents, 'Semua santri sudah dilaporkan.')
-      );
-      kartuAbsensi.append(daftar);
+      kartuAbsensi.append(el('p', 'mp-note', a.notReported === total
+        ? 'Belum ada kegiatan yang dicatat hari ini. Musyrif mengisinya di halaman Presensi asrama, jadi angka ini bergerak sepanjang hari.'
+        : '“Belum dilaporkan” berarti belum ada catatan kegiatan hari ini dan santrinya tidak sedang izin. Musyrif mengisinya di Presensi asrama.'));
+
+      const rincian = el('div', 'mp-details');
+      const kegiatan = el('details', 'mp-detail');
+      kegiatan.append(el('summary', '', `Per kegiatan (${a.activities.length})`));
+      kegiatan.append(a.activities.length
+        ? tabelKecil(['Kegiatan', 'Hadir', 'Terlambat', 'Izin', 'Tidak hadir', 'Asrama mengisi'],
+          a.activities.map((k) => [k.category, k.present, k.late, k.excused, k.absent, `${k.dormitoriesFilled}/${k.dormitoriesTotal}`]))
+        : el('p', 'mp-empty', 'Belum ada kegiatan yang dicatat hari ini.'));
+      const sholat = el('details', 'mp-detail');
+      sholat.append(el('summary', '', 'Sholat lima waktu'));
+      sholat.append(tabelKecil(['Waktu', 'Berjamaah', 'Munfarid', 'Tidak', 'Izin', 'Asrama mengisi'],
+        a.prayers.map((p) => [LABEL_SHOLAT[p.prayer], p.berjamaah, p.munfarid, p.tidak, p.izin, `${p.dormitoriesFilled}/${p.dormitoriesTotal}`])));
+      const perAsrama = el('details', 'mp-detail');
+      perAsrama.open = a.notReported > 0 && a.notReported < total;
+      perAsrama.append(el('summary', '', `Per asrama dan musyrif (${a.dormitories.length})`));
+      perAsrama.append(a.dormitories.length ? rincianAsrama(a.dormitories) : el('p', 'mp-empty', 'Belum ada asrama berpenghuni pada saringan ini.'));
+      const tautan = el('a', 'mp-link-out', 'Buka Presensi asrama');
+      tautan.href = 'monitoring#presensi';
+      rincian.append(kegiatan, sholat, perAsrama, daftarNama('Tidak hadir', a.absentStudents, 'Tidak ada santri yang dicatat tidak hadir.'), tautan);
+      kartuAbsensi.append(rincian);
     }
 
     async function ubah(item, statusBaru, catatan) {
@@ -206,42 +268,52 @@
       return form;
     }
 
+    function chipHitung(item) {
+      if (item.daysLeft === null || item.status === 'selesai') return null;
+      const lewat = item.daysLeft < 0;
+      const teks = lewat ? `Terlambat ${-item.daysLeft} hari` : item.daysLeft === 0 ? 'Hari ini' : `Sisa ${item.daysLeft} hari`;
+      return el('span', `mp-chip ${lewat || item.severity === 'tinggi' ? 'mp-chip--urgent' : 'mp-chip--soon'}`, teks);
+    }
+
     function barisMasalah(item) {
       const li = el('li', `mp-case is-${item.severity} is-${item.status}`);
       const utama = el('div', 'mp-case__main');
+      const atas = el('div', 'mp-case__top');
       const nama = tombol(item.studentName, 'mp-link mp-case__name', () => onOpenStudent(item.studentId));
       nama.setAttribute('aria-label', `Buka santri ${item.studentName}`);
+      atas.append(nama);
       const meta = [item.dormitory || 'Belum berasrama', item.country !== 'Belum berasrama' ? item.country : '', item.level].filter(Boolean).join(' · ');
-      const judulMasalah = el('p', 'mp-case__title');
-      if (item.severity === 'tinggi' && item.status !== 'selesai') judulMasalah.append(el('span', 'mp-badge mp-badge--urgent', 'Segera'));
-      judulMasalah.append(el('span', '', item.title));
-      utama.append(nama, el('p', 'mp-case__meta', meta), judulMasalah, el('p', 'mp-case__detail', item.detail));
+      atas.append(el('span', 'mp-case__meta', meta));
+      const chip = chipHitung(item);
+      utama.append(atas, el('p', 'mp-case__title', item.kind === 'paspor' || item.kind === 'iqamah' ? item.title : item.title), el('p', 'mp-case__detail', item.detail));
       const jejak = [];
-      if (item.dueOn) jejak.push(`Batas ${TANGGAL.format(new Date(`${item.dueOn}T00:00:00Z`))}`);
-      if (item.since) jejak.push(`Dicatat ${WAKTU.format(new Date(item.since))}`);
+      if (item.recordedBy) jejak.push(`Dicatat ${item.recordedBy}`);
+      if (item.since) jejak.push(WAKTU.format(new Date(item.since)));
       if (jejak.length) utama.append(el('p', 'mp-case__trail', jejak.join(' · ')));
-      // Pada masalah manual catatannya sudah menjadi keterangan di atas.
       if (item.note && (item.kind === 'paspor' || item.kind === 'iqamah')) utama.append(el('p', 'mp-case__note', `Catatan: ${item.note}`));
 
       const sisi = el('div', 'mp-case__side');
-      sisi.append(el('span', `mp-status-badge mp-status-badge--${item.status}`, LABEL_STATUS[item.status]));
-      const aksi = el('div', 'mp-case__actions');
-      if (item.status === 'baru') {
-        aksi.append(tombol('Mulai proses', 'button button--secondary mp-small', () => ubah(item, 'diproses')));
-        aksi.append(tombol('Selesai', 'button button--secondary mp-small', () => ubah(item, 'selesai')));
-      } else if (item.status === 'diproses') {
-        aksi.append(tombol('Tandai selesai', 'button button--primary mp-small', () => ubah(item, 'selesai')));
-        aksi.append(tombol('Kembalikan ke baru', 'button button--secondary mp-small', () => ubah(item, 'baru')));
-      } else {
-        aksi.append(tombol('Buka lagi', 'button button--secondary mp-small', () => ubah(item, 'baru')));
-      }
-      const buka = tombol('Buka santri', 'button button--secondary mp-small', () => onOpenStudent(item.studentId));
-      aksi.append(buka);
-      sisi.append(aksi);
+      const lencana = el('div', 'mp-case__badges');
+      if (chip) lencana.append(chip);
+      lencana.append(el('span', `mp-status-badge mp-status-badge--${item.status}`, LABEL_STATUS[item.status]));
+      sisi.append(lencana);
+      const aksiUtama = item.status === 'baru'
+        ? tombol('Mulai proses', 'button button--primary mp-small', () => ubah(item, 'diproses'))
+        : item.status === 'diproses'
+          ? tombol('Tandai selesai', 'button button--primary mp-small', () => ubah(item, 'selesai'))
+          : tombol('Buka lagi', 'button button--secondary mp-small', () => ubah(item, 'baru'));
+      sisi.append(aksiUtama);
 
-      const catatan = el('details', 'mp-case__notes');
-      catatan.append(el('summary', '', item.note ? 'Lihat atau ubah catatan' : 'Tambah catatan'), formCatatan(item));
-      li.append(utama, sisi, catatan);
+      const lain = el('details', 'mp-case__more');
+      lain.append(el('summary', '', 'Tindakan lain'));
+      const isi = el('div', 'mp-case__more-body');
+      const aksi = el('div', 'mp-case__actions');
+      aksi.append(tombol('Buka profil santri', 'button button--secondary mp-small', () => onOpenStudent(item.studentId)));
+      if (item.status === 'baru') aksi.append(tombol('Langsung selesai', 'button button--secondary mp-small', () => ubah(item, 'selesai')));
+      if (item.status === 'diproses') aksi.append(tombol('Kembalikan ke baru', 'button button--secondary mp-small', () => ubah(item, 'baru')));
+      isi.append(aksi, formCatatan(item));
+      lain.append(isi);
+      li.append(utama, sisi, lain);
       return li;
     }
 
@@ -249,7 +321,8 @@
       const dialog = el('dialog', 'mp-dialog');
       const form = el('form', 'mp-dialog__form');
       form.method = 'dialog';
-      form.append(el('h4', 'mp-dialog__title', 'Catat masalah santri'));
+      form.append(el('h4', 'mp-dialog__title', 'Catat urusan santri'));
+      form.append(el('p', 'mp-sub', 'Biasanya diisi musyrif. Batas waktu dipakai untuk hitung mundur.'));
       const baris = (label, input) => {
         const l = el('label', 'mp-dialog__field');
         l.append(el('span', '', label), input);
@@ -263,16 +336,17 @@
       baris('Santri', santri);
       const jenis = el('select');
       JENIS_MANUAL.forEach(([id, label]) => jenis.append(new Option(label, id)));
-      baris('Jenis masalah', jenis);
+      baris('Jenis urusan', jenis);
+      const batas = el('input');
+      batas.type = 'date';
+      batas.required = true;
+      baris('Batas waktu', batas);
       const catatan = el('textarea');
       catatan.rows = 3;
       catatan.maxLength = 500;
       catatan.required = true;
       catatan.minLength = 3;
-      baris('Apa masalahnya?', catatan);
-      const batas = el('input');
-      batas.type = 'date';
-      baris('Batas waktu (opsional)', batas);
+      baris('Catatan', catatan);
       const galat = el('p', 'mp-dialog__error');
       galat.setAttribute('role', 'alert');
       const aksi = el('div', 'mp-dialog__actions');
@@ -289,12 +363,12 @@
           const response = await fetch('/api/admin/monitoring-pusat/masalah', {
             method: 'POST',
             headers: { ...headers(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ studentId: santri.value, kind: jenis.value, note: catatan.value, dueOn: batas.value || undefined })
+            body: JSON.stringify({ studentId: santri.value, kind: jenis.value, note: catatan.value, dueOn: batas.value })
           });
           const hasil = await response.json();
-          if (!response.ok) throw new Error(hasil.error || 'Masalah belum dapat dicatat.');
+          if (!response.ok) throw new Error(hasil.error || 'Urusan belum dapat dicatat.');
           dialog.close();
-          await muat('Masalah dicatat.');
+          await muat('Urusan dicatat.');
         } catch (error) {
           galat.textContent = error.message;
         } finally {
@@ -311,7 +385,7 @@
       const c = data.cases;
       kartuMasalah.replaceChildren();
       const atas = el('div', 'mp-card__head');
-      atas.append(el('h4', 'mp-card__title', 'Santri yang perlu perhatian'), tombol('Catat masalah', 'button button--secondary mp-small', dialogMasalah));
+      atas.append(el('h4', 'mp-card__title', 'Urusan administrasi santri'), tombol('Catat urusan', 'button button--secondary mp-small', dialogMasalah));
       kartuMasalah.append(atas);
 
       const tab = el('div', 'mp-tabs');
@@ -320,7 +394,7 @@
       TAB_STATUS.forEach(([id, label]) => {
         const jumlah = id === 'aktif' ? c.counts.baru + c.counts.diproses
           : id === 'semua' ? c.counts.baru + c.counts.diproses + c.counts.selesai : c.counts[id];
-        const b = tombol('', `mp-tab${filter.status === id ? ' is-on' : ''}`, () => { filter.status = id; muat(); });
+        const b = tombol('', `mp-tab${filter.status === id ? ' is-on' : ''}`, () => { filter.status = id; tampilSemua = false; muat(); });
         b.setAttribute('aria-pressed', String(filter.status === id));
         b.append(document.createTextNode(label), el('span', 'mp-tab__count', String(jumlah)));
         tab.append(b);
@@ -336,13 +410,53 @@
 
       if (!c.items.length) {
         kartuMasalah.append(el('p', 'mp-empty', filter.status === 'aktif'
-          ? 'Tidak ada masalah yang perlu ditindaklanjuti pada saringan ini.'
-          : 'Tidak ada masalah dengan status ini pada saringan ini.'));
+          ? 'Tidak ada urusan yang perlu ditindaklanjuti pada saringan ini.'
+          : 'Tidak ada urusan dengan status ini pada saringan ini.'));
         return;
       }
       const daftar = el('ul', 'mp-list');
-      c.items.forEach((item) => daftar.append(barisMasalah(item)));
+      const tampil = tampilSemua ? c.items : c.items.slice(0, BARIS_AWAL);
+      tampil.forEach((item) => daftar.append(barisMasalah(item)));
       kartuMasalah.append(daftar);
+      if (c.items.length > BARIS_AWAL) {
+        kartuMasalah.append(tombol(tampilSemua ? 'Tampilkan lebih sedikit' : `Tampilkan semua (${c.items.length})`, 'button button--secondary mp-more',
+          () => { tampilSemua = !tampilSemua; gambarMasalah(); }));
+      }
+    }
+
+    function gambarNegara() {
+      const o = data.options;
+      kartuNegara.replaceChildren(el('summary', '', 'Atur negara tiap asrama'));
+      if (!o.countrySettable) {
+        kartuNegara.append(el('p', 'mp-empty', 'Pengaturan negara aktif setelah pembaruan database diterapkan di halaman Pengaturan. Sementara ini semua asrama dianggap di Mesir kecuali wilayahnya menyebut Indonesia.'));
+        return;
+      }
+      kartuNegara.append(el('p', 'mp-sub', 'Dipakai untuk saringan Negara. Bawaannya Mesir.'));
+      const ul = el('ul', 'mp-country__list');
+      o.allDormitories.forEach((d) => {
+        const li = el('li');
+        const select = el('select', 'mp-filter__select');
+        ['Mesir', 'Indonesia'].forEach((n) => select.append(new Option(n, n)));
+        select.value = d.country;
+        select.setAttribute('aria-label', `Negara ${d.name}`);
+        select.addEventListener('change', async () => {
+          status.textContent = 'Menyimpan...';
+          try {
+            const response = await fetch(`/api/admin/monitoring-pusat/asrama/${encodeURIComponent(d.id)}/negara`, {
+              method: 'PUT', headers: { ...headers(), 'Content-Type': 'application/json' }, body: JSON.stringify({ country: select.value })
+            });
+            const hasil = await response.json();
+            if (!response.ok) throw new Error(hasil.error || 'Negara belum dapat disimpan.');
+            await muat(`Negara ${d.name} diubah menjadi ${select.value}.`);
+          } catch (error) {
+            status.textContent = error.message;
+            select.value = d.country;
+          }
+        });
+        li.append(el('span', '', d.name), select);
+        ul.append(li);
+      });
+      kartuNegara.append(ul);
     }
 
     async function muat(pesan) {
@@ -350,6 +464,7 @@
       sedangMuat = true;
       segarkan.disabled = true;
       if (!data) status.textContent = 'Memuat monitoring...';
+      const terbuka = kartuNegara.open;
       try {
         const params = new URLSearchParams();
         Object.entries(filter).forEach(([k, v]) => { if (v) params.set(k, v); });
@@ -363,6 +478,8 @@
         gambarAngka();
         gambarAbsensi();
         gambarMasalah();
+        gambarNegara();
+        kartuNegara.open = terbuka;
       } catch (error) {
         status.textContent = error.message;
       } finally {

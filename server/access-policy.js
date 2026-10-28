@@ -30,6 +30,9 @@ const PERMISSIONS = Object.freeze({
   // Monitoring pusat: daftar masalah santri dan perubahan statusnya.
   'monitoring.read': Object.freeze([ROLES.ADMIN]),
   'monitoring.manage': Object.freeze([ROLES.ADMIN]),
+  // Urusan administrasi santri (lapor diri, lapor pendidikan, status pendidikan): diisi musyrif
+  // untuk santri di asramanya, admin untuk semua.
+  'urusan.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   // Ringkasan perkembangan santri di asrama yang dipegang, untuk beranda musyrif.
   // Admin ikut memegang izin ini (semua asrama), sesuai aturan admin memegang semua izin.
   'overview.dormitory': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),

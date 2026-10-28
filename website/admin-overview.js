@@ -53,13 +53,15 @@
     return kartu;
   }
 
-  function kpi(data) {
+  // tanpaMonitoring: Monitoring pusat sudah menampilkan santri aktif, musyrif aktif, dan jumlah
+  // yang perlu perhatian, jadi kartu itu tidak diulang di sini.
+  function kpi(data, { tanpaMonitoring = false } = {}) {
     const s = data.summary;
     const wadah = el('section', 'admin-kpi-section');
     wadah.setAttribute('aria-label', 'Ringkasan angka');
     const grid = el('div', 'admin-kpi-grid');
     const kosong = s.capacity > 0 ? Math.max(0, s.capacity - s.occupied) : null;
-    grid.append(
+    const kartu = [
       kartuAngka('Santri aktif', String(s.activeStudents),
         `${s.putra} putra, ${s.putri} putri${s.unplaced ? `, ${s.unplaced} belum berasrama` : ''}`, s.unplaced ? 'warn' : ''),
       kartuAngka('Keterisian asrama', s.capacity > 0 ? `${s.occupied}/${s.capacity}` : String(s.occupied),
@@ -72,10 +74,12 @@
         s.unpaidInvoices ? `${s.unpaidInvoices} tagihan, ${RUPIAH.format(s.unpaidAmount)}` : 'Semua tagihan lunas', s.unpaidInvoices ? 'warn' : ''),
       kartuAngka('Perlu perhatian', String(data.alerts.length),
         s.alertsHigh ? `${s.alertsHigh} perlu segera ditangani` : 'Tidak ada yang mendesak', s.alertsHigh ? 'danger' : '')
-    );
+    ];
+    const diulang = ['Santri aktif', 'Musyrif aktif', 'Perlu perhatian'];
+    grid.append(...(tanpaMonitoring ? kartu.filter((node) => !diulang.includes(node.querySelector('.admin-kpi__label').textContent)) : kartu));
     const program = s.programs.map((p) => `${p.label} ${p.count}`).join(', ');
     const rincian = el('p', 'admin-kpi-detail',
-      `${program ? `Program: ${program}. ` : ''}${s.withoutParentAccount} santri belum terhubung ke akun wali.${s.truncated ? ' Daftar dipotong pada 1000 santri pertama.' : ''}`);
+      `${tanpaMonitoring ? `Santri aktif: ${s.activeStudents} (${s.putra} putra, ${s.putri} putri${s.unplaced ? `, ${s.unplaced} belum berasrama` : ''}). ` : ''}${program ? `Program: ${program}. ` : ''}${s.withoutParentAccount} santri belum terhubung ke akun wali.${s.truncated ? ' Daftar dipotong pada 1000 santri pertama.' : ''}`);
     wadah.append(grid, rincian);
     return wadah;
   }
