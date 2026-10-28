@@ -52,6 +52,7 @@ const { createDepartureService } = require('./departure-service.js');
 const { createStudentCareService } = require('./student-care-service.js');
 const { createAdminOverviewService } = require('./admin-overview-service.js');
 const { createCentralMonitoringService } = require('./central-monitoring-service.js');
+const { createDormitoryRoomService } = require('./dormitory-room-service.js');
 const { createStudentJourneyService } = require('./student-journey-service.js');
 const { createStudentLifeService } = require('./student-life-service.js');
 const { createDormitoryRollService } = require('./dormitory-roll-service.js');
@@ -83,6 +84,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/audit.js'),
   ...require('./routes/admin-overview.js'),
   ...require('./routes/central-monitoring.js'),
+  ...require('./routes/dormitory-rooms.js'),
   ...require('./routes/admin-demo.js'),
   ...require('./routes/settings.js'),
   ...require('./routes/site-content.js'),
@@ -228,6 +230,7 @@ function createHamasahApp(options) {
     healthEnabled: kesehatanAktif
   });
   const adminOverviewService = config.adminOverviewService || createAdminOverviewService({ database, healthEnabled: kesehatanAktif });
+  const dormitoryRoomService = config.dormitoryRoomService || createDormitoryRoomService({ database, staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId) });
   const centralMonitoringService = config.centralMonitoringService || createCentralMonitoringService({ database, healthEnabled: kesehatanAktif, staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId) });
   const departureService = config.departureService || createDepartureService({
     store: createPostgresDepartureStore({ database }),
@@ -451,6 +454,7 @@ function createHamasahApp(options) {
     dormitoryManagementService,
     adminOverviewService,
     centralMonitoringService,
+    dormitoryRoomService,
     demoDataService,
     settingsService,
     siteContentService,

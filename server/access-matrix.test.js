@@ -161,6 +161,16 @@ async function run() {
       { permission: 'overview.dormitory', method: 'GET', path: '/api/musyrif/ringkasan' },
       // Kelola Asrama (migrasi 050). Isian tidak valid atau id yang tidak ada: tidak ada yang tersimpan.
       { permission: 'dormitory-management.manage', method: 'GET', path: '/api/asrama' },
+      // Struktur kamar dan penempatan (migrasi 059).
+      { permission: 'dormitory-management.manage', method: 'GET', path: () => `/api/asrama/${dormitoryId}/kamar` },
+      { permission: 'dormitory-management.manage', method: 'POST', path: () => `/api/asrama/${dormitoryId}/kamar`, body: () => ({ name: '' }) },
+      { permission: 'dormitory-management.manage', method: 'GET', path: () => `/api/asrama/${dormitoryId}/masalah` },
+      { permission: 'dormitory-management.manage', method: 'POST', path: '/api/students/00000000-0000-4000-8000-000000000000/kamar', body: () => ({ dormitoryId: '' }) },
+      { permission: 'dormitory-management.manage', method: 'PATCH', path: () => `/api/asrama/${dormitoryId}/kamar/00000000-0000-4000-8000-000000000000`, body: () => ({ name: '' }) },
+      { permission: 'dormitory-management.manage', method: 'DELETE', path: () => `/api/asrama/${dormitoryId}/kamar/00000000-0000-4000-8000-000000000000` },
+      { permission: 'dormitories.manage', method: 'PUT', path: () => `/api/asrama/${dormitoryId}/lokasi`, body: () => ({ locationId: '00000000-0000-4000-8000-000000000000' }) },
+      { permission: 'dormitories.manage', method: 'GET', path: '/api/lokasi' },
+      { permission: 'dormitories.manage', method: 'POST', path: '/api/lokasi', body: () => ({ name: '' }) },
       { permission: 'dormitory-management.manage', method: 'GET', path: () => `/api/asrama/${dormitoryId}` },
       { permission: 'dormitory-management.manage', method: 'POST', path: () => `/api/asrama/${dormitoryId}/jadwal`, body: () => ({ title: '' }) },
       { permission: 'dormitory-management.manage', method: 'PATCH', path: () => `/api/asrama/${dormitoryId}/jadwal/00000000-0000-4000-8000-000000000000`, body: () => ({ title: '' }) },

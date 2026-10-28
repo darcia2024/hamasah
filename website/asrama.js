@@ -22,6 +22,7 @@
   // Iqamah santri asrama ini (/api/asrama/:id/iqamah); null bila belum bisa dimuat.
   let iqamah = null;
   let tabAktif = 'kalender';
+  let adalahAdmin = false;
   let bulan = null;
   let nomor = 0;
   // Pesan berhasil tingkat halaman: panel digambar ulang setelah data dimuat ulang, jadi
@@ -807,13 +808,27 @@
   }
 
   // ------------------------------------------------------------ Rangka
+  // Konteks untuk tab Kamar, Masalah, dan Laporan (asrama-kamar.js).
+  function bukaTab(kunci) {
+    tabAktif = kunci;
+    try { localStorage.setItem(TAB_KUNCI, kunci); } catch { /* opsional */ }
+    lukis();
+  }
+  const konteks = () => ({ api, dormitoryId: asramaAktif, daftarAsrama, admin: adalahAdmin, bukaTab });
+  const panelKamar = () => (window.HamasahAsramaKamar ? window.HamasahAsramaKamar.kamar(konteks()) : [el('p', 'asr-warning', 'Tab Kamar belum dapat dimuat.')]);
+  const panelMasalah = () => (window.HamasahAsramaKamar ? window.HamasahAsramaKamar.masalah(konteks()) : [el('p', 'asr-warning', 'Tab Masalah belum dapat dimuat.')]);
+  const panelLaporan = () => (window.HamasahAsramaKamar ? window.HamasahAsramaKamar.laporan(konteks()) : [el('p', 'asr-warning', 'Tab Laporan belum dapat dimuat.')]);
+
   const TAB = [
+    ['kamar', 'Kamar', panelKamar],
     ['kalender', 'Kalender', panelKalender],
     ['piket', 'Piket', panelPiket],
     ['kas', 'Uang kas', panelKas],
     ['inventaris', 'Inventaris', panelInventaris],
     ['galeri', 'Galeri', panelGaleri],
-    ['iqamah', 'Iqamah', panelIqamah]
+    ['iqamah', 'Iqamah', panelIqamah],
+    ['masalah', 'Masalah', panelMasalah],
+    ['laporan', 'Laporan', panelLaporan]
   ];
 
   function lukis() {
@@ -879,6 +894,7 @@
       konsol.hidden = false;
       document.body.classList.add('in-crm');
       renderStaffNav(staffNav, akun.role, 'asrama', akun);
+      adalahAdmin = akun.role === 'admin';
       try { tabAktif = localStorage.getItem(TAB_KUNCI) || tabAktif; } catch { /* opsional */ }
       // Tab lama "Jadwal mingguan" dan "Agenda" kini satu tab Kalender.
       if (['jadwal', 'agenda'].includes(tabAktif)) tabAktif = 'kalender';

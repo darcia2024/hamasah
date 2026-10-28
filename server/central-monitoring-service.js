@@ -176,6 +176,23 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
 
   async function overview(actor, query) {
     if (!actor || actor.role !== ADMIN_ROLE) return { ok: false, status: 403, error: 'Akses admin diperlukan.' };
+    return hitung(query);
+  }
+
+  // Urusan administrasi penghuni satu asrama, untuk tab Masalah di Kelola Asrama. Musyrif
+  // hanya melihat asrama yang dipegangnya. Status paspor dan iqamah tetap diubah admin.
+  async function dormitoryCases(dormitoryId, actor) {
+    if (!pelakuStaf(actor)) return { ok: false, status: 403, error: 'Akses musyrif atau admin diperlukan.' };
+    if (!/^[\w-]{8,64}$/.test(String(dormitoryId || ''))) return { ok: false, status: 404, error: 'Asrama tidak ditemukan.' };
+    const milik = await asramaBoleh(actor);
+    if (milik !== null && !milik.includes(dormitoryId)) return { ok: false, status: 403, error: 'Asrama ini bukan asrama yang Anda pegang.' };
+    const hasil = await hitung({ dormitoryId, status: 'semua' });
+    if (!hasil.ok) return hasil;
+    const { items, counts, urgent } = hasil.value.cases;
+    return { ok: true, value: { today: hasil.value.today, items, counts, urgent, canChangeStatus: actor.role === ADMIN_ROLE } };
+  }
+
+  async function hitung(query) {
     const filter = bacaFilter(query);
     const saatIni = now();
     const hariIni = tanggalJakarta(saatIni);
@@ -588,7 +605,7 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
     return { ok: true, value: { dormitoryId, country: negara } };
   }
 
-  return Object.freeze({ overview, urusan, create, setStatus, setCountry });
+  return Object.freeze({ overview, dormitoryCases, urusan, create, setStatus, setCountry });
 }
 
 module.exports = { createCentralMonitoringService, negaraDariWilayah, JENIS };
