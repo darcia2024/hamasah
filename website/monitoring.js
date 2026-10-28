@@ -664,7 +664,7 @@ const tabBtns = [
   { btn: document.querySelector('#tab-btn-link-account'), panel: document.querySelector('#panel-link-account') },
   { btn: document.querySelector('#tab-btn-roll'), panel: document.querySelector('#panel-roll'), onOpen: () => muatPresensiAsrama() },
   { btn: document.querySelector('#tab-btn-leave'), panel: document.querySelector('#panel-leave'), onOpen: () => muatIzin() },
-  { btn: document.querySelector('#tab-btn-family'), panel: document.querySelector('#panel-family'), onOpen: () => muatPesanWali() },
+  { btn: document.querySelector('#tab-btn-family'), panel: document.querySelector('#panel-family'), onOpen: () => { muatPesanWali(); muatMasukanWali(); } },
   { btn: document.querySelector('#tab-btn-announcements'), panel: document.querySelector('#panel-announcements'), onOpen: () => muatPengumuman() },
   { btn: document.querySelector('#tab-btn-honors'), panel: document.querySelector('#panel-honors'), onOpen: () => muatTeladan() }
 ];
@@ -1056,6 +1056,53 @@ async function tandaiPesanDibaca(item, tombol) {
 }
 
 familyFilter.addEventListener('change', () => muatPesanWali());
+
+// Kritik, saran, apresiasi, dan keluhan wali. GET /api/masukan, PATCH /api/masukan/:id.
+const feedbackList = document.querySelector('#feedback-list');
+const feedbackStatus = document.querySelector('#feedback-status');
+const feedbackFilter = document.querySelector('#feedback-status-filter');
+
+async function balasMasukan(item) {
+  const hasil = await window.HamasahDialog.formulir({
+    judul: `Tanggapi: ${item.subject}`,
+    keterangan: `${item.kindLabel} dari ${item.parentName || 'wali'}. Balasan terlihat oleh wali di portalnya.`,
+    bidang: [
+      { nama: 'reply', label: 'Balasan (opsional)', jenis: 'textarea', nilai: item.reply || '' },
+      { nama: 'status', label: 'Status', jenis: 'select', nilai: item.status === 'baru' ? 'dibaca' : item.status, pilihan: [['dibaca', 'Sudah dibaca'], ['ditindaklanjuti', 'Sudah ditindaklanjuti']] }
+    ],
+    labelSimpan: 'Simpan tanggapan',
+    kirim: (nilai) => kirimJson(`/api/masukan/${encodeURIComponent(item.id)}`, 'PATCH', { status: nilai.status, ...(nilai.reply ? { reply: nilai.reply } : {}) })
+  });
+  if (hasil) await muatMasukanWali();
+}
+
+async function muatMasukanWali() {
+  statusPanel(feedbackStatus, 'Memuat...');
+  try {
+    const data = await kirimJson(`/api/masukan?status=${encodeURIComponent(feedbackFilter.value)}&t=${Date.now()}`, 'GET');
+    statusPanel(feedbackStatus, data.available ? '' : 'Database belum diperbarui untuk masukan wali. Terapkan pembaruan database di halaman Pengaturan.', !data.available);
+    feedbackList.replaceChildren(...(data.items.length ? data.items.map((item) => {
+      const dari = `${item.kindLabel}: ${item.subject}`;
+      const rincian = `${item.parentName || 'Wali'}${item.studentName ? ` untuk ${item.studentName}` : ''}${item.dormitoryName ? ` · ${item.dormitoryName}` : ''} · ${WAKTU_IZIN.format(new Date(item.createdAt))} · ${item.statusLabel}`;
+      const baris = barisTeladan(dari, rincian, tombolKecil(item.status === 'ditindaklanjuti' ? 'Ubah tanggapan' : 'Tanggapi', () => balasMasukan(item)));
+      const isi = document.createElement('p');
+      isi.className = 'honors-item__body';
+      isi.textContent = item.body;
+      baris.firstElementChild.append(isi);
+      if (item.reply) {
+        const balasan = document.createElement('p');
+        balasan.className = 'honors-item__body';
+        balasan.textContent = `Balasan${item.handledBy ? ` (${item.handledBy})` : ''}: ${item.reply}`;
+        baris.firstElementChild.append(balasan);
+      }
+      return baris;
+    }) : [barisTeladan(feedbackFilter.value === 'terbuka' ? 'Tidak ada masukan wali yang menunggu.' : 'Belum ada masukan dari wali.', '', null)]));
+  } catch (error) {
+    statusPanel(feedbackStatus, error.message || 'Masukan wali belum dapat dimuat.', true);
+  }
+}
+
+feedbackFilter.addEventListener('change', () => muatMasukanWali());
 
 // Pengumuman (admin dan musyrif). GET/POST /api/announcements, DELETE /api/announcements/:id.
 const announcementForm = document.querySelector('#announcement-form');

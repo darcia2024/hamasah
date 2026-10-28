@@ -68,6 +68,11 @@ const PERMISSIONS = Object.freeze({
   // "Kirim doa untuk ananda": wali menulis, musyrif asramanya dan admin membaca.
   'family-messages.send': Object.freeze([ROLES.PARENT]),
   'family-messages.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
+  // Kritik, saran, apresiasi, dan keluhan wali. Keluhan privat hanya sampai ke admin; selebihnya admin dan musyrif asramanya.
+  'feedback.send': Object.freeze([ROLES.PARENT]),
+  // Daftar kiriman wali sendiri. Admin memegang semua izin baca; layanannya tetap hanya melayani akun wali.
+  'feedback.mine': Object.freeze([ROLES.ADMIN, ROLES.PARENT]),
+  'feedback.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   // Iqamah: santri dan wali melihat sisa masa berlaku; santri melapor tanggal baru;
   // musyrif asramanya atau admin mengecek dan mengisi tanggal. Penanda "sedang diurus"
   // boleh dipasang santri sendiri maupun musyrif.

@@ -3558,3 +3558,93 @@ body.in-crm .asr-page .kal .kal__agenda-item { padding-block: 16px; }
  body.in-crm .asr-page .kal .kal__agenda-item { grid-template-columns: minmax(0,1fr); gap: 6px; }
  body.in-crm .asr-page .kal .kal__agenda-item > :nth-child(3) { grid-column: 1; }
 }
+
+/* Menu kategori portal wali: baris tab yang bisa digeser di ponsel, menempel di atas saat menggulir */
+.wali-tabs {
+  display: flex;
+  gap: 6px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 8px 0;
+  overflow-x: auto;
+  background: var(--md-sys-color-surface, #fff);
+  border-bottom: 1px solid var(--wali-rule);
+  scrollbar-width: none;
+}
+
+.wali-tab {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--wali-rule);
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-size: var(--fs-14, 14px);
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.wali-tab.is-active {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary, #fff);
+}
+
+.wali-tab:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: 2px; }
+
+.wali-panel { display: grid; gap: 28px; padding-top: 20px; }
+.wali-panel[hidden] { display: none; }
+
+/* Daftar fakta (pendidikan, dokumen, tempat tinggal) */
+.wali-facts { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.wali-fact {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--wali-rule);
+  font-size: var(--fs-14, 14px);
+}
+.wali-fact:last-child { border-bottom: 0; }
+.wali-fact__label { color: var(--md-sys-color-on-surface-variant); }
+.wali-fact__value { text-align: right; font-weight: 600; overflow-wrap: anywhere; }
+.wali-fact__value.is-baik { color: var(--wali-green); }
+.wali-fact__value.is-cukup { color: var(--gold-dark); }
+.wali-fact__value.is-perlu { color: var(--wali-red); }
+.wali-note-text { margin: 8px 0 0; font-size: var(--fs-14, 14px); color: var(--md-sys-color-on-surface-variant); }
+
+.wali-bars__row--wide { grid-template-columns: minmax(80px, 1fr) minmax(0, 2fr) auto; }
+.wali-bars__detail { grid-column: 1 / -1; font-size: var(--fs-12); color: var(--md-sys-color-outline); }
+
+/* Formulir masukan dan rapor */
+.wali-form { display: grid; gap: 16px; max-width: 560px; }
+.wali-form__row { display: grid; gap: 6px; }
+.wali-field__label { font-size: var(--fs-14, 14px); font-weight: 600; }
+.wali-field {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--wali-rule);
+  border-radius: 8px;
+  background: var(--md-sys-color-surface, #fff);
+  font: inherit;
+  color: inherit;
+}
+textarea.wali-field { resize: vertical; }
+.wali-field:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: 2px; }
+.wali-field__hint { margin: 0; font-size: var(--fs-12); color: var(--md-sys-color-outline); }
+.wali-action { justify-self: start; min-height: 44px; margin-top: 12px; }
+.wali-form .wali-action { margin-top: 0; }
+.wali-feedback__history { margin-top: 28px; }
+.wali-note__reply { margin: 8px 0 0; padding-left: 12px; border-left: 3px solid var(--md-sys-color-primary); font-size: var(--fs-14, 14px); }
+
+@media (max-width: 640px) {
+  .wali-tabs { margin-inline: -4px; padding-inline: 4px; }
+  .wali-fact { flex-direction: column; gap: 2px; }
+  .wali-fact__value { text-align: left; }
+  .wali-action { justify-self: stretch; }
+}

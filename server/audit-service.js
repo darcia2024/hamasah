@@ -100,6 +100,8 @@ const ACTIONS = Object.freeze({
 ,STUDENT_IMPORT_PREVIEWED: 'student-import.previewed'
 ,STUDENT_IMPORT_COMMITTED: 'student-import.committed'
 ,STUDENT_IMPORT_INVITATIONS_RESENT: 'student-import.invitations-resent'
+ ,PARENT_FEEDBACK_SENT: 'parent-feedback.sent'
+ ,PARENT_FEEDBACK_HANDLED: 'parent-feedback.handled'
   ,RESIDENCE_REPORTED: 'residence.reported'
   ,RESIDENCE_UPDATED: 'residence.updated'
   ,RESIDENCE_REPORT_DECIDED: 'residence.report-decided'

@@ -15,6 +15,7 @@
   const STATUS_SHOLAT = { berjamaah: 'Berjamaah', munfarid: 'Munfarid', izin: 'Izin', tidak: 'Tidak sholat' };
   const HARI_PENDEK = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', timeZone: 'UTC' });
   const PILIHAN_KUNCI = 'hamasahWaliAnanda';
+  const TAB_KUNCI = 'hamasahWaliTab';
 
   function el(tag, className, text) {
     const node = document.createElement(tag);
@@ -557,34 +558,88 @@
       const atas = students.length > 1 ? [pemilihAnak(students, aktifId, pilih)] : [];
       wadah.replaceChildren(...atas, memuat);
 
-      if (!cache.has(aktifId)) cache.set(aktifId, K.muatAnak(aktifId, headers, { banding: true }));
-      const [data, pengumuman, jadwalAsrama, iqamah] = await Promise.all([cache.get(aktifId), pengumumanJanji, K.muatJadwalAsrama(headers), iqamahJanji]);
+      if (!cache.has(aktifId)) {
+        cache.set(aktifId, Promise.all([
+          K.muatAnak(aktifId, headers, { banding: true }),
+          K.ambil(`/api/students/${encodeURIComponent(aktifId)}/profil`, headers)
+        ]));
+      }
+      const [[data, profil], pengumuman, jadwalAsrama, iqamah] = await Promise.all([cache.get(aktifId), pengumumanJanji, K.muatJadwalAsrama(headers), iqamahJanji]);
       if (student.id !== aktifId) return;
 
-      const grid = el('div', 'wali-grid');
-      [kartuSholat(data), kartuKehadiran(data), kartuHafalan(data), kartuCatatan(data)].forEach((k) => grid.append(k));
-      const isi = [
-        ...atas,
-        kartuRingkasan(student, data, () => onOpenStudent(student.id), iqamah),
-        ringkasanPembina(data),
-        grid,
-        // Jadwal rutin, agenda, dan piket ananda dari Kelola Asrama.
-        ...[K.bagianJadwalAsrama(jadwalAsrama, student.id, { polos: true })].filter(Boolean),
-        K.kartuLinimasa(K.butirKegiatan(data, student.name), {
-          judul: 'Catatan harian',
-          keterangan: `Semua yang tercatat ${K.PERIODE_HARI} hari terakhir, terbaru di atas.`,
-          perHalaman: 8,
-          polos: true
-        })
-      ];
-      const bawah = el('div', 'wali-grid');
+      const B = window.HamasahWaliBagian;
       const tagihan = kartuTagihan(data);
       const umum = K.kartuPengumuman(pengumuman, 3, { polos: true });
       // Iqamah ananda, hanya dilihat; laporan tanggal baru dikirim santri sendiri.
       const iqamahAnanda = window.HamasahIqamah ? window.HamasahIqamah.kartu(iqamah, { studentId: student.id, headers }) : null;
-      [iqamahAnanda, tagihan, umum].filter(Boolean).forEach((k) => bawah.append(k));
-      if (bawah.childElementCount) isi.push(bawah);
-      wadah.replaceChildren(...isi);
+      const jadwal = K.bagianJadwalAsrama(jadwalAsrama, student.id, { polos: true });
+      const grup = (...anak) => {
+        const baris = el('div', 'wali-grid');
+        anak.filter(Boolean).forEach((k) => baris.append(k));
+        return baris.childElementCount ? baris : null;
+      };
+
+      // Menu dikelompokkan menurut keperluan wali; di ponsel menjadi baris yang bisa digeser.
+      const kategori = [
+        { id: 'ringkasan', label: 'Ringkasan', isi: [kartuRingkasan(student, data, () => onOpenStudent(student.id), iqamah), ringkasanPembina(data)] },
+        { id: 'pendidikan', label: 'Pendidikan & administrasi', isi: [B ? B.kartuPendidikan(profil, data.izin) : null, grup(iqamahAnanda)] },
+        { id: 'absensi', label: 'Absensi', isi: [grup(kartuKehadiran(data), B ? B.kartuAbsensiJenis(data) : null, kartuSholat(data)), jadwal] },
+        {
+          id: 'hafalan',
+          label: 'Hafalan & rapor',
+          isi: [grup(kartuHafalan(data), B ? B.kartuRapor(student, headers) : null), kartuCatatan(data), K.kartuLinimasa(K.butirKegiatan(data, student.name), {
+            judul: 'Catatan harian',
+            keterangan: `Semua yang tercatat ${K.PERIODE_HARI} hari terakhir, terbaru di atas.`,
+            perHalaman: 8,
+            polos: true
+          })]
+        },
+        { id: 'info', label: 'Info & tagihan', isi: [grup(tagihan, umum), B ? B.kartuDokumentasi(jadwalAsrama, student.id, headers) : null] },
+        { id: 'masukan', label: 'Kritik & saran', isi: [B ? B.kartuMasukan(students, student.id, headers) : null] }
+      ].map((k) => ({ ...k, isi: k.isi.filter(Boolean) })).filter((k) => k.isi.length);
+
+      let tersimpanTab = null;
+      try { tersimpanTab = localStorage.getItem(TAB_KUNCI); } catch { tersimpanTab = null; }
+      const tab = el('div', 'wali-tabs');
+      tab.setAttribute('role', 'tablist');
+      tab.setAttribute('aria-label', 'Kategori laporan ananda');
+      const panel = new Map();
+      const tombol = new Map();
+      function aktifkan(id, fokus = false) {
+        kategori.forEach((k) => {
+          const aktif = k.id === id;
+          panel.get(k.id).hidden = !aktif;
+          tombol.get(k.id).classList.toggle('is-active', aktif);
+          tombol.get(k.id).setAttribute('aria-selected', String(aktif));
+          tombol.get(k.id).tabIndex = aktif ? 0 : -1;
+        });
+        if (fokus) tombol.get(id).focus();
+        try { localStorage.setItem(TAB_KUNCI, id); } catch { /* tanpa penyimpanan tetap jalan */ }
+      }
+      kategori.forEach((k, indeks) => {
+        const b = el('button', 'wali-tab', k.label);
+        b.type = 'button';
+        b.id = `wali-tab-${k.id}`;
+        b.setAttribute('role', 'tab');
+        b.setAttribute('aria-controls', `wali-panel-${k.id}`);
+        b.addEventListener('click', () => aktifkan(k.id));
+        b.addEventListener('keydown', (event) => {
+          const geser = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
+          if (!geser) return;
+          event.preventDefault();
+          aktifkan(kategori[(indeks + geser + kategori.length) % kategori.length].id, true);
+        });
+        tombol.set(k.id, b);
+        tab.append(b);
+        const p = el('div', 'wali-panel');
+        p.id = `wali-panel-${k.id}`;
+        p.setAttribute('role', 'tabpanel');
+        p.setAttribute('aria-labelledby', b.id);
+        p.append(...k.isi);
+        panel.set(k.id, p);
+      });
+      wadah.replaceChildren(...atas, tab, ...kategori.map((k) => panel.get(k.id)));
+      aktifkan(kategori.some((k) => k.id === tersimpanTab) ? tersimpanTab : kategori[0].id);
     }
 
     function pilih(id) {

@@ -79,7 +79,7 @@ async function run() {
     assert.deepEqual(saya.body.permissions, ['finance.manage', 'leave.payment-read', 'operations.manage', 'operations.read']);
     assert.deepEqual(
       (await request(baseUrl, 'GET', '/api/me', { token: token[ROLES.PARENT] })).body.permissions,
-      ['dormitory-schedule.read', 'family-messages.send', 'programs.history', 'residence.read', 'students.read']
+      ['dormitory-schedule.read', 'family-messages.send', 'feedback.mine', 'feedback.send', 'programs.history', 'residence.read', 'students.read']
     );
 
     // Data secukupnya supaya endpoint punya sasaran yang nyata.
@@ -269,6 +269,10 @@ async function run() {
       { permission: 'students.manage', method: 'POST', path: '/api/presensi-asrama/kegiatan', body: () => ({ date: '2026-10-01', category: 'Ta', entries: [] }) },
       { permission: 'students.read', method: 'GET', path: () => `/api/students/${studentId}/doa` },
       { permission: 'family-messages.send', method: 'POST', path: () => `/api/students/${studentId}/doa`, body: () => ({}) },
+      { permission: 'feedback.mine', method: 'GET', path: '/api/masukan/saya' },
+      { permission: 'feedback.send', method: 'POST', path: '/api/masukan', body: () => ({}) },
+      { permission: 'feedback.read', method: 'GET', path: '/api/masukan' },
+      { permission: 'feedback.read', method: 'PATCH', path: '/api/masukan/00000000-0000-4000-8000-000000000000', body: () => ({}) },
       { permission: 'family-messages.read', method: 'GET', path: '/api/doa' },
       { permission: 'family-messages.read', method: 'POST', path: '/api/doa/00000000-0000-4000-8000-000000000000/dibaca' },
       { permission: 'leave.decide', method: 'PATCH', path: '/api/leave/00000000-0000-4000-8000-000000000000', body: () => ({ decision: 'tidak-ada' }) },

@@ -169,6 +169,9 @@ function createStudentProfileService({ database, accessFor, identityKey = 'devel
           `SELECT h.from_status, h.to_status, h.reason, h.changed_at, acc.name AS changed_by FROM student_status_history h
            LEFT JOIN accounts acc ON acc.id = h.changed_by_account_id WHERE h.student_id = $1 ORDER BY h.changed_at DESC LIMIT 30`, [studentId]
         );
+      }
+      // Wali ikut melihat urusan administrasi anaknya (tanpa catatan internal), supaya tahu apa yang sedang diurus.
+      if (staf || actor.role === 'parent') {
         kasus = await bacaBoleh(() => ambil(
           `SELECT c.kind, c.ref, c.status, c.note, to_char(c.due_on, 'YYYY-MM-DD') AS due_on FROM student_cases c
            WHERE c.student_id = $1 AND c.status <> 'selesai' AND c.kind IN ('lapor-diri', 'lapor-pendidikan', 'status-pendidikan') ORDER BY c.due_on NULLS LAST`, [studentId]
@@ -240,7 +243,7 @@ function createStudentProfileService({ database, accessFor, identityKey = 'devel
           dormitory: siswa.dormitory_id ? { id: siswa.dormitory_id, name: siswa.dormitory_name } : null,
           room: kamar, supervisors: pembina, history: penempatan
         },
-        administrativeCases: kasus.map((k) => ({ kind: k.kind, ref: k.ref, status: k.status, note: k.note || '', dueOn: k.due_on || null })),
+        administrativeCases: kasus.map((k) => ({ kind: k.kind, ref: k.ref, status: k.status, note: staf ? (k.note || '') : '', dueOn: k.due_on || null })),
         guardians: wali.map((w) => ({ id: w.id, name: w.name, email: staf ? w.email : null })),
         documents: dokumen,
         options: { documentKinds: Object.entries(JENIS_DOKUMEN).map(([id, label]) => ({ id, label })), visibilities: Object.entries(VISIBILITAS).filter(([id]) => id !== 'admin' || admin).map(([id, label]) => ({ id, label })), statuses: Object.entries(STATUS_SANTRI).map(([id, label]) => ({ id, label })), educationStatuses: Object.entries(STATUS_PENDIDIKAN).map(([id, label]) => ({ id, label })), passportStates: Object.entries(STATE_PASPOR).map(([id, label]) => ({ id, label })) },

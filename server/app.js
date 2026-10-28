@@ -56,6 +56,7 @@ const { createDormitoryRoomService } = require('./dormitory-room-service.js');
 const { createProgramService } = require('./program-service.js');
 const { createStudentProfileService } = require('./student-profile-service.js');
 const { createStudentImportService } = require('./student-import-service.js');
+const { createParentFeedbackService } = require('./parent-feedback-service.js');
 const { createStudentJourneyService } = require('./student-journey-service.js');
 const { createStudentLifeService } = require('./student-life-service.js');
 const { createDormitoryRollService } = require('./dormitory-roll-service.js');
@@ -91,6 +92,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/programs.js'),
   ...require('./routes/student-profile.js'),
   ...require('./routes/student-imports.js'),
+  ...require('./routes/parent-feedback.js'),
   ...require('./routes/admin-demo.js'),
   ...require('./routes/settings.js'),
   ...require('./routes/site-content.js'),
@@ -455,6 +457,12 @@ function createHamasahApp(options) {
     sendInvitation: ({ email, name, token }) => notificationService.sendInvitation({ email, name, activationUrl: `/aktivasi#token=${encodeURIComponent(token)}` })
   });
 
+  const parentFeedbackService = config.parentFeedbackService || createParentFeedbackService({
+    database,
+    accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor),
+    staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId)
+  });
+
   const services = Object.freeze({
     manualCommunications: {
       invoiceDrafts: (invoice) => require('./manual-whatsapp.js').invoiceDrafts(database, invoice, config.appBaseUrl || email.appBaseUrl || ''),
@@ -478,6 +486,7 @@ function createHamasahApp(options) {
     programService,
     studentProfileService,
     studentImportService,
+    parentFeedbackService,
     demoDataService,
     settingsService,
     siteContentService,
