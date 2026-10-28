@@ -76,7 +76,7 @@ async function run() {
 
     // /api/me ikut mengirim daftar izin untuk menyusun menu.
     const saya = await request(baseUrl, 'GET', '/api/me', { token: token[ROLES.FINANCE] });
-    assert.deepEqual(saya.body.permissions, ['finance.manage', 'operations.manage', 'operations.read']);
+    assert.deepEqual(saya.body.permissions, ['finance.manage', 'leave.payment-read', 'operations.manage', 'operations.read']);
     assert.deepEqual(
       (await request(baseUrl, 'GET', '/api/me', { token: token[ROLES.PARENT] })).body.permissions,
       ['dormitory-schedule.read', 'family-messages.send', 'residence.read', 'students.read']
@@ -228,6 +228,8 @@ async function run() {
       { permission: 'leave.request', method: 'POST', path: () => `/api/students/${studentId}/leave`, body: () => ({}) },
       { permission: 'leave.request', method: 'POST', path: '/api/leave/00000000-0000-4000-8000-000000000000/batal' },
       { permission: 'leave.decide', method: 'GET', path: '/api/leave' },
+      { permission: 'leave.decide', method: 'POST', path: '/api/students/00000000-0000-4000-8000-000000000000/izin-pulang', body: () => ({ reason: '' }) },
+      { permission: 'leave.payment-read', method: 'GET', path: '/api/izin-pulang' },
       { permission: 'leave.decide', method: 'POST', path: '/api/leave/00000000-0000-4000-8000-000000000000/returned', body: () => ({}) },
       { permission: 'students.manage', method: 'GET', path: '/api/presensi-asrama?mode=sholat&date=2026-10-01&prayer=subuh' },
       { permission: 'students.manage', method: 'GET', path: '/api/presensi-asrama/hari-ini' },

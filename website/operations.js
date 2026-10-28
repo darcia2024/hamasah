@@ -850,6 +850,33 @@ async function unduhKuitansi(invoice, tombol) {
 
 // Kartu invoice: santri dan keterangan di kiri, nominal dan status di kanan, nomor dan
 // tanggal di baris kecil, lalu aksi di kaki kartu (aksi utama kiri, koreksi kanan).
+// Santri yang pulang ke Indonesia membayar dengan tarif berbeda selama pulang. Daftar ini hanya
+// penanda untuk keuangan; tagihan tidak diubah otomatis karena tarifnya belum diputuskan.
+const pulangPerSantri = new Map();
+let pulangDimuatPada = 0;
+const LABEL_PULANG = { terjadwal: 'akan pulang', 'sedang-pulang': 'sedang pulang', 'melewati-jadwal': 'belum kembali sesuai jadwal', 'sudah-kembali': 'baru kembali' };
+const TANGGAL_PULANG = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Jakarta' });
+
+async function muatPulangIndonesia() {
+  if (Date.now() - pulangDimuatPada < 60000) return;
+  pulangDimuatPada = Date.now();
+  try {
+    const response = await fetch('/api/izin-pulang', { headers: headers() });
+    if (!response.ok) return;
+    const data = await response.json();
+    pulangPerSantri.clear();
+    (data.items || []).forEach((item) => { if (!pulangPerSantri.has(item.studentId)) pulangPerSantri.set(item.studentId, item); });
+  } catch {
+    // Penanda ini pelengkap; daftar tagihan tetap tampil tanpa dia.
+  }
+}
+
+function lencanaPulang(izin) {
+  const lencana = document.createElement('span');
+  lencana.className = 'invoice-card__home';
+  lencana.textContent = `Pulang ke Indonesia, ${LABEL_PULANG[izin.state] || izin.state} (${TANGGAL_PULANG.format(new Date(izin.startsAt))} sampai ${TANGGAL_PULANG.format(new Date(izin.endsAt))}). Pembayaran berbeda.`;
+  return lencana;
+}
 function invoiceRow(invoice) {
   const telat = invoice.status === 'unpaid' && umurHari(invoice.issuedAt) > TUNGGAKAN_HARI;
   const baris = document.createElement('div');
@@ -864,6 +891,8 @@ function invoiceRow(invoice) {
   const rinci = document.createElement('span');
   rinci.textContent = invoice.description;
   siapa.append(nama, rinci);
+  const pulang = pulangPerSantri.get(invoice.studentId);
+  if (pulang) siapa.append(lencanaPulang(pulang));
 
   const nilai = document.createElement('div');
   nilai.className = 'invoice-card__value';
@@ -1066,6 +1095,7 @@ function renderInvoices(invoices, append) {
 // append: tambahkan halaman berikutnya. Tanpa append, muat ulang dari awal sebanyak yang
 // sudah tampil (paling banyak 100), supaya posisi pengguna tidak hilang setelah mengubah tagihan.
 async function loadInvoices({ append = false } = {}) {
+  await muatPulangIndonesia();
   const token = ++invoiceRequest;
   const params = new URLSearchParams();
   const offset = append ? invoiceShown : 0;

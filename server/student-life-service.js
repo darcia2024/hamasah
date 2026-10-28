@@ -12,7 +12,12 @@ const crypto = require('node:crypto');
 
 const JUZ_STATUSES = Object.freeze(['belum', 'sedang', 'hafal']);
 const AUDIENCES = Object.freeze(['santri', 'wali', 'semua']);
-const LEAVE_KINDS = Object.freeze({ 'keluar-asrama': 'Izin keluar asrama', sakit: 'Izin sakit', lainnya: 'Izin lainnya' });
+// pulang-indonesia: pulang ke Indonesia untuk waktu yang lebih lama. Berpengaruh ke pembayaran santri,
+// jadi keuangan ikut melihatnya (homeLeaves). Besaran tarifnya belum diputuskan, jadi tidak ada tagihan
+// yang diubah otomatis.
+const LEAVE_KINDS = Object.freeze({ 'keluar-asrama': 'Izin keluar asrama', sakit: 'Izin sakit', lainnya: 'Izin lainnya', 'pulang-indonesia': 'Izin pulang ke Indonesia' });
+const KEMBALI_KINDS = Object.freeze(['keluar-asrama', 'pulang-indonesia']);
+const MAX_HOME_LEAVE_DAYS = 365;
 const LEAVE_DECISIONS = Object.freeze(['disetujui', 'ditolak']);
 const MAX_LEAVE_DAYS = 30;
 const MAX_PENDING_LEAVES = 3;
@@ -265,7 +270,7 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
       startsAt: iso(row.starts_at),
       endsAt: iso(row.ends_at),
       returnedAt: iso(row.returned_at), returnNote: row.return_note || null,
-      returnState: row.returned_at ? 'kembali' : row.status !== 'disetujui' || row.kind !== 'keluar-asrama' ? null : new Date(row.starts_at) > now() ? 'terjadwal' : new Date(row.ends_at) < now() ? 'terlambat' : 'di-luar',
+      returnState: row.returned_at ? 'kembali' : row.status !== 'disetujui' || !KEMBALI_KINDS.includes(row.kind) ? null : new Date(row.starts_at) > now() ? 'terjadwal' : new Date(row.ends_at) < now() ? 'terlambat' : 'di-luar',
       reason: row.reason,
       status: row.status,
       decisionNote: row.decision_note || null,
@@ -294,7 +299,8 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
     if (!LEAVE_KINDS[kind]) return { ok: false, error: 'Pilih jenis izin.' };
     if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) return { ok: false, error: 'Isi waktu mulai dan selesai izin.' };
     if (endsAt <= startsAt) return { ok: false, error: 'Waktu selesai harus setelah waktu mulai.' };
-    if (endsAt - startsAt > MAX_LEAVE_DAYS * HARI_MS) return { ok: false, error: `Izin paling lama ${MAX_LEAVE_DAYS} hari. Untuk lebih lama, hubungi musyrif langsung.` };
+    const batasHari = kind === 'pulang-indonesia' ? MAX_HOME_LEAVE_DAYS : MAX_LEAVE_DAYS;
+    if (endsAt - startsAt > batasHari * HARI_MS) return { ok: false, error: `Izin paling lama ${batasHari} hari. Untuk lebih lama, hubungi musyrif langsung.` };
     if (startsAt < new Date(now().getTime() - HARI_MS)) return { ok: false, error: 'Izin tidak bisa diajukan untuk waktu yang sudah lewat lebih dari sehari.' };
     if (reason.length < 5 || reason.length > 500) return { ok: false, error: 'Alasan izin 5 sampai 500 karakter.' };
     return tulis(async () => {
@@ -336,7 +342,7 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
     const hasil = await baca(async () => {
       const { rows } = await database.query(
         `${SELECT_LEAVE}
-          WHERE ($1::text = 'semua' OR l.status = $1 OR ($1 IN ('belum-kembali','kepulangan') AND l.status='disetujui' AND l.kind='keluar-asrama' AND ($1='kepulangan' OR l.returned_at IS NULL)))
+          WHERE ($1::text = 'semua' OR l.status = $1 OR ($1 IN ('belum-kembali','kepulangan') AND l.status='disetujui' AND l.kind IN ('keluar-asrama','pulang-indonesia') AND ($1='kepulangan' OR l.returned_at IS NULL)))
             AND ($2::uuid[] IS NULL OR s.dormitory_id = ANY($2::uuid[]))
           ORDER BY CASE WHEN $1 IN ('belum-kembali','kepulangan') THEN l.ends_at END ASC, l.created_at DESC LIMIT 50`,
         [status, asrama]
@@ -396,6 +402,58 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
     });
   }
 
+  // Musyrif atau admin mencatat izin pulang ke Indonesia untuk santri yang tidak mengajukan sendiri.
+  // Langsung disetujui. { startsOn, endsOn: 'YYYY-MM-DD', reason }.
+  async function recordHomeLeave(studentId, input, actor) {
+    if (!actor || !['admin', 'supervisor'].includes(actor.role)) return { ok: false, status: 403, error: 'Hanya admin dan musyrif.' };
+    const akses = await aksesSantri(studentId, actor, 'write');
+    if (!akses.ok) return akses;
+    const source = input || {};
+    const mulai = clean(source.startsOn);
+    const selesai = clean(source.endsOn);
+    const reason = clean(source.reason);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(mulai) || !/^\d{4}-\d{2}-\d{2}$/.test(selesai)) return { ok: false, error: 'Isi tanggal berangkat dan perkiraan kembali.' };
+    const startsAt = new Date(`${mulai}T00:00:00+07:00`);
+    const endsAt = new Date(`${selesai}T23:59:00+07:00`);
+    if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) return { ok: false, error: 'Tanggal belum valid.' };
+    if (endsAt <= startsAt) return { ok: false, error: 'Tanggal kembali harus setelah tanggal berangkat.' };
+    if (endsAt - startsAt > MAX_HOME_LEAVE_DAYS * HARI_MS) return { ok: false, error: `Izin pulang paling lama ${MAX_HOME_LEAVE_DAYS} hari.` };
+    if (reason.length < 5 || reason.length > 500) return { ok: false, error: 'Alasan 5 sampai 500 karakter.' };
+    const dibuat = await tulis(async () => {
+      const id = crypto.randomUUID();
+      await database.query(
+        `INSERT INTO student_leave_requests (id, student_id, kind, starts_at, ends_at, reason, status, created_at)
+         VALUES ($1, $2, 'pulang-indonesia', $3, $4, $5, 'menunggu', $6)`,
+        [id, studentId, startsAt.toISOString(), endsAt.toISOString(), reason, now()]
+      );
+      return { ok: true, value: { id } };
+    });
+    if (!dibuat.ok) return dibuat;
+    return decideLeave(dibuat.value.id, { decision: 'disetujui', note: 'Dicatat langsung oleh staf.' }, actor);
+  }
+
+  // Santri yang pulang ke Indonesia (sedang, terjadwal, atau baru kembali), untuk keuangan:
+  // pembayaran mereka berbeda selama pulang. Hanya menampilkan; tidak mengubah tagihan.
+  async function homeLeaves(actor) {
+    if (!actor || !['admin', 'finance'].includes(actor.role)) return { ok: false, status: 403, error: 'Hanya admin dan keuangan.' };
+    const hasil = await baca(async () => {
+      const { rows } = await database.query(
+        `${SELECT_LEAVE}
+          WHERE l.kind = 'pulang-indonesia' AND l.status = 'disetujui'
+            AND (l.returned_at IS NULL OR l.returned_at >= $1)
+          ORDER BY l.starts_at DESC LIMIT 200`,
+        [new Date(now().getTime() - 60 * HARI_MS).toISOString()]
+      );
+      return { tersedia: true, rows };
+    }, { tersedia: false, rows: [] });
+    const saatIni = now();
+    const items = hasil.rows.map((row) => {
+      const izin = toLeave(row);
+      const state = izin.returnedAt ? 'sudah-kembali' : new Date(izin.startsAt) > saatIni ? 'terjadwal' : new Date(izin.endsAt) < saatIni ? 'melewati-jadwal' : 'sedang-pulang';
+      return { id: izin.id, studentId: izin.studentId, studentName: izin.studentName, dormitoryName: izin.dormitoryName || null, startsAt: izin.startsAt, endsAt: izin.endsAt, returnedAt: izin.returnedAt, state };
+    });
+    return { ok: true, value: { tersedia: hasil.tersedia, items } };
+  }
   async function cancelLeave(id, actor) {
     if (!actor || actor.role !== 'student') return { ok: false, status: 403, error: 'Hanya santri yang mengajukan.' };
     return tulis(async () => {
@@ -523,7 +581,7 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
       const {rows}=await database.query(SELECT_LEAVE+' WHERE l.id=$1',[id]);
       if(!rows.length) return {ok:false,status:404,error:'Izin tidak ditemukan.'};
       const leave=toLeave(rows[0]), access=await aksesSantri(leave.studentId,actor,'write');if(!access.ok)return access;
-      if(leave.status!=='disetujui'||leave.kind!=='keluar-asrama')return {ok:false,status:409,error:'Hanya izin keluar yang disetujui dapat dicatat kembali.'};
+      if(leave.status!=='disetujui'||!KEMBALI_KINDS.includes(leave.kind))return {ok:false,status:409,error:'Hanya izin keluar atau izin pulang yang disetujui dapat dicatat kembali.'};
       if(new Date(leave.startsAt)>now())return {ok:false,status:409,error:'Waktu izin belum dimulai.'};
       const result=await database.query('UPDATE student_leave_requests SET returned_at=$2,returned_by=$3,return_note=$4 WHERE id=$1 AND returned_at IS NULL RETURNING id',[id,now(),actor.id,note]);
       if(!result.rows.length)return {ok:false,status:409,error:'Kepulangan sudah dicatat.'};
@@ -569,9 +627,9 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
 
   return Object.freeze({
     followUps, saveFollowUp, markLeaveReturned, announcementTargets, announcementsFor, cancelLeave, createAnnouncement, decideLeave,
-    familyInbox, familyMessagesOf, juzMap, leaveQueue, leavesOf, markFamilyMessageRead,
+    familyInbox, familyMessagesOf, homeLeaves, juzMap, leaveQueue, leavesOf, recordHomeLeave, markFamilyMessageRead,
     removeAnnouncement, requestLeave, sendFamilyMessage, setJuz
   });
 }
 
-module.exports = { AUDIENCES, JUZ_STATUSES, LEAVE_KINDS, createStudentLifeService };
+module.exports = { AUDIENCES, JUZ_STATUSES, KEMBALI_KINDS, LEAVE_KINDS, createStudentLifeService };

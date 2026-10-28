@@ -167,6 +167,35 @@ async function run() {
     assert.equal(await jumlahAudit('leave.decided'), 1);
     assert.equal(await jumlahAudit('leave.cancelled'), 1);
 
+    // Izin pulang ke Indonesia: dicatat musyrif asrama itu, langsung disetujui, dan terlihat keuangan.
+    const keuangan = await akun('Keuangan Uji', 'keuangan-uji@uji.test', 'finance');
+    assert.ok(keuangan.id);
+    const tKeuangan = await masuk('keuangan-uji@uji.test');
+    const pulang = { startsOn: '2026-12-01', endsOn: '2027-02-28', reason: 'Pulang ke Indonesia selama libur semester.' };
+    assert.equal((await api('POST', `/api/students/${bilal.id}/izin-pulang`, tMusyrif, pulang)).status, 403, 'Musyrif asrama lain tidak boleh.');
+    assert.equal((await api('POST', `/api/students/${ahmad.id}/izin-pulang`, tAhmad, pulang)).status, 403, 'Santri tidak mencatat lewat jalur staf.');
+    assert.equal((await api('POST', `/api/students/${ahmad.id}/izin-pulang`, tMusyrif, { ...pulang, endsOn: '2026-11-01' })).status, 422);
+    assert.equal((await api('POST', `/api/students/${ahmad.id}/izin-pulang`, tMusyrif, { ...pulang, reason: 'x' })).status, 422);
+    const dicatat = await api('POST', `/api/students/${ahmad.id}/izin-pulang`, tMusyrif, pulang);
+    assert.equal(dicatat.status, 201, JSON.stringify(dicatat.body));
+    assert.equal(dicatat.body.leave.kind, 'pulang-indonesia');
+    assert.equal(dicatat.body.leave.status, 'disetujui');
+    assert.equal(dicatat.body.leave.kindLabel, 'Izin pulang ke Indonesia');
+    assert.equal(await jumlahAudit('leave.home-recorded'), 1);
+    // Santri sendiri boleh mengajukan jenis yang sama, dengan batas lebih panjang dari izin biasa.
+    const lama = { kind: 'pulang-indonesia', startsAt: besok.toISOString(), endsAt: new Date(besok.getTime() + 100 * 86400000).toISOString(), reason: 'Pulang menemani keluarga selama tiga bulan.' };
+    assert.equal((await api('POST', `/api/students/${bilal.id}/leave`, tBilal, lama)).status, 201);
+    assert.equal((await api('POST', `/api/students/${bilal.id}/leave`, tBilal, { ...lama, kind: 'sakit' })).status, 422, 'Izin biasa tetap dibatasi 30 hari.');
+    // Keuangan melihat yang sudah disetujui saja; pihak lain tidak.
+    const daftarPulang = await api('GET', '/api/izin-pulang', tKeuangan);
+    assert.equal(daftarPulang.status, 200);
+    assert.deepEqual(daftarPulang.body.items.map((item) => item.studentId), [ahmad.id]);
+    assert.equal(daftarPulang.body.items[0].state, 'terjadwal');
+    assert.equal((await api('GET', '/api/izin-pulang', tMusyrif)).status, 403);
+    assert.equal((await api('GET', '/api/izin-pulang', tWali)).status, 403);
+    // Kepulangan boleh dicatat setelah santri kembali, sama seperti izin keluar.
+    assert.equal((await api('POST', `/api/leave/${dicatat.body.leave.id}/returned`, tMusyrif, {})).status, 409, 'Belum dimulai.');
+
     // ------------------------------------------------------------- tagihan sendiri
     const tagihan = await api('POST', '/api/operations/invoices', admin, { studentId: ahmad.id, description: 'SPP Oktober', amount: 1500000 });
     assert.equal(tagihan.status, 201);

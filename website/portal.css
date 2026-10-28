@@ -9003,3 +9003,7 @@ button.santri-juz__cell:focus-visible {
   .op-dialog .op-dialog__actions { margin: 4px -18px -18px; padding: 12px 18px; }
   .op-dialog .op-dialog__actions .button { flex: 1; }
 }
+
+.invoice-card__home { display: block; margin-top: 4px; padding: 3px 10px; border-radius: 8px; background: #E4EEF8; color: #264B73; font-size: 12.5px; font-weight: 600; line-height: 1.4; }
+.santri-leave-form__hint { margin: 0; padding: 8px 12px; border-radius: 10px; background: #E4EEF8; color: #264B73; font-size: 13.5px; line-height: 1.45; }
+

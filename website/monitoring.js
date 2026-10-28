@@ -780,8 +780,35 @@ async function putuskanIzin(item, keputusan) {
 
 leaveFilter.addEventListener('change', () => muatIzin());
 
+// Izin pulang ke Indonesia yang dicatat langsung oleh musyrif atau admin. Langsung disetujui.
+// Berpengaruh ke pembayaran santri, jadi keuangan melihat daftarnya (GET /api/izin-pulang).
+async function catatIzinPulang() {
+  const santri = [...studentSelect.options].filter((opsi) => opsi.value).map((opsi) => [opsi.value, opsi.textContent]);
+  if (!santri.length) {
+    statusPanel(leaveStatus, 'Belum ada santri yang bisa dipilih.', true);
+    return;
+  }
+  const hasil = await window.HamasahDialog.formulir({
+    judul: 'Catat izin pulang ke Indonesia',
+    keterangan: 'Izin ini langsung disetujui. Pembayaran santri selama pulang berbeda, jadi bagian keuangan ikut melihatnya.',
+    bidang: [
+      { nama: 'studentId', label: 'Santri', jenis: 'select', pilihan: santri, nilai: santri[0][0], wajib: true },
+      { nama: 'startsOn', label: 'Tanggal berangkat', jenis: 'date', nilai: today(), wajib: true },
+      { nama: 'endsOn', label: 'Perkiraan kembali', jenis: 'date', nilai: '', wajib: true },
+      { nama: 'reason', label: 'Alasan', jenis: 'textarea', wajib: true, petunjuk: 'Contoh: libur semester, pulang menemani keluarga.' }
+    ],
+    labelSimpan: 'Catat izin',
+    kirim: (nilai) => kirimJson(`/api/students/${encodeURIComponent(nilai.studentId)}/izin-pulang`, 'POST', { startsOn: nilai.startsOn, endsOn: nilai.endsOn, reason: nilai.reason })
+  });
+  if (hasil) {
+    leaveFilter.value = 'disetujui';
+    await muatIzin();
+  }
+}
+document.querySelector('#home-leave-new').addEventListener('click', () => catatIzinPulang());
+
 // Tab yang bisa dibuka langsung lewat alamat, misalnya dari pintasan di beranda Portal.
-const TAB_ALAMAT = Object.freeze({ 'tindak-lanjut': '#tab-btn-followups', kepulangan: '#tab-btn-returns', presensi: '#tab-btn-roll', izin: '#tab-btn-leave', 'pesan-wali': '#tab-btn-family', pengumuman: '#tab-btn-announcements' });
+const TAB_ALAMAT = Object.freeze({ 'tindak-lanjut': '#tab-btn-followups', kepulangan: '#tab-btn-returns', presensi: '#tab-btn-roll', izin: '#tab-btn-leave', 'izin-pulang': '#tab-btn-leave', 'pesan-wali': '#tab-btn-family', pengumuman: '#tab-btn-announcements' });
 // #presensi-subuh dan sejenisnya langsung memilih waktu sholat itu dan menampilkan daftarnya.
 function bukaTabDariAlamat() {
   const alamat = window.location.hash.slice(1);

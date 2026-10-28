@@ -406,6 +406,7 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
         totals: {
           activeStudents: lingkup.length,
           onLeave: sedangIzin.length,
+          homeLeave: sedangIzin.filter((s) => izinPer.get(s.id) === 'pulang-indonesia').length,
           sick: sedangSakit.length,
           dormitories: totalAsrama,
           supervisors: musyrif[0] ? musyrif[0].jumlah : 0,

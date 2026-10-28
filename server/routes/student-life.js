@@ -228,5 +228,34 @@ module.exports = [
       }
       balas(response, hasil, 200, (value) => ({ message: value }));
     }
+  },
+
+  // Izin pulang ke Indonesia yang dicatat musyrif atau admin: { startsOn, endsOn, reason }.
+  // Langsung disetujui. Berpengaruh ke pembayaran, jadi keuangan melihat daftarnya.
+  {
+    method: 'POST',
+    pattern: /^\/api\/students\/([\w-]+)\/izin-pulang$/,
+    permission: 'leave.decide',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const actor = await auth.actor();
+      const hasil = await services.studentLifeService.recordHomeLeave(params[0], await readBody(), actor);
+      if (hasil.ok) {
+        await services.auditService.record({
+          action: ACTIONS.LEAVE_HOME_RECORDED, actor, ip,
+          entityType: 'leave', entityId: hasil.value.id, metadata: { studentId: params[0] }
+        });
+      }
+      balas(response, hasil, 201, (value) => ({ leave: value }));
+    }
+  },
+
+  // Santri yang sedang, akan, atau baru pulang ke Indonesia, untuk keuangan dan admin.
+  {
+    method: 'GET',
+    pattern: /^\/api\/izin-pulang$/,
+    permission: 'leave.payment-read',
+    async handler({ response, services, auth }) {
+      balas(response, await services.studentLifeService.homeLeaves(await auth.actor()));
+    }
   }
 ];

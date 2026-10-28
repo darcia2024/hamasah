@@ -315,7 +315,7 @@
 
   // --------------------------------------------------------------------- Izin
   const STATUS_IZIN = { menunggu: 'Menunggu keputusan', disetujui: 'Disetujui', ditolak: 'Ditolak', dibatalkan: 'Dibatalkan' };
-  const JENIS_IZIN = [['keluar-asrama', 'Izin keluar asrama'], ['sakit', 'Izin sakit'], ['lainnya', 'Izin lainnya']];
+  const JENIS_IZIN = [['keluar-asrama', 'Izin keluar asrama'], ['sakit', 'Izin sakit'], ['lainnya', 'Izin lainnya'], ['pulang-indonesia', 'Izin pulang ke Indonesia']];
   const WAKTU = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
 
   function waktu(iso) {
@@ -367,6 +367,9 @@
       }
       const jenis = el('select');
       JENIS_IZIN.forEach(([nilai, teks]) => jenis.add(new Option(teks, nilai)));
+      const petunjukPulang = el('p', 'santri-leave-form__hint', 'Izin pulang ke Indonesia memengaruhi pembayaran ke Hamasah, jadi bagian keuangan ikut melihatnya. Isi tanggal berangkat dan perkiraan kembali.');
+      petunjukPulang.hidden = true;
+      jenis.addEventListener('change', () => { petunjukPulang.hidden = jenis.value !== 'pulang-indonesia'; });
       const mulai = el('input');
       mulai.type = 'datetime-local';
       const selesai = el('input');
@@ -381,7 +384,7 @@
       batalTombol.type = 'button';
       const aksi = el('div', 'santri-leave-form__actions');
       aksi.append(kirimTombol, batalTombol);
-      form.append(bidang('Jenis izin', jenis), bidang('Mulai', mulai), bidang('Selesai', selesai), bidang('Alasan', alasan), aksi);
+      form.append(bidang('Jenis izin', jenis), petunjukPulang, bidang('Mulai', mulai), bidang('Selesai', selesai), bidang('Alasan', alasan), aksi);
       const lipat = (terbuka) => {
         form.hidden = !terbuka;
         buka.hidden = terbuka;

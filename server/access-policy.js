@@ -55,6 +55,8 @@ const PERMISSIONS = Object.freeze({
   // Pengajuan izin dibuat santri, diputuskan musyrif asramanya atau admin.
   'leave.request': Object.freeze([ROLES.STUDENT]),
   'leave.decide': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
+  // Santri yang pulang ke Indonesia memengaruhi pembayarannya, jadi keuangan ikut melihat daftarnya.
+  'leave.payment-read': Object.freeze([ROLES.ADMIN, ROLES.FINANCE]),
   // "Kirim doa untuk ananda": wali menulis, musyrif asramanya dan admin membaca.
   'family-messages.send': Object.freeze([ROLES.PARENT]),
   'family-messages.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),

@@ -1545,6 +1545,7 @@ const PINTASAN_PERAN = {
     ['monitoring#presensi', 'Presensi asrama (sholat dan kegiatan)'],
     ['monitoring', 'Catat pembinaan per santri'],
     ['monitoring#izin', 'Izin santri'],
+    ['monitoring#izin-pulang', 'Izin pulang ke Indonesia'],
     ['monitoring#pesan-wali', 'Pesan wali'],
     ['monitoring#tindak-lanjut', 'Tindak lanjut pembinaan'],
     ['monitoring#kepulangan', 'Kepulangan izin'],

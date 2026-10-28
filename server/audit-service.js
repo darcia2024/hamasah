@@ -87,6 +87,7 @@ const ACTIONS = Object.freeze({
   ,LEAVE_REQUESTED: 'leave.requested'
   ,LEAVE_DECIDED: 'leave.decided'
   ,LEAVE_CANCELLED: 'leave.cancelled'
+,LEAVE_HOME_RECORDED: 'leave.home-recorded'
   ,RESIDENCE_REPORTED: 'residence.reported'
   ,RESIDENCE_UPDATED: 'residence.updated'
   ,RESIDENCE_REPORT_DECIDED: 'residence.report-decided'

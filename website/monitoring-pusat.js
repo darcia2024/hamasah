@@ -134,7 +134,7 @@
       const urgen = data.cases.urgent;
       kartuAngka.replaceChildren(
         angka('Santri aktif', t.activeStudents, t.truncated ? 'Dibatasi 1000 santri pertama' : 'Sesuai saringan di atas'),
-        angka('Santri izin', t.onLeave, 'Izin disetujui yang sedang berjalan', t.onLeave ? 'info' : ''),
+        angka('Santri izin', t.onLeave, t.homeLeave ? `Termasuk ${t.homeLeave} pulang ke Indonesia` : 'Izin disetujui yang sedang berjalan', t.onLeave ? 'info' : ''),
         angka('Santri sakit', t.sick, data.healthEnabled ? 'Catatan kesehatan 3 hari terakhir' : 'Dari izin sakit; catatan kesehatan belum aktif', t.sick ? 'warn' : ''),
         angka('Asrama', t.dormitories, 'Yang berpenghuni'),
         angka('Musyrif aktif', t.supervisors, 'Seluruh lembaga'),
