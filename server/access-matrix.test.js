@@ -172,6 +172,7 @@ async function run() {
       // Impor santri massal (migrasi 063). Baris kosong: tidak ada yang dibuat.
       { permission: 'students.import', method: 'GET', path: '/api/impor-santri' },
       { permission: 'students.import', method: 'POST', path: '/api/impor-santri/pratinjau', body: () => ({ rows: [] }) },
+      { permission: 'students.import', method: 'PATCH', path: '/api/impor-santri/00000000-0000-4000-8000-000000000000/baris/1', body: () => ({ values: {} }) },
       // Profil santri terintegrasi (migrasi 061).
       { permission: 'students.read', method: 'GET', path: '/api/students/00000000-0000-4000-8000-000000000000/profil' },
       { permission: 'students.manage', method: 'PATCH', path: '/api/students/00000000-0000-4000-8000-000000000000/profil', body: () => ({ phone: '1' }) },

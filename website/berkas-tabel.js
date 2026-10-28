@@ -103,30 +103,38 @@
     return nilai - 1;
   }
 
-  async function uraiXlsx(buffer) {
+  // Daftar lembar (nama dan jalur berkasnya) menurut urutan di workbook.xml.
+  async function daftarLembar(baca) {
+    const buku = await baca('xl/workbook.xml');
+    const rel = await baca('xl/_rels/workbook.xml.rels');
+    const hasil = [];
+    if (buku && rel) {
+      const hubungan = new Map([...xml(rel).querySelectorAll('Relationship')].map((r) => [r.getAttribute('Id'), r.getAttribute('Target')]));
+      xml(buku).querySelectorAll('sheet').forEach((lembar) => {
+        const rid = lembar.getAttribute('r:id') || lembar.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id');
+        const target = hubungan.get(rid);
+        if (target) hasil.push({ nama: lembar.getAttribute('name') || `Lembar ${hasil.length + 1}`, jalur: `xl/${target.replace(/^\/?(xl\/)?/, '')}` });
+      });
+    }
+    return hasil.length ? hasil : [{ nama: 'Lembar 1', jalur: 'xl/worksheets/sheet1.xml' }];
+  }
+
+  async function uraiXlsx(buffer, indeks = 0) {
     const baca = await bukaZip(buffer);
     const bersama = [];
     const teksBersama = await baca('xl/sharedStrings.xml');
     if (teksBersama) {
       xml(teksBersama).querySelectorAll('si').forEach((si) => bersama.push([...si.querySelectorAll('t')].map((t) => t.textContent).join('')));
     }
-    // Lembar pertama menurut urutan di workbook.xml.
-    let jalur = 'xl/worksheets/sheet1.xml';
-    const buku = await baca('xl/workbook.xml');
-    const rel = await baca('xl/_rels/workbook.xml.rels');
-    if (buku && rel) {
-      const lembar = xml(buku).querySelector('sheet');
-      const rid = lembar && (lembar.getAttribute('r:id') || lembar.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id'));
-      const hubungan = [...xml(rel).querySelectorAll('Relationship')].find((r) => r.getAttribute('Id') === rid);
-      if (hubungan) jalur = `xl/${hubungan.getAttribute('Target').replace(/^\/?(xl\/)?/, '')}`;
-    }
-    const teksLembar = await baca(jalur);
-    if (!teksLembar) throw new Error('Lembar pertama di berkas XLSX tidak ditemukan.');
+    const lembarAda = await daftarLembar(baca);
+    const pilih = lembarAda[Math.min(Math.max(Number(indeks) || 0, 0), lembarAda.length - 1)];
+    const teksLembar = await baca(pilih.jalur);
+    if (!teksLembar) throw new Error(`Lembar “${pilih.nama}” di berkas XLSX tidak ditemukan.`);
     const hasil = [];
     xml(teksLembar).querySelectorAll('sheetData > row').forEach((row) => {
       const baris = [];
       row.querySelectorAll('c').forEach((c) => {
-        const indeks = kolomKeIndeks(c.getAttribute('r') || '');
+        const posisi = kolomKeIndeks(c.getAttribute('r') || '');
         const tipe = c.getAttribute('t');
         let nilai = '';
         if (tipe === 'inlineStr') nilai = [...c.querySelectorAll('t')].map((t) => t.textContent).join('');
@@ -137,11 +145,11 @@
           else if (tipe === 'b') nilai = mentah === '1' ? 'ya' : 'tidak';
           else nilai = mentah;
         }
-        if (indeks >= 0) { while (baris.length < indeks) baris.push(''); baris[indeks] = nilai; }
+        if (posisi >= 0) { while (baris.length < posisi) baris.push(''); baris[posisi] = nilai; }
       });
       hasil.push(baris);
     });
-    return hasil;
+    return { rows: hasil, sheets: lembarAda.map((l) => l.nama), sheet: lembarAda.indexOf(pilih) };
   }
 
   // ------------------------------------------------------------------ umum
@@ -155,12 +163,15 @@
     return { headers, rows };
   }
 
-  async function baca(file) {
+  async function baca(file, { lembar = 0 } = {}) {
     if (!file) throw new Error('Pilih berkas dulu.');
     if (file.size > MAKS_BYTE) throw new Error('Berkas terlalu besar (maksimal 3 MB).');
     const nama = String(file.name || '').toLowerCase();
-    if (nama.endsWith('.xlsx')) return rapikan(await uraiXlsx(await file.arrayBuffer()));
-    if (nama.endsWith('.csv') || nama.endsWith('.txt') || file.type === 'text/csv') return rapikan(uraiCsv(await file.text()));
+    if (nama.endsWith('.xlsx')) {
+      const xlsx = await uraiXlsx(await file.arrayBuffer(), lembar);
+      return { ...rapikan(xlsx.rows), sheets: xlsx.sheets, sheet: xlsx.sheet };
+    }
+    if (nama.endsWith('.csv') || nama.endsWith('.txt') || file.type === 'text/csv') return { ...rapikan(uraiCsv(await file.text())), sheets: [], sheet: 0 };
     if (nama.endsWith('.xls')) throw new Error('Format .xls lama belum didukung. Simpan sebagai .xlsx atau .csv.');
     throw new Error('Format berkas belum didukung. Pakai CSV atau XLSX.');
   }

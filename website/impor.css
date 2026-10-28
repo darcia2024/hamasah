@@ -50,3 +50,5 @@
 .ip-history li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--k26-line, #E2DED6); }
 .ip-history li:first-child { border-top: 0; }
 @media (max-width: 760px) { .ip-map__row { grid-template-columns: 1fr; } }
+.ip-try { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.ip-try input { width: 18px; height: 18px; }

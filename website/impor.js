@@ -30,12 +30,15 @@
     { id: 'studyYear', label: 'Tahun studi ke-', kata: ['tahun studi', 'tahun ke', 'semester', 'tingkat studi'] },
     { id: 'guardianName', label: 'Nama wali', kata: ['nama wali', 'wali', 'orang tua', 'nama orang tua', 'ayah', 'nama ayah'] },
     { id: 'guardianEmail', label: 'Email wali (untuk undangan akun)', kata: ['email wali', 'email orang tua', 'email ortu', 'email ayah'] },
-    { id: 'guardianPhone', label: 'Telepon wali', kata: ['telepon wali', 'hp wali', 'no hp wali', 'wa wali', 'whatsapp wali', 'telp wali', 'no telepon wali'] }
+    { id: 'guardianPhone', label: 'Telepon wali', kata: ['telepon wali', 'hp wali', 'no hp wali', 'wa wali', 'whatsapp wali', 'telp wali', 'no telepon wali'] },
+    { id: 'guardian2Name', label: 'Nama wali kedua (opsional)', kata: ['nama wali 2', 'wali 2', 'wali kedua', 'nama ibu', 'ibu'] },
+    { id: 'guardian2Email', label: 'Email wali kedua', kata: ['email wali 2', 'email wali kedua', 'email ibu'] },
+    { id: 'guardian2Phone', label: 'Telepon wali kedua', kata: ['telepon wali 2', 'hp wali 2', 'telepon ibu', 'hp ibu', 'no hp ibu', 'wa ibu'] }
   ];
   const LABEL_STATUS = { siap: 'Siap', peringatan: 'Peringatan', bermasalah: 'Bermasalah', duplikat: 'Duplikat' };
   const LABEL_BATCH = { previewed: 'Menunggu konfirmasi', committing: 'Sedang diproses', committed: 'Selesai', cancelled: 'Dibatalkan' };
 
-  const state = { tahap: 'unggah', berkas: null, namaBerkas: '', pemetaan: {}, batch: null, saring: 'semua', dipilih: new Set(), riwayat: null, pesan: '' };
+  const state = { tahap: 'unggah', file: null, sheets: [], sheetIndex: 0, coba: false, berkas: null, namaBerkas: '', pemetaan: {}, batch: null, saring: 'semua', dipilih: new Set(), riwayat: null, pesan: '' };
 
   function el(tag, className, text) {
     const node = document.createElement(tag);
@@ -123,6 +126,10 @@
         if (!hasil.rows.length) throw new Error('Berkas hanya berisi baris judul, belum ada data santri.');
         if (hasil.rows.length > MAKS_BARIS) throw new Error(`Berkas berisi ${hasil.rows.length} baris. Satu impor paling banyak ${MAKS_BARIS}; bagi berkasnya.`);
         state.berkas = hasil;
+        state.file = file;
+        state.sheets = hasil.sheets || [];
+        state.sheetIndex = hasil.sheet || 0;
+        state.coba = false;
         state.namaBerkas = file.name;
         state.pemetaan = tebakPemetaan(hasil.headers);
         state.tahap = 'petakan';
@@ -177,6 +184,28 @@
 
   function tahapPetakan() {
     const k = kotak('Petakan kolom', `Berkas ${state.namaBerkas} berisi ${state.berkas.rows.length} baris. Pilih kolom berkas untuk tiap data santri. Kolom bertanda * wajib.`);
+    if (state.sheets.length > 1) {
+      const baris = el('label', 'ip-map__row');
+      baris.append(el('span', '', 'Lembar yang dipakai'));
+      const pilihLembar = el('select');
+      state.sheets.forEach((nama, i) => pilihLembar.append(new Option(nama, String(i))));
+      pilihLembar.value = String(state.sheetIndex);
+      pilihLembar.addEventListener('change', async () => {
+        try {
+          const hasil = await window.HamasahBerkasTabel.baca(state.file, { lembar: Number(pilihLembar.value) });
+          if (!hasil.rows.length) throw new Error('Lembar ini tidak berisi data.');
+          state.berkas = hasil;
+          state.sheetIndex = hasil.sheet;
+          state.pemetaan = tebakPemetaan(hasil.headers);
+          lukis();
+        } catch (error) {
+          window.alert(error.message);
+          pilihLembar.value = String(state.sheetIndex);
+        }
+      });
+      baris.append(pilihLembar, el('span', 'ip-map__sample', `Berkas ini punya ${state.sheets.length} lembar.`));
+      k.append(baris);
+    }
     const tabel = el('div', 'ip-map');
     FIELD.forEach((f) => {
       const baris = el('label', 'ip-map__row');
@@ -197,6 +226,13 @@
       tabel.append(baris);
     });
     k.append(tabel);
+    const cobaWadah = el('label', 'ip-try');
+    const cobaCek = el('input');
+    cobaCek.type = 'checkbox';
+    cobaCek.checked = state.coba;
+    cobaCek.addEventListener('change', () => { state.coba = cobaCek.checked; });
+    cobaWadah.append(cobaCek, document.createTextNode(' Coba dulu dengan 5 baris pertama (untuk memastikan pemetaan benar sebelum mengimpor semuanya)'));
+    k.append(cobaWadah);
     const st = el('p', 'ip-status');
     st.setAttribute('role', 'status');
     const aksi = el('div', 'ip-actions');
@@ -207,7 +243,8 @@
       periksa.disabled = true;
       st.textContent = 'Memeriksa data...';
       try {
-        const rows = state.berkas.rows.map((r) => Object.fromEntries(Object.entries(state.pemetaan).map(([id, i]) => [id, r[i] || ''])));
+        const sumberBaris = state.coba ? state.berkas.rows.slice(0, 5) : state.berkas.rows;
+        const rows = sumberBaris.map((r) => Object.fromEntries(Object.entries(state.pemetaan).map(([id, i]) => [id, r[i] || ''])));
         state.batch = await api('POST', '/api/impor-santri/pratinjau', { fileName: state.namaBerkas, rows });
         state.saring = 'semua';
         state.dipilih = pilihanAwal(state.batch);
@@ -253,6 +290,45 @@
     window.HamasahBerkasTabel.unduh('baris-bermasalah.csv', window.HamasahBerkasTabel.keCsv(hasil));
   }
 
+  // Perbaiki satu baris langsung di layar tinjau. Server memeriksa ulang seluruh batch karena duplikat,
+  // email kembar, dan kapasitas saling bergantung antarbaris.
+  async function dialogPerbaiki(baris) {
+    const r = baris.raw || {};
+    const teks = (nama, label, petunjuk) => ({ nama, label, jenis: 'text', nilai: r[nama] || '', ...(petunjuk ? { petunjuk } : {}) });
+    let hasil = null;
+    const ok = await window.HamasahDialog.formulir({
+      judul: `Perbaiki baris ${baris.row}${r.name ? `: ${r.name}` : ''}`,
+      keterangan: [...baris.errors, ...baris.duplicates.map((d) => d.pesan)].join(' ') || 'Ubah isian yang perlu, lalu seluruh berkas diperiksa ulang.',
+      bidang: [
+        teks('name', 'Nama santri'),
+        { nama: 'gender', label: 'Jenis', jenis: 'select', pilihan: [['', 'Belum diisi'], ['putra', 'Putra'], ['putri', 'Putri']], nilai: ['putra', 'putri'].includes(String(r.gender).toLowerCase()) ? String(r.gender).toLowerCase() : (baris.data.gender || '') },
+        teks('birthDate', 'Tanggal lahir', 'Contoh: 2005-09-30 atau 30/09/2005.'),
+        teks('program', 'Jenjang / program'),
+        teks('city', 'Kota asal'),
+        teks('dormitory', 'Asrama'),
+        teks('room', 'Kamar'),
+        teks('email', 'Email santri'),
+        teks('phone', 'Telepon santri'),
+        teks('guardianName', 'Nama wali'),
+        teks('guardianEmail', 'Email wali'),
+        teks('guardian2Name', 'Nama wali kedua'),
+        teks('guardian2Email', 'Email wali kedua')
+      ],
+      labelSimpan: 'Simpan dan periksa ulang',
+      kirim: async (nilai) => {
+        hasil = await api('PATCH', `/api/impor-santri/${encodeURIComponent(state.batch.id)}/baris/${baris.row}`, { values: nilai });
+        return hasil;
+      }
+    });
+    if (!ok || !hasil) return;
+    const diizinkan = new Set(hasil.rows.filter((b) => ['siap', 'peringatan'].includes(b.status)).map((b) => b.row));
+    const dipilihBaru = new Set([...state.dipilih].filter((nomor) => diizinkan.has(nomor) || (hasil.rows[nomor - 1] && hasil.rows[nomor - 1].status === 'duplikat')));
+    if (diizinkan.has(baris.row)) dipilihBaru.add(baris.row);
+    state.batch = { ...state.batch, summary: hasil.summary, rows: hasil.rows };
+    state.dipilih = dipilihBaru;
+    lukis();
+  }
+
   function tahapTinjau() {
     const batch = state.batch;
     const s = batch.summary;
@@ -296,10 +372,11 @@
       tr.append(sel, el('td', '', String(b.row)), el('td', '', b.data.name || '(kosong)'));
       const st = el('td');
       st.append(chip(LABEL_STATUS[b.status], b.status));
-      const wali = b.data.guardian === 'baru' ? 'Akun baru' : b.data.guardian === 'tautkan' ? 'Akun ditautkan' : (b.data.guardianName ? 'Tanpa akun' : '');
-      tr.append(st, el('td', '', b.data.program), el('td', '', b.data.dormitoryName || ''), el('td', '', [b.data.guardianName, wali].filter(Boolean).join(' · ')));
+      const wali = (b.data.guardians || []).map((w) => `${w.name || w.email}${w.mode === 'baru' ? ' (akun baru)' : w.mode === 'tautkan' ? ' (ditautkan)' : ' (tanpa akun)'}`).join('; ');
+      tr.append(st, el('td', '', b.data.program), el('td', '', b.data.dormitoryName || ''), el('td', '', wali));
       const catatan = el('td');
       catatan.append(pesanBaris(b));
+      if (b.status !== 'siap') catatan.append(tombol('Perbaiki baris ini', 'button button--secondary ip-small', () => dialogPerbaiki(b).catch((error) => window.alert(error.message))));
       tr.append(catatan);
       tbody.append(tr);
     });
@@ -325,7 +402,15 @@
       try {
         const exclude = batch.rows.filter((b) => ['siap', 'peringatan'].includes(b.status) && !state.dipilih.has(b.row)).map((b) => b.row);
         const force = batch.rows.filter((b) => b.status === 'duplikat' && state.dipilih.has(b.row)).map((b) => b.row);
-        state.batch = await api('POST', `/api/impor-santri/${encodeURIComponent(batch.id)}/konfirmasi`, { exclude, force });
+        // Diproses per potongan kecil; ulangi sampai selesai. Keputusan hanya dikirim pada panggilan pertama.
+        const alamat = `/api/impor-santri/${encodeURIComponent(batch.id)}/konfirmasi`;
+        let hasil = await api('POST', alamat, { exclude, force });
+        for (let putaran = 0; hasil.status !== 'committed' && putaran < 200; putaran += 1) {
+          const p = hasil.progress || {};
+          st.textContent = `Menyimpan ${p.done || 0} dari ${p.total || '?'} santri... jangan tutup halaman ini.`;
+          hasil = await api('POST', alamat, {});
+        }
+        state.batch = hasil;
         state.tahap = 'laporan';
         lukis();
       } catch (error) {
@@ -354,7 +439,37 @@
       ringkas.append(d);
     });
     k.append(ringkas);
-    if (s.invitationsPending) k.append(el('p', 'ip-warning', `${s.invitationsPending} akun belum menerima email undangan (email belum tersedia atau gagal). Kirim ulang dari halaman Kelola Akun; tautan aktivasi dibuat saat itu.`));
+    if (batch.summary.redacted) k.append(el('p', 'ip-warning', 'Rincian impor ini sudah dihapus otomatis demi privasi; hanya angka ringkasannya yang tersisa.'));
+    if (s.invitationsPending && !batch.summary.redacted) {
+      k.append(el('p', 'ip-warning', `${s.invitationsPending} akun belum menerima email undangan (email belum tersedia atau gagal).`));
+      const stKirim = el('p', 'ip-status');
+      stKirim.setAttribute('role', 'status');
+      const kirimUlang = tombol(`Kirim ulang ${s.invitationsPending} undangan`, 'button button--primary ip-small', async () => {
+        kirimUlang.disabled = true;
+        const putaran = `p-${Date.now()}`;
+        let terkirim = 0;
+        let gagal = 0;
+        try {
+          let hasil;
+          for (let i = 0; i < 100; i += 1) {
+            hasil = await api('POST', `/api/impor-santri/${encodeURIComponent(batch.id)}/undangan-ulang`, { run: putaran });
+            terkirim += hasil.sent;
+            gagal += hasil.failed;
+            stKirim.textContent = `Terkirim ${terkirim}${gagal ? `, gagal ${gagal}` : ''}... masih ada ${hasil.remaining} antre.`;
+            if (!hasil.remaining) break;
+          }
+          state.batch = await api('GET', `/api/impor-santri/${encodeURIComponent(batch.id)}`);
+          state.pesan = gagal ? `${terkirim} undangan terkirim, ${gagal} gagal. Cek konfigurasi email, lalu coba lagi.` : `${terkirim} undangan terkirim.`;
+          lukis();
+        } catch (error) {
+          stKirim.textContent = error.message;
+          stKirim.className = 'ip-status is-galat';
+          kirimUlang.disabled = false;
+        }
+      });
+      k.append(kirimUlang, stKirim);
+    }
+    if (state.pesan) { k.append(el('p', 'ip-status', state.pesan)); state.pesan = ''; }
     k.append(el('p', 'ip-note', 'Akun hanya berupa undangan: pemilik akun membuat kata sandi sendiri lewat tautan aktivasi. Tautan tidak ditampilkan di laporan ini.'));
     const bungkus = el('div', 'ip-table-wrap');
     const tabel = el('table', 'ip-table');

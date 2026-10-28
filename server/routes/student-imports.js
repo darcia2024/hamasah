@@ -1,4 +1,4 @@
-﻿const { json, publicError } = require('../http/respond.js');
+const { json, publicError } = require('../http/respond.js');
 const { ACTIONS } = require('../audit-service.js');
 
 // Impor santri massal (student-import-service.js). Hanya admin. Audit mencatat jumlah baris dan
@@ -60,6 +60,29 @@ module.exports = [
     permission: 'students.import',
     async handler({ response, services, auth, params }) {
       balas(response, await services.studentImportService.cancel(params[0], await auth.actor()));
+    }
+  },
+  // Perbaiki satu baris pada pratinjau: { values: { name, birthDate, ... } }. Seluruh batch diperiksa ulang.
+  {
+    method: 'PATCH',
+    pattern: pola(`\\/api\\/impor-santri\\/${ID}\\/baris\\/(\\d+)`),
+    permission: 'students.import',
+    async handler({ response, services, auth, params, readBody }) {
+      balas(response, await services.studentImportService.reviseRow(params[0], params[1], await readBody(), await auth.actor()));
+    }
+  },
+  // Kirim ulang undangan yang belum terkirim, per potongan: { run, limit }. Tautan tidak dikembalikan.
+  {
+    method: 'POST',
+    pattern: pola(`\\/api\\/impor-santri\\/${ID}\\/undangan-ulang`),
+    permission: 'students.import',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const actor = await auth.actor();
+      const hasil = await services.studentImportService.resendInvitations(params[0], await readBody(), actor);
+      if (hasil.ok && hasil.value.sent) {
+        await services.auditService.record({ action: ACTIONS.STUDENT_IMPORT_INVITATIONS_RESENT, actor, ip, entityType: 'student-import', entityId: params[0], metadata: { sent: hasil.value.sent, failed: hasil.value.failed } });
+      }
+      balas(response, hasil);
     }
   }
 ];
