@@ -105,27 +105,28 @@
     return kelompok;
   }
 
-  function perhatian(data, { onOpenStudent }) {
+  function perhatian(data, { onOpenStudent, judul = 'Perlu perhatian', kecuali = [], id = 'admin-perhatian' }) {
+    const alerts = data.alerts.filter((a) => !kecuali.includes(a.kind));
     const wadah = el('section', 'admin-alerts');
-    wadah.id = 'admin-perhatian';
+    wadah.id = id;
     wadah.tabIndex = -1;
     const kepala = el('div', 'admin-section-head attn-head');
-    const jumlah = (level) => data.alerts.filter((a) => a.level === level).length;
+    const jumlah = (level) => alerts.filter((a) => a.level === level).length;
     const ringkas = el('p', 'attn-summary');
     ['tinggi', 'sedang', 'info'].forEach((level) => {
       const n = jumlah(level);
       if (n) ringkas.append(el('span', `attn-count is-${level}`, `${n} ${LABEL_TINGKAT[level].toLowerCase()}`));
     });
     ringkas.append(el('span', 'attn-updated', `Diperbarui ${WAKTU.format(new Date(data.generatedAt))}`));
-    kepala.append(el('h3', 'admin-section-title', 'Perlu perhatian'), ringkas);
+    kepala.append(el('h3', 'admin-section-title', judul), ringkas);
     wadah.append(kepala);
 
-    if (!data.alerts.length) {
+    if (!alerts.length) {
       wadah.append(el('p', 'admin-empty', 'Tidak ada yang perlu ditindaklanjuti saat ini.'));
       return wadah;
     }
 
-    const grup = kelompokPerhatian(data.alerts);
+    const grup = kelompokPerhatian(alerts);
     const daftar = el('ul', 'attn-list');
     grup.forEach((g, indeks) => {
       const li = el('li', `attn-group is-${g.butir[0].level}`);

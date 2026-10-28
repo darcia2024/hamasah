@@ -1394,7 +1394,14 @@ function renderExecutiveDashboard(_daftarAwal, account) {
     ...(ringkasan ? [window.HamasahAdminOverview.kpi(ringkasan)] : []),
     // Super admin: pendaftaran, belajar, dan keuangan di layar yang sama (beranda-admin.js).
     ...(isAdmin && window.HamasahBerandaAdmin ? [window.HamasahBerandaAdmin.operasional(requestHeaders())] : []),
-    ...(ringkasan ? [window.HamasahAdminOverview.perhatian(ringkasan, { onOpenStudent: bukaSantri })] : []),
+    // Monitoring pusat memegang paspor dan iqamah (dengan status tindak lanjut); catatan
+    // pembinaan lain (kehadiran, sholat, kesehatan, tagihan, ...) tetap di daftar ini.
+    ...(ringkasan && window.HamasahMonitoringPusat
+      ? [
+        window.HamasahMonitoringPusat.render({ headers: requestHeaders, onOpenStudent: bukaSantri }),
+        window.HamasahAdminOverview.perhatian(ringkasan, { onOpenStudent: bukaSantri, judul: 'Catatan pembinaan', kecuali: ['visa', 'paspor'], id: 'admin-catatan' })
+      ]
+      : ringkasan ? [window.HamasahAdminOverview.perhatian(ringkasan, { onOpenStudent: bukaSantri })] : []),
     ...(isSupervisor ? [kartuTugasMusyrif()] : []),
     ...(berandaPeran ? [berandaPeran] : [subtabsRow, panelsContainer]),
     ...(kartuDemo ? [kartuDemo] : [])

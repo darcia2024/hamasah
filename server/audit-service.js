@@ -90,6 +90,8 @@ const ACTIONS = Object.freeze({
   ,RESIDENCE_REPORTED: 'residence.reported'
   ,RESIDENCE_UPDATED: 'residence.updated'
   ,RESIDENCE_REPORT_DECIDED: 'residence.report-decided'
+  ,MONITORING_CASE_CREATED: 'monitoring.case-created'
+  ,MONITORING_CASE_UPDATED: 'monitoring.case-updated'
   ,FAMILY_MESSAGE_SENT: 'family-message.sent'
   ,FAMILY_MESSAGE_READ: 'family-message.read'
   ,DORMITORY_ROLL_RECORDED: 'dormitory.roll-recorded'

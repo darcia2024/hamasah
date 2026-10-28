@@ -51,6 +51,7 @@ const { createEventNotifier } = require('./event-notifications.js');
 const { createDepartureService } = require('./departure-service.js');
 const { createStudentCareService } = require('./student-care-service.js');
 const { createAdminOverviewService } = require('./admin-overview-service.js');
+const { createCentralMonitoringService } = require('./central-monitoring-service.js');
 const { createStudentJourneyService } = require('./student-journey-service.js');
 const { createStudentLifeService } = require('./student-life-service.js');
 const { createDormitoryRollService } = require('./dormitory-roll-service.js');
@@ -81,6 +82,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/accounts.js'),
   ...require('./routes/audit.js'),
   ...require('./routes/admin-overview.js'),
+  ...require('./routes/central-monitoring.js'),
   ...require('./routes/admin-demo.js'),
   ...require('./routes/settings.js'),
   ...require('./routes/site-content.js'),
@@ -226,6 +228,7 @@ function createHamasahApp(options) {
     healthEnabled: kesehatanAktif
   });
   const adminOverviewService = config.adminOverviewService || createAdminOverviewService({ database, healthEnabled: kesehatanAktif });
+  const centralMonitoringService = config.centralMonitoringService || createCentralMonitoringService({ database, healthEnabled: kesehatanAktif });
   const departureService = config.departureService || createDepartureService({
     store: createPostgresDepartureStore({ database }),
     async registrationExists(registrationId) { return Boolean(await registrationStore.get(registrationId)); }
@@ -447,6 +450,7 @@ function createHamasahApp(options) {
     musyrifStoryService,
     dormitoryManagementService,
     adminOverviewService,
+    centralMonitoringService,
     demoDataService,
     settingsService,
     siteContentService,
