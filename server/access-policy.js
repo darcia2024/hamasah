@@ -33,6 +33,12 @@ const PERMISSIONS = Object.freeze({
   // Urusan administrasi santri (lapor diri, lapor pendidikan, status pendidikan): diisi musyrif
   // untuk santri di asramanya, admin untuk semua.
   'urusan.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
+  // Program pembinaan dan batch per lokasi (Mesir, Indonesia). Petugas hanya menyentuh lokasi yang
+  // ditugaskan kepadanya; menugaskan petugas ke lokasi hanya admin. Riwayat pembinaan satu santri
+  // dilihat santri, walinya, musyrif yang berhak, dan admin.
+  'programs.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.REGISTRATION_OFFICER]),
+  'programs.admin': Object.freeze([ROLES.ADMIN]),
+  'programs.history': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.PARENT, ROLES.STUDENT]),
   // Ringkasan perkembangan santri di asrama yang dipegang, untuk beranda musyrif.
   // Admin ikut memegang izin ini (semua asrama), sesuai aturan admin memegang semua izin.
   'overview.dormitory': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),

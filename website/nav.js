@@ -17,11 +17,13 @@ const ROLE_NAV_LABELS = Object.freeze({
     portal: 'Portal Utama',
     monitoring: 'Monitoring Asrama',
     asrama: 'Kelola Asrama',
+    pembinaan: 'Program & Batch',
     lms: 'Maddah Santri'
   },
   'registration-officer': {
     portal: 'Portal Utama',
-    staff: 'Pipeline Pendaftaran'
+    staff: 'Pipeline Pendaftaran',
+    pembinaan: 'Program & Batch'
   },
   teacher: {
     portal: 'Portal Utama',
@@ -36,6 +38,7 @@ const ROLE_NAV_LABELS = Object.freeze({
     staff: 'Pendaftaran',
     monitoring: 'Monitoring Asrama',
     asrama: 'Kelola Asrama',
+    pembinaan: 'Program & Batch',
     lms: 'LMS Maddah',
     operations: 'Keuangan & SPP',
     akun: 'Kelola Akun',
@@ -98,6 +101,16 @@ const STAFF_NAV_LINKS = Object.freeze([
     badge: null,
     badgeType: null,
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h3M8 17h6"/></svg>'
+  },
+  // Program dan Batch: lokasi Mesir dan Indonesia, program pembinaan, dan batch (pembinaan.js).
+  {
+    href: 'pembinaan',
+    label: 'Program & Batch',
+    page: 'pembinaan',
+    roles: ['admin', 'supervisor', 'registration-officer'],
+    badge: null,
+    badgeType: null,
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>'
   },
   {
     href: 'lms',

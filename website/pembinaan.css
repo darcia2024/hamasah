@@ -1,0 +1,21 @@
+﻿/* Program dan Batch (pembinaan.js). Memakai gaya Kelola Asrama (asrama.css) untuk bagian umum. */
+.pb-locs { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.pb-loc { display: grid; gap: 4px; justify-items: start; padding: 16px 18px; border: 1px solid var(--k26-line, #E2DED6); border-left-width: 4px; border-radius: 16px; background: #fff; font: inherit; text-align: left; cursor: pointer; }
+.pb-loc:hover { background: var(--k26-ivory, #FBFAF6); }
+.pb-loc.is-on { border-color: var(--k26-ink, #262628); border-left-color: var(--k26-gold, #E7B10C); box-shadow: var(--k26-shadow); }
+.pb-loc strong { font-size: 17px; }
+.pb-loc__country { color: var(--k26-gold-deep, #856000); font-size: 13px; font-weight: 700; }
+.pb-loc__stats { color: var(--k26-muted, #6B6B70); font-size: 13px; line-height: 1.45; }
+.pb-small { min-height: 34px; padding: 0 12px; font-size: 13px; }
+.pb-program { display: grid; gap: 8px; margin-top: 14px; padding: 16px; border-radius: 16px; background: #fff; border: 1px solid var(--k26-line, #E2DED6); border-left: 4px solid var(--k26-gold, #E7B10C); }
+.pb-program.is-off { opacity: 0.7; border-left-color: #A8A59C; }
+.pb-batches { display: grid; gap: 0; margin: 4px 0 0; padding: 0; list-style: none; }
+.pb-batches li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--k26-line, #E2DED6); }
+.pb-batch__main { display: grid; gap: 2px; min-width: 0; }
+.pb-batch__title { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.pb-search { max-width: 360px; margin-bottom: 8px; }
+.pb-candidates { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 4px 16px; max-height: 320px; margin: 0 0 10px; padding: 0; overflow: auto; list-style: none; font-size: 14px; }
+.pb-candidates li[hidden] { display: none; }
+.pb-peserta__side { display: flex; align-items: center; gap: 8px; }
+.pb-peserta__select { min-height: 34px; padding: 0 8px; border: 1px solid var(--k26-line, #E2DED6); border-radius: 10px; background: #fff; font: inherit; font-size: 13px; }
+@media (max-width: 640px) { .pb-batches li { flex-direction: column; align-items: flex-start; } }

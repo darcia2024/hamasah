@@ -498,6 +498,28 @@
     return wadah;
   }
 
+  // Riwayat pembinaan melekat pada santri, bukan pada lokasi: batch di Indonesia dan penempatan
+  // asrama di Mesir tampil berurutan dalam satu garis waktu. GET /api/students/:id/riwayat-pembinaan.
+  const STATUS_PESERTA = { aktif: 'Sedang mengikuti', lulus: 'Lulus', keluar: 'Keluar', pindah: 'Pindah' };
+  function kartuRiwayat(data) {
+    if (!data || !data.available || !data.items.length) return null;
+    const wadah = kartu('Riwayat pembinaan', 'Program dan asrama yang pernah diikuti, di lokasi mana pun.', 'santri-riwayat-card');
+    const daftar = el('ul', 'santri-riwayat');
+    data.items.forEach((item) => {
+      const li = el('li', `santri-riwayat__item is-${item.type}`);
+      const atas = el('div', 'santri-riwayat__top');
+      atas.append(el('strong', '', item.title));
+      if (item.type === 'program') atas.append(el('span', `santri-riwayat__tag is-${item.status}`, STATUS_PESERTA[item.status] || item.status));
+      li.append(atas);
+      const rincian = item.type === 'program'
+        ? [item.kindLabel, `${item.location} (${item.country})`, item.endsOn ? `${tanggal(item.startsOn)} sampai ${tanggal(item.endsOn)}` : `Mulai ${tanggal(item.startsOn)}`, item.note].filter(Boolean)
+        : ['Penempatan asrama', item.reason, item.movedBy ? `oleh ${item.movedBy}` : ''].filter(Boolean);
+      li.append(el('p', 'santri-riwayat__meta', [tanggal(item.date), ...rincian].join(' · ')));
+      daftar.append(li);
+    });
+    wadah.append(daftar);
+    return wadah;
+  }
   // wadah: elemen kosong di bawah kartu profil. role: peran akun yang membuka dashboard.
   // ringkas: wali dan santri. Angka utama sudah ada di kartu profil portal.js, jadi kartu
   // indikator tidak dibuat. Mengembalikan { juz } untuk angka hafalan di kartu profil.
@@ -507,14 +529,15 @@
     const santri = role === 'student';
     const keluarga = santri || role === 'parent';
     const wali = role === 'parent';
-    const [roadmap, honors, courses, pengumuman, juz, izin, doa] = await Promise.all([
+    const [roadmap, honors, courses, pengumuman, juz, izin, doa, riwayat] = await Promise.all([
       ambil(`/api/students/${id}/roadmap`, headers),
       keluarga ? ambil('/api/honors', headers) : null,
       santri ? ambil(`/api/students/${id}/courses`, headers) : null,
       keluarga ? ambil('/api/announcements', headers) : null,
       ambil(`/api/students/${id}/juz`, headers),
       keluarga ? ambil(`/api/students/${id}/leave`, headers) : null,
-      wali ? ambil(`/api/students/${id}/doa`, headers) : null
+      wali ? ambil(`/api/students/${id}/doa`, headers) : null,
+      ambil(`/api/students/${id}/riwayat-pembinaan`, headers)
     ]);
     const muatUlangDoa = async (pesan = '') => {
       const segar = await ambil(`/api/students/${id}/doa?t=${Date.now()}`, headers);
@@ -535,6 +558,7 @@
       keluarga ? kartuIzin(izin, { studentId, headers, santri, muatUlang: muatUlangIzin }) : null,
       wali ? kartuDoa(doa, { studentId, headers, muatUlang: muatUlangDoa }) : null,
       kartuRoadmap(roadmap && roadmap.roadmap, keluarga),
+      kartuRiwayat(riwayat),
       kartuJuz(juz),
       keluarga ? kartuTeladan(honors) : null
     ].filter(Boolean);

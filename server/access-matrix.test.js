@@ -79,7 +79,7 @@ async function run() {
     assert.deepEqual(saya.body.permissions, ['finance.manage', 'leave.payment-read', 'operations.manage', 'operations.read']);
     assert.deepEqual(
       (await request(baseUrl, 'GET', '/api/me', { token: token[ROLES.PARENT] })).body.permissions,
-      ['dormitory-schedule.read', 'family-messages.send', 'residence.read', 'students.read']
+      ['dormitory-schedule.read', 'family-messages.send', 'programs.history', 'residence.read', 'students.read']
     );
 
     // Data secukupnya supaya endpoint punya sasaran yang nyata.
@@ -169,6 +169,19 @@ async function run() {
       { permission: 'dormitory-management.manage', method: 'PATCH', path: () => `/api/asrama/${dormitoryId}/kamar/00000000-0000-4000-8000-000000000000`, body: () => ({ name: '' }) },
       { permission: 'dormitory-management.manage', method: 'DELETE', path: () => `/api/asrama/${dormitoryId}/kamar/00000000-0000-4000-8000-000000000000` },
       { permission: 'dormitories.manage', method: 'PUT', path: () => `/api/asrama/${dormitoryId}/lokasi`, body: () => ({ locationId: '00000000-0000-4000-8000-000000000000' }) },
+      // Lokasi, program, dan batch (migrasi 060). Id yang tidak ada: tidak ada yang tersimpan.
+      { permission: 'programs.manage', method: 'GET', path: '/api/pembinaan/lokasi' },
+      { permission: 'programs.manage', method: 'GET', path: '/api/pembinaan/lokasi/00000000-0000-4000-8000-000000000000' },
+      { permission: 'programs.manage', method: 'POST', path: '/api/pembinaan/lokasi/00000000-0000-4000-8000-000000000000/program', body: () => ({ name: 'Uji', kind: 'karantina' }) },
+      { permission: 'programs.manage', method: 'PATCH', path: '/api/pembinaan/program/00000000-0000-4000-8000-000000000000', body: () => ({ name: 'Uji' }) },
+      { permission: 'programs.manage', method: 'POST', path: '/api/pembinaan/program/00000000-0000-4000-8000-000000000000/batch', body: () => ({ name: 'Uji', startsOn: '2027-01-01' }) },
+      { permission: 'programs.manage', method: 'GET', path: '/api/pembinaan/batch/00000000-0000-4000-8000-000000000000' },
+      { permission: 'programs.manage', method: 'PATCH', path: '/api/pembinaan/batch/00000000-0000-4000-8000-000000000000', body: () => ({ status: 'berjalan' }) },
+      { permission: 'programs.manage', method: 'POST', path: '/api/pembinaan/batch/00000000-0000-4000-8000-000000000000/peserta', body: () => ({ studentIds: [] }) },
+      { permission: 'programs.manage', method: 'PATCH', path: '/api/pembinaan/batch/00000000-0000-4000-8000-000000000000/peserta/00000000-0000-4000-8000-000000000001', body: () => ({ status: 'keluar' }) },
+      { permission: 'programs.admin', method: 'GET', path: '/api/pembinaan/petugas' },
+      { permission: 'programs.admin', method: 'PUT', path: '/api/pembinaan/lokasi/00000000-0000-4000-8000-000000000000/petugas', body: () => ({ accountId: '00000000-0000-4000-8000-000000000001' }) },
+      { permission: 'programs.history', method: 'GET', path: '/api/students/00000000-0000-4000-8000-000000000000/riwayat-pembinaan' },
       { permission: 'dormitories.manage', method: 'GET', path: '/api/lokasi' },
       { permission: 'dormitories.manage', method: 'POST', path: '/api/lokasi', body: () => ({ name: '' }) },
       { permission: 'dormitory-management.manage', method: 'GET', path: () => `/api/asrama/${dormitoryId}` },
