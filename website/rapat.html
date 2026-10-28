@@ -7,7 +7,7 @@
     <meta name="description" content="Hasil rapat Hamasah 27 Oktober 2026: apa yang dibahas, 13 modul yang dibutuhkan, 13 keputusan yang ditunggu, urutan pengerjaan, dan langkah berikutnya." />
     <title>Hasil rapat 27 Oktober 2026 | Hamasah</title>
     <link rel="icon" href="../assets/favicon.png" />
-    <link rel="stylesheet" href="rapat.css?v=487bbc2c0f" />
+    <link rel="stylesheet" href="rapat.css?v=512ad3d67a" />
   </head>
   <body>
     <a class="skip-link" href="#isi">Lewati ke isi</a>
@@ -31,7 +31,8 @@
       <div class="wrap">
         <div class="tabbar__daftar" role="tablist" aria-label="Tampilan catatan">
           <button type="button" class="tabbar__tab is-on" role="tab" id="tab-info" aria-controls="panel-info" aria-selected="true">Info</button>
-          <button type="button" class="tabbar__tab" role="tab" id="tab-report" aria-controls="panel-report" aria-selected="false" tabindex="-1">PRD</button>
+          <button type="button" class="tabbar__tab" role="tab" id="tab-report" aria-controls="panel-report" aria-selected="false" tabindex="-1">Report</button>
+          <button type="button" class="tabbar__tab" role="tab" id="tab-prd" aria-controls="panel-prd" aria-selected="false" tabindex="-1">PRD</button>
         </div>
       </div>
     </div>
@@ -473,6 +474,39 @@
           </div>
 
       <div id="panel-report" role="tabpanel" aria-labelledby="tab-report" hidden>
+        <section class="lap">
+          <div class="wrap">
+            <h2 class="lap__judul">Laporan hasil rapat</h2>
+            <p class="lap__orang"><img src="../assets/logo-emblem-gold.png" alt="" width="40" height="40" /><span>Rapat 27 Oktober 2026, versi kerja 1.0</span></p>
+
+            <div class="lap__kartu">
+              <div class="lap__kepala">
+                <h3 class="lap__tanggal">27 Oktober 2026</h3>
+                <div class="lap__saring" role="group" aria-label="Tampilkan modul">
+                  <button type="button" class="lap__pilih is-on" data-lap="semua">Semua modul</button>
+                  <button type="button" class="lap__pilih" data-lap="awas">Hanya yang perlu dicek</button>
+                </div>
+              </div>
+
+              <dl class="lap__angka" id="lap-angka"></dl>
+
+              <div class="lap__strip" id="lap-strip" role="group" aria-label="Pilih kelompok modul"></div>
+
+              <ul class="lap__entri" id="lap-entri"></ul>
+              <p class="lap__kosong" id="lap-kosong" hidden>Tidak ada modul yang cocok di kelompok ini.</p>
+            </div>
+
+            <h3 class="lap__sub">Rincian per kelompok</h3>
+            <div class="lap__tabel" id="lap-rincian"></div>
+
+            <h3 class="lap__sub">Keputusan menurut pemilik</h3>
+            <p class="lap__catatan">Satu keputusan bisa dimiliki lebih dari satu pihak, jadi jumlah per pemilik bisa melebihi total keputusan.</p>
+            <div class="lap__tabel" id="lap-pemilik"></div>
+          </div>
+        </section>
+      </div>
+
+      <div id="panel-prd" role="tabpanel" aria-labelledby="tab-prd" hidden>
         <div class="wrap prd-wrap"><article class="prd" id="prd">
   <header class="prd__kepala">
     <p class="prd__kicker">PRD · Draf 1.2 · Rapat 27 Oktober 2026</p>
@@ -715,6 +749,6 @@
 
     <footer class="kaki"><div class="wrap">Hamasah, hasil rapat 27 Oktober 2026, versi kerja 1.0</div></footer>
 
-    <script src="rapat.js?v=46f23e0eae"></script>
+    <script src="rapat.js?v=d1f2c9e6af"></script>
   </body>
 </html>
