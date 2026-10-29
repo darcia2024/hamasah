@@ -60,6 +60,9 @@
       ['Tahun studi', e.studyYear ? `Tahun ke-${e.studyYear}` : '']
     ]));
     if (e.note) wadah.append(el('p', 'wali-note-text', e.note));
+    if (!e.status || !e.institution) {
+      wadah.append(el('p', 'wali-empty-hint', 'Tanda "-" berarti belum diisi. Data pendidikan dilengkapi musyrif bersama ananda; tanyakan ke musyrif bila ingin segera diperbarui.'));
+    }
 
     wadah.append(el('h4', 'wali-subtitle', 'Dokumen tinggal'));
     const paspor = profil.passport || {};

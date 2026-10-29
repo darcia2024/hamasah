@@ -16,6 +16,7 @@
   const HARI_PENDEK = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', timeZone: 'UTC' });
   const PILIHAN_KUNCI = 'hamasahWaliAnanda';
   const TAB_KUNCI = 'hamasahWaliTab';
+  const DILIHAT_KUNCI = 'hamasahWaliBalasanDilihat';
 
   function el(tag, className, text) {
     const node = document.createElement(tag);
@@ -564,7 +565,7 @@
           K.ambil(`/api/students/${encodeURIComponent(aktifId)}/profil`, headers)
         ]));
       }
-      const [[data, profil], pengumuman, jadwalAsrama, iqamah] = await Promise.all([cache.get(aktifId), pengumumanJanji, K.muatJadwalAsrama(headers), iqamahJanji]);
+      const [[data, profil], pengumuman, jadwalAsrama, iqamah, masukanSaya] = await Promise.all([cache.get(aktifId), pengumumanJanji, K.muatJadwalAsrama(headers), iqamahJanji, K.ambil(`/api/masukan/saya?t=${Date.now()}`, headers)]);
       if (student.id !== aktifId) return;
 
       const B = window.HamasahWaliBagian;
@@ -598,6 +599,16 @@
         { id: 'masukan', label: 'Kritik & saran', isi: [B ? B.kartuMasukan(students, student.id, headers) : null] }
       ].map((k) => ({ ...k, isi: k.isi.filter(Boolean) })).filter((k) => k.isi.length);
 
+      // Balasan Hamasah yang belum pernah dilihat wali: lencana di tab dan satu kalimat di Ringkasan.
+      let dilihat = 0;
+      try { dilihat = Number(localStorage.getItem(DILIHAT_KUNCI)) || 0; } catch { dilihat = 0; }
+      const balasanBaru = ((masukanSaya && masukanSaya.items) || []).filter((m) => m.reply && m.handledAt && Date.parse(m.handledAt) > dilihat).length;
+      if (balasanBaru && kategori[0].id === 'ringkasan') {
+        const kabar = el('p', 'wali-pending');
+        kabar.append(el('span', 'wali-pending__dot'), document.createTextNode(`Hamasah membalas ${balasanBaru} masukan Bapak/Ibu. Buka tab Kritik & saran untuk membacanya.`));
+        kategori[0].isi.unshift(kabar);
+      }
+
       let tersimpanTab = null;
       try { tersimpanTab = localStorage.getItem(TAB_KUNCI); } catch { tersimpanTab = null; }
       const tab = el('div', 'wali-tabs');
@@ -613,11 +624,21 @@
           tombol.get(k.id).setAttribute('aria-selected', String(aktif));
           tombol.get(k.id).tabIndex = aktif ? 0 : -1;
         });
+        if (id === 'masukan') {
+          try { localStorage.setItem(DILIHAT_KUNCI, String(Date.now())); } catch { /* tanpa penyimpanan tetap jalan */ }
+          const lencana = tombol.get('masukan').querySelector('.wali-tab__badge');
+          if (lencana) lencana.remove();
+        }
         if (fokus) tombol.get(id).focus();
         try { localStorage.setItem(TAB_KUNCI, id); } catch { /* tanpa penyimpanan tetap jalan */ }
       }
       kategori.forEach((k, indeks) => {
         const b = el('button', 'wali-tab', k.label);
+        if (k.id === 'masukan' && balasanBaru) {
+          const lencana = el('span', 'wali-tab__badge', String(balasanBaru));
+          lencana.setAttribute('aria-label', ` balasan baru`);
+          b.append(lencana);
+        }
         b.type = 'button';
         b.id = `wali-tab-${k.id}`;
         b.setAttribute('role', 'tab');
