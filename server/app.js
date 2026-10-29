@@ -58,6 +58,9 @@ const { createStudentProfileService } = require('./student-profile-service.js');
 const { createStudentImportService } = require('./student-import-service.js');
 const { createParentFeedbackService } = require('./parent-feedback-service.js');
 const { createStudentMessageService } = require('./student-message-service.js');
+const { createActivityAttendanceService } = require('./activity-attendance-service.js');
+const { createTahfidzService } = require('./tahfidz-service.js');
+const { createReportCardService } = require('./report-card-service.js');
 const { createStudentJourneyService } = require('./student-journey-service.js');
 const { createStudentLifeService } = require('./student-life-service.js');
 const { createDormitoryRollService } = require('./dormitory-roll-service.js');
@@ -95,6 +98,9 @@ const ROUTES = Object.freeze([
   ...require('./routes/student-imports.js'),
   ...require('./routes/parent-feedback.js'),
   ...require('./routes/student-messages.js'),
+  ...require('./routes/activity-attendance.js'),
+  ...require('./routes/tahfidz.js'),
+  ...require('./routes/report-cards.js'),
   ...require('./routes/admin-demo.js'),
   ...require('./routes/settings.js'),
   ...require('./routes/site-content.js'),
@@ -466,6 +472,24 @@ function createHamasahApp(options) {
     accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor)
   });
 
+  const activityAttendanceService = config.activityAttendanceService || createActivityAttendanceService({
+    database,
+    staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId)
+  });
+
+  const tahfidzService = config.tahfidzService || createTahfidzService({
+    database,
+    accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor)
+  });
+
+  const reportCardService = config.reportCardService || createReportCardService({
+    database,
+    accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor),
+    staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId),
+    activityAttendance: activityAttendanceService,
+    tahfidz: tahfidzService
+  });
+
   const parentFeedbackService = config.parentFeedbackService || createParentFeedbackService({
     database,
     accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor),
@@ -497,6 +521,9 @@ function createHamasahApp(options) {
     studentImportService,
     parentFeedbackService,
     studentMessageService,
+    activityAttendanceService,
+    tahfidzService,
+    reportCardService,
     demoDataService,
     settingsService,
     siteContentService,

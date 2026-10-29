@@ -73,6 +73,16 @@ const PERMISSIONS = Object.freeze({
   'personal-messages.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.PARENT, ROLES.STUDENT]),
   'personal-messages.send': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   'personal-messages.ack': Object.freeze([ROLES.STUDENT]),
+  // Absensi kegiatan: musyrif mengisi untuk santri di asramanya, admin semua; jenis kegiatan hanya admin.
+  // Buku setoran tahfidz: dicatat musyrif dan admin; santri dan wali melihat perkembangan anaknya.
+  'tahfidz.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
+  'tahfidz.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.PARENT, ROLES.STUDENT]),
+  // Rapor bulanan: musyrif menyusun dan mengajukan; siapa yang menerbitkan diatur di pengaturan rapor (hanya admin yang mengubahnya).
+  'reports.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
+  'reports.config': Object.freeze([ROLES.ADMIN]),
+  'reports.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.PARENT, ROLES.STUDENT]),
+  'attendance.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
+  'activities.admin': Object.freeze([ROLES.ADMIN]),
   'feedback.send': Object.freeze([ROLES.PARENT]),
   // Daftar kiriman wali sendiri. Admin memegang semua izin baca; layanannya tetap hanya melayani akun wali.
   'feedback.mine': Object.freeze([ROLES.ADMIN, ROLES.PARENT]),
