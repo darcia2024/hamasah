@@ -24,7 +24,11 @@ const ENV_PRODUCTION = Object.freeze({
   STORAGE_BUCKET: 'hamasah-private-documents',
   SUPABASE_URL: 'https://proyek.supabase.co',
   SUPABASE_SERVICE_ROLE_KEY: 'kunci-service-role-tiruan',
-  TRUST_PROXY: 'true'
+  TRUST_PROXY: 'true',
+  // Di production, PIN pratinjau 0001 aktif bila SITE_PIN kosong (server/http/site-pin.js).
+  // Tes ini menguji perakitan api/index.js dan halaman publik, jadi gerbangnya dimatikan;
+  // perilaku gerbang dan bawaan production ada di server/http/site-pin.test.js.
+  SITE_PIN: 'off'
 });
 
 test('appOptionsFromConfig mengoper seluruh konfigurasi yang dibutuhkan app', () => {
