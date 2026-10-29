@@ -69,6 +69,10 @@ const PERMISSIONS = Object.freeze({
   'family-messages.send': Object.freeze([ROLES.PARENT]),
   'family-messages.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   // Kritik, saran, apresiasi, dan keluhan wali. Keluhan privat hanya sampai ke admin; selebihnya admin dan musyrif asramanya.
+  // Pesan personal musyrif ke santri. Privat: wali hanya melihat yang sengaja dibagikan staf (lihat student-message-service.js).
+  'personal-messages.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.PARENT, ROLES.STUDENT]),
+  'personal-messages.send': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
+  'personal-messages.ack': Object.freeze([ROLES.STUDENT]),
   'feedback.send': Object.freeze([ROLES.PARENT]),
   // Daftar kiriman wali sendiri. Admin memegang semua izin baca; layanannya tetap hanya melayani akun wali.
   'feedback.mine': Object.freeze([ROLES.ADMIN, ROLES.PARENT]),

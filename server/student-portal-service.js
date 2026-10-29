@@ -111,6 +111,8 @@ function createStudentPortalService(options) {
   // Nama musyrif yang memegang asrama santri, ditampilkan di kartu profil.
   const dormitorySupervisors = config.dormitorySupervisors || async function tanpaMusyrif() { return []; };
   const countInDormitory = config.countInDormitory || (async function tanpaHitungan() { return 0; });
+  // Pengaturan catatan yang boleh dilihat santri: Map "koleksi:id" -> boolean (student-message-service.js).
+  const noteVisibility = config.noteVisibility || (async function tanpaPengaturan() { return new Map(); });
 
   function assertStaff(actor) {
     return actor && STAFF_ROLES.includes(actor.role);
@@ -443,12 +445,30 @@ function createStudentPortalService(options) {
     const attendanceRate = attendance.length ? Math.round((presentCount / attendance.length) * 100) : null;
     // Hitungan per status dari seluruh presensi pada periode (entries dipotong 30), untuk rapor.
     const byStatus = attendance.reduce((hitung, entry) => ({ ...hitung, [entry.status]: (hitung[entry.status] || 0) + 1 }), {});
-    const [activities, achievements, evaluations, discipline] = await Promise.all([
+    const [activities, achievements, evaluationsAll, disciplineAll, pengaturan] = await Promise.all([
       store.byStudent('activities', studentId).then((items) => items.filter(withinRange)),
       store.byStudent('achievements', studentId).then((items) => items.filter(withinRange)),
       store.byStudent('evaluations', studentId).then((items) => items.filter(withinRange)),
-      store.byStudent('violations', studentId).then((items) => items.filter(withinRange))
+      store.byStudent('violations', studentId).then((items) => items.filter(withinRange)),
+      assertStaff(actor) || actor.role === 'student' ? noteVisibility(studentId) : null
     ]);
+    // Catatan pembinaan untuk santri: evaluasi tampil kecuali disembunyikan; disiplin tersembunyi kecuali
+    // staf menandainya boleh tampil. Staf melihat semuanya beserta penandanya. Wali tidak terpengaruh.
+    const tampilKeSantri = (koleksi, bawaan) => (item) => {
+      const atur = pengaturan && pengaturan.get(`${koleksi}:${item.id}`);
+      return atur === undefined ? bawaan : atur;
+    };
+    const evalSantri = tampilKeSantri('evaluations', true);
+    const disiplinSantri = tampilKeSantri('violations', false);
+    let evaluations = evaluationsAll;
+    let discipline = disciplineAll;
+    if (actor.role === 'student') {
+      evaluations = evaluationsAll.filter(evalSantri);
+      discipline = disciplineAll.filter(disiplinSantri);
+    } else if (assertStaff(actor)) {
+      evaluations = evaluationsAll.map((item) => ({ ...item, studentVisible: evalSantri(item) }));
+      discipline = disciplineAll.map((item) => ({ ...item, studentVisible: disiplinSantri(item) }));
+    }
 
     return {
       ok: true,

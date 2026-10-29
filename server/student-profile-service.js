@@ -171,7 +171,7 @@ function createStudentProfileService({ database, accessFor, identityKey = 'devel
         );
       }
       // Wali ikut melihat urusan administrasi anaknya (tanpa catatan internal), supaya tahu apa yang sedang diurus.
-      if (staf || actor.role === 'parent') {
+      if (staf || actor.role === 'parent' || actor.role === 'student') {
         kasus = await bacaBoleh(() => ambil(
           `SELECT c.kind, c.ref, c.status, c.note, to_char(c.due_on, 'YYYY-MM-DD') AS due_on FROM student_cases c
            WHERE c.student_id = $1 AND c.status <> 'selesai' AND c.kind IN ('lapor-diri', 'lapor-pendidikan', 'status-pendidikan') ORDER BY c.due_on NULLS LAST`, [studentId]

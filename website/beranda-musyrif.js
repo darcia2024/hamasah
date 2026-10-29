@@ -881,6 +881,9 @@
             });
             li.append(ubah);
           }
+          // Catatan evaluasi dan disiplin: staf menentukan apakah santri boleh melihatnya.
+          const aturan = window.HamasahPesanPersonal && b.koleksi ? window.HamasahPesanPersonal.tombolVisibilitas(student.id, b.koleksi, b.rekaman, headers, () => muatUlang().catch(() => {})) : null;
+          if (aturan) li.append(aturan);
           daftar.append(li);
         });
       }
@@ -901,7 +904,8 @@
     }
     lukisLaporan();
 
-    wadah.replaceChildren(kembali, kepala, bagianIsi, bagianLaporan);
+    const bagianPesan = window.HamasahPesanPersonal ? window.HamasahPesanPersonal.kartuStaf(student, headers) : null;
+    wadah.replaceChildren(...[kembali, kepala, bagianIsi, bagianPesan, bagianLaporan].filter(Boolean));
   }
 
   // fotoUrl dan unggahFoto juga dipakai detail santri di portal.js, supaya cache foto dan

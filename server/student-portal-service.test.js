@@ -64,7 +64,10 @@ async function run() {
     }
   }
   const santriMelihat = await service.dashboard(studentId, studentActor);
-  assert.equal('recordedByAccountId' in santriMelihat.value.discipline[0], false);
+  // Disiplin tersembunyi dari santri secara bawaan; evaluasi tampil dan tanpa data pencatat.
+  assert.equal(santriMelihat.value.discipline.length, 0);
+  assert.ok(santriMelihat.value.evaluations.length > 0);
+  assert.equal('recordedByAccountId' in santriMelihat.value.evaluations[0], false);
 
   // Nama asrama ikut terbawa bila asramanya ada, supaya portal tidak perlu mengarangnya.
   const layananAsrama = portal.createStudentPortalService({

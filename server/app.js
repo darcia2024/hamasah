@@ -57,6 +57,7 @@ const { createProgramService } = require('./program-service.js');
 const { createStudentProfileService } = require('./student-profile-service.js');
 const { createStudentImportService } = require('./student-import-service.js');
 const { createParentFeedbackService } = require('./parent-feedback-service.js');
+const { createStudentMessageService } = require('./student-message-service.js');
 const { createStudentJourneyService } = require('./student-journey-service.js');
 const { createStudentLifeService } = require('./student-life-service.js');
 const { createDormitoryRollService } = require('./dormitory-roll-service.js');
@@ -93,6 +94,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/student-profile.js'),
   ...require('./routes/student-imports.js'),
   ...require('./routes/parent-feedback.js'),
+  ...require('./routes/student-messages.js'),
   ...require('./routes/admin-demo.js'),
   ...require('./routes/settings.js'),
   ...require('./routes/site-content.js'),
@@ -284,7 +286,9 @@ function createHamasahApp(options) {
     supervisorDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId),
     getDormitory: (dormitoryId) => dormitoryStore.getDormitory(dormitoryId),
     dormitorySupervisors: (dormitoryId) => (typeof dormitoryStore.supervisorNames === 'function' ? dormitoryStore.supervisorNames(dormitoryId) : []),
-    countInDormitory: (dormitoryId) => studentStore.countInDormitory(dormitoryId)
+    countInDormitory: (dormitoryId) => studentStore.countInDormitory(dormitoryId),
+    // Catatan pembinaan yang boleh dilihat santri; studentMessageService dibuat sesudahnya, dipakai saat permintaan.
+    noteVisibility: (studentId) => studentMessageService.visibilityOf(studentId)
   });
   // Roadmap studi dan santri teladan bulanan (migrasi 044).
   const studentJourneyService = config.studentJourneyService || createStudentJourneyService({
@@ -457,6 +461,11 @@ function createHamasahApp(options) {
     sendInvitation: ({ email, name, token }) => notificationService.sendInvitation({ email, name, activationUrl: `/aktivasi#token=${encodeURIComponent(token)}` })
   });
 
+  const studentMessageService = config.studentMessageService || createStudentMessageService({
+    database,
+    accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor)
+  });
+
   const parentFeedbackService = config.parentFeedbackService || createParentFeedbackService({
     database,
     accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor),
@@ -487,6 +496,7 @@ function createHamasahApp(options) {
     studentProfileService,
     studentImportService,
     parentFeedbackService,
+    studentMessageService,
     demoDataService,
     settingsService,
     siteContentService,

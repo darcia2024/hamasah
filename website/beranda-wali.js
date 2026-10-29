@@ -565,7 +565,7 @@
           K.ambil(`/api/students/${encodeURIComponent(aktifId)}/profil`, headers)
         ]));
       }
-      const [[data, profil], pengumuman, jadwalAsrama, iqamah, masukanSaya] = await Promise.all([cache.get(aktifId), pengumumanJanji, K.muatJadwalAsrama(headers), iqamahJanji, K.ambil(`/api/masukan/saya?t=${Date.now()}`, headers)]);
+      const [[data, profil], pengumuman, jadwalAsrama, iqamah, pesanBagikan, masukanSaya] = await Promise.all([cache.get(aktifId), pengumumanJanji, K.muatJadwalAsrama(headers), iqamahJanji, window.HamasahPesanPersonal ? window.HamasahPesanPersonal.kartuWali(student, headers) : null, K.ambil(`/api/masukan/saya?t=${Date.now()}`, headers)]);
       if (student.id !== aktifId) return;
 
       const B = window.HamasahWaliBagian;
@@ -582,7 +582,7 @@
 
       // Menu dikelompokkan menurut keperluan wali; di ponsel menjadi baris yang bisa digeser.
       const kategori = [
-        { id: 'ringkasan', label: 'Ringkasan', isi: [kartuRingkasan(student, data, () => onOpenStudent(student.id), iqamah), ringkasanPembina(data)] },
+        { id: 'ringkasan', label: 'Ringkasan', isi: [kartuRingkasan(student, data, () => onOpenStudent(student.id), iqamah), ringkasanPembina(data), pesanBagikan] },
         { id: 'pendidikan', label: 'Pendidikan & administrasi', isi: [B ? B.kartuPendidikan(profil, data.izin) : null, grup(iqamahAnanda)] },
         { id: 'absensi', label: 'Absensi', isi: [grup(kartuKehadiran(data), B ? B.kartuAbsensiJenis(data) : null, kartuSholat(data)), jadwal] },
         {

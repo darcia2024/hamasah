@@ -275,12 +275,15 @@
     memuat.setAttribute('role', 'status');
     wadah.replaceChildren(memuat);
 
-    const [data, jadwal, pengumuman, iqamah] = await Promise.all([
+    const [data, jadwal, pengumuman, iqamah, profil] = await Promise.all([
       K.muatAnak(student.id, headers, { kelas: true, banding: true }),
       K.muatJadwalAsrama(headers),
       K.ambil('/api/announcements', headers),
-      K.ambil('/api/iqamah-saya', headers)
+      K.ambil('/api/iqamah-saya', headers),
+      K.ambil(`/api/students/${encodeURIComponent(student.id)}/profil`, headers)
     ]);
+    const B = window.HamasahWaliBagian;
+    const P = window.HamasahPesanPersonal;
     const asrama = jadwal && jadwal.tersedia && Array.isArray(jadwal.dormitories)
       ? jadwal.dormitories.find((d) => d.students.some((s) => String(s.id) === String(student.id))) || null
       : null;
@@ -341,7 +344,9 @@
       ['#santri-hari-ini', 'Hari ini'],
       ['#santri-urusan', 'Iqamah & izin'],
       ...(belajar ? [['#santri-belajar', 'Belajar']] : []),
-      ['#santri-perkembangan', 'Perkembangan']
+      ...(P ? [['#santri-pesan', 'Pesan']] : []),
+      ['#santri-perkembangan', 'Perkembangan'],
+      ...(B ? [['#santri-rapor', 'Rapor'], ['#santri-data', 'Data diri']] : [])
     ].forEach(([href, label]) => {
       const tautan = el('a', '', label);
       tautan.href = href;
@@ -354,12 +359,16 @@
       kelompok('urusan', 'Iqamah & izin', 'Pantau izin tinggal dan ajukan izin keluar asrama.', [
         berdampingan('snt-affairs', [kartuIqamahEl, kartuIzinEl])
       ]),
+      kelompok('pesan', 'Pesan untukmu', 'Pesan pribadi dari musyrif atau petugas berwenang.', [P ? P.kartuSantri(student, headers) : null]),
       kelompok('belajar', 'Belajar', 'Maddah yang kamu ikuti di ruang belajar online.', [belajar]),
       kelompok('perkembangan', 'Perkembanganku', `Catatan musyrif tentang ibadah, kegiatan, dan hafalanmu ${K.PERIODE_HARI} hari terakhir.`, [
         bagianLaporan(data),
         bagianPrestasi(data),
-        grafik
+        grafik,
+        B ? B.kartuAbsensiJenis(data) : null
       ]),
+      kelompok('rapor', 'Rapor', 'Unduh rapormu per bulan. Isinya hanya catatan yang boleh kamu lihat.', [B ? B.kartuRapor(student, headers) : null]),
+      kelompok('data', 'Data diri dan administrasi', 'Data pribadimu, status pendidikan, dan urusan yang sedang diurus.', [B ? B.kartuDataDiri(profil) : null, B ? B.kartuPendidikan(profil, data.izin) : null]),
       kelompok('asrama', 'Kabar asrama', 'Pengumuman, acara, jadwal, dan momen dari asramamu.', [
         berdampingan('wali-grid', [umum, bagianAcara(asrama, kini)]),
         K.bagianJadwalAsrama(jadwal, student.id, { polos: true, santri: true }),

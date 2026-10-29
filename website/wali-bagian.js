@@ -107,6 +107,32 @@
     return wadah;
   }
 
+  // ------------------------------------------------------------ Data diri (santri melihat datanya sendiri)
+  function kartuDataDiri(profil) {
+    const wadah = bagian('Data pribadi', 'Data yang tercatat di Hamasah. Bila ada yang keliru, sampaikan ke musyrif.');
+    if (!profil || profil.available === false) {
+      wadah.append(el('p', 'wali-empty', 'Data pribadi belum dapat ditampilkan.'));
+      return wadah;
+    }
+    const d = profil.personal || {};
+    const id = profil.identifiers || {};
+    wadah.append(daftarFakta([
+      ['Nama', profil.name],
+      ['Tempat, tanggal lahir', [d.birthPlace, d.birthDate ? tanggalPendek(d.birthDate) : ''].filter(Boolean).join(', ')],
+      ['Kewarganegaraan', d.nationality],
+      ['Kota asal', d.city],
+      ['Bergabung', d.joinDate ? tanggalPendek(d.joinDate) : ''],
+      ['Telepon', d.phone],
+      ['Email', d.email],
+      ['Alamat di Indonesia', d.homeAddress],
+      ['Kontak darurat', [d.emergencyName, d.emergencyPhone].filter(Boolean).join(' · ')],
+      ['Nomor paspor', id.passportNumber],
+      ['Nomor iqamah', id.iqamahNumber]
+    ]));
+    wadah.append(el('p', 'wali-empty-hint', 'Nomor identitas ditampilkan sebagian demi keamanan.'));
+    return wadah;
+  }
+
   // ------------------------------------------------------------ Absensi per jenis kegiatan
   // Mengelompokkan catatan kehadiran menurut kategori (sekolah, halaqah, kajian, dan lainnya).
   function kartuAbsensiJenis(data) {
@@ -317,5 +343,5 @@
     return wadah;
   }
 
-  window.HamasahWaliBagian = Object.freeze({ kartuPendidikan, kartuAbsensiJenis, kartuRapor, kartuDokumentasi, kartuMasukan });
+  window.HamasahWaliBagian = Object.freeze({ kartuDataDiri, kartuPendidikan, kartuAbsensiJenis, kartuRapor, kartuDokumentasi, kartuMasukan });
 }());
