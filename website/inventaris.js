@@ -203,6 +203,16 @@
         });
         if (hasil) { await muat(); await riwayat(a); }
       }));
+      aksi.append(tombol('Arsipkan aset', 'button button--secondary kg-small', async () => {
+        const hasil = await window.HamasahDialog.formulir({
+          judul: `Arsipkan ${a.name}`,
+          keterangan: 'Aset tidak dihapus: hilang dari daftar dan pemeriksaan berikutnya, riwayatnya tetap tersimpan.',
+          bidang: [{ nama: 'reason', label: 'Alasan (misalnya salah catat, dihibahkan, dibuang)', jenis: 'textarea', wajib: true }],
+          labelSimpan: 'Arsipkan',
+          kirim: (v) => api('POST', `/api/inventaris/asrama/${encodeURIComponent(sel.value)}/aset/${encodeURIComponent(a.id)}/arsip`, v)
+        });
+        if (hasil) { rincian.replaceChildren(); await muat(); }
+      }));
       r.append(aksi, el('h4', 'wali-subtitle', 'Riwayat'));
       if (!data.events.length) r.append(kosong('Belum ada riwayat.'));
       else {
@@ -411,7 +421,8 @@
     r.append(tombol('Periksa hak refund santri', 'button button--secondary kg-small', async () => {
       // Hanya santri yang punya kontribusi tercatat yang bisa berhak refund, jadi daftar diambil dari kontribusi AC patungan.
       const unik = new Map();
-      for (const u of dataUnit.items.filter((x) => x.ownership === 'patungan' && x.contributors > 0)) {
+      const segar = await api('GET', `/api/ac/unit?t=${Date.now()}`).catch(() => dataUnit);
+      for (const u of segar.items.filter((x) => x.ownership === 'patungan' && x.contributors > 0)) {
         const k = await api('GET', `/api/ac/unit/${encodeURIComponent(u.id)}/kontribusi`).catch(() => ({ items: [] }));
         k.items.filter((c) => !c.voided).forEach((c) => unik.set(c.studentId, { id: c.studentId, name: c.studentName }));
       }

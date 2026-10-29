@@ -145,6 +145,16 @@ async function run() {
     assert.ok(riwayatKipas.body.events.some((e) => e.kind === 'kehilangan' && /Pemeriksaan/.test(e.note)));
     assert.equal((await api('PUT', `/api/inventaris/pemeriksaan/${cek.body.id}`, tA, { entries: entri })).status, 409, 'Pemeriksaan selesai terkunci.');
     assert.equal((await api('GET', `/api/inventaris/asrama/${A.id}/pemeriksaan/${BULAN}`, tA)).body.status, 'selesai');
+
+    // Pengarsipan: butuh alasan, hanya musyrif asrama itu, aset hilang dari daftar tetapi tidak dihapus.
+    const sementara = await buat(tA, A, { name: 'Cermin salah catat', category: 'lainnya', quantity: 1 });
+    assert.equal(sementara.status, 201, sementara.teks);
+    assert.equal((await api('POST', aset(sementara.body.id, '/arsip'), tA, { reason: 'x' })).status, 422);
+    assert.equal((await api('POST', aset(sementara.body.id, '/arsip'), tB, { reason: 'Salah catat dobel.' })).status, 403);
+    assert.equal((await api('POST', aset(sementara.body.id, '/arsip'), tA, { reason: 'Salah catat dobel.' })).status, 200);
+    assert.equal((await api('POST', aset(sementara.body.id, '/arsip'), tA, { reason: 'Salah catat dobel.' })).status, 404, 'Sudah diarsipkan.');
+    assert.ok(!(await api('GET', `/api/inventaris/asrama/${A.id}/aset`, tA)).body.items.some((i) => i.id === sementara.body.id));
+    assert.equal((await database.query('SELECT count(*)::int AS n FROM inventory_events WHERE item_id = $1', [sementara.body.id])).rows[0].n, 1, 'Riwayat tetap tersimpan.');
     assert.equal((await api('GET', `/api/inventaris/asrama/${A.id}/pemeriksaan/${BULAN}`, tB)).status, 403);
 
     // Dashboard per asrama, terbatas pada cakupan.

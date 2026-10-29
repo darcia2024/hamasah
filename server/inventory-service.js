@@ -188,6 +188,22 @@ function createInventoryService({ database, staffDormitories, now = () => new Da
     });
   }
 
+  // Aset tidak dihapus: diarsipkan dengan alasan, riwayatnya tetap tersimpan.
+  async function archiveItem(dormitoryId, itemId, input, actor) {
+    const izin = await bolehAsrama(dormitoryId, actor);
+    if (!izin.ok) return izin;
+    if (!UUID.test(String(itemId))) return { ok: false, status: 404, error: 'Aset tidak ditemukan.' };
+    const alasan = rapi(input && input.reason, 300);
+    if (alasan.length < 5) return { ok: false, error: 'Tulis alasan pengarsipan (minimal 5 karakter).' };
+    return tulis(async () => {
+      const item = (await database.query('SELECT id, code, name FROM dormitory_inventory WHERE id = $1 AND dormitory_id = $2 AND archived_at IS NULL', [itemId, dormitoryId])).rows[0];
+      if (!item) return { ok: false, status: 404, error: 'Aset tidak ditemukan.' };
+      await catatKejadian(itemId, 'catatan', `Aset diarsipkan: ${alasan}`, { actor });
+      await database.query('UPDATE dormitory_inventory SET archived_at = $2, updated_by_account_id = $3, updated_at = now() WHERE id = $1', [itemId, now(), actor.id || null]);
+      return { ok: true, value: { id: itemId, code: item.code, archived: true } };
+    });
+  }
+
   async function addEvent(dormitoryId, itemId, input, actor) {
     const izin = await bolehAsrama(dormitoryId, actor);
     if (!izin.ok) return izin;
@@ -377,7 +393,7 @@ function createInventoryService({ database, staffDormitories, now = () => new Da
     });
   }
 
-  return { listDormitories, listItems, createItem, updateItem, addEvent, listEvents, startCheck, getCheck, saveCheck, completeCheck, dashboard };
+  return { listDormitories, listItems, createItem, updateItem, archiveItem, addEvent, listEvents, startCheck, getCheck, saveCheck, completeCheck, dashboard };
 }
 
 module.exports = { createInventoryService, KATEGORI, KONDISI };

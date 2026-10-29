@@ -353,6 +353,7 @@ async function run() {
       { permission: 'inventory.manage', method: 'PATCH', path: '/api/inventaris/asrama/00000000-0000-4000-8000-000000000000/aset/00000000-0000-4000-8000-000000000000', body: () => ({}) },
       { permission: 'inventory.manage', method: 'GET', path: '/api/inventaris/asrama/00000000-0000-4000-8000-000000000000/aset/00000000-0000-4000-8000-000000000000/riwayat' },
       { permission: 'inventory.manage', method: 'POST', path: '/api/inventaris/asrama/00000000-0000-4000-8000-000000000000/aset/00000000-0000-4000-8000-000000000000/riwayat', body: () => ({}) },
+      { permission: 'inventory.manage', method: 'POST', path: '/api/inventaris/asrama/00000000-0000-4000-8000-000000000000/aset/00000000-0000-4000-8000-000000000000/arsip', body: () => ({}) },
       { permission: 'inventory.manage', method: 'POST', path: '/api/inventaris/asrama/00000000-0000-4000-8000-000000000000/pemeriksaan', body: () => ({}) },
       { permission: 'inventory.manage', method: 'GET', path: '/api/inventaris/asrama/00000000-0000-4000-8000-000000000000/pemeriksaan/2026-01' },
       { permission: 'inventory.manage', method: 'PUT', path: '/api/inventaris/pemeriksaan/00000000-0000-4000-8000-000000000000', body: () => ({}) },

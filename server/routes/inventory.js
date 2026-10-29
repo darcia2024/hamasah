@@ -58,6 +58,17 @@ module.exports = [
   },
   {
     method: 'POST',
+    pattern: pola(`\\/api\\/inventaris\\/asrama\\/${ID}\\/aset\\/${ID}\\/arsip`),
+    permission: 'inventory.manage',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const actor = await auth.actor();
+      const hasil = await services.inventoryService.archiveItem(params[0], params[1], await readBody(), actor);
+      if (hasil.ok) await services.auditService.record({ action: ACTIONS.INVENTORY_ITEM_CHANGED, actor, ip, entityType: 'dormitory', entityId: params[0], metadata: { change: 'diarsipkan', code: hasil.value.code } });
+      balas(response, hasil);
+    }
+  },
+  {
+    method: 'POST',
     pattern: pola(`\\/api\\/inventaris\\/asrama\\/${ID}\\/pemeriksaan`),
     permission: 'inventory.manage',
     async handler({ response, services, auth, params, readBody, ip }) {
