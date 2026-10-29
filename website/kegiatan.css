@@ -68,3 +68,6 @@
   .kg-stack .wali-section__note, .kg-stack .wali-note__body, .kg-stack .kg-card__title { overflow-wrap: anywhere; }
   .kg-stack .kg-bar > * { max-width: 100%; }
 }
+
+/* Keterangan dialog (mis. isi pesan WhatsApp) mempertahankan baris baru. */
+.op-dialog__summary { white-space: pre-line; }

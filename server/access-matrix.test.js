@@ -76,7 +76,7 @@ async function run() {
 
     // /api/me ikut mengirim daftar izin untuk menyusun menu.
     const saya = await request(baseUrl, 'GET', '/api/me', { token: token[ROLES.FINANCE] });
-    assert.deepEqual(saya.body.permissions, ['finance.manage', 'leave.payment-read', 'operations.manage', 'operations.read']);
+    assert.deepEqual(saya.body.permissions, ['finance.manage', 'leave.payment-read', 'operations.manage', 'operations.read', 'reminders.manage']);
     assert.deepEqual(
       (await request(baseUrl, 'GET', '/api/me', { token: token[ROLES.PARENT] })).body.permissions,
       ['dormitory-schedule.read', 'family-messages.send', 'feedback.mine', 'feedback.send', 'personal-messages.read', 'programs.history', 'reports.read', 'residence.read', 'students.read', 'tahfidz.read']
@@ -328,6 +328,14 @@ async function run() {
       { permission: 'kpi.self.write', method: 'POST', path: '/api/kpi/bukti', body: () => ({}) },
       { permission: 'kpi.self.write', method: 'POST', path: '/api/kpi/pekerjaan-tambahan', body: () => ({}) },
       { permission: 'feedback.verify', method: 'PATCH', path: '/api/masukan/00000000-0000-4000-8000-000000000000/verifikasi', body: () => ({}) },
+      { permission: 'reminders.manage', method: 'GET', path: '/api/pengingat-tagihan' },
+      { permission: 'reminders.manage', method: 'GET', path: '/api/pengingat-tagihan/pengaturan' },
+      { permission: 'reminders.manage', method: 'PUT', path: '/api/pengingat-tagihan/pengaturan', body: () => ({}) },
+      { permission: 'reminders.manage', method: 'GET', path: '/api/pengingat-tagihan/riwayat' },
+      { permission: 'reminders.manage', method: 'POST', path: '/api/pengingat-tagihan/riwayat/00000000-0000-4000-8000-000000000000/terkirim' },
+      { permission: 'reminders.manage', method: 'PATCH', path: '/api/pengingat-tagihan/tagihan/00000000-0000-4000-8000-000000000000/jatuh-tempo', body: () => ({}) },
+      { permission: 'reminders.manage', method: 'POST', path: '/api/pengingat-tagihan/wali/00000000-0000-4000-8000-000000000000/pratinjau', body: () => ({}) },
+      { permission: 'reminders.manage', method: 'POST', path: '/api/pengingat-tagihan/wali/00000000-0000-4000-8000-000000000000/buka', body: () => ({}) },
       { permission: 'feedback.mine', method: 'GET', path: '/api/masukan/saya' },
       { permission: 'feedback.send', method: 'POST', path: '/api/masukan', body: () => ({}) },
       { permission: 'feedback.read', method: 'GET', path: '/api/masukan' },

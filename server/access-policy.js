@@ -95,6 +95,8 @@ const PERMISSIONS = Object.freeze({
   'kpi.self.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   'kpi.self.write': Object.freeze([ROLES.SUPERVISOR]),
   'feedback.verify': Object.freeze([ROLES.ADMIN]),
+  // Pengingat tagihan lewat WhatsApp klik-untuk-chat: admin dan keuangan.
+  'reminders.manage': Object.freeze([ROLES.ADMIN, ROLES.FINANCE]),
   'attendance.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   'activities.admin': Object.freeze([ROLES.ADMIN]),
   'feedback.send': Object.freeze([ROLES.PARENT]),

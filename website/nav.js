@@ -35,7 +35,8 @@ const ROLE_NAV_LABELS = Object.freeze({
   },
   finance: {
     portal: 'Portal Utama',
-    operations: 'Keuangan & SPP'
+    operations: 'Keuangan & SPP',
+    pengingat: 'Pengingat Tagihan'
   },
   admin: {
     portal: 'Portal Utama',
@@ -49,6 +50,7 @@ const ROLE_NAV_LABELS = Object.freeze({
     kpi: 'KPI Musyrif',
     lms: 'LMS Maddah',
     operations: 'Keuangan & SPP',
+    pengingat: 'Pengingat Tagihan',
     akun: 'Kelola Akun',
     audit: 'Jejak Audit',
     konten: 'Konten Website',
@@ -149,6 +151,16 @@ const STAFF_NAV_LINKS = Object.freeze([
     badge: null,
     badgeType: null,
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
+  },
+  // Pengingat tagihan lewat WhatsApp klik-untuk-chat (pengingat.js). Admin dan keuangan.
+  {
+    href: 'pengingat',
+    label: 'Pengingat Tagihan',
+    page: 'pengingat',
+    roles: ['admin', 'finance'],
+    badge: null,
+    badgeType: null,
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
   },
   // Impor santri massal dari Excel atau Google Sheets (impor.js). Hanya admin.
   {
