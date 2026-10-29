@@ -104,6 +104,10 @@ test('alamat asli pengunjung dikembalikan dari parameter rewrite Vercel', () => 
   assert.equal(restoreOriginalUrl('/api/index.js?__path='), '/');
   assert.equal(restoreOriginalUrl('/api/index.js?slug=tips-lulus&__path=website/article.html'), '/website/article.html?slug=tips-lulus');
   assert.equal(restoreOriginalUrl('/api/index?__path=website/cek-status.html&id=HI-REG-1'), '/website/cek-status.html?id=HI-REG-1');
+  // Alamat asli yang datang bersama parameter rewrite (production 30 Oktober 2026): parameternya dibuang.
+  assert.equal(restoreOriginalUrl('/?__path='), '/');
+  assert.equal(restoreOriginalUrl('/biaya?__path=biaya'), '/biaya');
+  assert.equal(restoreOriginalUrl('/kontak?topic=biaya&__path=kontak'), '/kontak?topic=biaya');
   // Permintaan yang tidak lewat rewrite tidak diubah.
   assert.equal(restoreOriginalUrl('/website/kontak.html?topic=biaya'), '/website/kontak.html?topic=biaya');
   assert.equal(restoreOriginalUrl('/'), '/');

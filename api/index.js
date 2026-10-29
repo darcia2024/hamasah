@@ -43,7 +43,13 @@ function restoreOriginalUrl(rawUrl, headers = {}) {
     url.searchParams.delete(PATH_PARAM);
     return withQuery(appended[1], url.searchParams);
   }
-  if (!ENTRY_PATH.test(url.pathname)) return rawUrl;
+  if (!ENTRY_PATH.test(url.pathname)) {
+    // Vercel juga bisa mengirim alamat asli pengunjung lengkap dengan parameter rewrite ("/biaya?__path=biaya",
+    // terlihat di production 30 Oktober 2026). Parameternya dibuang supaya tidak ikut ke alamat kembali gerbang PIN.
+    if (!url.searchParams.has(PATH_PARAM)) return rawUrl;
+    url.searchParams.delete(PATH_PARAM);
+    return withQuery(url.pathname, url.searchParams);
+  }
   if (url.searchParams.has(PATH_PARAM)) {
     const original = `/${String(url.searchParams.get(PATH_PARAM) || '').replace(/^\/+/, '')}`;
     url.searchParams.delete(PATH_PARAM);
