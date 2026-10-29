@@ -1,4 +1,4 @@
-﻿const { json, publicError } = require('../http/respond.js');
+const { json, publicError } = require('../http/respond.js');
 const { ACTIONS } = require('../audit-service.js');
 
 // Lokasi operasional, program pembinaan, dan batch (program-service.js). Batch bukan asrama.
@@ -13,6 +13,15 @@ const pola = (teks) => new RegExp(`^${teks}$`);
 
 async function catat(services, actor, ip, action, entityType, entityId, metadata) {
   await services.auditService.record({ action, actor, ip, entityType, entityId, metadata });
+}
+
+// Akses maddah LMS mengikuti keanggotaan program: setiap perubahan peserta batch langsung diselaraskan, tidak menunggu santri membuka katalog.
+// Kegagalan di sini tidak boleh menggagalkan perubahan peserta (katalog santri tetap menyelaraskan saat dibuka).
+async function selaraskanLms(services, studentIds) {
+  if (!services.lmsProgramService) return;
+  for (const id of studentIds.slice(0, 200)) {
+    try { await services.lmsProgramService.sinkronSantri(String(id)); } catch { /* ditunda sampai katalog dibuka */ }
+  }
 }
 
 module.exports = [
@@ -109,7 +118,9 @@ module.exports = [
     permission: 'programs.manage',
     async handler({ response, services, auth, params, readBody, ip }) {
       const actor = await auth.actor();
-      const hasil = await services.programService.addParticipants(params[0], await readBody(), actor);
+      const body = await readBody();
+      const hasil = await services.programService.addParticipants(params[0], body, actor);
+      if (hasil.ok) await selaraskanLms(services, Array.isArray(body && body.studentIds) ? body.studentIds : []);
       if (hasil.ok) await catat(services, actor, ip, ACTIONS.BATCH_PARTICIPANTS_CHANGED, 'batch', params[0], { added: hasil.value.added });
       balas(response, hasil, 201);
     }
@@ -122,6 +133,7 @@ module.exports = [
       const actor = await auth.actor();
       const hasil = await services.programService.setParticipant(params[0], params[1], await readBody(), actor);
       if (hasil.ok) await catat(services, actor, ip, ACTIONS.BATCH_PARTICIPANTS_CHANGED, 'batch', params[0], { studentId: params[1], status: hasil.value.status });
+      if (hasil.ok) await selaraskanLms(services, [params[1]]);
       balas(response, hasil);
     }
   },

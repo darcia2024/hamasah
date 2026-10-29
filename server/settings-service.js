@@ -36,6 +36,7 @@ const DEFINISI = Object.freeze({
   // selama mati, tidak ada data yang dikirim ke penyedia AI di luar dan ringkasan disusun lokal.
   'asisten.operasional': { jenis: 'saklar', bawaan: true },
   'asisten.kirimKeLuar': { jenis: 'saklar', bawaan: false },
+  'asisten.operasionalPerJam': { jenis: 'angka', bawaan: 30, min: 1, maks: 200 },
   'asisten.batasPerJam': { jenis: 'angka', bawaan: 20, min: 1, maks: 200 },
   'audit.masaSimpanHari': { jenis: 'angka', bawaan: 365, min: 90, maks: 3650 }
 });
@@ -51,6 +52,7 @@ const LABEL = Object.freeze({
   'asisten.situs': 'Asisten di website',
   'asisten.belajar': 'Asisten belajar LMS',
   'asisten.operasional': 'Asisten operasional (ringkasan dan draf)',
+  'asisten.operasionalPerJam': 'Batas penggunaan asisten operasional per akun per jam',
   'asisten.kirimKeLuar': 'Izinkan asisten operasional mengirim data teranonimkan ke penyedia AI di luar',
   'asisten.batasPerJam': 'Batas pertanyaan asisten per jam',
   'audit.masaSimpanHari': 'Masa simpan jejak audit'

@@ -56,12 +56,14 @@ function createOpsAssistantService({ database, accessFor, staffDormitories, cent
   if (!database || typeof accessFor !== 'function' || typeof staffDormitories !== 'function') throw new Error('createOpsAssistantService membutuhkan database, accessFor, dan staffDormitories.');
 
   const jendela = new Map();
-  function dalamBatas(actor) {
+  async function dalamBatas(actor) {
+    let batas = BATAS_PER_JAM;
+    if (settings) { const n = Number(await settings.ambil('asisten.operasionalPerJam')); if (Number.isInteger(n) && n > 0) batas = n; }
     const kunci = actor.id || 'anon';
     const t = now().getTime();
     const b = jendela.get(kunci);
     if (!b || t - b.mulai >= 60 * 60 * 1000) { jendela.set(kunci, { mulai: t, n: 1 }); return true; }
-    if (b.n >= BATAS_PER_JAM) return false;
+    if (b.n >= batas) return false;
     b.n += 1;
     return true;
   }
@@ -226,7 +228,7 @@ function createOpsAssistantService({ database, accessFor, staffDormitories, cent
     if (!tugas) return { ok: false, status: 404, error: 'Tugas asisten tidak dikenal.' };
     if (!tugas.roles.includes(actor.role)) return { ok: false, status: 403, error: 'Tugas ini tidak tersedia untuk akun Anda.' };
     if (!(await aktif())) return { ok: false, status: 409, error: 'Asisten operasional sedang dimatikan oleh admin.' };
-    if (!dalamBatas(actor)) return { ok: false, status: 429, error: 'Batas penggunaan asisten per jam tercapai. Coba lagi nanti.' };
+    if (!(await dalamBatas(actor))) return { ok: false, status: 429, error: 'Batas penggunaan asisten per jam tercapai. Coba lagi nanti.' };
     const A = buatAlias();
     const dasar = await PEMBANGUN[tugasId](input || {}, actor, A);
     if (!dasar.ok) return dasar;

@@ -134,6 +134,16 @@ async function run() {
     assert.equal(mati.status, 200);
     assert.deepEqual((await terdaftar(maddah.id)).map((r) => r.source), ['manual']);
 
+    // Perubahan peserta lewat halaman Program langsung menyelaraskan akses (tanpa menunggu santri membuka katalog).
+    await api('PATCH', `/api/courses/${maddah.id}/cakupan`, tGuru, { autoAccess: true });
+    await database.query(`UPDATE batch_participants SET status = 'aktif' WHERE student_id = $1`, [s2.id]);
+    await api('POST', `/api/courses/${maddah.id}/sinkron`, tGuru);
+    assert.ok((await terdaftar(maddah.id)).some((r) => r.student_id === s2.id && r.source === 'program'));
+    const keluarBatch = await api('PATCH', `/api/pembinaan/batch/${batch}/peserta/${s2.id}`, admin, { status: 'keluar' });
+    assert.equal(keluarBatch.status, 200, keluarBatch.teks);
+    assert.ok(!(await terdaftar(maddah.id)).some((r) => r.student_id === s2.id), 'Keluar dari batch langsung mencabut akses otomatis.');
+    await api('PATCH', `/api/courses/${maddah.id}/cakupan`, tGuru, { autoAccess: false });
+
     // ------------------------------------------------------------ sesi belajar bersama dan kehadiran
     assert.equal((await api('POST', `/api/courses/${maddah.id}/sesi`, tSantri, { title: 'Sesi' })).status, 403);
     assert.equal((await api('POST', `/api/courses/${maddah.id}/sesi`, tA, { title: 'Sesi tanpa asrama', heldOn: HARI })).status, 422, 'Musyrif wajib memilih asramanya.');

@@ -180,6 +180,13 @@ async function run() {
     assert.ok(audit.every((r) => JSON.stringify(r.metadata).length < 60), 'Audit hanya memuat mode, bukan isi.');
     assert.ok(!JSON.stringify(audit).includes('Budi'));
 
+    // Batas per jam bisa diatur admin dari Pengaturan.
+    assert.equal((await api('PUT', '/api/admin/settings', admin, { nilai: { 'asisten.operasionalPerJam': 1 } })).status, 200);
+    await api('POST', '/api/admin/settings/lupakan-cache', admin).catch(() => {});
+    assert.equal((await jalankan(tA, 'ringkasan-asrama', { dormitoryId: A.id })).status, 429, 'Batas per jam dari pengaturan berlaku.');
+    assert.equal((await api('PUT', '/api/admin/settings', admin, { nilai: { 'asisten.operasionalPerJam': 200 } })).status, 200);
+    await api('POST', '/api/admin/settings/lupakan-cache', admin).catch(() => {});
+
     assert.equal((await api('PUT', '/api/admin/settings', admin, { nilai: { 'asisten.operasional': false } })).status, 200);
     await api('POST', '/api/admin/settings/lupakan-cache', admin).catch(() => {});
     assert.equal((await jalankan(tA, 'ringkasan-asrama', { dormitoryId: A.id })).status, 409, 'Admin dapat mematikan asisten.');
