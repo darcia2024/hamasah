@@ -58,7 +58,9 @@ async function run() {
     assert.equal(setelah.cases.counts.diproses, 1);
 
     // Selesai: hilang dari daftar bawaan (belum selesai), muncul di filter "selesai".
-    assert.equal((await layanan.setStatus({ studentId: iqamah.studentId, kind: 'iqamah', ref: iqamah.ref, status: 'selesai' }, ADMIN)).ok, true);
+    assert.equal((await layanan.setStatus({ studentId: iqamah.studentId, kind: 'iqamah', ref: iqamah.ref, status: 'selesai' }, ADMIN)).status, 422, 'Menyelesaikan urusan wajib disertai bukti.');
+    assert.equal((await layanan.setStatus({ studentId: iqamah.studentId, kind: 'iqamah', ref: iqamah.ref, status: 'selesai', evidenceNote: 'ok' }, ADMIN)).status, 422, 'Bukti terlalu pendek.');
+    assert.equal((await layanan.setStatus({ studentId: iqamah.studentId, kind: 'iqamah', ref: iqamah.ref, status: 'selesai', evidenceNote: 'Iqamah baru sudah diterima dan dipindai.' }, ADMIN)).ok, true);
     setelah = (await layanan.overview(ADMIN)).value;
     assert.ok(!setelah.cases.items.some((item) => item.key === iqamah.key));
     const selesai = (await layanan.overview(ADMIN, { status: 'selesai' })).value;
@@ -146,7 +148,8 @@ async function run() {
     assert.equal((await layanan.create({ studentId: asramaMilik.id, kind: 'paspor', note: 'Paspor bukan urusan musyrif.', dueOn: '2026-12-01' }, pembina)).ok, false);
     const milikMusyrif = (await layanan.urusan(pembina)).value.items.find((item) => item.studentId === asramaMilik.id && item.kind === 'lapor-pendidikan');
     assert.ok(milikMusyrif && milikMusyrif.recordedBy, 'Pencatat tampil di daftar.');
-    assert.equal((await layanan.setStatus({ studentId: asramaMilik.id, kind: 'lapor-pendidikan', ref: milikMusyrif.ref, status: 'selesai' }, pembina)).ok, true);
+    assert.equal((await layanan.setStatus({ studentId: asramaMilik.id, kind: 'lapor-pendidikan', ref: milikMusyrif.ref, status: 'selesai' }, pembina)).status, 422);
+    assert.equal((await layanan.setStatus({ studentId: asramaMilik.id, kind: 'lapor-pendidikan', ref: milikMusyrif.ref, status: 'selesai', evidenceNote: 'Berkas sudah diserahkan ke bagian pendidikan.' }, pembina)).ok, true);
     assert.equal((await layanan.setStatus({ studentId: asramaMilik.id, kind: 'paspor', ref: '2030-01-01', status: 'diproses' }, pembina)).status, 403);
     assert.equal((await layanan.urusan({ id: null, role: 'student' })).ok, false);
 
@@ -160,6 +163,47 @@ async function run() {
     assert.equal(indonesia.totals.activeStudents, 1);
     assert.ok((await layanan.overview(ADMIN)).value.totals.activeStudents > indonesia.totals.activeStudents);
     assert.deepEqual(indonesia.options.countries.sort(), ['Indonesia', 'Mesir']);
+
+    // Tiket tindak lanjut: penanggung jawab, bukti, riwayat. Penanggung jawab harus staf aktif.
+    const staf = (await database.query(`SELECT id, role FROM accounts WHERE active AND role IN ('admin', 'supervisor') ORDER BY role`)).rows;
+    const pj = staf[0];
+    const tiket = await layanan.create({ studentId: asramaMilik.id, kind: 'lapor-diri', note: 'Lapor diri ke kantor imigrasi.', dueOn: '2026-12-15', assigneeAccountId: pj.id }, ADMIN);
+    assert.equal(tiket.ok, true);
+    const wali = (await database.query(`SELECT id FROM accounts WHERE role = 'parent' LIMIT 1`)).rows[0];
+    assert.equal((await layanan.create({ studentId: asramaMilik.id, kind: 'lapor-diri', note: 'Penanggung jawab bukan staf.', dueOn: '2026-12-15', assigneeAccountId: wali.id }, ADMIN)).status, 422);
+    let daftarTiket = (await layanan.overview(ADMIN, { status: 'semua' })).value.cases.items;
+    let baris = daftarTiket.find((item) => item.caseId === tiket.value.caseId);
+    assert.equal(baris.assignee.id, pj.id);
+    assert.equal(baris.history[0].action, 'dibuat');
+    assert.ok((await layanan.overview(ADMIN)).value.options.staff.some((s) => s.id === pj.id));
+    // Mengubah penanggung jawab dan status dengan bukti.
+    assert.equal((await layanan.setStatus({ studentId: asramaMilik.id, kind: 'lapor-diri', ref: baris.ref, status: 'diproses', assigneeAccountId: '' }, ADMIN)).ok, true);
+    daftarTiket = (await layanan.overview(ADMIN, { status: 'semua' })).value.cases.items;
+    baris = daftarTiket.find((item) => item.caseId === tiket.value.caseId);
+    assert.equal(baris.assignee, null);
+    assert.deepEqual(baris.history.map((h) => h.action), ['penanggung-jawab', 'status', 'dibuat']);
+    assert.equal((await layanan.setStatus({ studentId: asramaMilik.id, kind: 'lapor-diri', ref: baris.ref, status: 'selesai', evidenceFileId: crypto.randomUUID() }, ADMIN)).status, 422, 'Berkas bukti harus sah.');
+    assert.equal((await layanan.setStatus({ studentId: asramaMilik.id, kind: 'lapor-diri', ref: baris.ref, status: 'selesai', evidenceNote: 'Surat tanda lapor diri sudah diterima.' }, ADMIN)).ok, true);
+    daftarTiket = (await layanan.overview(ADMIN, { status: 'selesai' })).value.cases.items;
+    baris = daftarTiket.find((item) => item.caseId === tiket.value.caseId);
+    assert.equal(baris.evidenceNote, 'Surat tanda lapor diri sudah diterima.');
+    assert.equal(baris.history[0].to, 'selesai');
+    // Membuka kembali lalu menyelesaikan lagi memakai bukti yang sudah tersimpan.
+    assert.equal((await layanan.setStatus({ studentId: asramaMilik.id, kind: 'lapor-diri', ref: baris.ref, status: 'baru' }, ADMIN)).ok, true);
+    assert.equal((await layanan.setStatus({ studentId: asramaMilik.id, kind: 'lapor-diri', ref: baris.ref, status: 'selesai' }, ADMIN)).ok, true);
+
+    // Batas peringatan dokumen dapat diatur: paspor yang tadinya di luar batas kini muncul.
+    const { createDocumentSettingsService } = require('./document-settings-service.js');
+    const pengaturan = createDocumentSettingsService({ database });
+    const dengan = createCentralMonitoringService({ database, healthEnabled: true, staffDormitories, documentSettings: pengaturan });
+    const awal = (await dengan.overview(ADMIN, { status: 'semua', kind: 'paspor' })).value.cases.items.length;
+    assert.equal((await pengaturan.update({ passportWarningDays: 20, passportUrgentDays: 30 }, ADMIN)).ok, false, 'Segera harus lebih kecil dari peringatan.');
+    assert.equal((await pengaturan.update({ passportWarningDays: 400 }, { id: null, role: 'supervisor' })).ok, false);
+    assert.equal((await pengaturan.update({ passportWarningDays: 400, passportUrgentDays: 100 }, ADMIN)).ok, true);
+    const lebar = (await dengan.overview(ADMIN, { status: 'semua', kind: 'paspor' })).value;
+    assert.ok(lebar.cases.items.length >= awal);
+    assert.equal(lebar.options.documentAlerts.passportWarningDays, 400);
+    assert.equal((await pengaturan.update({ passportWarningDays: 1, passportUrgentDays: 0 }, ADMIN)).ok, false);
 
     console.log('central monitoring tests passed');
   } finally {

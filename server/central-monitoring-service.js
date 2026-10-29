@@ -18,15 +18,12 @@
 
 const crypto = require('node:crypto');
 const { kelompokProgram } = require('./admin-overview-service.js');
+const { BAWAAN: BAWAAN_DOKUMEN } = require('./document-settings-service.js');
 
 const ADMIN_ROLE = 'admin';
 const SUPERVISOR_ROLE = 'supervisor';
 const HARI_MS = 24 * 60 * 60 * 1000;
 const BATAS_SANTRI = 1000;
-const PASPOR_PERINGATAN_HARI = 180;
-const PASPOR_SEGERA_HARI = 60;
-const IQAMAH_PERINGATAN_HARI = 30;
-const IQAMAH_SEGERA_HARI = 14;
 const MANUAL_SEGERA_HARI = 7;
 const SAKIT_MAKS_HARI = 3;
 const SELESAI_TAMPIL_HARI = 30;
@@ -80,7 +77,7 @@ function kolomBelumAda(error) {
   return Boolean(error) && (error.code === '42703' || /column .*country.* does not exist/i.test(String(error.message || '')));
 }
 
-function createCentralMonitoringService({ database, healthEnabled: kesehatanAktif = false, staffDormitories = async () => [], now = () => new Date() } = {}) {
+function createCentralMonitoringService({ database, healthEnabled: kesehatanAktif = false, staffDormitories = async () => [], documentSettings = null, now = () => new Date() } = {}) {
   if (!database) throw new Error('createCentralMonitoringService membutuhkan database.');
 
   async function ambil(sql, params = []) {
@@ -94,6 +91,21 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
     } catch (error) {
       if (error && error.code === '42P01') return [];
       throw error;
+    }
+  }
+
+  // Batas peringatan paspor dan iqamah dari pengaturan admin (migrasi 069); nilai bawaan bila belum ada.
+  async function batasDokumen() {
+    return documentSettings ? documentSettings.get() : { ...BAWAAN_DOKUMEN };
+  }
+
+  // Membaca urusan beserta penanggung jawab dan bukti (migrasi 069). Bila kolomnya belum ada, jatuh ke bacaan lama.
+  async function bacaMasalah(kondisi = '', params = []) {
+    try {
+      return await ambilBoleh(`${SELECT_MASALAH} ${kondisi}`, params);
+    } catch (error) {
+      if (!error || error.code !== '42703') throw error;
+      return ambilBoleh(`${SELECT_MASALAH_LAMA} ${kondisi}`, params);
     }
   }
 
@@ -155,13 +167,38 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
       since: row ? new Date(row.created_at).toISOString() : null,
       updatedAt: row ? new Date(row.updated_at).toISOString() : null,
       recordedBy: row ? row.by_name || null : null,
-      caseId: row ? row.id : null
+      caseId: row ? row.id : null,
+      assignee: row && row.assignee_account_id ? { id: row.assignee_account_id, name: row.assignee_name || null } : null,
+      evidenceNote: row ? row.evidence_note || '' : '',
+      evidenceFileId: row ? row.evidence_file_id || null : null,
+      history: []
     };
   }
 
   const SELECT_MASALAH = `SELECT c.id, c.student_id, c.kind, c.ref, c.source, c.status, c.note,
+                to_char(c.due_on, 'YYYY-MM-DD') AS due_on, c.created_at, c.updated_at, c.resolved_at, acc.name AS by_name,
+                c.assignee_account_id, asg.name AS assignee_name, c.evidence_note, c.evidence_file_id
+         FROM student_cases c LEFT JOIN accounts acc ON acc.id = c.created_by_account_id LEFT JOIN accounts asg ON asg.id = c.assignee_account_id`;
+  const SELECT_MASALAH_LAMA = `SELECT c.id, c.student_id, c.kind, c.ref, c.source, c.status, c.note,
                 to_char(c.due_on, 'YYYY-MM-DD') AS due_on, c.created_at, c.updated_at, c.resolved_at, acc.name AS by_name
          FROM student_cases c LEFT JOIN accounts acc ON acc.id = c.created_by_account_id`;
+
+  // Riwayat singkat tiap tiket (lima kejadian terakhir), bila tabelnya sudah ada.
+  async function lampirkanRiwayat(daftar) {
+    const ids = daftar.map((item) => item.caseId).filter(Boolean);
+    if (!ids.length) return;
+    const rows = await ambilBoleh(
+      `SELECT e.case_id, e.action, e.from_status, e.to_status, e.note, e.created_at, acc.name AS actor_name FROM student_case_events e
+         LEFT JOIN accounts acc ON acc.id = e.actor_account_id WHERE e.case_id = ANY($1::uuid[]) ORDER BY e.created_at DESC`, [ids]
+    ).catch(() => []);
+    const peta = new Map();
+    rows.forEach((row) => {
+      const daftarEvent = peta.get(row.case_id) || [];
+      if (daftarEvent.length < 5) daftarEvent.push({ action: row.action, from: row.from_status, to: row.to_status, note: row.note, at: new Date(row.created_at).toISOString(), by: row.actor_name || null });
+      peta.set(row.case_id, daftarEvent);
+    });
+    daftar.forEach((item) => { if (item.caseId) item.history = peta.get(item.caseId) || []; });
+  }
 
   function urutkan(daftar) {
     return daftar.sort((a, b) => (a.status === 'selesai') - (b.status === 'selesai')
@@ -196,6 +233,7 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
     const filter = bacaFilter(query);
     const saatIni = now();
     const hariIni = tanggalJakarta(saatIni);
+    const batas = await batasDokumen();
     const kesehatan = Boolean(typeof kesehatanAktif === 'function' ? await kesehatanAktif() : kesehatanAktif);
     const sejakSakit = new Date(saatIni.getTime() - SAKIT_MAKS_HARI * HARI_MS).toISOString().slice(0, 10);
 
@@ -231,7 +269,7 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
                 to_char(visa_expires_at, 'YYYY-MM-DD') AS iqamah
          FROM visa_tracking`
       ),
-      ambilBoleh(SELECT_MASALAH),
+      bacaMasalah(),
       // Santri cuti atau izin panjang tidak dihitung aktif, tapi tempatnya ditahan; angkanya dipisah.
       ambil(`SELECT id, program, dormitory_id FROM students WHERE status = 'leave'`)
     ]);
@@ -380,17 +418,17 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
       const v = visaPer.get(s.id);
       if (v && v.paspor) {
         const sisa = selisihHari(hariIni, v.paspor);
-        if (sisa <= PASPOR_PERINGATAN_HARI) {
-          daftar.push(bentukButir(s, 'paspor', v.paspor, sisa <= PASPOR_SEGERA_HARI ? 'tinggi' : 'sedang',
+        if (sisa <= batas.passportWarningDays) {
+          daftar.push(bentukButir(s, 'paspor', v.paspor, sisa <= batas.passportUrgentDays ? 'tinggi' : 'sedang',
             sisa < 0 ? `Paspor sudah habis ${-sisa} hari lalu` : `Paspor: sisa ${sisa} hari`,
-            `${sisa < 0 ? 'Habis' : 'Berlaku sampai'} ${tanggalBaca(v.paspor)}. Perpanjangan iqamah butuh paspor berlaku minimal enam bulan.`,
+            `${sisa < 0 ? 'Habis' : 'Berlaku sampai'} ${tanggalBaca(v.paspor)}. Perpanjangan iqamah butuh paspor berlaku minimal enam bulan. Peringatan muncul ${batas.passportWarningDays} hari sebelum habis.`,
             sisa, baris.get(`${s.id}|paspor|${v.paspor}`)));
         }
       }
       if (v && v.iqamah) {
         const sisa = selisihHari(hariIni, v.iqamah);
-        if (sisa <= IQAMAH_PERINGATAN_HARI) {
-          daftar.push(bentukButir(s, 'iqamah', v.iqamah, sisa <= IQAMAH_SEGERA_HARI ? 'tinggi' : 'sedang',
+        if (sisa <= batas.iqamahWarningDays) {
+          daftar.push(bentukButir(s, 'iqamah', v.iqamah, sisa <= batas.iqamahUrgentDays ? 'tinggi' : 'sedang',
             sisa < 0 ? `Iqamah sudah habis ${-sisa} hari lalu` : `Iqamah: sisa ${sisa} hari`,
             `${sisa < 0 ? 'Habis' : 'Berlaku sampai'} ${tanggalBaca(v.iqamah)}.`,
             sisa, baris.get(`${s.id}|iqamah|${v.iqamah}`)));
@@ -413,6 +451,8 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
     const hitungStatus = Object.fromEntries(STATUS.map((nama) => [nama, dasar.filter((item) => item.status === nama).length]));
     const hitungJenis = Object.fromEntries(Object.keys(JENIS).map((nama) => [nama, daftar.filter((item) => item.kind === nama && cocokStatus(item, filter.status)).length]));
     const tampil = urutkan(dasar.filter((item) => cocokStatus(item, filter.status)));
+    await lampirkanRiwayat(tampil);
+    const petugas = await ambilBoleh(`SELECT id, name, role FROM accounts WHERE active AND role IN ('admin', 'supervisor') ORDER BY name`);
     const segera = daftar.filter((item) => item.status !== 'selesai' && item.severity === 'tinggi').length;
 
     return {
@@ -457,6 +497,8 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
           countrySettable: asramaBaca.kolomNegara,
           levels: jenjangAda,
           students: semua.map((s) => ({ id: s.id, name: s.name, dormitory: s.dormitory ? s.dormitory.name : null })),
+          staff: petugas.map((p) => ({ id: p.id, name: p.name, role: p.role })),
+          documentAlerts: batas,
           kinds: Object.entries(JENIS).map(([id, info]) => ({ id, label: info.label })),
           statuses: [
             { id: 'aktif', label: 'Belum selesai' },
@@ -503,7 +545,7 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
     const peta = new Map(santri.map((row) => [row.id, {
       id: row.id, name: row.name, level: kelompokProgram(row.program), country: '', dormitory: row.dormitory ? { id: row.dormitory_id, name: row.dormitory } : null
     }]));
-    const masalah = peta.size ? await ambilBoleh(`${SELECT_MASALAH} WHERE c.source = 'manual' AND c.student_id = ANY($1::uuid[])`, [[...peta.keys()]]) : [];
+    const masalah = peta.size ? await bacaMasalah(`WHERE c.source = 'manual' AND c.student_id = ANY($1::uuid[])`, [[...peta.keys()]]) : [];
     const batasSelesai = new Date(saatIni.getTime() - SELESAI_TAMPIL_HARI * HARI_MS);
     const items = urutkan(masalah
       .filter((row) => !(row.status === 'selesai' && row.resolved_at && new Date(row.resolved_at) < batasSelesai))
@@ -511,6 +553,7 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
         const m = butirManual(row, hariIni);
         return bentukButir(peta.get(row.student_id), row.kind, row.ref, m.tingkat, m.judul, m.detail, m.sisa, row);
       }));
+    await lampirkanRiwayat(items);
     return {
       ok: true,
       value: {
@@ -523,8 +566,36 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
     };
   }
 
-  // Catat urusan baru: lapor diri, lapor pendidikan, status pendidikan. Batas waktu wajib,
-  // karena hitung mundur dimulai dari situ. { studentId, kind, note, dueOn }.
+  // Penanggung jawab harus akun admin atau musyrif yang aktif. Mengembalikan id, null (kosongkan), atau false (tidak sah).
+  async function petugasSah(id) {
+    if (id === undefined) return undefined;
+    if (id === null || id === '') return null;
+    if (!/^[\w-]{8,64}$/.test(String(id))) return false;
+    const rows = await ambil(`SELECT id FROM accounts WHERE id = $1 AND active AND role IN ('admin', 'supervisor')`, [id]);
+    return rows.length ? rows[0].id : false;
+  }
+
+  // Bukti penyelesaian berupa berkas harus diunggah untuk santri yang sama lewat tujuan 'case-evidence'.
+  async function berkasBuktiSah(fileId, studentId) {
+    if (fileId === undefined || fileId === null || fileId === '') return null;
+    if (!/^[\w-]{8,64}$/.test(String(fileId))) return false;
+    const rows = await ambil(`SELECT id FROM file_objects WHERE id = $1 AND purpose = 'case-evidence' AND entity_id = $2 AND status = 'ready'`, [fileId, String(studentId)]);
+    return rows.length ? rows[0].id : false;
+  }
+
+  async function catatKejadian(caseId, action, dariStatus, keStatus, catatan, actor) {
+    try {
+      await ambil(
+        `INSERT INTO student_case_events (id, case_id, action, from_status, to_status, note, actor_account_id) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [crypto.randomUUID(), caseId, action, dariStatus, keStatus, bersih(catatan, 500), actor.id || null]
+      );
+    } catch (error) {
+      if (!error || !['42P01', '42703'].includes(error.code)) throw error;
+    }
+  }
+
+  // Catat urusan baru (tiket tindak lanjut): lapor diri, lapor pendidikan, status pendidikan. Batas waktu wajib,
+  // karena hitung mundur dimulai dari situ. { studentId, kind, note, dueOn, assigneeAccountId? }.
   async function create(input, actor) {
     if (!pelakuStaf(actor)) return { ok: false, status: 403, error: 'Akses musyrif atau admin diperlukan.' };
     const sumber = input || {};
@@ -535,23 +606,35 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
     if (!isTanggal(batas)) return { ok: false, status: 422, error: 'Isi batas waktunya, supaya hitung mundur bisa jalan.' };
     if (catatan.length < 3) return { ok: false, status: 422, error: 'Tulis catatan singkat tentang urusannya.' };
     if (!(await santriBoleh(sumber.studentId, actor))) return { ok: false, status: 404, error: 'Santri aktif tidak ditemukan.' };
+    const penanggung = await petugasSah(sumber.assigneeAccountId);
+    if (penanggung === false) return { ok: false, status: 422, error: 'Penanggung jawab harus akun admin atau musyrif yang aktif.' };
     const id = crypto.randomUUID();
     try {
-      await ambil(
-        `INSERT INTO student_cases (id, student_id, kind, ref, source, status, note, due_on, created_by_account_id, updated_by_account_id)
-         VALUES ($1::uuid, $2, $3, $1::text, 'manual', 'baru', $4, $5, $6, $6)`,
-        [id, sumber.studentId, jenis, catatan, batas, actor.id || null]
-      );
+      try {
+        await ambil(
+          `INSERT INTO student_cases (id, student_id, kind, ref, source, status, note, due_on, created_by_account_id, updated_by_account_id, assignee_account_id)
+           VALUES ($1::uuid, $2, $3, $1::text, 'manual', 'baru', $4, $5, $6, $6, $7)`,
+          [id, sumber.studentId, jenis, catatan, batas, actor.id || null, penanggung || null]
+        );
+      } catch (error) {
+        if (!error || error.code !== '42703') throw error;
+        await ambil(
+          `INSERT INTO student_cases (id, student_id, kind, ref, source, status, note, due_on, created_by_account_id, updated_by_account_id)
+           VALUES ($1::uuid, $2, $3, $1::text, 'manual', 'baru', $4, $5, $6, $6)`,
+          [id, sumber.studentId, jenis, catatan, batas, actor.id || null]
+        );
+      }
     } catch (error) {
       if (tabelBelumAda(error)) return { ok: false, status: 503, error: TABEL_BELUM_ADA };
       throw error;
     }
+    await catatKejadian(id, 'dibuat', null, 'baru', catatan, actor);
     return { ok: true, value: { caseId: id, studentId: sumber.studentId, kind: jenis, status: 'baru' } };
   }
 
-  // Ubah status satu urusan: { studentId, kind, ref, status, note }. Untuk paspor dan iqamah
-  // barisnya dibuat saat pertama kali diubah (hanya admin). Musyrif hanya mengubah urusan
-  // manual untuk santri di asramanya.
+  // Ubah satu urusan: { studentId, kind, ref, status, note?, assigneeAccountId?, evidenceNote?, evidenceFileId? }.
+  // Menyelesaikan urusan wajib disertai bukti penyelesaian (catatan bukti atau berkas). Untuk paspor dan iqamah barisnya
+  // dibuat saat pertama kali diubah (hanya admin). Musyrif hanya mengubah urusan manual untuk santri di asramanya.
   async function setStatus(input, actor) {
     if (!pelakuStaf(actor)) return { ok: false, status: 403, error: 'Akses musyrif atau admin diperlukan.' };
     const sumber = input || {};
@@ -564,32 +647,90 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
     if (JENIS[jenis].otomatis && actor.role !== ADMIN_ROLE) return { ok: false, status: 403, error: 'Paspor dan iqamah diurus admin.' };
     if (JENIS[jenis].otomatis && !isTanggal(ref)) return { ok: false, status: 422, error: 'Masalah ini belum dikenali.' };
     if (!(await santriBoleh(sumber.studentId, actor))) return { ok: false, status: 404, error: 'Santri aktif tidak ditemukan.' };
+    const penanggung = await petugasSah(sumber.assigneeAccountId);
+    if (penanggung === false) return { ok: false, status: 422, error: 'Penanggung jawab harus akun admin atau musyrif yang aktif.' };
+    const berkasBukti = await berkasBuktiSah(sumber.evidenceFileId, sumber.studentId);
+    if (berkasBukti === false) return { ok: false, status: 422, error: 'Berkas bukti tidak ditemukan untuk santri ini.' };
+    const catatanBukti = sumber.evidenceNote === undefined ? null : bersih(sumber.evidenceNote, 500);
     try {
-      if (JENIS[jenis].otomatis) {
-        const hasil = await ambil(
-          `INSERT INTO student_cases (id, student_id, kind, ref, source, status, note, created_by_account_id, updated_by_account_id, resolved_at)
-           VALUES ($1, $2, $3, $4, 'otomatis', $5, coalesce($6::text, ''), $7, $7, CASE WHEN $5::text = 'selesai' THEN now() ELSE NULL END)
-           ON CONFLICT (student_id, kind, ref) DO UPDATE
-             SET status = EXCLUDED.status,
-                 note = coalesce($6::text, student_cases.note),
-                 updated_by_account_id = EXCLUDED.updated_by_account_id,
-                 resolved_at = CASE WHEN EXCLUDED.status = 'selesai' THEN now() ELSE NULL END,
-                 updated_at = now()
-           RETURNING id`,
-          [crypto.randomUUID(), sumber.studentId, jenis, ref, status, catatan, actor.id || null]
-        );
-        return { ok: true, value: { caseId: hasil[0].id, status } };
+      const lama = (await ambilBoleh(`${SELECT_MASALAH_LAMA} WHERE c.student_id = $1 AND c.kind = $2 AND c.ref = $3`, [sumber.studentId, jenis, ref]))[0] || null;
+      let adaBuktiLama = false;
+      let penanggungLama = null;
+      if (lama) {
+        try {
+          const bukti = await ambil('SELECT evidence_note, evidence_file_id, assignee_account_id FROM student_cases WHERE id = $1', [lama.id]);
+          adaBuktiLama = Boolean(bukti[0] && (bukti[0].evidence_note || bukti[0].evidence_file_id));
+          penanggungLama = bukti[0] ? bukti[0].assignee_account_id || null : null;
+        } catch (error) {
+          if (!error || error.code !== '42703') throw error;
+          adaBuktiLama = true; // migrasi 069 belum diterapkan: bukti belum bisa disimpan, jangan menahan penyelesaian
+        }
       }
-      const hasil = await ambil(
-        `UPDATE student_cases
-         SET status = $4::text, note = coalesce($5::text, note), updated_by_account_id = $6,
-             resolved_at = CASE WHEN $4::text = 'selesai' THEN now() ELSE NULL END, updated_at = now()
-         WHERE student_id = $1 AND kind = $2 AND ref = $3
-         RETURNING id`,
-        [sumber.studentId, jenis, ref, status, catatan, actor.id || null]
-      );
-      if (!hasil.length) return { ok: false, status: 404, error: 'Urusan tidak ditemukan.' };
-      return { ok: true, value: { caseId: hasil[0].id, status } };
+      if (status === 'selesai' && !(catatanBukti && catatanBukti.length >= 5) && !berkasBukti && !adaBuktiLama) {
+        return { ok: false, status: 422, error: 'Tulis bukti penyelesaian (minimal 5 karakter) atau lampirkan berkas bukti sebelum menandai selesai.' };
+      }
+      let caseId;
+      try {
+        if (JENIS[jenis].otomatis) {
+          const hasil = await ambil(
+            `INSERT INTO student_cases (id, student_id, kind, ref, source, status, note, created_by_account_id, updated_by_account_id, resolved_at, assignee_account_id, evidence_note, evidence_file_id)
+             VALUES ($1, $2, $3, $4, 'otomatis', $5, coalesce($6::text, ''), $7, $7, CASE WHEN $5::text = 'selesai' THEN now() ELSE NULL END, $8, coalesce($9::text, ''), $10)
+             ON CONFLICT (student_id, kind, ref) DO UPDATE
+               SET status = EXCLUDED.status,
+                   note = coalesce($6::text, student_cases.note),
+                   updated_by_account_id = EXCLUDED.updated_by_account_id,
+                   resolved_at = CASE WHEN EXCLUDED.status = 'selesai' THEN now() ELSE NULL END,
+                   assignee_account_id = CASE WHEN $11::boolean THEN $8 ELSE student_cases.assignee_account_id END,
+                   evidence_note = coalesce($9::text, student_cases.evidence_note),
+                   evidence_file_id = coalesce($10, student_cases.evidence_file_id),
+                   updated_at = now()
+             RETURNING id`,
+            [crypto.randomUUID(), sumber.studentId, jenis, ref, status, catatan, actor.id || null, penanggung === undefined ? null : penanggung, catatanBukti, berkasBukti, penanggung !== undefined]
+          );
+          caseId = hasil[0].id;
+        } else {
+          const hasil = await ambil(
+            `UPDATE student_cases
+             SET status = $4::text, note = coalesce($5::text, note), updated_by_account_id = $6,
+                 resolved_at = CASE WHEN $4::text = 'selesai' THEN now() ELSE NULL END,
+                 assignee_account_id = CASE WHEN $7::boolean THEN $8 ELSE assignee_account_id END,
+                 evidence_note = coalesce($9::text, evidence_note), evidence_file_id = coalesce($10, evidence_file_id), updated_at = now()
+             WHERE student_id = $1 AND kind = $2 AND ref = $3
+             RETURNING id`,
+            [sumber.studentId, jenis, ref, status, catatan, actor.id || null, penanggung !== undefined, penanggung === undefined ? null : penanggung, catatanBukti, berkasBukti]
+          );
+          if (!hasil.length) return { ok: false, status: 404, error: 'Urusan tidak ditemukan.' };
+          caseId = hasil[0].id;
+        }
+      } catch (error) {
+        if (!error || error.code !== '42703') throw error;
+        // Migrasi 069 belum diterapkan: ubah status dengan cara lama, tanpa penanggung jawab dan bukti.
+        if (JENIS[jenis].otomatis) {
+          const hasil = await ambil(
+            `INSERT INTO student_cases (id, student_id, kind, ref, source, status, note, created_by_account_id, updated_by_account_id, resolved_at)
+             VALUES ($1, $2, $3, $4, 'otomatis', $5, coalesce($6::text, ''), $7, $7, CASE WHEN $5::text = 'selesai' THEN now() ELSE NULL END)
+             ON CONFLICT (student_id, kind, ref) DO UPDATE
+               SET status = EXCLUDED.status, note = coalesce($6::text, student_cases.note), updated_by_account_id = EXCLUDED.updated_by_account_id,
+                   resolved_at = CASE WHEN EXCLUDED.status = 'selesai' THEN now() ELSE NULL END, updated_at = now()
+             RETURNING id`,
+            [crypto.randomUUID(), sumber.studentId, jenis, ref, status, catatan, actor.id || null]
+          );
+          caseId = hasil[0].id;
+        } else {
+          const hasil = await ambil(
+            `UPDATE student_cases SET status = $4::text, note = coalesce($5::text, note), updated_by_account_id = $6,
+                 resolved_at = CASE WHEN $4::text = 'selesai' THEN now() ELSE NULL END, updated_at = now()
+             WHERE student_id = $1 AND kind = $2 AND ref = $3 RETURNING id`,
+            [sumber.studentId, jenis, ref, status, catatan, actor.id || null]
+          );
+          if (!hasil.length) return { ok: false, status: 404, error: 'Urusan tidak ditemukan.' };
+          caseId = hasil[0].id;
+        }
+      }
+      const dariStatus = lama ? lama.status : null;
+      if (dariStatus !== status) await catatKejadian(caseId, 'status', dariStatus, status, status === 'selesai' ? (catatanBukti || (berkasBukti ? 'Bukti berupa berkas terlampir.' : 'Memakai bukti yang sudah ada.')) : (catatan || ''), actor);
+      if (penanggung !== undefined && penanggungLama !== penanggung) await catatKejadian(caseId, 'penanggung-jawab', dariStatus, status, penanggung ? 'Penanggung jawab ditetapkan.' : 'Penanggung jawab dikosongkan.', actor);
+      return { ok: true, value: { caseId, status } };
     } catch (error) {
       if (tabelBelumAda(error)) return { ok: false, status: 503, error: TABEL_BELUM_ADA };
       throw error;

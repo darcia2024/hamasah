@@ -61,6 +61,7 @@ const { createStudentMessageService } = require('./student-message-service.js');
 const { createActivityAttendanceService } = require('./activity-attendance-service.js');
 const { createTahfidzService } = require('./tahfidz-service.js');
 const { createReportCardService } = require('./report-card-service.js');
+const { createDocumentSettingsService } = require('./document-settings-service.js');
 const { createStudentJourneyService } = require('./student-journey-service.js');
 const { createStudentLifeService } = require('./student-life-service.js');
 const { createDormitoryRollService } = require('./dormitory-roll-service.js');
@@ -101,6 +102,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/activity-attendance.js'),
   ...require('./routes/tahfidz.js'),
   ...require('./routes/report-cards.js'),
+  ...require('./routes/document-settings.js'),
   ...require('./routes/admin-demo.js'),
   ...require('./routes/settings.js'),
   ...require('./routes/site-content.js'),
@@ -246,10 +248,11 @@ function createHamasahApp(options) {
     healthEnabled: kesehatanAktif
   });
   const adminOverviewService = config.adminOverviewService || createAdminOverviewService({ database, healthEnabled: kesehatanAktif });
-  const studentProfileService = config.studentProfileService || createStudentProfileService({ database, accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor), identityKey: config.identityKey || process.env.IDENTITY_FIELD_KEY || config.notificationPayloadKey || process.env.NOTIFICATION_PAYLOAD_KEY || process.env.IP_HASH_SECRET || 'development-only-key' });
+  const documentSettingsService = config.documentSettingsService || createDocumentSettingsService({ database });
+  const studentProfileService = config.studentProfileService || createStudentProfileService({ database, documentSettings: documentSettingsService, accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor), identityKey: config.identityKey || process.env.IDENTITY_FIELD_KEY || config.notificationPayloadKey || process.env.NOTIFICATION_PAYLOAD_KEY || process.env.IP_HASH_SECRET || 'development-only-key' });
   const programService = config.programService || createProgramService({ database, accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor) });
   const dormitoryRoomService = config.dormitoryRoomService || createDormitoryRoomService({ database, staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId) });
-  const centralMonitoringService = config.centralMonitoringService || createCentralMonitoringService({ database, healthEnabled: kesehatanAktif, staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId) });
+  const centralMonitoringService = config.centralMonitoringService || createCentralMonitoringService({ database, documentSettings: documentSettingsService, healthEnabled: kesehatanAktif, staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId) });
   const departureService = config.departureService || createDepartureService({
     store: createPostgresDepartureStore({ database }),
     async registrationExists(registrationId) { return Boolean(await registrationStore.get(registrationId)); }
@@ -524,6 +527,7 @@ function createHamasahApp(options) {
     activityAttendanceService,
     tahfidzService,
     reportCardService,
+    documentSettingsService,
     demoDataService,
     settingsService,
     siteContentService,

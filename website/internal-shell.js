@@ -342,7 +342,7 @@
     return node;
   }
 
-  // bidang: [{ nama, label, jenis: text|email|date|number|select|textarea, nilai, pilihan:
+  // bidang: [{ nama, label, jenis: text|email|date|number|select|textarea|file, nilai, pilihan:
   // [[nilai, teks]], wajib, petunjuk }]. kirim(nilai) menyimpan dan boleh melempar Error;
   // pesannya ditampilkan di dialog. Hasil Promise: jawaban kirim, atau null bila dibatalkan.
   function formulir({ judul, keterangan = '', bidang = [], labelSimpan = 'Simpan', kirim }) {
@@ -372,6 +372,10 @@
         } else if (b.jenis === 'textarea') {
           input = el('textarea');
           input.rows = 3;
+        } else if (b.jenis === 'file') {
+          input = el('input');
+          input.type = 'file';
+          if (b.accept) input.accept = b.accept;
         } else {
           input = el('input');
           input.type = b.jenis || 'text';
@@ -379,7 +383,7 @@
         }
         input.id = id;
         input.name = b.nama;
-        input.value = b.nilai === undefined || b.nilai === null ? '' : String(b.nilai);
+        if (b.jenis !== 'file') input.value = b.nilai === undefined || b.nilai === null ? '' : String(b.nilai);
         if (b.wajib) input.required = true;
         wadah.append(label, input);
         if (b.petunjuk) {
@@ -421,7 +425,7 @@
       dialog.addEventListener('close', tutup);
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const nilai = Object.fromEntries(Object.entries(kontrol).map(([nama, input]) => [nama, input.value.trim()]));
+        const nilai = Object.fromEntries(Object.entries(kontrol).map(([nama, input]) => [nama, input.type === 'file' ? (input.files && input.files[0]) || null : input.value.trim()]));
         const kosong = bidang.find((b) => b.wajib && !nilai[b.nama]);
         if (kosong) {
           pesan.textContent = `${kosong.label} wajib diisi.`;

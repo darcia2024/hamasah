@@ -81,6 +81,9 @@ const PERMISSIONS = Object.freeze({
   'reports.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   'reports.config': Object.freeze([ROLES.ADMIN]),
   'reports.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.PARENT, ROLES.STUDENT]),
+  // Batas peringatan paspor dan iqamah: staf melihat, admin mengubah.
+  'document-alerts.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
+  'document-alerts.manage': Object.freeze([ROLES.ADMIN]),
   'attendance.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   'activities.admin': Object.freeze([ROLES.ADMIN]),
   'feedback.send': Object.freeze([ROLES.PARENT]),

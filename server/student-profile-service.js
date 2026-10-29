@@ -88,7 +88,7 @@ function keadaanDokumen(tanggal, hariIni, hampirHari, manual) {
   return { state, label: { kedaluwarsa: 'Kedaluwarsa', 'hampir-kedaluwarsa': 'Hampir kedaluwarsa', aktif: 'Aktif' }[state], expiresOn: teksTanggal(tanggal), daysLeft: sisa };
 }
 
-function createStudentProfileService({ database, accessFor, identityKey = 'development-only-key', now = () => new Date() } = {}) {
+function createStudentProfileService({ database, accessFor, identityKey = 'development-only-key', documentSettings = null, now = () => new Date() } = {}) {
   if (!database || typeof accessFor !== 'function') throw new Error('createStudentProfileService membutuhkan database dan accessFor.');
 
   async function ambil(sql, params = []) {
@@ -148,6 +148,8 @@ function createStudentProfileService({ database, accessFor, identityKey = 'devel
     const admin = actor.role === 'admin';
     const staf = admin || izin.akses.staff;
     const hariIni = tanggalJakarta(now());
+    // Batas peringatan dokumen dari pengaturan admin (migrasi 069); nilai bawaan bila belum ada.
+    const batasDokumen = documentSettings ? await documentSettings.get() : { passportWarningDays: PASPOR_HAMPIR_HARI, iqamahWarningDays: IQAMAH_HAMPIR_HARI };
     const siswa = (await ambil(
       `SELECT s.id, s.name, s.program, s.city, s.gender, s.status, to_char(s.join_date, 'YYYY-MM-DD') AS join_date,
               to_char(s.birth_date, 'YYYY-MM-DD') AS birth_date, s.dormitory_id, d.name AS dormitory_name
@@ -237,8 +239,8 @@ function createStudentProfileService({ database, accessFor, identityKey = 'devel
           studyYear: p.study_year === undefined || p.study_year === null ? null : Number(p.study_year),
           status: p.education_status || '', statusLabel: STATUS_PENDIDIKAN[p.education_status] || '', note: p.education_note || ''
         },
-        passport: { ...keadaanDokumen(visa && visa.passport_expires_at, hariIni, PASPOR_HAMPIR_HARI, p.passport_state), manual: p.passport_state || '' },
-        iqamah: { ...keadaanDokumen(visa && visa.visa_expires_at, hariIni, IQAMAH_HAMPIR_HARI, ''), visaStatus: visa ? visa.status : null },
+        passport: { ...keadaanDokumen(visa && visa.passport_expires_at, hariIni, batasDokumen.passportWarningDays, p.passport_state), manual: p.passport_state || '' },
+        iqamah: { ...keadaanDokumen(visa && visa.visa_expires_at, hariIni, batasDokumen.iqamahWarningDays, ''), visaStatus: visa ? visa.status : null },
         placement: {
           dormitory: siswa.dormitory_id ? { id: siswa.dormitory_id, name: siswa.dormitory_name } : null,
           room: kamar, supervisors: pembina, history: penempatan

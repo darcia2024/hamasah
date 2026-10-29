@@ -294,6 +294,8 @@ async function run() {
       { permission: 'reports.manage', method: 'PATCH', path: () => `/api/students/${studentId}/rapor/2026-10`, body: () => ({}) },
       { permission: 'reports.manage', method: 'POST', path: () => `/api/students/${studentId}/rapor/2026-10/terbitkan`, body: () => ({}) },
       { permission: 'reports.read', method: 'GET', path: () => `/api/students/${studentId}/rapor/2026-10/pdf` },
+      { permission: 'document-alerts.read', method: 'GET', path: '/api/pengaturan-dokumen' },
+      { permission: 'document-alerts.manage', method: 'PUT', path: '/api/pengaturan-dokumen', body: () => ({}) },
       { permission: 'feedback.mine', method: 'GET', path: '/api/masukan/saya' },
       { permission: 'feedback.send', method: 'POST', path: '/api/masukan', body: () => ({}) },
       { permission: 'feedback.read', method: 'GET', path: '/api/masukan' },

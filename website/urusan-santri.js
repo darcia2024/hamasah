@@ -111,7 +111,25 @@
         }
       };
       if (item.status === 'baru') sisi.append(tombol('Mulai proses', 'button button--secondary mp-small', ubah('diproses')));
-      if (item.status !== 'selesai') sisi.append(tombol('Tandai selesai', 'button button--primary mp-small', ubah('selesai')));
+      const selesaikan = async () => {
+        const hasil = await window.HamasahDialog.formulir({
+          judul: `Selesaikan: ${item.title}`,
+          keterangan: `${item.studentName}. Tulis bukti penyelesaian supaya ada jejak bahwa urusan ini benar-benar beres.`,
+          bidang: [
+            { nama: 'evidenceNote', label: 'Bukti penyelesaian', jenis: 'textarea', nilai: item.evidenceNote || '', wajib: !(item.evidenceNote || item.evidenceFileId), petunjuk: 'Misalnya: nomor tanda terima, tanggal diserahkan, atau siapa yang menerima.' },
+            { nama: 'evidenceFile', label: 'Berkas bukti (opsional)', jenis: 'file', accept: 'application/pdf,image/jpeg,image/png', petunjuk: 'PDF, JPG, atau PNG maksimal 5 MB. Disimpan privat.' }
+          ],
+          labelSimpan: 'Tandai selesai',
+          kirim: async (nilai) => {
+            const ekstra = {};
+            if (nilai.evidenceNote) ekstra.evidenceNote = nilai.evidenceNote;
+            if (nilai.evidenceFile) ekstra.evidenceFileId = await window.HamasahUnggah.kirim({ purpose: 'case-evidence', entityId: item.studentId, berkas: nilai.evidenceFile, headers: headers() });
+            return kirim('PATCH', { studentId: item.studentId, kind: item.kind, ref: item.ref, status: 'selesai', ...ekstra });
+          }
+        });
+        if (hasil) await muat(`${item.studentName}: urusan ditandai selesai.`);
+      };
+      if (item.status !== 'selesai') sisi.append(tombol('Tandai selesai', 'button button--primary mp-small', () => selesaikan().catch((error) => { status.textContent = error.message; })));
       else sisi.append(tombol('Buka lagi', 'button button--secondary mp-small', ubah('baru')));
       li.append(utama, sisi);
       return li;

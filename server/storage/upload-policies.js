@@ -164,7 +164,22 @@ const POLICIES = Object.freeze({
       return Boolean(actor && record) && services.studentProfileService.bolehUnduh(record.id, actor);
     }
   }),
-  // Foto kegiatan santri. Pembatasan asrama untuk musyrif ikut berlaku, karena
+  // Bukti penyelesaian tiket tindak lanjut (paspor, iqamah, lapor diri, dan sebagainya). Privat: hanya admin dan
+  // musyrif yang berhak atas santri itu yang mengunggah dan membukanya.
+  'case-evidence': Object.freeze({
+    entityType: 'student',
+    visibility: 'private',
+    contentTypes: DOKUMEN,
+    maxBytes: 5 * MB,
+    async canUpload({ actor, entityId, services }) {
+      if (!actor || !['admin', 'supervisor'].includes(actor.role)) return false;
+      return (await services.studentPortalService.accessFor(entityId, actor)).write;
+    },
+    async canDownload({ actor, entityId, services }) {
+      if (!actor || !['admin', 'supervisor'].includes(actor.role)) return false;
+      return (await services.studentPortalService.accessFor(entityId, actor)).view;
+    }
+  }),  // Foto kegiatan santri. Pembatasan asrama untuk musyrif ikut berlaku, karena
   // pemeriksaannya memakai dashboard santri yang sudah dibatasi.
   'student-media': Object.freeze({
     entityType: 'student',

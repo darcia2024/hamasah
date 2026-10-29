@@ -106,7 +106,8 @@
     const kartuAbsensi = el('div', 'mp-card mp-attendance');
     const kartuMasalah = el('div', 'mp-card mp-cases');
     const kartuNegara = el('details', 'mp-country');
-    akar.append(kepala, filterBar, status, kartuAngka, kartuAbsensi, kartuMasalah, kartuNegara);
+    const kartuDokumen = el('details', 'mp-country');
+    akar.append(kepala, filterBar, status, kartuAngka, kartuAbsensi, kartuMasalah, kartuDokumen, kartuNegara);
 
     function isiPilihan(select, semuaTeks, daftar, nilai) {
       select.replaceChildren(new Option(semuaTeks, ''));
@@ -237,10 +238,10 @@
       kartuAbsensi.append(rincian);
     }
 
-    async function ubah(item, statusBaru, catatan) {
+    async function ubah(item, statusBaru, catatan, ekstra = {}) {
       status.textContent = 'Menyimpan...';
       try {
-        const body = { studentId: item.studentId, kind: item.kind, ref: item.ref, status: statusBaru };
+        const body = { studentId: item.studentId, kind: item.kind, ref: item.ref, status: statusBaru, ...ekstra };
         if (catatan !== undefined) body.note = catatan;
         const response = await fetch('/api/admin/monitoring-pusat/masalah', {
           method: 'PATCH', headers: { ...headers(), 'Content-Type': 'application/json' }, body: JSON.stringify(body)
@@ -251,6 +252,42 @@
       } catch (error) {
         status.textContent = error.message;
       }
+    }
+
+    // Menyelesaikan urusan wajib disertai bukti: catatan bukti dan/atau berkas (privat).
+    async function selesaikan(item) {
+      const sudahAda = Boolean(item.evidenceNote || item.evidenceFileId);
+      const hasil = await window.HamasahDialog.formulir({
+        judul: `Selesaikan: ${item.title}`,
+        keterangan: `${item.studentName}. Tulis bukti penyelesaian supaya ada jejak bahwa urusan ini benar-benar beres.${sudahAda ? ' Bukti sebelumnya sudah ada; boleh dikosongkan.' : ''}`,
+        bidang: [
+          { nama: 'evidenceNote', label: 'Bukti penyelesaian', jenis: 'textarea', nilai: item.evidenceNote || '', wajib: !sudahAda, petunjuk: 'Misalnya: nomor tanda terima, tanggal diserahkan, atau siapa yang menerima.' },
+          { nama: 'evidenceFile', label: 'Berkas bukti (opsional)', jenis: 'file', accept: 'application/pdf,image/jpeg,image/png', petunjuk: 'PDF, JPG, atau PNG maksimal 5 MB. Disimpan privat.' }
+        ],
+        labelSimpan: 'Tandai selesai',
+        kirim: async (nilai) => {
+          const ekstra = {};
+          if (nilai.evidenceNote) ekstra.evidenceNote = nilai.evidenceNote;
+          if (nilai.evidenceFile) ekstra.evidenceFileId = await window.HamasahUnggah.kirim({ purpose: 'case-evidence', entityId: item.studentId, berkas: nilai.evidenceFile, headers: headers() });
+          const respons = await fetch('/api/admin/monitoring-pusat/masalah', { method: 'PATCH', headers: { ...headers(), 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId: item.studentId, kind: item.kind, ref: item.ref, status: 'selesai', ...ekstra }) });
+          const jawab = await respons.json().catch(() => ({}));
+          if (!respons.ok) throw new Error(jawab.error || 'Urusan belum dapat diselesaikan.');
+          return jawab;
+        }
+      });
+      if (hasil) await muat(`${item.studentName}: urusan ditandai selesai.`);
+    }
+
+    function pilihPenanggungJawab(item) {
+      const baris = el('label', 'mp-assign');
+      baris.append(el('span', '', 'Penanggung jawab'));
+      const pilih = el('select');
+      pilih.append(new Option('Belum ditentukan', ''));
+      (data.options.staff || []).forEach((p) => pilih.append(new Option(`${p.name} (${p.role === 'admin' ? 'admin' : 'musyrif'})`, p.id)));
+      pilih.value = item.assignee ? item.assignee.id : '';
+      pilih.addEventListener('change', () => ubah(item, item.status, undefined, { assigneeAccountId: pilih.value }));
+      baris.append(pilih);
+      return baris;
     }
 
     function formCatatan(item) {
@@ -291,6 +328,24 @@
       if (item.since) jejak.push(WAKTU.format(new Date(item.since)));
       if (jejak.length) utama.append(el('p', 'mp-case__trail', jejak.join(' · ')));
       if (item.note && (item.kind === 'paspor' || item.kind === 'iqamah')) utama.append(el('p', 'mp-case__note', `Catatan: ${item.note}`));
+      if (item.assignee) utama.append(el('p', 'mp-case__trail', `Penanggung jawab: ${item.assignee.name || 'staf'}`));
+      if (item.evidenceNote || item.evidenceFileId) {
+        const bukti = el('p', 'mp-case__note', item.evidenceNote ? `Bukti penyelesaian: ${item.evidenceNote}` : 'Bukti penyelesaian terlampir.');
+        if (item.evidenceFileId) {
+          const lihat = tombol('Lihat berkas bukti', 'mp-link', () => window.HamasahUnggah.buka(item.evidenceFileId, headers()).catch((error) => { status.textContent = error.message; }));
+          bukti.append(document.createTextNode(' '), lihat);
+        }
+        utama.append(bukti);
+      }
+      if (item.history && item.history.length) {
+        const riwayat = el('details', 'mp-case__history');
+        riwayat.append(el('summary', '', `Riwayat (${item.history.length})`));
+        const ul = el('ul');
+        const ARTI = { dibuat: 'Dibuat', status: 'Status', 'penanggung-jawab': 'Penanggung jawab', catatan: 'Catatan' };
+        item.history.forEach((h) => ul.append(el('li', '', `${WAKTU.format(new Date(h.at))} · ${ARTI[h.action] || h.action}${h.to ? `: ${LABEL_STATUS[h.to] || h.to}` : ''}${h.by ? ` oleh ${h.by}` : ''}${h.note ? ` · ${h.note}` : ''}`)));
+        riwayat.append(ul);
+        utama.append(riwayat);
+      }
 
       const sisi = el('div', 'mp-case__side');
       const lencana = el('div', 'mp-case__badges');
@@ -300,7 +355,7 @@
       const aksiUtama = item.status === 'baru'
         ? tombol('Mulai proses', 'button button--primary mp-small', () => ubah(item, 'diproses'))
         : item.status === 'diproses'
-          ? tombol('Tandai selesai', 'button button--primary mp-small', () => ubah(item, 'selesai'))
+          ? tombol('Tandai selesai', 'button button--primary mp-small', () => selesaikan(item))
           : tombol('Buka lagi', 'button button--secondary mp-small', () => ubah(item, 'baru'));
       sisi.append(aksiUtama);
 
@@ -309,9 +364,9 @@
       const isi = el('div', 'mp-case__more-body');
       const aksi = el('div', 'mp-case__actions');
       aksi.append(tombol('Buka profil santri', 'button button--secondary mp-small', () => onOpenStudent(item.studentId)));
-      if (item.status === 'baru') aksi.append(tombol('Langsung selesai', 'button button--secondary mp-small', () => ubah(item, 'selesai')));
+      if (item.status === 'baru') aksi.append(tombol('Langsung selesai', 'button button--secondary mp-small', () => selesaikan(item)));
       if (item.status === 'diproses') aksi.append(tombol('Kembalikan ke baru', 'button button--secondary mp-small', () => ubah(item, 'baru')));
-      isi.append(aksi, formCatatan(item));
+      isi.append(aksi, pilihPenanggungJawab(item), formCatatan(item));
       lain.append(isi);
       li.append(utama, sisi, lain);
       return li;
@@ -347,6 +402,10 @@
       catatan.required = true;
       catatan.minLength = 3;
       baris('Catatan', catatan);
+      const penanggung = el('select');
+      penanggung.append(new Option('Belum ditentukan', ''));
+      (data.options.staff || []).forEach((p) => penanggung.append(new Option(`${p.name} (${p.role === 'admin' ? 'admin' : 'musyrif'})`, p.id)));
+      baris('Penanggung jawab', penanggung);
       const galat = el('p', 'mp-dialog__error');
       galat.setAttribute('role', 'alert');
       const aksi = el('div', 'mp-dialog__actions');
@@ -363,7 +422,7 @@
           const response = await fetch('/api/admin/monitoring-pusat/masalah', {
             method: 'POST',
             headers: { ...headers(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ studentId: santri.value, kind: jenis.value, note: catatan.value, dueOn: batas.value })
+            body: JSON.stringify({ studentId: santri.value, kind: jenis.value, note: catatan.value, dueOn: batas.value, assigneeAccountId: penanggung.value || undefined })
           });
           const hasil = await response.json();
           if (!response.ok) throw new Error(hasil.error || 'Urusan belum dapat dicatat.');
@@ -459,6 +518,44 @@
       kartuNegara.append(ul);
     }
 
+    // Batas peringatan paspor dan iqamah. Paspor yang tersisa kurang dari enam bulan (180 hari) dapat diubah di sini.
+    function gambarDokumen() {
+      const a = data.options.documentAlerts;
+      const terbuka = kartuDokumen.open;
+      kartuDokumen.replaceChildren(el('summary', '', 'Atur batas peringatan paspor dan iqamah'));
+      if (!a) return;
+      kartuDokumen.append(el('p', 'mp-sub', 'Dokumen yang sisa masa berlakunya kurang dari batas peringatan muncul di daftar urusan; kurang dari batas segera ditandai mendesak. Berlaku juga di profil santri.'));
+      const form = el('form', 'mp-note-form');
+      const kolom = [['passportWarningDays', 'Peringatan paspor (hari)'], ['passportUrgentDays', 'Paspor segera (hari)'], ['iqamahWarningDays', 'Peringatan iqamah (hari)'], ['iqamahUrgentDays', 'Iqamah segera (hari)']];
+      const isian = {};
+      kolom.forEach(([kunci, label]) => {
+        const l = el('label', 'mp-dialog__field');
+        const i = el('input');
+        i.type = 'number';
+        i.min = '1';
+        i.max = '730';
+        i.value = String(a[kunci]);
+        isian[kunci] = i;
+        l.append(el('span', '', label), i);
+        form.append(l);
+      });
+      const simpan = el('button', 'button button--secondary mp-small', 'Simpan batas');
+      simpan.type = 'submit';
+      form.append(simpan);
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        status.textContent = 'Menyimpan...';
+        try {
+          const respons = await fetch('/api/pengaturan-dokumen', { method: 'PUT', headers: { ...headers(), 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(kolom.map(([kunci]) => [kunci, Number(isian[kunci].value)]))) });
+          const hasil = await respons.json().catch(() => ({}));
+          if (!respons.ok) throw new Error(hasil.error || 'Batas belum dapat disimpan.');
+          await muat('Batas peringatan dokumen disimpan.');
+        } catch (error) { status.textContent = error.message; }
+      });
+      kartuDokumen.append(form);
+      kartuDokumen.open = terbuka;
+    }
+
     async function muat(pesan) {
       if (sedangMuat) return;
       sedangMuat = true;
@@ -479,6 +576,7 @@
         gambarAbsensi();
         gambarMasalah();
         gambarNegara();
+        gambarDokumen();
         kartuNegara.open = terbuka;
       } catch (error) {
         status.textContent = error.message;

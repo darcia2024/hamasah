@@ -116,6 +116,7 @@ const ACTIONS = Object.freeze({
  ,REPORT_CARD_UPDATED: 'report-card.updated'
  ,REPORT_CARD_PUBLISHED: 'report-card.published'
  ,REPORT_CARD_DOWNLOADED: 'report-card.downloaded'
+ ,DOCUMENT_ALERTS_CHANGED: 'document-alerts.changed'
   ,RESIDENCE_REPORTED: 'residence.reported'
   ,RESIDENCE_UPDATED: 'residence.updated'
   ,RESIDENCE_REPORT_DECIDED: 'residence.report-decided'

@@ -351,6 +351,17 @@
 
   async function ubahUrusan(ctx, kasus, status) {
     try {
+      if (status === 'selesai' && window.HamasahDialog) {
+        const hasil = await window.HamasahDialog.formulir({
+          judul: 'Selesaikan urusan',
+          keterangan: 'Tulis bukti penyelesaian supaya ada jejak bahwa urusan ini benar-benar beres.',
+          bidang: [{ nama: 'evidenceNote', label: 'Bukti penyelesaian', jenis: 'textarea', nilai: kasus.evidenceNote || '', wajib: !(kasus.evidenceNote || kasus.evidenceFileId) }],
+          labelSimpan: 'Tandai selesai',
+          kirim: (nilai) => kirimJson('PATCH', '/api/musyrif/urusan', ctx.headers, { studentId: ctx.student.id, kind: kasus.kind, ref: kasus.ref, status, ...(nilai.evidenceNote ? { evidenceNote: nilai.evidenceNote } : {}) })
+        });
+        if (hasil) await ctx.muatUlang('Urusan ditandai selesai.');
+        return;
+      }
       await kirimJson('PATCH', '/api/musyrif/urusan', ctx.headers, { studentId: ctx.student.id, kind: kasus.kind, ref: kasus.ref, status });
       await ctx.muatUlang('Status urusan diperbarui.');
     } catch (error) {
