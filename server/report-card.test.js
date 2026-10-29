@@ -104,6 +104,12 @@ async function run() {
     assert.equal(diajukan.body.status, 'review');
     assert.equal((await terbitkan(tA)).status, 403, 'Musyrif belum diberi wewenang menerbitkan.');
     assert.equal((await terbitkan(tWali)).status, 403);
+    // Pengaturan bawaan belum dikonfirmasi admin: tidak ada rapor yang boleh terbit.
+    assert.equal(aturan.body.config.confirmedAt, undefined);
+    const belumKonfirmasi = await terbitkan(admin);
+    assert.equal(belumKonfirmasi.status, 409);
+    assert.match(belumKonfirmasi.body.error, /dikonfirmasi admin/);
+    assert.equal((await api('PUT', '/api/rapor/pengaturan', tA, { confirm: true })).status, 403);
 
     // Admin memberi wewenang ke musyrif lewat pengaturan, bukan lewat kode; musyrif asrama lain tetap tak bisa.
     assert.equal((await api('PUT', '/api/rapor/pengaturan', admin, { publishRoles: ['admin', 'supervisor'] })).status, 200);
@@ -148,6 +154,20 @@ async function run() {
     assert.equal((await api('GET', `/api/students/${anak.id}/rapor/${BULAN}/pdf`, tWali)).status, 403);
     assert.equal((await api('GET', `/api/students/${anak.id}/rapor`, tWali)).body.pdfEnabled, false);
     assert.equal((await fetch(`${baseUrl}/api/students/${anak.id}/rapor/${BULAN}/pdf`, { headers: { Authorization: `Bearer ${tA}` } })).status, 200, 'Staf tetap bisa mengunduh.');
+
+    // Bulan tanpa absensi kegiatan memakai presensi harian asrama (sumber ditandai).
+    const dulu = new Date(); dulu.setUTCDate(1); dulu.setUTCMonth(dulu.getUTCMonth() - 1);
+    const bulanLalu = dulu.toISOString().slice(0, 7);
+    for (const [hari, status] of [['10', 'present'], ['11', 'present'], ['12', 'late'], ['13', 'absent'], ['14', 'excused']]) {
+      const catat = await api('POST', `/api/students/${anak.id}/attendance`, tA, { status, category: `Apel ${hari}`, occurredAt: `${bulanLalu}-${hari}T05:00:00.000Z` });
+      assert.equal(catat.status, 201, catat.teks);
+    }
+    const lama = await api('POST', `/api/students/${anak.id}/rapor/${bulanLalu}/susun`, tA);
+    assert.equal(lama.status, 200, lama.teks);
+    assert.equal(lama.body.raw.attendance.source, 'presensi-asrama');
+    assert.deepEqual([lama.body.raw.attendance.hadir, lama.body.raw.attendance.alpa, lama.body.raw.attendance.izin], [3, 1, 1]);
+    assert.equal(lama.body.scores.attendance, 75);
+    assert.equal((await api('GET', `/api/students/${anak.id}/rapor/${BULAN}/pdf`, tA)).status, 200);
 
     // Ringkasan bulan untuk layar musyrif.
     const bulan = await api('GET', `/api/rapor/bulan/${BULAN}`, tA);

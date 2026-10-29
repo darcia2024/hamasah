@@ -48,3 +48,15 @@
   .kg-bar .wali-form__row { flex: 1 1 100%; }
   .kg-list { grid-template-columns: 1fr; }
 }
+
+.kg-warning { margin: 0; padding: 12px 14px; border-radius: 10px; background: #fff0cf; color: #6b4a0c; font-size: 14px; }
+.kg-ok { margin: 0; padding: 10px 14px; border-radius: 10px; background: #dff3e4; color: #1d6b34; font-size: 14px; }
+
+@media (max-width: 640px) {
+  .kg-table--stack tr:first-child:has(th) { display: none; }
+  .kg-table--stack, .kg-table--stack tbody { display: block; }
+  .kg-table--stack tr { display: grid; gap: 4px; padding: 12px 0; border-bottom: 1px solid var(--wali-rule); }
+  .kg-table--stack td { display: grid; grid-template-columns: 110px 1fr; gap: 8px; padding: 2px 0; border: 0; align-items: center; }
+  .kg-table--stack td::before { content: attr(data-label); font-size: 12px; color: var(--md-sys-color-on-surface-variant); }
+  .kg-table--stack td:not([data-label])::before { content: none; }
+}

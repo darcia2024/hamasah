@@ -60,6 +60,8 @@ function rentangBulan(bulan) {
 function periksaConfig(input, lama) {
   const sumber = input || {};
   const config = JSON.parse(JSON.stringify(lama));
+  delete config.confirmedAt;
+  delete config.confirmedBy;
   const angka = (nilai, nama, min, maks) => {
     const n = Number(nilai);
     if (!Number.isFinite(n) || n < min || n > maks) throw new Error(`${nama} harus angka ${min} sampai ${maks}.`);
@@ -147,6 +149,9 @@ function createReportCardService({ database, accessFor, staffDormitories, activi
       const { config: lama } = await muatConfig();
       const hasil = periksaConfig(input, lama);
       if (hasil.error) return { ok: false, error: hasil.error };
+      // Menyimpan atau mengonfirmasi pengaturan = admin sudah memeriksanya; rapor baru boleh terbit sesudahnya.
+      hasil.config.confirmedAt = now().toISOString();
+      hasil.config.confirmedBy = actor.name || actor.id || null;
       await database.query(
         `INSERT INTO report_card_settings (id, config, updated_by_account_id, updated_at) VALUES (1, $1::jsonb, $2, $3)
          ON CONFLICT (id) DO UPDATE SET config = EXCLUDED.config, updated_by_account_id = EXCLUDED.updated_by_account_id, updated_at = EXCLUDED.updated_at`,
@@ -161,7 +166,17 @@ function createReportCardService({ database, accessFor, staffDormitories, activi
   async function hitungIndikator(studentId, bulan, config) {
     const { from, to } = rentangBulan(bulan);
     const hitung = async (tabel) => Number((await database.query(`SELECT count(*) AS n FROM ${tabel} WHERE student_id = $1 AND occurred_at >= $2::date AND occurred_at < ($3::date + 1)`, [studentId, from, to])).rows[0].n);
-    const absensi = activityAttendance ? await activityAttendance.studentSummary(studentId, from, to) : null;
+    let absensi = activityAttendance ? await activityAttendance.studentSummary(studentId, from, to) : null;
+    if (absensi) absensi = { ...absensi, source: 'kegiatan' };
+    // Sistem absensi kegiatan belum dipakai pada bulan ini: pakai presensi harian asrama (sistem lama) supaya bulan-bulan
+    // sebelumnya tidak kosong. Sumbernya ditandai di rapor.
+    if (!absensi || absensi.hadir + absensi.izin + absensi.sakit + absensi.alpa + absensi.belum === 0) {
+      const lama = await database.query(`SELECT status, count(*) AS n FROM student_attendance WHERE student_id = $1 AND occurred_at >= $2::date AND occurred_at < ($3::date + 1) GROUP BY status`, [studentId, from, to]);
+      const n = (s) => lama.rows.filter((r) => s.includes(r.status)).reduce((j, r) => j + Number(r.n), 0);
+      const hadir = n(['present', 'late']);
+      const alpa = n(['absent']);
+      if (hadir + alpa + n(['excused'])) absensi = { hadir, izin: n(['excused']), sakit: 0, alpa, belum: 0, rate: hadir + alpa ? Math.round((hadir / (hadir + alpa)) * 100) : null, source: 'presensi-asrama' };
+    }
     const setoran = tahfidz ? await tahfidz.monthSummary(studentId, bulan) : null;
     const pelanggaran = (await database.query(`SELECT level, count(*) AS n FROM student_violations WHERE student_id = $1 AND occurred_at >= $2::date AND occurred_at < ($3::date + 1) GROUP BY level`, [studentId, from, to])).rows;
     const kegiatan = await hitung('student_activities');
@@ -283,6 +298,7 @@ function createReportCardService({ database, accessFor, staffDormitories, activi
     return tulis(async () => {
       const { config } = await muatConfig();
       if (!config.publishRoles.includes(actor.role)) return { ok: false, status: 403, error: 'Peran Anda belum diberi wewenang menerbitkan rapor. Hubungi admin.' };
+      if (!tarik && !config.confirmedAt) return { ok: false, status: 409, error: 'Pengaturan penilaian rapor (bobot dan batas A/B/C) belum dikonfirmasi admin. Admin perlu memeriksanya di tab Pengaturan dan menyimpannya lebih dulu.' };
       const row = BULAN.test(String(bulan)) ? await ambilRow(studentId, bulan) : null;
       if (!row) return { ok: false, status: 404, error: 'Rapor bulan ini belum disusun.' };
       if (tarik) {
@@ -362,7 +378,7 @@ function createReportCardService({ database, accessFor, staffDormitories, activi
         blok.push({ kind: 'item', text: `${label}: ${skor === null || skor === undefined ? 'belum ada data' : skor}${r.weights ? ` (bobot ${r.weights[kunci]}%)` : ''}` });
       }
       const a = r.raw.attendance;
-      if (a) blok.push({ kind: 'muted', text: `Absensi: hadir ${a.hadir}, izin ${a.izin}, sakit ${a.sakit}, tidak hadir ${a.alpa}, belum dicatat ${a.belum}.` });
+      if (a) blok.push({ kind: 'muted', text: `Absensi (${a.source === 'presensi-asrama' ? 'presensi harian asrama' : 'absensi kegiatan'}): hadir ${a.hadir}, izin ${a.izin}, sakit ${a.sakit}, tidak hadir ${a.alpa}, belum dicatat ${a.belum}.` });
       const t = r.raw.tahfidz;
       if (t) blok.push({ kind: 'muted', text: `Tahfidz: ${t.newAyat} ayat hafalan baru, ${t.murajaahAyat} ayat murajaah, ${t.entries} setoran.` });
       if (r.raw.discipline) blok.push({ kind: 'muted', text: `Kedisiplinan: ${r.raw.discipline.violations} catatan.` });

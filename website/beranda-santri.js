@@ -287,6 +287,9 @@
     // Pesan yang belum dibaca: lencana di pintasan dan satu kalimat di atas, supaya tidak terlewat.
     const pesanSaya = P ? await K.ambil(`/api/students/${encodeURIComponent(student.id)}/pesan?t=${Date.now()}`, headers) : null;
     let belumDibaca = pesanSaya && pesanSaya.available ? Number(pesanSaya.unread) || 0 : 0;
+    // Rapor bulanan yang baru terbit dan belum pernah dibuka.
+    const raporSaya = B ? await K.ambil(`/api/students/${encodeURIComponent(student.id)}/rapor?t=${Date.now()}`, headers) : null;
+    const raporBaru = B ? B.hitungRaporBaru(raporSaya, student.id) : 0;
     const asrama = jadwal && jadwal.tersedia && Array.isArray(jadwal.dormitories)
       ? jadwal.dormitories.find((d) => d.students.some((s) => String(s.id) === String(student.id))) || null
       : null;
@@ -355,7 +358,12 @@
       tautan.href = href;
       if (href === '#santri-pesan' && belumDibaca) {
         const lencana = el('span', 'snt-nav-badge', String(belumDibaca));
-        lencana.setAttribute('aria-label', ` pesan belum dibaca`);
+        lencana.setAttribute('aria-label', `${belumDibaca} pesan belum dibaca`);
+        tautan.append(lencana);
+      }
+      if (href === '#santri-rapor' && raporBaru) {
+        const lencana = el('span', 'snt-nav-badge snt-nav-badge--rapor', String(raporBaru));
+        lencana.setAttribute('aria-label', `${raporBaru} rapor baru`);
         tautan.append(lencana);
       }
       pintasanBagian.append(tautan);
@@ -383,8 +391,26 @@
       }
     };
 
+    let kabarRapor = null;
+    if (raporBaru) {
+      kabarRapor = el('p', 'wali-pending');
+      kabarRapor.setAttribute('role', 'status');
+      const tautanRapor = document.createElement('a');
+      tautanRapor.href = '#santri-rapor';
+      tautanRapor.textContent = `${raporBaru} rapor bulanan baru sudah terbit. Baca sekarang`;
+      kabarRapor.append(el('span', 'wali-pending__dot'), tautanRapor);
+    }
+    const saatRaporDilihat = () => {
+      if (!raporBaru) return;
+      B.tandaiRaporDilihat(student.id);
+      const lencana = pintasanBagian.querySelector('.snt-nav-badge--rapor');
+      if (lencana) lencana.remove();
+      if (kabarRapor) kabarRapor.remove();
+    };
+
     wadah.replaceChildren(...[
       kabarPesan,
+      kabarRapor,
       pintasanBagian,
       bagianHariIni({ student, asrama, data, kini, onIzin: keIzin, onOpenFull }),
       kelompok('urusan', 'Iqamah & izin', 'Pantau izin tinggal dan ajukan izin keluar asrama.', [
@@ -415,6 +441,18 @@
         })
       ])
     ].filter(Boolean));
+
+    // Rapor dianggap sudah dilihat begitu bagian Rapor tampak di layar atau pintasannya diketuk.
+    const bagianRapor = wadah.querySelector('#santri-rapor');
+    if (raporBaru && bagianRapor) {
+      if ('IntersectionObserver' in window) {
+        const pengamat = new IntersectionObserver((entri) => {
+          if (entri.some((e) => e.isIntersecting)) { pengamat.disconnect(); saatRaporDilihat(); }
+        }, { threshold: 0.3 });
+        pengamat.observe(bagianRapor);
+      }
+      wadah.querySelectorAll('a[href="#santri-rapor"]').forEach((a) => a.addEventListener('click', saatRaporDilihat));
+    }
   }
 
   window.HamasahBerandaSantri = Object.freeze({ render });

@@ -249,6 +249,20 @@
     return wadah;
   }
 
+  // Rapor yang baru terbit dan belum pernah dibuka di perangkat ini (penanda waktu per santri di penyimpanan lokal).
+  const kunciRapor = (studentId) => `hamasahRaporDilihat:${studentId}`;
+
+  function hitungRaporBaru(daftar, studentId) {
+    if (!daftar || !Array.isArray(daftar.items)) return 0;
+    let dilihat = 0;
+    try { dilihat = Number(localStorage.getItem(kunciRapor(studentId))) || 0; } catch { dilihat = 0; }
+    return daftar.items.filter((r) => r.status === 'published' && r.publishedAt && Date.parse(r.publishedAt) > dilihat).length;
+  }
+
+  function tandaiRaporDilihat(studentId) {
+    try { localStorage.setItem(kunciRapor(studentId), String(Date.now())); } catch { /* tanpa penyimpanan tetap jalan */ }
+  }
+
   // Perkembangan hafalan dari buku setoran: ayat unik (tanpa hitung ganda), rekap bulan ini, dan setoran terakhir.
   function kartuTahfidz(student, headers) {
     const wadah = bagian('Buku setoran tahfidz', 'Perkembangan hafalan dihitung dari ayat yang berbeda; menyetor ulang ayat yang sama tidak dihitung dua kali.', 'wali-tahfidz');
@@ -408,5 +422,5 @@
     return wadah;
   }
 
-  window.HamasahWaliBagian = Object.freeze({ kartuTahfidz, kartuDataDiri, kartuPendidikan, kartuAbsensiJenis, kartuRapor, kartuDokumentasi, kartuMasukan });
+  window.HamasahWaliBagian = Object.freeze({ hitungRaporBaru, tandaiRaporDilihat, kartuTahfidz, kartuDataDiri, kartuPendidikan, kartuAbsensiJenis, kartuRapor, kartuDokumentasi, kartuMasukan });
 }());

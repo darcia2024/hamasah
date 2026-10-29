@@ -171,13 +171,14 @@
         const data = await api('GET', `/api/kegiatan/rekap?by=${by.value}&period=${periode.value}&value=${encodeURIComponent(nilai.value)}&t=${Date.now()}`);
         if (data.available === false) { statusRekap.set('Database belum diperbarui.', true); return; }
         statusRekap.set(`${data.items.length} baris. Kegiatan tidak terlaksana: ${data.sessionsNotHeld.notHeld}, dibatalkan: ${data.sessionsNotHeld.cancelled}.`);
-        const tabel = el('table', 'kg-table');
+        const tabel = el('table', 'kg-table kg-table--stack');
         const kepala = el('tr');
         ['Nama', 'Kegiatan', 'Hadir', 'Izin', 'Sakit', 'Tidak hadir', 'Belum dicatat', 'Kehadiran'].forEach((t) => kepala.append(el('th', '', t)));
         tabel.append(kepala);
         data.items.forEach((r) => {
           const tr = el('tr');
-          [r.label, r.sessions, r.hadir, r.izin, r.sakit, r.alpa, r.belum, r.rate === null ? '-' : `${r.rate}%`].forEach((v) => tr.append(el('td', '', String(v))));
+          const judulKolom = ['Nama', 'Kegiatan', 'Hadir', 'Izin', 'Sakit', 'Tidak hadir', 'Belum dicatat', 'Kehadiran'];
+          [r.label, r.sessions, r.hadir, r.izin, r.sakit, r.alpa, r.belum, r.rate === null ? '-' : `${r.rate}%`].forEach((v, i) => { const c = el('td', '', String(v)); c.dataset.label = judulKolom[i]; tr.append(c); });
           tabel.append(tr);
         });
         hasilRekap.replaceChildren(data.items.length ? el('div', 'kg-scroll') : kosong('Belum ada kegiatan terlaksana pada periode ini.'));
@@ -224,7 +225,7 @@
     if (s.status === 'terlaksana') {
       const pilih = new Map();
       const awal = new Map(data.students.map((x) => [x.id, x.status]));
-      const tabel = el('table', 'kg-table');
+      const tabel = el('table', 'kg-table kg-table--stack');
       const kepala = el('tr');
       ['Santri', 'Asrama', 'Status', 'Catatan'].forEach((t) => kepala.append(el('th', '', t)));
       tabel.append(kepala);
@@ -237,8 +238,9 @@
         cat.setAttribute('aria-label', `Catatan ${x.name}`);
         pilih.set(x.id, { sel, cat });
         const tr = el('tr');
-        const td = (n) => { const c = el('td'); c.append(n); return c; };
-        tr.append(el('td', '', x.name), el('td', '', x.dormitoryName || '-'), td(sel), td(cat));
+        const td = (n, label) => { const c = el('td'); c.dataset.label = label; c.append(n); return c; };
+        const teksTd = (v, label) => { const c = el('td', '', v); c.dataset.label = label; return c; };
+        tr.append(teksTd(x.name, 'Santri'), teksTd(x.dormitoryName || '-', 'Asrama'), td(sel, 'Status'), td(cat, 'Catatan'));
         tabel.append(tr);
       });
       const bungkus = el('div', 'kg-scroll');
@@ -416,7 +418,11 @@
     const status = pesanStatus();
     const daftar = el('div');
     const rincian = el('div');
-    akar.append(bagianDengan('Rapor bulanan', 'Susun, ajukan tinjauan, lalu terbitkan. Wali dan santri hanya melihat rapor yang sudah terbit.', bar, status, daftar), rincian);
+    const aturanAwal = await api('GET', '/api/rapor/pengaturan').catch(() => null);
+    const peringatan = aturanAwal && !aturanAwal.config.confirmedAt
+      ? el('p', 'kg-warning', 'Pengaturan penilaian (bobot dan batas A/B/C) belum dikonfirmasi admin, jadi rapor belum bisa diterbitkan. Rapor tetap bisa disusun dan diajukan. Admin mengonfirmasinya di tab Pengaturan.')
+      : null;
+    akar.append(bagianDengan('Rapor bulanan', 'Susun, ajukan tinjauan, lalu terbitkan. Wali dan santri hanya melihat rapor yang sudah terbit.', ...[peringatan, bar, status, daftar].filter(Boolean)), rincian);
 
     async function muat() {
       status.set('Memuat...');
@@ -424,7 +430,7 @@
         const data = await api('GET', `/api/rapor/bulan/${encodeURIComponent(bulan.value)}?t=${Date.now()}`);
         if (data.available === false) { status.set('Database belum diperbarui untuk rapor bulanan. Terapkan pembaruan database di halaman Pengaturan.', true); daftar.replaceChildren(); return; }
         status.set(data.canPublish ? 'Anda berwenang menerbitkan rapor.' : 'Anda menyusun dan mengajukan; penerbitan oleh pihak yang ditetapkan admin.');
-        const tabel = el('table', 'kg-table');
+        const tabel = el('table', 'kg-table kg-table--stack');
         const kepala = el('tr');
         ['Santri', 'Asrama', 'Status rapor', 'Nilai', ''].forEach((t) => kepala.append(el('th', '', t)));
         tabel.append(kepala);
@@ -432,7 +438,8 @@
           const tr = el('tr');
           const sel = el('td');
           sel.append(tombol('Buka', 'button button--secondary kg-small', () => bukaRapor(r.studentId, r.name, bulan.value, data.canPublish, rincian, muat).catch(() => {})));
-          tr.append(el('td', '', r.name), el('td', '', r.dormitoryName || '-'), el('td', '', r.statusLabel), el('td', '', r.grade ? `${r.grade} (${r.total})` : '-'), sel);
+          const isiTd = (v, label) => { const c = el('td', '', v); c.dataset.label = label; return c; };
+          tr.append(isiTd(r.name, 'Santri'), isiTd(r.dormitoryName || '-', 'Asrama'), isiTd(r.statusLabel, 'Status rapor'), isiTd(r.grade ? `${r.grade} (${r.total})` : '-', 'Nilai'), sel);
           tabel.append(tr);
         });
         const bungkus = el('div', 'kg-scroll');
@@ -468,7 +475,7 @@
       b.append(ul);
       if (r.grades) b.append(el('p', 'wali-field__hint', `Kategori A mulai ${r.grades.A}, B mulai ${r.grades.B}, di bawahnya C. Pengaturan ini disalin saat rapor disusun.`));
       const dapat = r.raw.attendance, taf = r.raw.tahfidz;
-      const rincianData = [dapat ? `Absensi: hadir ${dapat.hadir}, izin ${dapat.izin}, sakit ${dapat.sakit}, tidak hadir ${dapat.alpa}, belum dicatat ${dapat.belum}.` : '', taf ? `Tahfidz: ${taf.newAyat} ayat baru, ${taf.murajaahAyat} ayat murajaah.` : ''].filter(Boolean);
+      const rincianData = [dapat ? `Absensi (${dapat.source === 'presensi-asrama' ? 'presensi harian asrama, karena absensi kegiatan belum dipakai bulan ini' : 'absensi kegiatan'}): hadir ${dapat.hadir}, izin ${dapat.izin}, sakit ${dapat.sakit}, tidak hadir ${dapat.alpa}, belum dicatat ${dapat.belum}.` : '', taf ? `Tahfidz: ${taf.newAyat} ayat baru, ${taf.murajaahAyat} ayat murajaah.` : ''].filter(Boolean);
       rincianData.forEach((t) => b.append(el('p', 'wali-field__hint', t)));
       const bisaUbah = r.status !== 'published';
       const catatan = el('textarea', 'wali-field');
@@ -569,6 +576,15 @@
       kolom('Wali dan santri boleh mengunduh PDF rapor', pdf)
     );
     const statusAturan = pesanStatus();
+    const terkonfirmasi = Boolean(c.confirmedAt);
+    r.append(el('p', terkonfirmasi ? 'kg-ok' : 'kg-warning', terkonfirmasi
+      ? `Pengaturan dikonfirmasi ${new Date(c.confirmedAt).toLocaleDateString('id-ID')}${c.confirmedBy ? ` oleh ${c.confirmedBy}` : ''}. Menyimpan perubahan akan mengonfirmasi ulang.`
+      : 'Angka bawaan ini belum diperiksa. Rapor baru boleh diterbitkan setelah admin memeriksa dan menyimpan atau mengonfirmasi pengaturan ini.'));
+    if (bisa && !terkonfirmasi) {
+      r.append(tombol('Konfirmasi pengaturan ini', 'button button--secondary kg-small', async () => {
+        try { await api('PUT', '/api/rapor/pengaturan', { confirm: true }); render().catch(() => {}); } catch (error) { statusAturan.set(error.message, true); }
+      }));
+    }
     if (bisa) {
       const simpan = el('button', 'button button--primary wali-action', 'Simpan pengaturan');
       simpan.type = 'submit';

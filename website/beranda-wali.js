@@ -565,7 +565,7 @@
           K.ambil(`/api/students/${encodeURIComponent(aktifId)}/profil`, headers)
         ]));
       }
-      const [[data, profil], pengumuman, jadwalAsrama, iqamah, pesanBagikan, masukanSaya] = await Promise.all([cache.get(aktifId), pengumumanJanji, K.muatJadwalAsrama(headers), iqamahJanji, window.HamasahPesanPersonal ? window.HamasahPesanPersonal.kartuWali(student, headers) : null, K.ambil(`/api/masukan/saya?t=${Date.now()}`, headers)]);
+      const [[data, profil], pengumuman, jadwalAsrama, iqamah, pesanBagikan, masukanSaya, raporSaya] = await Promise.all([cache.get(aktifId), pengumumanJanji, K.muatJadwalAsrama(headers), iqamahJanji, window.HamasahPesanPersonal ? window.HamasahPesanPersonal.kartuWali(student, headers) : null, K.ambil(`/api/masukan/saya?t=${Date.now()}`, headers), K.ambil(`/api/students/${encodeURIComponent(aktifId)}/rapor?t=${Date.now()}`, headers)]);
       if (student.id !== aktifId) return;
 
       const B = window.HamasahWaliBagian;
@@ -603,11 +603,19 @@
       let dilihat = 0;
       try { dilihat = Number(localStorage.getItem(DILIHAT_KUNCI)) || 0; } catch { dilihat = 0; }
       const balasanBaru = ((masukanSaya && masukanSaya.items) || []).filter((m) => m.reply && m.handledAt && Date.parse(m.handledAt) > dilihat).length;
-      if (balasanBaru && kategori[0].id === 'ringkasan') {
-        const kabar = el('p', 'wali-pending');
-        kabar.append(el('span', 'wali-pending__dot'), document.createTextNode(`Hamasah membalas ${balasanBaru} masukan Bapak/Ibu. Buka tab Kritik & saran untuk membacanya.`));
-        kategori[0].isi.unshift(kabar);
+      // Rapor yang baru diterbitkan (belum pernah dibuka): lencana di tab Hafalan & rapor dan satu kalimat di Ringkasan.
+      const raporBaru = window.HamasahWaliBagian ? window.HamasahWaliBagian.hitungRaporBaru(raporSaya, student.id) : 0;
+      const kabarRingkasan = [];
+      if (balasanBaru) kabarRingkasan.push(`Hamasah membalas ${balasanBaru} masukan Bapak/Ibu. Buka tab Kritik & saran untuk membacanya.`);
+      if (raporBaru) kabarRingkasan.push(`${raporBaru} rapor bulanan baru sudah terbit. Buka tab Hafalan & rapor untuk membacanya.`);
+      if (kabarRingkasan.length && kategori[0].id === 'ringkasan') {
+        kabarRingkasan.reverse().forEach((teks) => {
+          const kabar = el('p', 'wali-pending');
+          kabar.append(el('span', 'wali-pending__dot'), document.createTextNode(teks));
+          kategori[0].isi.unshift(kabar);
+        });
       }
+      const jumlahLencana = { masukan: balasanBaru, hafalan: raporBaru };
 
       let tersimpanTab = null;
       try { tersimpanTab = localStorage.getItem(TAB_KUNCI); } catch { tersimpanTab = null; }
@@ -624,9 +632,13 @@
           tombol.get(k.id).setAttribute('aria-selected', String(aktif));
           tombol.get(k.id).tabIndex = aktif ? 0 : -1;
         });
-        if (id === 'masukan') {
-          try { localStorage.setItem(DILIHAT_KUNCI, String(Date.now())); } catch { /* tanpa penyimpanan tetap jalan */ }
-          const lencana = tombol.get('masukan').querySelector('.wali-tab__badge');
+        if (id === 'masukan' || id === 'hafalan') {
+          if (id === 'masukan') {
+            try { localStorage.setItem(DILIHAT_KUNCI, String(Date.now())); } catch { /* tanpa penyimpanan tetap jalan */ }
+          } else if (window.HamasahWaliBagian) {
+            window.HamasahWaliBagian.tandaiRaporDilihat(student.id);
+          }
+          const lencana = tombol.get(id).querySelector('.wali-tab__badge');
           if (lencana) lencana.remove();
         }
         if (fokus) tombol.get(id).focus();
@@ -634,9 +646,9 @@
       }
       kategori.forEach((k, indeks) => {
         const b = el('button', 'wali-tab', k.label);
-        if (k.id === 'masukan' && balasanBaru) {
-          const lencana = el('span', 'wali-tab__badge', String(balasanBaru));
-          lencana.setAttribute('aria-label', ` balasan baru`);
+        if (jumlahLencana[k.id]) {
+          const lencana = el('span', 'wali-tab__badge', String(jumlahLencana[k.id]));
+          lencana.setAttribute('aria-label', k.id === 'masukan' ? `${jumlahLencana[k.id]} balasan baru` : `${jumlahLencana[k.id]} rapor baru`);
           b.append(lencana);
         }
         b.type = 'button';
