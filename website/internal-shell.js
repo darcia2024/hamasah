@@ -604,7 +604,7 @@
       }
       // Sesi perangkat ini ikut dicabut server, jadi penyimpanan lokalnya harus
       // dibuang juga. Tanpa ini halaman tetap memegang token yang sudah mati.
-      sessionStorage.removeItem('hamasahPortalSession');
+      sessionStorage.removeItem('hamasahPortalSession'); try { localStorage.removeItem('hamasahIngat'); } catch { /* abaikan */ }
       window.location.reload();
     });
     return keluarSemua;

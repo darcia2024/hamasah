@@ -307,6 +307,17 @@ const STAFF_NAV_LINKS = Object.freeze([
   }
 ]);
 
+// Pengelompokan menu menurut fungsi, supaya akun dengan banyak menu (admin) tidak melihat daftar datar yang panjang.
+const NAV_GRUP = Object.freeze({
+  portal: 'Utama',
+  staff: 'Santri dan asrama', monitoring: 'Santri dan asrama', asrama: 'Santri dan asrama', pembinaan: 'Santri dan asrama', kegiatan: 'Santri dan asrama', surat: 'Santri dan asrama', impor: 'Santri dan asrama', inventaris: 'Santri dan asrama',
+  lms: 'Pembelajaran', 'sesi-belajar': 'Pembelajaran', kpi: 'Pembelajaran', asisten: 'Pembelajaran',
+  operations: 'Keuangan dan administrasi', pengingat: 'Keuangan dan administrasi', pembayaran: 'Keuangan dan administrasi', 'operations-visa': 'Keuangan dan administrasi', 'operations-inventaris': 'Keuangan dan administrasi',
+  akun: 'Sistem dan konten', audit: 'Sistem dan konten', konten: 'Sistem dan konten', template: 'Sistem dan konten', pengaturan: 'Sistem dan konten'
+});
+const NAV_URUTAN_GRUP = Object.freeze(['Utama', 'Santri dan asrama', 'Pembelajaran', 'Keuangan dan administrasi', 'Sistem dan konten']);
+const NAV_MINIMAL_UNTUK_GRUP = 6;
+
 function getInitials(name) {
   if (!name) return 'H';
   // Gelar di depan (Ust., Ustzh., H., Dr., dst.) tidak ikut jadi inisial:
@@ -327,7 +338,19 @@ function renderStaffNav(container, role, currentPage, account) {
   if (!container) return;
   const roleLabels = ROLE_NAV_LABELS[role] || {};
   const tautan = STAFF_NAV_LINKS.filter((link) => !link.roles || link.roles.includes(role));
-  container.replaceChildren(...tautan.map((link) => {
+  const kelompokkan = tautan.length >= NAV_MINIMAL_UNTUK_GRUP;
+  const urut = kelompokkan ? [...tautan].sort((x, y) => NAV_URUTAN_GRUP.indexOf(NAV_GRUP[x.page] || 'Utama') - NAV_URUTAN_GRUP.indexOf(NAV_GRUP[y.page] || 'Utama')) : tautan;
+  let grupSekarang = null;
+  container.replaceChildren(...urut.flatMap((link) => {
+    const hasil = [];
+    const grup = NAV_GRUP[link.page] || 'Utama';
+    if (kelompokkan && grup !== grupSekarang) {
+      grupSekarang = grup;
+      const judul = document.createElement('p');
+      judul.className = 'crm-nav-subtitle';
+      judul.textContent = grup;
+      hasil.push(judul);
+    }
     const a = document.createElement('a');
     a.href = link.href;
     const label = roleLabels[link.page] || link.label;
@@ -337,7 +360,8 @@ function renderStaffNav(container, role, currentPage, account) {
       a.setAttribute('aria-current', 'page');
       a.classList.add('is-active');
     }
-    return a;
+    hasil.push(a);
+    return hasil;
   }));
   container.hidden = tautan.length === 0;
 

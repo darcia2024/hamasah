@@ -6,6 +6,11 @@
 // tidak berlaku, internal-shell.js mencabut kelas ini sehingga kartunya langsung tampil.
 (function sessionHint() {
   try {
+    // Wali dan santri yang memilih "Tetap masuk" dipulihkan ke sesi tab ini (aplikasi terpasang dibuka ulang = tab baru).
+    if (!sessionStorage.getItem('hamasahPortalSession')) {
+      const ingat = JSON.parse(localStorage.getItem('hamasahIngat') || 'null');
+      if (ingat && ingat.accessToken && ['parent', 'student'].includes(ingat.role)) sessionStorage.setItem('hamasahPortalSession', JSON.stringify({ accessToken: ingat.accessToken }));
+    }
     if (sessionStorage.getItem('hamasahPortalSession')) {
       document.documentElement.classList.add('has-portal-session');
     } else {

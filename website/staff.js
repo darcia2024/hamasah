@@ -157,7 +157,7 @@ function getSession() {
 }
 
 function clearSession() {
-  sessionStorage.removeItem('hamasahPortalSession');
+  sessionStorage.removeItem('hamasahPortalSession'); try { localStorage.removeItem('hamasahIngat'); } catch { /* abaikan */ }
 }
 
 function authHeaders() {
@@ -1330,6 +1330,19 @@ articleCoverAlt?.addEventListener('input', renderCoverPreview);
 articlePreviewButton?.addEventListener('click', renderArticlePreview);
 updateArticleSubmitLabel();
 
+// Pilihan rubrik di editor artikel berasal dari Konten Website > Rubrik artikel. Rubrik baru tetap boleh diketik.
+async function muatRubrikArtikel() {
+  try {
+    const respons = await fetch('/api/rubrik');
+    if (!respons.ok) return;
+    const data = await respons.json();
+    const daftar = document.querySelector('#article-category-options');
+    if (!daftar) return;
+    daftar.replaceChildren(...data.items.map((item) => { const opsi = document.createElement('option'); opsi.value = item.name; opsi.label = item.label; return opsi; }));
+  } catch { /* pilihan rubrik hanya kemudahan; editor tetap bisa diketik */ }
+}
+muatRubrikArtikel();
+
 articleForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   articleFormStatus.classList.remove('is-error');
@@ -1363,6 +1376,7 @@ articleForm.addEventListener('submit', async (event) => {
     if (!response.ok) throw new Error(result.error || 'Artikel belum dapat diterbitkan.');
     articleForm.reset(); articleSlug.disabled = false; articleSlug.value = '';
     document.querySelector('#article-category').value = 'Kegiatan';
+    muatRubrikArtikel();
     articleStatus.value = 'draft'; updateArticleSubmitLabel(); renderCoverPreview();
     document.querySelector('#article-form-title').textContent = 'Terbitkan Kabar & Wawasan Edukasi (Pena Hamasah)';
     articleFormStatus.textContent = result.item.status === 'draft' ? `Draf “${result.item.title}” tersimpan.` : `Artikel “${result.item.title}” sudah diterbitkan.`;

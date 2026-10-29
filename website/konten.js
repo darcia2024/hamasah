@@ -114,7 +114,8 @@ const SKEMA_KONTEN = {
         { k: 'kutipan', label: 'Kutipan singkat', jenis: 'area', baris: 2, maks: 200, petunjuk: 'Satu kalimat yang tampil besar di kartu.' },
         { k: 'isi', label: 'Testimoni lengkap (tidak wajib)', jenis: 'area', baris: 6, maks: 4000, petunjuk: 'Pisahkan paragraf dengan satu baris kosong.' },
         { k: 'foto', label: 'Foto', jenis: 'pilih', pilihan: 'foto', petunjuk: 'Foto baru dikirim ke pengembang untuk ditambahkan ke pilihan ini.' },
-        { k: 'alt', label: 'Keterangan foto untuk pembaca layar', jenis: 'teks', maks: 160, petunjuk: 'Wajib bila memakai foto. Misalnya: Ayah dan ibu wali santri.' }
+        { k: 'alt', label: 'Keterangan foto untuk pembaca layar', jenis: 'teks', maks: 160, petunjuk: 'Wajib bila memakai foto. Misalnya: Ayah dan ibu wali santri.' },
+        { k: 'aktif', label: 'Tampilkan di beranda', jenis: 'saklar', petunjuk: 'Matikan untuk menyembunyikan testimoni tanpa menghapusnya. Minimal satu harus aktif.' }
       ]
     }
   },
@@ -128,6 +129,19 @@ const SKEMA_KONTEN = {
         { k: 'topik', label: 'Topik (teks kecil di atas jawaban)', jenis: 'teks', maks: 60, petunjuk: 'Misalnya: Tentang biaya.' },
         { k: 'judul', label: 'Judul jawaban', jenis: 'teks', maks: 200 },
         { k: 'jawab', label: 'Jawaban', jenis: 'area', baris: 4, maks: 800 }
+      ]
+    }
+  },
+  rubrik: {
+    keterangan: 'Rubrik (kategori) artikel. Dipakai filter di halaman Artikel dan pilihan di editor artikel. Urutan di sini sama dengan urutan tampil.',
+    tautan: 'articles',
+    akar: {
+      jenis: 'daftar', batas: 12, minimal: 1, tambah: 'Tambah rubrik', nama: 'Rubrik',
+      isi: [
+        { k: 'nama', label: 'Nama rubrik (dipakai di artikel)', jenis: 'teks', maks: 40, petunjuk: 'Mengubah nama tidak mengubah artikel lama; artikel tetap memakai nama yang tersimpan di artikelnya.' },
+        { k: 'label', label: 'Nama tampil di filter', jenis: 'teks', maks: 40, petunjuk: 'Kosongkan untuk memakai nama rubrik.' },
+        { k: 'deskripsi', label: 'Deskripsi singkat', jenis: 'teks', maks: 140 },
+        { k: 'aktif', label: 'Tampil di filter dan pilihan editor', jenis: 'saklar', petunjuk: 'Matikan untuk menyembunyikan rubrik tanpa menghapus artikelnya.' }
       ]
     }
   },

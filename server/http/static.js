@@ -17,6 +17,7 @@ const MIME_TYPES = Object.freeze({
   '.png': 'image/png',
   '.svg': 'image/svg+xml',
   '.webp': 'image/webp',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
   '.woff2': 'font/woff2',
   '.xml': 'application/xml; charset=utf-8',
   '.txt': 'text/plain; charset=utf-8'

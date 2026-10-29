@@ -2205,6 +2205,13 @@ portalLoginForm.addEventListener('submit', async (event) => {
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Login belum berhasil.');
     sessionStorage.setItem('hamasahPortalSession', JSON.stringify({ accessToken: result.accessToken }));
+    // "Tetap masuk" hanya berlaku untuk wali dan santri; sesi staf (12 jam) tidak pernah disimpan di perangkat.
+    try {
+      const ingat = document.querySelector('#portal-remember');
+      const peran = result.account && result.account.role;
+      if (ingat && ingat.checked && ['parent', 'student'].includes(peran)) localStorage.setItem('hamasahIngat', JSON.stringify({ accessToken: result.accessToken, role: peran }));
+      else localStorage.removeItem('hamasahIngat');
+    } catch { /* penyimpanan tidak tersedia: sesi hanya berlaku di tab ini */ }
     await showPortal();
   } catch (error) {
     setLoginError(error.message || 'Login belum berhasil.');
@@ -2214,6 +2221,7 @@ portalLoginForm.addEventListener('submit', async (event) => {
 portalLogout.addEventListener('click', async () => {
   await fetch('/api/auth/logout', { method: 'POST', headers: requestHeaders() }).catch(() => {});
   sessionStorage.removeItem('hamasahPortalSession');
+  try { localStorage.removeItem('hamasahIngat'); } catch { /* abaikan */ }
   document.body.classList.remove('in-crm');
   window.location.reload();
 });
@@ -2227,6 +2235,7 @@ if (getSession()) {
   showPortal().catch((error) => {
     document.body.classList.remove('in-crm');
     sessionStorage.removeItem('hamasahPortalSession');
+    try { localStorage.removeItem('hamasahIngat'); } catch { /* abaikan */ }
     setLoginError(error.message || 'Sesi sudah berakhir.');
   });
 }

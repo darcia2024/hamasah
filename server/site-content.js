@@ -178,7 +178,8 @@ const BAWAAN = Object.freeze({
       nama: 'Wali dari Ghazalba Fauzan Luqman Natawijaya',
       keterangan: "Santri Ma'had Al-Azhar",
       foto: 'testimoni-wali-ghazalba.webp',
-      alt: 'Keluarga wali santri berfoto bersama'
+      alt: 'Keluarga wali santri berfoto bersama',
+      aktif: true
     },
     {
       kutipan: 'Ketika ada hal-hal yang perlu diurus, anak tidak benar-benar dilepas sendiri.',
@@ -186,7 +187,8 @@ const BAWAAN = Object.freeze({
       nama: 'Ayah dan ibu dari Aruna Hassya Javas Reswara',
       keterangan: "Santri Ma'had Al-Azhar",
       foto: 'testimoni-wali-aruna.webp',
-      alt: 'Ayah dan ibu wali santri'
+      alt: 'Ayah dan ibu wali santri',
+      aktif: true
     },
     {
       kutipan: 'Yang pasti, pengurus semua cepat tanggap kalau ada situasi darurat.',
@@ -194,7 +196,8 @@ const BAWAAN = Object.freeze({
       nama: 'Wali dari Khafidzah Khoirunnisa',
       keterangan: "Santri Ma'had Al-Azhar",
       foto: 'testimoni-wali-khafidzah.webp',
-      alt: 'Wali santri berfoto bersama putrinya'
+      alt: 'Wali santri berfoto bersama putrinya',
+      aktif: true
     }
   ],
 
@@ -239,6 +242,15 @@ const BAWAAN = Object.freeze({
     mulai: '',
     selesai: ''
   },
+
+  // Rubrik artikel: kategori yang dipakai filter di halaman Artikel dan pilihan di editor artikel. Admin bisa menambah rubrik
+  // baru (misalnya Berita, Alumni) atau menyembunyikan rubrik tanpa menghapus artikelnya.
+  rubrik: [
+    { nama: 'Keilmuan Islam', label: 'Keilmuan Islam', deskripsi: 'Pembahasan ilmu syar\'i dan kajian yang dekat dengan kehidupan santri.', aktif: true },
+    { nama: 'Panduan Hidup', label: 'Panduan Hidup', deskripsi: 'Tips dan panduan kehidupan pelajar di Kairo.', aktif: true },
+    { nama: 'Kegiatan', label: 'Kegiatan Santri', deskripsi: 'Berita dan dokumentasi kegiatan santri.', aktif: true },
+    { nama: 'Keberangkatan', label: 'Keberangkatan', deskripsi: 'Persiapan dan informasi menuju Kairo.', aktif: true }
+  ],
 
   galeri: [
     {
@@ -333,7 +345,8 @@ const LABEL_BLOK = Object.freeze({
   testimoni: 'Testimoni',
   faq: 'Pertanyaan umum (FAQ)',
   pengumuman: 'Pengumuman',
-  galeri: 'Galeri'
+  galeri: 'Galeri',
+  rubrik: 'Rubrik artikel'
 });
 
 // Halaman yang memuat tiap blok, untuk tautan "Lihat di website" dan pemuatan konten.
@@ -344,7 +357,8 @@ const HALAMAN_BLOK = Object.freeze({
   testimoni: ['index.html'],
   faq: ['index.html'],
   pengumuman: ['index.html'],
-  galeri: ['index.html']
+  galeri: ['index.html'],
+  rubrik: ['articles.html']
 });
 
 const HALAMAN_PUBLIK = Object.freeze([...new Set(Object.values(HALAMAN_BLOK).flat().concat(['articles.html', 'cek-status.html', 'tim.html', 'kelas.html']))]);
@@ -490,7 +504,7 @@ const PERIKSA = Object.freeze({
 
   testimoni(nilai) {
     const izin = new Set(FOTO_TESTIMONI.map((foto) => foto.berkas));
-    return daftar(nilai, 'testimoni', 'Testimoni', { maks: 8 }).map((item, i) => {
+    const hasil = daftar(nilai, 'testimoni', 'Testimoni', { maks: 8 }).map((item, i) => {
       const v = objek(item);
       const foto = namaFotoTerkini(v.foto, (nama) => izin.has(nama));
       if (!izin.has(foto)) throw new KesalahanKonten(`${i}.foto`, `Foto testimoni ke-${i + 1} tidak dikenal.`);
@@ -500,9 +514,31 @@ const PERIKSA = Object.freeze({
         nama: teks(v.nama, `${i}.nama`, `Nama pemberi testimoni ke-${i + 1}`, { min: 3, maks: 120 }),
         keterangan: teks(v.keterangan, `${i}.keterangan`, `Keterangan testimoni ke-${i + 1}`, { maks: 80 }),
         foto,
-        alt: foto ? teks(v.alt, `${i}.alt`, `Keterangan foto testimoni ke-${i + 1}`, { min: 5, maks: 160 }) : ''
+        alt: foto ? teks(v.alt, `${i}.alt`, `Keterangan foto testimoni ke-${i + 1}`, { min: 5, maks: 160 }) : '',
+        // Testimoni lama tanpa kolom ini dianggap aktif.
+        aktif: v.aktif !== false
       };
     });
+    if (hasil.length && !hasil.some((item) => item.aktif)) throw new KesalahanKonten('', 'Minimal satu testimoni harus aktif. Nonaktifkan yang lain, bukan semuanya.');
+    return hasil;
+  },
+
+  rubrik(nilai) {
+    const dipakai = new Set();
+    const hasil = daftar(nilai, 'rubrik', 'Rubrik', { min: 1, maks: 12 }).map((item, i) => {
+      const v = objek(item);
+      const nama = teks(v.nama, `${i}.nama`, `Nama rubrik ke-${i + 1}`, { min: 2, maks: 40 });
+      if (dipakai.has(nama.toLocaleLowerCase('id'))) throw new KesalahanKonten(`${i}.nama`, `Rubrik "${nama}" ditulis dua kali.`);
+      dipakai.add(nama.toLocaleLowerCase('id'));
+      return {
+        nama,
+        label: teks(v.label, `${i}.label`, `Nama tampil rubrik ke-${i + 1}`, { maks: 40 }) || nama,
+        deskripsi: teks(v.deskripsi, `${i}.deskripsi`, `Deskripsi rubrik ke-${i + 1}`, { maks: 140 }),
+        aktif: v.aktif !== false
+      };
+    });
+    if (!hasil.some((item) => item.aktif)) throw new KesalahanKonten('', 'Minimal satu rubrik harus aktif.');
+    return hasil;
   },
 
   faq(nilai) {
@@ -687,7 +723,7 @@ const RENDER = Object.freeze({
   // Zig-zag: satu testimoni satu baris, foto dan teks lengkap berdampingan, sisi foto
   // bergantian (diatur landing.css). Testimoni tanpa foto tampil sebagai kartu kutipan.
   testimoni(daftarTestimoni) {
-    const kartu = daftarTestimoni.map((t) => {
+    const kartu = daftarTestimoni.filter((t) => t.aktif !== false).map((t) => {
       const foto = FOTO_TESTIMONI.find((item) => item.berkas === t.foto);
       const figur = t.foto && foto
         ? `
@@ -743,6 +779,11 @@ ${paragraf(t.isi, '                    ')}
               </button>
             </li>`);
     return [wilayah('galeri', `\n${butir.join('\n')}\n          `)];
+  },
+
+  rubrik(daftarRubrik) {
+    const tombol = daftarRubrik.filter((r) => r.aktif !== false).map((r) => `              <button class="faq-question" type="button" data-category="${esc(r.nama)}">${esc(r.label || r.nama)}</button>`);
+    return [wilayah('rubrik', `\n${tombol.join('\n')}\n              `)];
   },
 
   pengumuman(p, sekarang) {

@@ -1,0 +1,4 @@
+.pasang-langkah { padding: 28px 0; border-top: 1px solid #E3E0D8; }
+.pasang-langkah h2 { margin: 0 0 12px; }
+.pasang-langkah ol, .pasang-langkah ul { margin: 0 0 12px; padding-left: 22px; display: grid; gap: 8px; line-height: 1.6; }
+.pasang-catatan { color: #5C554A; font-size: 0.95rem; }@media (max-width: 640px) { .pasang-langkah { padding: 20px 0; } }

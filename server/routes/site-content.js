@@ -7,6 +7,17 @@ const POLA_BLOK = BLOK.join('|');
 // Halaman Konten Website super admin. Lihat server/site-content.js dan
 // server/site-content-service.js.
 module.exports = [
+  // Rubrik aktif untuk pilihan di editor artikel dan filter halaman Artikel (publik, tanpa data pribadi).
+  {
+    method: 'GET',
+    pattern: /^\/api\/rubrik$/,
+    async handler({ response, services }) {
+      const konten = await services.siteContentService.semua();
+      const items = ((konten.nilai && konten.nilai.rubrik) || []).filter((r) => r.aktif !== false).map((r) => ({ name: r.nama, label: r.label || r.nama, description: r.deskripsi || '' }));
+      response.setHeader('Cache-Control', 'public, max-age=60');
+      json(response, 200, { items });
+    }
+  },
   {
     method: 'GET',
     pattern: /^\/api\/admin\/content$/,

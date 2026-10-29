@@ -9017,4 +9017,20 @@ button.santri-juz__cell:focus-visible {
 .santri-riwayat__tag { padding: 2px 9px; border-radius: 999px; background: #EFEBE2; color: #5B5850; font-size: 12px; font-weight: 700; }
 .santri-riwayat__tag.is-aktif { background: #E4EEF8; color: #264B73; }
 .santri-riwayat__tag.is-lulus { background: #E3F1E8; color: #1F5B3A; }
+/* Judul kelompok menu staf (nav.js): menu dikelompokkan menurut fungsi. */
+.crm-nav-subtitle {
+  margin: 14px 0 2px;
+  padding: 0 14px;
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-outline);
+}
+.crm-nav-subtitle:first-child { margin-top: 4px; }
 
+/* Pilihan "Tetap masuk di perangkat ini" di halaman masuk. */
+.portal-remember { display: grid; gap: 4px; margin: 4px 0 8px; }
+.portal-remember__label { display: flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 600; cursor: pointer; }
+.portal-remember__label input { width: 20px; height: 20px; flex: none; }
+.portal-remember__hint { margin: 0; font-size: var(--fs-13); line-height: 1.45; color: var(--md-sys-color-outline); }

@@ -4057,3 +4057,34 @@ main .lp-fee-card__head h3 {
     line-height: 1.6;
   }
 }
+
+/* Testimoni sebagai carousel geser (testimoni-carousel.js). Di layar sempit selalu menggeser; di layar lebar hanya
+   bila ada lebih dari tiga testimoni. Tanpa putar otomatis. */
+@media (max-width: 900px) {
+  .lp-testimonials.is-carousel {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 24px;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .lp-testimonials.is-carousel > .lp-testi { flex: 0 0 min(88%, 420px); scroll-snap-align: start; }
+}
+.lp-testimonials.is-carousel--banyak {
+  display: flex;
+  gap: 28px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x mandatory;
+}
+.lp-testimonials.is-carousel--banyak > .lp-testi { flex: 0 0 min(88%, 380px); scroll-snap-align: start; }
+.lp-testimonials.is-carousel:focus-visible { outline: 2px solid var(--lp-ink); outline-offset: 4px; }
+.lp-carousel__controls { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 14px; }
+.lp-carousel__btn { width: 48px; height: 48px; border: 1px solid var(--lp-ink); border-radius: 50%; background: transparent; color: var(--lp-ink); font-size: 1.6rem; line-height: 1; cursor: pointer; }
+.lp-carousel__btn:disabled { opacity: 0.35; cursor: default; }
+.lp-carousel__btn:focus-visible { outline: 3px solid var(--lp-ink); outline-offset: 3px; }
+.lp-carousel__count { min-width: 5.5em; text-align: center; font-size: var(--fs-14); }
+@media (prefers-reduced-motion: no-preference) { .lp-testimonials.is-carousel { scroll-behavior: smooth; } }
