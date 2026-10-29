@@ -216,6 +216,32 @@ const POLICIES = Object.freeze({
     async canDownload({ actor, entityId }) {
       return Boolean(actor && (actor.role === 'admin' || (actor.role === 'supervisor' && String(actor.id) === String(entityId))));
     }
+  }),  // Foto aset dan bukti pembelian inventaris asrama. Privat dan hanya untuk staf yang berhak atas asrama itu (admin, musyrif
+  // yang memegang asrama). Berbeda dengan galeri asrama, wali dan santri tidak melihatnya.
+  'inventory-file': Object.freeze({
+    entityType: 'dormitory',
+    visibility: 'private',
+    contentTypes: DOKUMEN,
+    maxBytes: 5 * MB,
+    async canUpload({ actor, entityId, services }) {
+      return Boolean(actor) && services.dormitoryManagementService.bolehUnggahFoto(entityId, actor);
+    },
+    async canDownload({ actor, entityId, services }) {
+      return Boolean(actor) && services.dormitoryManagementService.bolehUnggahFoto(entityId, actor);
+    }
+  }),
+  // Bukti pembayaran kontribusi AC, bukti pembelian AC, dan bukti pencairan refund. Hanya admin dan keuangan.
+  'ac-proof': Object.freeze({
+    entityType: 'dormitory',
+    visibility: 'private',
+    contentTypes: DOKUMEN,
+    maxBytes: 5 * MB,
+    async canUpload({ actor }) {
+      return Boolean(actor && ['admin', 'finance'].includes(actor.role));
+    },
+    async canDownload({ actor }) {
+      return Boolean(actor && ['admin', 'finance'].includes(actor.role));
+    }
   }),  // Foto kegiatan santri. Pembatasan asrama untuk musyrif ikut berlaku, karena
   // pemeriksaannya memakai dashboard santri yang sudah dibatasi.
   'student-media': Object.freeze({

@@ -159,7 +159,7 @@ async function run() {
     assert.ok(!sesudah.schedule.some((j) => j.id === rihlah.value.id));
 
     // Sebelum migrasi 050: baca kosong, tulis 409.
-    for (const tabel of ['dormitory_duty_assignments', 'dormitory_duties', 'dormitory_schedule', 'dormitory_cash_entries', 'dormitory_dues', 'dormitory_inventory']) {
+    for (const tabel of ['inventory_check_items', 'inventory_checks', 'inventory_events', 'dormitory_duty_assignments', 'dormitory_duties', 'dormitory_schedule', 'dormitory_cash_entries', 'dormitory_dues', 'dormitory_inventory']) {
       await q(`DROP TABLE ${tabel}`);
     }
     const lama = await layanan.overview(putra, MUSYRIF);

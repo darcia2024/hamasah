@@ -102,6 +102,12 @@ const PERMISSIONS = Object.freeze({
   'payment-link.read': Object.freeze([ROLES.ADMIN, ROLES.FINANCE, ROLES.PARENT, ROLES.STUDENT]),
   'payments.manage': Object.freeze([ROLES.ADMIN, ROLES.FINANCE]),
   'payments.admin': Object.freeze([ROLES.ADMIN]),
+  // Inventaris asrama yang diperluas: admin semua asrama, musyrif asrama yang dipegang. AC patungan dan refund: dibaca admin, keuangan,
+  // dan musyrif (tanpa nominal per santri); dikelola admin dan keuangan; persetujuan refund hanya admin.
+  'inventory.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
+  'ac.read': Object.freeze([ROLES.ADMIN, ROLES.FINANCE, ROLES.SUPERVISOR]),
+  'ac.manage': Object.freeze([ROLES.ADMIN, ROLES.FINANCE]),
+  'ac.approve': Object.freeze([ROLES.ADMIN]),
   'attendance.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   'activities.admin': Object.freeze([ROLES.ADMIN]),
   'feedback.send': Object.freeze([ROLES.PARENT]),

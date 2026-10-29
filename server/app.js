@@ -66,6 +66,8 @@ const { createLetterArchiveService } = require('./letter-archive-service.js');
 const { createKpiService } = require('./kpi-service.js');
 const { createWhatsappReminderService } = require('./whatsapp-reminder-service.js');
 const { createPaymentIntegrationService } = require('./payment-integration-service.js');
+const { createInventoryService } = require('./inventory-service.js');
+const { createAcContributionService } = require('./ac-contribution-service.js');
 const { createStudentJourneyService } = require('./student-journey-service.js');
 const { createStudentLifeService } = require('./student-life-service.js');
 const { createDormitoryRollService } = require('./dormitory-roll-service.js');
@@ -111,6 +113,8 @@ const ROUTES = Object.freeze([
   ...require('./routes/kpi.js'),
   ...require('./routes/wa-reminders.js'),
   ...require('./routes/payments.js'),
+  ...require('./routes/inventory.js'),
+  ...require('./routes/ac.js'),
   ...require('./routes/admin-demo.js'),
   ...require('./routes/settings.js'),
   ...require('./routes/site-content.js'),
@@ -505,6 +509,7 @@ function createHamasahApp(options) {
   const letterArchiveService = config.letterArchiveService || createLetterArchiveService({
     database,
     staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId),
+    acState: (studentId) => acContributionService.studentState(studentId),
     async finalizeExit(studentId, alasan, actor) {
       const hasil = await studentPortalService.updateStudent(studentId, { status: 'withdrawn' }, actor);
       if (!hasil.ok) return hasil;
@@ -514,6 +519,8 @@ function createHamasahApp(options) {
     }
   });
 
+  const inventoryService = config.inventoryService || createInventoryService({ database, staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId) });
+  const acContributionService = config.acContributionService || createAcContributionService({ database, staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId) });
   const paymentIntegrationService = config.paymentIntegrationService || createPaymentIntegrationService({ database, markInvoicePaid: (invoiceId, actor, input) => operationsService.markInvoicePaid(invoiceId, actor, input) });
   const whatsappReminderService = config.whatsappReminderService || createWhatsappReminderService({ database, appBaseUrl: config.appBaseUrl || email.appBaseUrl || '', paymentLink: () => paymentIntegrationService.link() });
 
@@ -558,6 +565,8 @@ function createHamasahApp(options) {
     kpiService,
     whatsappReminderService,
     paymentIntegrationService,
+    inventoryService,
+    acContributionService,
     demoDataService,
     settingsService,
     siteContentService,

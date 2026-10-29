@@ -76,7 +76,7 @@ async function run() {
 
     // /api/me ikut mengirim daftar izin untuk menyusun menu.
     const saya = await request(baseUrl, 'GET', '/api/me', { token: token[ROLES.FINANCE] });
-    assert.deepEqual(saya.body.permissions, ['finance.manage', 'leave.payment-read', 'operations.manage', 'operations.read', 'payment-link.read', 'payments.manage', 'reminders.manage']);
+    assert.deepEqual(saya.body.permissions, ['ac.manage', 'ac.read', 'finance.manage', 'leave.payment-read', 'operations.manage', 'operations.read', 'payment-link.read', 'payments.manage', 'reminders.manage']);
     assert.deepEqual(
       (await request(baseUrl, 'GET', '/api/me', { token: token[ROLES.PARENT] })).body.permissions,
       ['dormitory-schedule.read', 'family-messages.send', 'feedback.mine', 'feedback.send', 'payment-link.read', 'personal-messages.read', 'programs.history', 'reports.read', 'residence.read', 'students.read', 'tahfidz.read']
@@ -346,6 +346,28 @@ async function run() {
       { permission: 'payments.manage', method: 'PATCH', path: '/api/pembayaran/transaksi/00000000-0000-4000-8000-000000000000/tagihan', body: () => ({}) },
       { permission: 'payments.manage', method: 'POST', path: '/api/pembayaran/transaksi/00000000-0000-4000-8000-000000000000/terapkan', body: () => ({}) },
       { permission: 'payments.manage', method: 'POST', path: '/api/pembayaran/transaksi/00000000-0000-4000-8000-000000000000/tolak', body: () => ({}) },
+      { permission: 'inventory.manage', method: 'GET', path: '/api/inventaris/asrama' },
+      { permission: 'inventory.manage', method: 'GET', path: '/api/inventaris/dashboard' },
+      { permission: 'inventory.manage', method: 'GET', path: '/api/inventaris/asrama/00000000-0000-4000-8000-000000000000/aset' },
+      { permission: 'inventory.manage', method: 'POST', path: '/api/inventaris/asrama/00000000-0000-4000-8000-000000000000/aset', body: () => ({}) },
+      { permission: 'inventory.manage', method: 'PATCH', path: '/api/inventaris/asrama/00000000-0000-4000-8000-000000000000/aset/00000000-0000-4000-8000-000000000000', body: () => ({}) },
+      { permission: 'inventory.manage', method: 'GET', path: '/api/inventaris/asrama/00000000-0000-4000-8000-000000000000/aset/00000000-0000-4000-8000-000000000000/riwayat' },
+      { permission: 'inventory.manage', method: 'POST', path: '/api/inventaris/asrama/00000000-0000-4000-8000-000000000000/aset/00000000-0000-4000-8000-000000000000/riwayat', body: () => ({}) },
+      { permission: 'inventory.manage', method: 'POST', path: '/api/inventaris/asrama/00000000-0000-4000-8000-000000000000/pemeriksaan', body: () => ({}) },
+      { permission: 'inventory.manage', method: 'GET', path: '/api/inventaris/asrama/00000000-0000-4000-8000-000000000000/pemeriksaan/2026-01' },
+      { permission: 'inventory.manage', method: 'PUT', path: '/api/inventaris/pemeriksaan/00000000-0000-4000-8000-000000000000', body: () => ({}) },
+      { permission: 'inventory.manage', method: 'POST', path: '/api/inventaris/pemeriksaan/00000000-0000-4000-8000-000000000000/selesai', body: () => ({}) },
+      { permission: 'ac.read', method: 'GET', path: '/api/ac/unit' },
+      { permission: 'ac.manage', method: 'POST', path: '/api/ac/unit', body: () => ({}) },
+      { permission: 'ac.manage', method: 'PATCH', path: '/api/ac/unit/00000000-0000-4000-8000-000000000000', body: () => ({}) },
+      { permission: 'ac.manage', method: 'GET', path: '/api/ac/unit/00000000-0000-4000-8000-000000000000/kontribusi' },
+      { permission: 'ac.manage', method: 'POST', path: '/api/ac/unit/00000000-0000-4000-8000-000000000000/kontribusi', body: () => ({}) },
+      { permission: 'ac.manage', method: 'POST', path: '/api/ac/kontribusi/00000000-0000-4000-8000-000000000000/batal', body: () => ({}) },
+      { permission: 'ac.manage', method: 'GET', path: '/api/ac/santri/00000000-0000-4000-8000-000000000000/refund' },
+      { permission: 'ac.manage', method: 'POST', path: '/api/ac/santri/00000000-0000-4000-8000-000000000000/refund', body: () => ({}) },
+      { permission: 'ac.manage', method: 'GET', path: '/api/ac/refund' },
+      { permission: 'ac.approve', method: 'POST', path: '/api/ac/refund/00000000-0000-4000-8000-000000000000/putusan', body: () => ({}) },
+      { permission: 'ac.manage', method: 'POST', path: '/api/ac/refund/00000000-0000-4000-8000-000000000000/cairkan', body: () => ({}) },
       { permission: 'feedback.mine', method: 'GET', path: '/api/masukan/saya' },
       { permission: 'feedback.send', method: 'POST', path: '/api/masukan', body: () => ({}) },
       { permission: 'feedback.read', method: 'GET', path: '/api/masukan' },

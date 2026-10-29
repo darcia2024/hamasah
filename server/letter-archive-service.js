@@ -42,7 +42,7 @@ function tanggalValid(teks) {
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === teks;
 }
 
-function createLetterArchiveService({ database, staffDormitories, finalizeExit, now = () => new Date() } = {}) {
+function createLetterArchiveService({ database, staffDormitories, finalizeExit, acState = null, now = () => new Date() } = {}) {
   if (!database || typeof staffDormitories !== 'function') throw new Error('createLetterArchiveService membutuhkan database dan staffDormitories.');
 
   async function tulis(fn) {
@@ -260,10 +260,11 @@ function createLetterArchiveService({ database, staffDormitories, finalizeExit, 
     const tanya = async (sql, params) => { try { return (await database.query(sql, params)).rows; } catch (error) { if (['42P01', '42703'].includes(error.code)) return []; throw error; } };
     const tagihan = (await tanya(`SELECT count(*)::int AS jumlah, COALESCE(sum(amount_rupiah), 0)::bigint AS total FROM invoices WHERE student_id = $1 AND status = 'unpaid'`, [studentId]))[0] || { jumlah: 0, total: 0 };
     const kamar = (await tanya(`SELECT r.name, r.has_ac FROM students s JOIN dormitory_rooms r ON r.id = s.room_id WHERE s.id = $1`, [studentId]))[0] || null;
+    const acStatus = acState ? await acState(studentId) : null;
     const dokumen = (await tanya(`SELECT count(*)::int AS jumlah FROM student_documents WHERE student_id = $1 AND archived_at IS NULL`, [studentId]))[0] || { jumlah: 0 };
     return {
       tagihan: { count: Number(tagihan.jumlah), totalRupiah: Number(tagihan.total), hint: Number(tagihan.jumlah) ? `${tagihan.jumlah} tagihan belum lunas, total Rp${Number(tagihan.total).toLocaleString('id-ID')}.` : 'Tidak ada tagihan yang belum lunas.' },
-      'refund-ac': { room: kamar ? kamar.name : null, hasAc: kamar ? Boolean(kamar.has_ac) : null, hint: kamar ? (kamar.has_ac ? `Kamar ${kamar.name} memakai AC: periksa apakah ada refund atau pengembalian biaya AC.` : `Kamar ${kamar.name} tanpa AC: biasanya tidak ada refund AC.`) : 'Santri belum punya kamar tercatat.' },
+      'refund-ac': { room: kamar ? kamar.name : null, hasAc: kamar ? Boolean(kamar.has_ac) : null, ac: acStatus, hint: acStatus ? acStatus.hint : kamar ? (kamar.has_ac ? `Kamar ${kamar.name} memakai AC: periksa apakah ada refund atau pengembalian biaya AC.` : `Kamar ${kamar.name} tanpa AC: biasanya tidak ada refund AC.`) : 'Santri belum punya kamar tercatat.' },
       dokumen: { count: Number(dokumen.jumlah), hint: `${dokumen.jumlah} dokumen pribadi tersimpan di profil santri; pastikan yang asli sudah dikembalikan.` },
       inventaris: { hint: 'Periksa kunci, kasur, lemari, dan barang pinjaman lain; catat di kolom catatan.' }
     };
@@ -340,6 +341,12 @@ function createLetterArchiveService({ database, staffDormitories, finalizeExit, 
     return tulis(async () => {
       const row = await ambilSurat(id, actor);
       if (!row || !row.exit_flow) return { ok: false, status: 404, error: 'Daftar periksa keluar tidak ditemukan.' };
+      // Refund AC: tidak boleh dinyatakan beres selagi pengajuan belum diputuskan, dan tidak boleh dilewati bila santri punya hak yang belum diajukan.
+      if (kind === 'refund-ac' && acState && ['beres', 'tidak-berlaku'].includes(status)) {
+        const ac = await acState(row.student_id);
+        if (ac && status === 'beres' && ac.pending > 0) return { ok: false, status: 409, error: 'Masih ada pengajuan refund AC yang belum dicairkan atau diputuskan. Selesaikan dulu di halaman Inventaris dan AC.' };
+        if (ac && ac.eligibleUnrequested > 0) return { ok: false, status: 409, error: 'Santri ini berkontribusi pada AC patungan dan punya hak refund yang belum diajukan. Ajukan refund di halaman Inventaris dan AC, atau catat alasannya di sana bila ditolak.' };
+      }
       if (row.exit_completed_at) return { ok: false, status: 409, error: 'Santri sudah dinyatakan keluar; daftar periksa tidak dapat diubah.' };
       if (row.status === 'ditolak') return { ok: false, status: 409, error: 'Permohonan ini ditolak; daftar periksa tidak dipakai.' };
       await database.query(

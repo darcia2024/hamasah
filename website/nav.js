@@ -21,6 +21,7 @@ const ROLE_NAV_LABELS = Object.freeze({
     kegiatan: 'Kegiatan & Rapor',
     surat: 'Surat & Arsip',
     kpi: 'KPI Saya',
+    inventaris: 'Inventaris & AC',
     lms: 'Maddah Santri'
   },
   'registration-officer': {
@@ -37,7 +38,8 @@ const ROLE_NAV_LABELS = Object.freeze({
     portal: 'Portal Utama',
     operations: 'Keuangan & SPP',
     pengingat: 'Pengingat Tagihan',
-    pembayaran: 'Pembayaran'
+    pembayaran: 'Pembayaran',
+    inventaris: 'AC & Refund'
   },
   admin: {
     portal: 'Portal Utama',
@@ -49,6 +51,7 @@ const ROLE_NAV_LABELS = Object.freeze({
     kegiatan: 'Kegiatan & Rapor',
     surat: 'Surat & Arsip',
     kpi: 'KPI Musyrif',
+    inventaris: 'Inventaris & AC',
     lms: 'LMS Maddah',
     operations: 'Keuangan & SPP',
     pengingat: 'Pengingat Tagihan',
@@ -153,6 +156,16 @@ const STAFF_NAV_LINKS = Object.freeze([
     badge: null,
     badgeType: null,
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
+  },
+  // Inventaris asrama dan AC patungan (inventaris.js). Admin dan musyrif mengelola aset; keuangan hanya bagian AC.
+  {
+    href: 'inventaris',
+    label: 'Inventaris & AC',
+    page: 'inventaris',
+    roles: ['admin', 'supervisor', 'finance'],
+    badge: null,
+    badgeType: null,
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>'
   },
   // Pengingat tagihan lewat WhatsApp klik-untuk-chat (pengingat.js). Admin dan keuangan.
   {
