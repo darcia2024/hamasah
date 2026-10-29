@@ -60,7 +60,7 @@ function createParentFeedbackService({ database, accessFor, staffDormitories, no
       studentId: row.student_id || null, studentName: row.student_name || null, dormitoryName: row.dormitory_name || null,
       status: row.status, statusLabel: STATUS[row.status], reply: row.reply || '', handledBy: row.handled_by || null,
       handledAt: iso(row.handled_at), createdAt: iso(row.created_at),
-      ...(staf ? { parentName: row.parent_name || null } : {})
+      ...(staf ? { parentName: row.parent_name || null, verified: Boolean(row.verified_at), verificationNote: row.verification_note || '', kpiAccountId: row.kpi_account_id || null } : {})
     };
   }
 
@@ -162,7 +162,30 @@ function createParentFeedbackService({ database, accessFor, staffDormitories, no
     });
   }
 
-  return { send, mine, inbox, handle };
+  // Verifikasi keluhan untuk KPI. Hanya admin; keluhan yang belum diverifikasi tidak pernah memengaruhi KPI siapa pun.
+  // kpiAccountId (opsional) menautkan keluhan ke musyrif tertentu; tanpa tautan, verifikasi tidak memengaruhi KPI.
+  async function verify(id, input, actor) {
+    if (!actor || actor.role !== 'admin') return { ok: false, status: 403, error: 'Hanya admin yang memverifikasi keluhan.' };
+    const sumber = input || {};
+    const catatan = rapi(sumber.note);
+    if (catatan.length < 5) return { ok: false, error: 'Tulis catatan verifikasi (minimal 5 karakter): apa yang sudah dicek.' };
+    return tulis(async () => {
+      const { rows } = await database.query('SELECT id, kind FROM parent_feedback WHERE id = $1', [/^[0-9a-f-]{36}$/i.test(String(id)) ? id : null]);
+      if (!rows.length) return { ok: false, status: 404, error: 'Masukan tidak ditemukan.' };
+      if (rows[0].kind !== 'keluhan') return { ok: false, error: 'Hanya keluhan yang diverifikasi untuk KPI.' };
+      let kpiAkun = null;
+      if (sumber.kpiAccountId) {
+        const akun = (await database.query(`SELECT id FROM accounts WHERE id = $1 AND role = 'supervisor' AND active`, [/^[0-9a-f-]{36}$/i.test(String(sumber.kpiAccountId)) ? sumber.kpiAccountId : null])).rows[0];
+        if (!akun) return { ok: false, error: 'Musyrif yang dituju tidak ditemukan.' };
+        kpiAkun = akun.id;
+      }
+      await database.query('UPDATE parent_feedback SET verified_at = $2, verified_by_account_id = $3, verification_note = $4, kpi_account_id = $5 WHERE id = $1', [id, now(), actor.id || null, catatan, kpiAkun]);
+      const { rows: akhir } = await database.query(`${SELECT} WHERE f.id = $1`, [id]);
+      return { ok: true, value: bentuk(akhir[0], { staf: true }) };
+    });
+  }
+
+  return { send, mine, inbox, handle, verify };
 }
 
 module.exports = { createParentFeedbackService, JENIS, STATUS };

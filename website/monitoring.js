@@ -1076,6 +1076,23 @@ async function balasMasukan(item) {
   if (hasil) await muatMasukanWali();
 }
 
+// Verifikasi keluhan untuk KPI (hanya admin). Keluhan yang belum diverifikasi tidak pernah memengaruhi KPI musyrif.
+async function verifikasiKeluhan(item) {
+  let musyrif = [];
+  try { musyrif = (await kirimJson('/api/kpi/musyrif', 'GET')).items; } catch { musyrif = []; }
+  const hasil = await window.HamasahDialog.formulir({
+    judul: 'Verifikasi keluhan',
+    keterangan: 'Verifikasi berarti keluhan sudah dicek dan benar. Tautkan ke musyrif hanya bila keluhan memang tentang kinerjanya; tanpa tautan, keluhan tidak memengaruhi KPI siapa pun.',
+    bidang: [
+      { nama: 'note', label: 'Apa yang sudah dicek', jenis: 'textarea', wajib: true, nilai: '' },
+      { nama: 'kpiAccountId', label: 'Tautkan ke KPI musyrif', jenis: 'select', pilihan: [['', 'Jangan tautkan ke KPI'], ...musyrif.map((m) => [m.id, m.name])], nilai: '' }
+    ],
+    labelSimpan: 'Verifikasi',
+    kirim: (nilai) => kirimJson(`/api/masukan/${encodeURIComponent(item.id)}/verifikasi`, 'PATCH', { note: nilai.note, kpiAccountId: nilai.kpiAccountId || undefined })
+  });
+  if (hasil) await muatMasukanWali();
+}
+
 async function muatMasukanWali() {
   statusPanel(feedbackStatus, 'Memuat...');
   try {
@@ -1089,6 +1106,13 @@ async function muatMasukanWali() {
       isi.className = 'honors-item__body';
       isi.textContent = item.body;
       baris.firstElementChild.append(isi);
+      if (item.kind === 'keluhan') {
+        const kpi = document.createElement('p');
+        kpi.className = 'honors-item__body';
+        kpi.textContent = item.verified ? `Terverifikasi admin: ${item.verificationNote}${item.kpiAccountId ? ' Ditautkan ke KPI musyrif.' : ' Tidak ditautkan ke KPI.'}` : 'Belum diverifikasi: tidak memengaruhi KPI siapa pun.';
+        baris.firstElementChild.append(kpi);
+        if (!item.verified) baris.firstElementChild.append(tombolKecil('Verifikasi untuk KPI', () => verifikasiKeluhan(item).catch((error) => statusPanel(feedbackStatus, error.message, true))));
+      }
       if (item.reply) {
         const balasan = document.createElement('p');
         balasan.className = 'honors-item__body';

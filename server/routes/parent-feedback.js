@@ -39,6 +39,17 @@ module.exports = [
   },
   {
     method: 'PATCH',
+    pattern: /^\/api\/masukan\/([\w-]+)\/verifikasi$/,
+    permission: 'feedback.verify',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const actor = await auth.actor();
+      const hasil = await services.parentFeedbackService.verify(params[0], await readBody(), actor);
+      if (hasil.ok) await services.auditService.record({ action: ACTIONS.PARENT_FEEDBACK_VERIFIED, actor, ip, entityType: 'parent-feedback', entityId: params[0], metadata: { linkedToKpi: Boolean(hasil.value.kpiAccountId) } });
+      balas(response, hasil);
+    }
+  },
+  {
+    method: 'PATCH',
     pattern: /^\/api\/masukan\/([\w-]+)$/,
     permission: 'feedback.read',
     async handler({ response, services, auth, params, readBody, ip }) {

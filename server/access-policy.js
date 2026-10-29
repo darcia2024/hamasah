@@ -89,6 +89,12 @@ const PERMISSIONS = Object.freeze({
   'letters.manage': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER, ROLES.SUPERVISOR]),
   'letters.verify': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
   'letters.admin': Object.freeze([ROLES.ADMIN]),
+  // KPI musyrif: penilaian oleh admin; musyrif melihat KPI dirinya sendiri, menambah bukti, dan mencatat pekerjaan tambahan.
+  // Keluhan wali diverifikasi admin sebelum boleh berpengaruh ke KPI.
+  'kpi.manage': Object.freeze([ROLES.ADMIN]),
+  'kpi.self.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
+  'kpi.self.write': Object.freeze([ROLES.SUPERVISOR]),
+  'feedback.verify': Object.freeze([ROLES.ADMIN]),
   'attendance.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   'activities.admin': Object.freeze([ROLES.ADMIN]),
   'feedback.send': Object.freeze([ROLES.PARENT]),

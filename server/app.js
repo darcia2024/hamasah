@@ -63,6 +63,7 @@ const { createTahfidzService } = require('./tahfidz-service.js');
 const { createReportCardService } = require('./report-card-service.js');
 const { createDocumentSettingsService } = require('./document-settings-service.js');
 const { createLetterArchiveService } = require('./letter-archive-service.js');
+const { createKpiService } = require('./kpi-service.js');
 const { createStudentJourneyService } = require('./student-journey-service.js');
 const { createStudentLifeService } = require('./student-life-service.js');
 const { createDormitoryRollService } = require('./dormitory-roll-service.js');
@@ -105,6 +106,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/report-cards.js'),
   ...require('./routes/document-settings.js'),
   ...require('./routes/letters.js'),
+  ...require('./routes/kpi.js'),
   ...require('./routes/admin-demo.js'),
   ...require('./routes/settings.js'),
   ...require('./routes/site-content.js'),
@@ -508,6 +510,8 @@ function createHamasahApp(options) {
     }
   });
 
+  const kpiService = config.kpiService || createKpiService({ database });
+
   const parentFeedbackService = config.parentFeedbackService || createParentFeedbackService({
     database,
     accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor),
@@ -544,6 +548,7 @@ function createHamasahApp(options) {
     reportCardService,
     documentSettingsService,
     letterArchiveService,
+    kpiService,
     demoDataService,
     settingsService,
     siteContentService,

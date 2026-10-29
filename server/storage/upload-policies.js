@@ -200,6 +200,19 @@ const POLICIES = Object.freeze({
       if (['admin', 'registration-officer'].includes(actor.role)) return true;
       return actor.role === 'supervisor' && akses.view;
     }
+  }),  // Bukti pelaksanaan KPI dan bukti pekerjaan tambahan musyrif. Privat. entityId = id akun musyrif pemilik. Hanya musyrif itu
+  // sendiri dan admin yang mengunggah dan membukanya.
+  'kpi-evidence': Object.freeze({
+    entityType: 'account',
+    visibility: 'private',
+    contentTypes: DOKUMEN,
+    maxBytes: 5 * MB,
+    async canUpload({ actor, entityId }) {
+      return Boolean(actor && (actor.role === 'admin' || (actor.role === 'supervisor' && String(actor.id) === String(entityId))));
+    },
+    async canDownload({ actor, entityId }) {
+      return Boolean(actor && (actor.role === 'admin' || (actor.role === 'supervisor' && String(actor.id) === String(entityId))));
+    }
   }),  // Foto kegiatan santri. Pembatasan asrama untuk musyrif ikut berlaku, karena
   // pemeriksaannya memakai dashboard santri yang sudah dibatasi.
   'student-media': Object.freeze({

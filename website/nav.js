@@ -20,6 +20,7 @@ const ROLE_NAV_LABELS = Object.freeze({
     pembinaan: 'Program & Batch',
     kegiatan: 'Kegiatan & Rapor',
     surat: 'Surat & Arsip',
+    kpi: 'KPI Saya',
     lms: 'Maddah Santri'
   },
   'registration-officer': {
@@ -45,6 +46,7 @@ const ROLE_NAV_LABELS = Object.freeze({
     impor: 'Impor Santri',
     kegiatan: 'Kegiatan & Rapor',
     surat: 'Surat & Arsip',
+    kpi: 'KPI Musyrif',
     lms: 'LMS Maddah',
     operations: 'Keuangan & SPP',
     akun: 'Kelola Akun',
@@ -137,6 +139,16 @@ const STAFF_NAV_LINKS = Object.freeze([
     badge: null,
     badgeType: null,
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="14 3 14 9 20 9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>'
+  },
+  // KPI musyrif dan musyrifah (kpi.js). Admin menilai; musyrif melihat KPI dirinya sendiri.
+  {
+    href: 'kpi',
+    label: 'KPI Musyrif',
+    page: 'kpi',
+    roles: ['admin', 'supervisor'],
+    badge: null,
+    badgeType: null,
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
   },
   // Impor santri massal dari Excel atau Google Sheets (impor.js). Hanya admin.
   {
