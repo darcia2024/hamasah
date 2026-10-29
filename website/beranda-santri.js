@@ -284,6 +284,9 @@
     ]);
     const B = window.HamasahWaliBagian;
     const P = window.HamasahPesanPersonal;
+    // Pesan yang belum dibaca: lencana di pintasan dan satu kalimat di atas, supaya tidak terlewat.
+    const pesanSaya = P ? await K.ambil(`/api/students/${encodeURIComponent(student.id)}/pesan?t=${Date.now()}`, headers) : null;
+    let belumDibaca = pesanSaya && pesanSaya.available ? Number(pesanSaya.unread) || 0 : 0;
     const asrama = jadwal && jadwal.tersedia && Array.isArray(jadwal.dormitories)
       ? jadwal.dormitories.find((d) => d.students.some((s) => String(s.id) === String(student.id))) || null
       : null;
@@ -350,16 +353,44 @@
     ].forEach(([href, label]) => {
       const tautan = el('a', '', label);
       tautan.href = href;
+      if (href === '#santri-pesan' && belumDibaca) {
+        const lencana = el('span', 'snt-nav-badge', String(belumDibaca));
+        lencana.setAttribute('aria-label', ` pesan belum dibaca`);
+        tautan.append(lencana);
+      }
       pintasanBagian.append(tautan);
     });
 
+    // Kabar di atas halaman hilang bersama lencana begitu semua pesan ditandai dibaca.
+    let kabarPesan = null;
+    if (belumDibaca) {
+      kabarPesan = el('p', 'wali-pending');
+      kabarPesan.setAttribute('role', 'status');
+      const teksKabar = document.createElement('a');
+      teksKabar.href = '#santri-pesan';
+      teksKabar.textContent = `Ada ${belumDibaca} pesan baru untukmu dari musyrif. Baca sekarang`;
+      kabarPesan.append(el('span', 'wali-pending__dot'), teksKabar);
+    }
+    const saatDibaca = () => {
+      belumDibaca = Math.max(0, belumDibaca - 1);
+      const lencana = pintasanBagian.querySelector('.snt-nav-badge');
+      if (belumDibaca) {
+        if (lencana) lencana.textContent = String(belumDibaca);
+        if (kabarPesan) kabarPesan.querySelector('a').textContent = `Ada ${belumDibaca} pesan baru untukmu dari musyrif. Baca sekarang`;
+      } else {
+        if (lencana) lencana.remove();
+        if (kabarPesan) kabarPesan.remove();
+      }
+    };
+
     wadah.replaceChildren(...[
+      kabarPesan,
       pintasanBagian,
       bagianHariIni({ student, asrama, data, kini, onIzin: keIzin, onOpenFull }),
       kelompok('urusan', 'Iqamah & izin', 'Pantau izin tinggal dan ajukan izin keluar asrama.', [
         berdampingan('snt-affairs', [kartuIqamahEl, kartuIzinEl])
       ]),
-      kelompok('pesan', 'Pesan untukmu', 'Pesan pribadi dari musyrif atau petugas berwenang.', [P ? P.kartuSantri(student, headers) : null]),
+      kelompok('pesan', 'Pesan untukmu', 'Pesan pribadi dari musyrif atau petugas berwenang.', [P ? P.kartuSantri(student, headers, { onBaca: saatDibaca }) : null]),
       kelompok('belajar', 'Belajar', 'Maddah yang kamu ikuti di ruang belajar online.', [belajar]),
       kelompok('perkembangan', 'Perkembanganku', `Catatan musyrif tentang ibadah, kegiatan, dan hafalanmu ${K.PERIODE_HARI} hari terakhir.`, [
         bagianLaporan(data),
