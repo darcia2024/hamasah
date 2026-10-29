@@ -76,10 +76,10 @@ async function run() {
 
     // /api/me ikut mengirim daftar izin untuk menyusun menu.
     const saya = await request(baseUrl, 'GET', '/api/me', { token: token[ROLES.FINANCE] });
-    assert.deepEqual(saya.body.permissions, ['finance.manage', 'leave.payment-read', 'operations.manage', 'operations.read', 'reminders.manage']);
+    assert.deepEqual(saya.body.permissions, ['finance.manage', 'leave.payment-read', 'operations.manage', 'operations.read', 'payment-link.read', 'payments.manage', 'reminders.manage']);
     assert.deepEqual(
       (await request(baseUrl, 'GET', '/api/me', { token: token[ROLES.PARENT] })).body.permissions,
-      ['dormitory-schedule.read', 'family-messages.send', 'feedback.mine', 'feedback.send', 'personal-messages.read', 'programs.history', 'reports.read', 'residence.read', 'students.read', 'tahfidz.read']
+      ['dormitory-schedule.read', 'family-messages.send', 'feedback.mine', 'feedback.send', 'payment-link.read', 'personal-messages.read', 'programs.history', 'reports.read', 'residence.read', 'students.read', 'tahfidz.read']
     );
 
     // Data secukupnya supaya endpoint punya sasaran yang nyata.
@@ -336,6 +336,16 @@ async function run() {
       { permission: 'reminders.manage', method: 'PATCH', path: '/api/pengingat-tagihan/tagihan/00000000-0000-4000-8000-000000000000/jatuh-tempo', body: () => ({}) },
       { permission: 'reminders.manage', method: 'POST', path: '/api/pengingat-tagihan/wali/00000000-0000-4000-8000-000000000000/pratinjau', body: () => ({}) },
       { permission: 'reminders.manage', method: 'POST', path: '/api/pengingat-tagihan/wali/00000000-0000-4000-8000-000000000000/buka', body: () => ({}) },
+      { permission: 'payment-link.read', method: 'GET', path: '/api/pembayaran/tautan' },
+      { permission: 'payments.manage', method: 'GET', path: '/api/pembayaran/pengaturan' },
+      { permission: 'payments.admin', method: 'PUT', path: '/api/pembayaran/pengaturan', body: () => ({}) },
+      { permission: 'payments.admin', method: 'PUT', path: '/api/pembayaran/audit/api-tersedia', body: () => ({}) },
+      { permission: 'payments.manage', method: 'GET', path: '/api/pembayaran/transaksi' },
+      { permission: 'payments.manage', method: 'POST', path: '/api/pembayaran/transaksi', body: () => ({}) },
+      { permission: 'payments.manage', method: 'POST', path: '/api/pembayaran/impor', body: () => ({ rows: [] }) },
+      { permission: 'payments.manage', method: 'PATCH', path: '/api/pembayaran/transaksi/00000000-0000-4000-8000-000000000000/tagihan', body: () => ({}) },
+      { permission: 'payments.manage', method: 'POST', path: '/api/pembayaran/transaksi/00000000-0000-4000-8000-000000000000/terapkan', body: () => ({}) },
+      { permission: 'payments.manage', method: 'POST', path: '/api/pembayaran/transaksi/00000000-0000-4000-8000-000000000000/tolak', body: () => ({}) },
       { permission: 'feedback.mine', method: 'GET', path: '/api/masukan/saya' },
       { permission: 'feedback.send', method: 'POST', path: '/api/masukan', body: () => ({}) },
       { permission: 'feedback.read', method: 'GET', path: '/api/masukan' },

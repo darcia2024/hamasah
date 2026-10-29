@@ -36,7 +36,8 @@ const ROLE_NAV_LABELS = Object.freeze({
   finance: {
     portal: 'Portal Utama',
     operations: 'Keuangan & SPP',
-    pengingat: 'Pengingat Tagihan'
+    pengingat: 'Pengingat Tagihan',
+    pembayaran: 'Pembayaran'
   },
   admin: {
     portal: 'Portal Utama',
@@ -51,6 +52,7 @@ const ROLE_NAV_LABELS = Object.freeze({
     lms: 'LMS Maddah',
     operations: 'Keuangan & SPP',
     pengingat: 'Pengingat Tagihan',
+    pembayaran: 'Pembayaran',
     akun: 'Kelola Akun',
     audit: 'Jejak Audit',
     konten: 'Konten Website',
@@ -161,6 +163,16 @@ const STAFF_NAV_LINKS = Object.freeze([
     badge: null,
     badgeType: null,
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
+  },
+  // Integrasi dan rekonsiliasi pembayaran (pembayaran.js). Admin dan keuangan.
+  {
+    href: 'pembayaran',
+    label: 'Pembayaran',
+    page: 'pembayaran',
+    roles: ['admin', 'finance'],
+    badge: null,
+    badgeType: null,
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>'
   },
   // Impor santri massal dari Excel atau Google Sheets (impor.js). Hanya admin.
   {

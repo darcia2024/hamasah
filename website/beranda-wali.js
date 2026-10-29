@@ -492,7 +492,7 @@
   }
 
   // ------------------------------------------------------- Keuangan
-  function kartuTagihan(data) {
+  function kartuTagihan(data, tautanBayar = null) {
     if (!data.tagihan || !data.tagihan.length) return null;
     const { wadah } = kartu('Tagihan', null, 'wali-chart');
     const belum = data.tagihan.filter((t) => t.status === 'unpaid');
@@ -517,7 +517,16 @@
         });
       }
     });
-    wadah.append(angka, pager.wadah);
+    // Tautan ke website pembayaran yang sudah ada (diatur admin). Status lunas tetap hanya berubah lewat Hamasah.
+    if (tautanBayar && tautanBayar.url && belum.length) {
+      const bayar = el('a', 'button button--primary wali-action', `Bayar lewat ${tautanBayar.providerName || 'website pembayaran'}`);
+      bayar.href = tautanBayar.url;
+      bayar.target = '_blank';
+      bayar.rel = 'noopener noreferrer';
+      wadah.append(angka, bayar, el('p', 'wali-field__hint', 'Status lunas diperbarui oleh tim keuangan setelah pembayaran diterima, jadi mungkin butuh waktu sebelum tagihan berubah.'), pager.wadah);
+    } else {
+      wadah.append(angka, pager.wadah);
+    }
     pager.setel([...belum, ...lunas]);
     return wadah;
   }
@@ -565,11 +574,11 @@
           K.ambil(`/api/students/${encodeURIComponent(aktifId)}/profil`, headers)
         ]));
       }
-      const [[data, profil], pengumuman, jadwalAsrama, iqamah, pesanBagikan, masukanSaya, raporSaya] = await Promise.all([cache.get(aktifId), pengumumanJanji, K.muatJadwalAsrama(headers), iqamahJanji, window.HamasahPesanPersonal ? window.HamasahPesanPersonal.kartuWali(student, headers) : null, K.ambil(`/api/masukan/saya?t=${Date.now()}`, headers), K.ambil(`/api/students/${encodeURIComponent(aktifId)}/rapor?t=${Date.now()}`, headers)]);
+      const [[data, profil], pengumuman, jadwalAsrama, iqamah, pesanBagikan, masukanSaya, raporSaya, tautanBayar] = await Promise.all([cache.get(aktifId), pengumumanJanji, K.muatJadwalAsrama(headers), iqamahJanji, window.HamasahPesanPersonal ? window.HamasahPesanPersonal.kartuWali(student, headers) : null, K.ambil(`/api/masukan/saya?t=${Date.now()}`, headers), K.ambil(`/api/students/${encodeURIComponent(aktifId)}/rapor?t=${Date.now()}`, headers), K.ambil('/api/pembayaran/tautan', headers)]);
       if (student.id !== aktifId) return;
 
       const B = window.HamasahWaliBagian;
-      const tagihan = kartuTagihan(data);
+      const tagihan = kartuTagihan(data, tautanBayar);
       const umum = K.kartuPengumuman(pengumuman, 3, { polos: true });
       // Iqamah ananda, hanya dilihat; laporan tanggal baru dikirim santri sendiri.
       const iqamahAnanda = window.HamasahIqamah ? window.HamasahIqamah.kartu(iqamah, { studentId: student.id, headers }) : null;

@@ -65,6 +65,7 @@ const { createDocumentSettingsService } = require('./document-settings-service.j
 const { createLetterArchiveService } = require('./letter-archive-service.js');
 const { createKpiService } = require('./kpi-service.js');
 const { createWhatsappReminderService } = require('./whatsapp-reminder-service.js');
+const { createPaymentIntegrationService } = require('./payment-integration-service.js');
 const { createStudentJourneyService } = require('./student-journey-service.js');
 const { createStudentLifeService } = require('./student-life-service.js');
 const { createDormitoryRollService } = require('./dormitory-roll-service.js');
@@ -109,6 +110,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/letters.js'),
   ...require('./routes/kpi.js'),
   ...require('./routes/wa-reminders.js'),
+  ...require('./routes/payments.js'),
   ...require('./routes/admin-demo.js'),
   ...require('./routes/settings.js'),
   ...require('./routes/site-content.js'),
@@ -512,7 +514,8 @@ function createHamasahApp(options) {
     }
   });
 
-  const whatsappReminderService = config.whatsappReminderService || createWhatsappReminderService({ database, appBaseUrl: config.appBaseUrl || email.appBaseUrl || '' });
+  const paymentIntegrationService = config.paymentIntegrationService || createPaymentIntegrationService({ database, markInvoicePaid: (invoiceId, actor, input) => operationsService.markInvoicePaid(invoiceId, actor, input) });
+  const whatsappReminderService = config.whatsappReminderService || createWhatsappReminderService({ database, appBaseUrl: config.appBaseUrl || email.appBaseUrl || '', paymentLink: () => paymentIntegrationService.link() });
 
   const kpiService = config.kpiService || createKpiService({ database });
 
@@ -554,6 +557,7 @@ function createHamasahApp(options) {
     letterArchiveService,
     kpiService,
     whatsappReminderService,
+    paymentIntegrationService,
     demoDataService,
     settingsService,
     siteContentService,
