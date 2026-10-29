@@ -188,6 +188,8 @@ const POLICIES = Object.freeze({
     maxBytes: 8 * MB,
     async canUpload({ actor, entityId, services }) {
       if (!actor) return false;
+      // Surat umum (tanpa santri) memakai entityId "umum": hanya admin dan petugas pendaftaran.
+      if (entityId === 'umum') return ['admin', 'registration-officer'].includes(actor.role);
       const akses = await services.studentPortalService.accessFor(entityId, actor);
       if (!akses.exists) return false;
       if (['admin', 'registration-officer'].includes(actor.role)) return true;
@@ -195,6 +197,7 @@ const POLICIES = Object.freeze({
     },
     async canDownload({ actor, entityId, services }) {
       if (!actor) return false;
+      if (entityId === 'umum') return ['admin', 'registration-officer'].includes(actor.role);
       const akses = await services.studentPortalService.accessFor(entityId, actor);
       if (!akses.exists) return false;
       if (['admin', 'registration-officer'].includes(actor.role)) return true;

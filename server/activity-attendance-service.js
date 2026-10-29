@@ -74,7 +74,8 @@ function createActivityAttendanceService({ database, staffDormitories, now = () 
   async function listTypes(actor) {
     if (!staf(actor)) return TOLAK;
     const hasil = await baca(async () => ({ available: true, rows: (await database.query('SELECT * FROM activity_types ORDER BY active DESC, name')).rows }), { available: false, rows: [] });
-    return { ok: true, value: { available: hasil.available, items: hasil.rows.map(bentukJenis), statuses: { session: Object.entries(STATUS_SESI).map(([id, label]) => ({ id, label })), attendance: Object.entries(STATUS_ABSENSI).map(([id, label]) => ({ id, label })) } } };
+    const petugas = hasil.available ? (await database.query("SELECT id, name, role FROM accounts WHERE active AND role IN ('admin', 'supervisor') ORDER BY name")).rows : [];
+    return { ok: true, value: { available: hasil.available, items: hasil.rows.map(bentukJenis), staff: petugas.map((p) => ({ id: p.id, name: p.name, role: p.role })), statuses: { session: Object.entries(STATUS_SESI).map(([id, label]) => ({ id, label })), attendance: Object.entries(STATUS_ABSENSI).map(([id, label]) => ({ id, label })) } } };
   }
 
   async function createType(input, actor) {
@@ -213,6 +214,26 @@ function createActivityAttendanceService({ database, staffDormitories, now = () 
         return { ok: false, status: 409, error: 'Kegiatan sudah punya absensi. Koreksi absensinya lebih dulu bila kegiatan ternyata tidak terlaksana.' };
       }
       await database.query('UPDATE activity_sessions SET status = $2, status_reason = $3 WHERE id = $1', [id, status, ['tidak-terlaksana', 'dibatalkan'].includes(status) ? alasan : '']);
+      return { ok: true, value: { ...bentukSesi(await dapatSesi(id)), manageable: true } };
+    });
+  }
+
+  // Petugas (penanggung jawab) satu kegiatan. Dipakai KPI: kegiatan tanpa petugas tidak masuk nilai siapa pun.
+  async function setStaff(id, input, actor) {
+    if (!staf(actor)) return TOLAK;
+    const sumber = input || {};
+    const tujuan = sumber.staffAccountId === undefined || sumber.staffAccountId === null || sumber.staffAccountId === '' ? null : String(sumber.staffAccountId);
+    if (tujuan !== null && !UUID.test(tujuan)) return { ok: false, error: 'Petugas tidak valid.' };
+    return tulis(async () => {
+      const sesi = await dapatSesi(id);
+      if (!sesi) return { ok: false, status: 404, error: 'Kegiatan tidak ditemukan.' };
+      const batasAkun = await batasAsrama(actor);
+      if (!sesiDalamBatas(sesi, batasAkun)) return { ok: false, status: 403, error: 'Kegiatan ini bukan tanggung jawab Anda.' };
+      if (tujuan !== null) {
+        const ada = await database.query(`SELECT id FROM accounts WHERE id = $1 AND active AND role IN ('admin', 'supervisor')`, [tujuan]);
+        if (!ada.rows.length) return { ok: false, error: 'Petugas harus akun admin atau musyrif yang aktif.' };
+      }
+      await database.query('UPDATE activity_sessions SET staff_account_id = $2 WHERE id = $1', [id, tujuan]);
       return { ok: true, value: { ...bentukSesi(await dapatSesi(id)), manageable: true } };
     });
   }
@@ -367,7 +388,7 @@ function createActivityAttendanceService({ database, staffDormitories, now = () 
     }, { hadir: 0, izin: 0, sakit: 0, alpa: 0, belum: 0, rate: null });
   }
 
-  return { listTypes, createType, updateType, listSessions, createSession, setSessionStatus, roster, saveAttendance, recap, studentSummary };
+  return { setStaff, listTypes, createType, updateType, listSessions, createSession, setSessionStatus, roster, saveAttendance, recap, studentSummary };
 }
 
 module.exports = { createActivityAttendanceService, STATUS_SESI, STATUS_ABSENSI };

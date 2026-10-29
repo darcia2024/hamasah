@@ -1,4 +1,4 @@
-﻿// Unggah dan buka berkas privat lewat alur /api/uploads (minta tempat, kirim isi, konfirmasi). Dipakai bukti penyelesaian
+// Unggah dan buka berkas privat lewat alur /api/uploads (minta tempat, kirim isi, konfirmasi). Dipakai bukti penyelesaian
 // tiket, surat, dan bukti KPI. Berkas tidak pernah punya tautan publik: dibuka lewat permintaan beraut izin lalu ditampilkan
 // dari blob lokal.
 (function initUnggahBerkas() {
@@ -9,10 +9,24 @@
     return hasil;
   }
 
-  // purpose: tujuan berkas (mis. 'case-evidence'); entityId: id pemilik (mis. id santri). Mengembalikan id berkas.
-  async function kirim({ purpose, entityId, berkas, headers }) {
+  const TIPE_DITERIMA = { 'application/pdf': 'PDF', 'image/jpeg': 'JPG', 'image/png': 'PNG' };
+  const DARI_EKSTENSI = { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png' };
+
+  // Pemeriksaan sebelum satu byte pun dikirim, dengan pesan yang bisa dipahami pengguna.
+  function periksa(berkas, maksMb) {
     if (!berkas) throw new Error('Pilih berkas dulu.');
-    const tipe = berkas.type || 'application/octet-stream';
+    if (!berkas.size) throw new Error('Berkas ini kosong. Pilih berkas yang benar.');
+    if (berkas.size > maksMb * 1024 * 1024) throw new Error(`Berkas terlalu besar (${(berkas.size / 1024 / 1024).toFixed(1)} MB). Maksimal ${maksMb} MB; kecilkan atau pilih berkas lain.`);
+    const ekstensi = String(berkas.name || '').split('.').pop().toLowerCase();
+    const tipe = TIPE_DITERIMA[berkas.type] ? berkas.type : DARI_EKSTENSI[ekstensi];
+    if (!tipe) throw new Error('Jenis berkas belum diterima. Gunakan PDF, JPG, atau PNG.');
+    return tipe;
+  }
+
+  // purpose: tujuan berkas (mis. 'case-evidence'); entityId: id pemilik (mis. id santri); maksMb: batas ukuran di sisi klien
+  // (server tetap memeriksa lagi). Mengembalikan id berkas.
+  async function kirim({ purpose, entityId, berkas, headers, maksMb = 5 }) {
+    const tipe = periksa(berkas, maksMb);
     const minta = await json('POST', '/api/uploads', headers, { purpose, entityId, fileName: berkas.name, contentType: tipe, size: berkas.size });
     const id = encodeURIComponent(minta.upload.id);
     if (minta.directUpload) {
@@ -37,5 +51,5 @@
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
 
-  window.HamasahUnggah = Object.freeze({ kirim, buka });
+  window.HamasahUnggah = Object.freeze({ kirim, buka, periksa });
 }());

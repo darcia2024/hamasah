@@ -54,8 +54,8 @@ async function run() {
     // Jenis surat: empat jenis awal belum dikonfirmasi; wali dan keuangan tidak melihat.
     const jenis = await api('GET', '/api/surat/jenis', tPetugas);
     assert.equal(jenis.status, 200, jenis.teks);
-    assert.equal(jenis.body.items.length, 4);
-    assert.equal(jenis.body.unconfirmed, 4, 'Daftar belum dikonfirmasi dari template asli.');
+    assert.equal(jenis.body.items.length, 6, 'Empat jenis dari rapat ditambah dua jenis surat umum.');
+    assert.equal(jenis.body.unconfirmed, 6, 'Daftar belum dikonfirmasi dari template asli.');
     assert.equal(jenis.body.canEdit, false);
     assert.equal((await api('GET', '/api/surat/jenis', tWali)).status, 403);
     assert.equal((await api('GET', '/api/surat', tUang)).status, 403);
@@ -169,6 +169,34 @@ async function run() {
     assert.equal((await api('POST', `/api/surat/${kid}/proses-keluar`, admin, {})).status, 409);
     assert.equal((await ubah(tA, 'dokumen', { status: 'belum' })).status, 404, 'Santri sudah keluar dari asrama, musyrif tidak lagi berwenang.');
     assert.equal((await ubah(admin, 'dokumen', { status: 'belum' })).status, 409, 'Daftar periksa terkunci setelah keluar.');
+
+    // Surat umum (tanpa santri): pengirim atau penerima wajib; hanya admin dan petugas pendaftaran; musyrif tidak melihatnya.
+    const umumMasuk = jenis.body.items.find((j) => j.code === 'surat-umum-masuk');
+    const umumKeluar = jenis.body.items.find((j) => j.code === 'surat-umum-keluar');
+    assert.ok(umumMasuk && umumKeluar);
+    assert.equal((await api('POST', '/api/surat', tPetugas, { typeId: umumMasuk.id, subject: 'Undangan seminar', notes: 'Dari kampus.' })).status, 422, 'Pengirim wajib untuk surat umum.');
+    assert.equal((await api('POST', '/api/surat', tA, { typeId: umumMasuk.id, subject: 'Undangan seminar', counterparty: 'Universitas Al-Azhar' })).status, 403, 'Musyrif tidak mencatat surat umum.');
+    assert.equal((await api('POST', '/api/surat', tPetugas, { typeId: keluar.id, subject: 'Mundur tanpa santri', counterparty: 'Kantor' })).status, 422, 'Permohonan pengunduran diri harus terikat santri.');
+    const scanUmum = await unggah(tPetugas, 'umum');
+    assert.ok(scanUmum.id, 'Petugas dapat mengunggah pindaian surat umum.');
+    assert.ok((await unggah(tA, 'umum')).gagal, 'Musyrif tidak boleh mengunggah pindaian surat umum.');
+    const umum = await api('POST', '/api/surat', tPetugas, { typeId: umumMasuk.id, subject: 'Undangan seminar', counterparty: 'Universitas Al-Azhar', notes: 'Hadir pekan depan.', fileId: scanUmum.id });
+    assert.equal(umum.status, 201, umum.teks);
+    assert.equal(umum.body.studentId, null);
+    assert.equal(umum.body.counterparty, 'Universitas Al-Azhar');
+    assert.match(umum.body.referenceNo, /^SM\/HI\/\d{4}\/\d{5}$/);
+    const keluarUmum = await api('POST', '/api/surat', tPetugas, { typeId: umumKeluar.id, subject: 'Balasan undangan', counterparty: 'Rektorat Al-Azhar' });
+    assert.match(keluarUmum.body.referenceNo, /^SK\/HI\/\d{4}\/00001$/, 'Surat keluar bernomor SK.');
+    assert.equal((await api('GET', `/api/surat/${umum.body.id}`, tA)).status, 404, 'Musyrif tidak melihat surat umum.');
+    assert.equal((await api('GET', '/api/surat?q=Al-Azhar', tPetugas)).body.items.length, 2, 'Pencarian mencakup pengirim dan penerima.');
+    assert.equal((await api('GET', '/api/surat?q=Al-Azhar', tA)).body.items.length, 0);
+    assert.equal((await fetch(`${baseUrl}/api/files/${scanUmum.id}`, { headers: { Authorization: `Bearer ${tA}` } })).status, 403);
+    assert.equal((await fetch(`${baseUrl}/api/files/${scanUmum.id}`, { headers: { Authorization: `Bearer ${tPetugas}` } })).status, 200);
+    assert.equal((await api('POST', `/api/surat/${umum.body.id}/verifikasi`, tPetugas, {})).status, 200);
+    assert.equal((await api('POST', `/api/surat/${umum.body.id}/putusan`, admin, { decision: 'disetujui' })).status, 200);
+    const arsipUmum = await fetch(`${baseUrl}/api/surat/${umum.body.id}/arsip.pdf`, { headers: { Authorization: `Bearer ${admin}` } });
+    assert.equal(arsipUmum.status, 200);
+    assert.ok(Buffer.from(await arsipUmum.arrayBuffer()).toString('latin1').startsWith('%PDF-1.4'));
 
     console.log('letter archive tests passed');
   } finally {

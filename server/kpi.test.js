@@ -95,7 +95,7 @@ async function run() {
     assert.equal(hitung.status, 200, hitung.teks);
     const ev = hitung.body;
     const skor = (kode) => ev.items.find((i) => i.code === kode);
-    assert.equal(skor('halaqah').autoScore, 50, '1 dari 2 halaqah terlaksana.');
+    assert.equal(skor('halaqah').autoScore, 100, 'Kegiatan tidak terlaksana tidak dihitung sebagai kekurangan secara bawaan.');
     assert.equal(skor('sekolah').autoScore, null, 'Tanpa kegiatan: tidak dihitung nol.');
     assert.equal(skor('absensi-lengkap').autoScore, 100);
     assert.equal(skor('keluhan-terverifikasi').autoScore, 100, 'Keluhan belum diverifikasi tidak menurunkan KPI.');
@@ -103,7 +103,7 @@ async function run() {
     assert.ok(totalSebelum !== null);
     assert.ok(ev.missing.includes('Pendampingan sekolah'));
     // halaqah 50 (bobot 20), absensi 100 (15), keluhan 100 (10), disiplin apel: manual tanpa nilai.
-    assert.equal(totalSebelum, Math.round((50 * 20 + 100 * 15 + 100 * 10) / 45));
+    assert.equal(totalSebelum, 100);
 
     // Verifikasi keluhan: hanya admin, wajib catatan, hanya keluhan; tanpa tautan tidak berpengaruh.
     assert.equal((await api('PATCH', `/api/masukan/${keluhan.body.id}/verifikasi`, tA, { note: 'Sudah dicek ke asrama.' })).status, 403);
@@ -141,7 +141,7 @@ async function run() {
     const final = await api('POST', `/api/kpi/penilaian/${id}/final`, admin);
     assert.equal(final.status, 200, final.teks);
     assert.equal(final.body.status, 'final');
-    assert.equal(final.body.grade, 'B');
+    assert.equal(final.body.grade, 'A');
     assert.equal((await api('PATCH', `/api/kpi/penilaian/${id}`, admin, { comment: 'Ubah diam-diam.' })).status, 409);
     assert.equal((await api('POST', '/api/kpi/penilaian', admin, { musyrifId: mA.id, month: BULAN })).status, 409);
 
@@ -196,6 +196,71 @@ async function run() {
     assert.equal(barisA.average, totalSebelum);
     assert.equal(barisA.months[BULAN], totalSebelum);
     assert.equal(barisB.average, null, 'Draf tidak masuk perbandingan.');
+
+    // Berkas bukti: unggah terkunci pada pemiliknya (KPI) dan pada santri yang berhak (tiket).
+    const PDF = Buffer.from('%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF\n');
+    async function unggah(token, purpose, entityId) {
+      const minta = await api('POST', '/api/uploads', token, { purpose, entityId, fileName: 'bukti.pdf', contentType: 'application/pdf', size: PDF.length });
+      if (minta.status !== 201) return { gagal: minta.status };
+      const kirim = await fetch(`${baseUrl}/api/uploads/${minta.body.upload.id}/content`, { method: 'PUT', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/pdf' }, body: PDF });
+      assert.equal(kirim.status < 300, true);
+      return { id: minta.body.upload.id };
+    }
+    assert.ok((await unggah(tB, 'kpi-evidence', mA.id)).gagal, 'Musyrif lain tidak boleh mengunggah atas nama musyrif A.');
+    assert.ok((await unggah(tWali, 'kpi-evidence', mA.id)).gagal);
+    const buktiBerkas = await unggah(tA, 'kpi-evidence', mA.id);
+    assert.ok(buktiBerkas.id);
+    assert.equal((await api('POST', '/api/kpi/bukti', tB, { month: BULAN, description: 'Memakai berkas milik musyrif lain.', fileId: buktiBerkas.id })).status, 422, 'Berkas milik musyrif lain ditolak.');
+    assert.equal((await api('POST', '/api/kpi/bukti', tA, { month: BULAN, description: 'Daftar hadir halaqah bulan ini.', fileId: buktiBerkas.id })).status, 201);
+    const bukaBerkas = (token) => fetch(`${baseUrl}/api/files/${buktiBerkas.id}`, { headers: { Authorization: `Bearer ${token}` } });
+    assert.equal((await bukaBerkas(tA)).status, 200);
+    assert.equal((await bukaBerkas(admin)).status, 200);
+    assert.equal((await bukaBerkas(tB)).status, 403);
+    assert.equal((await bukaBerkas(tWali)).status, 403);
+
+    const tiket = await api('POST', '/api/musyrif/urusan', tA, { studentId: anak.id, kind: 'lapor-diri', note: 'Lapor diri ke kantor imigrasi.', dueOn: '2026-12-01' });
+    assert.equal(tiket.status, 201, tiket.teks);
+    const urusanA = (await api('GET', '/api/musyrif/urusan', tA)).body.items.find((i) => i.caseId === tiket.body.caseId);
+    assert.ok((await unggah(tB, 'case-evidence', anak.id)).gagal, 'Musyrif asrama lain tidak boleh mengunggah bukti.');
+    const buktiTiket = await unggah(tA, 'case-evidence', anak.id);
+    assert.ok(buktiTiket.id);
+    const lain = (await api('POST', '/api/students', admin, { name: 'Santri Lain', program: 'Kuliah S1', city: 'Kairo', joinDate: '2026-01-01', dormitoryId: A.id })).body.student;
+    const buktiLain = await unggah(admin, 'case-evidence', lain.id);
+    assert.equal((await api('PATCH', '/api/musyrif/urusan', tA, { studentId: anak.id, kind: 'lapor-diri', ref: urusanA.ref, status: 'selesai', evidenceFileId: buktiLain.id })).status, 422, 'Bukti santri lain ditolak.');
+    assert.equal((await api('PATCH', '/api/musyrif/urusan', tA, { studentId: anak.id, kind: 'lapor-diri', ref: urusanA.ref, status: 'selesai' })).status, 422, 'Tanpa bukti ditolak.');
+    assert.equal((await api('PATCH', '/api/musyrif/urusan', tA, { studentId: anak.id, kind: 'lapor-diri', ref: urusanA.ref, status: 'selesai', evidenceFileId: buktiTiket.id })).status, 200);
+    const bukaTiket = (token) => fetch(`${baseUrl}/api/files/${buktiTiket.id}`, { headers: { Authorization: `Bearer ${token}` } });
+    assert.equal((await bukaTiket(tA)).status, 200);
+    assert.equal((await bukaTiket(tB)).status, 403);
+    assert.equal((await bukaTiket(tWali)).status, 403, 'Wali tidak membuka bukti tiket.');
+
+    // Kegiatan tidak terlaksana: secara bawaan tidak menurunkan nilai petugas; admin dapat menyalakannya.
+    const tipeSekolah = jenis.find((j) => j.name === 'Sekolah');
+    const sesiB = async (tanggal, status, alasan) => {
+      const s = await api('POST', '/api/kegiatan/sesi', admin, { typeId: tipeSekolah.id, date: tanggal, groupKind: 'asrama', dormitoryId: A.id, staffAccountId: mB.id });
+      assert.equal(s.status, 201, s.teks);
+      assert.equal((await api('PATCH', `/api/kegiatan/sesi/${s.body.id}`, admin, { status, reason: alasan })).status, 200);
+    };
+    await sesiB(`${BULAN}-03`, 'terlaksana');
+    await sesiB(`${BULAN}-04`, 'tidak-terlaksana', 'Sekolah libur mendadak');
+    const bawaan = (await api('POST', '/api/kpi/penilaian', admin, { musyrifId: mB.id, month: BULAN })).body;
+    assert.equal(bawaan.items.find((i) => i.code === 'sekolah').autoScore, 100);
+    assert.match(bawaan.items.find((i) => i.code === 'sekolah').detail, /1 dari 1/);
+    assert.equal((await api('PUT', '/api/kpi/pengaturan', admin, { notHeldCounts: true })).status, 200);
+    const dihitung = (await api('POST', '/api/kpi/penilaian', admin, { musyrifId: mB.id, month: BULAN })).body;
+    assert.equal(dihitung.items.find((i) => i.code === 'sekolah').autoScore, 50, 'Setelah dinyalakan, tidak terlaksana ikut dihitung.');
+
+    // Kesiapan data dan penetapan petugas: kegiatan tanpa petugas tidak masuk nilai siapa pun, dan terlihat penilai.
+    const tanpa = await api('POST', '/api/kegiatan/sesi', admin, { typeId: tipeSekolah.id, date: `${BULAN}-05`, groupKind: 'asrama', dormitoryId: A.id });
+    assert.equal(tanpa.status, 201);
+    const siap = await api('GET', `/api/kpi/penilaian?musyrifId=${mA.id}&month=${BULAN}`, admin);
+    assert.equal(siap.body.readiness.sessionsWithoutStaff, 1);
+    assert.equal(siap.body.readiness.sessionsStaffed >= 2, true);
+    assert.equal((await api('PATCH', `/api/kegiatan/sesi/${tanpa.body.id}/petugas`, tWali, { staffAccountId: mA.id })).status, 403);
+    assert.equal((await api('PATCH', `/api/kegiatan/sesi/${tanpa.body.id}/petugas`, tB, { staffAccountId: mB.id })).status, 403, 'Musyrif asrama lain tidak menetapkan petugas.');
+    assert.equal((await api('PATCH', `/api/kegiatan/sesi/${tanpa.body.id}/petugas`, admin, { staffAccountId: wali.id })).status, 422);
+    assert.equal((await api('PATCH', `/api/kegiatan/sesi/${tanpa.body.id}/petugas`, tA, { staffAccountId: mA.id })).status, 200);
+    assert.equal((await api('GET', `/api/kpi/penilaian?musyrifId=${mA.id}&month=${BULAN}`, admin)).body.readiness.sessionsWithoutStaff, 0);
 
     console.log('kpi tests passed');
   } finally {

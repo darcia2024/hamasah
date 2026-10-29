@@ -146,6 +146,10 @@
       }));
     }
     b.append(bar, status);
+    if (data.readiness) {
+      const r = data.readiness;
+      b.append(el('p', r.sessionsWithoutStaff ? 'kg-warning' : 'wali-field__hint', `Kesiapan data bulan ini: ${r.sessionsStaffed} kegiatan ber-petugas, ${r.ticketsAssigned} tiket ditugaskan.${r.sessionsWithoutStaff ? ` Ada ${r.sessionsWithoutStaff} kegiatan di asrama musyrif ini yang belum punya petugas; kegiatan itu tidak masuk nilai siapa pun. Tetapkan petugasnya di halaman Kegiatan dan Rapor.` : ''}`));
+    }
     if (!data.settingsConfirmed) b.append(el('p', 'kg-warning', 'Bobot dan batas nilai KPI belum dikonfirmasi admin, jadi penilaian belum bisa difinalkan. Konfirmasi di tab Indikator dan pengaturan.'));
     if (ev) {
       b.append(el('p', 'kg-score', ev.total === null ? 'Belum ada data yang cukup untuk dinilai.' : `Nilai ${ev.total} · Kategori ${ev.grade}`));
@@ -326,14 +330,17 @@
     const reward = el('input');
     reward.type = 'checkbox';
     reward.checked = Boolean(c.rewardEnabled);
-    form.append(kolom('Batas nilai A (mulai)', gA), kolom('Batas nilai B (mulai)', gB, 'Di bawah batas B adalah kategori C.'), kolom('Target pekerjaan tambahan per bulan (nilai bonus 100)', kerja), kolom('Pengurang nilai per keluhan terverifikasi', keluhan, 'Hanya berlaku bila indikator keluhan diaktifkan dan keluhannya diverifikasi serta ditautkan ke musyrif.'), kolom('Program penghargaan dijalankan', reward));
+    const tidakTerlaksana = el('input');
+    tidakTerlaksana.type = 'checkbox';
+    tidakTerlaksana.checked = Boolean(c.notHeldCounts);
+    form.append(kolom('Kegiatan tidak terlaksana ikut mengurangi nilai petugas', tidakTerlaksana, 'Bawaannya mati: kegiatan batal karena listrik padam atau libur mendadak tidak dianggap kekurangan petugas. Kegiatan yang lewat tanpa ditandai tetap dihitung.'), kolom('Batas nilai A (mulai)', gA), kolom('Batas nilai B (mulai)', gB, 'Di bawah batas B adalah kategori C.'), kolom('Target pekerjaan tambahan per bulan (nilai bonus 100)', kerja), kolom('Pengurang nilai per keluhan terverifikasi', keluhan, 'Hanya berlaku bila indikator keluhan diaktifkan dan keluhannya diverifikasi serta ditautkan ke musyrif.'), kolom('Program penghargaan dijalankan', reward));
     const simpan = el('button', 'button button--primary wali-action', c.confirmedAt ? 'Simpan pengaturan' : 'Simpan dan konfirmasi');
     simpan.type = 'submit';
     form.append(simpan, status);
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       try {
-        await api('PUT', '/api/kpi/pengaturan', { grades: { A: Number(gA.value), B: Number(gB.value) }, extraWorkTarget: Number(kerja.value), complaintPenalty: Number(keluhan.value), rewardEnabled: reward.checked });
+        await api('PUT', '/api/kpi/pengaturan', { grades: { A: Number(gA.value), B: Number(gB.value) }, extraWorkTarget: Number(kerja.value), complaintPenalty: Number(keluhan.value), rewardEnabled: reward.checked, notHeldCounts: tidakTerlaksana.checked });
         render().catch(() => {});
       } catch (error) { status.set(error.message, true); }
     });

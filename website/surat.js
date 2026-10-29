@@ -118,7 +118,7 @@
           const sel = (v, label) => { const c = el('td', '', v); c.dataset.label = label; return c; };
           const aksi = el('td');
           aksi.append(tombol('Buka', 'button button--secondary kg-small', () => { state.terbuka = s.id; bukaSurat(s.id, rincian, muat).catch(() => {}); }));
-          tr.append(sel(s.referenceNo, 'Nomor'), sel(s.typeName, 'Jenis'), sel(s.studentName, 'Santri'), sel(s.subject, 'Perihal'), sel(s.statusLabel, 'Status'), aksi);
+          tr.append(sel(s.referenceNo, 'Nomor'), sel(s.typeName, 'Jenis'), sel(s.studentName || s.counterparty, s.studentName ? 'Santri' : 'Pihak'), sel(s.subject, 'Perihal'), sel(s.statusLabel, 'Status'), aksi);
           tabel.append(tr);
         });
         const bungkus = el('div', 'kg-scroll');
@@ -137,7 +137,8 @@
         keterangan: 'Pilih jenis surat dan santri yang bersangkutan. Pindaian surat bertanda tangan bersifat privat dan dapat dilampirkan sekarang.',
         bidang: [
           { nama: 'typeId', label: 'Jenis surat', jenis: 'select', pilihan: aktif.map((j) => [j.id, `${j.name} (${j.directionLabel.toLowerCase()})`]), nilai: aktif[0] && aktif[0].id, wajib: true },
-          { nama: 'studentId', label: 'Santri', jenis: 'select', pilihan: state.santri.map((s) => [s.id, `${s.name}${s.dormitoryName ? ` · ${s.dormitoryName}` : ''}`]), nilai: state.santri[0] && state.santri[0].id, wajib: true },
+          { nama: 'studentId', label: 'Santri', jenis: 'select', pilihan: [...(state.akun.role === 'supervisor' ? [] : [['', 'Tanpa santri (surat umum untuk lembaga)']]), ...state.santri.map((s) => [s.id, `${s.name}${s.dormitoryName ? ` · ${s.dormitoryName}` : ''}`])], nilai: state.santri[0] ? state.santri[0].id : '', petunjuk: 'Pilih santri untuk surat yang berkaitan dengannya. Surat umum (undangan, surat dinas) dicatat tanpa santri dan butuh nama pengirim atau penerima.' },
+          { nama: 'counterparty', label: 'Pengirim atau penerima (wajib untuk surat umum)', nilai: '' },
           { nama: 'subject', label: 'Perihal', wajib: true, nilai: '' },
           { nama: 'letterDate', label: 'Tanggal surat', jenis: 'date', nilai: new Date().toISOString().slice(0, 10), wajib: true },
           { nama: 'notes', label: 'Catatan (opsional)', jenis: 'textarea', nilai: '' },
@@ -145,8 +146,8 @@
         ],
         labelSimpan: 'Catat surat',
         kirim: async (nilai) => {
-          const fileId = nilai.scan ? await window.HamasahUnggah.kirim({ purpose: 'letter-scan', entityId: nilai.studentId, berkas: nilai.scan, headers: headers() }) : undefined;
-          return api('POST', '/api/surat', { typeId: nilai.typeId, studentId: nilai.studentId, subject: nilai.subject, letterDate: nilai.letterDate, notes: nilai.notes, fileId });
+          const fileId = nilai.scan ? await window.HamasahUnggah.kirim({ purpose: 'letter-scan', entityId: nilai.studentId || 'umum', berkas: nilai.scan, headers: headers(), maksMb: 8 }) : undefined;
+          return api('POST', '/api/surat', { typeId: nilai.typeId, studentId: nilai.studentId || undefined, counterparty: nilai.counterparty, subject: nilai.subject, letterDate: nilai.letterDate, notes: nilai.notes, fileId });
         }
       });
       if (hasil) { state.terbuka = hasil.id; await muat(); await bukaSurat(hasil.id, rincian, muat); }
@@ -161,7 +162,7 @@
     wadah.replaceChildren(kosong('Memuat surat...'));
     const data = await api('GET', `/api/surat/${encodeURIComponent(id)}?t=${Date.now()}`);
     const s = data.letter;
-    const b = bagian(`${s.referenceNo} · ${s.typeName}`, `${s.studentName}${s.dormitoryName ? ` (${s.dormitoryName})` : ''} · ${s.directionLabel} · ${s.letterDate}`);
+    const b = bagian(`${s.referenceNo} · ${s.typeName}`, `${s.studentName ? `${s.studentName}${s.dormitoryName ? ` (${s.dormitoryName})` : ''}` : `${s.direction === 'keluar' ? 'Penerima' : 'Pengirim'}: ${s.counterparty}`} · ${s.directionLabel} · ${s.letterDate}`);
     const pesan = pesanStatus();
     const segarkan = async () => { await muatDaftar(); await bukaSurat(id, wadah, muatDaftar); };
     const jalankan = async (fn) => { try { await fn(); await segarkan(); } catch (error) { pesan.set(error.message, true); } };

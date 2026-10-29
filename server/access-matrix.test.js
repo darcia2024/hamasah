@@ -281,6 +281,7 @@ async function run() {
       { permission: 'attendance.manage', method: 'POST', path: '/api/kegiatan/sesi', body: () => ({}) },
       { permission: 'attendance.manage', method: 'GET', path: '/api/kegiatan/sesi/00000000-0000-4000-8000-000000000000' },
       { permission: 'attendance.manage', method: 'PATCH', path: '/api/kegiatan/sesi/00000000-0000-4000-8000-000000000000', body: () => ({}) },
+      { permission: 'attendance.manage', method: 'PATCH', path: '/api/kegiatan/sesi/00000000-0000-4000-8000-000000000000/petugas', body: () => ({}) },
       { permission: 'attendance.manage', method: 'PUT', path: '/api/kegiatan/sesi/00000000-0000-4000-8000-000000000000/absensi', body: () => ({}) },
       { permission: 'attendance.manage', method: 'GET', path: '/api/kegiatan/rekap?by=santri&period=bulan&value=2026-10' },
       { permission: 'tahfidz.read', method: 'GET', path: () => `/api/students/${studentId}/setoran` },

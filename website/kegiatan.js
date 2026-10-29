@@ -10,7 +10,7 @@
   const HARI = new Intl.DateTimeFormat('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
   const TAB = [['absensi', 'Absensi kegiatan'], ['setoran', 'Setoran tahfidz'], ['rapor', 'Rapor bulanan'], ['pengaturan', 'Pengaturan']];
   const STATUS_ABSENSI = [['hadir', 'Hadir'], ['izin', 'Izin'], ['sakit', 'Sakit'], ['alpa', 'Tidak hadir']];
-  const state = { akun: null, tab: 'absensi', asrama: [], santri: [], pilihanSantri: '', sesiTerbuka: null };
+  const state = { akun: null, tab: 'absensi', asrama: [], santri: [], staff: [], pilihanSantri: '', sesiTerbuka: null };
 
   function el(tag, kelas, teks) {
     const node = document.createElement(tag);
@@ -142,7 +142,7 @@
           { nama: 'location', label: 'Lokasi', nilai: '' },
           { nama: 'groupKind', label: 'Kelompok peserta', jenis: 'select', pilihan: kelompok, nilai: 'asrama' },
           { nama: 'dormitoryId', label: 'Asrama (bila satu asrama)', jenis: 'select', pilihan: state.asrama.map((d) => [d.id, d.name]), nilai: state.asrama[0] && state.asrama[0].id },
-          { nama: 'staffAccountId', label: 'Petugas (opsional)', jenis: 'select', pilihan: [['', 'Belum ditentukan'], ...(state.akun ? [[state.akun.id, `${state.akun.name} (saya)`]] : [])], nilai: '' }
+          { nama: 'staffAccountId', label: 'Petugas penanggung jawab', jenis: 'select', pilihan: [['', 'Belum ditentukan'], ...state.staff.map((p) => [p.id, `${p.name}${state.akun && p.id === state.akun.id ? ' (saya)' : ''}`])], nilai: state.akun && state.akun.role === 'supervisor' ? state.akun.id : '', petunjuk: 'Dipakai untuk KPI musyrif: kegiatan tanpa petugas tidak masuk penilaian siapa pun.' }
         ],
         labelSimpan: 'Buat kegiatan',
         kirim: (nilai) => api('POST', '/api/kegiatan/sesi', { ...nilai, staffAccountId: nilai.staffAccountId || undefined, startTime: nilai.startTime || undefined, endTime: nilai.endTime || undefined, dormitoryId: nilai.groupKind === 'asrama' ? nilai.dormitoryId : undefined })
@@ -208,6 +208,16 @@
     const bar = el('div', 'kg-bar');
     bar.append(el('span', `kg-chip is-${s.status}`, s.statusLabel));
     if (s.statusReason) bar.append(el('span', 'wali-field__hint', `Alasan: ${s.statusReason}`));
+    if (s.manageable) {
+      const petugas = pilihan([['', 'Belum ada petugas'], ...state.staff.map((p) => [p.id, p.name])], s.staffAccountId || '');
+      petugas.setAttribute('aria-label', 'Petugas kegiatan');
+      petugas.addEventListener('change', async () => {
+        try { await api('PATCH', `/api/kegiatan/sesi/${encodeURIComponent(id)}/petugas`, { staffAccountId: petugas.value || null }); await muatDaftar(); await bukaSesi(id, wadah, muatDaftar); } catch (error) { status.set(error.message, true); }
+      });
+      bar.append(kolom('Petugas', petugas));
+    } else if (s.staffName) {
+      bar.append(el('span', 'wali-field__hint', `Petugas: ${s.staffName}`));
+    }
     if (s.manageable) {
       const ubah = async (st, alasan) => {
         try { await api('PATCH', `/api/kegiatan/sesi/${encodeURIComponent(id)}`, { status: st, reason: alasan }); await muatDaftar(); await bukaSesi(id, wadah, muatDaftar); } catch (error) { status.set(error.message, true); }
@@ -649,10 +659,12 @@
       konsol.hidden = false;
       document.body.classList.add('in-crm');
       renderStaffNav(staffNav, akun.role, 'kegiatan', akun);
-      const [asrama, santri] = await Promise.all([
+      const [asrama, santri, jenisKegiatan] = await Promise.all([
         api('GET', '/api/announcements/asrama').catch(() => ({ dormitories: [] })),
-        api('GET', '/api/my-students?limit=200').catch(() => ({ items: [] }))
+        api('GET', '/api/my-students?limit=200').catch(() => ({ items: [] })),
+        api('GET', '/api/kegiatan/jenis').catch(() => ({ staff: [] }))
       ]);
+      state.staff = jenisKegiatan.staff || [];
       state.asrama = asrama.dormitories || [];
       state.santri = santri.items || [];
       await render();

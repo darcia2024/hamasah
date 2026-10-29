@@ -17,7 +17,7 @@ const SUMBER = Object.freeze({
   'pekerjaan-tambahan': 'Pekerjaan tambahan terverifikasi', 'keluhan-terverifikasi': 'Keluhan wali terverifikasi', manual: 'Nilai manual penilai'
 });
 const JENIS_KERJA = Object.freeze({ 'santri-sakit': 'Mengurus santri sakit', pengadaan: 'Pengadaan kebutuhan', institusi: 'Pengurusan institusi', kegiatan: 'Kegiatan tambahan', lainnya: 'Lainnya' });
-const BAWAAN = Object.freeze({ grades: Object.freeze({ A: 85, B: 70 }), extraWorkTarget: 2, complaintPenalty: 20, rewardEnabled: false, confirmedAt: null });
+const BAWAAN = Object.freeze({ grades: Object.freeze({ A: 85, B: 70 }), extraWorkTarget: 2, complaintPenalty: 20, rewardEnabled: false, notHeldCounts: false, confirmedAt: null });
 const DATABASE_BELUM_SIAP = 'Database belum diperbarui untuk KPI musyrif. Terapkan pembaruan database di halaman Pengaturan lebih dulu.';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const BULAN = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -120,6 +120,7 @@ function createKpiService({ database, now = () => new Date() } = {}) {
         if (sumber.extraWorkTarget !== undefined) config.extraWorkTarget = angka(sumber.extraWorkTarget, 'Target pekerjaan tambahan per bulan', 1, 100);
         if (sumber.complaintPenalty !== undefined) config.complaintPenalty = angka(sumber.complaintPenalty, 'Pengurang nilai per keluhan terverifikasi', 0, 100);
         if (sumber.rewardEnabled !== undefined) config.rewardEnabled = Boolean(sumber.rewardEnabled);
+        if (sumber.notHeldCounts !== undefined) config.notHeldCounts = Boolean(sumber.notHeldCounts);
       } catch (error) {
         return { ok: false, error: error.message };
       }
@@ -202,7 +203,9 @@ function createKpiService({ database, now = () => new Date() } = {}) {
       );
       if (!rows) return { score: null, detail: 'Data kegiatan belum tersedia.' };
       const n = (s) => rows.filter((r) => r.status === s).reduce((j, r) => j + r.n, 0);
-      const total = n('terlaksana') + n('tidak-terlaksana') + n('terjadwal');
+      // Kegiatan yang ditandai tidak terlaksana belum tentu kesalahan petugas (listrik padam, libur mendadak). Secara bawaan tidak
+      // dihitung sebagai kekurangan; admin dapat menyalakannya di pengaturan. Kegiatan yang lewat tanpa ditandai tetap dihitung.
+      const total = n('terlaksana') + (config.notHeldCounts ? n('tidak-terlaksana') : 0) + n('terjadwal');
       return total ? { score: Math.round((n('terlaksana') / total) * 100), detail: `${n('terlaksana')} dari ${total} kegiatan terlaksana${n('tidak-terlaksana') ? `, ${n('tidak-terlaksana')} tidak terlaksana` : ''}${n('terjadwal') ? `, ${n('terjadwal')} belum ditandai` : ''}.` } : { score: null, detail: 'Tidak ada kegiatan yang dipegang bulan ini.' };
     }
     if (indikator.source === 'absensi-terisi') {
@@ -304,9 +307,24 @@ function createKpiService({ database, now = () => new Date() } = {}) {
       const { from, to } = rentang(bulan);
       const bukti = (await database.query(`SELECT b.*, i.name AS indicator_name FROM kpi_evidence b LEFT JOIN kpi_indicators i ON i.id = b.indicator_id WHERE b.musyrif_account_id = $1 AND b.month = $2 ORDER BY b.created_at DESC`, [musyrifId, bulan])).rows;
       const kerja = (await database.query(`SELECT * FROM kpi_extra_work WHERE musyrif_account_id = $1 AND work_date BETWEEN $2::date AND $3::date ORDER BY work_date DESC`, [musyrifId, from, to])).rows;
+      // Kesiapan data: penilaian otomatis hanya sebagus data sumbernya. Kegiatan asrama tanpa petugas tidak masuk nilai siapa pun.
+      const siap = { sessionsStaffed: 0, sessionsWithoutStaff: 0, ticketsAssigned: 0 };
+      try {
+        const k1 = (await database.query(`SELECT count(*)::int AS n FROM activity_sessions WHERE staff_account_id = $1 AND status <> 'dibatalkan' AND session_date BETWEEN $2::date AND $3::date`, [musyrifId, from, to])).rows[0];
+        const k2 = (await database.query(
+          `SELECT count(*)::int AS n FROM activity_sessions WHERE staff_account_id IS NULL AND status <> 'dibatalkan' AND group_kind = 'asrama' AND session_date BETWEEN $2::date AND $3::date
+              AND dormitory_id IN (SELECT dormitory_id FROM staff_dormitory_assignments WHERE account_id = $1)`, [musyrifId, from, to]
+        )).rows[0];
+        siap.sessionsStaffed = k1.n;
+        siap.sessionsWithoutStaff = k2.n;
+        siap.ticketsAssigned = (await database.query(`SELECT count(*)::int AS n FROM student_cases WHERE assignee_account_id = $1 AND ((due_on BETWEEN $2::date AND $3::date) OR (resolved_at >= $2::date AND resolved_at < ($3::date + 1)))`, [musyrifId, from, to])).rows[0].n;
+      } catch (error) {
+        if (!tabelBelumAda(error)) throw error;
+      }
       return {
         ok: true,
         value: {
+          readiness: siap,
           evaluation: row ? rakit(row, config) : null,
           evidence: bukti.map(bentukBukti), extraWork: kerja.map(bentukKerja),
           canFinalize: Boolean(row && row.status === 'draft' && config.confirmedAt), settingsConfirmed: Boolean(config.confirmedAt)

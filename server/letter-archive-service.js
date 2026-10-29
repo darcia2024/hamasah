@@ -137,7 +137,7 @@ function createLetterArchiveService({ database, staffDormitories, finalizeExit, 
   function bentukSurat(row) {
     return {
       id: row.id, referenceNo: row.reference_no, typeId: row.type_id, typeName: row.type_name, direction: row.direction, directionLabel: ARAH[row.direction], exitFlow: Boolean(row.exit_flow),
-      studentId: row.student_id, studentName: row.student_name, dormitoryName: row.dormitory_name || null,
+      studentId: row.student_id || null, studentName: row.student_name || null, counterparty: row.counterparty || '', dormitoryName: row.dormitory_name || null,
       subject: row.subject, notes: row.notes || '', letterDate: row.letter_date_text, fileId: row.file_id || null,
       status: row.status, statusLabel: STATUS[row.status], createdBy: row.created_by || null, createdAt: iso(row.created_at),
       verifiedBy: row.verified_by || null, verifiedAt: iso(row.verified_at), decidedBy: row.decided_by || null, decidedAt: iso(row.decided_at), decisionNote: row.decision_note || '',
@@ -147,7 +147,7 @@ function createLetterArchiveService({ database, staffDormitories, finalizeExit, 
 
   const SELECT = `SELECT l.*, to_char(l.letter_date, 'YYYY-MM-DD') AS letter_date_text, t.name AS type_name, t.direction, t.exit_flow, s.name AS student_name, d.name AS dormitory_name,
         cb.name AS created_by, vb.name AS verified_by, db.name AS decided_by, eb.name AS exit_by
-      FROM letters l JOIN letter_types t ON t.id = l.type_id JOIN students s ON s.id = l.student_id LEFT JOIN dormitories d ON d.id = s.dormitory_id
+      FROM letters l JOIN letter_types t ON t.id = l.type_id LEFT JOIN students s ON s.id = l.student_id LEFT JOIN dormitories d ON d.id = s.dormitory_id
       LEFT JOIN accounts cb ON cb.id = l.created_by_account_id LEFT JOIN accounts vb ON vb.id = l.verified_by_account_id
       LEFT JOIN accounts db ON db.id = l.decided_by_account_id LEFT JOIN accounts eb ON eb.id = l.exit_completed_by_account_id`;
 
@@ -184,7 +184,7 @@ function createLetterArchiveService({ database, staffDormitories, finalizeExit, 
     try {
       const { rows } = await database.query(
         `${SELECT} WHERE ($1::text IS NULL OR l.status = $1) AND ($2::uuid IS NULL OR l.type_id = $2)
-            AND ($3::text IS NULL OR s.name ILIKE $3 OR l.subject ILIKE $3 OR l.reference_no ILIKE $3)
+            AND ($3::text IS NULL OR s.name ILIKE $3 OR l.subject ILIKE $3 OR l.reference_no ILIKE $3 OR l.counterparty ILIKE $3)
             AND ($4::uuid[] IS NULL OR s.dormitory_id = ANY($4::uuid[])) ORDER BY l.created_at DESC LIMIT 200`,
         [status || null, typeId && UUID.test(typeId) ? typeId : null, q ? `%${rapi(q, 80).replace(/[%_]/g, '')}%` : null, b]
       );
@@ -212,13 +212,22 @@ function createLetterArchiveService({ database, staffDormitories, finalizeExit, 
     const tanggal = sumber.letterDate ? String(sumber.letterDate) : now().toISOString().slice(0, 10);
     if (!tanggalValid(tanggal)) return { ok: false, error: 'Tanggal surat tidak valid.' };
     if (!UUID.test(String(sumber.typeId))) return { ok: false, error: 'Pilih jenis surat.' };
-    if (!(await santriDalamBatas(sumber.studentId, actor))) return { ok: false, status: 404, error: 'Santri tidak ditemukan atau bukan tanggung jawab Anda.' };
+    // Surat bisa terikat pada satu santri, atau surat umum untuk lembaga (undangan, surat dinas) yang hanya dikelola admin dan petugas pendaftaran.
+    const umum = !sumber.studentId;
+    const pihak = rapi(sumber.counterparty, 160).replace(/\n/g, ' ');
+    if (umum) {
+      if ((await batas(actor)) !== null) return { ok: false, status: 403, error: 'Surat umum dicatat admin atau petugas pendaftaran. Musyrif mencatat surat untuk santri asramanya.' };
+      if (pihak.length < 3) return { ok: false, error: 'Tulis pengirim atau penerima surat (minimal 3 karakter).' };
+    } else if (!(await santriDalamBatas(sumber.studentId, actor))) {
+      return { ok: false, status: 404, error: 'Santri tidak ditemukan atau bukan tanggung jawab Anda.' };
+    }
     return tulis(async () => {
       const jenis = (await database.query('SELECT * FROM letter_types WHERE id = $1', [sumber.typeId])).rows[0];
       if (!jenis || !jenis.active) return { ok: false, error: 'Jenis surat ini tidak tersedia.' };
+      if (umum && jenis.exit_flow) return { ok: false, error: 'Permohonan pengunduran diri harus terikat pada seorang santri.' };
       let fileId = null;
       if (sumber.fileId) {
-        const berkas = (await database.query(`SELECT id FROM file_objects WHERE id = $1 AND purpose = 'letter-scan' AND entity_id = $2 AND status = 'ready'`, [UUID.test(String(sumber.fileId)) ? sumber.fileId : null, String(sumber.studentId)])).rows[0];
+        const berkas = (await database.query(`SELECT id FROM file_objects WHERE id = $1 AND purpose = 'letter-scan' AND entity_id = $2 AND status = 'ready'`, [UUID.test(String(sumber.fileId)) ? sumber.fileId : null, umum ? 'umum' : String(sumber.studentId)])).rows[0];
         if (!berkas) return { ok: false, error: 'Berkas pindaian tidak ditemukan untuk santri ini.' };
         fileId = berkas.id;
       }
@@ -228,9 +237,9 @@ function createLetterArchiveService({ database, staffDormitories, finalizeExit, 
       for (let percobaan = 0; ; percobaan += 1) {
         try {
           await database.query(
-            `INSERT INTO letters (id, reference_no, type_id, student_id, subject, notes, letter_date, file_id, created_by_account_id, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-            [id, nomor, jenis.id, sumber.studentId, subject, rapi(sumber.notes, 2000), tanggal, fileId, actor.id || null, now()]
+            `INSERT INTO letters (id, reference_no, type_id, student_id, counterparty, subject, notes, letter_date, file_id, created_by_account_id, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+            [id, nomor, jenis.id, umum ? null : sumber.studentId, umum ? pihak : '', subject, rapi(sumber.notes, 2000), tanggal, fileId, actor.id || null, now()]
           );
           break;
         } catch (error) {
@@ -380,7 +389,7 @@ function createLetterArchiveService({ database, staffDormitories, finalizeExit, 
         { kind: 'subtitle', text: `${s.referenceNo} · ${s.typeName} · ${s.directionLabel}` },
         { kind: 'rule' },
         { kind: 'heading', text: 'Data surat' },
-        { kind: 'item', text: `Santri: ${s.studentName}${s.dormitoryName ? ` (${s.dormitoryName})` : ''}` },
+        { kind: 'item', text: s.studentId ? `Santri: ${s.studentName}${s.dormitoryName ? ` (${s.dormitoryName})` : ''}` : `${s.direction === 'keluar' ? 'Penerima' : 'Pengirim'}: ${s.counterparty}` },
         { kind: 'item', text: `Perihal: ${s.subject}` },
         { kind: 'item', text: `Tanggal surat: ${s.letterDate}` },
         { kind: 'item', text: s.fileId ? 'Berkas pindaian: tersimpan di arsip digital Hamasah.' : 'Berkas pindaian: tidak dilampirkan.' }

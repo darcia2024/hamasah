@@ -82,6 +82,17 @@ module.exports = [
     }
   },
   {
+    method: 'PATCH',
+    pattern: pola(`\\/api\\/kegiatan\\/sesi\\/${ID}\\/petugas`),
+    permission: 'attendance.manage',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const actor = await auth.actor();
+      const hasil = await services.activityAttendanceService.setStaff(params[0], await readBody(), actor);
+      if (hasil.ok) await services.auditService.record({ action: ACTIONS.ACTIVITY_SESSION_STATUS, actor, ip, entityType: 'activity-session', entityId: params[0], metadata: { staff: hasil.value.staffAccountId ? 'diatur' : 'dikosongkan' } });
+      balas(response, hasil);
+    }
+  },
+  {
     method: 'PUT',
     pattern: pola(`\\/api\\/kegiatan\\/sesi\\/${ID}\\/absensi`),
     permission: 'attendance.manage',
