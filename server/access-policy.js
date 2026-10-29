@@ -84,6 +84,11 @@ const PERMISSIONS = Object.freeze({
   // Batas peringatan paspor dan iqamah: staf melihat, admin mengubah.
   'document-alerts.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   'document-alerts.manage': Object.freeze([ROLES.ADMIN]),
+  // Surat masuk dan keluar beserta arsip: mencatat dan daftar periksa keluar oleh admin, petugas pendaftaran, dan musyrif
+  // (untuk santri asramanya); verifikasi oleh admin dan petugas pendaftaran; keputusan dan pernyataan keluar hanya admin.
+  'letters.manage': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER, ROLES.SUPERVISOR]),
+  'letters.verify': Object.freeze([ROLES.ADMIN, ROLES.REGISTRATION_OFFICER]),
+  'letters.admin': Object.freeze([ROLES.ADMIN]),
   'attendance.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   'activities.admin': Object.freeze([ROLES.ADMIN]),
   'feedback.send': Object.freeze([ROLES.PARENT]),

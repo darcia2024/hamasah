@@ -62,6 +62,7 @@ const { createActivityAttendanceService } = require('./activity-attendance-servi
 const { createTahfidzService } = require('./tahfidz-service.js');
 const { createReportCardService } = require('./report-card-service.js');
 const { createDocumentSettingsService } = require('./document-settings-service.js');
+const { createLetterArchiveService } = require('./letter-archive-service.js');
 const { createStudentJourneyService } = require('./student-journey-service.js');
 const { createStudentLifeService } = require('./student-life-service.js');
 const { createDormitoryRollService } = require('./dormitory-roll-service.js');
@@ -103,6 +104,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/tahfidz.js'),
   ...require('./routes/report-cards.js'),
   ...require('./routes/document-settings.js'),
+  ...require('./routes/letters.js'),
   ...require('./routes/admin-demo.js'),
   ...require('./routes/settings.js'),
   ...require('./routes/site-content.js'),
@@ -493,6 +495,19 @@ function createHamasahApp(options) {
     tahfidz: tahfidzService
   });
 
+  // Santri yang mengundurkan diri: status berubah, kamar dilepas, dan riwayat status tercatat (sama dengan PATCH santri).
+  const letterArchiveService = config.letterArchiveService || createLetterArchiveService({
+    database,
+    staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId),
+    async finalizeExit(studentId, alasan, actor) {
+      const hasil = await studentPortalService.updateStudent(studentId, { status: 'withdrawn' }, actor);
+      if (!hasil.ok) return hasil;
+      if (hasil.releasedFromDormitory) await studentProfileService.releaseRoom(studentId);
+      if (hasil.changed.includes('status')) await studentProfileService.recordStatusChange(studentId, hasil.previousStatus, hasil.value.status, alasan, actor);
+      return { ok: true };
+    }
+  });
+
   const parentFeedbackService = config.parentFeedbackService || createParentFeedbackService({
     database,
     accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor),
@@ -528,6 +543,7 @@ function createHamasahApp(options) {
     tahfidzService,
     reportCardService,
     documentSettingsService,
+    letterArchiveService,
     demoDataService,
     settingsService,
     siteContentService,

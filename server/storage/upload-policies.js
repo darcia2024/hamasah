@@ -179,6 +179,27 @@ const POLICIES = Object.freeze({
       if (!actor || !['admin', 'supervisor'].includes(actor.role)) return false;
       return (await services.studentPortalService.accessFor(entityId, actor)).view;
     }
+  }),  // Pindaian surat (formulir pendaftaran offline, pernyataan wali, permohonan pengunduran diri). Privat. Admin dan petugas
+  // pendaftaran untuk santri mana pun; musyrif hanya untuk santri asramanya.
+  'letter-scan': Object.freeze({
+    entityType: 'student',
+    visibility: 'private',
+    contentTypes: DOKUMEN,
+    maxBytes: 8 * MB,
+    async canUpload({ actor, entityId, services }) {
+      if (!actor) return false;
+      const akses = await services.studentPortalService.accessFor(entityId, actor);
+      if (!akses.exists) return false;
+      if (['admin', 'registration-officer'].includes(actor.role)) return true;
+      return actor.role === 'supervisor' && akses.write;
+    },
+    async canDownload({ actor, entityId, services }) {
+      if (!actor) return false;
+      const akses = await services.studentPortalService.accessFor(entityId, actor);
+      if (!akses.exists) return false;
+      if (['admin', 'registration-officer'].includes(actor.role)) return true;
+      return actor.role === 'supervisor' && akses.view;
+    }
   }),  // Foto kegiatan santri. Pembatasan asrama untuk musyrif ikut berlaku, karena
   // pemeriksaannya memakai dashboard santri yang sudah dibatasi.
   'student-media': Object.freeze({
