@@ -171,9 +171,11 @@ function createHamasahApp(options) {
   const trustProxy = config.trustProxy === undefined ? process.env.TRUST_PROXY === 'true' : Boolean(config.trustProxy);
   // Hitungan percobaan disimpan di database begitu database tersedia. Versi memori
   // hanya dipakai saat aplikasi dirakit tanpa database, misalnya pada sebagian test.
+  // Tabel rate_limit_hits juga menyimpan kuota asisten AI per jam, supaya batasnya sama di semua instance serverless.
+  const rateLimitStore = database ? createPostgresRateLimitStore({ database }) : null;
   const rateLimiter = config.rateLimiter
-    || (database
-      ? createHybridRateLimiter({ store: createPostgresRateLimitStore({ database }) })
+    || (rateLimitStore
+      ? createHybridRateLimiter({ store: rateLimitStore })
       : createRateLimiter());
   // Unggahan berkas dikirim peramban langsung ke Supabase Storage (lihat file-service.js,
   // createDirectUpload). Tanpa origin Supabase di connect-src, CSP memblokir kiriman itu.
@@ -345,6 +347,7 @@ function createHamasahApp(options) {
     // jawaban disusun lokal dari materi pengajar.
     provider: config.aiProvider !== undefined ? config.aiProvider : createLmsTutorProvider({ env: config.env, fetchImpl: config.fetchImpl, logger: config.logger }),
     maxRequests: () => settingsService.ambil('asisten.batasPerJam'),
+    kuotaStore: rateLimitStore,
     timeoutMs: Number(config.aiTimeoutMs || process.env.AI_TIMEOUT_MS || 22000),
     logger: config.logger || console
   });
@@ -536,6 +539,7 @@ function createHamasahApp(options) {
     tahfidz: tahfidzService,
     studentLife: studentLifeService,
     settings: settingsService,
+    kuotaStore: rateLimitStore,
     provider: config.opsAssistantProvider !== undefined ? config.opsAssistantProvider : createOpsAssistantProvider({ env: config.env, fetchImpl: config.fetchImpl, logger: config.logger })
   });
   const inboxService = config.inboxService || createInboxService({ database, studentLife: studentLifeService });

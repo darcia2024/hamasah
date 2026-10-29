@@ -10,8 +10,21 @@
     aman: { label: 'Masih aman', nada: 'baik' },
     siapkan: { label: 'Siapkan berkas', nada: 'cukup' },
     urus: { label: 'Segera urus', nada: 'perlu' },
-    habis: { label: 'Sudah habis', nada: 'perlu' }
+    habis: { label: 'Sudah habis', nada: 'perlu' },
+    // Bukan tahap iqamah dari server: dipakai tampilan saat paspor kurang dari batas minimal, karena iqamah tidak
+    // bisa diperpanjang sebelum paspornya diperpanjang.
+    paspor: { label: 'Perpanjang paspor', nada: 'perlu' }
   });
+
+  function pasporKurang(s) {
+    return Boolean(s && s.paspor && !s.paspor.cukup);
+  }
+
+  // Tahap yang ditampilkan: peringatan paspor menjadi status utama selama iqamah sendiri belum mendesak.
+  function tahapTampil(s) {
+    const tahap = s.iqamah.tahap;
+    return pasporKurang(s) && ['aman', 'siapkan'].includes(tahap) ? 'paspor' : tahap;
+  }
 
   function el(tag, className, text) {
     const node = document.createElement(tag);
@@ -42,6 +55,9 @@
     }
     if (q.tahap === 'habis') return `Iqamah sudah habis sejak ${tanggal(q.expiresOn)}. Segera urus ke kantor imigrasi bersama musyrif untuk menghindari denda.`;
     if (q.tahap === 'urus') return `Sudah lewat batas mulai mengurus (${tanggal(q.batasUrus)}). Urus perpanjangan sekarang, paling lambat sebelum ${tanggal(q.expiresOn)}.`;
+    if (tahapTampil(s) === 'paspor') {
+      return `Iqamah berlaku sampai ${tanggal(q.expiresOn)}, tetapi paspor perlu diperpanjang lebih dulu supaya iqamah bisa diperpanjang tepat waktu.`;
+    }
     if (q.tahap === 'siapkan') return `Mulai siapkan berkas perpanjangan. Pengurusan paling lambat dimulai ${tanggal(q.batasUrus)}, ${aturan.batasUrusHari} hari sebelum habis.`;
     return `Perpanjangan mulai diurus paling lambat ${tanggal(q.batasUrus)}. Sampai saat itu ${kamu} belum perlu melakukan apa-apa.`;
   }
@@ -145,7 +161,7 @@
     // Saat menunggu dicek tidak ada chip: "Menunggu dicek" sudah berkata sama, dan chip
     // tambahan membuat baris tengah turun menimpa nama pemegang di kartu yang sempit.
     tengah.append(hitung);
-    if (!menunggu) tengah.append(chip(q.tahap));
+    if (!menunggu) tengah.append(chip(tahapTampil(s)));
 
     const bilah = el('div', 'iqm-cc__bar');
     const isiBilah = el('i');
@@ -288,15 +304,17 @@
   function ubin(data, studentId) {
     const s = data && Array.isArray(data.students) ? data.students.find((x) => String(x.id) === String(studentId)) : null;
     if (!s) return null;
-    const nada = (TAHAP[s.iqamah.tahap] || TAHAP.kosong).nada;
+    const nada = (TAHAP[tahapTampil(s)] || TAHAP.kosong).nada;
     const kotak = el('a', `snt-tile iqm-tile is-${nada}`);
     kotak.href = '#kartu-iqamah';
     kotak.append(el('span', 'snt-tile__label', 'Iqamah'), el('strong', 'snt-tile__value', teksSisa(s.iqamah)));
-    kotak.append(el('span', 'snt-tile__note', s.iqamah.expiresOn
-      ? (s.pengurusan ? 'Sedang diurus' : `Urus paling lambat ${tanggal(s.iqamah.batasUrus)}`)
-      : 'Laporkan tanggal iqamah-mu'));
+    kotak.append(el('span', 'snt-tile__note', tahapTampil(s) === 'paspor'
+      ? 'Perpanjang paspor dulu'
+      : s.iqamah.expiresOn
+        ? (s.pengurusan ? 'Sedang diurus' : `Urus paling lambat ${tanggal(s.iqamah.batasUrus)}`)
+        : 'Laporkan tanggal iqamah-mu'));
     return kotak;
   }
 
-  window.HamasahIqamah = Object.freeze({ TAHAP, arahan, chip, fakta, kartu, kartuVisual, kirim, tanggal, teksSisa, ubin, catatanPaspor });
+  window.HamasahIqamah = Object.freeze({ TAHAP, arahan, chip, fakta, kartu, kartuVisual, kirim, tanggal, teksSisa, ubin, catatanPaspor, tahapTampil });
 })();

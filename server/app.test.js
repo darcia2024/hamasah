@@ -725,7 +725,7 @@ async function run() {
     assert.match(lmsPage.body, /LMS Hamasah/);
     const operationsPage = await request(baseUrl, '/website/operations');
     assert.equal(operationsPage.status, 200);
-    assert.match(operationsPage.body, /Keuangan, visa, dan inventaris/);
+    assert.match(operationsPage.body, /Keuangan, visa, dan stok kantor/);
 
     const auditPage = await request(baseUrl, '/website/audit');
     assert.equal(auditPage.status, 200);

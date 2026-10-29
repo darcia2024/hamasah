@@ -157,6 +157,15 @@ function renderKatalog() {
   }));
 }
 
+// Tanpa kelas yang bisa dibeli di sini, formulir daftar akun pembeli dan ajakannya tidak ditawarkan, supaya pengunjung
+// tidak membuat akun yang tidak bisa dipakai. Pembeli yang sudah punya akun tetap melihat pesanannya.
+function sembunyikanAkunPembeli() {
+  if (pembeli()) return;
+  const bagian = document.querySelector('#akun');
+  if (bagian) bagian.hidden = true;
+  document.querySelectorAll('a[href="#akun"], a[href="#form-daftar"], a[href="#form-masuk"]').forEach((a) => { a.hidden = true; });
+}
+
 async function muatKatalog() {
   try {
     const hasil = await api('/api/kelas');
@@ -177,10 +186,12 @@ async function muatKatalog() {
       kartu.append(judul, isi, tautan);
       el.katalog.replaceChildren(kartu);
       setStatus(el.katalogStatus, '');
+      sembunyikanAkunPembeli();
       return;
     }
     keadaan.katalog = hasil.ok ? hasil.body.items || [] : [];
-    setStatus(el.katalogStatus, keadaan.katalog.length ? '' : 'Belum ada kelas yang dibuka. Tanyakan jadwal kelas berikutnya ke admin lewat WhatsApp.');
+    setStatus(el.katalogStatus, keadaan.katalog.length ? '' : 'Belum ada kelas daring yang dibuka. Kelas berbayar untuk umum sedang disiapkan di website learning Hamasah; tanyakan jadwal terdekat ke admin lewat WhatsApp.');
+    if (!keadaan.katalog.length) sembunyikanAkunPembeli();
     renderKatalog();
   } catch {
     setStatus(el.katalogStatus, 'Daftar kelas belum dapat dimuat. Periksa koneksi lalu muat ulang halaman.', 'error');
@@ -380,6 +391,8 @@ el.formMasuk.addEventListener('submit', async (event) => {
 });
 
 (async function mulai() {
-  await Promise.all([muatAkun(), muatKatalog()]);
+  // Akun dimuat dulu: katalog perlu tahu apakah pengunjung pembeli yang sudah masuk.
+  await muatAkun();
+  await muatKatalog();
   await muatRingkasan();
 })();

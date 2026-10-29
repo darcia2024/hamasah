@@ -539,6 +539,9 @@
         const d = await api('GET', '/api/inventaris/asrama');
         state.asrama = d.items;
         state.opsi = d;
+        // Datang dari Kelola Asrama: asrama yang sedang dibuka langsung terpilih.
+        const dariAsrama = new URLSearchParams(window.location.search).get('asrama');
+        if (dariAsrama && state.asrama.some((x) => x.id === dariAsrama)) state.pilihAsrama = dariAsrama;
       }
       await render();
     } catch (error) {

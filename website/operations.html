@@ -10,7 +10,7 @@
     <link rel="icon" href="../assets/favicon.png" />
     <link rel="stylesheet" href="website-core.css?v=2d72a1bd8f" />
     <link rel="stylesheet" href="staff.css?v=ec35294f55" />
-    <link rel="stylesheet" href="portal.css?v=2b650b1265" />
+    <link rel="stylesheet" href="portal.css?v=d8f45e8839" />
     <link rel="stylesheet" href="fields.css?v=9cd65bf0c8" />
     <link rel="stylesheet" href="konsol-2026.css?v=2a5d064aa2" />
     <script src="session-hint.js?v=6f256bba67"></script>
@@ -100,7 +100,7 @@
           <div class="crm-breadcrumbs">
             <span class="crumb-root">Hamasah Portal</span>
             <span class="crumb-sep">&gt;</span>
-            <span class="crumb-active">Keuangan, visa, dan inventaris</span>
+            <span class="crumb-active">Keuangan, visa, dan stok kantor</span>
           </div>
           <div class="crm-topbar-actions">
             <span class="crm-role-chip" id="crm-header-role">Divisi Keuangan</span>
@@ -117,8 +117,8 @@
 
         <div class="crm-canvas">
           <div class="crm-page-header">
-            <h2 class="crm-summary-title">Keuangan, visa, dan inventaris</h2>
-            <p class="crm-summary-subtitle">Terbitkan tagihan dan kuitansi, pantau dokumen visa santri, dan catat inventaris asrama.</p>
+            <h2 class="crm-summary-title">Keuangan, visa, dan stok kantor</h2>
+            <p class="crm-summary-subtitle">Terbitkan tagihan dan kuitansi, pantau dokumen visa santri, dan catat stok kantor atau gudang. Barang asrama dicatat di <a href="inventaris">Inventaris &amp; AC</a>.</p>
           </div>
 
           <!-- Angka utama keuangan. Lihat GET /api/operations/ringkasan. -->
@@ -136,7 +136,7 @@
             </button>
             <button type="button" class="crm-pill-btn" id="tab-btn-inventory">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-              <span>Inventaris &amp; Sarana Asrama</span>
+              <span>Stok kantor &amp; gudang</span>
             </button>
             <button type="button" class="crm-pill-btn" id="tab-btn-history">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -358,8 +358,8 @@
           <div id="panel-inventory" class="crm-white-card" hidden>
             <div class="crm-white-card-header">
               <div>
-                <h3>Inventaris fasilitas &amp; logistik asrama</h3>
-                <p>Pencatatan aset sarana prasarana asrama santri di Kairo maupun fasilitas penunjang di Indonesia.</p>
+                <h3>Stok kantor &amp; gudang</h3>
+                <p>Buku stok barang kantor, gudang, dan logistik (masuk, keluar, koreksi). Barang yang dipakai di asrama dicatat di <a href="inventaris">Inventaris &amp; AC</a> per asrama, lengkap dengan kode aset, riwayat, dan pemeriksaan bulanan.</p>
               </div>
             </div>
             <form method="post" id="inventory-form" class="staff-form">
@@ -441,8 +441,8 @@
     </section>
 
     <script src="internal-shell.js?v=b74a6c3258"></script>
-    <script src="nav.js?v=13d7d3a122"></script>
-    <script src="operations.js?v=888a778a92"></script>
+    <script src="nav.js?v=6b998b86bf"></script>
+    <script src="operations.js?v=37e834204b"></script>
     <div id="konsol-siap" hidden></div>
     <script src="text-punctuation.js?v=75080432b5" defer></script>
     <script src="manual-whatsapp.js?v=5cfbf5ede2"></script>

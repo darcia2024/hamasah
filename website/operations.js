@@ -318,7 +318,7 @@ function inventoryRow(item) {
 
 function renderInventory(items) {
   if (!items.length) {
-    inventoryList.replaceChildren(kosong('Belum ada aset inventaris. Tambahkan lewat formulir di atas.'));
+    inventoryList.replaceChildren(kosong('Belum ada stok kantor atau gudang. Tambahkan lewat formulir di atas.'));
     return;
   }
   const totalUnit = items.reduce((jumlah, item) => jumlah + item.quantity, 0);
@@ -1463,7 +1463,7 @@ function switchOpTab(clickedBtn) {
   const pilihan = {
     'tab-btn-invoices': ['', 'Keuangan & SPP'],
     'tab-btn-visa': ['visa', 'Visa & Paspor'],
-    'tab-btn-inventory': ['inventaris', 'Inventaris'],
+    'tab-btn-inventory': ['inventaris', 'Stok kantor'],
     'tab-btn-history': ['riwayat', 'Riwayat keuangan']
   }[clickedBtn.id];
   if (pilihan) {
@@ -1680,7 +1680,7 @@ document.querySelector('#inventory-form').addEventListener('submit', async (even
       })
     });
     event.target.reset();
-    feedback('#inventory-status', 'Inventaris berhasil disimpan.');
+    feedback('#inventory-status', 'Stok berhasil disimpan.');
     await loadOperations();
   } catch (error) {
     feedback('#inventory-status', error.message, true);

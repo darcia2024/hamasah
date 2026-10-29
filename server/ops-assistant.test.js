@@ -9,7 +9,8 @@ const { createTestDatabase } = require('./test-support/database.js');
 const { createRelaxedRateLimiter } = require('./test-support/rate-limit.js');
 
 const SANDI = 'kata-sandi-uji-asisten';
-const HARI = new Date().toISOString().slice(0, 10);
+// Tanggal Jakarta, sama dengan layanan; tanggal UTC tertinggal sehari pukul 00.00-07.00 WIB.
+const HARI = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
 
 async function run() {
   const database = await createTestDatabase();
@@ -184,6 +185,9 @@ async function run() {
     assert.equal((await api('PUT', '/api/admin/settings', admin, { nilai: { 'asisten.operasionalPerJam': 1 } })).status, 200);
     await api('POST', '/api/admin/settings/lupakan-cache', admin).catch(() => {});
     assert.equal((await jalankan(tA, 'ringkasan-asrama', { dormitoryId: A.id })).status, 429, 'Batas per jam dari pengaturan berlaku.');
+    // Hitungannya di database, bukan memori proses: di Vercel setiap instance melihat angka yang sama.
+    const hitungan = (await database.query(`SELECT count(*)::int AS n FROM rate_limit_hits WHERE bucket LIKE 'asisten-operasional:%'`)).rows[0].n;
+    assert.ok(hitungan >= 1, 'Pemakaian asisten tercatat di rate_limit_hits.');
     assert.equal((await api('PUT', '/api/admin/settings', admin, { nilai: { 'asisten.operasionalPerJam': 200 } })).status, 200);
     await api('POST', '/api/admin/settings/lupakan-cache', admin).catch(() => {});
 

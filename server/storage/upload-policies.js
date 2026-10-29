@@ -285,8 +285,9 @@ const POLICIES = Object.freeze({
     visibility: 'private',
     contentTypes: Object.freeze(['video/mp4', 'video/webm']),
     maxBytes: 30 * MB,
-    async canUpload({ actor, entityId, services }) {
-      return Boolean(actor) && services.dormitoryManagementService.bolehUnggahFoto(entityId, actor);
+    // Sejak migrasi 079 video kegiatan memakai tautan YouTube; tidak ada unggahan video baru ke storage.
+    async canUpload() {
+      return false;
     },
     async canDownload({ actor, entityId, services, record }) {
       return Boolean(actor) && services.dormitoryManagementService.bolehLihatFoto(entityId, actor, record);

@@ -466,12 +466,20 @@ function createDormitoryManagementService({ database, staffDormitories, listStud
   const STATUS_PUBLIK = Object.freeze({ internal: 'Internal', diajukan: 'Menunggu persetujuan publikasi', dipublikasi: 'Dipublikasikan', ditolak: 'Publikasi ditolak' });
   const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   const DATABASE_GALERI_BARU = 'Database belum diperbarui untuk galeri foto dan video. Terapkan pembaruan database di halaman Pengaturan lebih dulu.';
+  // Video kegiatan lewat YouTube (unlisted), bukan berkas di storage (migrasi 079, keputusan notulen rapat).
+  const POLA_YOUTUBE = /(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^#\s]*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/i;
+  function idYoutube(nilai) {
+    const teks = String(nilai || '').trim();
+    if (/^[\w-]{11}$/.test(teks)) return teks;
+    const cocok = POLA_YOUTUBE.exec(teks);
+    return cocok ? cocok[1] : null;
+  }
 
   function barisFoto(row) {
     return {
       id: row.id, fileId: row.file_id, caption: row.caption, takenOn: teksTanggal(row.taken_on), createdAt: iso(row.created_at),
       mediaType: row.media_type || 'foto', category: row.category || 'lainnya', categoryLabel: KATEGORI_GALERI[row.category || 'lainnya'],
-      thumbFileId: row.thumb_file_id || null, audience: row.audience || 'asrama',
+      thumbFileId: row.thumb_file_id || null, youtubeId: row.youtube_id || null, audience: row.audience || 'asrama',
       publicStatus: row.public_status || 'internal', publicStatusLabel: STATUS_PUBLIK[row.public_status || 'internal'],
       consentNote: row.consent_note || '', publicDecisionNote: row.public_decision_note || ''
     };
@@ -538,9 +546,18 @@ function createDormitoryManagementService({ database, staffDormitories, listStud
     const persetujuan = bersih(s.publicConsentNote, 300);
     if (persetujuan && jenis === 'video') return { ok: false, error: 'Video tidak dipublikasikan di website. Hanya foto yang dapat diajukan untuk publikasi.' };
     if (persetujuan && persetujuan.length < 10) return { ok: false, error: 'Catatan persetujuan publikasi minimal 10 karakter: siapa yang menyetujui dan bagaimana.' };
-    // Unggahan harus benar-benar berkas asrama ini yang sudah selesai dikirim.
-    const fileId = await berkasSiap(s.fileId, jenis === 'video' ? 'dormitory-video' : 'dormitory-photo', dormitoryId);
-    if (!fileId) return { ok: false, error: jenis === 'video' ? 'Video belum selesai diunggah. Coba unggah ulang.' : 'Foto belum selesai diunggah. Coba unggah ulang.' };
+    let fileId = null;
+    let youtubeId = null;
+    if (jenis === 'video') {
+      // Video tidak lagi diunggah ke storage: tempel tautan YouTube (sebaiknya unlisted).
+      if (s.fileId) return { ok: false, error: 'Video kegiatan dibagikan lewat tautan YouTube (unlisted), bukan unggahan berkas. Tempel tautan videonya.' };
+      youtubeId = idYoutube(s.youtubeUrl);
+      if (!youtubeId) return { ok: false, error: 'Tautan YouTube tidak dikenali. Salin tautan dari tombol Bagikan di YouTube.' };
+    } else {
+      // Unggahan harus benar-benar berkas asrama ini yang sudah selesai dikirim.
+      fileId = await berkasSiap(s.fileId, 'dormitory-photo', dormitoryId);
+      if (!fileId) return { ok: false, error: 'Foto belum selesai diunggah. Coba unggah ulang.' };
+    }
     let thumbId = null;
     if (s.thumbFileId) {
       thumbId = await berkasSiap(s.thumbFileId, 'dormitory-photo', dormitoryId);
@@ -554,9 +571,9 @@ function createDormitoryManagementService({ database, staffDormitories, listStud
         }
         const id = crypto.randomUUID();
         const [row] = await ambil(
-          `INSERT INTO dormitory_gallery (id, dormitory_id, file_id, caption, taken_on, created_by_account_id, media_type, category, thumb_file_id, audience, public_status, consent_note, consent_by_account_id, consent_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
-          [id, dormitoryId, fileId, caption, takenOn, actor.id || null, jenis, kategori, thumbId, audience, persetujuan ? 'diajukan' : 'internal', persetujuan, persetujuan ? (actor.id || null) : null, persetujuan ? now() : null]
+          `INSERT INTO dormitory_gallery (id, dormitory_id, file_id, caption, taken_on, created_by_account_id, media_type, category, thumb_file_id, audience, public_status, consent_note, consent_by_account_id, consent_at${youtubeId ? ', youtube_id' : ''})
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14${youtubeId ? ', $15' : ''}) RETURNING *`,
+          [id, dormitoryId, fileId, caption, takenOn, actor.id || null, jenis, kategori, thumbId, audience, persetujuan ? 'diajukan' : 'internal', persetujuan, persetujuan ? (actor.id || null) : null, persetujuan ? now() : null, ...(youtubeId ? [youtubeId] : [])]
         );
         for (const sid of studentIds) await database.query('INSERT INTO dormitory_gallery_students (gallery_id, student_id) VALUES ($1, $2)', [id, sid]);
         return { ok: true, value: barisFoto(row) };

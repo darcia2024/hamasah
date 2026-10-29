@@ -413,3 +413,9 @@
 .rm-link:hover { background: var(--k26-ivory, #FBFAF6); border-color: var(--k26-gold, #E7B10C); }
 .rm-link strong { font-size: 15px; }
 .rm-link span { color: var(--k26-muted, #6B6B70); font-size: 13px; }
+
+/* Ringkasan inventaris di Kelola Asrama; pengelolaannya di halaman Inventaris & AC. */
+.asr-inv-ringkas { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 0 0 14px; padding: 0; list-style: none; }
+.asr-inv-ringkas__item { display: grid; gap: 2px; padding: 12px 14px; border: 1px solid #E3E0D8; border-radius: 14px; background: #FFFFFF; }
+.asr-inv-ringkas__item strong { font-size: 1.4rem; }
+.asr-inv-ringkas__item span { font-size: var(--fs-13); color: #5C554A; }

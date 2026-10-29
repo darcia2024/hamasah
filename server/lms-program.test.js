@@ -9,7 +9,8 @@ const { createTestDatabase } = require('./test-support/database.js');
 const { createRelaxedRateLimiter } = require('./test-support/rate-limit.js');
 
 const SANDI = 'kata-sandi-uji-lms-program';
-const HARI = new Date().toISOString().slice(0, 10);
+// Tanggal Jakarta, sama dengan layanan; tanggal UTC tertinggal sehari pukul 00.00-07.00 WIB.
+const HARI = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
 
 async function run() {
   const database = await createTestDatabase();

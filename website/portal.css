@@ -9034,3 +9034,8 @@ button.santri-juz__cell:focus-visible {
 .portal-remember__label { display: flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 600; cursor: pointer; }
 .portal-remember__label input { width: 20px; height: 20px; flex: none; }
 .portal-remember__hint { margin: 0; font-size: var(--fs-13); line-height: 1.45; color: var(--md-sys-color-outline); }
+
+/* Akun dengan satu menu (wali, santri): tanpa sidebar di desktop; menu akun tetap di bilah atas. */
+@media (min-width: 801px) {
+  html.is-nav-tunggal .crm-sidebar { display: none; }
+}

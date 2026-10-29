@@ -204,7 +204,9 @@ function createPaymentIntegrationService({ database, markInvoicePaid, now = () =
     if (ref.length < 3) return { ok: false, error: 'Nomor referensi transaksi 3 sampai 80 karakter.' };
     if (!Number.isFinite(jumlah) || jumlah <= 0) return { ok: false, error: 'Nominal harus lebih dari nol.' };
     if (!tanggalValid(sumber.paidOn)) return { ok: false, error: 'Tanggal bayar tidak valid.' };
-    if (sumber.paidOn > now().toISOString().slice(0, 10)) return { ok: false, error: 'Tanggal bayar tidak boleh di masa depan.' };
+    // Hari ini menurut Jakarta, sama dengan kuitansi (operations-service). Dengan tanggal UTC, pukul 00.00-07.00 WIB
+    // pembayaran hari itu ditolak di sini sebagai "masa depan" padahal kuitansinya menolak tanggal kemarin.
+    if (sumber.paidOn > new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(now())) return { ok: false, error: 'Tanggal bayar tidak boleh di masa depan.' };
     const asal = sumber.source === 'manual' ? 'manual' : 'sendit';
     const tagihan = await cariTagihan(sumber.invoiceNumber);
     const ada = await database.query('SELECT id FROM external_payments WHERE source = $1 AND external_ref = $2', [asal, ref]);

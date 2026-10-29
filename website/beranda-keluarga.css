@@ -3699,3 +3699,20 @@ textarea.wali-field { resize: vertical; }
 .asisten-hasil { margin-top: 10px; display: grid; gap: 8px; }
 .asisten-teks { margin: 0; white-space: pre-line; line-height: 1.55; }
 .asisten-fakta { margin: 0; padding-left: 18px; color: #5C554A; font-size: var(--fs-13); }
+
+/* Kartu gabungan (beranda-keluarga.js gabungKartu): beberapa kartu sejenis di bawah satu judul. */
+.kartu-gabung__pilih { display: flex; gap: 6px; margin: 4px 0 14px; overflow-x: auto; scrollbar-width: none; }
+.kartu-gabung__pilih::-webkit-scrollbar { display: none; }
+.kartu-gabung__tab { flex: none; min-height: 40px; padding: 0 14px; border: 1px solid #E3E0D8; border-radius: 999px; background: #FFFFFF; font: inherit; font-size: var(--fs-14); color: #363638; cursor: pointer; }
+.kartu-gabung__tab.is-active { border-color: #B99337; background: #FBF3DC; font-weight: 600; }
+.kartu-gabung__tab:focus-visible { outline: 2px solid #856000; outline-offset: 2px; }
+.kartu-gabung__panel > .wali-section { margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.kartu-gabung__panel > .wali-section > .wali-section__head > .wali-section__title {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+.galeri-viewer__yt { width: min(92vw, 960px); height: auto; aspect-ratio: 16 / 9; border: 0; background: #000000; }
+
+/* Dasbor santri bertab (beranda-santri.js): satu bagian tampil sekaligus. */
+.snt-tabs { margin: 0 0 18px; }
+.snt-tabs .wali-tab { display: inline-flex; align-items: center; gap: 6px; }
+.snt-group.is-tunggal > .snt-group__head > .snt-group__title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

@@ -19,3 +19,8 @@ coverage/
 !.env.example
 # Folder statis kosong yang dibuat saat build Vercel (lihat vercel.json).
 vercel-static/
+# Folder kerja lokal: salinan repo lama (hamasah/), hasil review, dan alat bantu desain atau browser.
+/hamasah/
+/review-portal/
+.hallmark/
+.playwright-mcp/

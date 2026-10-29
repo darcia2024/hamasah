@@ -1493,7 +1493,8 @@ const PINTASAN_PERAN = {
     ['staff', 'Pendaftaran calon santri'],
     ['monitoring', 'Monitoring santri & asrama'],
     ['lms', 'LMS: maddah dan materi'],
-    ['operations', 'Keuangan, visa, dan inventaris'],
+    ['operations', 'Keuangan, visa, dan stok kantor'],
+    ['inventaris', 'Inventaris & AC asrama'],
     ['akun', 'Kelola akun'],
     ['audit', 'Jejak audit'],
     ['pengaturan', 'Pengaturan aplikasi']
@@ -2193,6 +2194,16 @@ function perbaruiAngkaPerhatian() {
   const lonceng = document.querySelector('#topbar-attention');
   if (lonceng) lonceng.setAttribute('aria-label', jumlah ? `Perlu perhatian, ${jumlah} hal` : 'Perlu perhatian');
 }
+
+// "Tetap masuk" tercentang otomatis hanya di HP atau aplikasi terpasang (biasanya perangkat pribadi). Di komputer,
+// yang sering dipakai bersama, pengguna harus mencentangnya sendiri.
+(function centangTetapMasuk() {
+  const ingat = document.querySelector('#portal-remember');
+  if (!ingat) return;
+  const terpasang = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const ponsel = window.matchMedia('(pointer: coarse) and (max-width: 800px)').matches;
+  ingat.checked = terpasang || ponsel;
+})();
 
 portalLoginForm.addEventListener('submit', async (event) => {
   event.preventDefault();

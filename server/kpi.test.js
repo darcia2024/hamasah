@@ -8,8 +8,9 @@ const { createTestDatabase } = require('./test-support/database.js');
 const { createRelaxedRateLimiter } = require('./test-support/rate-limit.js');
 
 const SANDI = 'kata-sandi-uji-kpi';
-const BULAN = new Date().toISOString().slice(0, 7);
-const HARI = new Date().toISOString().slice(0, 10);
+// Tanggal Jakarta, sama dengan layanan; tanggal UTC tertinggal sehari pukul 00.00-07.00 WIB.
+const HARI = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
+const BULAN = HARI.slice(0, 7);
 
 async function run() {
   const database = await createTestDatabase();

@@ -1,4 +1,4 @@
-// Galeri kegiatan asrama (item 18): foto dan video, kategori, thumbnail, audiens (seluruh asrama atau santri terpilih,
+// Galeri kegiatan asrama (item 18, migrasi 079): foto dan video (video lewat tautan YouTube, bukan unggahan), kategori, thumbnail, audiens (seluruh asrama atau santri terpilih,
 // ditegakkan juga saat berkas diunduh), dan publikasi ke website yang butuh catatan persetujuan serta keputusan admin.
 const assert = require('node:assert/strict');
 const path = require('node:path');
@@ -64,22 +64,27 @@ async function run() {
     // ------------------------------------------------------------ foto, video, kategori, thumbnail
     const foto = await unggah(tA, 'dormitory-photo', A.id);
     const kecil = await unggah(tA, 'dormitory-photo', A.id);
-    const video = await unggah(tA, 'dormitory-video', A.id, 'video/mp4', MP4);
-    assert.ok(foto.id && kecil.id && video.id);
-    assert.ok((await unggah(tB, 'dormitory-video', A.id, 'video/mp4', MP4)).gagal, 'Musyrif asrama lain tidak boleh mengunggah video.');
+    assert.ok(foto.id && kecil.id);
+    // Sesuai notulen rapat, video tidak lagi diunggah ke storage: siapa pun ditolak, termasuk musyrif asrama itu.
+    assert.ok((await unggah(tA, 'dormitory-video', A.id, 'video/mp4', MP4)).gagal, 'Unggahan video ditutup; pakai tautan YouTube.');
     assert.ok((await unggah(tW1, 'dormitory-video', A.id, 'video/mp4', MP4)).gagal, 'Wali tidak boleh mengunggah.');
-    assert.ok((await unggah(tA, 'dormitory-video', A.id, 'video/quicktime', MP4)).gagal, 'Hanya mp4 dan webm.');
+    // Video yang terlanjur diunggah sebelum migrasi 079 tetap ada; disimulasikan dengan baris berkas siap.
+    const videoLama = { id: (await database.query(`INSERT INTO file_objects (id, bucket, storage_key, purpose, entity_type, entity_id, original_name, content_type, size_bytes, status)
+      VALUES (gen_random_uuid(), 'hamasah-private', 'dormitory-video/lama.mp4', 'dormitory-video', 'dormitory', $1, 'lama.mp4', 'video/mp4', 28, 'ready') RETURNING id`, [String(A.id)])).rows[0].id };
 
     assert.equal((await tambah(tA, A, { fileId: foto.id, category: 'ngawur' })).status, 422);
-    assert.equal((await tambah(tA, A, { fileId: video.id, mediaType: 'foto' })).status, 422, 'Video bukan foto: jenis berkas harus cocok.');
-    assert.equal((await tambah(tA, A, { fileId: foto.id, mediaType: 'video' })).status, 422, 'Foto bukan video.');
-    assert.equal((await tambah(tA, A, { fileId: foto.id, thumbFileId: video.id })).status, 422, 'Thumbnail harus foto asrama ini.');
+    assert.equal((await tambah(tA, A, { fileId: videoLama.id, mediaType: 'foto' })).status, 422, 'Berkas video bukan foto: jenis berkas harus cocok.');
+    assert.equal((await tambah(tA, A, { fileId: foto.id, mediaType: 'video' })).status, 422, 'Video baru tidak menerima berkas.');
+    assert.equal((await tambah(tA, A, { mediaType: 'video', youtubeUrl: 'https://contoh.test/video' })).status, 422, 'Tautan selain YouTube ditolak.');
+    assert.equal((await tambah(tA, A, { fileId: foto.id, thumbFileId: videoLama.id })).status, 422, 'Thumbnail harus foto asrama ini.');
     const satu = await tambah(tA, A, { fileId: foto.id, thumbFileId: kecil.id, caption: 'Rihlah', category: 'perjalanan', takenOn: '2026-10-10' });
     assert.equal(satu.status, 201, satu.teks);
     assert.deepEqual([satu.body.mediaType, satu.body.category, satu.body.thumbFileId, satu.body.audience, satu.body.publicStatus], ['foto', 'perjalanan', kecil.id, 'asrama', 'internal']);
-    const vid = await tambah(tA, A, { fileId: video.id, mediaType: 'video', caption: 'Halaqah', category: 'belajar' });
+    const vid = await tambah(tA, A, { mediaType: 'video', youtubeUrl: 'https://youtu.be/qKaR8eTDIl4?si=abc', caption: 'Halaqah', category: 'belajar' });
     assert.equal(vid.status, 201, vid.teks);
     assert.equal(vid.body.mediaType, 'video');
+    assert.equal(vid.body.youtubeId, 'qKaR8eTDIl4', 'Id video diambil dari tautan bagikan YouTube.');
+    assert.equal(vid.body.fileId, null, 'Video YouTube tidak memakai berkas storage.');
 
     // ------------------------------------------------------------ audiens dan akses berkas
     const eksklusif = await unggah(tA, 'dormitory-photo', A.id);
@@ -99,7 +104,6 @@ async function run() {
     assert.equal(await berkas(tW2, eksklusif.id), 403, 'Berkas item terpilih juga terkunci di unduhan, bukan hanya disembunyikan.');
     assert.equal(await berkas(tW2, foto.id), 200);
     assert.equal(await berkas(tW2, kecil.id), 200, 'Thumbnail ikut aturan item.');
-    assert.equal(await berkas(tW2, video.id), 200);
     assert.equal(await berkas(tB, foto.id), 403, 'Musyrif asrama lain.');
     assert.equal(await berkas(admin, eksklusif.id), 200);
     // Berkas yang diunggah tapi belum ditautkan ke galeri tidak terlihat keluarga.
@@ -108,7 +112,7 @@ async function run() {
 
     // Ditarik dari galeri: keluarga langsung tidak bisa membuka berkasnya.
     assert.equal((await api('DELETE', `/api/asrama/${A.id}/galeri/${vid.body.id}`, tA)).status, 200);
-    assert.equal(await berkas(tW1, video.id), 403);
+    assert.ok(!(await api('GET', '/api/asrama-saya', tW1)).body.dormitories[0].gallery.some((f) => f.caption === 'Halaqah'), 'Video yang ditarik tidak tampil lagi.');
 
     // ------------------------------------------------------------ publikasi publik
     assert.deepEqual((await api('GET', '/api/galeri-publik')).body.items, []);
@@ -150,7 +154,7 @@ async function run() {
     assert.equal(tolak.body.publicStatus, 'ditolak');
     assert.equal((await api('POST', `/api/asrama/${A.id}/galeri/${langsung.body.id}/keputusan`, admin, { decision: 'dipublikasi' })).status, 409, 'Sudah diputuskan.');
     assert.equal((await api('POST', `/api/asrama/${A.id}/galeri/${langsung.body.id}/publikasi`, tA, { consentNote: 'Wajah sudah diperbaiki dan wali setuju.' })).status, 200, 'Boleh diajukan ulang setelah ditolak.');
-    assert.equal((await tambah(tA, A, { fileId: (await unggah(tA, 'dormitory-video', A.id, 'video/mp4', MP4)).id, mediaType: 'video', publicConsentNote: 'Wali menyetujui semuanya.' })).status, 422, 'Video tidak dipublikasikan.');
+    assert.equal((await tambah(tA, A, { mediaType: 'video', youtubeUrl: 'https://www.youtube.com/watch?v=qKaR8eTDIl4', publicConsentNote: 'Wali menyetujui semuanya.' })).status, 422, 'Video tidak dipublikasikan.');
 
     // Item yang ditarik dari galeri tidak lagi tampil publik walau pernah dipublikasikan.
     await api('POST', `/api/asrama/${A.id}/galeri/${langsung.body.id}/keputusan`, admin, { decision: 'dipublikasi' });

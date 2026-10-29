@@ -8,7 +8,8 @@ const { createRelaxedRateLimiter } = require('./test-support/rate-limit.js');
 
 const SANDI = 'kata-sandi-uji-inventaris';
 const PDF = Buffer.from('%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF\n');
-const HARI = new Date().toISOString().slice(0, 10);
+// Tanggal Jakarta, sama dengan layanan; tanggal UTC tertinggal sehari pukul 00.00-07.00 WIB.
+const HARI = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
 const BULAN = HARI.slice(0, 7);
 
 async function run() {

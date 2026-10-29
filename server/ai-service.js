@@ -25,6 +25,9 @@ function createAiService(options) {
   const windowMs = Number.isInteger(config.windowMs) && config.windowMs > 0 ? config.windowMs : DEFAULT_WINDOW_MS;
   const timeoutMs = Number.isInteger(config.timeoutMs) && config.timeoutMs > 0 ? config.timeoutMs : DEFAULT_TIMEOUT_MS;
   const logger = config.logger || null;
+  // Hitungan kuota disimpan di database (rate_limit_hits) bila kuotaStore diberikan, supaya batas per jam berlaku
+  // sama di semua instance serverless. Tanpa itu (sebagian test), hitungan di memori proses.
+  const kuotaStore = config.kuotaStore && typeof config.kuotaStore.hit === 'function' ? config.kuotaStore : null;
   const buckets = new Map();
   const counters = { total: 0, providerSuccess: 0, providerFailure: 0, fallback: 0, blocked: 0, quotaRejected: 0 };
 
@@ -43,8 +46,21 @@ function createAiService(options) {
     }
   }
 
-  function consume(actor) {
+  async function consume(actor) {
     const key = accountKey(actor);
+    if (kuotaStore) {
+      try {
+        const hasil = await kuotaStore.hit(`asisten-belajar:${key}`, { limit: maxRequests, windowMs });
+        if (!hasil.allowed) {
+          counters.quotaRejected += 1;
+          return { allowed: false, remaining: 0, retryAfterMs: (hasil.retryAfterSeconds || 0) * 1000 };
+        }
+        return { allowed: true, remaining: hasil.remaining };
+      } catch (error) {
+        // Database bermasalah: hitungan memori dipakai sementara, asisten tetap bisa menjawab.
+        if (logger && typeof logger.warn === 'function') logger.warn(`[ai] kuota database gagal, memakai memori: ${error.message}`);
+      }
+    }
     const timestamp = Number(now());
     const bucket = buckets.get(key);
     if (!bucket || timestamp - bucket.startedAt >= windowMs) {
@@ -91,7 +107,7 @@ function createAiService(options) {
     counters.total += 1;
     if (!question) return { ok: false, error: 'Pertanyaan belum diisi.' };
     await perbaruiBatas();
-    const quota = consume(source.actor);
+    const quota = await consume(source.actor);
     if (!quota.allowed) return { ok: false, error: 'Batas pertanyaan AI sementara tercapai. Coba lagi setelah beberapa saat.', retryAfterMs: quota.retryAfterMs };
     if (isPromptInjection(question)) {
       counters.blocked += 1;

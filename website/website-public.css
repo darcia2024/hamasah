@@ -4857,10 +4857,11 @@ main .eyebrow + h1 {
    layar. Tanpa JavaScript atau dengan reduced motion, semua langsung tampil.
    ========================================================================== */
 
+/* Teks bagian pertama tidak lagi dimulai dari tak terlihat: pengunjung dengan HP lambat langsung melihat judul,
+   gerakannya hanya geser halus. */
 @keyframes hmFadeUp {
   from {
-    opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(12px);
   }
 
   to {
@@ -4889,23 +4890,23 @@ main .eyebrow + h1 {
   /* Teks bagian pertama: eyebrow, judul, pengantar, tombol, satu per satu. */
   main > section:first-child :is(.lp-hero__copy, .section-intro, .section-heading) > *,
   main > section.lp-page-hero:first-child > .shell > * {
-    animation: hmFadeUp 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
-    animation-delay: 120ms;
+    animation: hmFadeUp 450ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: 0ms;
   }
 
   main > section:first-child :is(.lp-hero__copy, .section-intro, .section-heading) > :nth-child(2),
   main > section.lp-page-hero:first-child > .shell > :nth-child(2) {
-    animation-delay: 200ms;
+    animation-delay: 40ms;
   }
 
   main > section:first-child :is(.lp-hero__copy, .section-intro, .section-heading) > :nth-child(3),
   main > section.lp-page-hero:first-child > .shell > :nth-child(3) {
-    animation-delay: 280ms;
+    animation-delay: 80ms;
   }
 
   main > section:first-child :is(.lp-hero__copy, .section-intro, .section-heading) > :nth-child(n + 4),
   main > section.lp-page-hero:first-child > .shell > :nth-child(n + 4) {
-    animation-delay: 360ms;
+    animation-delay: 120ms;
   }
 
   /* Foto, kartu, atau formulir pendamping di bagian pertama menyusul. */

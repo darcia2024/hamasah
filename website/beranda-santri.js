@@ -309,6 +309,7 @@
     }
     const keIzin = () => {
       if (!kartuIzinEl) { onOpenFull(); return; }
+      if (window.HamasahBerandaSantriBuka) window.HamasahBerandaSantriBuka('santri-urusan');
       // Formulir izin terlipat di balik tombol "Ajukan izin" di kartunya; buka sekalian.
       const buka = kartuIzinEl.querySelector('.santri-leave-open');
       if (buka && buka.getAttribute('aria-expanded') !== 'true') buka.click();
@@ -334,41 +335,43 @@
 
     const grafik = el('div', 'wali-grid');
     [
-      W.kartuSholat(data),
-      W.kartuKehadiran(data),
-      W.kartuHafalan(data),
+      K.gabungKartu('Kehadiran', 'Sholat berjamaah, kegiatan asrama, dan absensi per jenis kegiatan.', [
+        ['Sholat', W.kartuSholat(data)],
+        ['Kegiatan asrama', W.kartuKehadiran(data)],
+        ['Per jenis kegiatan', B ? B.kartuAbsensiJenis(data) : null]
+      ]),
+      K.gabungKartu('Hafalan', 'Peta juz dan buku setoran tahfidz.', [
+        ['Peta juz', W.kartuHafalan(data)],
+        ['Buku setoran', B ? B.kartuTahfidz(student, headers) : null]
+      ]),
       W.kartuCatatan(data, { judul: 'Catatan musyrif', keterangan: 'Yang ditulis musyrif dan pembina tentang kamu.' })
-    ].forEach((k) => grafik.append(k));
+    ].filter(Boolean).forEach((k) => grafik.append(k));
 
     const belajar = K.kartuKelas ? K.kartuKelas(data.courses, student) : null;
     if (belajar) belajar.classList.add('snt-class');
 
-    const umum = K.kartuKotakPesan(kotak, { headers, polos: true }) || K.kartuPengumuman(pengumuman, 3, { polos: true });
+    // Belum dibaca dihitung dari kotak pesan bila tersedia (pengumuman dan pesan pembinaan sekaligus).
+    if (kotak && kotak.unread) belumDibaca = Number(kotak.unread.total) || 0;
+    // Lencana dan kabar baru dibuat di bawah; perubahan sebelum itu (gambar pertama kotak pesan) diabaikan.
+    let siapDiperbarui = false;
+    const kotakPesan = K.kartuKotakPesan(kotak, { headers, polos: true, tampilKosong: true, onBerubah: (n) => { if (siapDiperbarui) perbaruiBelumDibaca(n); } });
+    // Server lama tanpa kotak pesan: tetap pakai kartu pesan dan pengumuman yang lama.
+    const pesanLama = kotakPesan ? null : (P ? P.kartuSantri(student, headers, { onBaca: () => perbaruiBelumDibaca(belumDibaca - 1) }) : null);
+    const pengumumanLama = kotakPesan ? null : K.kartuPengumuman(pengumuman, 3, { polos: true });
 
-    const pintasanBagian = el('nav', 'snt-section-nav');
+    // Dasbor dibagi tab (seperti dasbor wali) supaya di HP tidak menjadi satu halaman yang sangat panjang.
+    // Tiap tab berisi satu atau dua bagian; tab tanpa isi tidak ditampilkan.
+    const TAB = [
+      ['hari-ini', 'Hari ini', ['santri-hari-ini', 'santri-urusan']],
+      ['pesan', 'Pesan', ['santri-pesan']],
+      ['belajar', 'Belajar', ['santri-belajar']],
+      ['perkembangan', 'Perkembangan', ['santri-perkembangan', 'santri-rapor']],
+      ['asrama', 'Asrama', ['santri-asrama']],
+      ['data', 'Data & riwayat', ['santri-data', 'santri-riwayat']]
+    ];
+    const pintasanBagian = el('div', 'wali-tabs snt-tabs');
+    pintasanBagian.setAttribute('role', 'tablist');
     pintasanBagian.setAttribute('aria-label', 'Bagian dashboard santri');
-    [
-      ['#santri-hari-ini', 'Hari ini'],
-      ['#santri-urusan', 'Iqamah & izin'],
-      ...(belajar ? [['#santri-belajar', 'Belajar']] : []),
-      ...(P ? [['#santri-pesan', 'Pesan']] : []),
-      ['#santri-perkembangan', 'Perkembangan'],
-      ...(B ? [['#santri-rapor', 'Rapor'], ['#santri-data', 'Data diri']] : [])
-    ].forEach(([href, label]) => {
-      const tautan = el('a', '', label);
-      tautan.href = href;
-      if (href === '#santri-pesan' && belumDibaca) {
-        const lencana = el('span', 'snt-nav-badge', String(belumDibaca));
-        lencana.setAttribute('aria-label', `${belumDibaca} pesan belum dibaca`);
-        tautan.append(lencana);
-      }
-      if (href === '#santri-rapor' && raporBaru) {
-        const lencana = el('span', 'snt-nav-badge snt-nav-badge--rapor', String(raporBaru));
-        lencana.setAttribute('aria-label', `${raporBaru} rapor baru`);
-        tautan.append(lencana);
-      }
-      pintasanBagian.append(tautan);
-    });
 
     // Kabar di atas halaman hilang bersama lencana begitu semua pesan ditandai dibaca.
     let kabarPesan = null;
@@ -377,20 +380,22 @@
       kabarPesan.setAttribute('role', 'status');
       const teksKabar = document.createElement('a');
       teksKabar.href = '#santri-pesan';
-      teksKabar.textContent = `Ada ${belumDibaca} pesan baru untukmu dari musyrif. Baca sekarang`;
+      teksKabar.textContent = `Ada ${belumDibaca} pesan baru untukmu. Baca sekarang`;
       kabarPesan.append(el('span', 'wali-pending__dot'), teksKabar);
     }
-    const saatDibaca = () => {
-      belumDibaca = Math.max(0, belumDibaca - 1);
-      const lencana = pintasanBagian.querySelector('.snt-nav-badge');
+    function perbaruiBelumDibaca(n) {
+      belumDibaca = Math.max(0, Number(n) || 0);
+      const lencana = pintasanBagian.querySelector('.snt-nav-badge:not(.snt-nav-badge--rapor)');
       if (belumDibaca) {
         if (lencana) lencana.textContent = String(belumDibaca);
-        if (kabarPesan) kabarPesan.querySelector('a').textContent = `Ada ${belumDibaca} pesan baru untukmu dari musyrif. Baca sekarang`;
+        if (kabarPesan) kabarPesan.querySelector('a').textContent = `Ada ${belumDibaca} pesan baru untukmu. Baca sekarang`;
       } else {
         if (lencana) lencana.remove();
         if (kabarPesan) kabarPesan.remove();
       }
-    };
+    }
+
+    siapDiperbarui = true;
 
     let kabarRapor = null;
     if (raporBaru) {
@@ -401,35 +406,32 @@
       tautanRapor.textContent = `${raporBaru} rapor bulanan baru sudah terbit. Baca sekarang`;
       kabarRapor.append(el('span', 'wali-pending__dot'), tautanRapor);
     }
+    let raporSudahDilihat = false;
     const saatRaporDilihat = () => {
-      if (!raporBaru) return;
+      if (!raporBaru || raporSudahDilihat) return;
+      raporSudahDilihat = true;
       B.tandaiRaporDilihat(student.id);
       const lencana = pintasanBagian.querySelector('.snt-nav-badge--rapor');
       if (lencana) lencana.remove();
       if (kabarRapor) kabarRapor.remove();
     };
 
-    wadah.replaceChildren(...[
-      kabarPesan,
-      kabarRapor,
-      pintasanBagian,
+    const bagianSemua = [
       bagianHariIni({ student, asrama, data, kini, onIzin: keIzin, onOpenFull }),
       kelompok('urusan', 'Iqamah & izin', 'Pantau izin tinggal dan ajukan izin keluar asrama.', [
         berdampingan('snt-affairs', [kartuIqamahEl, kartuIzinEl])
       ]),
-      kelompok('pesan', 'Pesan untukmu', 'Pesan pribadi dari musyrif atau petugas berwenang.', [P ? P.kartuSantri(student, headers, { onBaca: saatDibaca }) : null]),
+      kelompok('pesan', 'Pesan', 'Pengumuman dan pesan pembinaan pribadi untukmu. Pesan pribadi tidak terlihat wali kecuali musyrif sengaja membagikannya.', [kotakPesan || pesanLama]),
       kelompok('belajar', 'Belajar', 'Maddah yang kamu ikuti di ruang belajar online.', [belajar]),
       kelompok('perkembangan', 'Perkembanganku', `Catatan musyrif tentang ibadah, kegiatan, dan hafalanmu ${K.PERIODE_HARI} hari terakhir.`, [
         bagianLaporan(data),
         bagianPrestasi(data),
-        grafik,
-        B ? B.kartuAbsensiJenis(data) : null,
-        B ? B.kartuTahfidz(student, headers) : null
+        grafik
       ]),
       kelompok('rapor', 'Rapor', 'Rapor bulananmu yang sudah ditinjau dan diterbitkan Hamasah.', [B ? B.kartuRapor(student, headers) : null, K.kartuAsisten(student, { headers, polos: true, santri: true })]),
       kelompok('data', 'Data diri dan administrasi', 'Data pribadimu, status pendidikan, dan urusan yang sedang diurus.', [B ? B.kartuDataDiri(profil) : null, B ? B.kartuPendidikan(profil, data.izin) : null]),
-      kelompok('asrama', 'Kabar asrama', 'Pengumuman, acara, jadwal, dan momen dari asramamu.', [
-        berdampingan('wali-grid', [umum, bagianAcara(asrama, kini)]),
+      kelompok('asrama', 'Kabar asrama', 'Acara, jadwal, dan momen dari asramamu.', [
+        berdampingan('wali-grid', [pengumumanLama, bagianAcara(asrama, kini)]),
         K.bagianJadwalAsrama(jadwal, student.id, { polos: true, santri: true }),
         bagianGaleri(asrama, headers)
       ]),
@@ -441,19 +443,70 @@
           polos: true
         })
       ])
-    ].filter(Boolean));
-
-    // Rapor dianggap sudah dilihat begitu bagian Rapor tampak di layar atau pintasannya diketuk.
-    const bagianRapor = wadah.querySelector('#santri-rapor');
-    if (raporBaru && bagianRapor) {
-      if ('IntersectionObserver' in window) {
-        const pengamat = new IntersectionObserver((entri) => {
-          if (entri.some((e) => e.isIntersecting)) { pengamat.disconnect(); saatRaporDilihat(); }
-        }, { threshold: 0.3 });
-        pengamat.observe(bagianRapor);
-      }
-      wadah.querySelectorAll('a[href="#santri-rapor"]').forEach((a) => a.addEventListener('click', saatRaporDilihat));
+    ].filter(Boolean);
+    const petaBagian = new Map(bagianSemua.map((b) => [b.id, b]));
+    const tabAda = TAB.filter(([, , ids]) => ids.some((id) => petaBagian.has(id)));
+    // Satu bagian dalam satu tab: judul bagian disembunyikan secara visual karena tab sudah menjadi judulnya.
+    tabAda.forEach(([, , ids]) => { const isi = ids.filter((id) => petaBagian.has(id)); if (isi.length === 1) petaBagian.get(isi[0]).classList.add('is-tunggal'); });
+    const KUNCI_TAB = `hamasahTabSantri:${student.id}`;
+    const tombolTab = new Map();
+    function aktifkanTab(kunci, { simpan = true } = {}) {
+      const pilihan = tabAda.find(([k]) => k === kunci) || tabAda[0];
+      tabAda.forEach(([k, , ids]) => {
+        const aktif = k === pilihan[0];
+        const b = tombolTab.get(k);
+        b.classList.toggle('is-active', aktif);
+        b.setAttribute('aria-selected', String(aktif));
+        b.tabIndex = aktif ? 0 : -1;
+        ids.forEach((id) => { if (petaBagian.has(id)) petaBagian.get(id).hidden = !aktif; });
+      });
+      if (simpan) { try { sessionStorage.setItem(KUNCI_TAB, pilihan[0]); } catch { /* abaikan */ } }
+      if (pilihan[0] === 'perkembangan') saatRaporDilihat();
     }
+    tabAda.forEach(([kunci, label, ids], i) => {
+      const b = el('button', 'wali-tab', label);
+      b.type = 'button';
+      b.setAttribute('role', 'tab');
+      b.id = `snt-tab-${kunci}`;
+      b.setAttribute('aria-controls', ids.filter((id) => petaBagian.has(id)).join(' '));
+      if (kunci === 'pesan' && belumDibaca) {
+        const lencana = el('span', 'snt-nav-badge', String(belumDibaca));
+        lencana.setAttribute('aria-label', `${belumDibaca} pesan belum dibaca`);
+        b.append(lencana);
+      }
+      if (kunci === 'perkembangan' && raporBaru) {
+        const lencana = el('span', 'snt-nav-badge snt-nav-badge--rapor', String(raporBaru));
+        lencana.setAttribute('aria-label', `${raporBaru} rapor baru`);
+        b.append(lencana);
+      }
+      b.addEventListener('click', () => aktifkanTab(kunci));
+      b.addEventListener('keydown', (e) => {
+        if (!['ArrowRight', 'ArrowLeft'].includes(e.key)) return;
+        e.preventDefault();
+        const j = (i + (e.key === 'ArrowRight' ? 1 : -1) + tabAda.length) % tabAda.length;
+        aktifkanTab(tabAda[j][0]);
+        tombolTab.get(tabAda[j][0]).focus();
+      });
+      tombolTab.set(kunci, b);
+      pintasanBagian.append(b);
+    });
+    // Tautan di kabar ("Baca sekarang") dan tombol "Ajukan izin" membuka tab yang memuat bagiannya.
+    const bukaBagian = (id) => { const tab = tabAda.find(([, , ids]) => ids.includes(id)); if (tab) aktifkanTab(tab[0]); };
+    window.HamasahBerandaSantriBuka = bukaBagian;
+    wadah.addEventListener('click', (e) => {
+      const a = e.target.closest && e.target.closest('a[href^="#santri-"]');
+      if (!a) return;
+      e.preventDefault();
+      const id = a.getAttribute('href').slice(1);
+      bukaBagian(id);
+      const sasaran = petaBagian.get(id);
+      if (sasaran) sasaran.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    let tabAwal = null;
+    try { tabAwal = sessionStorage.getItem(KUNCI_TAB); } catch { tabAwal = null; }
+    wadah.replaceChildren(...[kabarPesan, kabarRapor, pintasanBagian, ...bagianSemua].filter(Boolean));
+    aktifkanTab(tabAwal || 'hari-ini', { simpan: false });
+
   }
 
   window.HamasahBerandaSantri = Object.freeze({ render });

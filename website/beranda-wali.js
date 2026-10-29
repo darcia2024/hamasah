@@ -579,7 +579,10 @@
 
       const B = window.HamasahWaliBagian;
       const tagihan = kartuTagihan(data, tautanBayar);
-      const umum = K.kartuKotakPesan(kotak, { headers, polos: true }) || K.kartuPengumuman(pengumuman, 3, { polos: true });
+      // Kotak pesan sudah memuat pesan pembinaan yang dibagikan, jadi kartu "pesan dibagikan" tidak ditampilkan lagi.
+      const kotakPesan = K.kartuKotakPesan(kotak, { headers, polos: true });
+      const umum = kotakPesan || K.kartuPengumuman(pengumuman, 3, { polos: true });
+      const pesanDibagikan = kotak && Array.isArray(kotak.items) ? null : pesanBagikan;
       // Iqamah ananda, hanya dilihat; laporan tanggal baru dikirim santri sendiri.
       const iqamahAnanda = window.HamasahIqamah ? window.HamasahIqamah.kartu(iqamah, { studentId: student.id, headers }) : null;
       const jadwal = K.bagianJadwalAsrama(jadwalAsrama, student.id, { polos: true });
@@ -591,20 +594,24 @@
 
       // Menu dikelompokkan menurut keperluan wali; di ponsel menjadi baris yang bisa digeser.
       const kategori = [
-        { id: 'ringkasan', label: 'Ringkasan', isi: [kartuRingkasan(student, data, () => onOpenStudent(student.id), iqamah), ringkasanPembina(data), pesanBagikan] },
+        { id: 'ringkasan', label: 'Ringkasan', isi: [kartuRingkasan(student, data, () => onOpenStudent(student.id), iqamah), ringkasanPembina(data), pesanDibagikan, kotakPesan] },
         { id: 'pendidikan', label: 'Pendidikan & administrasi', isi: [B ? B.kartuPendidikan(profil, data.izin) : null, grup(iqamahAnanda)] },
-        { id: 'absensi', label: 'Absensi', isi: [grup(kartuKehadiran(data), B ? B.kartuAbsensiJenis(data) : null, kartuSholat(data)), jadwal] },
+        { id: 'absensi', label: 'Absensi', isi: [K.gabungKartu('Kehadiran ananda', 'Kegiatan asrama, absensi per jenis kegiatan, dan sholat berjamaah.', [
+          ['Kegiatan asrama', kartuKehadiran(data)],
+          ['Per jenis kegiatan', B ? B.kartuAbsensiJenis(data) : null],
+          ['Sholat', kartuSholat(data)]
+        ]), jadwal] },
         {
           id: 'hafalan',
           label: 'Hafalan & rapor',
-          isi: [grup(kartuHafalan(data), B ? B.kartuTahfidz(student, headers) : null), B ? B.kartuRapor(student, headers) : null, kartuCatatan(data), K.kartuLinimasa(K.butirKegiatan(data, student.name), {
+          isi: [K.gabungKartu('Hafalan ananda', 'Peta juz dan buku setoran tahfidz.', [['Peta juz', kartuHafalan(data)], ['Buku setoran', B ? B.kartuTahfidz(student, headers) : null]]), B ? B.kartuRapor(student, headers) : null, kartuCatatan(data), K.kartuLinimasa(K.butirKegiatan(data, student.name), {
             judul: 'Catatan harian',
             keterangan: `Semua yang tercatat ${K.PERIODE_HARI} hari terakhir, terbaru di atas.`,
             perHalaman: 8,
             polos: true
           })]
         },
-        { id: 'info', label: 'Info & tagihan', isi: [grup(tagihan, umum), K.kartuAsisten(student, { headers, polos: true }), B ? B.kartuDokumentasi(jadwalAsrama, student.id, headers) : null] },
+        { id: 'info', label: 'Info & tagihan', isi: [grup(tagihan, kotakPesan ? null : umum), K.kartuAsisten(student, { headers, polos: true }), B ? B.kartuDokumentasi(jadwalAsrama, student.id, headers) : null] },
         { id: 'masukan', label: 'Kritik & saran', isi: [B ? B.kartuMasukan(students, student.id, headers) : null] }
       ].map((k) => ({ ...k, isi: k.isi.filter(Boolean) })).filter((k) => k.isi.length);
 

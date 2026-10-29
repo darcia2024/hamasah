@@ -22,9 +22,9 @@ const ROLE_NAV_LABELS = Object.freeze({
     surat: 'Surat & Arsip',
     kpi: 'KPI Saya',
     inventaris: 'Inventaris & AC',
-    'sesi-belajar': 'Sesi Belajar',
+    'sesi-belajar': 'LMS: program & sesi',
     asisten: 'Asisten',
-    lms: 'Maddah Santri'
+    lms: 'LMS: maddah'
   },
   'registration-officer': {
     portal: 'Portal Utama',
@@ -253,7 +253,7 @@ const STAFF_NAV_LINKS = Object.freeze([
   },
   {
     href: 'operations#inventaris',
-    label: 'Inventaris',
+    label: 'Stok Kantor',
     page: 'operations-inventaris',
     roles: ['admin', 'finance'],
     badge: null,
@@ -310,11 +310,13 @@ const STAFF_NAV_LINKS = Object.freeze([
 // Pengelompokan menu menurut fungsi, supaya akun dengan banyak menu (admin) tidak melihat daftar datar yang panjang.
 const NAV_GRUP = Object.freeze({
   portal: 'Utama',
-  staff: 'Santri dan asrama', monitoring: 'Santri dan asrama', asrama: 'Santri dan asrama', pembinaan: 'Santri dan asrama', kegiatan: 'Santri dan asrama', surat: 'Santri dan asrama', impor: 'Santri dan asrama', inventaris: 'Santri dan asrama',
-  lms: 'Pembelajaran', 'sesi-belajar': 'Pembelajaran', kpi: 'Pembelajaran', asisten: 'Pembelajaran',
+  staff: 'Santri dan asrama', monitoring: 'Santri dan asrama', asrama: 'Santri dan asrama', pembinaan: 'Santri dan asrama', kegiatan: 'Santri dan asrama', surat: 'Santri dan asrama', impor: 'Santri dan asrama', inventaris: 'Santri dan asrama', kpi: 'Santri dan asrama',
+  lms: 'Pembelajaran', 'sesi-belajar': 'Pembelajaran', asisten: 'Utama',
   operations: 'Keuangan dan administrasi', pengingat: 'Keuangan dan administrasi', pembayaran: 'Keuangan dan administrasi', 'operations-visa': 'Keuangan dan administrasi', 'operations-inventaris': 'Keuangan dan administrasi',
   akun: 'Sistem dan konten', audit: 'Sistem dan konten', konten: 'Sistem dan konten', template: 'Sistem dan konten', pengaturan: 'Sistem dan konten'
 });
+// Pengecualian per peran: bagi keuangan, AC patungan dan refund adalah urusan keuangan.
+const NAV_GRUP_PERAN = Object.freeze({ finance: Object.freeze({ inventaris: 'Keuangan dan administrasi' }) });
 const NAV_URUTAN_GRUP = Object.freeze(['Utama', 'Santri dan asrama', 'Pembelajaran', 'Keuangan dan administrasi', 'Sistem dan konten']);
 const NAV_MINIMAL_UNTUK_GRUP = 6;
 
@@ -339,11 +341,12 @@ function renderStaffNav(container, role, currentPage, account) {
   const roleLabels = ROLE_NAV_LABELS[role] || {};
   const tautan = STAFF_NAV_LINKS.filter((link) => !link.roles || link.roles.includes(role));
   const kelompokkan = tautan.length >= NAV_MINIMAL_UNTUK_GRUP;
-  const urut = kelompokkan ? [...tautan].sort((x, y) => NAV_URUTAN_GRUP.indexOf(NAV_GRUP[x.page] || 'Utama') - NAV_URUTAN_GRUP.indexOf(NAV_GRUP[y.page] || 'Utama')) : tautan;
+  const grupDari = (link) => ((NAV_GRUP_PERAN[role] || {})[link.page]) || NAV_GRUP[link.page] || 'Utama';
+  const urut = kelompokkan ? [...tautan].sort((x, y) => NAV_URUTAN_GRUP.indexOf(grupDari(x)) - NAV_URUTAN_GRUP.indexOf(grupDari(y))) : tautan;
   let grupSekarang = null;
   container.replaceChildren(...urut.flatMap((link) => {
     const hasil = [];
-    const grup = NAV_GRUP[link.page] || 'Utama';
+    const grup = grupDari(link);
     if (kelompokkan && grup !== grupSekarang) {
       grupSekarang = grup;
       const judul = document.createElement('p');
@@ -364,6 +367,8 @@ function renderStaffNav(container, role, currentPage, account) {
     return hasil;
   }));
   container.hidden = tautan.length === 0;
+  // Wali dan santri hanya punya satu menu: di desktop sidebar disembunyikan supaya konten memakai lebar penuh.
+  document.documentElement.classList.toggle('is-nav-tunggal', tautan.length <= 1);
 
   // Update CRM User Profile Card if elements exist on page
   if (account) {

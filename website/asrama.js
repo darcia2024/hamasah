@@ -584,63 +584,41 @@
   }
 
   // ------------------------------------------------------------ Inventaris
+  // Inventaris asrama dikelola di satu tempat: halaman Inventaris & AC (kode aset, riwayat, pemeriksaan bulanan, AC
+  // patungan). Tab ini hanya ringkasan dan jalan pintas, supaya tidak ada dua formulir untuk data yang sama.
   function panelInventaris() {
-    const barang = data.inventory;
-    const lihat = bagian('Inventaris asrama', 'Barang milik asrama. Ubah jumlah atau kondisi saat ada yang rusak, hilang, atau baru dibeli.');
-    const ringkas = el('p', 'mus-note');
+    const barang = data.inventory || [];
+    const lihat = bagian('Inventaris asrama', 'Pencatatan barang, perawatan, pemeriksaan bulanan, dan AC patungan ada di halaman Inventaris & AC.');
+    const jumlahUnit = barang.reduce((n, b) => n + Number(b.quantity || 0), 0);
     const hitung = (k) => barang.filter((b) => b.condition === k).length;
-    ringkas.textContent = `${barang.length} jenis barang · ${hitung('rusak')} rusak · ${hitung('hilang')} hilang`;
-    const ul = el('ul', 'asr-inv');
-    if (!barang.length) ul.append(el('li', 'asr-empty', 'Belum ada barang dicatat.'));
-    barang.forEach((b) => {
+    const ringkas = el('ul', 'asr-inv-ringkas');
+    [
+      [`${barang.length}`, 'jenis barang'],
+      [`${jumlahUnit}`, 'unit'],
+      [`${hitung('rusak')}`, 'jenis rusak'],
+      [`${hitung('hilang')}`, 'jenis hilang']
+    ].forEach(([angka, label]) => {
+      const li = el('li', 'asr-inv-ringkas__item');
+      li.append(el('strong', '', angka), el('span', '', label));
+      ringkas.append(li);
+    });
+    const perhatian = barang.filter((b) => ['rusak', 'hilang', 'perawatan'].includes(b.condition)).slice(0, 5);
+    const daftar = el('ul', 'asr-inv');
+    perhatian.forEach((b) => {
       const li = el('li', `asr-inv__row is-${b.condition}`);
       const info = el('div', 'asr-inv__info');
-      info.append(el('strong', '', b.name), el('span', 'asr-item__meta', [b.note, `Diubah ${new Date(b.updatedAt).toLocaleDateString('id-ID')}`].filter(Boolean).join(' · ')));
-      const jml = el('span', 'asr-inv__qty', String(b.quantity));
-      const kondisi = el('span', `asr-inv__cond is-${b.condition}`, (KONDISI.find(([k]) => k === b.condition) || [])[1] || b.condition);
-      const aksi = el('span', 'asr-item__actions');
-      const ubah = tombol('Ubah', 'mus-link');
-      ubah.addEventListener('click', async () => {
-        const hasil = await window.HamasahDialog.formulir({
-          judul: `Ubah ${b.name}`,
-          bidang: [
-            { nama: 'name', label: 'Nama barang', nilai: b.name, wajib: true },
-            { nama: 'quantity', label: 'Jumlah', jenis: 'number', min: 0, nilai: b.quantity, wajib: true },
-            { nama: 'condition', label: 'Kondisi', jenis: 'select', nilai: b.condition, pilihan: KONDISI },
-            { nama: 'note', label: 'Catatan', nilai: b.note }
-          ],
-          kirim: (n) => api('PATCH', `/api/asrama/${asramaAktif}/inventaris/${b.id}`, { ...n, quantity: Number(n.quantity) })
-        });
-        if (hasil) await muat();
-      });
-      const arsip = tombol('Arsipkan', 'mus-link asr-danger');
-      arsip.addEventListener('click', async () => {
-        if (!window.confirm(`Arsipkan ${b.name}? Barang tidak tampil lagi di daftar.`)) return;
-        await lakukan(() => api('DELETE', `/api/asrama/${asramaAktif}/inventaris/${b.id}`));
-      });
-      aksi.append(ubah, arsip);
-      li.append(info, jml, kondisi, aksi);
-      ul.append(li);
+      info.append(el('strong', '', b.name), el('span', 'asr-item__meta', b.note || ''));
+      li.append(info, el('span', 'asr-inv__qty', String(b.quantity)), el('span', `asr-inv__cond is-${b.condition}`, (KONDISI.find(([k]) => k === b.condition) || [])[1] || b.condition));
+      daftar.append(li);
     });
-    lihat.append(ringkas, ul);
-
-    const tambah = bagian('Tambah barang');
-    const baris = el('div', 'mus-form__row');
-    const nama = bidang('Nama barang', 'text', { placeholder: 'Kasur lipat' });
-    const jumlah = bidang('Jumlah', 'number', { nilai: '1' });
-    jumlah.input.min = '0';
-    baris.append(nama.el, jumlah.el);
-    const kondisi = pilihan('Kondisi', KONDISI, 'baik');
-    const catatan = bidang('Catatan (opsional)', 'text', { placeholder: 'Disimpan di gudang lantai 2' });
-    const st = status();
-    const simpan = tombol('Tambah barang', 'button button--primary');
-    simpan.addEventListener('click', () => lakukan(() => api('POST', `/api/asrama/${asramaAktif}/inventaris`, {
-      name: nama.nilai(), quantity: Number(jumlah.nilai()), condition: kondisi.nilai(), note: catatan.nilai()
-    }), st, 'Barang ditambahkan.'));
+    const buka = el('a', 'button button--primary', 'Buka Inventaris & AC');
+    buka.href = `inventaris?asrama=${encodeURIComponent(asramaAktif)}`;
     const aksi = el('div', 'mus-actions');
-    aksi.append(simpan);
-    tambah.append(baris, kondisi.el, catatan.el, aksi, st.el);
-    return [lihat, tambah];
+    aksi.append(buka);
+    lihat.append(ringkas);
+    if (perhatian.length) lihat.append(el('h4', 'mus-subtitle', 'Perlu perhatian'), daftar);
+    lihat.append(aksi);
+    return [lihat];
   }
 
   // ------------------------------------------------------------ Galeri
@@ -656,22 +634,22 @@
     }
     const G = window.HamasahGaleri;
 
-    const tambah = bagian('Unggah foto dan video kegiatan', 'Tampil di beranda santri dan wali asrama ini. Foto dikecilkan otomatis dan dibuatkan thumbnail; video MP4 atau WebM maksimal 30 MB. Video hanya untuk internal asrama.');
+    const tambah = bagian('Unggah foto dan video kegiatan', 'Tampil di beranda santri dan wali asrama ini. Foto dikecilkan otomatis dan dibuatkan thumbnail. Video dibagikan lewat tautan YouTube (unlisted) supaya hemat penyimpanan; video hanya untuk internal asrama.');
     const idBerkas = idBaru('foto');
     const pilihBerkas = el('label', 'galeri-drop');
     pilihBerkas.htmlFor = idBerkas;
     const masukan = el('input', 'sr-only');
     masukan.type = 'file';
     masukan.id = idBerkas;
-    masukan.accept = 'image/jpeg,image/png,image/webp,video/mp4,video/webm';
+    masukan.accept = 'image/jpeg,image/png,image/webp';
     masukan.multiple = true;
-    const labelPilih = el('span', 'galeri-drop__text', 'Pilih foto atau video');
-    const infoPilih = el('span', 'galeri-drop__hint', 'JPG, PNG, WebP, MP4, atau WebM');
+    const labelPilih = el('span', 'galeri-drop__text', 'Pilih foto');
+    const infoPilih = el('span', 'galeri-drop__hint', 'JPG, PNG, atau WebP');
     pilihBerkas.append(masukan, labelPilih, infoPilih);
     masukan.addEventListener('change', () => {
       const n = masukan.files.length;
-      labelPilih.textContent = n ? `${n} berkas dipilih` : 'Pilih foto atau video';
-      infoPilih.textContent = n ? [...masukan.files].map((f) => f.name).slice(0, 3).join(', ') + (n > 3 ? ', ...' : '') : 'JPG, PNG, WebP, MP4, atau WebM';
+      labelPilih.textContent = n ? `${n} foto dipilih` : 'Pilih foto';
+      infoPilih.textContent = n ? [...masukan.files].map((f) => f.name).slice(0, 3).join(', ') + (n > 3 ? ', ...' : '') : 'JPG, PNG, atau WebP';
     });
     const baris = el('div', 'mus-form__row');
     const keterangan = bidang('Keterangan', 'text', { placeholder: 'Rihlah ke Alexandria' });
@@ -708,6 +686,9 @@
     });
     selAud.addEventListener('change', () => { kotakSantri.hidden = selAud.value !== 'terpilih'; });
 
+    const tautanVideo = bidang('Tautan video YouTube (opsional)', 'url', { placeholder: 'https://youtu.be/...' });
+    tautanVideo.el.classList.add('lms-grow');
+    const petunjukVideo = el('p', 'mus-note', 'Unggah video ke YouTube sebagai Unlisted, lalu tempel tautannya. Tautan unlisted tetap bisa dibagikan siapa saja yang memegangnya, jadi jangan unggah video yang sangat pribadi.');
     const persetujuan = bidang('Tampilkan di website? Catatan persetujuan (opsional)', 'text', { placeholder: 'Contoh: Seluruh wali menyetujui di rapat 5 Oktober' });
     persetujuan.input.maxLength = 300;
     persetujuan.el.classList.add('lms-grow');
@@ -717,14 +698,20 @@
     const kirim = tombol('Unggah ke galeri', 'button button--primary');
     kirim.addEventListener('click', async () => {
       const berkas = [...masukan.files];
-      if (!berkas.length) { st.galat('Pilih foto atau video dulu.'); return; }
+      const youtube = tautanVideo.nilai().trim();
+      if (!berkas.length && !youtube) { st.galat('Pilih foto atau tempel tautan video YouTube dulu.'); return; }
       const terpilih = [...centang.entries()].filter(([, cb]) => cb.checked).map(([id]) => id);
       if (selAud.value === 'terpilih' && !terpilih.length) { st.galat('Pilih minimal satu santri, atau ubah ke seluruh asrama.'); return; }
-      const adaVideo = berkas.some((f) => /^video\//.test(f.type));
-      if (persetujuan.nilai().trim() && adaVideo) { st.galat('Video tidak dipublikasikan di website. Unggah video tanpa catatan persetujuan.'); return; }
+      if (persetujuan.nilai().trim() && youtube) { st.galat('Video tidak dipublikasikan di website. Kirim video tanpa catatan persetujuan.'); return; }
       kirim.disabled = true;
       let berhasil = 0;
+      const dasar = { caption: keterangan.nilai(), takenOn: kapan.nilai() || null, category: selKat.value, audience: selAud.value, studentIds: selAud.value === 'terpilih' ? terpilih : undefined };
       try {
+        if (youtube) {
+          st.ok('Menyimpan tautan video...');
+          await api('POST', `/api/asrama/${asramaAktif}/galeri`, { ...dasar, mediaType: 'video', youtubeUrl: youtube });
+          berhasil += 1;
+        }
         for (const [i, f] of berkas.entries()) {
           st.ok(`Mengunggah berkas ${i + 1} dari ${berkas.length}...`);
           const media = await G.unggahMedia(asramaAktif, f, headers());
@@ -744,7 +731,7 @@
     });
     const aksi = el('div', 'mus-actions');
     aksi.append(kirim);
-    tambah.append(pilihBerkas, baris, baris2, kotakSantri, persetujuan.el, petunjukPublik, aksi, st.el);
+    tambah.append(pilihBerkas, tautanVideo.el, petunjukVideo, baris, baris2, kotakSantri, persetujuan.el, petunjukPublik, aksi, st.el);
 
     const semua = galeri.items;
     const tampil = saringKategori ? semua.filter((f) => f.category === saringKategori) : semua;
@@ -851,7 +838,7 @@
       const kepala = el('div', 'iqm-row__head');
       const nama = el('div', 'iqm-row__name');
       nama.append(el('strong', '', x.name), el('span', 'asr-item__meta', I.teksSisa(x.iqamah)));
-      kepala.append(nama, I.chip(x.iqamah.tahap));
+      kepala.append(nama, I.chip(I.tahapTampil(x)));
       li.append(kepala, I.fakta(x));
       const paspor = I.catatanPaspor(x, iqamah.aturan);
       if (paspor) li.append(paspor);

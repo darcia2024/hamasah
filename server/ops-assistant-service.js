@@ -52,14 +52,21 @@ function geser(isoDate, hari) {
   return new Date(new Date(`${isoDate}T00:00:00Z`).getTime() + hari * HARI_MS).toISOString().slice(0, 10);
 }
 
-function createOpsAssistantService({ database, accessFor, staffDormitories, centralMonitoring, activityAttendance, tahfidz, studentLife, settings, provider = null, audit = null, now = () => new Date() } = {}) {
+function createOpsAssistantService({ database, accessFor, staffDormitories, centralMonitoring, activityAttendance, tahfidz, studentLife, settings, provider = null, audit = null, kuotaStore = null, now = () => new Date() } = {}) {
   if (!database || typeof accessFor !== 'function' || typeof staffDormitories !== 'function') throw new Error('createOpsAssistantService membutuhkan database, accessFor, dan staffDormitories.');
 
+  // Batas per akun per jam. Dengan kuotaStore (tabel rate_limit_hits) hitungannya sama di semua instance serverless;
+  // hitungan memori hanya cadangan bila store tidak diberikan atau database sedang bermasalah.
   const jendela = new Map();
   async function dalamBatas(actor) {
     let batas = BATAS_PER_JAM;
     if (settings) { const n = Number(await settings.ambil('asisten.operasionalPerJam')); if (Number.isInteger(n) && n > 0) batas = n; }
     const kunci = actor.id || 'anon';
+    if (kuotaStore && typeof kuotaStore.hit === 'function') {
+      try {
+        return (await kuotaStore.hit(`asisten-operasional:${kunci}`, { limit: batas, windowMs: 60 * 60 * 1000 })).allowed;
+      } catch { /* jatuh ke hitungan memori di bawah */ }
+    }
     const t = now().getTime();
     const b = jendela.get(kunci);
     if (!b || t - b.mulai >= 60 * 60 * 1000) { jendela.set(kunci, { mulai: t, n: 1 }); return true; }

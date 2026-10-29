@@ -327,8 +327,17 @@
 
   // Kotak pesan satu pintu (GET /api/kotak-pesan): pengumuman umum, pesan pembinaan pribadi, dan balasan masukan wali
   // ditampilkan terpisah jenisnya, dengan penanda belum dibaca. Ditandai dibaca hanya atas tindakan pembaca.
-  function kartuKotakPesan(data, { headers = {}, polos = false } = {}) {
-    if (!data || !Array.isArray(data.items) || !data.items.length) return null;
+  function kartuKotakPesan(data, { headers = {}, polos = false, tampilKosong = false, onBerubah = null } = {}) {
+    if (!data || !Array.isArray(data.items)) return null;
+    if (!data.items.length && !tampilKosong) return null;
+    if (!data.items.length) {
+      const kosong = el('section', polos ? 'wali-section' : 'crm-white-card beranda-card');
+      kosong.id = 'kotak-pesan';
+      const kepalaKosong = el('div', 'beranda-card__head');
+      kepalaKosong.append(el('h3', 'beranda-card__title', 'Kotak pesan'));
+      kosong.append(kepalaKosong, el('p', 'wali-empty', 'Belum ada pengumuman atau pesan untukmu.'));
+      return kosong;
+    }
     const items = data.items.map((i) => ({ ...i }));
     const kinds = Array.isArray(data.kinds) ? data.kinds : [];
     let saring = 'semua';
@@ -385,6 +394,7 @@
     });
     function gambar() {
       const belum = items.filter((i) => !i.read);
+      if (typeof onBerubah === 'function') onBerubah(belum.length);
       badge.textContent = belum.length ? `${belum.length} belum dibaca` : 'Semua sudah dibaca';
       badge.classList.toggle('is-clear', !belum.length);
       semuaBaca.hidden = !belum.length;
@@ -408,6 +418,62 @@
     });
     wadah.append(kepala, chips, pager.wadah);
     gambar();
+    return wadah;
+  }
+
+  // Beberapa kartu sejenis (misalnya tiga jenis kehadiran) di bawah satu judul, dipilih lewat tombol segmen, supaya
+  // dasbor tidak menumpuk kartu yang mirip. Judul kartu di dalamnya disembunyikan (tombolnya sudah menjadi judul).
+  // daftar: [[label, elemen|null], ...]. Satu kartu saja dikembalikan apa adanya.
+  let nomorGabung = 0;
+  function gabungKartu(judul, keterangan, daftar) {
+    const ada = daftar.filter(([, k]) => k);
+    if (!ada.length) return null;
+    if (ada.length === 1) return ada[0][1];
+    nomorGabung += 1;
+    const wadah = el('section', 'wali-section kartu-gabung');
+    const kepala = el('div', 'wali-section__head');
+    kepala.append(el('h3', 'wali-section__title', judul));
+    if (keterangan) kepala.append(el('p', 'wali-section__note', keterangan));
+    const pilih = el('div', 'kartu-gabung__pilih');
+    pilih.setAttribute('role', 'tablist');
+    pilih.setAttribute('aria-label', judul);
+    const panel = [];
+    const tombol = ada.map(([label, isi], i) => {
+      const id = `gabung-${nomorGabung}-${i}`;
+      const b = el('button', `kartu-gabung__tab${i === 0 ? ' is-active' : ''}`, label);
+      b.type = 'button';
+      b.id = `${id}-tab`;
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-selected', String(i === 0));
+      b.setAttribute('aria-controls', id);
+      const p = el('div', 'kartu-gabung__panel');
+      p.id = id;
+      p.setAttribute('role', 'tabpanel');
+      p.setAttribute('aria-labelledby', b.id);
+      p.hidden = i !== 0;
+      p.append(isi);
+      panel.push(p);
+      return b;
+    });
+    const aktifkan = (j) => tombol.forEach((b, i) => {
+      b.classList.toggle('is-active', i === j);
+      b.setAttribute('aria-selected', String(i === j));
+      b.tabIndex = i === j ? 0 : -1;
+      panel[i].hidden = i !== j;
+    });
+    tombol.forEach((b, i) => {
+      b.tabIndex = i === 0 ? 0 : -1;
+      b.addEventListener('click', () => aktifkan(i));
+      b.addEventListener('keydown', (e) => {
+        if (!['ArrowRight', 'ArrowLeft'].includes(e.key)) return;
+        e.preventDefault();
+        const j = (i + (e.key === 'ArrowRight' ? 1 : -1) + tombol.length) % tombol.length;
+        aktifkan(j);
+        tombol[j].focus();
+      });
+      pilih.append(b);
+    });
+    wadah.append(kepala, pilih, ...panel);
     return wadah;
   }
 
@@ -612,7 +678,7 @@
   }
 
   window.HamasahBerandaKeluarga = Object.freeze({
-    santri, muatAnak, ambil, butirKegiatan, kartuLinimasa, kartuPengumuman, kartuKotakPesan, kartuAsisten, penomoran, chipUrusan, kartuKelas,
+    santri, muatAnak, ambil, butirKegiatan, kartuLinimasa, kartuPengumuman, kartuKotakPesan, kartuAsisten, gabungKartu, penomoran, chipUrusan, kartuKelas,
     muatJadwalAsrama, bagianJadwalAsrama,
     inisial, tanggal, rupiah, terbaru, PERIODE_HARI, NILAI_HAFALAN, PRESENSI
   });

@@ -50,7 +50,8 @@ async function run() {
     const tagihan = async (jumlah, deskripsi = 'SPP') => (await api('POST', '/api/operations/invoices', admin, { studentId: anak.id, description: deskripsi, amount: jumlah })).body.invoice;
     const i1 = await tagihan(1500000);
     const i2 = await tagihan(500000, 'Buku');
-    const hariIni = new Date().toISOString().slice(0, 10);
+    // Hari ini menurut Jakarta, sama dengan pembanding di server; tanggal UTC tertinggal sehari antara 00.00 dan 07.00 WIB.
+    const hariIni = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
 
     // Hak akses.
     assert.equal((await api('GET', '/api/pembayaran/pengaturan', tMusyrif)).status, 403);
