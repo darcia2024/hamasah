@@ -1135,11 +1135,52 @@ const announcementList = document.querySelector('#announcement-list');
 const announcementDormitory = document.querySelector('#announcement-dormitory');
 const PENERIMA = { semua: 'Santri dan wali', santri: 'Santri', wali: 'Wali' };
 
+const announcementScope = document.querySelector('#announcement-scope');
+const announcementBatch = document.querySelector('#announcement-batch');
+const announcementStudents = document.querySelector('#announcement-students');
+
+function tampilkanSasaranPengumuman() {
+  const sasaran = announcementScope.value;
+  document.querySelector('#announcement-dormitory-field').hidden = sasaran !== 'asrama';
+  document.querySelector('#announcement-batch-field').hidden = sasaran !== 'batch';
+  document.querySelector('#announcement-students-field').hidden = sasaran !== 'santri';
+}
+
+announcementScope.addEventListener('change', tampilkanSasaranPengumuman);
+
 async function isiPilihanAsramaPengumuman() {
-  // Admin boleh ke semua asrama; musyrif hanya asrama yang dipegang (disaring server).
-  const data = await kirimJson('/api/announcements/asrama', 'GET').catch(() => ({ allowAll: false, dormitories: [] }));
+  // Admin boleh ke semua asrama dan batch; musyrif hanya asrama dan santri yang dipegang (disaring server).
+  const data = await kirimJson('/api/announcements/asrama', 'GET').catch(() => ({ allowAll: false, dormitories: [], students: [], batches: [] }));
   const pilihan = data.allowAll ? [new Option('Semua asrama', '')] : [];
   announcementDormitory.replaceChildren(...pilihan, ...data.dormitories.map((item) => new Option(item.name, item.id)));
+  const batches = data.batches || [];
+  announcementBatch.replaceChildren(...batches.map((item) => new Option(item.name, item.id)));
+  document.querySelector('#announcement-scope-batch').hidden = !batches.length;
+  document.querySelector('#announcement-scope-batch').disabled = !batches.length;
+  announcementStudents.replaceChildren(...(data.students || []).map((s) => {
+    const label = document.createElement('label');
+    label.className = 'asr-check';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = s.id;
+    label.append(cb, document.createTextNode(` ${s.name}`));
+    return label;
+  }));
+  tampilkanSasaranPengumuman();
+}
+
+// Penerima dan status baca satu pengumuman (GET /api/announcements/:id/penerima), ditampilkan dalam dialog.
+async function lihatPenerimaPengumuman(item, tombol) {
+  tombol.disabled = true;
+  try {
+    const data = await kirimJson(`/api/announcements/${encodeURIComponent(item.id)}/penerima`, 'GET');
+    const baris = data.items.map((p) => `${p.readAt ? '✓ Sudah baca' : '• Belum baca'} — ${p.name} (${p.role}${p.studentName ? `, ${p.studentName}` : ''})${p.readAt ? ` · ${new Date(p.readAt).toLocaleString('id-ID')}` : ''}`);
+    await window.HamasahDialog.pesan({ judul: `Penerima: ${item.title}`, isi: [`${data.read} dari ${data.total} penerima sudah membaca.`, ...(baris.length ? baris : ['Belum ada akun penerima yang terhubung.'])] });
+  } catch (error) {
+    statusPanel(announcementStatus, error.message, true);
+  } finally {
+    tombol.disabled = false;
+  }
 }
 
 async function muatPengumuman() {
@@ -1149,9 +1190,10 @@ async function muatPengumuman() {
     if (!data.tersedia) statusPanel(announcementStatus, 'Database belum diperbarui untuk pengumuman. Terapkan pembaruan database di halaman Pengaturan.', true);
     announcementList.replaceChildren(...(data.items.length ? data.items.map((item) => barisTeladan(
       item.title,
-      `${PENERIMA[item.audience]} · ${item.dormitoryName || 'Semua asrama'}${item.expiresOn ? ` · sampai ${item.expiresOn}` : ''} · ${item.body}`,
+      `${PENERIMA[item.audience]} · ${item.target ? item.target.label : (item.dormitoryName || 'Semua asrama')}${item.expiresOn ? ` · sampai ${item.expiresOn}` : ''} · ${item.body}`,
       (() => {
         const actions = document.createElement('div'); actions.className = 'mus-actions';
+        actions.append(tombolKecil('Penerima & status baca', tombol => lihatPenerimaPengumuman(item, tombol)));
         actions.append(tombolKecil('Bagikan lewat WhatsApp', () => {
           const message = `Assalamu'alaikum,\n\n${item.title}\n${item.body}\n\nUntuk: ${PENERIMA[item.audience]}${item.dormitoryName ? ` · ${item.dormitoryName}` : ''}.\nInformasi terbaru tersedia di ${location.origin}/portal.\n\nWassalamu'alaikum,\nTim Hamasah International`;
           window.HamasahManualWhatsapp.show({ recipientName: PENERIMA[item.audience], requiresContactSelection: true, message, url: `https://wa.me/?text=${encodeURIComponent(message)}` });
@@ -1177,6 +1219,20 @@ async function hapusPengumuman(item, tombol) {
   }
 }
 
+// Draf dari Asisten Hamasah (asisten.js) dimuat ke formulir untuk diperiksa; tidak pernah terbit otomatis.
+(function terapkanDrafAsisten() {
+  try {
+    const mentah = sessionStorage.getItem('hamasahDrafPengumuman');
+    if (!mentah) return;
+    sessionStorage.removeItem('hamasahDrafPengumuman');
+    const draf = JSON.parse(mentah);
+    if (typeof draf.title !== 'string' || typeof draf.body !== 'string') return;
+    document.querySelector('#announcement-title').value = draf.title.slice(0, 120);
+    document.querySelector('#announcement-body').value = draf.body.slice(0, 2000);
+    statusPanel(announcementStatus, 'Draf dari Asisten dimuat. Periksa dan ubah dulu, lalu pilih penerima sebelum menerbitkan.');
+  } catch { /* tanpa draf, formulir kosong seperti biasa */ }
+}());
+
 announcementForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   statusPanel(announcementStatus, '');
@@ -1185,10 +1241,13 @@ announcementForm.addEventListener('submit', async (event) => {
       title: document.querySelector('#announcement-title').value,
       body: document.querySelector('#announcement-body').value,
       audience: document.querySelector('#announcement-audience').value,
-      dormitoryId: announcementDormitory.value || null,
+      dormitoryId: announcementScope.value === 'asrama' ? (announcementDormitory.value || null) : null,
+      batchId: announcementScope.value === 'batch' ? (announcementBatch.value || null) : null,
+      studentIds: announcementScope.value === 'santri' ? [...announcementStudents.querySelectorAll('input:checked')].map((cb) => cb.value) : undefined,
       expiresOn: document.querySelector('#announcement-expires').value || null
     });
     announcementForm.reset();
+    tampilkanSasaranPengumuman();
     statusPanel(announcementStatus, 'Pengumuman diterbitkan.');
     await muatPengumuman();
   } catch (error) {

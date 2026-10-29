@@ -79,7 +79,7 @@ async function run() {
     assert.deepEqual(saya.body.permissions, ['ac.manage', 'ac.read', 'finance.manage', 'leave.payment-read', 'operations.manage', 'operations.read', 'payment-link.read', 'payments.manage', 'reminders.manage']);
     assert.deepEqual(
       (await request(baseUrl, 'GET', '/api/me', { token: token[ROLES.PARENT] })).body.permissions,
-      ['dormitory-schedule.read', 'family-messages.send', 'feedback.mine', 'feedback.send', 'payment-link.read', 'personal-messages.read', 'programs.history', 'reports.read', 'residence.read', 'students.read', 'tahfidz.read']
+      ['assistant-ops.use', 'dormitory-schedule.read', 'family-messages.send', 'feedback.mine', 'feedback.send', 'inbox.read', 'payment-link.read', 'personal-messages.read', 'programs.history', 'reports.read', 'residence.read', 'students.read', 'tahfidz.read']
     );
 
     // Data secukupnya supaya endpoint punya sasaran yang nyata.
@@ -369,6 +369,26 @@ async function run() {
       { permission: 'ac.manage', method: 'GET', path: '/api/ac/refund' },
       { permission: 'ac.approve', method: 'POST', path: '/api/ac/refund/00000000-0000-4000-8000-000000000000/putusan', body: () => ({}) },
       { permission: 'ac.manage', method: 'POST', path: '/api/ac/refund/00000000-0000-4000-8000-000000000000/cairkan', body: () => ({}) },
+      { permission: 'courses.manage', method: 'GET', path: '/api/lms/katalog' },
+      { permission: 'courses.manage', method: 'PATCH', path: '/api/courses/00000000-0000-4000-8000-000000000000/cakupan', body: () => ({}) },
+      { permission: 'courses.manage', method: 'POST', path: '/api/courses/00000000-0000-4000-8000-000000000000/sinkron' },
+      { permission: 'courses.read', method: 'GET', path: '/api/students/00000000-0000-4000-8000-000000000000/katalog-belajar' },
+      { permission: 'courses.manage', method: 'GET', path: '/api/lms/sesi' },
+      { permission: 'courses.manage', method: 'POST', path: '/api/courses/00000000-0000-4000-8000-000000000000/sesi', body: () => ({}) },
+      { permission: 'courses.manage', method: 'GET', path: '/api/lms/sesi/00000000-0000-4000-8000-000000000000' },
+      { permission: 'courses.manage', method: 'PUT', path: '/api/lms/sesi/00000000-0000-4000-8000-000000000000/kehadiran', body: () => ({}) },
+      { permission: 'courses.manage', method: 'GET', path: '/api/courses/00000000-0000-4000-8000-000000000000/kehadiran' },
+      { permission: 'dormitory-management.manage', method: 'POST', path: '/api/asrama/00000000-0000-4000-8000-000000000000/galeri/00000000-0000-4000-8000-000000000000/publikasi', body: () => ({}) },
+      { permission: 'gallery.publish', method: 'POST', path: '/api/asrama/00000000-0000-4000-8000-000000000000/galeri/00000000-0000-4000-8000-000000000000/keputusan', body: () => ({}) },
+      { permission: 'dormitory-management.manage', method: 'POST', path: '/api/asrama/00000000-0000-4000-8000-000000000000/galeri/00000000-0000-4000-8000-000000000000/cabut' },
+      { permission: 'inbox.read', method: 'GET', path: '/api/kotak-pesan' },
+      { permission: 'inbox.read', method: 'POST', path: '/api/kotak-pesan/dibaca-semua' },
+      { permission: 'inbox.read', method: 'POST', path: '/api/kotak-pesan/umum/00000000-0000-4000-8000-000000000000/dibaca' },
+      { permission: 'students.read', method: 'POST', path: '/api/announcements/dibaca-semua' },
+      { permission: 'students.read', method: 'POST', path: '/api/announcements/00000000-0000-4000-8000-000000000000/dibaca' },
+      { permission: 'announcements.manage', method: 'GET', path: '/api/announcements/00000000-0000-4000-8000-000000000000/penerima' },
+      { permission: 'assistant-ops.use', method: 'GET', path: '/api/asisten-operasional' },
+      { permission: 'assistant-ops.use', method: 'POST', path: '/api/asisten-operasional/draft-laporan', body: () => ({}) },
       { permission: 'feedback.mine', method: 'GET', path: '/api/masukan/saya' },
       { permission: 'feedback.send', method: 'POST', path: '/api/masukan', body: () => ({}) },
       { permission: 'feedback.read', method: 'GET', path: '/api/masukan' },

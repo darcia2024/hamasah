@@ -35,7 +35,7 @@ function run() {
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: blob: https://i.ytimg.com",
     "connect-src 'self'",
-    "media-src 'self'",
+    "media-src 'self' blob:",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

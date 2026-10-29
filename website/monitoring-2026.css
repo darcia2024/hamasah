@@ -57,3 +57,6 @@ body.monitoring-page #monitoring-dashboard .monitoring-student__activity { margi
 .monitoring-action-row__actions { grid-column: 1 / -1; padding-top: 10px; border-top: 1px solid var(--mon-line); display: flex; flex-wrap: wrap; gap: 8px; }
 .monitoring-page #add-followup { margin-bottom: 18px; }
 @media(max-width:640px) { .monitoring-action-row { grid-template-columns: minmax(0,1fr); padding: 14px; } }
+.asr-checks { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; padding: 8px 12px; border: 1px solid #E3E0D8; border-radius: 12px; }
+.asr-checks > div { display: flex; flex-wrap: wrap; gap: 6px 16px; max-height: 220px; overflow: auto; }
+.asr-check { display: inline-flex; align-items: center; gap: 6px; }

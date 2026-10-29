@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Asisten Hamasah | Hamasah International</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Philosopher:wght@700&display=swap" rel="stylesheet" />
+    <link rel="icon" href="../assets/favicon.png" />
+    <link rel="stylesheet" href="website-core.css?v=2d72a1bd8f" />
+    <link rel="stylesheet" href="staff.css?v=ec35294f55" />
+    <link rel="stylesheet" href="portal.css?v=ff8000df51" />
+    <link rel="stylesheet" href="fields.css?v=9cd65bf0c8" />
+    <link rel="stylesheet" href="kegiatan.css?v=c9bcbd1057" />
+    <link rel="stylesheet" href="beranda-keluarga.css?v=f71cbc4c6e" />
+    <link rel="stylesheet" href="asrama.css?v=2538c1da3f" />
+    <link rel="stylesheet" href="konsol-2026.css?v=2a5d064aa2" />
+    <script src="session-hint.js?v=b0562827f3"></script>
+    <!-- Layar pertama ditahan sampai skrip konsol selesai menggambar menu dan nama akun,
+         supaya pindah menu tidak menampilkan kerangka kosong. Lihat portal.css. -->
+    <link rel="expect" href="#konsol-siap" blocking="render" />
+  </head>
+  <body class="staff-page">
+    <header class="staff-header staff-header--shell" id="public-header">
+      <a href="portal" class="staff-brand">
+        <img class="brand-logo-icon" src="../assets/logo-emblem-gold.png" alt="" width="30" height="33" />
+        <span class="staff-brand__name">Hamasah International</span> <span>Asisten</span>
+      </a>
+      <div class="staff-header-actions">
+        <a href="portal" class="button button--secondary">Portal akun</a>
+      </div>
+    </header>
+
+    <section id="as-guard" class="staff-login" aria-live="polite">
+      <div class="staff-login__card">
+        <div class="staff-login__brand">
+          <img class="staff-login__brand-logo" src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" width="44" height="44" />
+          <div>
+            <span class="eyebrow u-m-0">Admin, musyrif, dan keuangan</span>
+            <div class="staff-login__brand-name">Asisten Hamasah</div>
+          </div>
+        </div>
+        <h1>Memeriksa akses Asisten Hamasah</h1>
+        <p class="staff-login__copy" id="as-guard-copy">
+          Silakan masuk melalui Portal Hamasah. Halaman ini untuk admin, musyrif, dan keuangan.
+        </p>
+        <a href="portal" class="button button--primary staff-login__cta">
+          <span>Buka halaman masuk</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      </div>
+    </section>
+
+    <section id="as-console" hidden class="crm-shell">
+      <aside class="crm-sidebar" id="crm-sidebar">
+        <div class="crm-sidebar-header">
+          <a href="portal" class="crm-brand">
+            <img src="../assets/logo-emblem-gold.png" alt="Logo Hamasah" class="crm-brand-logo" width="34" height="34" />
+            <div class="crm-brand-text">
+              <span class="crm-brand-title">Hamasah <strong>Portal</strong></span>
+              <span class="crm-brand-sub">Al-Azhar Kairo</span>
+            </div>
+          </a>
+          <button type="button" class="crm-collapse-btn" title="Ciutkan Sidebar" aria-label="Toggle Sidebar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+        </div>
+
+        <div class="crm-user-card" id="crm-user-card">
+          <div class="crm-user-avatar" id="crm-user-avatar">..</div>
+          <div class="crm-user-info">
+            <div class="crm-user-name" id="crm-user-name">Akun</div>
+            <div class="crm-user-role-pill" id="crm-user-role-pill"></div>
+          </div>
+        </div>
+
+        <div class="crm-nav-group-title">
+          <span>Menu utama</span>
+          <span class="crm-nav-group-caret" aria-hidden="true"></span>
+        </div>
+        <nav class="crm-nav" id="staff-nav"></nav>
+
+        <div class="crm-sidebar-footer">
+          <div class="crm-system-status">
+            <span class="crm-status-dot"></span>
+            <span>Memeriksa sesi...</span>
+          </div>
+          <button class="crm-logout-btn" id="logout-button" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>Keluar sesi</span>
+          </button>
+        </div>
+      </aside>
+
+      <div class="crm-workspace">
+        <header class="crm-topbar">
+          <div class="crm-breadcrumbs">
+            <span class="crumb-root">Hamasah Portal</span>
+            <span class="crumb-sep">&gt;</span>
+            <span class="crumb-active">Asisten Hamasah</span>
+          </div>
+          <div class="crm-topbar-actions">
+            <span class="crm-role-chip" id="crm-header-role"></span>
+          </div>
+        </header>
+
+        <div class="crm-canvas">
+          <div class="asr-page" id="as-app">
+            <p class="asr-loading" role="status">Memuat...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script src="internal-shell.js?v=9e9a51a0ef"></script>
+    <script src="nav.js?v=cdba8dda09"></script>
+        <script src="asisten.js?v=b541b36577"></script>
+    <div id="konsol-siap" hidden></div>
+    <script src="text-punctuation.js?v=75080432b5" defer></script>
+  </body>
+</html>

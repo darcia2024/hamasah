@@ -574,12 +574,12 @@
           K.ambil(`/api/students/${encodeURIComponent(aktifId)}/profil`, headers)
         ]));
       }
-      const [[data, profil], pengumuman, jadwalAsrama, iqamah, pesanBagikan, masukanSaya, raporSaya, tautanBayar] = await Promise.all([cache.get(aktifId), pengumumanJanji, K.muatJadwalAsrama(headers), iqamahJanji, window.HamasahPesanPersonal ? window.HamasahPesanPersonal.kartuWali(student, headers) : null, K.ambil(`/api/masukan/saya?t=${Date.now()}`, headers), K.ambil(`/api/students/${encodeURIComponent(aktifId)}/rapor?t=${Date.now()}`, headers), K.ambil('/api/pembayaran/tautan', headers)]);
+      const [[data, profil], pengumuman, jadwalAsrama, iqamah, pesanBagikan, masukanSaya, raporSaya, tautanBayar, kotak] = await Promise.all([cache.get(aktifId), pengumumanJanji, K.muatJadwalAsrama(headers), iqamahJanji, window.HamasahPesanPersonal ? window.HamasahPesanPersonal.kartuWali(student, headers) : null, K.ambil(`/api/masukan/saya?t=${Date.now()}`, headers), K.ambil(`/api/students/${encodeURIComponent(aktifId)}/rapor?t=${Date.now()}`, headers), K.ambil('/api/pembayaran/tautan', headers), K.ambil(`/api/kotak-pesan?limit=40&t=${Date.now()}`, headers)]);
       if (student.id !== aktifId) return;
 
       const B = window.HamasahWaliBagian;
       const tagihan = kartuTagihan(data, tautanBayar);
-      const umum = K.kartuPengumuman(pengumuman, 3, { polos: true });
+      const umum = K.kartuKotakPesan(kotak, { headers, polos: true }) || K.kartuPengumuman(pengumuman, 3, { polos: true });
       // Iqamah ananda, hanya dilihat; laporan tanggal baru dikirim santri sendiri.
       const iqamahAnanda = window.HamasahIqamah ? window.HamasahIqamah.kartu(iqamah, { studentId: student.id, headers }) : null;
       const jadwal = K.bagianJadwalAsrama(jadwalAsrama, student.id, { polos: true });
@@ -604,7 +604,7 @@
             polos: true
           })]
         },
-        { id: 'info', label: 'Info & tagihan', isi: [grup(tagihan, umum), B ? B.kartuDokumentasi(jadwalAsrama, student.id, headers) : null] },
+        { id: 'info', label: 'Info & tagihan', isi: [grup(tagihan, umum), K.kartuAsisten(student, { headers, polos: true }), B ? B.kartuDokumentasi(jadwalAsrama, student.id, headers) : null] },
         { id: 'masukan', label: 'Kritik & saran', isi: [B ? B.kartuMasukan(students, student.id, headers) : null] }
       ].map((k) => ({ ...k, isi: k.isi.filter(Boolean) })).filter((k) => k.isi.length);
 

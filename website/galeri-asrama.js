@@ -43,18 +43,23 @@
   function ubin(f, headers, { onBuka, kecil = false } = {}) {
     const b = el('button', `galeri-tile${kecil ? ' galeri-tile--kecil' : ''}`);
     b.type = 'button';
-    b.setAttribute('aria-label', f.caption ? `Buka foto: ${f.caption}` : 'Buka foto');
+    const video = f.mediaType === 'video';
+    b.setAttribute('aria-label', f.caption ? `Buka ${video ? 'video' : 'foto'}: ${f.caption}` : `Buka ${video ? 'video' : 'foto'}`);
+    if (video) b.append(el('span', 'galeri-tile__play', '▶'));
     b.muatFoto = async () => {
-      const url = await ambilFoto(f.fileId, headers);
+      // Daftar memuat thumbnail kecil; berkas besar baru diambil saat dibuka di penampil.
+      const url = await ambilFoto(f.thumbFileId || (video ? null : f.fileId), headers);
       if (!url) { b.classList.add('is-gagal'); return; }
       const img = el('img');
-      img.alt = f.caption || 'Foto kegiatan asrama';
+      img.alt = f.caption || (video ? 'Video kegiatan asrama' : 'Foto kegiatan asrama');
       img.decoding = 'async';
       img.src = url;
       img.addEventListener('load', () => b.classList.add('is-loaded'));
       b.prepend(img);
     };
+    if (video && !f.thumbFileId) b.classList.add('is-loaded');
     if (f.caption && !kecil) b.append(el('span', 'galeri-tile__cap', f.caption));
+    if (f.category && f.category !== 'lainnya' && !kecil) b.append(el('span', 'galeri-tile__cat', f.categoryLabel || f.category));
     b.addEventListener('click', onBuka);
     if (pengamat) pengamat.observe(b); else b.muatFoto();
     return b;
@@ -67,8 +72,13 @@
     dialog.setAttribute('aria-label', 'Galeri asrama');
     const panggung = el('figure', 'galeri-viewer__stage');
     const img = el('img', 'galeri-viewer__img');
+    const putar = el('video', 'galeri-viewer__img');
+    putar.controls = true;
+    putar.setAttribute('playsinline', '');
+    putar.preload = 'metadata';
+    putar.hidden = true;
     const ket = el('figcaption', 'galeri-viewer__cap');
-    panggung.append(img, ket);
+    panggung.append(img, putar, ket);
     const tutup = el('button', 'galeri-viewer__close', '×');
     tutup.type = 'button';
     tutup.setAttribute('aria-label', 'Tutup');
@@ -84,13 +94,18 @@
     async function tampil() {
       const f = items[i];
       img.removeAttribute('src');
+      putar.pause();
+      putar.removeAttribute('src');
+      const video = f.mediaType === 'video';
+      img.hidden = video;
+      putar.hidden = !video;
       img.alt = f.caption || 'Foto kegiatan asrama';
-      ket.replaceChildren(el('strong', '', f.caption || 'Kegiatan asrama'), el('span', '', tanggalFoto(f)));
+      ket.replaceChildren(el('strong', '', f.caption || 'Kegiatan asrama'), el('span', '', [tanggalFoto(f), f.category && f.category !== 'lainnya' ? (f.categoryLabel || f.category) : ''].filter(Boolean).join(' · ')));
       hitung.textContent = `${i + 1} / ${items.length}`;
       kiri.disabled = i === 0;
       kanan.disabled = i === items.length - 1;
       const url = await ambilFoto(f.fileId, headers);
-      if (items[i] === f && url) img.src = url;
+      if (items[i] === f && url) (video ? putar : img).src = url;
     }
     const geser = (d) => { const j = i + d; if (j >= 0 && j < items.length) { i = j; tampil(); } };
     kiri.addEventListener('click', () => geser(-1));
@@ -101,7 +116,7 @@
       if (e.key === 'ArrowLeft') geser(-1);
       if (e.key === 'ArrowRight') geser(1);
     });
-    dialog.addEventListener('close', () => dialog.remove());
+    dialog.addEventListener('close', () => { putar.pause(); dialog.remove(); });
     document.body.append(dialog);
     dialog.showModal();
     tampil();
@@ -130,14 +145,14 @@
     return wadah;
   }
 
-  async function kecilkan(file) {
+  async function kecilkan(file, sisiMaks = 1280, kualitas = 0.8) {
     let gambar;
     try {
       gambar = await createImageBitmap(file);
     } catch {
       throw new Error('Berkas ini tidak bisa dibaca sebagai foto. Gunakan JPG, PNG, atau WebP.');
     }
-    const skala = Math.min(1, 1280 / Math.max(gambar.width, gambar.height));
+    const skala = Math.min(1, sisiMaks / Math.max(gambar.width, gambar.height));
     const kanvas = document.createElement('canvas');
     kanvas.width = Math.round(gambar.width * skala);
     kanvas.height = Math.round(gambar.height * skala);
@@ -146,7 +161,7 @@
     ktx.fillRect(0, 0, kanvas.width, kanvas.height);
     ktx.drawImage(gambar, 0, 0, kanvas.width, kanvas.height);
     if (typeof gambar.close === 'function') gambar.close();
-    const blob = await new Promise((resolve) => kanvas.toBlob(resolve, 'image/jpeg', 0.8));
+    const blob = await new Promise((resolve) => kanvas.toBlob(resolve, 'image/jpeg', kualitas));
     if (!blob) throw new Error('Foto belum dapat diproses. Coba foto lain.');
     return blob;
   }
@@ -162,24 +177,66 @@
     return hasil;
   }
 
-  // Mengunggah satu foto untuk asrama dan mengembalikan id berkasnya.
-  async function unggah(dormitoryId, file, headers) {
-    const blob = await kecilkan(file);
-    const minta = await kirimJson('POST', '/api/uploads', headers, { purpose: 'dormitory-photo', entityId: dormitoryId, fileName: 'foto-asrama.jpg', contentType: 'image/jpeg', size: blob.size });
+  async function kirimBerkas(purpose, dormitoryId, blob, fileName, contentType, headers) {
+    const minta = await kirimJson('POST', '/api/uploads', headers, { purpose, entityId: dormitoryId, fileName, contentType, size: blob.size });
     const id = encodeURIComponent(minta.upload.id);
     if (minta.directUpload) {
       const tautan = await kirimJson('POST', `/api/uploads/${id}/direct`, headers);
-      const terkirim = await fetch(tautan.uploadUrl, { method: 'PUT', headers: { 'Content-Type': 'image/jpeg' }, body: blob });
-      if (!terkirim.ok) throw new Error('Foto gagal dikirim ke penyimpanan.');
+      const terkirim = await fetch(tautan.uploadUrl, { method: 'PUT', headers: { 'Content-Type': contentType }, body: blob });
+      if (!terkirim.ok) throw new Error('Berkas gagal dikirim ke penyimpanan.');
       await kirimJson('POST', `/api/uploads/${id}/confirm`, headers);
     } else {
-      const response = await fetch(`/api/uploads/${id}/content`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'image/jpeg' }, body: blob });
+      const response = await fetch(`/api/uploads/${id}/content`, { method: 'PUT', headers: { ...headers, 'Content-Type': contentType }, body: blob });
       const hasil = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(hasil.error || 'Foto gagal diunggah.');
+      if (!response.ok) throw new Error(hasil.error || 'Berkas gagal diunggah.');
     }
     cache.set(minta.upload.id, Promise.resolve(URL.createObjectURL(blob)));
     return minta.upload.id;
   }
 
-  window.HamasahGaleri = Object.freeze({ grid, unggah, tanggalFoto });
+  // Mengunggah satu foto untuk asrama dan mengembalikan id berkasnya (tanpa thumbnail; dipertahankan untuk pemanggil lama).
+  async function unggah(dormitoryId, file, headers) {
+    const blob = await kecilkan(file);
+    return kirimBerkas('dormitory-photo', dormitoryId, blob, 'foto-asrama.jpg', 'image/jpeg', headers);
+  }
+
+  const MAKS_VIDEO = 30 * 1024 * 1024;
+
+  // Bingkai poster video untuk thumbnail: diambil di peramban supaya server tidak perlu memproses video.
+  async function posterVideo(file) {
+    const url = URL.createObjectURL(file);
+    try {
+      const v = document.createElement('video');
+      v.muted = true; v.preload = 'metadata'; v.playsInline = true; v.src = url;
+      await new Promise((resolve, reject) => { v.addEventListener('loadeddata', resolve, { once: true }); v.addEventListener('error', () => reject(new Error('Video tidak bisa dibaca. Gunakan MP4 atau WebM.')), { once: true }); });
+      v.currentTime = Math.min(1, (v.duration || 1) / 2);
+      await new Promise((resolve) => { v.addEventListener('seeked', resolve, { once: true }); setTimeout(resolve, 1500); });
+      const skala = Math.min(1, 360 / Math.max(v.videoWidth || 360, v.videoHeight || 360));
+      const kanvas = document.createElement('canvas');
+      kanvas.width = Math.max(1, Math.round((v.videoWidth || 360) * skala));
+      kanvas.height = Math.max(1, Math.round((v.videoHeight || 202) * skala));
+      kanvas.getContext('2d').drawImage(v, 0, 0, kanvas.width, kanvas.height);
+      return await new Promise((resolve) => kanvas.toBlob(resolve, 'image/jpeg', 0.7));
+    } finally { URL.revokeObjectURL(url); }
+  }
+
+  // Foto: dikecilkan ke 1280 px dan thumbnail 360 px. Video: dikirim apa adanya (MP4 atau WebM, maks 30 MB) dengan
+  // thumbnail dari bingkai poster. Hasil: { fileId, thumbFileId, mediaType }. Validasi di sini mendahului unggahan.
+  async function unggahMedia(dormitoryId, file, headers) {
+    if (/^video\/(mp4|webm)$/.test(file.type)) {
+      if (file.size > MAKS_VIDEO) throw new Error(`Video "${file.name}" ${(file.size / 1048576).toFixed(1)} MB; maksimal 30 MB. Potong atau kecilkan videonya dulu.`);
+      const poster = await posterVideo(file).catch(() => null);
+      const thumbFileId = poster ? await kirimBerkas('dormitory-photo', dormitoryId, poster, 'poster.jpg', 'image/jpeg', headers) : null;
+      const fileId = await kirimBerkas('dormitory-video', dormitoryId, file, file.type === 'video/webm' ? 'video-asrama.webm' : 'video-asrama.mp4', file.type, headers);
+      return { fileId, thumbFileId, mediaType: 'video' };
+    }
+    if (file.type && !/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error(`"${file.name}" bukan foto JPG/PNG/WebP atau video MP4/WebM.`);
+    const besar = await kecilkan(file);
+    const kecil = await kecilkan(file, 360, 0.7);
+    const thumbFileId = await kirimBerkas('dormitory-photo', dormitoryId, kecil, 'thumb.jpg', 'image/jpeg', headers);
+    const fileId = await kirimBerkas('dormitory-photo', dormitoryId, besar, 'foto-asrama.jpg', 'image/jpeg', headers);
+    return { fileId, thumbFileId, mediaType: 'foto' };
+  }
+
+  window.HamasahGaleri = Object.freeze({ grid, unggah, unggahMedia, tanggalFoto });
 })();

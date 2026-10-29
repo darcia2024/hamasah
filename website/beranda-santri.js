@@ -275,12 +275,13 @@
     memuat.setAttribute('role', 'status');
     wadah.replaceChildren(memuat);
 
-    const [data, jadwal, pengumuman, iqamah, profil] = await Promise.all([
+    const [data, jadwal, pengumuman, iqamah, profil, kotak] = await Promise.all([
       K.muatAnak(student.id, headers, { kelas: true, banding: true }),
       K.muatJadwalAsrama(headers),
       K.ambil('/api/announcements', headers),
       K.ambil('/api/iqamah-saya', headers),
-      K.ambil(`/api/students/${encodeURIComponent(student.id)}/profil`, headers)
+      K.ambil(`/api/students/${encodeURIComponent(student.id)}/profil`, headers),
+      K.ambil('/api/kotak-pesan?limit=40', headers)
     ]);
     const B = window.HamasahWaliBagian;
     const P = window.HamasahPesanPersonal;
@@ -342,7 +343,7 @@
     const belajar = K.kartuKelas ? K.kartuKelas(data.courses, student) : null;
     if (belajar) belajar.classList.add('snt-class');
 
-    const umum = K.kartuPengumuman(pengumuman, 3, { polos: true });
+    const umum = K.kartuKotakPesan(kotak, { headers, polos: true }) || K.kartuPengumuman(pengumuman, 3, { polos: true });
 
     const pintasanBagian = el('nav', 'snt-section-nav');
     pintasanBagian.setAttribute('aria-label', 'Bagian dashboard santri');
@@ -425,7 +426,7 @@
         B ? B.kartuAbsensiJenis(data) : null,
         B ? B.kartuTahfidz(student, headers) : null
       ]),
-      kelompok('rapor', 'Rapor', 'Rapor bulananmu yang sudah ditinjau dan diterbitkan Hamasah.', [B ? B.kartuRapor(student, headers) : null]),
+      kelompok('rapor', 'Rapor', 'Rapor bulananmu yang sudah ditinjau dan diterbitkan Hamasah.', [B ? B.kartuRapor(student, headers) : null, K.kartuAsisten(student, { headers, polos: true, santri: true })]),
       kelompok('data', 'Data diri dan administrasi', 'Data pribadimu, status pendidikan, dan urusan yang sedang diurus.', [B ? B.kartuDataDiri(profil) : null, B ? B.kartuPendidikan(profil, data.izin) : null]),
       kelompok('asrama', 'Kabar asrama', 'Pengumuman, acara, jadwal, dan momen dari asramamu.', [
         berdampingan('wali-grid', [umum, bagianAcara(asrama, kini)]),

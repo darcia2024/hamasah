@@ -30,7 +30,7 @@ const MAX_FAMILY_MESSAGES_PER_DAY = 10;
 function tabelBelumAda(error) {
   if (!error) return false;
   if (['42P01','42703'].includes(error.code)) return true;
-  return /(student_juz_progress|announcements|student_leave_requests|family_messages)/.test(String(error.message || '')) && /does not exist/i.test(String(error.message || ''));
+  return /(student_juz_progress|announcements|announcement_students|announcement_reads|student_leave_requests|family_messages)/.test(String(error.message || '')) && /does not exist/i.test(String(error.message || ''));
 }
 
 function clean(value) {
@@ -153,21 +153,72 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
     return [];
   }
 
+  // Pengumuman boleh dikelola admin, musyrif yang memegang asramanya, dan penulisnya sendiri (pengumuman untuk santri
+  // tertentu tidak terikat satu asrama).
   function bolehKelola(pengumuman, actor, asramaMusyrif) {
     if (actor.role === 'admin') return true;
-    return actor.role === 'supervisor' && Boolean(pengumuman.dormitory_id) && asramaMusyrif.includes(pengumuman.dormitory_id);
+    if (actor.role !== 'supervisor') return false;
+    if (pengumuman.created_by_account_id && pengumuman.created_by_account_id === actor.id) return true;
+    return Boolean(pengumuman.dormitory_id) && asramaMusyrif.includes(pengumuman.dormitory_id);
   }
 
-  // Pengumuman yang masih berlaku untuk pembaca ini, terbaru dulu.
-  async function announcementsFor(actor, { limit = 10 } = {}) {
-    if (!actor) return { ok: false, status: 401, error: 'Sesi diperlukan.' };
-    const asrama = await asramaPembaca(actor);
-    const hariIni = tanggalJakarta(now());
-    const sasaran = actor.role === 'student' ? ['santri', 'semua'] : actor.role === 'parent' ? ['wali', 'semua'] : AUDIENCES;
-    const hasil = await baca(async () => {
+  // Santri yang menjadi dasar kecocokan pengumuman bagi pembaca: santri itu sendiri, anak-anak wali, atau santri di asrama
+  // yang dipegang musyrif. Admin tidak memakainya (melihat semua).
+  async function santriPembaca(actor) {
+    if (actor.role === 'student') {
+      return (await database.query('SELECT id FROM students WHERE student_account_id = $1', [actor.id])).rows.map((r) => r.id);
+    }
+    if (actor.role === 'parent') {
+      return (await database.query('SELECT student_id AS id FROM student_parent_accounts WHERE parent_account_id = $1', [actor.id])).rows.map((r) => r.id);
+    }
+    if (actor.role === 'supervisor') {
+      const milik = await staffDormitories(actor.id);
+      if (!milik.length) return [];
+      return (await database.query('SELECT id FROM students WHERE dormitory_id = ANY($1::uuid[])', [milik])).rows.map((r) => r.id);
+    }
+    return [];
+  }
+
+  function labelSasaran(row) {
+    if (row.batch_id) return { type: 'batch', label: `Batch: ${row.batch_name || 'program'}` };
+    if (Number(row.jumlah_santri || 0) > 0) return { type: 'santri', label: `${row.jumlah_santri} santri terpilih` };
+    if (row.dormitory_id) return { type: 'asrama', label: row.dormitory_name || 'Satu asrama' };
+    return { type: 'semua', label: 'Semua asrama' };
+  }
+
+  // Baris pengumuman yang boleh dilihat pembaca ini (maks 200 terbaru yang masih berlaku), lengkap dengan status baca.
+  // Pengumuman umum mengikuti asrama; pengumuman batch dan santri tertentu hanya untuk yang bersangkutan (dan admin).
+  async function barisTerlihat(actor, asrama, sasaranAudience, hariIni) {
+    const siswa = await santriPembaca(actor);
+    try {
       const { rows } = await database.query(
         `SELECT a.id, a.title, a.body, a.audience, a.dormitory_id, d.name AS dormitory_name, a.expires_on::text AS expires_on,
-                a.created_at, ac.name AS author
+                a.created_at, a.created_by_account_id, ac.name AS author, a.batch_id, b.name AS batch_name,
+                (SELECT count(*) FROM announcement_students s WHERE s.announcement_id = a.id)::int AS jumlah_santri,
+                EXISTS (SELECT 1 FROM announcement_reads r WHERE r.announcement_id = a.id AND r.account_id = $5::uuid) AS dibaca
+           FROM announcements a
+           LEFT JOIN dormitories d ON d.id = a.dormitory_id
+           LEFT JOIN accounts ac ON ac.id = a.created_by_account_id
+           LEFT JOIN program_batches b ON b.id = a.batch_id
+          WHERE a.audience = ANY($1::text[])
+            AND (a.expires_on IS NULL OR a.expires_on >= $2::date)
+            AND ($6::text = 'admin' OR a.created_by_account_id = $5::uuid OR (
+              (a.batch_id IS NULL AND NOT EXISTS (SELECT 1 FROM announcement_students s WHERE s.announcement_id = a.id)
+                 AND ($3::uuid[] IS NULL OR a.dormitory_id IS NULL OR a.dormitory_id = ANY($3::uuid[])))
+              OR (a.batch_id IS NOT NULL AND EXISTS (SELECT 1 FROM batch_participants bp WHERE bp.batch_id = a.batch_id AND bp.status = 'aktif' AND bp.student_id = ANY($4::uuid[])))
+              OR EXISTS (SELECT 1 FROM announcement_students s WHERE s.announcement_id = a.id AND s.student_id = ANY($4::uuid[]))
+            ))
+          ORDER BY a.created_at DESC
+          LIMIT 200`,
+        [sasaranAudience, hariIni, asrama, siswa, actor.id || null, actor.role]
+      );
+      return { tersedia: true, rows };
+    } catch (error) {
+      // Migrasi 078 belum diterapkan: pengumuman lama (per asrama saja, tanpa status baca) tetap tampil.
+      if (!['42703', '42P01'].includes(error.code)) throw error;
+      const { rows } = await database.query(
+        `SELECT a.id, a.title, a.body, a.audience, a.dormitory_id, d.name AS dormitory_name, a.expires_on::text AS expires_on,
+                a.created_at, a.created_by_account_id, ac.name AS author
            FROM announcements a
            LEFT JOIN dormitories d ON d.id = a.dormitory_id
            LEFT JOIN accounts ac ON ac.id = a.created_by_account_id
@@ -175,32 +226,108 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
             AND (a.expires_on IS NULL OR a.expires_on >= $2::date)
             AND ($3::uuid[] IS NULL OR a.dormitory_id IS NULL OR a.dormitory_id = ANY($3::uuid[]))
           ORDER BY a.created_at DESC
-          LIMIT $4`,
-        [sasaran, hariIni, asrama, Math.min(Math.max(Number(limit) || 10, 1), 50)]
+          LIMIT 200`,
+        [sasaranAudience, hariIni, asrama]
       );
-      return { tersedia: true, rows };
-    }, { tersedia: false, rows: [] });
+      return { tersedia: true, rows: rows.map((r) => ({ ...r, dibaca: true, jumlah_santri: 0, batch_id: null })) };
+    }
+  }
+
+  // Pengumuman yang masih berlaku untuk pembaca ini, terbaru dulu, dengan status baca dan jumlah yang belum dibaca.
+  async function announcementsFor(actor, { limit = 10 } = {}) {
+    if (!actor) return { ok: false, status: 401, error: 'Sesi diperlukan.' };
+    const asrama = await asramaPembaca(actor);
+    const hariIni = tanggalJakarta(now());
+    const sasaran = actor.role === 'student' ? ['santri', 'semua'] : actor.role === 'parent' ? ['wali', 'semua'] : AUDIENCES;
+    const hasil = await baca(() => barisTerlihat(actor, asrama, sasaran, hariIni), { tersedia: false, rows: [] });
     const asramaMusyrif = actor.role === 'supervisor' ? asrama : [];
+    const batas = Math.min(Math.max(Number(limit) || 10, 1), 50);
     return {
       ok: true,
       value: {
         tersedia: hasil.tersedia,
-        items: hasil.rows.map((row) => ({
+        unread: hasil.rows.filter((row) => !row.dibaca).length,
+        items: hasil.rows.slice(0, batas).map((row) => ({
           id: row.id,
+          kind: 'umum',
           title: row.title,
           body: row.body,
           audience: row.audience,
           dormitoryName: row.dormitory_name || null,
+          target: labelSasaran(row),
           expiresOn: row.expires_on || null,
           createdAt: iso(row.created_at),
           author: row.author || null,
+          read: Boolean(row.dibaca),
           canDelete: bolehKelola(row, actor, asramaMusyrif)
         }))
       }
     };
   }
 
-  // Asrama yang boleh dituju penulis: admin semua, musyrif yang dipegang.
+  // Menandai pengumuman dibaca oleh akun ini. Hanya untuk pengumuman yang memang terlihat olehnya.
+  async function markAnnouncementRead(id, actor) {
+    if (!actor || !actor.id) return { ok: false, status: 401, error: 'Sesi diperlukan.' };
+    const sasaran = actor.role === 'student' ? ['santri', 'semua'] : actor.role === 'parent' ? ['wali', 'semua'] : AUDIENCES;
+    return tulis(async () => {
+      const { rows } = await barisTerlihat(actor, await asramaPembaca(actor), sasaran, tanggalJakarta(now()));
+      if (!rows.some((r) => r.id === id)) return { ok: false, status: 404, error: 'Pengumuman tidak ditemukan.' };
+      await database.query('INSERT INTO announcement_reads (announcement_id, account_id, read_at) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING', [id, actor.id, now()]);
+      return { ok: true, value: { id, read: true } };
+    });
+  }
+
+  async function markAllAnnouncementsRead(actor) {
+    if (!actor || !actor.id) return { ok: false, status: 401, error: 'Sesi diperlukan.' };
+    const sasaran = actor.role === 'student' ? ['santri', 'semua'] : actor.role === 'parent' ? ['wali', 'semua'] : AUDIENCES;
+    return tulis(async () => {
+      const { rows } = await barisTerlihat(actor, await asramaPembaca(actor), sasaran, tanggalJakarta(now()));
+      let jumlah = 0;
+      for (const r of rows.filter((x) => !x.dibaca)) {
+        await database.query('INSERT INTO announcement_reads (announcement_id, account_id, read_at) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING', [r.id, actor.id, now()]);
+        jumlah += 1;
+      }
+      return { ok: true, value: { marked: jumlah } };
+    });
+  }
+
+  // Penerima dan status baca satu pengumuman (admin, atau musyrif untuk santri asramanya). Hanya akun yang menjadi sasaran:
+  // santri dan atau wali dari santri yang ditarget.
+  async function announcementRecipients(id, actor) {
+    if (!actor || !['admin', 'supervisor'].includes(actor.role)) return { ok: false, status: 403, error: 'Hanya admin dan musyrif.' };
+    return tulis(async () => {
+      const a = (await database.query('SELECT id, audience, dormitory_id, batch_id, created_by_account_id FROM announcements WHERE id = $1', [id])).rows[0];
+      if (!a) return { ok: false, status: 404, error: 'Pengumuman tidak ditemukan.' };
+      const milik = actor.role === 'supervisor' ? await staffDormitories(actor.id) : null;
+      const tertuju = (await database.query('SELECT student_id FROM announcement_students WHERE announcement_id = $1', [id])).rows.map((r) => r.student_id);
+      let santri;
+      if (tertuju.length) santri = (await database.query(`SELECT id, name, student_account_id FROM students WHERE id = ANY($1::uuid[]) AND status IN ('active', 'leave')`, [tertuju])).rows;
+      else if (a.batch_id) santri = (await database.query(`SELECT s.id, s.name, s.student_account_id FROM batch_participants bp JOIN students s ON s.id = bp.student_id WHERE bp.batch_id = $1 AND bp.status = 'aktif' AND s.status IN ('active', 'leave')`, [a.batch_id])).rows;
+      else santri = (await database.query(`SELECT id, name, student_account_id FROM students WHERE status IN ('active', 'leave') AND ($1::uuid IS NULL OR dormitory_id = $1::uuid)`, [a.dormitory_id || null])).rows;
+      if (milik) {
+        const dalam = new Set((await database.query('SELECT id FROM students WHERE dormitory_id = ANY($1::uuid[])', [milik])).rows.map((r) => r.id));
+        santri = santri.filter((s) => dalam.has(s.id));
+        // Musyrif melihat penerima dari asramanya saja; tanpa satu pun santri asramanya (dan bukan penulis), pengumuman ini bukan urusannya.
+        if (!santri.length && a.created_by_account_id !== actor.id) return { ok: false, status: 404, error: 'Pengumuman tidak ditemukan.' };
+      }
+      const penerima = [];
+      if (['santri', 'semua'].includes(a.audience)) santri.filter((s) => s.student_account_id).forEach((s) => penerima.push({ accountId: s.student_account_id, role: 'santri', studentName: s.name }));
+      if (['wali', 'semua'].includes(a.audience) && santri.length) {
+        const wali = (await database.query('SELECT pa.parent_account_id, pa.student_id FROM student_parent_accounts pa WHERE pa.student_id = ANY($1::uuid[])', [santri.map((s) => s.id)])).rows;
+        wali.forEach((w) => penerima.push({ accountId: w.parent_account_id, role: 'wali', studentName: (santri.find((s) => s.id === w.student_id) || {}).name }));
+      }
+      const akunIds = [...new Set(penerima.map((p) => p.accountId))];
+      const nama = akunIds.length ? (await database.query('SELECT id, name FROM accounts WHERE id = ANY($1::uuid[])', [akunIds])).rows : [];
+      const dibaca = akunIds.length ? (await database.query('SELECT account_id, read_at FROM announcement_reads WHERE announcement_id = $1 AND account_id = ANY($2::uuid[])', [id, akunIds])).rows : [];
+      const items = penerima.map((p) => {
+        const baca = dibaca.find((d) => d.account_id === p.accountId);
+        return { name: (nama.find((n) => n.id === p.accountId) || {}).name || 'Akun', role: p.role, studentName: p.studentName || null, readAt: baca ? iso(baca.read_at) : null };
+      }).sort((x, y) => (x.readAt ? 1 : 0) - (y.readAt ? 1 : 0) || x.name.localeCompare(y.name, 'id'));
+      return { ok: true, value: { total: items.length, read: items.filter((i) => i.readAt).length, items: items.slice(0, 500) } };
+    });
+  }
+
+  // Sasaran yang boleh dipilih penulis: asrama (admin semua, musyrif yang dipegang), batch aktif (admin), dan santri.
   async function announcementTargets(actor) {
     if (!actor || !['admin', 'supervisor'].includes(actor.role)) return { ok: false, status: 403, error: 'Hanya admin dan musyrif.' };
     const milik = actor.role === 'supervisor' ? await staffDormitories(actor.id) : null;
@@ -208,7 +335,15 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
       'SELECT id, name FROM dormitories WHERE ($1::uuid[] IS NULL OR id = ANY($1::uuid[])) ORDER BY name',
       [milik]
     );
-    return { ok: true, value: { allowAll: actor.role === 'admin', dormitories: rows.map((row) => ({ id: row.id, name: row.name })) } };
+    const santri = (await database.query(
+      `SELECT id, name FROM students WHERE status IN ('active', 'leave') AND ($1::uuid[] IS NULL OR dormitory_id = ANY($1::uuid[])) ORDER BY name LIMIT 500`, [milik]
+    )).rows;
+    const batch = actor.role === 'admin'
+      ? await baca(async () => (await database.query(
+        `SELECT b.id, b.name || ' · ' || p.name AS name FROM program_batches b JOIN programs p ON p.id = b.program_id WHERE b.status IN ('direncanakan', 'berjalan') ORDER BY p.name, b.name`
+      )).rows.map((r) => ({ id: r.id, name: r.name })), [])
+      : [];
+    return { ok: true, value: { allowAll: actor.role === 'admin', dormitories: rows.map((row) => ({ id: row.id, name: row.name })), students: santri.map((r) => ({ id: r.id, name: r.name })), batches: batch } };
   }
 
   async function createAnnouncement(input, actor) {
@@ -218,6 +353,8 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
     const body = teks(source.body);
     const audience = clean(source.audience);
     const dormitoryId = clean(source.dormitoryId) || null;
+    const batchId = clean(source.batchId) || null;
+    const studentIds = [...new Set((Array.isArray(source.studentIds) ? source.studentIds : []).map((x) => clean(x)).filter(Boolean))];
     const expiresOn = clean(source.expiresOn) || null;
     if (title.length < 3 || title.length > 120) return { ok: false, error: 'Judul pengumuman 3 sampai 120 karakter.' };
     if (body.length < 10 || body.length > 2000) return { ok: false, error: 'Isi pengumuman 10 sampai 2000 karakter.' };
@@ -225,30 +362,45 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
     if (expiresOn && (!/^\d{4}-\d{2}-\d{2}$/.test(expiresOn) || expiresOn < tanggalJakarta(now()))) {
       return { ok: false, error: 'Tanggal berakhir harus hari ini atau setelahnya.' };
     }
+    if ([dormitoryId, batchId, studentIds.length ? 'x' : null].filter(Boolean).length > 1) return { ok: false, error: 'Pilih satu kelompok penerima saja: asrama, batch, atau santri tertentu.' };
+    if (studentIds.length > 200) return { ok: false, error: 'Santri tertentu maksimal 200 per pengumuman.' };
+    if (batchId && actor.role !== 'admin') return { ok: false, status: 403, error: 'Pengumuman untuk batch hanya dapat dibuat admin.' };
+    const milik = actor.role === 'supervisor' ? await staffDormitories(actor.id) : null;
     if (actor.role === 'supervisor') {
-      // Musyrif hanya menulis untuk asrama yang dia pegang.
-      const milik = await staffDormitories(actor.id);
-      if (!dormitoryId || !milik.includes(dormitoryId)) return { ok: false, status: 403, error: 'Musyrif hanya dapat menulis pengumuman untuk asrama yang dipegang.' };
+      // Musyrif hanya menulis untuk asrama yang dia pegang, atau santri di asramanya.
+      if (!studentIds.length && (!dormitoryId || !milik.includes(dormitoryId))) return { ok: false, status: 403, error: 'Musyrif hanya dapat menulis pengumuman untuk asrama yang dipegang.' };
     }
     return tulis(async () => {
       if (dormitoryId) {
         const { rows } = await database.query('SELECT 1 FROM dormitories WHERE id = $1', [dormitoryId]);
         if (!rows.length) return { ok: false, error: 'Asrama tidak ditemukan.' };
       }
+      if (batchId) {
+        const { rows } = await database.query(`SELECT 1 FROM program_batches WHERE id = $1 AND status IN ('direncanakan', 'berjalan')`, [batchId]);
+        if (!rows.length) return { ok: false, error: 'Batch tidak ditemukan atau sudah selesai.' };
+      }
+      if (studentIds.length) {
+        const sah = (await database.query(`SELECT id, dormitory_id FROM students WHERE id = ANY($1::uuid[]) AND status IN ('active', 'leave')`, [studentIds])).rows;
+        if (sah.length !== studentIds.length) return { ok: false, error: 'Ada santri yang tidak ditemukan atau sudah tidak aktif.' };
+        if (milik && sah.some((s) => !milik.includes(s.dormitory_id))) return { ok: false, status: 403, error: 'Ada santri yang bukan santri asrama yang Anda pegang.' };
+      }
       const id = crypto.randomUUID();
+      // Kolom batch_id (migrasi 078) hanya disentuh bila dipakai, supaya pengumuman asrama biasa tetap bisa dibuat sebelum migrasi.
       await database.query(
-        `INSERT INTO announcements (id, title, body, audience, dormitory_id, expires_on, created_by_account_id, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        [id, title, body, audience, dormitoryId, expiresOn, actor.id || null, now()]
+        batchId
+          ? `INSERT INTO announcements (id, title, body, audience, dormitory_id, expires_on, created_by_account_id, created_at, batch_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+          : `INSERT INTO announcements (id, title, body, audience, dormitory_id, expires_on, created_by_account_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        batchId ? [id, title, body, audience, dormitoryId, expiresOn, actor.id || null, now(), batchId] : [id, title, body, audience, dormitoryId, expiresOn, actor.id || null, now()]
       );
-      return { ok: true, value: { id, title, audience, dormitoryId, expiresOn } };
+      for (const sid of studentIds) await database.query('INSERT INTO announcement_students (announcement_id, student_id) VALUES ($1, $2)', [id, sid]);
+      return { ok: true, value: { id, title, audience, dormitoryId, batchId, studentCount: studentIds.length, expiresOn } };
     });
   }
 
   async function removeAnnouncement(id, actor) {
     if (!actor || !['admin', 'supervisor'].includes(actor.role)) return { ok: false, status: 403, error: 'Hanya admin dan musyrif.' };
     return tulis(async () => {
-      const { rows } = await database.query('SELECT id, dormitory_id FROM announcements WHERE id = $1', [id]);
+      const { rows } = await database.query('SELECT id, dormitory_id, created_by_account_id FROM announcements WHERE id = $1', [id]);
       if (!rows.length) return { ok: false, status: 404, error: 'Pengumuman tidak ditemukan.' };
       const asramaMusyrif = actor.role === 'supervisor' ? await staffDormitories(actor.id) : [];
       if (!bolehKelola(rows[0], actor, asramaMusyrif)) return { ok: false, status: 403, error: 'Pengumuman ini di luar asrama yang Anda pegang.' };
@@ -626,7 +778,7 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
   }
 
   return Object.freeze({
-    followUps, saveFollowUp, markLeaveReturned, announcementTargets, announcementsFor, cancelLeave, createAnnouncement, decideLeave,
+    followUps, saveFollowUp, markLeaveReturned, announcementTargets, announcementsFor, markAnnouncementRead, markAllAnnouncementsRead, announcementRecipients, cancelLeave, createAnnouncement, decideLeave,
     familyInbox, familyMessagesOf, homeLeaves, juzMap, leaveQueue, leavesOf, recordHomeLeave, markFamilyMessageRead,
     removeAnnouncement, requestLeave, sendFamilyMessage, setJuz
   });

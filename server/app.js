@@ -68,6 +68,10 @@ const { createWhatsappReminderService } = require('./whatsapp-reminder-service.j
 const { createPaymentIntegrationService } = require('./payment-integration-service.js');
 const { createInventoryService } = require('./inventory-service.js');
 const { createAcContributionService } = require('./ac-contribution-service.js');
+const { createLmsProgramService } = require('./lms-program-service.js');
+const { createInboxService } = require('./inbox-service.js');
+const { createOpsAssistantService } = require('./ops-assistant-service.js');
+const { createOpsAssistantProvider } = require('./ops-assistant-provider.js');
 const { createStudentJourneyService } = require('./student-journey-service.js');
 const { createStudentLifeService } = require('./student-life-service.js');
 const { createDormitoryRollService } = require('./dormitory-roll-service.js');
@@ -115,6 +119,9 @@ const ROUTES = Object.freeze([
   ...require('./routes/payments.js'),
   ...require('./routes/inventory.js'),
   ...require('./routes/ac.js'),
+  ...require('./routes/lms-program.js'),
+  ...require('./routes/inbox.js'),
+  ...require('./routes/ops-assistant.js'),
   ...require('./routes/admin-demo.js'),
   ...require('./routes/settings.js'),
   ...require('./routes/site-content.js'),
@@ -520,6 +527,19 @@ function createHamasahApp(options) {
   });
 
   const inventoryService = config.inventoryService || createInventoryService({ database, staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId) });
+  const opsAssistantService = config.opsAssistantService || createOpsAssistantService({
+    database,
+    accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor),
+    staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId),
+    centralMonitoring: centralMonitoringService,
+    activityAttendance: activityAttendanceService,
+    tahfidz: tahfidzService,
+    studentLife: studentLifeService,
+    settings: settingsService,
+    provider: config.opsAssistantProvider !== undefined ? config.opsAssistantProvider : createOpsAssistantProvider({ env: config.env, fetchImpl: config.fetchImpl, logger: config.logger })
+  });
+  const inboxService = config.inboxService || createInboxService({ database, studentLife: studentLifeService });
+  const lmsProgramService = config.lmsProgramService || createLmsProgramService({ database, staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId), lms: lmsService });
   const acContributionService = config.acContributionService || createAcContributionService({ database, staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId) });
   const paymentIntegrationService = config.paymentIntegrationService || createPaymentIntegrationService({ database, markInvoicePaid: (invoiceId, actor, input) => operationsService.markInvoicePaid(invoiceId, actor, input) });
   const whatsappReminderService = config.whatsappReminderService || createWhatsappReminderService({ database, appBaseUrl: config.appBaseUrl || email.appBaseUrl || '', paymentLink: () => paymentIntegrationService.link() });
@@ -567,6 +587,9 @@ function createHamasahApp(options) {
     paymentIntegrationService,
     inventoryService,
     acContributionService,
+    lmsProgramService,
+    inboxService,
+    opsAssistantService,
     demoDataService,
     settingsService,
     siteContentService,
@@ -727,6 +750,26 @@ function createHamasahApp(options) {
           'Content-Length': String(berkas.value.content.length),
           'Cache-Control': 'public, max-age=31536000, immutable',
           'Vercel-CDN-Cache-Control': 'max-age=31536000, immutable',
+          'X-Content-Type-Options': 'nosniff'
+        });
+        response.end(request.method === 'HEAD' ? undefined : berkas.value.content);
+        return;
+      }
+      // Foto kegiatan asrama yang sudah disetujui admin untuk tampil publik (item 18). Disajikan hanya selama statusnya
+      // dipublikasikan; dicabut atau ditarik berarti langsung 404. Cache pendek supaya pencabutan cepat berlaku.
+      const mediaKegiatan = /^\/media\/galeri-kegiatan\/([0-9a-f-]{36})\.jpg$/.exec(url.pathname);
+      if (mediaKegiatan && ['GET', 'HEAD'].includes(request.method)) {
+        const fileId = await dormitoryManagementService.publicFileId(mediaKegiatan[1], url.searchParams.get('u') === 'kecil');
+        const berkas = fileId ? await fileService.readApprovedGalleryPhoto(fileId) : { ok: false };
+        if (!berkas.ok) {
+          response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
+          response.end('Foto tidak ditemukan.');
+          return;
+        }
+        response.writeHead(200, {
+          'Content-Type': berkas.value.record.contentType,
+          'Content-Length': String(berkas.value.content.length),
+          'Cache-Control': 'public, max-age=300',
           'X-Content-Type-Options': 'nosniff'
         });
         response.end(request.method === 'HEAD' ? undefined : berkas.value.content);

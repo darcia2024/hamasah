@@ -55,6 +55,8 @@
   function buat({ wadah, headers }) {
     let studentId = null;
     let maddah = [];
+    // Program dan jenjang tiap maddah (dari katalog belajar), untuk mengelompokkan daftar.
+    const kelompok = new Map();
     let aktif = null;
     let materiId = null;
     // Mode pratinjau (admin dan guru dari studio): { onKembali }. Semua aksi yang mencatat
@@ -93,6 +95,14 @@
     }
 
     async function muatDaftar() {
+      // Katalog dimuat lebih dulu: untuk santri, ini menyelaraskan akses maddah dengan keanggotaan programnya.
+      kelompok.clear();
+      if (!katalogStaf) {
+        try {
+          const k = await api('GET', `/api/students/${encodeURIComponent(studentId)}/katalog-belajar`);
+          (k.groups || []).forEach((g) => g.courses.forEach((c) => kelompok.set(c.id, g.programId ? `${g.programName}${g.level ? ` · ${g.level}` : ''}` : (g.level || ''))));
+        } catch { /* pengelompokan hanya tambahan; daftar tetap tampil */ }
+      }
       const r = await api('GET', `/api/students/${encodeURIComponent(studentId)}/courses`);
       maddah = (r.items || []).map((c) => ({ ...c, progress: progresMaddah(c) }));
     }
@@ -158,7 +168,14 @@
         katalog.replaceChildren();
         const kata = pencarian.trim().toLocaleLowerCase('id-ID');
         const cocok = maddah.filter((c) => `${c.title} ${c.description || ''} ${(c.materials || []).map((m) => m.title).join(' ')}`.toLocaleLowerCase('id-ID').includes(kata));
-        cocok.forEach((c) => {
+        const labelGrup = (c) => kelompok.get(c.id) || '';
+        const adaGrup = cocok.some((c) => labelGrup(c));
+        let grupSekarang = null;
+        [...cocok].sort((a, b) => (labelGrup(a) ? 0 : 1) - (labelGrup(b) ? 0 : 1) || labelGrup(a).localeCompare(labelGrup(b), 'id')).forEach((c) => {
+          if (adaGrup && labelGrup(c) !== grupSekarang) {
+            grupSekarang = labelGrup(c);
+            katalog.append(el('h3', 'lms-group-title', grupSekarang || 'Maddah lainnya'));
+          }
           const daftar = pertemuan(c);
           const kartu = tombol('', 'lms-maddah-card', `Lihat maddah ${c.title}`);
           const isi = el('span', 'lms-maddah-card__body');

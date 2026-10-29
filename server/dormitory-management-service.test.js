@@ -135,8 +135,10 @@ async function run() {
     const fotoKedua = await layanan.addPhoto(putra, { fileId: await unggahan(putra), caption: 'Mudzakarah malam' }, MUSYRIF);
     assert.deepEqual((await layanan.overview(putra, MUSYRIF)).value.gallery.items.map((f) => f.caption), ['Mudzakarah malam', 'Rihlah ke Alexandria']);
     assert.deepEqual((await layanan.forFamily({ role: 'student' })).value.dormitories[0].gallery.map((f) => f.fileId), [fotoKedua.value.fileId, fotoRihlah]);
-    assert.equal(await layanan.bolehLihatFoto(putra, { role: 'parent' }), true);
-    assert.equal(await layanan.bolehLihatFoto(putri, { role: 'parent' }), false, 'Wali tidak melihat galeri asrama lain.');
+    assert.equal(await layanan.bolehLihatFoto(putra, { role: 'parent' }, { id: fotoRihlah }), true);
+    assert.equal(await layanan.bolehLihatFoto(putra, { role: 'parent' }), false, 'Tanpa berkas yang tertaut ke galeri, keluarga tidak melihat apa pun.');
+    assert.equal(await layanan.bolehLihatFoto(putra, { role: 'parent' }, { id: crypto.randomUUID() }), false, 'Berkas yang tidak ada di galeri tidak terlihat keluarga.');
+    assert.equal(await layanan.bolehLihatFoto(putri, { role: 'parent' }, { id: fotoRihlah }), false, 'Wali tidak melihat galeri asrama lain.');
     assert.equal(await layanan.bolehLihatFoto(putra, { role: 'teacher' }), false);
     assert.equal(await layanan.bolehUnggahFoto(putri, MUSYRIF), false);
     assert.equal(await layanan.bolehUnggahFoto(putra, MUSYRIF), true);
@@ -144,6 +146,7 @@ async function run() {
     assert.deepEqual((await layanan.forFamily({ role: 'parent' })).value.dormitories[0].gallery.map((f) => f.caption), ['Rihlah ke Alexandria']);
 
     // Sebelum migrasi 051 (tabel 050 sudah ada): galeri kosong, Kelola Asrama tetap jalan.
+    await q('DROP TABLE dormitory_gallery_students');
     await q('DROP TABLE dormitory_gallery');
     const tanpaGaleri = (await layanan.overview(putra, MUSYRIF)).value;
     assert.equal(tanpaGaleri.tersedia, true);

@@ -1,4 +1,4 @@
-﻿/* Halaman Kegiatan dan Rapor (kegiatan.js). Memakai kelas wali-* dan asr-* yang sudah ada; di sini hanya tambahan. */
+/* Halaman Kegiatan dan Rapor (kegiatan.js). Memakai kelas wali-* dan asr-* yang sudah ada; di sini hanya tambahan. */
 .kg-stack { display: grid; gap: 28px; }
 .kg-section { display: grid; gap: 14px; }
 .kg-small { min-height: 40px; padding: 0 14px; font-size: 14px; }
@@ -71,3 +71,5 @@
 
 /* Keterangan dialog (mis. isi pesan WhatsApp) mempertahankan baris baru. */
 .op-dialog__summary { white-space: pre-line; }
+.asisten-teks { margin: 0 0 12px; white-space: pre-line; line-height: 1.55; }
+.asisten-fakta { margin: 0 0 12px; padding-left: 18px; color: #5C554A; }

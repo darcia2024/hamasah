@@ -1,4 +1,5 @@
 const { json, publicError } = require('../http/respond.js');
+const { ACTIONS } = require('../audit-service.js');
 
 // Kelola Asrama (dormitory-management-service.js): jadwal kegiatan, agenda, piket, uang kas
 // dan iuran, inventaris. Pengelola: musyrif asramanya dan admin. Keluarga: GET /api/asrama-saya.
@@ -13,6 +14,14 @@ function pola(teks) {
 }
 
 module.exports = [
+  {
+    method: 'GET',
+    pattern: /^\/api\/galeri-publik$/,
+    async handler({ response, services }) {
+      response.setHeader('Cache-Control', 'public, max-age=300');
+      json(response, 200, { items: await services.dormitoryManagementService.publicGallery() });
+    }
+  },
   {
     method: 'GET',
     pattern: /^\/api\/asrama$/,
@@ -142,13 +151,48 @@ module.exports = [
     }
   },
 
-  // Galeri asrama: { fileId, caption, takenOn } dari unggahan 'dormitory-photo'.
+  // Galeri asrama: { fileId, mediaType, caption, takenOn, category, thumbFileId, audience, studentIds, publicConsentNote } dari unggahan 'dormitory-photo' atau 'dormitory-video'.
+  // Daftar publik hanya memuat foto yang sudah disetujui (tanpa sesi, tanpa nama asrama atau santri).
   {
     method: 'POST',
     pattern: pola(`\\/api\\/asrama\\/${ID}\\/galeri`),
     permission: 'dormitory-management.manage',
     async handler({ response, services, auth, params, readBody }) {
       balas(response, await services.dormitoryManagementService.addPhoto(params[0], await readBody(), await auth.actor()), 201);
+    }
+  },
+  // Publikasi foto ke website: diajukan pengelola asrama dengan catatan persetujuan, diputuskan admin, bisa dicabut kapan saja.
+  {
+    method: 'POST',
+    pattern: pola(`\\/api\\/asrama\\/${ID}\\/galeri\\/${ID}\\/publikasi`),
+    permission: 'dormitory-management.manage',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const actor = await auth.actor();
+      const hasil = await services.dormitoryManagementService.requestPublic(params[0], params[1], await readBody(), actor);
+      if (hasil.ok) await services.auditService.record({ action: ACTIONS.GALLERY_PUBLIC_REQUESTED, actor, ip, entityType: 'dormitory', entityId: params[0], metadata: { galleryId: params[1] } });
+      balas(response, hasil);
+    }
+  },
+  {
+    method: 'POST',
+    pattern: pola(`\\/api\\/asrama\\/${ID}\\/galeri\\/${ID}\\/keputusan`),
+    permission: 'gallery.publish',
+    async handler({ response, services, auth, params, readBody, ip }) {
+      const actor = await auth.actor();
+      const hasil = await services.dormitoryManagementService.decidePublic(params[0], params[1], await readBody(), actor);
+      if (hasil.ok) await services.auditService.record({ action: ACTIONS.GALLERY_PUBLIC_DECIDED, actor, ip, entityType: 'dormitory', entityId: params[0], metadata: { galleryId: params[1], status: hasil.value.publicStatus } });
+      balas(response, hasil);
+    }
+  },
+  {
+    method: 'POST',
+    pattern: pola(`\\/api\\/asrama\\/${ID}\\/galeri\\/${ID}\\/cabut`),
+    permission: 'dormitory-management.manage',
+    async handler({ response, services, auth, params, ip }) {
+      const actor = await auth.actor();
+      const hasil = await services.dormitoryManagementService.revokePublic(params[0], params[1], actor);
+      if (hasil.ok) await services.auditService.record({ action: ACTIONS.GALLERY_PUBLIC_REVOKED, actor, ip, entityType: 'dormitory', entityId: params[0], metadata: { galleryId: params[1] } });
+      balas(response, hasil);
     }
   },
   {

@@ -22,6 +22,8 @@ const ROLE_NAV_LABELS = Object.freeze({
     surat: 'Surat & Arsip',
     kpi: 'KPI Saya',
     inventaris: 'Inventaris & AC',
+    'sesi-belajar': 'Sesi Belajar',
+    asisten: 'Asisten',
     lms: 'Maddah Santri'
   },
   'registration-officer': {
@@ -32,6 +34,7 @@ const ROLE_NAV_LABELS = Object.freeze({
   },
   teacher: {
     portal: 'Portal Utama',
+    'sesi-belajar': 'Program LMS',
     lms: 'Kelola Maddah (LMS)'
   },
   finance: {
@@ -52,6 +55,8 @@ const ROLE_NAV_LABELS = Object.freeze({
     surat: 'Surat & Arsip',
     kpi: 'KPI Musyrif',
     inventaris: 'Inventaris & AC',
+    'sesi-belajar': 'Program LMS',
+    asisten: 'Asisten Hamasah',
     lms: 'LMS Maddah',
     operations: 'Keuangan & SPP',
     pengingat: 'Pengingat Tagihan',
@@ -156,6 +161,26 @@ const STAFF_NAV_LINKS = Object.freeze([
     badge: null,
     badgeType: null,
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
+  },
+  // Program LMS dan sesi belajar bersama (sesi-belajar.js). Admin, pengajar, dan musyrif.
+  {
+    href: 'sesi-belajar',
+    label: 'Sesi Belajar',
+    page: 'sesi-belajar',
+    roles: ['admin', 'teacher', 'supervisor'],
+    badge: null,
+    badgeType: null,
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
+  },
+  // Asisten Hamasah: ringkasan dan draf dibantu AI untuk admin dan musyrif (asisten.js).
+  {
+    href: 'asisten',
+    label: 'Asisten',
+    page: 'asisten',
+    roles: ['admin', 'supervisor'],
+    badge: null,
+    badgeType: null,
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.4L12 15l-1.9-4.6L5.5 9l4.6-1.4z"/><path d="M19 15l.8 1.9 1.9.8-1.9.8L19 20l-.8-1.9-1.9-.8 1.9-.8z"/></svg>'
   },
   // Inventaris asrama dan AC patungan (inventaris.js). Admin dan musyrif mengelola aset; keuangan hanya bagian AC.
   {

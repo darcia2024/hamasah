@@ -254,6 +254,14 @@ function createFileService(options = {}) {
     return { ok: true, value: { record, content: await storage.read(record.bucket, record.storageKey) } };
   }
 
+  // Isi berkas galeri asrama yang sudah dinyatakan boleh tampil publik oleh pemanggil (item galeri berstatus dipublikasi).
+  // Hanya berkas foto asrama yang siap; pemeriksaan persetujuan ada di dormitoryManagementService.publicFileId.
+  async function readApprovedGalleryPhoto(fileId) {
+    const record = await store.get(fileId);
+    if (!record || record.status !== 'ready' || record.purpose !== 'dormitory-photo') return { ok: false, status: 404, error: 'Berkas tidak ditemukan.' };
+    return { ok: true, value: { record, content: await storage.read(record.bucket, record.storageKey) } };
+  }
+
   // Memeriksa berkas siap dari satu tujuan tanpa membaca isinya.
   async function isReady(fileId, purpose) {
     const record = await store.get(fileId);
@@ -289,7 +297,7 @@ function createFileService(options = {}) {
     if (typeof storage.readRange !== 'function') return { ok: false, status: 503, error: 'Pemutaran video belum tersedia di penyimpanan ini.' };
     return { ok: true, value: { record, start, end, size, stream: await storage.readRange(record.bucket, record.storageKey, start, end) } };
   }
-  return Object.freeze({ videoRecord, videoRange, beginContent, confirmContent, createDirectUpload, createUpload, isReady, prepareDownload, publicFile, purgeStalePending, saveContent, supportsDirectUpload: Boolean(storage.supportsSignedUpload) });
+  return Object.freeze({ videoRecord, videoRange, beginContent, confirmContent, createDirectUpload, createUpload, isReady, prepareDownload, publicFile, readApprovedGalleryPhoto, purgeStalePending, saveContent, supportsDirectUpload: Boolean(storage.supportsSignedUpload) });
 }
 
 module.exports = { PENDING_EXPIRY_MS, createFileService, safeFileName };

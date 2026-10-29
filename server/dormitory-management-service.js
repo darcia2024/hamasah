@@ -459,45 +459,111 @@ function createDormitoryManagementService({ database, staffDormitories, listStud
   }
 
   // ------------------------------------------------------------- galeri
-  // Foto kegiatan per asrama (migrasi 051). Fotonya unggahan berjenis 'dormitory-photo'
-  // dengan entityId = id asrama; baris galeri menautkannya beserta keterangan.
+  // Foto dan video kegiatan per asrama (migrasi 051 dan 077). Berkasnya unggahan 'dormitory-photo' atau
+  // 'dormitory-video' dengan entityId = id asrama; baris galeri menautkannya beserta keterangan, kategori,
+  // thumbnail, penonton (seluruh asrama atau santri terpilih), dan status publikasi.
+  const KATEGORI_GALERI = Object.freeze({ belajar: 'Belajar', ibadah: 'Ibadah', olahraga: 'Olahraga', kebersamaan: 'Kebersamaan', perjalanan: 'Perjalanan', lainnya: 'Lainnya' });
+  const STATUS_PUBLIK = Object.freeze({ internal: 'Internal', diajukan: 'Menunggu persetujuan publikasi', dipublikasi: 'Dipublikasikan', ditolak: 'Publikasi ditolak' });
+  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const DATABASE_GALERI_BARU = 'Database belum diperbarui untuk galeri foto dan video. Terapkan pembaruan database di halaman Pengaturan lebih dulu.';
+
   function barisFoto(row) {
-    return { id: row.id, fileId: row.file_id, caption: row.caption, takenOn: teksTanggal(row.taken_on), createdAt: iso(row.created_at) };
+    return {
+      id: row.id, fileId: row.file_id, caption: row.caption, takenOn: teksTanggal(row.taken_on), createdAt: iso(row.created_at),
+      mediaType: row.media_type || 'foto', category: row.category || 'lainnya', categoryLabel: KATEGORI_GALERI[row.category || 'lainnya'],
+      thumbFileId: row.thumb_file_id || null, audience: row.audience || 'asrama',
+      publicStatus: row.public_status || 'internal', publicStatusLabel: STATUS_PUBLIK[row.public_status || 'internal'],
+      consentNote: row.consent_note || '', publicDecisionNote: row.public_decision_note || ''
+    };
   }
 
-  async function galeri(dormitoryIds, batas) {
-    return (await ambil(
-      `SELECT id, dormitory_id, file_id, caption, taken_on, created_at FROM (
-         SELECT g.*, row_number() OVER (PARTITION BY g.dormitory_id ORDER BY COALESCE(g.taken_on, g.created_at::date) DESC, g.created_at DESC) AS urutan
-           FROM dormitory_gallery g
-          WHERE g.dormitory_id::text = ANY($1::text[]) AND g.archived_at IS NULL
-       ) t WHERE urutan <= $2
-       ORDER BY COALESCE(taken_on, created_at::date) DESC, created_at DESC`,
-      [dormitoryIds.map(String), batas]
-    )).map((row) => ({ ...barisFoto(row), dormitoryId: row.dormitory_id }));
+  // anakIds null = pandangan staf (semua item asrama, lengkap dengan santri yang ditandai). Selain itu pandangan
+  // keluarga: item ber-audience 'terpilih' hanya muncul bila salah satu anak mereka ditandai.
+  async function galeri(dormitoryIds, batas, { anakIds = null } = {}) {
+    let rows;
+    try {
+      rows = await ambil(
+        `SELECT * FROM (
+           SELECT g.*, row_number() OVER (PARTITION BY g.dormitory_id ORDER BY COALESCE(g.taken_on, g.created_at::date) DESC, g.created_at DESC) AS urutan
+             FROM dormitory_gallery g
+            WHERE g.dormitory_id::text = ANY($1::text[]) AND g.archived_at IS NULL
+              AND ($3::text[] IS NULL OR g.audience = 'asrama' OR EXISTS (SELECT 1 FROM dormitory_gallery_students s WHERE s.gallery_id = g.id AND s.student_id::text = ANY($3::text[])))
+         ) t WHERE urutan <= $2
+         ORDER BY COALESCE(taken_on, created_at::date) DESC, created_at DESC`,
+        [dormitoryIds.map(String), batas, anakIds ? anakIds.map(String) : null]
+      );
+    } catch (error) {
+      // Migrasi 077 belum diterapkan: galeri lama (foto saja) tetap tampil.
+      if (error.code !== '42703' && error.code !== '42P01') throw error;
+      if (error.code === '42P01' && !/dormitory_gallery_students/.test(String(error.message || ''))) throw error;
+      rows = await ambil(
+        `SELECT id, dormitory_id, file_id, caption, taken_on, created_at FROM (
+           SELECT g.*, row_number() OVER (PARTITION BY g.dormitory_id ORDER BY COALESCE(g.taken_on, g.created_at::date) DESC, g.created_at DESC) AS urutan
+             FROM dormitory_gallery g WHERE g.dormitory_id::text = ANY($1::text[]) AND g.archived_at IS NULL
+         ) t WHERE urutan <= $2 ORDER BY COALESCE(taken_on, created_at::date) DESC, created_at DESC`,
+        [dormitoryIds.map(String), batas]
+      );
+    }
+    const hasil = rows.map((row) => ({ ...barisFoto(row), dormitoryId: row.dormitory_id }));
+    if (!anakIds && hasil.length) {
+      const ditandai = await ambil(
+        `SELECT s.gallery_id, st.id, st.name FROM dormitory_gallery_students s JOIN students st ON st.id = s.student_id WHERE s.gallery_id::text = ANY($1::text[]) ORDER BY st.name`,
+        [hasil.map((f) => String(f.id))]
+      ).catch(() => []);
+      hasil.forEach((f) => { f.students = ditandai.filter((d) => String(d.gallery_id) === String(f.id)).map((d) => ({ id: d.id, name: d.name })); });
+    }
+    return hasil;
+  }
+
+  async function berkasSiap(fileId, purpose, dormitoryId) {
+    if (!UUID.test(String(fileId || ''))) return null;
+    const rows = await ambil(`SELECT id FROM file_objects WHERE id::text = $1 AND purpose = $2 AND entity_id = $3 AND status = 'ready'`, [String(fileId), purpose, String(dormitoryId)]);
+    return rows.length ? rows[0].id : null;
   }
 
   async function addPhoto(dormitoryId, input, actor) {
     const izin = await bolehKelola(dormitoryId, actor);
     if (!izin.ok) return izin;
     const s = input || {};
-    const fileId = String(s.fileId || '');
+    const jenis = s.mediaType === 'video' ? 'video' : 'foto';
+    const kategori = s.category === undefined || s.category === '' ? 'lainnya' : String(s.category);
+    if (!KATEGORI_GALERI[kategori]) return { ok: false, error: 'Kategori galeri tidak dikenal.' };
     const caption = bersih(s.caption, 160);
     const takenOn = s.takenOn ? String(s.takenOn) : null;
-    if (takenOn && !isTanggal(takenOn)) return { ok: false, error: 'Tanggal foto tidak valid.' };
-    // Unggahan harus benar-benar foto asrama ini yang sudah selesai dikirim.
-    const berkas = await ambil(
-      `SELECT 1 FROM file_objects WHERE id::text = $1 AND purpose = 'dormitory-photo' AND entity_id = $2 AND status = 'ready'`,
-      [fileId, String(dormitoryId)]
-    );
-    if (!berkas.length) return { ok: false, error: 'Foto belum selesai diunggah. Coba unggah ulang.' };
+    if (takenOn && !isTanggal(takenOn)) return { ok: false, error: 'Tanggal kegiatan tidak valid.' };
+    const audience = s.audience === 'terpilih' ? 'terpilih' : 'asrama';
+    const studentIds = [...new Set((Array.isArray(s.studentIds) ? s.studentIds : []).map(String))];
+    if (audience === 'terpilih' && !studentIds.length) return { ok: false, error: 'Pilih santri yang boleh melihat item ini, atau tampilkan untuk seluruh asrama.' };
+    if (audience === 'asrama' && studentIds.length) return { ok: false, error: 'Daftar santri hanya dipakai bila audiens "santri terpilih".' };
+    const persetujuan = bersih(s.publicConsentNote, 300);
+    if (persetujuan && jenis === 'video') return { ok: false, error: 'Video tidak dipublikasikan di website. Hanya foto yang dapat diajukan untuk publikasi.' };
+    if (persetujuan && persetujuan.length < 10) return { ok: false, error: 'Catatan persetujuan publikasi minimal 10 karakter: siapa yang menyetujui dan bagaimana.' };
+    // Unggahan harus benar-benar berkas asrama ini yang sudah selesai dikirim.
+    const fileId = await berkasSiap(s.fileId, jenis === 'video' ? 'dormitory-video' : 'dormitory-photo', dormitoryId);
+    if (!fileId) return { ok: false, error: jenis === 'video' ? 'Video belum selesai diunggah. Coba unggah ulang.' : 'Foto belum selesai diunggah. Coba unggah ulang.' };
+    let thumbId = null;
+    if (s.thumbFileId) {
+      thumbId = await berkasSiap(s.thumbFileId, 'dormitory-photo', dormitoryId);
+      if (!thumbId) return { ok: false, error: 'Thumbnail belum selesai diunggah. Coba unggah ulang.' };
+    }
     return tulis(async () => {
-      const [row] = await ambil(
-        `INSERT INTO dormitory_gallery (id, dormitory_id, file_id, caption, taken_on, created_by_account_id)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-        [crypto.randomUUID(), dormitoryId, fileId, caption, takenOn, actor.id || null]
-      );
-      return { ok: true, value: barisFoto(row) };
+      try {
+        if (audience === 'terpilih') {
+          const sah = await ambil(`SELECT id FROM students WHERE dormitory_id = $1 AND status = 'active' AND id::text = ANY($2::text[])`, [dormitoryId, studentIds]);
+          if (sah.length !== studentIds.length) return { ok: false, error: 'Ada santri yang bukan penghuni aktif asrama ini.' };
+        }
+        const id = crypto.randomUUID();
+        const [row] = await ambil(
+          `INSERT INTO dormitory_gallery (id, dormitory_id, file_id, caption, taken_on, created_by_account_id, media_type, category, thumb_file_id, audience, public_status, consent_note, consent_by_account_id, consent_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
+          [id, dormitoryId, fileId, caption, takenOn, actor.id || null, jenis, kategori, thumbId, audience, persetujuan ? 'diajukan' : 'internal', persetujuan, persetujuan ? (actor.id || null) : null, persetujuan ? now() : null]
+        );
+        for (const sid of studentIds) await database.query('INSERT INTO dormitory_gallery_students (gallery_id, student_id) VALUES ($1, $2)', [id, sid]);
+        return { ok: true, value: barisFoto(row) };
+      } catch (error) {
+        if (error.code === '42703' || (error.code === '42P01' && /dormitory_gallery_students/.test(String(error.message || '')))) return { ok: false, status: 409, error: DATABASE_GALERI_BARU };
+        throw error;
+      }
     });
   }
 
@@ -513,17 +579,99 @@ function createDormitoryManagementService({ database, staffDormitories, listStud
     });
   }
 
+  async function ambilItem(dormitoryId, photoId) {
+    if (!UUID.test(String(photoId || ''))) return null;
+    return (await ambil(`SELECT * FROM dormitory_gallery WHERE id::text = $1 AND dormitory_id::text = $2 AND archived_at IS NULL`, [String(photoId), String(dormitoryId)]))[0] || null;
+  }
+
+  // Mengajukan foto untuk ditampilkan publik: butuh catatan persetujuan (wali atau pihak berwenang) dan keputusan admin.
+  async function requestPublic(dormitoryId, photoId, input, actor) {
+    const izin = await bolehKelola(dormitoryId, actor);
+    if (!izin.ok) return izin;
+    const catatan = bersih(input && input.consentNote, 300);
+    if (catatan.length < 10) return { ok: false, error: 'Tulis catatan persetujuan publikasi (minimal 10 karakter): siapa yang menyetujui dan bagaimana.' };
+    return tulis(async () => {
+      const item = await ambilItem(dormitoryId, photoId);
+      if (!item) return { ok: false, status: 404, error: 'Foto tidak ditemukan.' };
+      if (item.media_type === 'video') return { ok: false, status: 409, error: 'Video tidak dipublikasikan di website.' };
+      if (!['internal', 'ditolak'].includes(item.public_status)) return { ok: false, status: 409, error: item.public_status === 'dipublikasi' ? 'Foto ini sudah dipublikasikan.' : 'Foto ini sudah diajukan.' };
+      const [row] = await ambil(`UPDATE dormitory_gallery SET public_status = 'diajukan', consent_note = $2, consent_by_account_id = $3, consent_at = $4, public_decision_note = '', public_decided_by_account_id = NULL, public_decided_at = NULL WHERE id = $1 RETURNING *`, [item.id, catatan, actor.id || null, now()]);
+      return { ok: true, value: barisFoto(row) };
+    });
+  }
+
+  async function decidePublic(dormitoryId, photoId, input, actor) {
+    if (!actor || actor.role !== 'admin') return { ok: false, status: 403, error: 'Hanya admin yang memutuskan publikasi foto.' };
+    const keputusan = String(input && input.decision || '');
+    if (!['dipublikasi', 'ditolak'].includes(keputusan)) return { ok: false, error: 'Keputusan harus dipublikasi atau ditolak.' };
+    const catatan = bersih(input && input.note, 300);
+    if (keputusan === 'ditolak' && catatan.length < 5) return { ok: false, error: 'Tulis alasan penolakan (minimal 5 karakter).' };
+    return tulis(async () => {
+      const item = await ambilItem(dormitoryId, photoId);
+      if (!item) return { ok: false, status: 404, error: 'Foto tidak ditemukan.' };
+      if (item.public_status !== 'diajukan') return { ok: false, status: 409, error: 'Foto ini tidak sedang menunggu keputusan publikasi.' };
+      if (keputusan === 'dipublikasi' && String(item.consent_note || '').length < 10) return { ok: false, status: 409, error: 'Tidak ada catatan persetujuan publikasi.' };
+      const [row] = await ambil(`UPDATE dormitory_gallery SET public_status = $2, public_decision_note = $3, public_decided_by_account_id = $4, public_decided_at = $5 WHERE id = $1 RETURNING *`, [item.id, keputusan, catatan, actor.id || null, now()]);
+      return { ok: true, value: barisFoto(row) };
+    });
+  }
+
+  // Mencabut publikasi: boleh oleh pengelola asrama (privasi didahulukan), foto kembali internal.
+  async function revokePublic(dormitoryId, photoId, actor) {
+    const izin = await bolehKelola(dormitoryId, actor);
+    if (!izin.ok) return izin;
+    return tulis(async () => {
+      const item = await ambilItem(dormitoryId, photoId);
+      if (!item) return { ok: false, status: 404, error: 'Foto tidak ditemukan.' };
+      if (!['diajukan', 'dipublikasi'].includes(item.public_status)) return { ok: false, status: 409, error: 'Foto ini tidak sedang diajukan atau dipublikasikan.' };
+      const [row] = await ambil(`UPDATE dormitory_gallery SET public_status = 'internal', public_decision_note = 'Dicabut oleh pengelola asrama.', public_decided_by_account_id = $2, public_decided_at = $3 WHERE id = $1 RETURNING *`, [item.id, actor.id || null, now()]);
+      return { ok: true, value: barisFoto(row) };
+    });
+  }
+
+  // Daftar publik (tanpa sesi): hanya foto yang sudah disetujui. Tanpa nama asrama, santri, atau catatan persetujuan.
+  async function publicGallery() {
+    const rows = await baca(() => ambil(
+      `SELECT id, caption, category, taken_on, created_at FROM dormitory_gallery WHERE public_status = 'dipublikasi' AND media_type = 'foto' AND archived_at IS NULL
+        ORDER BY COALESCE(taken_on, created_at::date) DESC, created_at DESC LIMIT 60`
+    ), []).catch((error) => { if (error.code === '42703') return []; throw error; });
+    return rows.map((r) => ({ id: r.id, caption: r.caption, category: r.category, categoryLabel: KATEGORI_GALERI[r.category], takenOn: teksTanggal(r.taken_on) }));
+  }
+
+  // Berkas yang boleh disajikan publik untuk satu item galeri yang dipublikasikan; null bila tidak (atau ditarik).
+  async function publicFileId(galleryId, kecil) {
+    if (!UUID.test(String(galleryId || ''))) return null;
+    const rows = await baca(() => ambil(`SELECT file_id, thumb_file_id FROM dormitory_gallery WHERE id::text = $1 AND public_status = 'dipublikasi' AND media_type = 'foto' AND archived_at IS NULL`, [String(galleryId)]), [])
+      .catch((error) => { if (error.code === '42703') return []; throw error; });
+    if (!rows.length) return null;
+    return kecil && rows[0].thumb_file_id ? rows[0].thumb_file_id : rows[0].file_id;
+  }
+
   // Aturan unggah dan unduh berkas 'dormitory-photo' (storage/upload-policies.js).
   async function bolehUnggahFoto(dormitoryId, actor) {
     return (await bolehKelola(dormitoryId, actor)).ok;
   }
 
-  async function bolehLihatFoto(dormitoryId, actor) {
+  // Berkas foto dan video galeri: staf asrama itu (dan admin) bebas; santri dan wali hanya berkas yang tertaut ke item galeri
+  // yang masih tayang dan memang untuk mereka (seluruh asrama, atau item terpilih yang menandai salah satu anak mereka).
+  async function bolehLihatFoto(dormitoryId, actor, record = null) {
     if (!actor) return false;
     if (['admin', 'supervisor'].includes(actor.role)) return (await bolehKelola(dormitoryId, actor)).ok;
     if (!['student', 'parent'].includes(actor.role)) return false;
-    const anak = await listStudentsForActor(actor);
-    return anak.some((s) => s.dormitoryId && String(s.dormitoryId) === String(dormitoryId));
+    const anak = (await listStudentsForActor(actor)).filter((s) => s.dormitoryId && String(s.dormitoryId) === String(dormitoryId));
+    if (!anak.length) return false;
+    if (!record || !record.id) return false;
+    const item = await baca(() => ambil(
+      `SELECT g.id, g.audience FROM dormitory_gallery g WHERE g.dormitory_id::text = $1 AND g.archived_at IS NULL AND (g.file_id::text = $2 OR g.thumb_file_id::text = $2)`,
+      [String(dormitoryId), String(record.id)]
+    ), []).catch((error) => { if (error.code === '42703') return [{ audience: 'asrama' }]; throw error; });
+    if (!item.length) return false;
+    if (item.every((g) => g.audience !== 'terpilih')) return true;
+    const boleh = await ambil(
+      `SELECT 1 FROM dormitory_gallery_students s JOIN dormitory_gallery g ON g.id = s.gallery_id WHERE g.dormitory_id::text = $1 AND g.archived_at IS NULL AND (g.file_id::text = $2 OR g.thumb_file_id::text = $2) AND s.student_id::text = ANY($3::text[])`,
+      [String(dormitoryId), String(record.id), anak.map((s) => String(s.id))]
+    );
+    return item.some((g) => g.audience !== 'terpilih') || boleh.length > 0;
   }
 
   // ------------------------------------------------------------- baca
@@ -576,7 +724,7 @@ function createDormitoryManagementService({ database, staffDormitories, listStud
       const semuaPiket = await piket(dormIds);
       return { tersedia: true, semuaJadwal, semuaPiket };
     }, { tersedia: false, semuaJadwal: [], semuaPiket: [] });
-    const semuaFoto = await baca(() => galeri(dormIds, GALERI_KELUARGA), []);
+    const semuaFoto = (await baca(() => galeri(dormIds, GALERI_KELUARGA, { anakIds: anak.map((s) => s.id) }), [])).map(({ consentNote, publicDecisionNote, ...f }) => f);
     const batasAgenda = geser(hariIni, AGENDA_KE_DEPAN_HARI);
     const dormitories = dormIds.map((dormId) => {
       const penghuni = anak.filter((s) => String(s.dormitoryId) === dormId);
@@ -608,7 +756,7 @@ function createDormitoryManagementService({ database, staffDormitories, listStud
     addDuty, deleteDuty, setDutyAssignments,
     addCash, voidCash, setDues,
     addInventory, updateInventory, archiveInventory,
-    addPhoto, archivePhoto, bolehUnggahFoto, bolehLihatFoto
+    addPhoto, archivePhoto, requestPublic, decidePublic, revokePublic, publicGallery, publicFileId, bolehUnggahFoto, bolehLihatFoto
   });
 }
 

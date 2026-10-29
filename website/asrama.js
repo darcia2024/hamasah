@@ -24,6 +24,7 @@
   let tabAktif = 'kalender';
   let adalahAdmin = false;
   let bulan = null;
+  let peranAkun = null;
   let nomor = 0;
   // Pesan berhasil tingkat halaman: panel digambar ulang setelah data dimuat ulang, jadi
   // pesan di dalam formulir lama ikut hilang.
@@ -643,7 +644,11 @@
   }
 
   // ------------------------------------------------------------ Galeri
-  // Foto kegiatan asrama (galeri-asrama.js). Tampil di beranda santri dan wali asrama ini.
+  // Foto dan video kegiatan asrama (galeri-asrama.js). Tampil di beranda santri dan wali sesuai audiens item.
+  // Foto bisa diajukan tampil di website dengan catatan persetujuan; admin yang memutuskan.
+  const KATEGORI_GALERI = [['lainnya', 'Lainnya'], ['belajar', 'Belajar'], ['ibadah', 'Ibadah'], ['olahraga', 'Olahraga'], ['kebersamaan', 'Kebersamaan'], ['perjalanan', 'Perjalanan']];
+  let saringKategori = '';
+
   function panelGaleri() {
     const galeri = data.gallery || { tersedia: false, items: [] };
     if (!galeri.tersedia) {
@@ -651,22 +656,22 @@
     }
     const G = window.HamasahGaleri;
 
-    const tambah = bagian('Unggah foto kegiatan', 'Foto tampil di beranda santri dan wali asrama ini. Pilih beberapa foto sekaligus; ukurannya dikecilkan otomatis.');
+    const tambah = bagian('Unggah foto dan video kegiatan', 'Tampil di beranda santri dan wali asrama ini. Foto dikecilkan otomatis dan dibuatkan thumbnail; video MP4 atau WebM maksimal 30 MB. Video hanya untuk internal asrama.');
     const idBerkas = idBaru('foto');
     const pilihBerkas = el('label', 'galeri-drop');
     pilihBerkas.htmlFor = idBerkas;
     const masukan = el('input', 'sr-only');
     masukan.type = 'file';
     masukan.id = idBerkas;
-    masukan.accept = 'image/jpeg,image/png,image/webp';
+    masukan.accept = 'image/jpeg,image/png,image/webp,video/mp4,video/webm';
     masukan.multiple = true;
-    const labelPilih = el('span', 'galeri-drop__text', 'Pilih foto');
-    const infoPilih = el('span', 'galeri-drop__hint', 'JPG, PNG, atau WebP');
+    const labelPilih = el('span', 'galeri-drop__text', 'Pilih foto atau video');
+    const infoPilih = el('span', 'galeri-drop__hint', 'JPG, PNG, WebP, MP4, atau WebM');
     pilihBerkas.append(masukan, labelPilih, infoPilih);
     masukan.addEventListener('change', () => {
       const n = masukan.files.length;
-      labelPilih.textContent = n ? `${n} foto dipilih` : 'Pilih foto';
-      infoPilih.textContent = n ? [...masukan.files].map((f) => f.name).slice(0, 3).join(', ') + (n > 3 ? ', ...' : '') : 'JPG, PNG, atau WebP';
+      labelPilih.textContent = n ? `${n} berkas dipilih` : 'Pilih foto atau video';
+      infoPilih.textContent = n ? [...masukan.files].map((f) => f.name).slice(0, 3).join(', ') + (n > 3 ? ', ...' : '') : 'JPG, PNG, WebP, MP4, atau WebM';
     });
     const baris = el('div', 'mus-form__row');
     const keterangan = bidang('Keterangan', 'text', { placeholder: 'Rihlah ke Alexandria' });
@@ -674,46 +679,144 @@
     keterangan.el.classList.add('lms-grow');
     const kapan = bidang('Tanggal kegiatan', 'date', { nilai: data.today || '' });
     baris.append(keterangan.el, kapan.el);
+
+    const baris2 = el('div', 'mus-form__row');
+    const kat = bidang('Kategori', 'text');
+    const selKat = el('select', 'mus-input');
+    selKat.id = kat.input.id;
+    KATEGORI_GALERI.forEach(([id, label]) => selKat.add(new Option(label, id)));
+    kat.input.replaceWith(selKat);
+    const aud = bidang('Siapa yang boleh melihat', 'text');
+    const selAud = el('select', 'mus-input');
+    selAud.id = aud.input.id;
+    selAud.add(new Option('Seluruh santri dan wali asrama ini', 'asrama'));
+    selAud.add(new Option('Santri tertentu dan walinya saja', 'terpilih'));
+    aud.input.replaceWith(selAud);
+    baris2.append(kat.el, aud.el);
+
+    const kotakSantri = el('fieldset', 'asr-checks');
+    kotakSantri.hidden = true;
+    kotakSantri.append(el('legend', 'mus-label', 'Pilih santri'));
+    const centang = new Map();
+    data.students.forEach((s) => {
+      const lbl = el('label', 'asr-check');
+      const cb = el('input');
+      cb.type = 'checkbox';
+      lbl.append(cb, el('span', '', s.name));
+      centang.set(s.id, cb);
+      kotakSantri.append(lbl);
+    });
+    selAud.addEventListener('change', () => { kotakSantri.hidden = selAud.value !== 'terpilih'; });
+
+    const persetujuan = bidang('Tampilkan di website? Catatan persetujuan (opsional)', 'text', { placeholder: 'Contoh: Seluruh wali menyetujui di rapat 5 Oktober' });
+    persetujuan.input.maxLength = 300;
+    persetujuan.el.classList.add('lms-grow');
+    const petunjukPublik = el('p', 'mus-note', 'Hanya foto. Diisi bila wali atau pihak berwenang sudah menyetujui fotonya tampil di website. Admin memeriksa dan memutuskan; tanpa keputusan admin foto tetap internal.');
+
     const st = status();
     const kirim = tombol('Unggah ke galeri', 'button button--primary');
     kirim.addEventListener('click', async () => {
       const berkas = [...masukan.files];
-      if (!berkas.length) { st.galat('Pilih foto dulu.'); return; }
+      if (!berkas.length) { st.galat('Pilih foto atau video dulu.'); return; }
+      const terpilih = [...centang.entries()].filter(([, cb]) => cb.checked).map(([id]) => id);
+      if (selAud.value === 'terpilih' && !terpilih.length) { st.galat('Pilih minimal satu santri, atau ubah ke seluruh asrama.'); return; }
+      const adaVideo = berkas.some((f) => /^video\//.test(f.type));
+      if (persetujuan.nilai().trim() && adaVideo) { st.galat('Video tidak dipublikasikan di website. Unggah video tanpa catatan persetujuan.'); return; }
       kirim.disabled = true;
       let berhasil = 0;
       try {
         for (const [i, f] of berkas.entries()) {
-          st.ok(`Mengunggah foto ${i + 1} dari ${berkas.length}...`);
-          const fileId = await G.unggah(asramaAktif, f, headers());
-          await api('POST', `/api/asrama/${asramaAktif}/galeri`, { fileId, caption: keterangan.nilai(), takenOn: kapan.nilai() || null });
+          st.ok(`Mengunggah berkas ${i + 1} dari ${berkas.length}...`);
+          const media = await G.unggahMedia(asramaAktif, f, headers());
+          await api('POST', `/api/asrama/${asramaAktif}/galeri`, {
+            fileId: media.fileId, thumbFileId: media.thumbFileId, mediaType: media.mediaType, caption: keterangan.nilai(), takenOn: kapan.nilai() || null,
+            category: selKat.value, audience: selAud.value, studentIds: selAud.value === 'terpilih' ? terpilih : undefined, publicConsentNote: persetujuan.nilai().trim() || undefined
+          });
           berhasil += 1;
         }
-        kabar = `${berhasil} foto ditambahkan ke galeri.`;
+        kabar = `${berhasil} berkas ditambahkan ke galeri.`;
         await muat();
       } catch (error) {
-        st.galat(berhasil ? `${berhasil} foto terunggah, lalu gagal: ${error.message}` : error.message);
+        st.galat(berhasil ? `${berhasil} berkas terunggah, lalu gagal: ${error.message}` : error.message);
         kirim.disabled = false;
-        if (berhasil) { kabar = `${berhasil} foto ditambahkan ke galeri.`; await muat(); }
+        if (berhasil) { kabar = `${berhasil} berkas ditambahkan ke galeri.`; await muat(); }
       }
     });
     const aksi = el('div', 'mus-actions');
     aksi.append(kirim);
-    tambah.append(pilihBerkas, baris, aksi, st.el);
+    tambah.append(pilihBerkas, baris, baris2, kotakSantri, persetujuan.el, petunjukPublik, aksi, st.el);
 
-    const lihat = bagian('Galeri asrama', galeri.items.length ? `${galeri.items.length} foto terbaru. Ketuk foto untuk melihat besar.` : null);
-    if (!galeri.items.length) {
-      lihat.append(el('p', 'asr-empty', 'Belum ada foto. Unggah foto kegiatan pertama di atas.'));
+    const semua = galeri.items;
+    const tampil = saringKategori ? semua.filter((f) => f.category === saringKategori) : semua;
+    const lihat = bagian('Galeri asrama', semua.length ? `${semua.length} berkas terbaru. Ketuk untuk melihat besar.` : null);
+    const saring = el('div', 'mus-form__row');
+    const fk = bidang('Saring kategori', 'text');
+    const selSaring = el('select', 'mus-input');
+    selSaring.id = fk.input.id;
+    selSaring.add(new Option('Semua kategori', ''));
+    KATEGORI_GALERI.forEach(([id, label]) => selSaring.add(new Option(label, id)));
+    selSaring.value = saringKategori;
+    fk.input.replaceWith(selSaring);
+    selSaring.addEventListener('change', () => { saringKategori = selSaring.value; muat().catch(() => {}); });
+    saring.append(fk.el);
+    lihat.append(saring);
+    if (!tampil.length) {
+      lihat.append(el('p', 'asr-empty', semua.length ? 'Tidak ada berkas pada kategori ini.' : 'Belum ada foto atau video. Unggah kegiatan pertama di atas.'));
     } else if (G) {
-      lihat.append(G.grid(galeri.items, {
+      lihat.append(G.grid(tampil, {
         headers: headers(),
         aksi: (f) => {
+          const kotak = el('div', 'galeri-cell__tools');
+          const info = [];
+          if (f.audience === 'terpilih') info.push(`Untuk: ${(f.students || []).map((s) => s.name).join(', ') || 'santri terpilih'}`);
+          if (f.mediaType === 'foto' && f.publicStatus !== 'internal') info.push(f.publicStatusLabel);
+          if (info.length) kotak.append(el('span', 'galeri-cell__info', info.join(' · ')));
           const tarik = tombol('Tarik', 'mus-link asr-danger galeri-cell__action');
-          tarik.setAttribute('aria-label', `Tarik foto ${f.caption || ''}`.trim());
+          tarik.setAttribute('aria-label', `Tarik ${f.mediaType === 'video' ? 'video' : 'foto'} ${f.caption || ''}`.trim());
           tarik.addEventListener('click', async () => {
-            if (!window.confirm('Tarik foto ini dari galeri? Santri dan wali tidak melihatnya lagi.')) return;
-            await lakukan(() => api('DELETE', `/api/asrama/${asramaAktif}/galeri/${f.id}`), null, 'Foto ditarik dari galeri.');
+            if (!window.confirm('Tarik item ini dari galeri? Santri dan wali tidak melihatnya lagi, dan tidak tampil publik.')) return;
+            await lakukan(() => api('DELETE', `/api/asrama/${asramaAktif}/galeri/${f.id}`), null, 'Item ditarik dari galeri.');
           });
-          return tarik;
+          kotak.append(tarik);
+          if (f.mediaType === 'foto' && ['internal', 'ditolak'].includes(f.publicStatus)) {
+            const ajukan = tombol(f.publicStatus === 'ditolak' ? 'Ajukan ulang ke website' : 'Ajukan ke website', 'mus-link galeri-cell__action');
+            ajukan.addEventListener('click', async () => {
+              const hasil = await window.HamasahDialog.formulir({
+                judul: 'Ajukan foto ke website',
+                keterangan: f.publicStatus === 'ditolak' && f.publicDecisionNote ? `Ditolak sebelumnya: ${f.publicDecisionNote}` : 'Foto tampil publik hanya setelah ada persetujuan wali atau pihak berwenang dan admin menyetujuinya. Catat siapa yang menyetujui dan bagaimana.',
+                bidang: [{ nama: 'consentNote', label: 'Catatan persetujuan', jenis: 'textarea', wajib: true, nilai: '' }],
+                labelSimpan: 'Ajukan',
+                kirim: (v) => api('POST', `/api/asrama/${asramaAktif}/galeri/${f.id}/publikasi`, v)
+              });
+              if (hasil) { kabar = 'Foto diajukan untuk tampil di website. Menunggu keputusan admin.'; await muat(); }
+            });
+            kotak.append(ajukan);
+          }
+          if (f.mediaType === 'foto' && ['diajukan', 'dipublikasi'].includes(f.publicStatus)) {
+            const cabut = tombol(f.publicStatus === 'dipublikasi' ? 'Cabut dari website' : 'Batalkan pengajuan', 'mus-link galeri-cell__action');
+            cabut.addEventListener('click', async () => {
+              await lakukan(() => api('POST', `/api/asrama/${asramaAktif}/galeri/${f.id}/cabut`), null, 'Foto tidak lagi tampil di website.');
+            });
+            kotak.append(cabut);
+          }
+          if (f.publicStatus === 'diajukan' && peranAkun === 'admin') {
+            const putus = tombol('Putuskan publikasi', 'button button--primary galeri-cell__action');
+            putus.addEventListener('click', async () => {
+              const hasil = await window.HamasahDialog.formulir({
+                judul: 'Keputusan publikasi foto',
+                keterangan: `Catatan persetujuan: ${f.consentNote}`,
+                bidang: [
+                  { nama: 'decision', label: 'Keputusan', jenis: 'select', pilihan: [['dipublikasi', 'Setujui tampil di website'], ['ditolak', 'Tolak']], nilai: 'dipublikasi' },
+                  { nama: 'note', label: 'Catatan (wajib bila ditolak)', jenis: 'textarea', nilai: '' }
+                ],
+                labelSimpan: 'Simpan keputusan',
+                kirim: (v) => api('POST', `/api/asrama/${asramaAktif}/galeri/${f.id}/keputusan`, v)
+              });
+              if (hasil) { kabar = hasil.publicStatus === 'dipublikasi' ? 'Foto kini tampil di website.' : 'Publikasi foto ditolak.'; await muat(); }
+            });
+            kotak.append(putus);
+          }
+          return kotak;
         }
       }));
     }
@@ -893,6 +996,7 @@
       guard.hidden = true;
       konsol.hidden = false;
       document.body.classList.add('in-crm');
+      peranAkun = akun.role;
       renderStaffNav(staffNav, akun.role, 'asrama', akun);
       adalahAdmin = akun.role === 'admin';
       try { tabAktif = localStorage.getItem(TAB_KUNCI) || tabAktif; } catch { /* opsional */ }

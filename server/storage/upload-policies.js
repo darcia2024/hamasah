@@ -275,8 +275,21 @@ const POLICIES = Object.freeze({
     async canUpload({ actor, entityId, services }) {
       return Boolean(actor) && services.dormitoryManagementService.bolehUnggahFoto(entityId, actor);
     },
-    async canDownload({ actor, entityId, services }) {
-      return Boolean(actor) && services.dormitoryManagementService.bolehLihatFoto(entityId, actor);
+    async canDownload({ actor, entityId, services, record }) {
+      return Boolean(actor) && services.dormitoryManagementService.bolehLihatFoto(entityId, actor, record);
+    }
+  }),
+  // Video kegiatan asrama (item 18): internal saja, tidak pernah dipublikasikan. Thumbnail (bingkai poster) memakai 'dormitory-photo'.
+  'dormitory-video': Object.freeze({
+    entityType: 'dormitory',
+    visibility: 'private',
+    contentTypes: Object.freeze(['video/mp4', 'video/webm']),
+    maxBytes: 30 * MB,
+    async canUpload({ actor, entityId, services }) {
+      return Boolean(actor) && services.dormitoryManagementService.bolehUnggahFoto(entityId, actor);
+    },
+    async canDownload({ actor, entityId, services, record }) {
+      return Boolean(actor) && services.dormitoryManagementService.bolehLihatFoto(entityId, actor, record);
     }
   }),
 

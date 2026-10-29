@@ -157,6 +157,8 @@ function createParentFeedbackService({ database, accessFor, staffDormitories, no
         `UPDATE parent_feedback SET status = $2, reply = COALESCE($3, reply), handled_by_account_id = $4, handled_at = $5 WHERE id = $1`,
         [id, status, balasan ? balasan : null, actor.id || null, now()]
       );
+      // Balasan baru dihitung belum dibaca wali (kotak pesan). Kolomnya dari migrasi 078; sebelum itu dilewati.
+      if (balasan) await database.query('UPDATE parent_feedback SET reply_read_at = NULL WHERE id = $1', [id]).catch((error) => { if (error.code !== '42703') throw error; });
       const { rows: akhir } = await database.query(`${SELECT} WHERE f.id = $1`, [id]);
       return { ok: true, value: bentuk(akhir[0], { staf: true }) };
     });

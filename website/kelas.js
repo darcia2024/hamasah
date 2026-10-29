@@ -160,6 +160,25 @@ function renderKatalog() {
 async function muatKatalog() {
   try {
     const hasil = await api('/api/kelas');
+    // Kelas berbayar umum dilayani di website learning terpisah bila admin mengaturnya; LMS di sini khusus santri.
+    const alihan = hasil.ok && typeof hasil.body.redirectUrl === 'string' ? hasil.body.redirectUrl : '';
+    if (alihan.startsWith('https://')) {
+      const kartu = document.createElement('li');
+      kartu.className = 'kelas-kartu';
+      const judul = document.createElement('h3');
+      judul.textContent = 'Kelas berbayar untuk umum';
+      const isi = document.createElement('p');
+      isi.textContent = 'Kelas Hamasah Courses untuk masyarakat umum dilayani di website learning kami. Pendaftaran dan pembayaran dilakukan di sana.';
+      const tautan = document.createElement('a');
+      tautan.className = 'button button--primary';
+      tautan.href = alihan;
+      tautan.rel = 'noopener noreferrer';
+      tautan.textContent = 'Buka website learning';
+      kartu.append(judul, isi, tautan);
+      el.katalog.replaceChildren(kartu);
+      setStatus(el.katalogStatus, '');
+      return;
+    }
     keadaan.katalog = hasil.ok ? hasil.body.items || [] : [];
     setStatus(el.katalogStatus, keadaan.katalog.length ? '' : 'Belum ada kelas yang dibuka. Tanyakan jadwal kelas berikutnya ke admin lewat WhatsApp.');
     renderKatalog();

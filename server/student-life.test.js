@@ -105,7 +105,9 @@ async function run() {
 
     // ------------------------------------------------------------------- pengumuman
     const tujuanMusyrif = await api('GET', '/api/announcements/asrama', tMusyrif);
-    assert.deepEqual(tujuanMusyrif.body, { allowAll: false, dormitories: [{ id: asramaA.id, name: 'Asrama A' }] });
+    assert.deepEqual(tujuanMusyrif.body.dormitories, [{ id: asramaA.id, name: 'Asrama A' }]);
+    assert.equal(tujuanMusyrif.body.allowAll, false);
+    assert.deepEqual(tujuanMusyrif.body.batches, [], 'Batch hanya untuk admin.');
     assert.equal((await api('GET', '/api/announcements/asrama', admin)).body.dormitories.length, 2);
     assert.equal((await api('GET', '/api/announcements/asrama', tAhmad)).status, 403);
     const semua = await api('POST', '/api/announcements', admin, { title: 'Libur Maulid', body: 'Kegiatan talaqqi libur pada hari Maulid Nabi.', audience: 'semua' });
@@ -242,11 +244,13 @@ async function run() {
     assert.equal((await api('GET', `/api/students/${ahmad.id}/doa`, tWali)).body.tersedia, false);
     assert.equal((await api('POST', `/api/students/${ahmad.id}/doa`, tWali, { body: 'Ditolak karena tabel belum ada.' })).status, 409);
     await database.query('DROP TABLE student_juz_progress');
+    await database.query('DROP TABLE announcement_reads');
+    await database.query('DROP TABLE announcement_students');
     await database.query('DROP TABLE announcements');
     await database.query('DROP TABLE student_leave_requests');
     const tanpaJuz = await api('GET', `/api/students/${ahmad.id}/juz`, tAhmad);
     assert.equal(tanpaJuz.body.tersedia, false);
-    assert.deepEqual((await api('GET', '/api/announcements', tAhmad)).body, { tersedia: false, items: [] });
+    assert.deepEqual((await api('GET', '/api/announcements', tAhmad)).body, { tersedia: false, unread: 0, items: [] });
     assert.equal((await api('GET', `/api/students/${ahmad.id}/leave`, tAhmad)).body.tersedia, false);
     assert.equal((await api('PUT', `/api/students/${ahmad.id}/juz/1`, admin, { status: 'hafal' })).status, 409);
     assert.equal((await api('POST', '/api/announcements', admin, { title: 'Uji', body: 'Ditolak karena tabel belum ada.', audience: 'semua' })).status, 409);

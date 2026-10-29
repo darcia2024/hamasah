@@ -54,6 +54,33 @@ module.exports = [
     }
   },
 
+  // Notifikasi belum dibaca: tandai satu pengumuman atau semuanya sebagai dibaca oleh akun ini.
+  {
+    method: 'POST',
+    pattern: /^\/api\/announcements\/dibaca-semua$/,
+    permission: 'students.read',
+    async handler({ response, services, auth }) {
+      balas(response, await services.studentLifeService.markAllAnnouncementsRead(await auth.actor()));
+    }
+  },
+  {
+    method: 'POST',
+    pattern: /^\/api\/announcements\/([\w-]+)\/dibaca$/,
+    permission: 'students.read',
+    async handler({ response, services, auth, params }) {
+      balas(response, await services.studentLifeService.markAnnouncementRead(params[0], await auth.actor()));
+    }
+  },
+  // Penerima dan status baca satu pengumuman, untuk admin dan musyrif.
+  {
+    method: 'GET',
+    pattern: /^\/api\/announcements\/([\w-]+)\/penerima$/,
+    permission: 'announcements.manage',
+    async handler({ response, services, auth, params }) {
+      balas(response, await services.studentLifeService.announcementRecipients(params[0], await auth.actor()));
+    }
+  },
+
   // Asrama yang boleh dituju penulis pengumuman.
   {
     method: 'GET',
@@ -75,7 +102,7 @@ module.exports = [
         await services.auditService.record({
           action: ACTIONS.ANNOUNCEMENT_CREATED, actor, ip,
           entityType: 'announcement', entityId: hasil.value.id,
-          metadata: { penerima: hasil.value.audience, asrama: hasil.value.dormitoryId || 'semua' }
+          metadata: { penerima: hasil.value.audience, asrama: hasil.value.dormitoryId || 'semua', batch: hasil.value.batchId || null, santri: hasil.value.studentCount || 0 }
         });
         if (services.eventNotifier && services.eventNotifier.announcementPublished) await services.eventNotifier.announcementPublished(hasil.value);
       }

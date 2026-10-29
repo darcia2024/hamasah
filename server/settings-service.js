@@ -23,12 +23,19 @@ const DEFINISI = Object.freeze({
   },
   // Rekening tujuan transfer pembelian kelas daring, tampil di halaman kelas.html.
   'kelas.rekening': { jenis: 'teks', bawaan: '', min: 0, maks: 300 },
+  // Alamat website learning terpisah untuk kelas berbayar masyarakat umum. Bila diisi (https), halaman kelas
+  // mengarahkan pembeli ke sana dan pendaftaran serta pembelian di sistem ini ditolak; LMS di sini khusus santri.
+  'kelas.websiteBelajar': { jenis: 'teks', bawaan: '', min: 0, maks: 300 },
   // Rekening tujuan pembayaran tagihan santri (SPP, asrama, dll.), tampil di portal wali dan
   // santri pada tagihan yang belum dibayar. Kosong: wali diarahkan meminta rekening lewat WA.
   'tagihan.rekening': { jenis: 'teks', bawaan: '', min: 0, maks: 300 },
   'kesehatan.aktif': { jenis: 'saklar', bawaan: false },
   'asisten.situs': { jenis: 'saklar', bawaan: true },
   'asisten.belajar': { jenis: 'saklar', bawaan: true },
+  // Asisten operasional (ringkasan asrama, perkembangan santri, dokumen, draf pengumuman). 'kirimKeLuar' mati secara bawaan:
+  // selama mati, tidak ada data yang dikirim ke penyedia AI di luar dan ringkasan disusun lokal.
+  'asisten.operasional': { jenis: 'saklar', bawaan: true },
+  'asisten.kirimKeLuar': { jenis: 'saklar', bawaan: false },
   'asisten.batasPerJam': { jenis: 'angka', bawaan: 20, min: 1, maks: 200 },
   'audit.masaSimpanHari': { jenis: 'angka', bawaan: 365, min: 90, maks: 3650 }
 });
@@ -38,10 +45,13 @@ const LABEL = Object.freeze({
   'pendaftaran.periode': 'Periode penerimaan',
   'pendaftaran.pesanTutup': 'Pesan saat pendaftaran ditutup',
   'kelas.rekening': 'Rekening pembayaran kelas daring',
+  'kelas.websiteBelajar': 'Website learning untuk kelas berbayar (https)',
   'tagihan.rekening': 'Rekening pembayaran tagihan santri',
   'kesehatan.aktif': 'Catatan kesehatan',
   'asisten.situs': 'Asisten di website',
   'asisten.belajar': 'Asisten belajar LMS',
+  'asisten.operasional': 'Asisten operasional (ringkasan dan draf)',
+  'asisten.kirimKeLuar': 'Izinkan asisten operasional mengirim data teranonimkan ke penyedia AI di luar',
   'asisten.batasPerJam': 'Batas pertanyaan asisten per jam',
   'audit.masaSimpanHari': 'Masa simpan jejak audit'
 });

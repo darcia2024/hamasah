@@ -549,6 +549,8 @@
 
 /* Katalog pertemuan dan ruang menonton. */
 .lms-maddah-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.lms-group-title { grid-column: 1 / -1; margin: 12px 0 0; font-size: 1.05rem; color: #363638; }
+.lms-group-title:first-child { margin-top: 0; }
 .lms-maddah-card { min-width: 0; padding: 0; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #E3E0D8; border-radius: 12px; background: #FFFFFF; font: inherit; text-align: left; color: #363638; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
 .lms-maddah-card:hover { border-color: #B99337; box-shadow: 0 8px 24px -16px #3F330C66; }
 .lms-maddah-card:focus-visible { outline: 2px solid #856000; outline-offset: 4px; }

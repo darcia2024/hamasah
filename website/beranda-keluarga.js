@@ -325,6 +325,127 @@
     return wadah;
   }
 
+  // Kotak pesan satu pintu (GET /api/kotak-pesan): pengumuman umum, pesan pembinaan pribadi, dan balasan masukan wali
+  // ditampilkan terpisah jenisnya, dengan penanda belum dibaca. Ditandai dibaca hanya atas tindakan pembaca.
+  function kartuKotakPesan(data, { headers = {}, polos = false } = {}) {
+    if (!data || !Array.isArray(data.items) || !data.items.length) return null;
+    const items = data.items.map((i) => ({ ...i }));
+    const kinds = Array.isArray(data.kinds) ? data.kinds : [];
+    let saring = 'semua';
+    const wadah = el('section', polos ? 'wali-section' : 'crm-white-card beranda-card');
+    wadah.id = 'kotak-pesan';
+    const kepala = el('div', 'beranda-card__head kotak-head');
+    const judul = el('h3', 'beranda-card__title', 'Kotak pesan');
+    const badge = el('span', 'kotak-badge');
+    badge.setAttribute('role', 'status');
+    const semuaBaca = el('button', 'mus-link', 'Tandai semua dibaca');
+    semuaBaca.type = 'button';
+    kepala.append(judul, badge, semuaBaca);
+    const chips = el('div', 'kotak-chips');
+    chips.setAttribute('role', 'group');
+    chips.setAttribute('aria-label', 'Saring jenis pesan');
+    const tombolChip = new Map();
+    [{ id: 'semua', label: 'Semua' }, ...kinds].forEach((k) => {
+      const b = el('button', 'kotak-chip', k.label);
+      b.type = 'button';
+      b.addEventListener('click', () => { saring = k.id; gambar(); });
+      tombolChip.set(k.id, b);
+      chips.append(b);
+    });
+    const pager = penomoran({
+      perHalaman: 5,
+      tagDaftar: 'ul',
+      kelasDaftar: 'beranda-announce',
+      render(halaman, daftar) {
+        halaman.forEach((item) => {
+          const baris = el('li', `beranda-announce__item${item.read ? '' : ' is-unread'}`);
+          const atas = el('span', 'kotak-kind', [item.kindLabel, item.subKind && item.subKind !== item.kindLabel ? item.subKind : ''].filter(Boolean).join(' · '));
+          const judulItem = el('strong', 'beranda-announce__title', item.title);
+          if (!item.read) judulItem.append(el('span', 'kotak-new', 'Baru'));
+          baris.append(
+            atas, judulItem,
+            el('p', 'beranda-announce__body', item.body),
+            el('span', 'beranda-announce__meta', [item.from, item.studentName, tanggal(item.at)].filter(Boolean).join(' · '))
+          );
+          if (!item.read) {
+            const tandai = el('button', 'mus-link kotak-mark', 'Tandai dibaca');
+            tandai.type = 'button';
+            tandai.addEventListener('click', async () => {
+              tandai.disabled = true;
+              try {
+                const r = await fetch(`/api/kotak-pesan/${item.kind}/${encodeURIComponent(item.id)}/dibaca`, { method: 'POST', headers });
+                if (r.ok) { item.read = true; gambar(); } else tandai.disabled = false;
+              } catch { tandai.disabled = false; }
+            });
+            baris.append(tandai);
+          }
+          daftar.append(baris);
+        });
+      }
+    });
+    function gambar() {
+      const belum = items.filter((i) => !i.read);
+      badge.textContent = belum.length ? `${belum.length} belum dibaca` : 'Semua sudah dibaca';
+      badge.classList.toggle('is-clear', !belum.length);
+      semuaBaca.hidden = !belum.length;
+      tombolChip.forEach((b, id) => {
+        const n = items.filter((i) => (id === 'semua' || i.kind === id) && !i.read).length;
+        const label = id === 'semua' ? 'Semua' : (kinds.find((k) => k.id === id) || {}).label;
+        b.textContent = n ? `${label} (${n})` : label;
+        b.setAttribute('aria-pressed', String(saring === id));
+        b.classList.toggle('is-active', saring === id);
+      });
+      pager.setel(saring === 'semua' ? items : items.filter((i) => i.kind === saring));
+    }
+    semuaBaca.addEventListener('click', async () => {
+      semuaBaca.disabled = true;
+      try {
+        const r = await fetch('/api/kotak-pesan/dibaca-semua', { method: 'POST', headers });
+        if (r.ok) items.forEach((i) => { i.read = true; });
+      } catch { /* tetap tampil apa adanya */ }
+      semuaBaca.disabled = false;
+      gambar();
+    });
+    wadah.append(kepala, chips, pager.wadah);
+    gambar();
+    return wadah;
+  }
+
+  // Penjelasan perkembangan ananda dari Asisten Hamasah (POST /api/asisten-operasional/perkembangan-santri). Hanya membaca dan
+  // merangkum data yang memang boleh dilihat akun ini; angka selalu dari data, kalimatnya bisa dibantu AI.
+  function kartuAsisten(student, { headers = {}, polos = false, santri = false } = {}) {
+    if (!student || !student.id) return null;
+    const wadah = el('section', polos ? 'wali-section' : 'crm-white-card beranda-card');
+    const kepala = el('div', 'beranda-card__head');
+    kepala.append(el('h3', 'beranda-card__title', 'Asisten Hamasah'));
+    const catatan = el('p', 'beranda-card__note', santri ? 'Minta penjelasan singkat tentang kehadiran dan hafalanmu.' : `Minta penjelasan singkat tentang kehadiran dan hafalan ${student.name || 'ananda'}.`);
+    const tombol = el('button', 'button button--secondary', 'Jelaskan perkembangan');
+    tombol.type = 'button';
+    const hasil = el('div', 'asisten-hasil');
+    hasil.setAttribute('aria-live', 'polite');
+    tombol.addEventListener('click', async () => {
+      tombol.disabled = true;
+      hasil.replaceChildren(el('p', 'wali-loading', 'Menyusun penjelasan...'));
+      try {
+        const r = await fetch('/api/asisten-operasional/perkembangan-santri', { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId: student.id }) });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.error || 'Asisten belum dapat dipakai saat ini.');
+        const daftar = el('ul', 'asisten-fakta');
+        data.facts.forEach((f) => daftar.append(el('li', '', `${f.label}: ${f.value}`)));
+        hasil.replaceChildren(
+          el('p', 'asisten-teks', data.text), daftar,
+          el('p', 'beranda-card__note', `${data.mode === 'ai' ? 'Dibantu AI' : 'Disusun otomatis dari data'}. ${data.disclaimer}`)
+        );
+      } catch (error) {
+        const p = el('p', 'mus-status is-galat', error.message);
+        p.setAttribute('role', 'alert');
+        hasil.replaceChildren(p);
+      } finally { tombol.disabled = false; }
+    });
+    wadah.append(kepala, catatan, tombol, hasil);
+    return wadah;
+  }
+
   // --------------------------------------------------------- Jadwal asrama
   // Jadwal rutin, agenda, dan piket dari Kelola Asrama (GET /api/asrama-saya), untuk
   // santri dan wali. Dimuat sekali per halaman.
@@ -491,7 +612,7 @@
   }
 
   window.HamasahBerandaKeluarga = Object.freeze({
-    santri, muatAnak, ambil, butirKegiatan, kartuLinimasa, kartuPengumuman, penomoran, chipUrusan, kartuKelas,
+    santri, muatAnak, ambil, butirKegiatan, kartuLinimasa, kartuPengumuman, kartuKotakPesan, kartuAsisten, penomoran, chipUrusan, kartuKelas,
     muatJadwalAsrama, bagianJadwalAsrama,
     inisial, tanggal, rupiah, terbaru, PERIODE_HARI, NILAI_HAFALAN, PRESENSI
   });

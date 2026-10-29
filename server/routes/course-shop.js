@@ -2,13 +2,24 @@ const { json, publicError } = require('../http/respond.js');
 const { ACTIONS } = require('../audit-service.js');
 
 // Toko kelas daring (kelas.html). Logika di server/course-shop-service.js.
+// Alamat website learning terpisah (pengaturan kelas.websiteBelajar). Hanya https yang dipakai; selain itu dianggap tidak diatur.
+async function websiteBelajar(services) {
+  if (!services.settingsService) return '';
+  const nilai = String(await services.settingsService.ambil('kelas.websiteBelajar') || '').trim();
+  try { return new URL(nilai).protocol === 'https:' ? nilai : ''; } catch { return ''; }
+}
+
+function dialihkan(response, alamat) {
+  json(response, 409, { error: 'Kelas berbayar untuk umum kini dilayani di website learning terpisah. LMS ini khusus santri Hamasah.', code: 'dialihkan', redirectUrl: alamat });
+}
+
 module.exports = [
   // Katalog publik: kelas yang diterbitkan admin beserta harganya.
   {
     method: 'GET',
     pattern: /^\/api\/kelas$/,
     async handler({ response, services }) {
-      json(response, 200, { items: await services.courseShop.catalog() });
+      json(response, 200, { items: await services.courseShop.catalog(), redirectUrl: (await websiteBelajar(services)) || null });
     }
   },
 
@@ -18,6 +29,8 @@ module.exports = [
     pattern: /^\/api\/kelas\/daftar$/,
     rateLimit: { rule: 'learner-signup', identity: ({ ip }) => ip },
     async handler({ response, services, readBody, ip }) {
+      const alamat = await websiteBelajar(services);
+      if (alamat) { dialihkan(response, alamat); return; }
       const hasil = await services.courseShop.signup(await readBody());
       if (!hasil.ok) {
         json(response, 422, { error: hasil.error, field: hasil.field || null });
@@ -46,6 +59,8 @@ module.exports = [
     pattern: /^\/api\/kelas\/([\w-]+)\/beli$/,
     permission: 'shop.buy',
     async handler({ response, services, auth, params, ip }) {
+      const alamat = await websiteBelajar(services);
+      if (alamat) { dialihkan(response, alamat); return; }
       const actor = await auth.actor();
       const hasil = await services.courseShop.buy(params[0], actor);
       if (!hasil.ok) {

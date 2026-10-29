@@ -163,14 +163,19 @@ function createEventNotifier({ notificationService, registrationStore, database,
         if (!announcement || !announcement.id || !['wali', 'semua'].includes(announcement.audience)) return 0;
         const { rows: isi } = await database.query('SELECT title, body FROM announcements WHERE id = $1', [announcement.id]);
         if (!isi.length) return 0;
+        // Pengumuman untuk batch atau santri tertentu hanya dikirim ke wali santri yang bersangkutan, bukan ke seluruh wali.
+        const sasaranBatch = announcement.batchId || null;
+        const sasaranSantri = announcement.studentCount > 0;
         const { rows } = await database.query(
           `SELECT DISTINCT a.email, a.name
              FROM accounts a
              JOIN student_parent_accounts pa ON pa.parent_account_id = a.id
              JOIN students s ON s.id = pa.student_id
             WHERE a.active = TRUE AND a.role = 'parent'
-              AND ($1::uuid IS NULL OR s.dormitory_id = $1::uuid)`,
-          [announcement.dormitoryId || null]
+              AND ($1::uuid IS NULL OR s.dormitory_id = $1::uuid)
+              AND ($2::uuid IS NULL OR EXISTS (SELECT 1 FROM batch_participants bp WHERE bp.batch_id = $2::uuid AND bp.student_id = s.id AND bp.status = 'aktif'))
+              AND (NOT $3::boolean OR EXISTS (SELECT 1 FROM announcement_students x WHERE x.announcement_id = $4::uuid AND x.student_id = s.id))`,
+          [announcement.dormitoryId || null, sasaranBatch, sasaranSantri, announcement.id]
         );
         let jumlah = 0;
         for (const wali of rows) {

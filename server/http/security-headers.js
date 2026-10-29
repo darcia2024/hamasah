@@ -13,7 +13,7 @@ const DEFAULT_DIRECTIVES = Object.freeze({
   'font-src': Object.freeze(["'self'", 'https://fonts.gstatic.com']),
   'img-src': Object.freeze(["'self'", 'data:', 'blob:', 'https://i.ytimg.com']),
   'connect-src': Object.freeze(["'self'"]),
-  'media-src': Object.freeze(["'self'"]),
+  'media-src': Object.freeze(["'self'", 'blob:']),
   // Video materi LMS: hanya pemutar YouTube mode privasi (tanpa cookie) yang boleh disematkan
   // (keputusan pemilik 17 Oktober 2026). Sumber bingkai lain tetap ditolak lewat default-src.
   'frame-src': Object.freeze(['https://www.youtube-nocookie.com', 'blob:']),
