@@ -29,6 +29,12 @@ function hariIniJakarta(date) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
 }
 
+// Hari asrama: asrama ada di Kairo, jadi "hari ini" untuk presensi mengikuti tanggal Kairo (sama dengan halaman
+// Presensi dan Kegiatan). Batas "masa depan" tetap tanggal Jakarta, yang selalu sama atau sehari di depan Kairo.
+function hariIniKairo(date) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
+}
+
 function createDormitoryRollService({ database, staffDormitories, recordPrayers, recordAttendance, healthEnabled = async () => false, now = () => new Date() } = {}) {
   if (!database || typeof staffDormitories !== 'function' || typeof recordPrayers !== 'function' || typeof recordAttendance !== 'function') {
     throw new Error('createDormitoryRollService membutuhkan database, staffDormitories, recordPrayers, dan recordAttendance.');
@@ -167,7 +173,7 @@ function createDormitoryRollService({ database, staffDormitories, recordPrayers,
   async function todaySummary(actor) {
     if (!staf(actor)) return { ok: false, status: 403, error: 'Hanya admin dan musyrif.' };
     const milik = actor.role === 'supervisor' ? await staffDormitories(actor.id) : null;
-    const tanggal = hariIniJakarta(now());
+    const tanggal = hariIniKairo(now());
     const { rows: santri } = await database.query(
       `SELECT id FROM students WHERE status = 'active' AND dormitory_id IS NOT NULL
          AND ($1::uuid[] IS NULL OR dormitory_id = ANY($1::uuid[]))`,

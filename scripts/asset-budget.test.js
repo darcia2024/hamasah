@@ -11,6 +11,10 @@ const BATAS_PER_BERKAS = 230 * 1024;
 // Hamasah Indonesia. Yang dimuat pengunjung tetap kecil: galeri memuat versi 640 px secara
 // lazy, dan batas per berkas di atas tidak berubah.
 const BATAS_TOTAL = 5 * 1024 * 1024;
+// Halaman presentasi mandiri (/pitch, /internal, /qohiroh) berisi tangkapan layar aplikasi dan tidak dimuat pengunjung
+// situs utama, jadi punya anggaran sendiri per folder (30 Oktober 2026). Batas per berkas tetap berlaku untuk semuanya.
+const FOLDER_PRESENTASI = Object.freeze(['pitch', 'internal', 'qohiroh']);
+const BATAS_PER_PRESENTASI = 6 * 1024 * 1024;
 const GAMBAR = /\.(jpe?g|png|webp|gif|avif)$/i;
 
 function daftar(direktori) {
@@ -27,7 +31,13 @@ assert.deepEqual(
   [],
   `Gambar di atas ${BATAS_PER_BERKAS / 1024} KB harus dikecilkan sebelum masuk repo.`
 );
-const total = berkas.reduce((jumlah, item) => jumlah + item.ukuran, 0);
-assert.ok(total <= BATAS_TOTAL, `Total gambar ${Math.round(total / 1024)} KB melebihi anggaran ${BATAS_TOTAL / 1024} KB.`);
+const folderAtas = (item) => item.lokasi.split(path.sep)[0];
+const situs = berkas.filter((item) => !FOLDER_PRESENTASI.includes(folderAtas(item)));
+const total = situs.reduce((jumlah, item) => jumlah + item.ukuran, 0);
+assert.ok(total <= BATAS_TOTAL, `Total gambar situs ${Math.round(total / 1024)} KB melebihi anggaran ${BATAS_TOTAL / 1024} KB.`);
+for (const folder of FOLDER_PRESENTASI) {
+  const ukuran = berkas.filter((item) => folderAtas(item) === folder).reduce((jumlah, item) => jumlah + item.ukuran, 0);
+  assert.ok(ukuran <= BATAS_PER_PRESENTASI, `Gambar assets/${folder} ${Math.round(ukuran / 1024)} KB melebihi anggaran presentasi ${BATAS_PER_PRESENTASI / 1024} KB.`);
+}
 
-console.log(`asset budget tests passed (${berkas.length} gambar, ${Math.round(total / 1024)} KB)`);
+console.log(`asset budget tests passed (${situs.length} gambar situs, ${Math.round(total / 1024)} KB; presentasi dianggarkan terpisah)`);

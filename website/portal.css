@@ -7373,7 +7373,8 @@ button.santri-juz__cell:focus-visible {
 .ananda-stat__note {
   font-size: var(--fs-12);
   line-height: 1.35;
-  color: #8a8a8f;
+  /* #8a8a8f hanya 3,4:1 di atas putih (audit kontras); #6b6b70 sekitar 5,3:1. */
+  color: #6b6b70;
 }
 
 .ananda-hero + .crm-subtabs-row {
@@ -9034,6 +9035,11 @@ button.santri-juz__cell:focus-visible {
 .portal-remember__label { display: flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 600; cursor: pointer; }
 .portal-remember__label input { width: 20px; height: 20px; flex: none; }
 .portal-remember__hint { margin: 0; font-size: var(--fs-13); line-height: 1.45; color: var(--md-sys-color-outline); }
+
+/* Pengumuman admin untuk musyrif di kartu Tugas hari ini (portal.js tambahPengumumanMusyrif). */
+.musyrif-task--pengumuman { align-items: flex-start; }
+.musyrif-task--pengumuman > span { display: grid; gap: 4px; min-width: 0; }
+.musyrif-task__body { white-space: pre-line; font-size: var(--fs-14); line-height: 1.5; }
 
 /* Akun dengan satu menu (wali, santri): tanpa sidebar di desktop; menu akun tetap di bilah atas. */
 @media (min-width: 801px) {

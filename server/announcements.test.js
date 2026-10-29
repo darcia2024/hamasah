@@ -106,6 +106,28 @@ async function run() {
     const sementara = await buat(tA, { title: 'Akan dihapus', studentIds: [s2.id] });
     assert.equal((await api('DELETE', `/api/announcements/${sementara.body.announcement.id}`, tA)).status, 204);
 
+    // ------------------------------------------------------------ pengumuman untuk musyrif (migrasi 080)
+    assert.equal((await buat(tA, { title: 'Musyrif oleh musyrif', audience: 'musyrif', dormitoryId: A.id })).status, 403, 'Hanya admin.');
+    assert.equal((await buat(admin, { title: 'Musyrif ke santri', audience: 'musyrif', studentIds: [s1.id] })).status, 422, 'Bukan untuk santri tertentu.');
+    const rapatSemua = await buat(admin, { title: 'Rapat semua musyrif', audience: 'musyrif' });
+    assert.equal(rapatSemua.status, 201, rapatSemua.teks);
+    const rapatA = await buat(admin, { title: 'Rapat musyrif A', audience: 'musyrif', dormitoryId: A.id });
+    assert.equal(rapatA.status, 201, rapatA.teks);
+    const judulMusyrif = async (token) => (await api('GET', '/api/announcements?limit=50', token)).body.items.filter((a) => a.audience === 'musyrif').map((a) => a.title).sort();
+    assert.deepEqual(await judulMusyrif(tA), ['Rapat musyrif A', 'Rapat semua musyrif']);
+    assert.deepEqual(await judulMusyrif(tB), ['Rapat semua musyrif'], 'Musyrif B tidak melihat pengumuman untuk musyrif asrama A.');
+    for (const t of [tS1, tW1, tS2, tW3]) assert.deepEqual(await judulMusyrif(t), [], 'Santri dan wali tidak pernah melihat pengumuman musyrif.');
+    const daftarA = (await api('GET', '/api/announcements?limit=50', tA)).body.items;
+    assert.ok(daftarA.filter((a) => a.audience === 'musyrif').every((a) => a.canDelete === false), 'Musyrif tidak menghapus pengumuman dari admin.');
+    assert.equal((await api('DELETE', `/api/announcements/${rapatA.body.announcement.id}`, tA)).status, 403);
+    assert.equal((await api('POST', `/api/announcements/${rapatA.body.announcement.id}/dibaca`, tB)).status, 404, 'Musyrif B bukan penerimanya.');
+    assert.equal((await api('POST', `/api/announcements/${rapatA.body.announcement.id}/dibaca`, tA)).status, 200);
+    const penerimaRapat = await api('GET', `/api/announcements/${rapatSemua.body.announcement.id}/penerima`, admin);
+    assert.deepEqual([penerimaRapat.body.total, penerimaRapat.body.read], [2, 0], 'Semua musyrif aktif menjadi penerima.');
+    const penerimaRapatA = await api('GET', `/api/announcements/${rapatA.body.announcement.id}/penerima`, admin);
+    assert.deepEqual(penerimaRapatA.body.items.map((i) => [i.name, i.role, Boolean(i.readAt)]), [['Musyrif A', 'musyrif', true]]);
+    assert.equal((await api('GET', `/api/announcements/${rapatA.body.announcement.id}/penerima`, tA)).status, 404, 'Daftar penerima pengumuman musyrif hanya untuk admin.');
+
     // ------------------------------------------------------------ notifikasi belum dibaca
     const daftarS1 = (await api('GET', '/api/announcements?limit=50', tS1)).body;
     assert.equal(daftarS1.unread, 3);

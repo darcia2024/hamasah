@@ -121,12 +121,14 @@
     const cari = isian('search', '', { placeholder: 'Nama, kode, atau lokasi' });
     const kategori = pilihan([['', 'Semua kategori'], ...state.opsi.categories.map((c) => [c.id, c.label])]);
     const kondisi = pilihan([['', 'Semua kondisi'], ...state.opsi.conditions.map((c) => [c.id, c.label])]);
+    const pemilik = pilihan([['', 'Semua pemilik'], ...(state.opsi.ownerTypes || []).map((c) => [c.id, c.label])]);
     const bar = el('div', 'kg-bar');
-    bar.append(kolom('Asrama', sel), kolom('Cari', cari), kolom('Kategori', kategori), kolom('Kondisi', kondisi), tombol('Aset baru', 'button button--primary kg-small', () => formAset(null).catch(() => {})));
+    bar.append(kolom('Asrama', sel), kolom('Cari', cari), kolom('Kategori', kategori), kolom('Kondisi', kondisi), kolom('Pemilik', pemilik), tombol('Aset baru', 'button button--primary kg-small', () => formAset(null).catch(() => {})));
     const status = pesanStatus();
     const isi = el('div');
     const rincian = el('div');
-    const b = bagian('Aset asrama', 'Kode, kategori, lokasi, jumlah, kondisi, foto, dan bukti pembelian. Setiap perubahan kondisi dan kejadian tercatat di riwayat aset.');
+    let penghuni = [];
+    const b = bagian('Aset asrama', 'Kode, kategori, lokasi, jumlah, kondisi, sumber dana, foto, dan bukti pembelian. Barang pribadi santri (misalnya kasur bawaan) dicatat dengan pemiliknya dan tidak dihitung sebagai nilai aset asrama. Setiap perubahan kondisi dan kejadian tercatat di riwayat aset.');
     b.append(bar, status, isi);
     akar.append(b, rincian);
 
@@ -135,15 +137,18 @@
       if (cari.value.trim()) params.set('q', cari.value.trim());
       if (kategori.value) params.set('category', kategori.value);
       if (kondisi.value) params.set('condition', kondisi.value);
+      if (pemilik.value) params.set('owner', pemilik.value);
       status.set('Memuat...');
       try {
         const data = await api('GET', `/api/inventaris/asrama/${encodeURIComponent(sel.value)}/aset?${params}&t=${Date.now()}`);
-        status.set(`${data.totals.count} jenis aset · ${data.totals.quantity} unit · nilai ${RUPIAH.format(data.totals.value)} · rusak ${data.totals.damaged} · hilang ${data.totals.lost}.`);
+        penghuni = data.residents || [];
+        status.set(`${data.totals.count} jenis aset asrama · ${data.totals.quantity} unit · nilai ${RUPIAH.format(data.totals.value)} · rusak ${data.totals.damaged} · hilang ${data.totals.lost}${data.totals.personal ? ` · ${data.totals.personal} barang pribadi santri` : ''}.`);
         if (!data.items.length) { isi.replaceChildren(kosong('Belum ada aset yang cocok.')); return; }
-        isi.replaceChildren(tabelStack(['Kode', 'Aset', 'Kategori', 'Lokasi', 'Jumlah', 'Kondisi', ''], data.items.map((a) => {
+        isi.replaceChildren(tabelStack(['Kode', 'Aset', 'Kategori', 'Lokasi', 'Jumlah', 'Kondisi', 'Sumber dana', ''], data.items.map((a) => {
           const aksi = el('span', 'kg-bar');
           aksi.append(tombol('Rincian', 'wali-link', () => riwayat(a).catch((error) => status.set(error.message, true))), tombol('Ubah', 'wali-link', () => formAset(a).catch((error) => status.set(error.message, true))));
-          return [a.code, a.name, a.categoryLabel, a.location || '-', a.quantity, a.conditionLabel, aksi];
+          const nama = a.ownerType === 'santri' ? `${a.name} (milik ${a.ownerStudentName || 'santri'})` : a.name;
+          return [a.code, nama, a.categoryLabel, a.location || '-', a.quantity, a.conditionLabel, a.fundingSourceLabel || 'Belum diisi', aksi];
         })));
       } catch (error) { status.set(error.message, true); }
     }
@@ -161,13 +166,16 @@
           { nama: 'condition', label: 'Kondisi', jenis: 'select', pilihan: state.opsi.conditions.map((c) => [c.id, c.label]), nilai: aset ? aset.condition : 'baik' },
           { nama: 'purchasedOn', label: 'Tanggal beli (opsional)', jenis: 'date', nilai: aset ? aset.purchasedOn || '' : '' },
           { nama: 'unitPrice', label: 'Harga satuan Rp (opsional)', jenis: 'number', nilai: aset && aset.unitPrice !== null ? aset.unitPrice : '' },
+          { nama: 'ownerType', label: 'Pemilik', jenis: 'select', pilihan: (state.opsi.ownerTypes || []).map((c) => [c.id, c.label]), nilai: aset ? aset.ownerType : 'asrama' },
+          { nama: 'ownerStudentId', label: 'Santri pemilik (khusus barang pribadi)', jenis: 'select', pilihan: [['', 'Bukan barang pribadi'], ...penghuni.map((s) => [s.id, s.name])], nilai: aset ? aset.ownerStudentId || '' : '' },
+          { nama: 'fundingSource', label: 'Sumber dana', jenis: 'select', pilihan: [['', 'Belum diisi'], ...(state.opsi.fundingSources || []).map((c) => [c.id, c.label])], nilai: aset ? aset.fundingSource || '' : '' },
           { nama: 'photo', label: 'Foto aset (opsional)', jenis: 'file', accept: 'image/jpeg,image/png,application/pdf', petunjuk: aset && aset.photoFileId ? 'Biarkan kosong untuk mempertahankan foto yang ada.' : 'JPG, PNG, atau PDF maksimal 5 MB.' },
           { nama: 'proof', label: 'Bukti pembelian (opsional)', jenis: 'file', accept: 'image/jpeg,image/png,application/pdf', petunjuk: aset && aset.proofFileId ? 'Biarkan kosong untuk mempertahankan bukti yang ada.' : '' },
           ...(aset ? [{ nama: 'eventNote', label: 'Keterangan bila kondisi berubah', jenis: 'textarea', nilai: '' }] : [])
         ],
         labelSimpan: aset ? 'Simpan' : 'Tambah aset',
         kirim: async (v) => {
-          const badan = { name: v.name, category: v.category, code: v.code, location: v.location, quantity: Number(v.quantity), condition: v.condition, purchasedOn: v.purchasedOn || null, unitPrice: v.unitPrice === '' ? null : Number(v.unitPrice), eventNote: v.eventNote };
+          const badan = { name: v.name, category: v.category, code: v.code, location: v.location, quantity: Number(v.quantity), condition: v.condition, purchasedOn: v.purchasedOn || null, unitPrice: v.unitPrice === '' ? null : Number(v.unitPrice), eventNote: v.eventNote, ownerType: v.ownerType, ownerStudentId: v.ownerType === 'santri' ? v.ownerStudentId || null : null, fundingSource: v.fundingSource };
           if (v.photo) badan.photoFileId = await window.HamasahUnggah.kirim({ purpose: 'inventory-file', entityId: sel.value, berkas: v.photo, headers: headers() });
           if (v.proof) badan.proofFileId = await window.HamasahUnggah.kirim({ purpose: 'inventory-file', entityId: sel.value, berkas: v.proof, headers: headers() });
           return aset ? api('PATCH', `/api/inventaris/asrama/${encodeURIComponent(sel.value)}/aset/${encodeURIComponent(aset.id)}`, badan) : api('POST', `/api/inventaris/asrama/${encodeURIComponent(sel.value)}/aset`, badan);
@@ -231,7 +239,7 @@
       r.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    [kategori, kondisi].forEach((x) => x.addEventListener('change', () => muat().catch(() => {})));
+    [kategori, kondisi, pemilik].forEach((x) => x.addEventListener('change', () => muat().catch(() => {})));
     cari.addEventListener('change', () => muat().catch(() => {}));
     await muat();
     return akar;
@@ -274,16 +282,32 @@
           tombol('Isi sesuai catatan', 'button button--secondary kg-small', () => c.items.forEach((i) => { const x = input.get(i.itemId); if (x.jumlah.value === '') x.jumlah.value = String(i.expectedQuantity); if (!x.kond.value) x.kond.value = i.expectedCondition; })),
           tombol('Simpan hasil', 'button button--secondary kg-small', async () => { try { await api('PUT', `/api/inventaris/pemeriksaan/${encodeURIComponent(c.id)}`, { entries: kumpul(c, input) }); status.set('Hasil tersimpan.'); await muat(); } catch (error) { status.set(error.message, true); } }),
           tombol('Selesaikan pemeriksaan', 'button button--primary kg-small', async () => {
-            if (!window.confirm('Selesaikan pemeriksaan? Selisih jumlah dan kondisi akan diterapkan ke aset dan tidak bisa diubah lagi.')) return;
             try {
               await api('PUT', `/api/inventaris/pemeriksaan/${encodeURIComponent(c.id)}`, { entries: kumpul(c, input) });
-              const hasil = await api('POST', `/api/inventaris/pemeriksaan/${encodeURIComponent(c.id)}/selesai`, {});
-              status.set(`Pemeriksaan selesai. ${hasil.adjusted} aset disesuaikan.`);
-              await muat();
-            } catch (error) { status.set(error.message, true); }
+            } catch (error) { status.set(error.message, true); return; }
+            // Foto bukti pemeriksaan wajib (notulen rapat). Selisih jumlah dan kondisi diterapkan ke aset setelah ini.
+            const hasil = await window.HamasahDialog.formulir({
+              judul: 'Selesaikan pemeriksaan',
+              keterangan: 'Lampirkan foto bukti pemeriksaan, misalnya foto ruangan atau barang yang diperiksa. Selisih jumlah dan kondisi akan diterapkan ke aset dan pemeriksaan tidak bisa diubah lagi.',
+              bidang: [
+                { nama: 'proof', label: 'Foto bukti pemeriksaan', jenis: 'file', accept: 'image/jpeg,image/png,application/pdf', wajib: true },
+                { nama: 'note', label: 'Catatan (opsional)', jenis: 'textarea', nilai: '' }
+              ],
+              labelSimpan: 'Selesaikan',
+              kirim: async (v) => {
+                const proofFileId = await window.HamasahUnggah.kirim({ purpose: 'inventory-file', entityId: sel.value, berkas: v.proof, headers: headers() });
+                return api('POST', `/api/inventaris/pemeriksaan/${encodeURIComponent(c.id)}/selesai`, { proofFileId, note: v.note });
+              }
+            });
+            if (!hasil) return;
+            status.set(`Pemeriksaan selesai. ${hasil.adjusted} aset disesuaikan.`);
+            await muat();
           })
         );
         wadah.append(aksi);
+      }
+      if (c.status === 'selesai' && c.proofFileId) {
+        wadah.append(tombol('Lihat foto bukti pemeriksaan', 'button button--secondary kg-small', () => window.HamasahUnggah.buka(c.proofFileId, headers()).catch((error) => status.set(error.message, true))));
       }
       return wadah;
     }

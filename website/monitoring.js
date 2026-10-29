@@ -175,11 +175,18 @@ function hariIniWib() {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
 }
 
+// Tanggal bawaan presensi dan catatan harian asrama: tanggal Kairo, tempat santri tinggal. Isya pukul 20.00 Kairo
+// sudah tanggal berikutnya di WIB, jadi bawaan WIB membuat presensi malam tercatat di hari yang salah.
+// Batas maksimum tetap tanggal WIB, sama dengan pemeriksaan server.
+function hariIniKairo() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo' }).format(new Date());
+}
+
 async function loadCare(studentId) {
   careSection.hidden = false;
   ['#prayer-date', '#memorization-date', '#health-date'].forEach((selector) => {
     const field = document.querySelector(selector);
-    if (field && !field.value) field.value = hariIniWib();
+    if (field && !field.value) field.value = hariIniKairo();
     if (field) field.max = hariIniWib();
   });
   try {
@@ -853,7 +860,7 @@ function perbaruiFilterPresensi() {
 }
 
 async function muatPresensiAsrama() {
-  if (!rollDate.value) rollDate.value = hariIniWib();
+  if (!rollDate.value) rollDate.value = hariIniKairo();
   rollDate.max = hariIniWib();
   const sholat = modePresensi() === 'sholat';
   if (!sholat && rollCategory.value.trim().length < 3) {
@@ -1133,13 +1140,18 @@ const announcementForm = document.querySelector('#announcement-form');
 const announcementStatus = document.querySelector('#announcement-status');
 const announcementList = document.querySelector('#announcement-list');
 const announcementDormitory = document.querySelector('#announcement-dormitory');
-const PENERIMA = { semua: 'Santri dan wali', santri: 'Santri', wali: 'Wali' };
+const PENERIMA = { semua: 'Santri dan wali', santri: 'Santri', wali: 'Wali', musyrif: 'Musyrif' };
+const announcementAudience = document.querySelector('#announcement-audience');
 
 const announcementScope = document.querySelector('#announcement-scope');
 const announcementBatch = document.querySelector('#announcement-batch');
 const announcementStudents = document.querySelector('#announcement-students');
 
 function tampilkanSasaranPengumuman() {
+  // Pengumuman musyrif hanya per asrama atau semua asrama, bukan santri tertentu atau batch.
+  const untukMusyrif = announcementAudience.value === 'musyrif';
+  [...announcementScope.options].forEach((o) => { if (o.value !== 'asrama') o.disabled = untukMusyrif || (o.id === 'announcement-scope-batch' && o.hidden); });
+  if (untukMusyrif) announcementScope.value = 'asrama';
   const sasaran = announcementScope.value;
   document.querySelector('#announcement-dormitory-field').hidden = sasaran !== 'asrama';
   document.querySelector('#announcement-batch-field').hidden = sasaran !== 'batch';
@@ -1147,11 +1159,16 @@ function tampilkanSasaranPengumuman() {
 }
 
 announcementScope.addEventListener('change', tampilkanSasaranPengumuman);
+announcementAudience.addEventListener('change', tampilkanSasaranPengumuman);
 
 async function isiPilihanAsramaPengumuman() {
   // Admin boleh ke semua asrama dan batch; musyrif hanya asrama dan santri yang dipegang (disaring server).
   const data = await kirimJson('/api/announcements/asrama', 'GET').catch(() => ({ allowAll: false, dormitories: [], students: [], batches: [] }));
   const pilihan = data.allowAll ? [new Option('Semua asrama', '')] : [];
+  // Pilihan penerima "Musyrif" hanya untuk admin (allowAll).
+  const opsiMusyrif = document.querySelector('#announcement-audience-musyrif');
+  opsiMusyrif.hidden = !data.allowAll;
+  opsiMusyrif.disabled = !data.allowAll;
   announcementDormitory.replaceChildren(...pilihan, ...data.dormitories.map((item) => new Option(item.name, item.id)));
   const batches = data.batches || [];
   announcementBatch.replaceChildren(...batches.map((item) => new Option(item.name, item.id)));

@@ -18,7 +18,7 @@ module.exports = [
     permission: 'inventory.manage',
     async handler({ response, services, auth, params, url }) {
       const q = url.searchParams;
-      balas(response, await services.inventoryService.listItems(params[0], await auth.actor(), { q: q.get('q') || undefined, category: q.get('category') || undefined, condition: q.get('condition') || undefined }));
+      balas(response, await services.inventoryService.listItems(params[0], await auth.actor(), { q: q.get('q') || undefined, category: q.get('category') || undefined, condition: q.get('condition') || undefined, owner: q.get('owner') || undefined }));
     }
   },
   {

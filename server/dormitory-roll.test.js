@@ -55,7 +55,8 @@ async function run() {
     const bilal = await santri('Bilal Uji', asramaB.id);
     const lulus = await santri('Lulus Uji', asramaA.id);
     await api('PATCH', `/api/students/${lulus.id}`, admin, { status: 'graduated' });
-    const hariIni = hariIniJakarta();
+    // Musyrif mencatat menurut tanggal Kairo (bawaan halaman Presensi), dan "tugas hari ini" menghitung tanggal itu.
+    const hariIni = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo' }).format(new Date());
 
     // ------------------------------------------------------------------- daftar hadir
     const daftar = await api('GET', `/api/presensi-asrama?mode=sholat&date=${hariIni}&prayer=subuh`, tMusyrif);

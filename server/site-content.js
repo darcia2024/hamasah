@@ -679,7 +679,12 @@ const RENDER = Object.freeze({
     if (k.tiktok) sosial.push(`TikTok: <a href="https://www.tiktok.com/@${esc(k.tiktok)}" target="_blank" rel="noopener">@${esc(k.tiktok)}</a>`);
     if (k.youtube) sosial.push(`<a href="${esc(k.youtube)}" target="_blank" rel="noopener">Kanal YouTube Hamasah</a>`);
     const satuBaris = (alamat) => esc(alamat.split('\n').join(', '));
+    // Peta: tautan pencarian Google Maps dari alamat itu sendiri, jadi ikut berubah saat alamat diubah di Konten Website.
+    // Tautan biasa, bukan sematan peta, karena CSP tidak mengizinkan iframe dari domain lain.
+    const peta = (alamat) => `<a class="office-map-link" href="https://www.google.com/maps/search/?api=1&amp;query=${esc(encodeURIComponent(alamat.split('\n').join(', ')))}" target="_blank" rel="noopener">Buka lokasi di Google Maps</a>`;
     return [
+      wilayah('kontak.petaIndonesia', peta(k.alamatIndonesia)),
+      wilayah('kontak.petaMesir', peta(k.alamatMesir)),
       wilayah('kontak.alamatIndonesia', `\n                ${esc(k.alamatIndonesia).split('\n').join('<br />\n                ')}\n              `),
       wilayah('kontak.alamatMesir', `\n                ${esc(k.alamatMesir).split('\n').join('<br />\n                ')}\n              `),
       wilayah('kontak.jamLayanan', esc(k.jamLayanan)),

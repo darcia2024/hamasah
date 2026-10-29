@@ -268,8 +268,8 @@ function createHamasahApp(options) {
     accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor),
     healthEnabled: kesehatanAktif
   });
-  const adminOverviewService = config.adminOverviewService || createAdminOverviewService({ database, healthEnabled: kesehatanAktif });
   const documentSettingsService = config.documentSettingsService || createDocumentSettingsService({ database });
+  const adminOverviewService = config.adminOverviewService || createAdminOverviewService({ database, documentSettings: documentSettingsService, healthEnabled: kesehatanAktif });
   const studentProfileService = config.studentProfileService || createStudentProfileService({ database, documentSettings: documentSettingsService, accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor), identityKey: config.identityKey || process.env.IDENTITY_FIELD_KEY || config.notificationPayloadKey || process.env.NOTIFICATION_PAYLOAD_KEY || process.env.IP_HASH_SECRET || 'development-only-key' });
   const programService = config.programService || createProgramService({ database, accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor) });
   const dormitoryRoomService = config.dormitoryRoomService || createDormitoryRoomService({ database, staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId) });

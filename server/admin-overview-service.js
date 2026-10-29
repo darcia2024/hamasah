@@ -10,6 +10,8 @@
 // Hanya admin. Catatan kesehatan ikut hanya bila fiturnya diaktifkan
 // (HEALTH_RECORDS_ENABLED), sama seperti di halaman lain.
 
+const { BAWAAN: BAWAAN_DOKUMEN } = require('./document-settings-service.js');
+
 const ADMIN_ROLE = 'admin';
 const SUPERVISOR_ROLE = 'supervisor';
 // Batas aman satu respons. Lembaga ini jauh di bawahnya; bila suatu saat terlampaui,
@@ -66,7 +68,7 @@ function petakan(rows, kunci = 'student_id') {
   return new Map(rows.map((row) => [row[kunci], row]));
 }
 
-function createAdminOverviewService({ database, healthEnabled: kesehatanAktif = false, now = () => new Date() } = {}) {
+function createAdminOverviewService({ database, documentSettings = null, healthEnabled: kesehatanAktif = false, now = () => new Date() } = {}) {
   if (!database) throw new Error('createAdminOverviewService membutuhkan database.');
 
   async function ambil(sql, params = []) {
@@ -370,7 +372,9 @@ function createAdminOverviewService({ database, healthEnabled: kesehatanAktif = 
       };
     });
 
-    const alerts = susunPerhatian({ students, dormitories, supervisors, hariIni, saatIni });
+    // Batas peringatan paspor dan iqamah sama dengan Monitoring Pusat dan profil santri (Pengaturan, migrasi 069).
+    const batas = documentSettings ? await documentSettings.get() : { ...BAWAAN_DOKUMEN };
+    const alerts = susunPerhatian({ students, dormitories, supervisors, hariIni, saatIni, batas });
 
     const totalKehadiran = students.reduce((jumlah, s) => jumlah + s.attendance7.recorded, 0);
     const hadirKehadiran = students.reduce((jumlah, s) => jumlah + s.attendance7.present + s.attendance7.late, 0);
@@ -423,7 +427,7 @@ function createAdminOverviewService({ database, healthEnabled: kesehatanAktif = 
 
 // Daftar "perlu perhatian": hal yang sebaiknya ditindaklanjuti admin hari ini.
 // tinggi = segera, sedang = pekan ini, info = untuk diketahui.
-function susunPerhatian({ students, dormitories, supervisors, hariIni, saatIni }) {
+function susunPerhatian({ students, dormitories, supervisors, hariIni, saatIni, batas = BAWAAN_DOKUMEN }) {
   const daftar = [];
   const tambah = (level, kind, title, detail, ref = {}) => daftar.push({ level, kind, title, detail, ...ref });
 
@@ -435,13 +439,13 @@ function susunPerhatian({ students, dormitories, supervisors, hariIni, saatIni }
     }
     if (s.visa && s.visa.visaExpiresAt) {
       const sisa = selisihHari(hariIni, s.visa.visaExpiresAt);
-      if (sisa < 0) tambah('tinggi', 'visa', `${s.name}: visa atau iqamah sudah habis`, `Habis ${tanggalBaca(s.visa.visaExpiresAt)}.`, ref);
-      else if (sisa <= 30) tambah(sisa <= 14 ? 'tinggi' : 'sedang', 'visa', `${s.name}: visa habis dalam ${sisa} hari`, `Berlaku sampai ${tanggalBaca(s.visa.visaExpiresAt)}.`, ref);
+      if (sisa < 0) tambah('tinggi', 'visa', `${s.name}: iqamah sudah habis`, `Habis ${tanggalBaca(s.visa.visaExpiresAt)}.`, ref);
+      else if (sisa <= batas.iqamahWarningDays) tambah(sisa <= batas.iqamahUrgentDays ? 'tinggi' : 'sedang', 'visa', `${s.name}: iqamah habis dalam ${sisa} hari`, `Berlaku sampai ${tanggalBaca(s.visa.visaExpiresAt)}.`, ref);
     }
     if (s.visa && s.visa.passportExpiresAt) {
       const sisa = selisihHari(hariIni, s.visa.passportExpiresAt);
       if (sisa < 0) tambah('tinggi', 'paspor', `${s.name}: paspor sudah habis`, `Habis ${tanggalBaca(s.visa.passportExpiresAt)}.`, ref);
-      else if (sisa <= 180) tambah(sisa <= 60 ? 'tinggi' : 'sedang', 'paspor', `${s.name}: paspor habis dalam ${sisa} hari`, 'Paspor perlu berlaku minimal enam bulan untuk perpanjangan iqamah.', ref);
+      else if (sisa <= batas.passportWarningDays) tambah(sisa <= batas.passportUrgentDays ? 'tinggi' : 'sedang', 'paspor', `${s.name}: paspor habis dalam ${sisa} hari`, 'Paspor perlu berlaku minimal enam bulan untuk perpanjangan iqamah.', ref);
     }
     if (s.attendance7.absent >= 1) {
       tambah(s.attendance7.absent >= 2 ? 'tinggi' : 'sedang', 'kehadiran', `${s.name}: tidak hadir tanpa keterangan`, `${s.attendance7.absent} kali dalam 7 hari terakhir.`, ref);

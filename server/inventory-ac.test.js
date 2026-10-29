@@ -135,10 +135,14 @@ async function run() {
     const simpan = await api('PUT', `/api/inventaris/pemeriksaan/${cek.body.id}`, tA, { entries: entri });
     assert.equal(simpan.status, 200, simpan.teks);
     assert.equal(simpan.body.checked, 4);
-    const selesai = await api('POST', `/api/inventaris/pemeriksaan/${cek.body.id}/selesai`, tA, { note: 'Pemeriksaan rutin.' });
+    // Foto bukti pemeriksaan wajib (migrasi 081), dan harus berkas asrama itu sendiri.
+    assert.equal((await api('POST', `/api/inventaris/pemeriksaan/${cek.body.id}/selesai`, tA, { note: 'Pemeriksaan rutin.' })).status, 422, 'Tanpa foto bukti ditolak.');
+    assert.equal((await api('POST', `/api/inventaris/pemeriksaan/${cek.body.id}/selesai`, tA, { note: 'Pemeriksaan rutin.', proofFileId: fotoB.id })).status, 422, 'Foto asrama lain ditolak.');
+    const selesai = await api('POST', `/api/inventaris/pemeriksaan/${cek.body.id}/selesai`, tA, { note: 'Pemeriksaan rutin.', proofFileId: foto.id });
     assert.equal(selesai.status, 200, selesai.teks);
     assert.equal(selesai.body.adjusted, 2);
     assert.equal(selesai.body.status, 'selesai');
+    assert.equal(selesai.body.proofFileId, foto.id);
     const sesudah = (await api('GET', `/api/inventaris/asrama/${A.id}/aset`, tA)).body.items;
     assert.equal(sesudah.find((i) => i.id === kipas.body.id).quantity, 3, 'Jumlah disesuaikan dengan hasil pemeriksaan.');
     assert.equal(sesudah.find((i) => i.id === lemari.body.id).condition, 'rusak');
@@ -157,6 +161,22 @@ async function run() {
     assert.ok(!(await api('GET', `/api/inventaris/asrama/${A.id}/aset`, tA)).body.items.some((i) => i.id === sementara.body.id));
     assert.equal((await database.query('SELECT count(*)::int AS n FROM inventory_events WHERE item_id = $1', [sementara.body.id])).rows[0].n, 1, 'Riwayat tetap tersimpan.');
     assert.equal((await api('GET', `/api/inventaris/asrama/${A.id}/pemeriksaan/${BULAN}`, tB)).status, 403);
+
+    // Sumber dana dan barang pribadi santri (migrasi 081): dicatat terpisah, tidak dihitung sebagai nilai aset asrama.
+    assert.equal((await buat(tA, A, { name: 'Kasur busa', quantity: 1, category: 'perlengkapan-tidur', fundingSource: 'ngawur' })).status, 422);
+    assert.equal((await buat(tA, A, { name: 'Kasur busa', quantity: 1, category: 'perlengkapan-tidur', ownerType: 'santri' })).status, 422, 'Barang pribadi butuh pemilik.');
+    assert.equal((await buat(tB, B, { name: 'Kasur busa', quantity: 1, category: 'perlengkapan-tidur', ownerType: 'santri', ownerStudentId: teman.id })).status, 422, 'Pemilik harus penghuni asrama itu.');
+    const kasur = await buat(tA, A, { name: 'Kasur busa', quantity: 1, category: 'perlengkapan-tidur', ownerType: 'santri', ownerStudentId: teman.id, unitPrice: 900000 });
+    assert.equal(kasur.status, 201, kasur.teks);
+    assert.deepEqual([kasur.body.ownerType, kasur.body.ownerStudentName, kasur.body.fundingSource], ['santri', 'Santri Sekamar', 'pribadi'], 'Sumber dana barang pribadi otomatis "pribadi".');
+    const rak = await buat(tA, A, { name: 'Rak buku', quantity: 2, category: 'furnitur', fundingSource: 'donasi' });
+    assert.equal(rak.body.fundingSourceLabel, 'Donasi atau hibah');
+    const semuaA = (await api('GET', `/api/inventaris/asrama/${A.id}/aset`, tA)).body;
+    assert.equal(semuaA.totals.personal, 1);
+    assert.ok(!semuaA.items.filter((i) => i.ownerType === 'asrama').some((i) => i.id === kasur.body.id));
+    assert.deepEqual((await api('GET', `/api/inventaris/asrama/${A.id}/aset?owner=santri`, tA)).body.items.map((i) => i.name), ['Kasur busa']);
+    await api('POST', aset(rak.body.id, '/arsip'), tA, { reason: 'Hanya untuk uji sumber dana.' });
+    await api('POST', aset(kasur.body.id, '/arsip'), tA, { reason: 'Hanya untuk uji barang pribadi.' });
 
     // Dashboard per asrama, terbatas pada cakupan.
     const dasbor = await api('GET', '/api/inventaris/dashboard', admin);

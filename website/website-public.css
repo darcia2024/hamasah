@@ -3360,6 +3360,20 @@
   margin-bottom: 24px;
 }
 
+/* Tautan peta di bawah alamat kantor (site-content.js, wilayah kontak.peta*). */
+.office-map {
+  margin: -16px 0 24px;
+}
+
+.office-map-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  font-weight: 600;
+  color: var(--md-sys-color-primary);
+  text-underline-offset: 3px;
+}
+
 .office-details-list {
   display: flex;
   flex-direction: column;

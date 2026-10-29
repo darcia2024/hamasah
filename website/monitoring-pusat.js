@@ -186,7 +186,7 @@
       const total = data.totals.activeStudents;
       kartuAbsensi.replaceChildren();
       const atas = el('div', 'mp-card__head');
-      atas.append(el('h4', 'mp-card__title', 'Absensi hari ini'), el('span', 'mp-card__meta', TANGGAL.format(new Date(`${data.today}T00:00:00Z`))));
+      atas.append(el('h4', 'mp-card__title', 'Absensi hari ini'), el('span', 'mp-card__meta', `${TANGGAL.format(new Date(`${data.attendanceDate || data.today}T00:00:00Z`))}${data.attendanceDate ? ', waktu Kairo' : ''}`));
       kartuAbsensi.append(atas);
       if (!total) {
         kartuAbsensi.append(el('p', 'mp-empty', 'Tidak ada santri pada saringan ini.'));
@@ -364,6 +364,12 @@
       const isi = el('div', 'mp-case__more-body');
       const aksi = el('div', 'mp-case__actions');
       aksi.append(tombol('Buka profil santri', 'button button--secondary mp-small', () => onOpenStudent(item.studentId)));
+      // Tanggal paspor dan iqamah dicatat di satu tempat: Keuangan > Visa & Paspor. Di sini hanya tindak lanjutnya.
+      if (item.kind === 'paspor' || item.kind === 'iqamah') {
+        const ubahTanggal = el('a', 'button button--secondary mp-small', 'Ubah tanggal di Visa & Paspor');
+        ubahTanggal.href = `operations?santri=${encodeURIComponent(item.studentId)}#visa`;
+        aksi.append(ubahTanggal);
+      }
       if (item.status === 'baru') aksi.append(tombol('Langsung selesai', 'button button--secondary mp-small', () => selesaikan(item)));
       if (item.status === 'diproses') aksi.append(tombol('Kembalikan ke baru', 'button button--secondary mp-small', () => ubah(item, 'baru')));
       isi.append(aksi, pilihPenanggungJawab(item), formCatatan(item));

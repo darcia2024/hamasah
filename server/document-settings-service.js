@@ -45,7 +45,8 @@ function createDocumentSettingsService({ database, now = () => new Date() } = {}
   }
 
   async function read(actor) {
-    if (!actor || !['admin', 'supervisor'].includes(actor.role)) return { ok: false, status: 403, error: 'Hanya admin dan musyrif.' };
+    // Keuangan ikut membaca: tab Visa & Paspor memakai batas yang sama dengan Monitoring Pusat.
+    if (!actor || !['admin', 'supervisor', 'finance'].includes(actor.role)) return { ok: false, status: 403, error: 'Hanya admin, musyrif, dan keuangan.' };
     const { available, config } = await muat();
     return { ok: true, value: { available, config, canEdit: actor.role === 'admin', labels: LABEL } };
   }

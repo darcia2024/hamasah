@@ -2180,12 +2180,47 @@ function kartuTugasMusyrif() {
       daftar.replaceChildren(...butir);
       memuat.replaceWith(daftar);
       const jumlah = (data.izinMenunggu || 0) + (data.pesanBelumDibaca || 0) + (data.kesehatan || []).length;
+      tambahPengumumanMusyrif(daftar);
       isiAngkaIkon('#topbar-attention-count', jumlah);
       const lonceng = document.querySelector('#topbar-attention');
       if (lonceng) lonceng.setAttribute('aria-label', jumlah ? `Tugas hari ini, ${jumlah} perlu ditindaklanjuti` : 'Tugas hari ini');
     })
     .catch((error) => { memuat.textContent = error.message; });
   return wadah;
+}
+
+// Pengumuman internal dari admin untuk musyrif (penerima "Musyrif", migrasi 080) yang belum dibaca, di atas daftar tugas.
+// Ditandai dibaca hanya lewat tombol, supaya admin bisa melihat siapa yang sudah membacanya.
+function tambahPengumumanMusyrif(daftar) {
+  fetch('/api/announcements?limit=20', { headers: requestHeaders() })
+    .then((res) => (res.ok ? res.json() : null))
+    .then((data) => {
+      if (!data || !Array.isArray(data.items)) return;
+      data.items.filter((item) => item.audience === 'musyrif' && !item.read).reverse().forEach((item) => {
+        const baris = document.createElement('li');
+        baris.className = 'musyrif-task is-perlu musyrif-task--pengumuman';
+        const isi = document.createElement('span');
+        const judul = document.createElement('strong');
+        judul.textContent = `Pengumuman dari admin: ${item.title}`;
+        const teks = document.createElement('span');
+        teks.className = 'musyrif-task__body';
+        teks.textContent = item.body;
+        isi.append(judul, teks);
+        const baca = document.createElement('button');
+        baca.type = 'button';
+        baca.className = 'admin-link';
+        baca.textContent = 'Sudah dibaca';
+        baca.addEventListener('click', async () => {
+          baca.disabled = true;
+          const res = await fetch(`/api/announcements/${encodeURIComponent(item.id)}/dibaca`, { method: 'POST', headers: requestHeaders() }).catch(() => null);
+          if (res && res.ok) baris.remove();
+          else baca.disabled = false;
+        });
+        baris.append(isi, baca);
+        daftar.prepend(baris);
+      });
+    })
+    .catch(() => { /* daftar tugas tetap tampil tanpa pengumuman */ });
 }
 
 function perbaruiAngkaPerhatian() {

@@ -10,6 +10,9 @@ const KATEGORI = Object.freeze({ elektronik: 'Elektronik', furnitur: 'Furnitur',
 const AWALAN = Object.freeze({ elektronik: 'ELK', furnitur: 'FRN', 'perlengkapan-tidur': 'TDR', kebersihan: 'BRS', dapur: 'DPR', ac: 'AC', lainnya: 'LNN' });
 const KONDISI = Object.freeze({ baik: 'Baik', perawatan: 'Perlu perawatan', rusak: 'Rusak', hilang: 'Hilang' });
 const KEJADIAN = Object.freeze({ pembelian: 'Pembelian', perawatan: 'Perawatan', kerusakan: 'Kerusakan', perbaikan: 'Perbaikan', kehilangan: 'Kehilangan', temuan: 'Ditemukan kembali', catatan: 'Catatan' });
+// Sumber dana dan pemilik barang (migrasi 081). Barang pribadi santri dicatat terpisah dan tidak dihitung sebagai nilai aset.
+const SUMBER_DANA = Object.freeze({ hamasah: 'Dana Hamasah', 'kas-asrama': 'Kas asrama', patungan: 'Patungan santri', donasi: 'Donasi atau hibah', pribadi: 'Milik pribadi santri', lainnya: 'Lainnya' });
+const PEMILIK = Object.freeze({ asrama: 'Aset asrama', santri: 'Barang pribadi santri' });
 // Kejadian yang sekaligus mengubah kondisi aset.
 const UBAH_KONDISI = Object.freeze({ kerusakan: 'rusak', kehilangan: 'hilang', perbaikan: 'baik', temuan: 'baik' });
 const DATABASE_BELUM_SIAP = 'Database belum diperbarui untuk inventaris. Terapkan pembaruan database di halaman Pengaturan lebih dulu.';
@@ -75,7 +78,7 @@ function createInventoryService({ database, staffDormitories, now = () => new Da
     if (!staf(actor)) return TOLAK;
     const b = await batas(actor);
     const { rows } = await database.query('SELECT id, name FROM dormitories WHERE ($1::uuid[] IS NULL OR id = ANY($1::uuid[])) ORDER BY name', [b]);
-    return { ok: true, value: { items: rows, categories: Object.entries(KATEGORI).map(([id, label]) => ({ id, label })), conditions: Object.entries(KONDISI).map(([id, label]) => ({ id, label })), eventKinds: Object.entries(KEJADIAN).map(([id, label]) => ({ id, label })) } };
+    return { ok: true, value: { items: rows, categories: Object.entries(KATEGORI).map(([id, label]) => ({ id, label })), conditions: Object.entries(KONDISI).map(([id, label]) => ({ id, label })), eventKinds: Object.entries(KEJADIAN).map(([id, label]) => ({ id, label })), fundingSources: Object.entries(SUMBER_DANA).map(([id, label]) => ({ id, label })), ownerTypes: Object.entries(PEMILIK).map(([id, label]) => ({ id, label })) } };
   }
 
   // ------------------------------------------------------------------ aset
@@ -85,23 +88,30 @@ function createInventoryService({ database, staffDormitories, now = () => new Da
       id: r.id, dormitoryId: r.dormitory_id, code: r.code || '', name: r.name, category: r.category, categoryLabel: KATEGORI[r.category] || r.category, location: r.location || '',
       quantity: Number(r.quantity), condition: r.condition, conditionLabel: KONDISI[r.condition] || r.condition, note: r.note || '', purchasedOn: r.purchased_on_text || null,
       unitPrice: r.unit_price_rupiah === null || r.unit_price_rupiah === undefined ? null : Number(r.unit_price_rupiah), value: r.unit_price_rupiah === null || r.unit_price_rupiah === undefined ? null : Number(r.unit_price_rupiah) * Number(r.quantity),
-      photoFileId: r.photo_file_id || null, proofFileId: r.proof_file_id || null, events: r.event_count === undefined ? undefined : Number(r.event_count), updatedAt: iso(r.updated_at)
+      photoFileId: r.photo_file_id || null, proofFileId: r.proof_file_id || null, events: r.event_count === undefined ? undefined : Number(r.event_count), updatedAt: iso(r.updated_at),
+      fundingSource: r.funding_source || '', fundingSourceLabel: SUMBER_DANA[r.funding_source] || 'Belum diisi',
+      ownerType: r.owner_type || 'asrama', ownerTypeLabel: PEMILIK[r.owner_type || 'asrama'], ownerStudentId: r.owner_student_id || null, ownerStudentName: r.owner_student_name || null
     };
   }
 
-  const SELECT = `SELECT i.*, to_char(i.purchased_on, 'YYYY-MM-DD') AS purchased_on_text, (SELECT count(*) FROM inventory_events e WHERE e.item_id = i.id) AS event_count FROM dormitory_inventory i`;
+  const SELECT = `SELECT i.*, to_char(i.purchased_on, 'YYYY-MM-DD') AS purchased_on_text, (SELECT count(*) FROM inventory_events e WHERE e.item_id = i.id) AS event_count,
+                         (SELECT s.name FROM students s WHERE s.id = i.owner_student_id) AS owner_student_name FROM dormitory_inventory i`;
 
-  async function listItems(dormitoryId, actor, { q, category, condition } = {}) {
+  async function listItems(dormitoryId, actor, { q, category, condition, owner } = {}) {
     const izin = await bolehAsrama(dormitoryId, actor);
     if (!izin.ok) return izin;
     return tulis(async () => {
       const { rows } = await database.query(
         `${SELECT} WHERE i.dormitory_id = $1 AND i.archived_at IS NULL AND ($2::text IS NULL OR i.name ILIKE $2 OR i.code ILIKE $2 OR i.location ILIKE $2)
-            AND ($3::text IS NULL OR i.category = $3) AND ($4::text IS NULL OR i.condition = $4) ORDER BY i.category, i.name`,
-        [dormitoryId, q ? `%${rapi(q, 60).replace(/[%_]/g, '')}%` : null, KATEGORI[category] ? category : null, KONDISI[condition] ? condition : null]
+            AND ($3::text IS NULL OR i.category = $3) AND ($4::text IS NULL OR i.condition = $4) AND ($5::text IS NULL OR i.owner_type = $5) ORDER BY i.owner_type, i.category, i.name`,
+        [dormitoryId, q ? `%${rapi(q, 60).replace(/[%_]/g, '')}%` : null, KATEGORI[category] ? category : null, KONDISI[condition] ? condition : null, PEMILIK[owner] ? owner : null]
       );
       const items = rows.map(bentuk);
-      return { ok: true, value: { available: true, dormitory: { id: dormitoryId, name: izin.name }, items, totals: { count: items.length, quantity: items.reduce((n, i) => n + i.quantity, 0), value: items.reduce((n, i) => n + (i.value || 0), 0), damaged: items.filter((i) => i.condition === 'rusak').reduce((n, i) => n + i.quantity, 0), lost: items.filter((i) => i.condition === 'hilang').reduce((n, i) => n + i.quantity, 0) } } };
+      // Nilai, rusak, dan hilang dihitung dari aset asrama saja; barang pribadi santri hanya dijumlah terpisah.
+      const aset = items.filter((i) => i.ownerType === 'asrama');
+      // Penghuni aktif, untuk memilih pemilik barang pribadi di formulir aset.
+      const residents = (await database.query(`SELECT id, name FROM students WHERE dormitory_id = $1 AND status IN ('active', 'leave') ORDER BY name`, [dormitoryId])).rows;
+      return { ok: true, value: { available: true, dormitory: { id: dormitoryId, name: izin.name }, items, residents, totals: { count: aset.length, quantity: aset.reduce((n, i) => n + i.quantity, 0), value: aset.reduce((n, i) => n + (i.value || 0), 0), damaged: aset.filter((i) => i.condition === 'rusak').reduce((n, i) => n + i.quantity, 0), lost: aset.filter((i) => i.condition === 'hilang').reduce((n, i) => n + i.quantity, 0), personal: items.length - aset.length } } };
     });
   }
 
@@ -132,7 +142,18 @@ function createInventoryService({ database, staffDormitories, now = () => new Da
     const bukti = await berkas(ambil('proofFileId', lama ? lama.proof_file_id : null), dormitoryId);
     if (foto === false || bukti === false) return { ok: false, error: 'Berkas foto atau bukti pembelian tidak ditemukan untuk asrama ini.' };
     const kode = rapi(ambil('code', lama ? lama.code : ''), 30).toUpperCase();
-    return { ok: true, value: { name, quantity, condition: kondisi, category: kategori, location: rapi(ambil('location', lama ? lama.location : ''), 80), note: rapi(ambil('note', lama ? lama.note : ''), 200), purchasedOn: tanggal, unitPrice: hargaAngka, photoFileId: foto, proofFileId: bukti, code: kode } };
+    const pemilik = ambil('ownerType', lama ? lama.owner_type : 'asrama') || 'asrama';
+    if (!PEMILIK[pemilik]) return { ok: false, error: 'Pemilik barang tidak dikenal.' };
+    let pemilikSantri = null;
+    if (pemilik === 'santri') {
+      pemilikSantri = rapi(ambil('ownerStudentId', lama ? lama.owner_student_id : null), 64);
+      if (!UUID.test(pemilikSantri)) return { ok: false, error: 'Pilih santri pemilik barang pribadi.' };
+      const ada = (await database.query(`SELECT 1 FROM students WHERE id = $1 AND dormitory_id = $2 AND status IN ('active', 'leave')`, [pemilikSantri, dormitoryId])).rows.length;
+      if (!ada) return { ok: false, error: 'Santri pemilik bukan penghuni aktif asrama ini.' };
+    }
+    const sumber = ambil('fundingSource', lama ? lama.funding_source : '') || (pemilik === 'santri' ? 'pribadi' : '');
+    if (sumber && !SUMBER_DANA[sumber]) return { ok: false, error: 'Sumber dana tidak dikenal.' };
+    return { ok: true, value: { name, quantity, condition: kondisi, category: kategori, location: rapi(ambil('location', lama ? lama.location : ''), 80), note: rapi(ambil('note', lama ? lama.note : ''), 200), purchasedOn: tanggal, unitPrice: hargaAngka, photoFileId: foto, proofFileId: bukti, code: kode, fundingSource: sumber, ownerType: pemilik, ownerStudentId: pemilikSantri } };
   }
 
   async function catatKejadian(itemId, jenis, catatan, { biaya = null, tanggal = null, berkasId = null, actor }) {
@@ -153,9 +174,9 @@ function createInventoryService({ database, staffDormitories, now = () => new Da
       if (dupe.rows.length) return { ok: false, status: 409, error: `Kode aset ${kode} sudah dipakai di asrama ini.` };
       const id = crypto.randomUUID();
       await database.query(
-        `INSERT INTO dormitory_inventory (id, dormitory_id, name, quantity, condition, note, code, category, location, purchased_on, unit_price_rupiah, photo_file_id, proof_file_id, updated_by_account_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
-        [id, dormitoryId, v.value.name, v.value.quantity, v.value.condition, v.value.note, kode, v.value.category, v.value.location, v.value.purchasedOn, v.value.unitPrice, v.value.photoFileId, v.value.proofFileId, actor.id || null]
+        `INSERT INTO dormitory_inventory (id, dormitory_id, name, quantity, condition, note, code, category, location, purchased_on, unit_price_rupiah, photo_file_id, proof_file_id, updated_by_account_id, funding_source, owner_type, owner_student_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+        [id, dormitoryId, v.value.name, v.value.quantity, v.value.condition, v.value.note, kode, v.value.category, v.value.location, v.value.purchasedOn, v.value.unitPrice, v.value.photoFileId, v.value.proofFileId, actor.id || null, v.value.fundingSource, v.value.ownerType, v.value.ownerStudentId]
       );
       if (v.value.purchasedOn) await catatKejadian(id, 'pembelian', `Aset dicatat: ${v.value.quantity} unit ${v.value.name}.`, { biaya: v.value.unitPrice === null ? null : v.value.unitPrice * v.value.quantity, tanggal: v.value.purchasedOn, berkasId: v.value.proofFileId, actor });
       return { ok: true, value: bentuk((await database.query(`${SELECT} WHERE i.id = $1`, [id])).rows[0]) };
@@ -176,8 +197,8 @@ function createInventoryService({ database, staffDormitories, now = () => new Da
       if (dupe.rows.length) return { ok: false, status: 409, error: `Kode aset ${kode} sudah dipakai di asrama ini.` };
       await database.query(
         `UPDATE dormitory_inventory SET name = $3, quantity = $4, condition = $5, note = $6, code = $7, category = $8, location = $9, purchased_on = $10, unit_price_rupiah = $11,
-                photo_file_id = $12, proof_file_id = $13, updated_by_account_id = $14, updated_at = now() WHERE id = $1 AND dormitory_id = $2`,
-        [itemId, dormitoryId, v.value.name, v.value.quantity, v.value.condition, v.value.note, kode, v.value.category, v.value.location, v.value.purchasedOn, v.value.unitPrice, v.value.photoFileId, v.value.proofFileId, actor.id || null]
+                photo_file_id = $12, proof_file_id = $13, updated_by_account_id = $14, funding_source = $15, owner_type = $16, owner_student_id = $17, updated_at = now() WHERE id = $1 AND dormitory_id = $2`,
+        [itemId, dormitoryId, v.value.name, v.value.quantity, v.value.condition, v.value.note, kode, v.value.category, v.value.location, v.value.purchasedOn, v.value.unitPrice, v.value.photoFileId, v.value.proofFileId, actor.id || null, v.value.fundingSource, v.value.ownerType, v.value.ownerStudentId]
       );
       // Perubahan kondisi tercatat otomatis di riwayat aset.
       if (lama.condition !== v.value.condition) {
@@ -247,7 +268,7 @@ function createInventoryService({ database, staffDormitories, now = () => new Da
 
   function bentukPeriksa(c, items) {
     return {
-      id: c.id, dormitoryId: c.dormitory_id, month: c.month, status: c.status, statusLabel: c.status === 'selesai' ? 'Selesai' : 'Sedang berjalan', note: c.note || '', completedAt: iso(c.completed_at),
+      id: c.id, dormitoryId: c.dormitory_id, month: c.month, status: c.status, statusLabel: c.status === 'selesai' ? 'Selesai' : 'Sedang berjalan', note: c.note || '', completedAt: iso(c.completed_at), proofFileId: c.proof_file_id || null,
       items: items.map((i) => ({ itemId: i.item_id, code: i.code || '', name: i.name, location: i.location || '', expectedQuantity: i.expected_quantity, expectedCondition: i.expected_condition, expectedConditionLabel: KONDISI[i.expected_condition], foundQuantity: i.found_quantity === null ? null : Number(i.found_quantity), foundCondition: i.found_condition || null, note: i.note || '' })),
       checked: items.filter((i) => i.found_quantity !== null).length, total: items.length
     };
@@ -326,7 +347,8 @@ function createInventoryService({ database, staffDormitories, now = () => new Da
     });
   }
 
-  // Menyelesaikan pemeriksaan: semua aset harus sudah diperiksa; selisih jumlah dan kondisi diterapkan ke aset dan tercatat di riwayatnya.
+  // Menyelesaikan pemeriksaan: semua aset harus sudah diperiksa dan foto bukti pemeriksaan wajib dilampirkan (notulen rapat);
+  // selisih jumlah dan kondisi diterapkan ke aset dan tercatat di riwayatnya.
   async function completeCheck(checkId, input, actor) {
     const izin = await periksaPemeriksaan(checkId, actor);
     if (!izin.ok) return izin;
@@ -335,6 +357,8 @@ function createInventoryService({ database, staffDormitories, now = () => new Da
       const { items } = await muatPeriksa(checkId);
       const belum = items.filter((i) => i.found_quantity === null);
       if (belum.length) return { ok: false, status: 409, error: `${belum.length} aset belum diperiksa: ${belum.slice(0, 5).map((i) => i.name).join(', ')}${belum.length > 5 ? ', ...' : ''}.` };
+      const foto = await berkas(input && input.proofFileId, izin.check.dormitory_id);
+      if (!foto) return { ok: false, error: 'Lampirkan foto bukti pemeriksaan (misalnya foto ruangan atau barang yang diperiksa) sebelum menyelesaikan.' };
       let disesuaikan = 0;
       for (const i of items) {
         const jumlahBeda = Number(i.found_quantity) !== Number(i.expected_quantity);
@@ -352,7 +376,7 @@ function createInventoryService({ database, staffDormitories, now = () => new Da
           await catatKejadian(i.item_id, jenis, `${label}: kondisi ${KONDISI[i.expected_condition]} menjadi ${KONDISI[i.found_condition]}.${i.note ? ` ${i.note}` : ''}`, { actor });
         }
       }
-      await database.query(`UPDATE inventory_checks SET status = 'selesai', note = $2, completed_by_account_id = $3, completed_at = $4 WHERE id = $1`, [checkId, rapi(input && input.note, 500), actor.id || null, now()]);
+      await database.query(`UPDATE inventory_checks SET status = 'selesai', note = $2, completed_by_account_id = $3, completed_at = $4, proof_file_id = $5 WHERE id = $1`, [checkId, rapi(input && input.note, 500), actor.id || null, now(), foto]);
       const { c, items: akhir } = await muatPeriksa(checkId);
       return { ok: true, value: { adjusted: disesuaikan, ...bentukPeriksa(c, akhir) } };
     });
@@ -374,11 +398,11 @@ function createInventoryService({ database, staffDormitories, now = () => new Da
                 COALESCE(sum(i.quantity) FILTER (WHERE i.condition = 'perawatan'), 0)::int AS perawatan,
                 (SELECT max(month) FROM inventory_checks c WHERE c.dormitory_id = d.id AND c.status = 'selesai') AS pemeriksaan_terakhir,
                 (SELECT status FROM inventory_checks c WHERE c.dormitory_id = d.id AND c.month = $2) AS pemeriksaan_bulan_ini
-           FROM dormitories d LEFT JOIN dormitory_inventory i ON i.dormitory_id = d.id AND i.archived_at IS NULL
+           FROM dormitories d LEFT JOIN dormitory_inventory i ON i.dormitory_id = d.id AND i.archived_at IS NULL AND i.owner_type = 'asrama'
           WHERE ($1::uuid[] IS NULL OR d.id = ANY($1::uuid[])) GROUP BY d.id, d.name ORDER BY d.name`, [b, bulan]
       );
       const kategori = (await database.query(
-        `SELECT i.dormitory_id, i.category, COALESCE(sum(i.quantity), 0)::int AS unit FROM dormitory_inventory i WHERE i.archived_at IS NULL AND ($1::uuid[] IS NULL OR i.dormitory_id = ANY($1::uuid[])) GROUP BY i.dormitory_id, i.category`, [b]
+        `SELECT i.dormitory_id, i.category, COALESCE(sum(i.quantity), 0)::int AS unit FROM dormitory_inventory i WHERE i.archived_at IS NULL AND i.owner_type = 'asrama' AND ($1::uuid[] IS NULL OR i.dormitory_id = ANY($1::uuid[])) GROUP BY i.dormitory_id, i.category`, [b]
       )).rows;
       const ac = (await database.query(
         `SELECT dormitory_id, count(*) FILTER (WHERE ownership = 'hamasah')::int AS hamasah, count(*) FILTER (WHERE ownership = 'patungan')::int AS patungan FROM dormitory_ac_units WHERE archived_at IS NULL GROUP BY dormitory_id`

@@ -46,6 +46,12 @@ function tanggalJakarta(date) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(date);
 }
 
+// Absensi asrama dicatat musyrif menurut tanggal Kairo (halaman Presensi dan Kegiatan), jadi "absensi hari ini"
+// juga dihitung dengan tanggal Kairo. Dokumen dan tenggat tetap memakai tanggal Jakarta.
+function tanggalKairo(date) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Cairo' }).format(date);
+}
+
 function selisihHari(dari, ke) {
   return Math.round((new Date(`${ke}T00:00:00Z`) - new Date(`${dari}T00:00:00Z`)) / HARI_MS);
 }
@@ -233,6 +239,7 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
     const filter = bacaFilter(query);
     const saatIni = now();
     const hariIni = tanggalJakarta(saatIni);
+    const hariAsrama = tanggalKairo(saatIni);
     const batas = await batasDokumen();
     const kesehatan = Boolean(typeof kesehatanAktif === 'function' ? await kesehatanAktif() : kesehatanAktif);
     const sejakSakit = new Date(saatIni.getTime() - SAKIT_MAKS_HARI * HARI_MS).toISOString().slice(0, 10);
@@ -262,8 +269,8 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
           [sejakSakit]
         )
         : Promise.resolve([]),
-      ambil('SELECT student_id, category, status FROM student_attendance WHERE session_date = $1', [hariIni]),
-      ambilBoleh('SELECT student_id, prayer, status FROM student_prayer_logs WHERE prayer_date = $1', [hariIni]),
+      ambil('SELECT student_id, category, status FROM student_attendance WHERE session_date = $1', [hariAsrama]),
+      ambilBoleh('SELECT student_id, prayer, status FROM student_prayer_logs WHERE prayer_date = $1', [hariAsrama]),
       ambil(
         `SELECT student_id, to_char(passport_expires_at, 'YYYY-MM-DD') AS paspor,
                 to_char(visa_expires_at, 'YYYY-MM-DD') AS iqamah
@@ -460,6 +467,7 @@ function createCentralMonitoringService({ database, healthEnabled: kesehatanAkti
       value: {
         generatedAt: saatIni.toISOString(),
         today: hariIni,
+        attendanceDate: hariAsrama,
         healthEnabled: kesehatan,
         filter,
         totals: {

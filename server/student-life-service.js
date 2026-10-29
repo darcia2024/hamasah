@@ -11,7 +11,8 @@ const crypto = require('node:crypto');
 // musyrif hanya bisa mengubah santri di asrama yang dia pegang.
 
 const JUZ_STATUSES = Object.freeze(['belum', 'sedang', 'hafal']);
-const AUDIENCES = Object.freeze(['santri', 'wali', 'semua']);
+// 'musyrif' (migrasi 080): pengumuman internal dari admin untuk musyrif; tidak pernah terlihat santri dan wali.
+const AUDIENCES = Object.freeze(['santri', 'wali', 'semua', 'musyrif']);
 // pulang-indonesia: pulang ke Indonesia untuk waktu yang lebih lama. Berpengaruh ke pembayaran santri,
 // jadi keuangan ikut melihatnya (homeLeaves). Besaran tarifnya belum diputuskan, jadi tidak ada tagihan
 // yang diubah otomatis.
@@ -158,6 +159,8 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
   function bolehKelola(pengumuman, actor, asramaMusyrif) {
     if (actor.role === 'admin') return true;
     if (actor.role !== 'supervisor') return false;
+    // Pengumuman untuk musyrif datang dari admin; musyrif membacanya, tidak menghapusnya.
+    if (pengumuman.audience === 'musyrif') return false;
     if (pengumuman.created_by_account_id && pengumuman.created_by_account_id === actor.id) return true;
     return Boolean(pengumuman.dormitory_id) && asramaMusyrif.includes(pengumuman.dormitory_id);
   }
@@ -233,12 +236,19 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
     }
   }
 
+  // Jenis penerima yang boleh dibaca suatu peran. Pengumuman musyrif hanya untuk admin dan musyrif.
+  function sasaranUntuk(actor) {
+    if (actor.role === 'student') return ['santri', 'semua'];
+    if (actor.role === 'parent') return ['wali', 'semua'];
+    return ['admin', 'supervisor'].includes(actor.role) ? AUDIENCES : AUDIENCES.filter((a) => a !== 'musyrif');
+  }
+
   // Pengumuman yang masih berlaku untuk pembaca ini, terbaru dulu, dengan status baca dan jumlah yang belum dibaca.
   async function announcementsFor(actor, { limit = 10 } = {}) {
     if (!actor) return { ok: false, status: 401, error: 'Sesi diperlukan.' };
     const asrama = await asramaPembaca(actor);
     const hariIni = tanggalJakarta(now());
-    const sasaran = actor.role === 'student' ? ['santri', 'semua'] : actor.role === 'parent' ? ['wali', 'semua'] : AUDIENCES;
+    const sasaran = sasaranUntuk(actor);
     const hasil = await baca(() => barisTerlihat(actor, asrama, sasaran, hariIni), { tersedia: false, rows: [] });
     const asramaMusyrif = actor.role === 'supervisor' ? asrama : [];
     const batas = Math.min(Math.max(Number(limit) || 10, 1), 50);
@@ -268,7 +278,7 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
   // Menandai pengumuman dibaca oleh akun ini. Hanya untuk pengumuman yang memang terlihat olehnya.
   async function markAnnouncementRead(id, actor) {
     if (!actor || !actor.id) return { ok: false, status: 401, error: 'Sesi diperlukan.' };
-    const sasaran = actor.role === 'student' ? ['santri', 'semua'] : actor.role === 'parent' ? ['wali', 'semua'] : AUDIENCES;
+    const sasaran = sasaranUntuk(actor);
     return tulis(async () => {
       const { rows } = await barisTerlihat(actor, await asramaPembaca(actor), sasaran, tanggalJakarta(now()));
       if (!rows.some((r) => r.id === id)) return { ok: false, status: 404, error: 'Pengumuman tidak ditemukan.' };
@@ -279,7 +289,7 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
 
   async function markAllAnnouncementsRead(actor) {
     if (!actor || !actor.id) return { ok: false, status: 401, error: 'Sesi diperlukan.' };
-    const sasaran = actor.role === 'student' ? ['santri', 'semua'] : actor.role === 'parent' ? ['wali', 'semua'] : AUDIENCES;
+    const sasaran = sasaranUntuk(actor);
     return tulis(async () => {
       const { rows } = await barisTerlihat(actor, await asramaPembaca(actor), sasaran, tanggalJakarta(now()));
       let jumlah = 0;
@@ -299,6 +309,22 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
       const a = (await database.query('SELECT id, audience, dormitory_id, batch_id, created_by_account_id FROM announcements WHERE id = $1', [id])).rows[0];
       if (!a) return { ok: false, status: 404, error: 'Pengumuman tidak ditemukan.' };
       const milik = actor.role === 'supervisor' ? await staffDormitories(actor.id) : null;
+      if (a.audience === 'musyrif') {
+        if (actor.role !== 'admin') return { ok: false, status: 404, error: 'Pengumuman tidak ditemukan.' };
+        // Penerima: musyrif aktif yang memegang asrama itu, atau semua musyrif aktif.
+        const musyrif = (await database.query(
+          `SELECT DISTINCT acc.id, acc.name FROM accounts acc
+             LEFT JOIN staff_dormitory_assignments sda ON sda.account_id = acc.id
+            WHERE acc.role = 'supervisor' AND acc.active AND ($1::uuid IS NULL OR sda.dormitory_id = $1::uuid)`,
+          [a.dormitory_id || null]
+        )).rows;
+        const dibacaMusyrif = musyrif.length ? (await database.query('SELECT account_id, read_at FROM announcement_reads WHERE announcement_id = $1 AND account_id = ANY($2::uuid[])', [id, musyrif.map((m) => m.id)])).rows : [];
+        const daftar = musyrif.map((m) => {
+          const baca = dibacaMusyrif.find((d) => d.account_id === m.id);
+          return { name: m.name, role: 'musyrif', studentName: null, readAt: baca ? iso(baca.read_at) : null };
+        }).sort((x, y) => (x.readAt ? 1 : 0) - (y.readAt ? 1 : 0) || x.name.localeCompare(y.name, 'id'));
+        return { ok: true, value: { total: daftar.length, read: daftar.filter((i) => i.readAt).length, items: daftar } };
+      }
       const tertuju = (await database.query('SELECT student_id FROM announcement_students WHERE announcement_id = $1', [id])).rows.map((r) => r.student_id);
       let santri;
       if (tertuju.length) santri = (await database.query(`SELECT id, name, student_account_id FROM students WHERE id = ANY($1::uuid[]) AND status IN ('active', 'leave')`, [tertuju])).rows;
@@ -359,6 +385,10 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
     if (title.length < 3 || title.length > 120) return { ok: false, error: 'Judul pengumuman 3 sampai 120 karakter.' };
     if (body.length < 10 || body.length > 2000) return { ok: false, error: 'Isi pengumuman 10 sampai 2000 karakter.' };
     if (!AUDIENCES.includes(audience)) return { ok: false, error: 'Pilih penerima pengumuman.' };
+    if (audience === 'musyrif') {
+      if (actor.role !== 'admin') return { ok: false, status: 403, error: 'Pengumuman untuk musyrif hanya dapat dibuat admin.' };
+      if (batchId || studentIds.length) return { ok: false, error: 'Pengumuman untuk musyrif ditujukan ke semua asrama atau satu asrama, bukan batch atau santri tertentu.' };
+    }
     if (expiresOn && (!/^\d{4}-\d{2}-\d{2}$/.test(expiresOn) || expiresOn < tanggalJakarta(now()))) {
       return { ok: false, error: 'Tanggal berakhir harus hari ini atau setelahnya.' };
     }
@@ -400,7 +430,7 @@ function createStudentLifeService({ database, accessFor, getStudent, staffDormit
   async function removeAnnouncement(id, actor) {
     if (!actor || !['admin', 'supervisor'].includes(actor.role)) return { ok: false, status: 403, error: 'Hanya admin dan musyrif.' };
     return tulis(async () => {
-      const { rows } = await database.query('SELECT id, dormitory_id, created_by_account_id FROM announcements WHERE id = $1', [id]);
+      const { rows } = await database.query('SELECT id, audience, dormitory_id, created_by_account_id FROM announcements WHERE id = $1', [id]);
       if (!rows.length) return { ok: false, status: 404, error: 'Pengumuman tidak ditemukan.' };
       const asramaMusyrif = actor.role === 'supervisor' ? await staffDormitories(actor.id) : [];
       if (!bolehKelola(rows[0], actor, asramaMusyrif)) return { ok: false, status: 403, error: 'Pengumuman ini di luar asrama yang Anda pegang.' };
