@@ -5,7 +5,6 @@
 (function initWaliBagian() {
   const K = window.HamasahBerandaKeluarga;
   if (!K) return;
-  const BULAN = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' });
 
   function el(tag, className, text) {
     const node = document.createElement(tag);
@@ -171,57 +170,123 @@
   }
 
   // ------------------------------------------------------------ Rapor bulanan
-  function enamBulan() {
-    const kini = new Date();
-    return Array.from({ length: 6 }, (_, i) => {
-      const awal = new Date(Date.UTC(kini.getUTCFullYear(), kini.getUTCMonth() - i, 1));
-      const akhir = new Date(Date.UTC(awal.getUTCFullYear(), awal.getUTCMonth() + 1, 0));
-      const iso = (d) => d.toISOString().slice(0, 10);
-      return { label: BULAN.format(awal), from: iso(awal), to: iso(akhir) };
-    });
-  }
-
+  // Rapor bulanan resmi: hanya yang sudah ditinjau dan diterbitkan Hamasah (server/report-card-service.js).
   function kartuRapor(student, headers) {
-    const wadah = bagian('Rapor bulanan', 'Unduh rapor PDF ananda: kehadiran, hafalan, ibadah, dan catatan pembina.');
-    const bulan = enamBulan();
-    const label = el('label', 'wali-field__label', 'Pilih bulan');
-    const pilih = el('select', 'wali-field');
-    pilih.id = `wali-rapor-${student.id}`;
-    label.htmlFor = pilih.id;
-    bulan.forEach((b, i) => pilih.append(new Option(b.label, String(i))));
+    const wadah = bagian('Rapor bulanan', 'Rapor yang sudah ditinjau dan diterbitkan oleh Hamasah, lengkap dengan tren dari bulan ke bulan.', 'wali-rapor');
+    const isi = el('div');
+    wadah.append(isi);
     const status = el('p', 'form-status');
     status.setAttribute('role', 'status');
     status.setAttribute('aria-live', 'polite');
-    const tombol = el('button', 'button button--primary wali-action', 'Unduh rapor');
-    tombol.type = 'button';
-    tombol.addEventListener('click', async () => {
-      const b = bulan[Number(pilih.value)];
+
+    async function unduh(bulan, tombol) {
       tombol.disabled = true;
       status.textContent = 'Menyiapkan rapor...';
       status.classList.remove('is-error');
       try {
-        const respons = await fetch(`/api/students/${encodeURIComponent(student.id)}/report.pdf?from=${b.from}&to=${b.to}`, { headers });
-        if (!respons.ok) throw new Error('Rapor belum dapat disiapkan. Coba lagi sebentar lagi.');
+        const respons = await fetch(`/api/students/${encodeURIComponent(student.id)}/rapor/${bulan}/pdf`, { headers });
+        if (!respons.ok) throw new Error((await respons.json().catch(() => ({}))).error || 'Rapor belum dapat disiapkan.');
         const url = URL.createObjectURL(await respons.blob());
         const tautan = document.createElement('a');
         tautan.href = url;
-        tautan.download = `rapor-${student.name.replace(/[^\w]+/g, '-').toLowerCase()}-${b.from.slice(0, 7)}.pdf`;
+        tautan.download = `rapor-${student.name.replace(/[^\w]+/g, '-').toLowerCase()}-${bulan}.pdf`;
         document.body.append(tautan);
         tautan.click();
         tautan.remove();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
-        status.textContent = `Rapor ${b.label} diunduh.`;
+        status.textContent = 'Rapor diunduh.';
       } catch (error) {
         status.textContent = error.message;
         status.classList.add('is-error');
       } finally {
         tombol.disabled = false;
       }
-    });
-    wadah.append(label, pilih, tombol, status);
+    }
+
+    (async () => {
+      let data;
+      try {
+        const respons = await fetch(`/api/students/${encodeURIComponent(student.id)}/rapor?t=${Date.now()}`, { headers });
+        data = respons.ok ? await respons.json() : null;
+      } catch { data = null; }
+      if (!data || data.available === false) { isi.replaceChildren(el('p', 'wali-empty', 'Rapor bulanan belum dapat ditampilkan.')); return; }
+      if (!data.items.length) { isi.replaceChildren(el('p', 'wali-empty', 'Belum ada rapor yang diterbitkan. Rapor muncul di sini setelah ditinjau dan diterbitkan Hamasah.')); return; }
+      const label = { attendance: 'Absensi kegiatan', tahfidz: 'Tahfidz', discipline: 'Kedisiplinan', participation: 'Partisipasi' };
+      const daftar = el('ul', 'wali-notes');
+      data.items.forEach((r) => {
+        const li = el('li', `wali-note is-${r.grade === 'A' ? 'baik' : r.grade === 'C' ? 'perlu' : 'catatan'}`);
+        const meta = el('div', 'wali-note__meta');
+        meta.append(el('span', 'wali-note__kind', r.monthLabel), el('span', '', r.total === null ? 'Belum dinilai' : `Kategori ${r.grade} · nilai ${r.total}`));
+        li.append(meta);
+        const rincian = el('ul', 'wali-mini-list');
+        Object.keys(label).forEach((k) => {
+          const x = el('li');
+          x.append(el('span', '', label[k]), el('strong', '', r.scores[k] === null || r.scores[k] === undefined ? 'belum ada data' : String(r.scores[k])));
+          rincian.append(x);
+        });
+        li.append(rincian);
+        if (r.note) li.append(el('p', 'wali-note__body', `Catatan musyrif: ${r.note}`));
+        if (r.recommendation) li.append(el('p', 'wali-note__body', `Rekomendasi pembinaan: ${r.recommendation}`));
+        if (data.pdfEnabled) {
+          const b = el('button', 'wali-link', 'Unduh PDF');
+          b.type = 'button';
+          b.addEventListener('click', () => unduh(r.month, b));
+          li.append(b);
+        }
+        daftar.append(li);
+      });
+      isi.replaceChildren(data.trend.length > 1 ? tren(data.trend) : document.createDocumentFragment(), daftar, status);
+    })();
+
+    function tren(titik) {
+      const kotak = el('div', 'wali-trend-list');
+      kotak.append(el('h4', 'wali-subtitle', 'Tren nilai'));
+      const ul = el('ul', 'wali-mini-list');
+      titik.forEach((x) => { const li = el('li'); li.append(el('span', '', x.label), el('strong', '', `${x.grade || '-'} (${x.total === null ? '-' : x.total})`)); ul.append(li); });
+      kotak.append(ul);
+      return kotak;
+    }
     return wadah;
   }
 
+  // Perkembangan hafalan dari buku setoran: ayat unik (tanpa hitung ganda), rekap bulan ini, dan setoran terakhir.
+  function kartuTahfidz(student, headers) {
+    const wadah = bagian('Buku setoran tahfidz', 'Perkembangan hafalan dihitung dari ayat yang berbeda; menyetor ulang ayat yang sama tidak dihitung dua kali.', 'wali-tahfidz');
+    const isi = el('div');
+    wadah.append(isi);
+    (async () => {
+      let data;
+      try {
+        const respons = await fetch(`/api/students/${encodeURIComponent(student.id)}/setoran?t=${Date.now()}`, { headers });
+        data = respons.ok ? await respons.json() : null;
+      } catch { data = null; }
+      if (!data || data.available === false) { isi.replaceChildren(el('p', 'wali-empty', 'Buku setoran belum aktif.')); return; }
+      if (!data.progress.uniqueAyat && !data.entries.length) { isi.replaceChildren(el('p', 'wali-empty', 'Belum ada setoran yang dicatat musyrif.')); return; }
+      const batang = el('div', 'kg-progress');
+      batang.setAttribute('role', 'progressbar');
+      batang.setAttribute('aria-valuenow', String(data.progress.percent));
+      batang.setAttribute('aria-valuemin', '0');
+      batang.setAttribute('aria-valuemax', '100');
+      const isiBatang = el('span', 'kg-progress__fill');
+      isiBatang.style.width = `${Math.min(100, data.progress.percent)}%`;
+      batang.append(isiBatang);
+      const m = data.month;
+      const daftar = el('ul', 'wali-mini-list');
+      [['Hafalan unik', `${data.progress.uniqueAyat} dari ${data.progress.totalAyat} ayat (${data.progress.percent}%)`], ['Surat lengkap', String(data.progress.completeSurahs)], ['Ayat baru bulan ini', String(m.newAyat)], ['Ayat murajaah bulan ini', String(m.murajaahAyat)], ['Setoran bulan ini', String(m.entries)]].forEach(([l, v]) => {
+        const li = el('li');
+        li.append(el('span', '', l), el('strong', '', v));
+        daftar.append(li);
+      });
+      const terakhir = el('ul', 'wali-mini-list');
+      data.entries.slice(0, 5).forEach((e) => {
+        const li = el('li');
+        li.append(el('span', '', `${e.kindLabel} · ${e.surahName} ${e.ayahFrom}${e.ayahTo !== e.ayahFrom ? `–${e.ayahTo}` : ''}`), el('strong', `wali-grade is-${e.quality === 'kurang-lancar' ? 'kurang-lancar' : e.quality}`, e.qualityLabel));
+        terakhir.append(li);
+      });
+      isi.replaceChildren(batang, daftar, el('h4', 'wali-subtitle', 'Setoran terakhir'), terakhir);
+    })();
+    return wadah;
+  }
   // ------------------------------------------------------------ Dokumentasi asrama
   function kartuDokumentasi(jadwal, studentId, headers) {
     const G = window.HamasahGaleri;
@@ -343,5 +408,5 @@
     return wadah;
   }
 
-  window.HamasahWaliBagian = Object.freeze({ kartuDataDiri, kartuPendidikan, kartuAbsensiJenis, kartuRapor, kartuDokumentasi, kartuMasukan });
+  window.HamasahWaliBagian = Object.freeze({ kartuTahfidz, kartuDataDiri, kartuPendidikan, kartuAbsensiJenis, kartuRapor, kartuDokumentasi, kartuMasukan });
 }());

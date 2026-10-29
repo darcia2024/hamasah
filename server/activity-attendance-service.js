@@ -113,7 +113,7 @@ function createActivityAttendanceService({ database, staffDormitories, now = () 
     return {
       id: row.id, typeId: row.type_id, typeName: row.type_name, title: row.title || '', date: row.session_date_text,
       startTime: row.start_time_text || null, endTime: row.end_time_text || null, location: row.location || '',
-      groupKind: row.group_kind, groupLabel: row.group_kind === 'semua' ? 'Semua santri' : `Asrama ${row.dormitory_name || ''}`.trim(),
+      groupKind: row.group_kind, groupLabel: row.group_kind === 'semua' ? 'Semua santri' : (/^asrama/i.test(row.dormitory_name || '') ? row.dormitory_name : `Asrama ${row.dormitory_name || ''}`.trim()),
       dormitoryId: row.dormitory_id || null, staffAccountId: row.staff_account_id || null, staffName: row.staff_name || null,
       status: row.status, statusLabel: STATUS_SESI[row.status], statusReason: row.status_reason || '',
       participants: row.participants === undefined ? undefined : Number(row.participants),

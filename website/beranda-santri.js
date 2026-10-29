@@ -396,9 +396,10 @@
         bagianLaporan(data),
         bagianPrestasi(data),
         grafik,
-        B ? B.kartuAbsensiJenis(data) : null
+        B ? B.kartuAbsensiJenis(data) : null,
+        B ? B.kartuTahfidz(student, headers) : null
       ]),
-      kelompok('rapor', 'Rapor', 'Unduh rapormu per bulan. Isinya hanya catatan yang boleh kamu lihat.', [B ? B.kartuRapor(student, headers) : null]),
+      kelompok('rapor', 'Rapor', 'Rapor bulananmu yang sudah ditinjau dan diterbitkan Hamasah.', [B ? B.kartuRapor(student, headers) : null]),
       kelompok('data', 'Data diri dan administrasi', 'Data pribadimu, status pendidikan, dan urusan yang sedang diurus.', [B ? B.kartuDataDiri(profil) : null, B ? B.kartuPendidikan(profil, data.izin) : null]),
       kelompok('asrama', 'Kabar asrama', 'Pengumuman, acara, jadwal, dan momen dari asramamu.', [
         berdampingan('wali-grid', [umum, bagianAcara(asrama, kini)]),

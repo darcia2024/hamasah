@@ -1,0 +1,50 @@
+﻿/* Halaman Kegiatan dan Rapor (kegiatan.js). Memakai kelas wali-* dan asr-* yang sudah ada; di sini hanya tambahan. */
+.kg-stack { display: grid; gap: 28px; }
+.kg-section { display: grid; gap: 14px; }
+.kg-small { min-height: 40px; padding: 0 14px; font-size: 14px; }
+.kg-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.kg-bar .wali-form__row { min-width: 160px; }
+.kg-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+
+.kg-card {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid var(--wali-rule);
+  border-radius: 12px;
+  background: var(--md-sys-color-surface, #fff);
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+.kg-card:hover { border-color: var(--md-sys-color-primary); }
+.kg-card.is-active { border-color: var(--md-sys-color-primary); box-shadow: 0 0 0 2px var(--md-sys-color-primary) inset; }
+.kg-card:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: 2px; }
+.kg-card__title { font-size: var(--fs-16, 16px); }
+.kg-card__meta { font-size: var(--fs-12, 12px); color: var(--md-sys-color-on-surface-variant); }
+
+.kg-chip { justify-self: start; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--wali-empty); color: var(--md-sys-color-on-surface-variant); }
+.kg-chip.is-terlaksana { background: #dff3e4; color: #1d6b34; }
+.kg-chip.is-tidak-terlaksana, .kg-chip.is-dibatalkan { background: #fbe4e1; color: #9a2a1d; }
+.kg-chip.is-terjadwal { background: #fff0cf; color: #7a5410; }
+
+.kg-scroll { overflow-x: auto; }
+.kg-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.kg-table th, .kg-table td { padding: 10px 12px; border-bottom: 1px solid var(--wali-rule); text-align: left; vertical-align: middle; }
+.kg-table th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--md-sys-color-on-surface-variant); }
+.kg-table select, .kg-table input { min-height: 40px; padding: 6px 10px; border: 1px solid var(--wali-rule); border-radius: 8px; font: inherit; background: var(--md-sys-color-surface, #fff); color: inherit; }
+
+.kg-progress { height: 14px; border-radius: 999px; background: var(--wali-empty); overflow: hidden; }
+.kg-progress__fill { display: block; height: 100%; background: var(--md-sys-color-primary); border-radius: 999px; }
+.kg-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.kg-metric { display: grid; gap: 2px; padding: 12px; border: 1px solid var(--wali-rule); border-radius: 12px; }
+.kg-metric strong { font-size: 24px; }
+.kg-metric span { font-size: 12px; color: var(--md-sys-color-on-surface-variant); }
+.kg-score { margin: 0; font-size: 22px; font-weight: 700; }
+
+@media (max-width: 640px) {
+  .kg-bar { align-items: stretch; }
+  .kg-bar .wali-form__row { flex: 1 1 100%; }
+  .kg-list { grid-template-columns: 1fr; }
+}

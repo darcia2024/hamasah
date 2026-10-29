@@ -588,7 +588,7 @@
         {
           id: 'hafalan',
           label: 'Hafalan & rapor',
-          isi: [grup(kartuHafalan(data), B ? B.kartuRapor(student, headers) : null), kartuCatatan(data), K.kartuLinimasa(K.butirKegiatan(data, student.name), {
+          isi: [grup(kartuHafalan(data), B ? B.kartuTahfidz(student, headers) : null), B ? B.kartuRapor(student, headers) : null, kartuCatatan(data), K.kartuLinimasa(K.butirKegiatan(data, student.name), {
             judul: 'Catatan harian',
             keterangan: `Semua yang tercatat ${K.PERIODE_HARI} hari terakhir, terbaru di atas.`,
             perHalaman: 8,
