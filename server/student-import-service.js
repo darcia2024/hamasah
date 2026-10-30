@@ -244,7 +244,7 @@ function createStudentImportService({ database, studentPortalService, studentPro
       if (v.dormitory) {
         asrama = konteks.asrama.get(kunciNama(v.dormitory)) || null;
         if (!asrama) galat.push(`Asrama “${v.dormitory}” tidak ditemukan. Cek penulisannya atau buat asramanya dulu.`);
-        else if (jenis.value && asrama.gender !== jenis.value) galat.push(`Asrama ${asrama.name} untuk ${asrama.gender}, sedangkan santri ini ${jenis.value}.`);
+        else if (jenis.value && asrama.gender !== jenis.value) galat.push(`${/^asrama\b/i.test(asrama.name) ? asrama.name : `Asrama ${asrama.name}`} untuk ${asrama.gender}, sedangkan santri ini ${jenis.value}.`);
         else if (!jenis.value && !jenis.galat) galat.push('Jenis (putra atau putri) wajib diisi bila santri ditempatkan di asrama.');
         else if (asrama) {
           const terisi = (konteks.hunian.get(asrama.id) || 0) + (tambahanHunian.get(asrama.id) || 0);

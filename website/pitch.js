@@ -93,26 +93,28 @@
       key: 'admin', label: 'Super Admin', av: 'SA',
       desc: 'Bisa membuka semua menu.',
       login: 'Masuk lewat /portal dengan email dan kata sandi akun Super Admin.',
-      menu: ['Portal Utama', 'Pendaftaran', 'Monitoring Asrama', 'Kelola Asrama', 'LMS Maddah', 'Keuangan & SPP', 'Visa & Paspor', 'Inventaris', 'Kelola Akun', 'Jejak Audit', 'Konten Website', 'Template', 'Pengaturan'],
+      menu: ['Portal Utama', 'Asisten Hamasah', 'Pendaftaran', 'Monitoring Asrama', 'Kelola Asrama', 'Program & Batch', 'Kegiatan & Rapor', 'Surat & Arsip', 'KPI Musyrif', 'Inventaris & AC', 'Impor Santri', 'Program LMS', 'LMS Maddah', 'Pengingat Tagihan', 'Pembayaran', 'Keuangan & SPP', 'Visa & Paspor', 'Stok Kantor', 'Kelola Akun', 'Jejak Audit', 'Konten Website', 'Template', 'Pengaturan'],
       open: [
-        ['Portal Utama', 'Angka santri, asrama, musyrif, dan tagihan, plus daftar hal yang perlu segera ditangani.'],
+        ['Portal Utama dan Monitoring Pusat', 'Angka lembaga, absensi hari ini, dan urusan paspor, iqamah, lapor diri, dan lapor pendidikan, lengkap dengan penanggung jawabnya.'],
         ['Pendaftaran', 'Semua yang dipegang petugas pendaftaran, termasuk kloter dan artikel.'],
-        ['Monitoring Asrama', 'Semua tab, termasuk tambah santri baru, penempatan kamar, kelola asrama dan musyrif, dan menghubungkan akun wali.'],
-        ['Kelola Asrama', 'Jadwal, agenda, piket, uang kas, dan inventaris di semua asrama.'],
-        ['LMS Maddah', 'Semua maddah, materi, dan penilaian.'],
-        ['Keuangan, Visa, Inventaris', 'Tagihan, kuitansi, visa santri, barang asrama, dan riwayat keuangan.'],
-        ['Kelola Akun', 'Membuat akun, mengganti peran, memblokir, dan membuatkan kata sandi sementara.'],
-        ['Jejak Audit', 'Catatan siapa melakukan apa dan kapan, di seluruh aplikasi.'],
-        ['Konten Website', 'Isi website: biaya, program, kontak, testimoni, tanya jawab, dan pengumuman.'],
-        ['Template dan Pengaturan', 'Isi pesan WhatsApp, kop dan rekening di PDF, serta saklar fitur.']
+        ['Monitoring dan Kelola Asrama', 'Presensi, pembinaan, izin, pengumuman (termasuk untuk musyrif), kamar, kalender, piket, uang kas, galeri, dan iqamah.'],
+        ['Program & Batch dan Impor Santri', 'Program di Mesir dan Indonesia beserta batchnya, dan memasukkan data santri sekaligus dari Excel.'],
+        ['Kegiatan & Rapor', 'Absensi kegiatan, setoran tahfidz, rapor bulanan, dan pengaturan rapornya.'],
+        ['Surat & Arsip dan KPI Musyrif', 'Verifikasi dan persetujuan surat, serta penilaian bulanan musyrif.'],
+        ['Inventaris & AC', 'Aset semua asrama, pemeriksaan bulanan, AC patungan, dan refund.'],
+        ['Kelas online', 'Program LMS, sesi belajar bersama, semua maddah, dan penilaiannya.'],
+        ['Keuangan', 'Tagihan dan kuitansi, pengingat WhatsApp, pembayaran, visa dan paspor, serta stok kantor.'],
+        ['Asisten Hamasah', 'Ringkasan asrama, dokumen yang perlu ditindaklanjuti, dan draf pengumuman untuk diperiksa.'],
+        ['Akun, audit, dan pengaturan', 'Akun dan peran, jejak audit, isi website, isi pesan dan kop PDF, saklar fitur, dan batas peringatan dokumen.']
       ],
       steps: [
-        ['Buat akun untuk tim', 'Buka Kelola Akun, tambahkan akun, lalu pilih perannya: petugas, musyrif, guru, atau keuangan.', 8],
-        ['Siapkan asrama dan musyrifnya', 'Di Monitoring Asrama, tab Kelola Asrama & Musyrif, buat asramanya lalu pilih musyrif yang memegang.', 2],
-        ['Masukkan santri', 'Tambahkan lewat tab Profil santri baru, atau ubah pendaftar yang sudah diterima menjadi santri.', 2],
-        ['Hubungkan akun wali', 'Di tab Hubungkan akun wali. Satu wali bisa dihubungkan ke beberapa anak.', 2],
-        ['Rapikan isi website', 'Di Konten Website ubah biaya dan program. Di Template atur isi pesan WhatsApp dan kop kuitansi.', 10],
-        ['Cek tiap pagi', 'Buka Portal Utama dan lihat daftar yang perlu ditangani. Kalau ada perubahan yang dipertanyakan, cek di Jejak Audit.', 0]
+        ['Buat akun untuk tim', 'Buka Kelola Akun, tambahkan akun, lalu pilih perannya: petugas, musyrif, guru, atau keuangan.', 18],
+        ['Masukkan data santri', 'Di Impor Santri, unggah Excel atau tempel dari Google Sheets. Datanya dicek dulu sebelum disimpan.', 10],
+        ['Siapkan asrama dan musyrifnya', 'Di Monitoring Asrama, tab Kelola Asrama & Musyrif, buat asramanya lalu pilih musyrif yang memegang.', 3],
+        ['Hubungkan akun wali', 'Di tab Hubungkan akun wali. Satu wali bisa dihubungkan ke beberapa anak.', 3],
+        ['Atur batas dan aturan', 'Di Pengaturan, atur batas peringatan paspor dan iqamah, saklar asisten, dan terapkan pembaruan database bila ada.', 22],
+        ['Rapikan isi website', 'Di Konten Website ubah biaya, program, dan kontak. Di Template atur isi pesan WhatsApp dan kop kuitansi.', 20],
+        ['Cek tiap pagi', 'Buka Portal Utama dan lihat Monitoring Pusat. Kalau ada perubahan yang dipertanyakan, cek di Jejak Audit.', 0]
       ],
       no: ['Melihat kata sandi orang lain. Admin hanya bisa menggantinya dengan kata sandi sementara.', 'Menghapus tagihan atau catatan kas. Yang salah dibatalkan dengan alasan, dan catatannya tetap ada.'],
       tip: 'Saran saya, akun Super Admin cukup dipegang sedikit orang. Apa pun yang dilakukan admin tercatat di Jejak Audit.'
@@ -121,9 +123,11 @@
       key: 'petugas', label: 'Petugas pendaftaran', av: 'PP',
       desc: 'Mengurus calon santri dari formulir sampai berangkat.',
       login: 'Masuk lewat /portal. Akunnya dibuatkan Super Admin dengan peran Petugas Pendaftaran.',
-      menu: ['Portal Utama', 'Pendaftaran'],
+      menu: ['Portal Utama', 'Pipeline Pendaftaran', 'Program & Batch', 'Surat & Arsip'],
       open: [
         ['Portal Utama', 'Ringkasan pendaftaran dan pesan konsultasi yang baru masuk.'],
+        ['Program & Batch', 'Program dan batch yang dituju calon santri.'],
+        ['Surat & Arsip', 'Mencatat surat masuk dan keluar, lalu mengajukannya untuk diverifikasi.'],
         ['Daftar calon santri masuk', 'Kartu tiap pendaftar, jumlah per tahap, pencarian, dan tombol tambah pendaftar manual.'],
         ['Agenda tindak lanjut', 'Semua tindak lanjut yang belum selesai, diurutkan dari tenggat terdekat. Yang lewat tenggat ditandai merah.'],
         ['Kloter keberangkatan', 'Buat kloter dengan nama, tanggal, dan kota asal, lalu masukkan pendaftarnya.'],
@@ -148,36 +152,38 @@
       key: 'musyrif', label: 'Musyrif asrama', av: 'MS',
       desc: 'Mencatat kegiatan harian di asrama yang dipegang.',
       login: 'Masuk lewat /portal. Super Admin yang menentukan asrama mana yang dipegang.',
-      menu: ['Portal Utama', 'Monitoring Asrama', 'Kelola Asrama', 'Maddah Santri'],
+      menu: ['Portal Utama', 'Asisten', 'Monitoring Asrama', 'Kelola Asrama', 'Program & Batch', 'Kegiatan & Rapor', 'Surat & Arsip', 'KPI Saya', 'Inventaris & AC', 'LMS: program & sesi', 'LMS: maddah'],
       open: [
-        ['Portal Utama', 'Tugas hari ini dan ringkasan santri di asramanya.'],
-        ['Presensi asrama', 'Absen sholat lima waktu dan kegiatan, untuk satu asrama sekaligus.'],
-        ['Pembinaan santri', 'Catatan pembinaan, setoran hafalan, dan kesehatan kalau fiturnya sudah dinyalakan.'],
-        ['Cerita AI', 'Tulis cerita singkat soal hari itu, lalu AI menyusun usulan catatan per santri untuk dicek.'],
-        ['Izin santri', 'Menyetujui atau menolak izin keluar. Absennya ikut tercatat. Kepulangan dicatat di tab tersendiri.'],
-        ['Tindak lanjut pembinaan', 'Target dan tenggat pembinaan tiap santri.'],
-        ['Pesan wali', 'Pesan dan doa yang dikirim wali untuk anaknya.'],
-        ['Pengumuman', 'Pengumuman untuk santri dan wali di asramanya.'],
-        ['Kelola Asrama', 'Jadwal mingguan, agenda, piket, uang kas, dan barang asrama.'],
-        ['Maddah Santri', 'Melihat maddah yang diikuti santri.']
+        ['Portal Utama', 'Tugas hari ini: sholat yang belum dicatat, izin, pesan wali, dan pengumuman dari admin.'],
+        ['Presensi asrama', 'Absen sholat lima waktu dan kegiatan untuk satu asrama sekaligus. Tanggalnya mengikuti waktu Kairo.'],
+        ['Pembinaan dan Cerita AI', 'Catatan pembinaan, izin, pesan wali, pengumuman, dan usulan catatan per santri dari cerita singkat.'],
+        ['Kelola Asrama', 'Kamar, kalender, piket, uang kas, galeri foto, iqamah santri, dan urusan yang perlu ditindaklanjuti.'],
+        ['Kegiatan & Rapor', 'Absensi per kegiatan, buku setoran tahfidz, dan rapor bulanan.'],
+        ['Surat & Arsip', 'Mencatat surat untuk santri asramanya, termasuk daftar periksa saat santri keluar.'],
+        ['KPI Saya', 'Nilai KPI bulanan sendiri dan buktinya.'],
+        ['Inventaris & AC', 'Aset asrama dan pemeriksaan bulanan dengan foto bukti.'],
+        ['LMS', 'Maddah per program dan kehadiran sesi belajar bersama.'],
+        ['Asisten', 'Ringkasan asrama dan draf pengumuman untuk diperiksa.']
       ],
       steps: [
-        ['Buka Presensi asrama', 'Pilih asrama, tanggal, dan waktu sholatnya. Santri yang belum diabsen sudah otomatis terpilih.', 1],
-        ['Isi absennya', 'Ubah yang berbeda saja: munfarid, tidak, atau izin. Lalu simpan.', 1],
-        ['Catat setoran hafalan', 'Di Pembinaan santri, pilih santrinya, isi ziyadah atau murajaah dan nilainya.', 1],
-        ['Jawab pengajuan izin', 'Di Izin santri, setujui atau tolak. Absennya ikut tercatat.', 1],
-        ['Baca pesan dari wali', 'Cek Pesan wali dan tindak lanjuti kalau perlu.', 1],
-        ['Catat uang kas', 'Di Kelola Asrama, tab Uang kas, catat pemasukan, pengeluaran, dan iuran.', 2]
+        ['Buka Presensi asrama', 'Pilih asrama, tanggal, dan waktu sholatnya. Santri yang belum diabsen sudah otomatis terpilih.', 2],
+        ['Isi absennya', 'Ubah yang berbeda saja: munfarid, tidak, atau izin. Lalu simpan.', 2],
+        ['Absen kegiatan dan setoran', 'Di Kegiatan & Rapor, isi absensi kegiatan dan catat setoran tahfidz tiap santri.', 5],
+        ['Jawab pengajuan izin', 'Di Monitoring Asrama, tab Izin santri, setujui atau tolak. Absennya ikut tercatat.', 2],
+        ['Cek iqamah santri', 'Di Kelola Asrama, tab Iqamah, cocokkan laporan tanggal baru dari santri lalu terima atau tolak.', 3],
+        ['Periksa inventaris tiap bulan', 'Di Inventaris & AC, isi jumlah dan kondisi tiap aset, lalu selesaikan dengan foto bukti.', 8],
+        ['Susun rapor bulanan', 'Di akhir bulan, buka tab Rapor bulanan. Rapor terbit ke wali setelah diperiksa.', 5]
       ],
-      no: ['Santri di asrama lain.', 'Tagihan dan keuangan lembaga.', 'Menambah santri, memindah asrama, atau menghubungkan akun wali. Itu bagian Super Admin.'],
+      no: ['Santri di asrama lain.', 'Tagihan dan keuangan lembaga.', 'Menambah santri, memindah asrama, atau menghubungkan akun wali. Itu bagian Super Admin.', 'Menghapus pengumuman dari admin.'],
       tip: 'Kalau dicatat di hari yang sama, halaman wali selalu terisi. Admin juga bisa lihat musyrif mana yang belum mencatat.'
     },
     {
       key: 'guru', label: 'Guru / Asatidz', av: 'GA',
       desc: 'Menyiapkan materi dan menilai santri.',
       login: 'Masuk lewat /portal. Akunnya dibuatkan Super Admin.',
-      menu: ['Portal Utama', 'Kelola Maddah (LMS)'],
+      menu: ['Portal Utama', 'Program LMS', 'Kelola Maddah (LMS)'],
       open: [
+        ['Program LMS', 'Maddah dikelompokkan per program, dan sesi belajar bersama.'],
         ['Kelola Maddah', 'Daftar maddah yang dipegang.'],
         ['Kurikulum', 'Menambah bacaan, video YouTube, PDF, kuis, dan tugas. Bisa diurutkan dan diarsipkan.'],
         ['Penilaian', 'Tugas yang masuk dari santri, untuk diberi nilai dan catatan.'],
@@ -185,36 +191,38 @@
         ['Lihat sebagai santri', 'Melihat maddah persis seperti yang dilihat santri.']
       ],
       steps: [
-        ['Buat maddahnya', 'Isi judul dan deskripsi singkat.', 1],
-        ['Tambahkan materi', 'Pilih jenisnya, lalu isi judul dan ringkasan untuk santri.', 1],
-        ['Susun kuis', 'Tulis pertanyaannya dan tandai jawaban yang benar. Nilai lulusnya 70, santri boleh mencoba tiga kali.', 1],
-        ['Daftarkan santri', 'Di tab Santri, pilih siapa saja yang ikut maddah ini.', 1],
-        ['Nilai tugas', 'Di tab Penilaian. Kalau nilainya 70 ke atas, materinya otomatis dianggap selesai.', 1],
-        ['Isi panduan untuk asisten AI', 'Tulis poin penting dan contoh tanya jawab, supaya jawaban asistennya tidak melenceng.', 1]
+        ['Buat maddahnya', 'Isi judul dan deskripsi singkat.', 2],
+        ['Tambahkan materi', 'Pilih jenisnya, lalu isi judul dan ringkasan untuk santri.', 2],
+        ['Susun kuis', 'Tulis pertanyaannya dan tandai jawaban yang benar. Nilai lulusnya 70, santri boleh mencoba tiga kali.', 2],
+        ['Hubungkan ke program', 'Di Program LMS, masukkan maddah ke programnya. Kalau akses otomatis dinyalakan, peserta program langsung bisa membukanya.', 1],
+        ['Nilai tugas', 'Di tab Penilaian. Kalau nilainya 70 ke atas, materinya otomatis dianggap selesai.', 2],
+        ['Isi panduan untuk asisten AI', 'Tulis poin penting dan contoh tanya jawab, supaya jawaban asistennya tidak melenceng.', 2]
       ],
       no: ['Maddah milik guru lain.', 'Data pribadi santri di luar maddahnya.', 'Keuangan dan catatan asrama.'],
       tip: 'Asisten AI cuma menjawab dari ringkasan dan poin penting yang ditulis guru. Jadi makin jelas tulisannya, makin bagus juga jawabannya.'
     },
     {
       key: 'keuangan', label: 'Keuangan', av: 'KU',
-      desc: 'Mengurus tagihan, kuitansi, visa, dan barang asrama.',
+      desc: 'Mengurus tagihan, kuitansi, pengingat, pembayaran, visa, dan AC patungan.',
       login: 'Masuk lewat /portal. Akunnya dibuatkan Super Admin.',
-      menu: ['Portal Utama', 'Keuangan & SPP', 'Visa & Paspor', 'Inventaris'],
+      menu: ['Portal Utama', 'AC & Refund', 'Pengingat Tagihan', 'Pembayaran', 'Keuangan & SPP', 'Visa & Paspor', 'Stok Kantor'],
       open: [
         ['Portal Utama', 'Ringkasan tagihan dan pembayaran terbaru.'],
         ['Faktur & Invoice SPP', 'Membuat tagihan satu per satu atau sekaligus banyak, menandai lunas, mengoreksi, membatalkan, dan mengunduh kuitansi.'],
-        ['Tracker visa pelajar', 'Kartu visa semua santri aktif, diurutkan dari yang paling mendesak.'],
-        ['Inventaris & Sarana Asrama', 'Daftar barang asrama, keluar masuk barang, dan riwayatnya.'],
-        ['Riwayat keuangan', 'Catatan per hari: tagihan terbit, lunas, dikoreksi, dibatalkan.'],
-        ['Laporan CSV', 'Unduh laporan tagihan untuk rentang bulan tertentu.']
+        ['Pengingat Tagihan', 'Wali yang tagihannya belum lunas, pesan yang tinggal dikirim lewat WhatsApp, dan riwayat pengingat.'],
+        ['Pembayaran', 'Tautan pembayaran untuk wali dan pencocokan transaksi ke tagihannya.'],
+        ['Visa & Paspor', 'Tanggal paspor dan iqamah semua santri. Batas peringatannya sama dengan Monitoring Pusat.'],
+        ['AC & Refund', 'Kontribusi AC patungan dan pengajuan refund saat santri keluar.'],
+        ['Stok Kantor', 'Barang kantor dan gudang, keluar masuk, dan riwayatnya.'],
+        ['Riwayat dan laporan', 'Catatan per hari, dan laporan tagihan CSV untuk rentang bulan tertentu.']
       ],
       steps: [
-        ['Buat tagihan', 'Pilih satu santri atau banyak santri sekaligus, lalu isi keterangan dan nominalnya.', 1],
-        ['Kabari wali', 'Tekan tombol WhatsApp di kartu tagihan, baca ulang pesannya, lalu kirim.', 1],
-        ['Tandai lunas', 'Setelah pembayaran masuk, tandai lunas. Nomor kuitansi keluar sendiri.', 1],
-        ['Unduh kuitansi', 'Dari kartu tagihan. Kuitansinya sudah berisi nama santri dan tanggal.', 1],
-        ['Koreksi atau batalkan', 'Harus pakai alasan, dan tercatat di Riwayat keuangan.', 1],
-        ['Pantau visa dan barang', 'Cek Visa & Paspor untuk masa berlaku, dan Inventaris untuk barang keluar masuk.', 2]
+        ['Buat tagihan', 'Pilih satu santri atau banyak santri sekaligus, lalu isi keterangan dan nominalnya.', 4],
+        ['Kirim pengingat', 'Di Pengingat Tagihan, buka pratinjau pesan untuk wali, baca ulang, lalu kirim lewat WhatsApp.', 2],
+        ['Tandai lunas', 'Setelah pembayaran masuk, tandai lunas. Nomor kuitansi keluar sendiri.', 4],
+        ['Cocokkan transaksi', 'Di Pembayaran, catat transaksi yang masuk dan cocokkan ke tagihannya. Transaksi yang sama tidak bisa dicatat dua kali.', 3],
+        ['Koreksi atau batalkan', 'Harus pakai alasan, dan tercatat di Riwayat keuangan.', 4],
+        ['Pantau paspor dan iqamah', 'Di Visa & Paspor, perbarui tanggalnya. Yang mendesak ada di urutan paling atas.', 5]
       ],
       no: ['Catatan pembinaan dan absen santri.', 'Pendaftaran dan berkas calon santri.', 'Mengatur akun.'],
       tip: 'Semua tagihan pakai rupiah. Kalau ada pembayaran dalam pound Mesir, dicatat dalam rupiah secara manual.'
@@ -225,23 +233,20 @@
       login: 'Masuk lewat /portal dengan akun wali. Super Admin yang menghubungkan akun ini ke ananda.',
       menu: ['Pantau Ananda'],
       open: [
-        ['Ringkasan', 'Semua ananda yang terhubung, dengan tanda kalau ada tagihan atau izin.'],
-        ['Mutaba’ah & ibadah', 'Kegiatan harian dan absennya.'],
-        ['Sholat berjamaah', 'Rekap sholat per hari.'],
-        ['Talaqqi & tahfidz', 'Setoran hafalan dan prestasi.'],
-        ['Asrama', 'Jadwal, agenda, dan piket di asrama ananda.'],
-        ['Maddah (LMS)', 'Progres belajar ananda, tanpa isi materinya.'],
-        ['Rapor & ringkasan', 'Unduh rapor PDF untuk periode tertentu.'],
-        ['Tagihan & kuitansi', 'Daftar tagihan dan kuitansi yang sudah lunas.'],
-        ['Kesehatan', 'Kondisi dan catatan untuk wali, kalau fiturnya sudah dinyalakan.']
+        ['Ringkasan', 'Ananda yang dipilih, hal yang perlu diperhatikan, dan kotak pesan berisi pengumuman serta pesan dari musyrif.'],
+        ['Pendidikan & administrasi', 'Status pendidikan dan kartu iqamah ananda.'],
+        ['Absensi', 'Kegiatan asrama, absensi per jenis kegiatan, sholat berjamaah, dan jadwal asrama.'],
+        ['Hafalan & rapor', 'Peta juz, buku setoran tahfidz, rapor bulanan, dan catatan harian.'],
+        ['Info & tagihan', 'Tagihan dan kuitansi, penjelasan perkembangan dari asisten, dan dokumentasi kegiatan.'],
+        ['Kritik & saran', 'Mengirim masukan ke Hamasah dan membaca balasannya.']
       ],
       steps: [
-        ['Masuk dan pilih ananda', 'Semua anak yang terhubung muncul di Ringkasan.', 0],
-        ['Baca ringkasannya', 'Ada catatan terakhir dari pembina dan hal yang perlu diperhatikan.', 0],
-        ['Lihat sholat dan hafalan', 'Di tab Sholat berjamaah dan Talaqqi & tahfidz.', 0],
-        ['Cek tagihan', 'Di tab Tagihan & kuitansi. Kuitansi bisa diunduh setelah lunas.', 0],
-        ['Unduh rapor', 'Di tab Rapor & ringkasan, pilih periodenya, lalu unduh PDF.', 0],
-        ['Kirim doa untuk ananda', 'Pesannya dibaca musyrif di asrama ananda.', 0]
+        ['Masuk dan pilih ananda', 'Kalau anaknya lebih dari satu, pilih namanya di bagian atas.', 0],
+        ['Baca ringkasannya', 'Ada hal yang perlu diperhatikan dan pesan yang belum dibaca.', 0],
+        ['Lihat absensi dan hafalan', 'Di kelompok Absensi serta Hafalan & rapor.', 0],
+        ['Cek tagihan', 'Di Info & tagihan. Kuitansi bisa diunduh setelah lunas.', 0],
+        ['Baca rapor bulanan', 'Di Hafalan & rapor, setelah rapornya diterbitkan Hamasah.', 0],
+        ['Kirim kritik dan saran', 'Di kelompok Kritik & saran. Balasannya muncul di kotak pesan.', 0]
       ],
       no: ['Data santri lain.', 'Isi materi maddah.', 'Catatan medis yang khusus untuk staf.'],
       tip: 'Satu akun wali bisa dipakai untuk beberapa anak sekaligus.'
@@ -250,15 +255,15 @@
       key: 'santri', label: 'Santri', av: 'SN',
       desc: 'Belajar, minta izin, dan melihat perkembangannya sendiri.',
       login: 'Masuk lewat /portal dengan akun santri.',
-      menu: ['Portal Utama', 'Ruang belajar (LMS)'],
+      menu: ['Dashboard santri', 'Ruang belajar (LMS)'],
       open: [
-        ['Beranda santri', 'Kegiatan hari ini, piket, lanjut belajar, dan izin.'],
+        ['Hari ini', 'Piket, lanjut belajar, izin, dan kartu iqamah.'],
+        ['Pesan', 'Pengumuman dan pesan pribadi dari musyrif di satu kotak pesan.'],
         ['Ruang belajar', 'Maddah yang diikuti: video pertemuan, modul PDF, kuis, dan tugas.'],
         ['Tanya asisten belajar', 'Asisten AI di setiap pertemuan, yang menjawab dari materi pengajar.'],
-        ['Izin', 'Mengajukan izin keluar asrama, atau membatalkannya.'],
-        ['Iqamah', 'Sisa masa berlaku iqamah, dan lapor kalau sudah diperpanjang.'],
-        ['Jadwal asrama', 'Jadwal, agenda, dan piket.'],
-        ['Kelas daring', 'Membeli kelas tambahan kalau sedang dibuka.']
+        ['Perkembangan', 'Kehadiran, hafalan, dan rapor bulanan yang sudah terbit.'],
+        ['Asrama', 'Acara, jadwal, piket, dan galeri foto kegiatan.'],
+        ['Data & riwayat', 'Data diri, status pendidikan, dan riwayat catatan.']
       ],
       steps: [
         ['Lanjutkan belajar', 'Tekan Lanjut belajar di beranda, langsung ke materi terakhir.', 1],

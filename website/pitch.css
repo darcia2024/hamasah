@@ -159,7 +159,7 @@ button { font-family: inherit; }
 .feature { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px; }
 .feature b { display: block; font-size: 15px; }
 .feature span { display: block; font-size: 14px; color: var(--muted); line-height: 1.5; margin-top: 2px; }
-.ai-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.ai-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .ai-cards .card { background: var(--tint); }
 .ai-cards .card .ai-ico { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, var(--gold-2), var(--gold)); display: grid; place-items: center; color: var(--on-gold); font-weight: 700; font-size: 18px; }
 

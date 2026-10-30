@@ -125,15 +125,17 @@ function createOpsAssistantService({ database, accessFor, staffDormitories, cent
       { label: 'Urusan terbuka', value: terbuka.length },
       { label: 'Urusan mendesak', value: terbuka.filter((i) => i.severity === 'tinggi').length }
     ];
+    // Nama asrama biasanya sudah diawali "Asrama" ("Asrama Putra Al-Fath"); jangan digandakan.
+    const namaAsrama = /^asrama\b/i.test(asrama.name) ? asrama.name : `Asrama ${asrama.name}`;
     const lokal = [
-      `Asrama ${asrama.name} memiliki ${santri.length} santri aktif.`,
+      `${namaAsrama} memiliki ${santri.length} santri aktif.`,
       rate === null ? 'Belum ada data kehadiran kegiatan 30 hari terakhir.' : `Kehadiran kegiatan 30 hari terakhir ${rate}% (hadir ${hadir}, izin ${izin}, sakit ${sakit}, alpa ${alpa}).`,
       sering.length ? `Santri dengan alpa 3 kali atau lebih: ${sering.map((s) => `${s.asli} (${s.alpa}x)`).join(', ')}.` : 'Tidak ada santri dengan alpa 3 kali atau lebih.',
       terbuka.length ? `Ada ${terbuka.length} urusan terbuka (${terbuka.filter((i) => i.severity === 'tinggi').length} mendesak): ${teratas.slice(0, 5).map((t) => `${t.jenis} ${t.asli}${t.sisaHari !== null && t.sisaHari !== undefined ? ` (${t.sisaHari} hari)` : ''}`).join('; ')}.` : 'Tidak ada urusan terbuka.'
     ].join(' ');
     return {
       ok: true,
-      judul: `Ringkasan asrama ${asrama.name}`,
+      judul: `Ringkasan ${namaAsrama}`,
       fakta, lokal,
       konteks: { asrama: asrama.name, santriAktif: santri.length, kehadiran30Hari: { persen: rate, hadir, izin, sakit, alpa }, santriAlpa3Plus: sering.map((s) => ({ santri: s.nama, alpa: s.alpa })), urusanTerbuka: terbuka.length, urusanTeratas: teratas.map(({ asli, ...t }) => t) },
       dipakai: ['Daftar santri aktif asrama', 'Rekap kehadiran kegiatan', 'Urusan administrasi terbuka']

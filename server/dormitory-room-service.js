@@ -282,7 +282,7 @@ function createDormitoryRoomService({ database, staffDormitories, now = () => ne
       }
       const tujuan = (await ambil('SELECT id, name, gender FROM dormitories WHERE id = $1', [tujuanId]))[0];
       if (!tujuan) return { ok: false, status: 404, error: 'Asrama tujuan tidak ditemukan.' };
-      if (santri.gender && tujuan.gender !== santri.gender) return { ok: false, status: 422, error: `Asrama ${tujuan.name} untuk ${tujuan.gender}, santri ini ${santri.gender}.` };
+      if (santri.gender && tujuan.gender !== santri.gender) return { ok: false, status: 422, error: `${/^asrama\b/i.test(tujuan.name) ? tujuan.name : `Asrama ${tujuan.name}`} untuk ${tujuan.gender}, santri ini ${santri.gender}.` };
       const kamarTujuan = kamarId ? await ambilKamar(tujuanId, kamarId) : null;
       if (kamarId && !kamarTujuan) return { ok: false, status: 404, error: 'Kamar tujuan tidak ditemukan di asrama itu.' };
       const asalAsrama = santri.dormitory_id ? (await ambil('SELECT id, name FROM dormitories WHERE id = $1', [santri.dormitory_id]))[0] : null;
