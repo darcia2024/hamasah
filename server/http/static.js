@@ -68,10 +68,26 @@ function cdnCacheControlFor(extension, search) {
   return `max-age=${DAY_SECONDS}, stale-while-revalidate=${DAY_SECONDS * 7}`;
 }
 
-// ETag lemah dari ukuran dan waktu ubah. Lemah, karena isi yang sama dapat terkirim dalam
-// beberapa bentuk kompresi.
-function etagFor(stat) {
-  return `W/"${stat.size.toString(16)}-${Math.floor(stat.mtimeMs).toString(16)}"`;
+// ETag lemah dari isi berkas. Lemah, karena isi yang sama dapat terkirim dalam beberapa
+// bentuk kompresi.
+//
+// Dulu ETag dibuat dari ukuran dan waktu ubah. Di Vercel semua berkas deploy punya waktu
+// ubah yang sama (2018-10-20T01:46:40Z, terlihat di production 31 Oktober 2026), dan stamp
+// versi aset tidak mengubah ukuran HTML (hash selalu 10 karakter). Akibatnya ETag halaman
+// deploy baru sama dengan deploy lama, server menjawab 304, dan peramban terus memakai HTML
+// lama yang menunjuk ke CSS/JS lama. Hash isi dihitung sekali per berkas per versi (kunci:
+// ukuran dan waktu ubah, yang di laptop ikut berubah saat berkas disunting).
+const ETAG_CACHE_LIMIT = 500;
+const etagCache = new Map();
+
+function etagFor(filePath, stat) {
+  const key = `${filePath}|${stat.size}|${Math.floor(stat.mtimeMs)}`;
+  const cached = etagCache.get(key);
+  if (cached) return cached;
+  const etag = `W/"${crypto.createHash('sha1').update(fs.readFileSync(filePath)).digest('hex').slice(0, 16)}"`;
+  if (etagCache.size >= ETAG_CACHE_LIMIT) etagCache.delete(etagCache.keys().next().value);
+  etagCache.set(key, etag);
+  return etag;
 }
 
 function matchesEtag(header, etag) {
@@ -126,7 +142,7 @@ function sendFile(response, request, filePath, search, transform, privateHtml = 
   }
   const etag = content
     ? `W/"${crypto.createHash('sha1').update(content).digest('hex').slice(0, 16)}"`
-    : etagFor(stat);
+    : etagFor(filePath, stat);
   const size = content ? content.length : stat.size;
   const headers = {
     'Content-Type': MIME_TYPES[extension] || 'application/octet-stream',

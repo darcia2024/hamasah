@@ -42,7 +42,7 @@ async function run() {
     // Header dasar: ETag ada, HTML selalu divalidasi ulang, tanpa versi CSS juga.
     const html = await serve('/website/index.html');
     assert.equal(html.status, 200);
-    assert.match(html.headers.ETag, /^W\/"[0-9a-f]+-[0-9a-f]+"$/);
+    assert.match(html.headers.ETag, /^W\/"[0-9a-f]{16}"$/, 'ETag dari hash isi.');
     assert.equal(html.headers['Cache-Control'], 'no-cache');
     assert.equal(html.headers.Vary, 'Accept-Encoding');
     assert.equal((await serve('/website/gaya.css')).headers['Cache-Control'], 'no-cache', 'CSS tanpa versi harus divalidasi ulang.');
@@ -113,6 +113,25 @@ async function run() {
     assert.notEqual(sesudah.headers.ETag, sebelum.headers.ETag);
     assert.match(zlib.brotliDecompressSync(sesudah.bytes()).toString('utf8'), /\.baru/);
     assert.equal((await serve('/website/gaya.css', { headers: { 'if-none-match': sebelum.headers.ETag } })).status, 200, 'ETag lama tidak lagi cocok.');
+
+    // Kasus Vercel (production 31 Oktober 2026): semua berkas deploy punya waktu ubah yang sama, dan stamp versi aset
+    // mengganti hash di HTML tanpa mengubah ukurannya. ETag tetap harus berubah, supaya peramban tidak terus memakai
+    // HTML lama yang menunjuk ke CSS/JS lama.
+    const halaman = path.join(SANDBOX, 'website', 'stamp.html');
+    const waktuDeploy = new Date('2018-10-20T01:46:40Z');
+    fs.writeFileSync(halaman, '<!doctype html><script src="app.js?v=aaaaaaaaaa"></script>', 'utf8');
+    fs.utimesSync(halaman, waktuDeploy, waktuDeploy);
+    const deployLama = await serve('/website/stamp.html');
+    fs.writeFileSync(halaman, '<!doctype html><script src="app.js?v=bbbbbbbbbb"></script>', 'utf8');
+    fs.utimesSync(halaman, waktuDeploy, waktuDeploy);
+    // Proses baru (deploy baru) memulai cache ETag kosong; di sini disimulasikan dengan modul segar.
+    delete require.cache[require.resolve('./static.js')];
+    const statisBaru = require('./static.js');
+    const jawabanBaru = fakeResponse();
+    statisBaru.serveStaticFile(jawabanBaru, { pathname: '/website/stamp.html', rootDirectory: SANDBOX, request: { headers: { 'if-none-match': deployLama.headers.ETag } }, search: '' });
+    await jawabanBaru.selesai;
+    assert.equal(jawabanBaru.status, 200, 'HTML dengan isi baru tidak boleh dijawab 304 walau ukuran dan waktu ubahnya sama.');
+    assert.match(jawabanBaru.bytes().toString('utf8'), /v=bbbbbbbbbb/);
 
     // 404 tetap 404, tanpa ETag.
     const hilang = await serve('/website/tidak-ada.css');
