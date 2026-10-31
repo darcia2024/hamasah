@@ -1,0 +1,115 @@
+/* Asisten Hamasah (asisten.js): chatbox. Memakai warna dan bayangan konsol (konsol-2026.css); di sini hanya tata letak chat. */
+#as-app { gap: 18px; max-width: 980px; }
+
+.as-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 16px; }
+.as-head__title { margin: 2px 0 0; font-family: var(--k26-serif, "Philosopher", Georgia, serif); font-size: clamp(26px, 3.2vw, 34px); font-weight: 700; line-height: 1.15; }
+.as-head__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.as-mode { padding: 5px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; cursor: help; }
+.as-mode.is-lokal { background: #E3F1E8; color: #1F5B3A; }
+.as-mode.is-ai { background: var(--k26-gold-soft, #FBEFC4); color: #5C4300; }
+.as-ghost { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px; border: 1px solid var(--k26-line, #E2DED6); border-radius: 999px; background: #fff; color: var(--k26-ink, #262628); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.as-ghost:hover { border-color: var(--k26-gold, #E7B10C); background: var(--k26-ivory, #FBFAF6); }
+
+/* ---------------------------------------------------------------- bingkai chat */
+.as-chat { display: flex; flex-direction: column; height: clamp(520px, calc(100dvh - 230px), 780px); border-radius: var(--k26-radius-lg, 20px); background: #fff; box-shadow: var(--k26-shadow); overflow: hidden; }
+.as-log { flex: 1; display: flex; flex-direction: column; gap: 18px; min-height: 0; padding: 24px clamp(14px, 3vw, 28px); overflow-y: auto; overscroll-behavior: contain; background: linear-gradient(180deg, var(--k26-ivory, #FBFAF6), #fff 140px); }
+.as-log:focus-visible { outline-offset: -3px; }
+.as-off { margin: auto; max-width: 420px; text-align: center; color: var(--k26-muted, #6B6B70); line-height: 1.6; }
+
+/* ---------------------------------------------------------------- sambutan */
+.as-welcome { margin: auto; display: grid; justify-items: center; gap: 10px; max-width: 640px; padding: 12px 0; text-align: center; }
+.as-welcome__title { margin: 6px 0 0; font-family: var(--k26-serif, "Philosopher", Georgia, serif); font-size: clamp(24px, 3vw, 30px); font-weight: 700; line-height: 1.2; }
+.as-welcome__text { margin: 0; max-width: 52ch; color: var(--k26-muted, #6B6B70); font-size: 14.5px; line-height: 1.6; }
+.as-starters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: 100%; margin-top: 10px; }
+.as-starter { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border: 1px solid var(--k26-line, #E2DED6); border-radius: 14px; background: #fff; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
+.as-starter:hover { border-color: var(--k26-gold, #E7B10C); box-shadow: 0 8px 22px -14px rgba(133, 96, 0, 0.5); transform: translateY(-1px); }
+.as-starter__icon { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: var(--k26-gold-soft, #FBEFC4); color: var(--k26-gold-deep, #856000); }
+.as-starter__text { display: grid; gap: 3px; min-width: 0; }
+.as-starter__text strong { font-size: 14px; }
+.as-starter__text span { color: var(--k26-muted, #6B6B70); font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+
+/* ---------------------------------------------------------------- pesan */
+.as-avatar { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #E7B10C, #F4D774); color: #3B2C00; box-shadow: 0 4px 12px -4px rgba(231, 177, 12, 0.7); }
+.as-avatar--besar { width: 56px; height: 56px; }
+.as-msg { display: flex; gap: 12px; min-width: 0; animation: as-masuk 0.28s var(--k26-ease, ease) both; }
+.as-msg--user { justify-content: flex-end; }
+.as-msg__body { display: grid; gap: 10px; justify-items: start; min-width: 0; max-width: min(720px, calc(100% - 46px)); }
+.as-bubble { margin: 0; padding: 12px 16px; border-radius: 18px; font-size: 15px; line-height: 1.6; overflow-wrap: anywhere; }
+.as-bubble--user { max-width: min(620px, 88%); border-bottom-right-radius: 6px; background: var(--k26-gold-soft, #FBEFC4); color: var(--k26-ink, #262628); white-space: pre-wrap; }
+.as-bubble--asisten { border: 1px solid var(--k26-line, #E2DED6); border-top-left-radius: 6px; background: #fff; }
+.as-bubble--galat { border-color: #E9B8B1; background: #FDF1EF; color: #7A2A22; }
+.as-bubble__title { margin: 0 0 6px; font-size: 15.5px; font-weight: 700; }
+.as-text { margin: 0; white-space: pre-line; }
+.as-text + .as-text { margin-top: 10px; }
+.as-note { margin: 8px 0 0; color: var(--k26-muted, #6B6B70); font-size: 12.5px; line-height: 1.5; }
+.as-card .as-note { margin: 0; }
+
+.as-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 12px 0 0; }
+.as-fact { display: grid; gap: 2px; padding: 10px 12px; border-radius: 12px; background: var(--k26-ivory, #FBFAF6); }
+.as-fact dt { color: var(--k26-muted, #6B6B70); font-size: 12px; }
+.as-fact dd { margin: 0; font-size: 15px; font-weight: 700; }
+
+.as-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.as-chip { padding: 8px 14px; border: 1px solid var(--k26-line, #E2DED6); border-radius: 999px; background: #fff; color: var(--k26-ink, #262628); font: inherit; font-size: 13.5px; font-weight: 600; text-align: left; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+.as-chip:hover { border-color: var(--k26-gold, #E7B10C); background: var(--k26-ivory, #FBFAF6); }
+.as-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.as-link { color: var(--k26-gold-deep, #856000); font-size: 14px; font-weight: 700; text-underline-offset: 3px; }
+
+.as-typing { display: flex; gap: 5px; align-items: center; padding: 15px 18px; }
+.as-typing__dot { width: 7px; height: 7px; border-radius: 50%; background: #B9B2A3; animation: as-ketik 1.1s ease-in-out infinite; }
+.as-typing__dot:nth-child(2) { animation-delay: 0.15s; }
+.as-typing__dot:nth-child(3) { animation-delay: 0.3s; }
+
+/* ---------------------------------------------------------------- kartu usulan */
+.as-card { display: grid; gap: 12px; width: min(560px, 100%); padding: 16px; border: 1px solid var(--k26-line, #E2DED6); border-radius: 16px; background: #fff; box-shadow: 0 12px 28px -22px rgba(54, 54, 56, 0.45); }
+.as-card.is-selesai { border-color: #BFDCC8; background: #F6FBF8; }
+.as-card__head { display: flex; align-items: center; gap: 8px; }
+.as-card__icon { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--k26-gold-soft, #FBEFC4); color: var(--k26-gold-deep, #856000); }
+.as-card__title { font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--k26-gold-deep, #856000); }
+.as-card__santri { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; margin: 0; }
+.as-card__santri strong { font-size: 16px; }
+.as-card__santri span { color: var(--k26-muted, #6B6B70); font-size: 13px; }
+.as-card__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.as-card__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.as-card__status { min-height: 0; margin: 0; font-size: 13.5px; color: var(--k26-muted, #6B6B70); }
+.as-card__status:empty { display: none; }
+.as-card__status.is-error { color: #8E2A23; }
+.as-card__selesai { display: grid; gap: 6px; }
+.as-field { display: grid; gap: 4px; min-width: 0; }
+.as-field__label { color: var(--k26-muted, #6B6B70); font-size: 12.5px; font-weight: 600; }
+.as-input { width: 100%; min-width: 0; padding: 9px 11px; border: 1px solid var(--k26-line, #E2DED6); border-radius: 10px; background: #fff; color: inherit; font: inherit; font-size: 14.5px; }
+.as-input--area { resize: vertical; line-height: 1.55; }
+.as-input:focus { border-color: var(--k26-gold, #E7B10C); outline: 0; box-shadow: 0 0 0 3px var(--k26-gold-glow, rgba(231, 177, 12, 0.18)); }
+
+/* ---------------------------------------------------------------- penulis pesan */
+.as-composer { padding: 12px clamp(14px, 3vw, 28px) 14px; border-top: 1px solid var(--k26-line, #E2DED6); background: #fff; }
+.as-composer__box { display: flex; align-items: flex-end; gap: 10px; padding: 8px 8px 8px 18px; border: 1px solid var(--k26-line, #E2DED6); border-radius: 26px; background: #fff; transition: border-color 0.2s, box-shadow 0.2s; }
+.as-composer__box:focus-within { border-color: var(--k26-gold, #E7B10C); box-shadow: 0 0 0 4px var(--k26-gold-glow, rgba(231, 177, 12, 0.18)); }
+.as-composer__input { flex: 1; min-width: 0; max-height: 168px; padding: 8px 0; border: 0; background: transparent; color: inherit; font: inherit; font-size: 15px; line-height: 1.5; resize: none; field-sizing: content; }
+/* Gaya textarea global (garis, tinggi minimum, gagang ubah ukuran) dihapus: kotak pembungkus yang memberi bingkai.
+   fields.css memberi !important di lapisan "hamasah-bidang", yang menang atas CSS tanpa lapisan; karena itu penimpaan ini
+   ditaruh di lapisan yang sama dan dimenangkan lewat spesifisitas (selektor id). */
+@layer hamasah-bidang {
+  #as-app .as-composer__input { min-height: 0 !important; height: auto !important; margin: 0 !important; padding: 8px 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; resize: none !important; }
+  #as-app .as-composer__input:focus, #as-app .as-composer__input:focus-visible { outline: 0 !important; border: 0 !important; box-shadow: none !important; }
+}
+.as-composer__send { flex: none; display: grid; place-items: center; width: 42px; height: 42px; border: 0; border-radius: 50%; background: var(--k26-gold, #E7B10C); color: #2B2000; cursor: pointer; transition: transform 0.15s, background 0.2s, opacity 0.2s; }
+.as-composer__send:hover:not(:disabled) { transform: translateY(-1px); background: #F1BE1E; }
+.as-composer__send:disabled { background: #ECE8DF; color: #A39C8E; cursor: not-allowed; }
+.as-composer__note { margin: 8px 6px 0; color: var(--k26-muted, #6B6B70); font-size: 12px; line-height: 1.45; text-align: center; }
+
+@keyframes as-masuk { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes as-ketik { 0%, 60%, 100% { opacity: 0.35; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) {
+  .as-msg, .as-typing__dot { animation: none; }
+  .as-starter, .as-composer__send { transition: none; }
+}
+
+@media (max-width: 640px) {
+  .as-chat { height: clamp(460px, calc(100dvh - 200px), 760px); border-radius: 16px; }
+  .as-starters { grid-template-columns: 1fr; }
+  .as-msg__body { max-width: calc(100% - 44px); }
+  .as-bubble--user { max-width: 92%; }
+  .as-card__grid { grid-template-columns: 1fr; }
+  .as-head__actions { width: 100%; justify-content: space-between; }
+}

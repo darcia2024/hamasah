@@ -389,6 +389,7 @@ async function run() {
       { permission: 'announcements.manage', method: 'GET', path: '/api/announcements/00000000-0000-4000-8000-000000000000/penerima' },
       { permission: 'assistant-ops.use', method: 'GET', path: '/api/asisten-operasional' },
       { permission: 'assistant-ops.use', method: 'POST', path: '/api/asisten-operasional/draft-laporan', body: () => ({}) },
+      { permission: 'assistant-ops.use', method: 'POST', path: '/api/asisten-operasional/percakapan', body: () => ({ message: 'halo' }) },
       { permission: 'feedback.mine', method: 'GET', path: '/api/masukan/saya' },
       { permission: 'feedback.send', method: 'POST', path: '/api/masukan', body: () => ({}) },
       { permission: 'feedback.read', method: 'GET', path: '/api/masukan' },

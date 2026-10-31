@@ -16,6 +16,19 @@ module.exports = [
     }
   },
   {
+    // Chatbox: pengguna bercerita, asisten menjawab atau menyusun kartu usulan. Harus di atas pola tugas satuan di bawah.
+    method: 'POST',
+    pattern: /^\/api\/asisten-operasional\/percakapan$/,
+    permission: 'assistant-ops.use',
+    async handler({ response, services, auth, readBody, ip }) {
+      const actor = await auth.actor();
+      const hasil = await services.opsAssistantService.percakapan(await readBody(), actor);
+      // Audit mencatat bahwa percakapan dipakai dan modenya saja, bukan isi pesan.
+      if (hasil.ok) await services.auditService.record({ action: ACTIONS.OPS_ASSISTANT_USED, actor, ip, entityType: 'assistant', entityId: 'percakapan', metadata: { mode: hasil.value.mode } });
+      balas(response, hasil);
+    }
+  },
+  {
     method: 'POST',
     pattern: /^\/api\/asisten-operasional\/([\w-]+)$/,
     permission: 'assistant-ops.use',

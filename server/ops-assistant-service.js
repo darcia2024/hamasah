@@ -10,8 +10,12 @@
 //      Tanpa itu, ringkasan disusun lokal dari data yang sama (tanpa AI), jadi asisten tetap berguna.
 //   4. Asisten TIDAK mengubah data apa pun. Hasilnya ringkasan atau draf; bila berupa pengumuman, hasilnya hanya usulan
 //      yang harus diperiksa dan diterbitkan manusia lewat formulir pengumuman biasa (dengan izin dan audit biasa).
+//      Di chatbox, usulan berupa kartu; kartu catatan urusan hanya berlaku bila pengguna menekan tombolnya, lewat API
+//      biasa dengan izin dan audit biasa. Isi percakapan tidak disimpan di server.
 //   5. Angka selalu berasal dari data (bagian "fakta"); AI hanya menyusun kalimat. Penggunaan dicatat di jejak audit
 //      (jenis tugas dan mode saja, bukan isi) dan dibatasi per akun per jam.
+
+const nlu = require('./ops-assistant-nlu.js');
 
 const TUGAS = Object.freeze({
   'ringkasan-asrama': { label: 'Ringkas laporan asrama', roles: ['admin', 'supervisor'], deskripsi: 'Kehadiran kegiatan 30 hari terakhir dan urusan yang perlu tindak lanjut untuk satu asrama.' },
@@ -38,6 +42,11 @@ const SYSTEM = [
 
 function rapi(value, maks) {
   return String(value === undefined || value === null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, maks);
+}
+
+// Kata-kata nama (tiga huruf atau lebih) untuk mengganti nama dengan alias di teks bebas.
+function kataNama(nama) {
+  return [...new Set(String(nama || '').split(/[\s-]+/).filter((k) => k.length >= 3))].sort((a, b) => b.length - a.length);
 }
 
 function bersihkanModel(teks) {
@@ -201,11 +210,13 @@ function createOpsAssistantService({ database, accessFor, staffDormitories, cent
   }
 
   function dataDraft(jenis) {
-    return async function draft(input) {
-      const instruksi = rapi(input.instruction, 600);
-      if (instruksi.length < 10) return { ok: false, error: 'Tulis instruksi minimal 10 karakter: apa yang ingin diumumkan atau dilaporkan, untuk siapa, dan kapan.' };
+    return async function draft(input, actor, A) {
+      // Nama santri yang muncul di instruksi diganti alias sebelum ke penyedia luar; ringkasan lokal memakai nama asli.
+      const asli = rapi(input.instruction, 600);
+      const instruksi = (input.namaSantri || []).reduce((teks, nama) => kataNama(nama).reduce((t, kata) => t.replace(new RegExp(`\\b${kata.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi'), A.alias(nama)), teks), asli);
+      if (asli.length < 10) return { ok: false, error: 'Tulis instruksi minimal 10 karakter: apa yang ingin diumumkan atau dilaporkan, untuk siapa, dan kapan.' };
       const judul = jenis === 'pengumuman' ? 'Draf pengumuman' : 'Draf laporan';
-      const potongan = instruksi.charAt(0).toUpperCase() + instruksi.slice(1);
+      const potongan = asli.charAt(0).toUpperCase() + asli.slice(1);
       const lokal = jenis === 'pengumuman'
         ? `JUDUL: ${potongan.slice(0, 80)}\nISI: Assalamu'alaikum warahmatullahi wabarakatuh. ${potongan}${/[.!?]$/.test(potongan) ? '' : '.'} Mohon perhatian dan kerja samanya. Jazakumullahu khairan.`
         : `LAPORAN\nPokok laporan: ${potongan}${/[.!?]$/.test(potongan) ? '' : '.'}\nTindak lanjut: (isi sesuai kebutuhan)\nCatatan: (isi bila ada)`;
@@ -238,6 +249,15 @@ function createOpsAssistantService({ database, accessFor, staffDormitories, cent
     if (!tugas.roles.includes(actor.role)) return { ok: false, status: 403, error: 'Tugas ini tidak tersedia untuk akun Anda.' };
     if (!(await aktif())) return { ok: false, status: 409, error: 'Asisten operasional sedang dimatikan oleh admin.' };
     if (!(await dalamBatas(actor))) return { ok: false, status: 429, error: 'Batas penggunaan asisten per jam tercapai. Coba lagi nanti.' };
+    const hasil = await kerjakan(tugasId, input, actor);
+    if (hasil.ok && audit) await audit({ task: tugasId, mode: hasil.value.mode, actor });
+    return hasil;
+  }
+
+  // Inti satu tugas: mengumpulkan data lewat layanan yang memeriksa hak akses, lalu menyusun teks. Pemeriksaan peran, kuota,
+  // dan audit dilakukan pemanggilnya (run untuk tugas satuan, percakapan untuk chat).
+  async function kerjakan(tugasId, input, actor) {
+    const tugas = TUGAS[tugasId];
     const A = buatAlias();
     const dasar = await PEMBANGUN[tugasId](input || {}, actor, A);
     if (!dasar.ok) return dasar;
@@ -256,7 +276,6 @@ function createOpsAssistantService({ database, accessFor, staffDormitories, cent
       }
     }
     const usulan = ubahKeUsulan(tugasId, teks);
-    if (audit) await audit({ task: tugasId, mode, actor });
     return {
       ok: true,
       value: {
@@ -264,6 +283,197 @@ function createOpsAssistantService({ database, accessFor, staffDormitories, cent
         proposal: usulan, disclaimer: mode === 'ai' ? PERINGATAN_AI : PERINGATAN, generatedAt: now().toISOString()
       }
     };
+  }
+
+  // ------------------------------------------------------------------ percakapan (chat)
+  //
+  // Pengguna bercerita dengan kalimat biasa; pembaca cerita (ops-assistant-nlu.js) mengenali maksud, santri, asrama, tanggal, dan
+  // jam. Yang kurang ditanyakan balik dengan pilihan cepat. Hasilnya berupa jawaban data atau KARTU USULAN (pengumuman, catatan
+  // urusan, laporan). Kartu hanya usulan: baru berlaku bila pengguna menekan tombolnya, lewat API biasa dengan izin dan audit
+  // biasa. Percakapan tidak disimpan di server; riwayatnya hanya ada di halaman pengguna, dan `state` hanyalah isian yang
+  // sudah dikenali, dibersihkan ulang di sini setiap kali.
+
+  const MAKSUD_CHAT = Object.freeze(['pengumuman', 'urusan', 'laporan', 'perkembangan', 'ringkasan', 'dokumen']);
+  const MENUNGGU = Object.freeze(['studentId', 'dormitoryId', 'kind', 'tanggal', 'isi']);
+  const SASARAN = Object.freeze({ musyrif: 'semua musyrif', santri: 'semua santri', wali: 'semua wali' });
+
+  async function muatKonteksChat(actor) {
+    const milik = actor.role === 'supervisor' ? await staffDormitories(actor.id) : null;
+    const asrama = (await database.query('SELECT id, name FROM dormitories WHERE ($1::uuid[] IS NULL OR id = ANY($1::uuid[])) ORDER BY name', [milik])).rows;
+    const santri = (await database.query(`SELECT id, name, dormitory_id FROM students WHERE status IN ('active', 'leave') AND ($1::uuid[] IS NULL OR dormitory_id = ANY($1::uuid[])) ORDER BY name LIMIT 500`, [milik])).rows;
+    return { asrama, santri, santriPeta: new Map(santri.map((s) => [s.id, s])), asramaPeta: new Map(asrama.map((a) => [a.id, a])) };
+  }
+
+  // State dari klien tidak dipercaya: hanya kunci yang dikenal, nilai dicek ulang terhadap yang boleh diakses akun ini.
+  function bersihkanState(mentah, konteks) {
+    const s = mentah && typeof mentah === 'object' ? mentah : {};
+    const kosong = { intent: null, menunggu: null, slots: {} };
+    if (!MAKSUD_CHAT.includes(s.intent)) return kosong;
+    const sl = s.slots && typeof s.slots === 'object' ? s.slots : {};
+    const slots = {};
+    if (konteks.santriPeta.has(sl.studentId)) slots.studentId = sl.studentId;
+    if (konteks.asramaPeta.has(sl.dormitoryId)) slots.dormitoryId = sl.dormitoryId;
+    if (nlu.JENIS_URUSAN[sl.kind]) slots.kind = sl.kind;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(sl.tanggal || ''))) slots.tanggal = sl.tanggal;
+    if (/^[\w.' ]{3,30}$/.test(String(sl.waktu || ''))) slots.waktu = sl.waktu;
+    if (SASARAN[sl.sasaran]) slots.sasaran = sl.sasaran;
+    if (sl.cerita) slots.cerita = rapi(sl.cerita, 1000);
+    return { intent: s.intent, menunggu: MENUNGGU.includes(s.menunggu) ? s.menunggu : null, slots };
+  }
+
+  async function percakapan(input, actor) {
+    if (!actor || !actor.id) return { ok: false, status: 401, error: 'Sesi diperlukan.' };
+    if (!['admin', 'supervisor'].includes(actor.role)) return { ok: false, status: 403, error: 'Percakapan dengan asisten hanya untuk admin dan musyrif.' };
+    if (!(await aktif())) return { ok: false, status: 409, error: 'Asisten operasional sedang dimatikan oleh admin.' };
+    const pesan = rapi(input && input.message, 1000);
+    if (pesan.length < 2) return { ok: false, error: 'Tulis pesan dulu.' };
+
+    const konteks = await muatKonteksChat(actor);
+    const hariIni = tanggalJakarta(now());
+    const state = bersihkanState(input.state, konteks);
+    const baca = nlu.baca(pesan, { santri: konteks.santri, asrama: konteks.asrama, hariIni });
+    const admin = actor.role === 'admin';
+
+    // Kuota dihitung sekali per pesan, dan hanya untuk pesan yang benar-benar menyusun sesuatu; pertanyaan balik gratis.
+    let kuotaOk = null;
+    const kuota = async () => { if (kuotaOk === null) kuotaOk = await dalamBatas(actor); return kuotaOk; };
+    const KUOTA_HABIS = { ok: false, status: 429, error: 'Batas penggunaan asisten per jam tercapai. Coba lagi nanti.' };
+
+    const balas = (teks, tambahan = {}) => ({
+      ok: true,
+      value: {
+        reply: { text: teks, title: tambahan.title || null, facts: tambahan.facts || [], dataUsed: tambahan.dataUsed || [], disclaimer: tambahan.disclaimer || null },
+        proposals: tambahan.proposals || [], suggestions: tambahan.saran || [], actions: tambahan.actions || [],
+        state: tambahan.state || null, mode: tambahan.mode || 'lokal', generatedAt: now().toISOString()
+      }
+    });
+    const chip = (label, teks) => ({ label, text: teks || label });
+    const namaDepan = (nama) => String(nama || '').split(' ')[0];
+    const contoh = () => {
+      const s = konteks.santri[0];
+      const depan = s ? namaDepan(s.name) : null;
+      return admin
+        ? [chip('Ringkas kondisi asrama'), chip('Dokumen apa yang perlu ditindaklanjuti?'), chip('Besok ada rapat musyrif jam 8 malam, tolong umumkan ke semua musyrif'), ...(depan ? [chip(`${depan} perlu lapor diri minggu depan`)] : [])]
+        : [chip('Ringkas kondisi asrama saya'), ...(depan ? [chip(`Bagaimana kabar ${depan}?`)] : []), chip('Besok kegiatan pagi libur, tolong umumkan'), chip('Buat laporan kegiatan pekan ini')];
+    };
+    const bantuan = () => balas(
+      admin
+        ? 'Ceritakan saja apa yang ingin Anda lakukan. Saya bisa meringkas kondisi asrama, melihat perkembangan satu santri, merangkum dokumen yang perlu ditindaklanjuti, menyusun pengumuman, menyusun draf laporan, dan menyiapkan catatan urusan santri seperti lapor diri. Hasilnya berupa usulan yang Anda periksa dulu.'
+        : 'Ceritakan saja apa yang ingin Anda lakukan. Saya bisa meringkas kondisi asrama Anda, melihat perkembangan santri, menyusun pengumuman, dan menyusun draf laporan. Hasilnya berupa usulan yang Anda periksa dulu.',
+      { saran: contoh() }
+    );
+
+    // ---- menentukan maksud dan isian
+    let maksud = baca.maksud;
+    let slots;
+    let menunggu = state.menunggu;
+    if (maksud === 'bantuan') return bantuan();
+    if (maksud) {
+      slots = state.intent === maksud ? { ...state.slots, ...baca.isian } : { ...baca.isian };
+      // Cerita awal dipertahankan saat pengguna hanya menjawab pertanyaan balik (jawaban pendek).
+      slots.cerita = state.intent === maksud && state.slots.cerita && pesan.length < 40 && menunggu !== 'isi' ? state.slots.cerita : pesan;
+    } else if (state.intent) {
+      maksud = state.intent;
+      slots = { ...state.slots, ...baca.isian };
+      if (menunggu === 'isi') slots.cerita = pesan;
+      else if (!Object.keys(baca.isian).length) {
+        return balas('Maaf, saya belum menangkap maksudnya. Coba tulis dengan kalimat lain, atau pilih salah satu jawaban di bawah bila ada.', { state: { intent: maksud, menunggu, slots }, saran: contoh() });
+      }
+    } else if (baca.isian.studentId) {
+      const s = konteks.santriPeta.get(baca.isian.studentId);
+      return balas(`Baik, ${s.name}. Mau saya bantu apa?`, { saran: [chip(`Bagaimana kabar ${namaDepan(s.name)}?`), ...(admin ? [chip(`Catat lapor diri ${namaDepan(s.name)}`)] : []), chip(`Buat laporan tentang ${namaDepan(s.name)}`)] });
+    } else {
+      return bantuan();
+    }
+    const santri = slots.studentId ? konteks.santriPeta.get(slots.studentId) : null;
+    const mintaSantri = (teks, depan) => {
+      const kandidat = baca.kandidatSantri.length > 1 ? baca.kandidatSantri : konteks.santri.length <= 8 ? konteks.santri : [];
+      return balas(baca.kandidatSantri.length > 1 ? `${teks} Ada beberapa nama yang mirip, yang mana?` : teks, { state: { intent: maksud, menunggu: 'studentId', slots }, saran: kandidat.slice(0, 8).map((s) => chip(s.name, depan ? `${depan} ${s.name}` : s.name)) });
+    };
+
+    // ---- per maksud
+    if (maksud === 'pengumuman') {
+      const isi = nlu.isiCerita(slots.cerita);
+      if (isi.length < 8) return balas('Apa isi pengumumannya? Ceritakan saja, misalnya apa yang terjadi, kapan, dan di mana.', { state: { intent: 'pengumuman', menunggu: 'isi', slots: { ...slots, cerita: '' } } });
+      if (!(await kuota())) return KUOTA_HABIS;
+      const waktu = [slots.tanggal ? nlu.tanggalPanjang(slots.tanggal) : null, slots.waktu || null].filter(Boolean).join(', ');
+      let judul = nlu.judulDari(isi, 100);
+      let badan = [
+        "Assalamu'alaikum warahmatullahi wabarakatuh.",
+        nlu.titik(nlu.huruf(isi)),
+        waktu ? `Waktu: ${waktu}.` : '',
+        'Mohon perhatian dan kerja samanya. Jazakumullahu khairan.'
+      ].filter(Boolean).join('\n\n');
+      let mode = 'lokal';
+      if (await kirimKeLuar()) {
+        const ai = await kerjakan('draft-pengumuman', { instruction: [isi, waktu ? `Waktu: ${waktu}` : ''].filter(Boolean).join('. '), namaSantri: konteks.santri.filter((s) => nlu.cocokkanNama(pesan, [s]).cocok).map((s) => s.name) }, actor);
+        if (ai.ok && ai.value.proposal) { judul = ai.value.proposal.title; badan = ai.value.proposal.body; mode = ai.value.mode; }
+      }
+      const sasaran = slots.sasaran ? ` Penerimanya (${SASARAN[slots.sasaran]}) dipilih di formulir pengumuman.` : ' Penerimanya dipilih di formulir pengumuman.';
+      return balas(`Ini usulan pengumumannya. Periksa dulu, ubah bila perlu, lalu buka di formulir untuk memilih penerima dan menerbitkannya.${sasaran}`, {
+        mode, proposals: [{ type: 'pengumuman', title: judul.slice(0, 120), body: badan.slice(0, 2000), audienceHint: slots.sasaran || null }], disclaimer: mode === 'ai' ? PERINGATAN_AI : PERINGATAN
+      });
+    }
+
+    if (maksud === 'urusan') {
+      if (!admin) return balas('Pencatatan urusan santri dilakukan admin. Saya bisa menyusunkan draf laporan untuk Anda sampaikan ke admin.', { saran: [chip('Buat laporan tentang urusan ini', `Buat laporan: ${nlu.isiCerita(slots.cerita)}`)] });
+      if (!santri) return mintaSantri('Urusan ini untuk santri yang mana?');
+      if (!slots.kind) return balas(`Jenis urusan untuk ${santri.name}?`, { state: { intent: 'urusan', menunggu: 'kind', slots }, saran: Object.entries(nlu.JENIS_URUSAN).map(([id, label]) => chip(label, label)) });
+      if (!slots.tanggal) return balas(`Batas waktu ${nlu.JENIS_URUSAN[slots.kind].toLowerCase()} ${santri.name} kapan?`, { state: { intent: 'urusan', menunggu: 'tanggal', slots }, saran: [chip('Besok'), chip('Minggu depan'), chip('2 minggu lagi'), chip('Bulan depan')] });
+      if (!(await kuota())) return KUOTA_HABIS;
+      const staf = (await database.query(`SELECT id, name, role FROM accounts WHERE active AND role IN ('admin', 'supervisor') ORDER BY role, name`)).rows;
+      const pemegang = santri.dormitory_id ? (await database.query('SELECT account_id FROM staff_dormitory_assignments WHERE dormitory_id = $1', [santri.dormitory_id])).rows : [];
+      const catatan = nlu.isiCerita(slots.cerita);
+      const label = nlu.JENIS_URUSAN[slots.kind];
+      const asrama = santri.dormitory_id ? konteks.asramaPeta.get(santri.dormitory_id) : null;
+      return balas(`Saya siapkan catatan ${label.toLowerCase()} untuk ${santri.name}. Periksa isiannya, lalu tekan Catat urusan.`, {
+        proposals: [{
+          type: 'urusan', kind: slots.kind, kindLabel: label, studentId: santri.id, studentName: santri.name, dormitory: asrama ? asrama.name : null,
+          dueOn: slots.tanggal, note: (catatan.length >= 3 ? catatan : `${label} ${santri.name}`).slice(0, 500),
+          assigneeId: pemegang.length === 1 ? pemegang[0].account_id : null,
+          assignees: staf.map((p) => ({ id: p.id, name: p.name, role: p.role === 'admin' ? 'admin' : 'musyrif' }))
+        }]
+      });
+    }
+
+    if (maksud === 'laporan') {
+      const isi = nlu.isiCerita(slots.cerita).replace(/^(?:draf|draft)?\s*laporan\s*:?\s*/i, '');
+      if (isi.length < 10) return balas('Apa yang ingin dilaporkan? Ceritakan poin-poinnya saja, nanti saya rapikan menjadi draf.', { state: { intent: 'laporan', menunggu: 'isi', slots: { ...slots, cerita: '' } } });
+      if (!(await kuota())) return KUOTA_HABIS;
+      const hasil = await kerjakan('draft-laporan', { instruction: isi, namaSantri: konteks.santri.filter((s) => nlu.cocokkanNama(pesan, [s]).cocok).map((s) => s.name) }, actor);
+      if (!hasil.ok) return balas(hasil.error);
+      return balas('Ini draf laporannya. Isi bagian tindak lanjut dan catatan sesuai kebutuhan, lalu salin.', { mode: hasil.value.mode, proposals: [{ type: 'laporan', title: 'Draf laporan', text: hasil.value.text }], disclaimer: hasil.value.disclaimer });
+    }
+
+    if (maksud === 'perkembangan') {
+      if (!santri) return mintaSantri('Perkembangan santri yang mana?');
+      if (!(await kuota())) return KUOTA_HABIS;
+      const hasil = await kerjakan('perkembangan-santri', { studentId: santri.id }, actor);
+      if (!hasil.ok) return balas(hasil.error);
+      return balas(hasil.value.text, { title: hasil.value.title, facts: hasil.value.facts, dataUsed: hasil.value.dataUsed, mode: hasil.value.mode, disclaimer: hasil.value.disclaimer, saran: admin ? [chip(`Catat lapor diri ${namaDepan(santri.name)}`)] : [] });
+    }
+
+    if (maksud === 'ringkasan') {
+      const asramaId = slots.dormitoryId || (konteks.asrama.length === 1 ? konteks.asrama[0].id : null);
+      if (!asramaId) {
+        return balas('Asrama yang mana?', { state: { intent: 'ringkasan', menunggu: 'dormitoryId', slots }, saran: konteks.asrama.slice(0, 8).map((a) => chip(a.name)) });
+      }
+      if (!(await kuota())) return KUOTA_HABIS;
+      const hasil = await kerjakan('ringkasan-asrama', { dormitoryId: asramaId }, actor);
+      if (!hasil.ok) return balas(hasil.error);
+      return balas(hasil.value.text, { title: hasil.value.title, facts: hasil.value.facts, dataUsed: hasil.value.dataUsed, mode: hasil.value.mode, disclaimer: hasil.value.disclaimer });
+    }
+
+    // dokumen
+    if (!admin) return balas('Ringkasan dokumen paspor dan iqamah hanya untuk admin. Untuk santri di asrama Anda, saya bisa meringkas kondisi asrama atau perkembangan santri.', { saran: [chip('Ringkas kondisi asrama saya')] });
+    if (!(await kuota())) return KUOTA_HABIS;
+    const hasil = await kerjakan('dokumen-tindak-lanjut', {}, actor);
+    if (!hasil.ok) return balas(hasil.error);
+    const tautan = santri ? `operations?santri=${encodeURIComponent(santri.id)}#visa` : 'operations#visa';
+    return balas(hasil.value.text, {
+      title: hasil.value.title, facts: hasil.value.facts, dataUsed: hasil.value.dataUsed, mode: hasil.value.mode, disclaimer: hasil.value.disclaimer,
+      actions: [{ label: santri ? `Ubah tanggal ${namaDepan(santri.name)} di Visa & Paspor` : 'Buka Visa & Paspor', href: tautan }]
+    });
   }
 
   // Pilihan untuk formulir: tugas yang boleh akun ini, plus asrama dan santri yang boleh dipilihnya.
@@ -275,7 +485,7 @@ function createOpsAssistantService({ database, accessFor, staffDormitories, cent
     return { ok: true, value: { enabled: await aktif(), external: await kirimKeLuar(), tasks: daftarTugas(actor), dormitories: asrama, disclaimer: PERINGATAN } };
   }
 
-  return { run, pilihan, tugas: () => Object.keys(TUGAS) };
+  return { run, percakapan, pilihan, tugas: () => Object.keys(TUGAS) };
 }
 
 module.exports = { createOpsAssistantService, TUGAS };

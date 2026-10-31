@@ -130,6 +130,87 @@ async function run() {
     assert.equal(laporan.body.proposal, null);
     assert.match(laporan.body.text, /LAPORAN/);
 
+    // ------------------------------------------------------------ percakapan (chatbox), mode lokal
+    assert.equal((await api('PUT', '/api/admin/settings', admin, { nilai: { 'asisten.operasionalPerJam': 200 } })).status, 200);
+    await api('POST', '/api/admin/settings/lupakan-cache', admin).catch(() => {});
+    const chat = (token, message, state) => api('POST', '/api/asisten-operasional/percakapan', token, { message, state });
+    const geserHari = (iso, n) => new Date(new Date(`${iso}T00:00:00Z`).getTime() + n * 86400000).toISOString().slice(0, 10);
+    const sebelumPanggilan = panggilan.length;
+    assert.equal((await chat(null, 'halo')).status, 401);
+    assert.equal((await chat(tGuru, 'halo')).status, 403);
+    assert.equal((await chat(tW1, 'halo')).status, 403, 'Wali dan santri tidak memakai percakapan.');
+    assert.equal((await chat(tA, 'a')).status, 422, 'Pesan terlalu pendek.');
+    const salam = await chat(tA, 'halo');
+    assert.equal(salam.status, 200, salam.teks);
+    assert.ok(salam.body.suggestions.length >= 3, 'Sapaan menawarkan contoh yang bisa diketuk.');
+    assert.ok(salam.body.suggestions.some((s) => /Budi/.test(s.text)), 'Contoh memakai nama santri yang boleh diakses.');
+    assert.deepEqual(salam.body.proposals, []);
+
+    // Cerita pengumuman menjadi kartu usulan; tidak ada pengumuman yang terbit.
+    const umum = await chat(tA, 'Besok ada rapat musyrif jam 8 malam di kantor, tolong umumkan ke semua musyrif');
+    assert.equal(umum.status, 200, umum.teks);
+    assert.equal(umum.body.proposals[0].type, 'pengumuman');
+    assert.match(umum.body.proposals[0].title, /rapat musyrif/i);
+    assert.match(umum.body.proposals[0].body, new RegExp(`Waktu: .*${geserHari(HARI, 1).slice(0, 4)}, pukul 20\\.00`));
+    assert.equal(umum.body.proposals[0].audienceHint, 'musyrif');
+    assert.equal(umum.body.state, null, 'Selesai: tidak ada pertanyaan yang menggantung.');
+    assert.equal(umum.body.mode, 'lokal');
+    assert.equal((await database.query('SELECT count(*)::int AS n FROM announcements')).rows[0].n, 0, 'Usulan TIDAK menerbitkan pengumuman.');
+    const tanyaIsi = await chat(tA, 'tolong umumkan');
+    assert.equal(tanyaIsi.body.state.menunggu, 'isi', 'Tanpa isi, asisten bertanya apa isinya.');
+    const isiMenyusul = await chat(tA, 'Besok kegiatan pagi libur', tanyaIsi.body.state);
+    assert.equal(isiMenyusul.body.proposals[0].type, 'pengumuman');
+
+    // Ringkasan asrama: musyrif satu asrama langsung dijawab; admin dengan dua asrama ditanya dulu.
+    const ringAsr = await chat(tA, 'Ringkas kondisi asrama saya');
+    assert.equal(ringAsr.status, 200, ringAsr.teks);
+    assert.ok(ringAsr.body.reply.text.includes('Budi Rahmatullah'));
+    assert.equal(ringAsr.body.reply.facts.find((f) => f.label === 'Santri aktif').value, 1);
+    const tanyaAsrama = await chat(admin, 'ringkas kondisi asrama');
+    assert.equal(tanyaAsrama.body.state.menunggu, 'dormitoryId');
+    assert.deepEqual(tanyaAsrama.body.suggestions.map((s) => s.label), ['Asrama A', 'Asrama B']);
+    const jawabAsrama = await chat(admin, 'Asrama B', tanyaAsrama.body.state);
+    assert.equal(jawabAsrama.body.reply.title, 'Ringkasan Asrama B');
+
+    // Perkembangan santri dari nama; musyrif lain tidak melihat santri yang bukan asramanya.
+    const kabar = await chat(tA, 'Gimana kabar Budi?');
+    assert.equal(kabar.body.reply.title, 'Perkembangan Budi Rahmatullah');
+    assert.match(kabar.body.reply.text, /Kehadiran kegiatan 30 hari terakhir 63%/);
+    const kabarB = await chat(tB, 'Gimana kabar Budi?');
+    assert.ok(!JSON.stringify(kabarB.body).includes('Rahmatullah'), 'Musyrif B tidak melihat santri asrama A.');
+    const tanyaSantri = await chat(tA, 'Perkembangan santri');
+    assert.equal(tanyaSantri.body.state.menunggu, 'studentId');
+    assert.deepEqual(tanyaSantri.body.suggestions.map((s) => s.label), ['Budi Rahmatullah'], 'Pilihan hanya santri yang boleh diakses.');
+
+    // Catatan urusan lewat percakapan beberapa langkah; hanya admin, dan hanya usulan.
+    const urus1 = await chat(admin, 'Budi perlu lapor diri');
+    assert.equal(urus1.body.state.menunggu, 'tanggal');
+    const urus2 = await chat(admin, 'minggu depan', urus1.body.state);
+    const kartu = urus2.body.proposals[0];
+    assert.equal(kartu.type, 'urusan');
+    assert.deepEqual([kartu.kind, kartu.studentId, kartu.dueOn, kartu.assigneeId], ['lapor-diri', budi.id, geserHari(HARI, 7), mA.id]);
+    assert.ok(kartu.assignees.some((p) => p.id === mA.id && p.role === 'musyrif'));
+    assert.equal((await database.query(`SELECT count(*)::int AS n FROM student_cases WHERE source = 'manual' AND due_on = $1`, [geserHari(HARI, 7)])).rows[0].n, 0, 'Kartu usulan belum mencatat urusan.');
+    const tanyaJenis = await chat(admin, 'Catat urusan untuk Budi');
+    assert.equal(tanyaJenis.body.state.menunggu, 'kind');
+    assert.deepEqual(tanyaJenis.body.suggestions.map((s) => s.label), ['Lapor diri', 'Lapor pendidikan', 'Status pendidikan']);
+    const tolakUrusan = await chat(tA, 'Budi perlu lapor diri minggu depan');
+    assert.deepEqual(tolakUrusan.body.proposals, [], 'Musyrif tidak mencatat urusan.');
+    assert.match(tolakUrusan.body.reply.text, /dilakukan admin/);
+
+    // Dokumen: admin mendapat ringkasan dan tautan; musyrif diarahkan.
+    const dokChat = await chat(admin, 'dokumen apa yang perlu ditindaklanjuti?');
+    assert.equal(dokChat.body.reply.title, 'Dokumen yang perlu ditindaklanjuti');
+    assert.equal(dokChat.body.actions[0].href, 'operations#visa');
+    assert.match((await chat(tA, 'cek paspor Budi')).body.reply.text, /hanya untuk admin/);
+
+    // State dari klien tidak dipercaya: id santri milik asrama lain dibuang, jadi asisten bertanya ulang.
+    const palsu = await chat(tA, 'tanggal 5 november', { intent: 'perkembangan', menunggu: null, slots: { studentId: candra.id, cerita: 'x' } });
+    assert.equal(palsu.body.state.menunggu, 'studentId');
+    assert.ok(!JSON.stringify(palsu.body).includes('Candra'));
+    assert.equal((await chat(tA, 'tanggal 5 november', { intent: 'bukan-maksud', slots: { studentId: 123 } })).status, 200, 'State ngawur tidak membuat galat.');
+    assert.equal(panggilan.length, sebelumPanggilan, 'Mode lokal tidak memanggil penyedia luar, juga di chatbox.');
+
     // ------------------------------------------------------------ penyedia luar: hanya bila diizinkan, dan anonim
     assert.equal((await api('PUT', '/api/admin/settings', admin, { nilai: { 'asisten.kirimKeLuar': true } })).status, 200);
     await api('POST', '/api/admin/settings/lupakan-cache', admin).catch(() => {});
@@ -174,6 +255,17 @@ async function run() {
     assert.equal(kemb.body.mode, 'ai');
     assert.ok(!panggilan[0].user.includes('Budi'));
     assert.equal(kemb.body.text, 'Ringkasan untuk Budi Rahmatullah.');
+
+    // Chatbox dengan penyedia luar: nama santri di cerita hanya alias, dan dikembalikan di usulan untuk pembaca berwenang.
+    panggilan.length = 0;
+    balasanModel = () => 'JUDUL: Rapat musyrif\nISI: Rapat musyrif membahas Santri 1 pada malam ini di kantor Hamasah.';
+    const chatAi = await chat(tA, 'Besok rapat bahas Budi Rahmatullah, tolong umumkan');
+    assert.equal(chatAi.status, 200, chatAi.teks);
+    assert.equal(chatAi.body.mode, 'ai');
+    assert.equal(panggilan.length, 1);
+    assert.ok(!panggilan[0].user.includes('Budi') && !panggilan[0].user.includes('Rahmatullah'), 'Nama asli tidak dikirim dari chatbox.');
+    assert.match(panggilan[0].user, /Santri 1/);
+    assert.ok(chatAi.body.proposals[0].body.includes('Budi Rahmatullah'), 'Alias dikembalikan ke nama asli.');
 
     // ------------------------------------------------------------ audit, saklar, dan batas
     const audit = (await database.query(`SELECT metadata FROM audit_events WHERE action = 'ops-assistant.used'`)).rows;
