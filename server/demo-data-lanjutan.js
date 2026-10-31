@@ -30,7 +30,9 @@ const HARI_MS = 24 * 60 * 60 * 1000;
 // Penanda yang dipakai saat menghapus data demo. Program, transaksi, dan pengumuman musyrif tidak terikat ke santri atau
 // asrama demo, jadi dikenali dari nama atau nomornya.
 const DEMO_PROGRAM = Object.freeze({ name: 'Pembinaan Mahasiswa Al-Azhar', batch: 'Angkatan 2025/2026', lokasi: 'Hamasah Mesir' });
-const DEMO_REF_PEMBAYARAN = 'DEMO-SND-00001';
+const DEMO_REF_PEMBAYARAN = 'DEMO-XND-00001';
+// Nama lama sebelum penyedia pembayarannya dikoreksi dari Sendit ke Xendit: diganti di tempat, bukan digandakan.
+const DEMO_REF_PEMBAYARAN_LAMA = 'DEMO-SND-00001';
 const DEMO_PENGUMUMAN_MUSYRIF = 'Rapat evaluasi bulanan musyrif';
 
 // Langkah tambahan, dijalankan sesudah langkah demo yang lama (butuh akun, asrama, santri, tagihan, dan maddah).
@@ -40,7 +42,7 @@ const LANGKAH_LANJUTAN = Object.freeze([
   { id: 'lanjutan:administrasi', label: 'Surat, urusan santri, laporan iqamah, dan KPI musyrif' },
   { id: 'lanjutan:asrama', label: 'Aset asrama, pemeriksaan bulanan, AC patungan, dan video galeri' },
   { id: 'lanjutan:pesan', label: 'Pesan pembinaan, kritik dan saran wali, dan pengumuman musyrif' },
-  { id: 'lanjutan:keuangan', label: 'Transaksi pembayaran Sendit' }
+  { id: 'lanjutan:keuangan', label: 'Transaksi pembayaran Xendit' }
 ]);
 
 function tanggalJakarta(date) {
@@ -377,19 +379,20 @@ async function isiPesan(ctx, S, K) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Transaksi pembayaran lewat Sendit yang menunggu dicocokkan (074).
+// Transaksi pembayaran lewat Xendit yang menunggu dicocokkan (074).
 
 async function isiKeuangan(ctx, S, K) {
   const { database } = ctx;
   const c = contoh(ctx, K);
   if (!(await tabelAda(database, 'external_payments'))) return 0;
+  await database.query('UPDATE external_payments SET external_ref = $1 WHERE external_ref = $2', [DEMO_REF_PEMBAYARAN, DEMO_REF_PEMBAYARAN_LAMA]);
   if (await satu(database, 'SELECT 1 FROM external_payments WHERE external_ref = $1', [DEMO_REF_PEMBAYARAN])) return 0;
   const tagihan = await satu(database, `SELECT invoice_number, amount_rupiah FROM invoices WHERE student_id = $1 AND status = 'unpaid' AND voided_at IS NULL ORDER BY issued_at LIMIT 1`, [c.santri.id]);
   if (!tagihan) return 0;
   wajib(await S.pembayaran.record({
-    source: 'sendit', externalRef: DEMO_REF_PEMBAYARAN, amount: Number(tagihan.amount_rupiah), paidOn: tanggal(1),
+    source: 'xendit', externalRef: DEMO_REF_PEMBAYARAN, amount: Number(tagihan.amount_rupiah), paidOn: tanggal(1),
     invoiceNumber: tagihan.invoice_number, payerName: 'Bambang Sutrisno Wibowo'
-  }, c.keuangan), 'mencatat transaksi Sendit', K);
+  }, c.keuangan), 'mencatat transaksi Xendit', K);
   return 1;
 }
 
@@ -417,7 +420,7 @@ async function hapusDataLanjutan(tx, { santriIds, akunIds }) {
     if (await ada('ac_refunds')) await tx.query('DELETE FROM ac_refunds WHERE student_id = ANY($1::uuid[])', [santriIds]);
     if (await ada('ac_contributions')) await tx.query('DELETE FROM ac_contributions WHERE student_id = ANY($1::uuid[])', [santriIds]);
   }
-  if (await ada('external_payments')) await tx.query('DELETE FROM external_payments WHERE external_ref = $1', [DEMO_REF_PEMBAYARAN]);
+  if (await ada('external_payments')) await tx.query('DELETE FROM external_payments WHERE external_ref = ANY($1::text[])', [[DEMO_REF_PEMBAYARAN, DEMO_REF_PEMBAYARAN_LAMA]]);
   // Kritik dan saran wali tidak ikut terhapus bersama akun wali (ON DELETE SET NULL), jadi dihapus di sini.
   if (await ada('parent_feedback') && akunIds.length) await tx.query('DELETE FROM parent_feedback WHERE parent_account_id = ANY($1::uuid[])', [akunIds]);
   await tx.query(`DELETE FROM announcements WHERE audience = 'musyrif' AND title = $1`, [DEMO_PENGUMUMAN_MUSYRIF]).catch(() => {});

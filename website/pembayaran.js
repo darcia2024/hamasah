@@ -1,5 +1,5 @@
-// Pembayaran (admin dan keuangan): status integrasi dengan website pembayaran (Sendit) dan rekonsiliasi transaksi.
-// Tahap persiapan: tidak menghubungi Sendit. API: /api/pembayaran/*. Semua teks lewat textContent; tanpa gaya sebaris (CSP).
+// Pembayaran (admin dan keuangan): status integrasi dengan website pembayaran (Xendit) dan rekonsiliasi transaksi.
+// Tahap persiapan: tidak menghubungi Xendit. API: /api/pembayaran/*. Semua teks lewat textContent; tanpa gaya sebaris (CSP).
 (function initPembayaran() {
   const guard = document.querySelector('#byr-guard');
   const guardCopy = document.querySelector('#byr-guard-copy');
@@ -123,7 +123,7 @@
       const tanggalMentah = sel[idx.tanggal] || '';
       const m = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/.exec(tanggalMentah);
       const tanggal = m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : tanggalMentah.slice(0, 10);
-      return { source: 'sendit', externalRef: sel[idx.ref], amount: Number(String(sel[idx.nominal]).replace(/[^\d]/g, '')), paidOn: tanggal, invoiceNumber: idx.tagihan >= 0 ? sel[idx.tagihan] : '', payerName: idx.nama >= 0 ? sel[idx.nama] : '' };
+      return { source: 'xendit', externalRef: sel[idx.ref], amount: Number(String(sel[idx.nominal]).replace(/[^\d]/g, '')), paidOn: tanggal, invoiceNumber: idx.tagihan >= 0 ? sel[idx.tagihan] : '', payerName: idx.nama >= 0 ? sel[idx.nama] : '' };
     });
   }
 
@@ -188,7 +188,7 @@
           { nama: 'payerName', label: 'Nama pembayar (opsional)', nilai: '' }
         ],
         labelSimpan: 'Catat',
-        kirim: (v) => api('POST', '/api/pembayaran/transaksi', { source: 'sendit', externalRef: v.externalRef, amount: Number(v.amount), paidOn: v.paidOn, invoiceNumber: v.invoiceNumber, payerName: v.payerName })
+        kirim: (v) => api('POST', '/api/pembayaran/transaksi', { source: 'xendit', externalRef: v.externalRef, amount: Number(v.amount), paidOn: v.paidOn, invoiceNumber: v.invoiceNumber, payerName: v.payerName })
       });
       if (hasil) await muat();
     }
@@ -227,7 +227,7 @@
     const form = el('form', 'wali-form');
     form.noValidate = true;
     const url = isian('url', c.paymentUrl || '', { placeholder: 'https://…' });
-    const nama = isian('text', c.providerName || 'Sendit', { maxlength: '60' });
+    const nama = isian('text', c.providerName || 'Xendit', { maxlength: '60' });
     const mode = pilihan(data.modes.map((m) => [m.id, m.label]), c.mode);
     form.append(kolom('Nama penyedia', nama), kolom('Alamat halaman pembayaran', url), kolom('Mode', mode, data.canReconcileMode ? 'Rekonsiliasi dapat dipilih.' : 'Mode rekonsiliasi baru bisa dipilih setelah audit menyatakan akses integrasi yang sah ada dan nomor tagihan dapat dipetakan.'));
     if (admin()) {

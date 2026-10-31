@@ -63,7 +63,7 @@ async function run() {
     assert.equal((await api('GET', '/api/pembayaran/tautan', tMusyrif)).status, 403);
     assert.equal((await api('PUT', '/api/pembayaran/pengaturan', admin, { paymentUrl: 'http://tidak-aman.example' })).status, 422);
     assert.equal((await api('PUT', '/api/pembayaran/pengaturan', admin, { paymentUrl: 'javascript:alert(1)' })).status, 422);
-    assert.equal((await api('PUT', '/api/pembayaran/pengaturan', admin, { paymentUrl: 'https://bayar.hamasah.example/wali', providerName: 'Sendit' })).status, 200);
+    assert.equal((await api('PUT', '/api/pembayaran/pengaturan', admin, { paymentUrl: 'https://bayar.hamasah.example/wali', providerName: 'Xendit' })).status, 200);
     assert.equal((await api('GET', '/api/pembayaran/tautan', tWali)).body.url, 'https://bayar.hamasah.example/wali');
 
     // Tautan ikut dalam pesan pengingat WhatsApp.
@@ -97,7 +97,7 @@ async function run() {
     assert.equal((await api('GET', '/api/pembayaran/pengaturan', admin)).body.config.mode, 'tautan');
 
     // Rekonsiliasi: pencatatan idempoten dan validasi.
-    const catat = (token, body) => api('POST', '/api/pembayaran/transaksi', token, { source: 'sendit', paidOn: hariIni, ...body });
+    const catat = (token, body) => api('POST', '/api/pembayaran/transaksi', token, { source: 'xendit', paidOn: hariIni, ...body });
     assert.equal((await catat(tMusyrif, { externalRef: 'SND-001', amount: 1500000 })).status, 403);
     assert.equal((await catat(tUang, { externalRef: 'x', amount: 1500000 })).status, 422);
     assert.equal((await catat(tUang, { externalRef: 'SND-001', amount: 0 })).status, 422);
@@ -144,9 +144,9 @@ async function run() {
     // Impor massal: baris gagal dilaporkan, yang benar tetap masuk.
     const i4 = await tagihan(300000, 'Iuran');
     const impor = await api('POST', '/api/pembayaran/impor', tUang, { rows: [
-      { source: 'sendit', externalRef: 'SND-010', amount: 300000, paidOn: hariIni, invoiceNumber: i4.number },
-      { source: 'sendit', externalRef: 'SND-001', amount: 1, paidOn: hariIni },
-      { source: 'sendit', externalRef: 'SND-011', amount: -5, paidOn: hariIni }
+      { source: 'xendit', externalRef: 'SND-010', amount: 300000, paidOn: hariIni, invoiceNumber: i4.number },
+      { source: 'xendit', externalRef: 'SND-001', amount: 1, paidOn: hariIni },
+      { source: 'xendit', externalRef: 'SND-011', amount: -5, paidOn: hariIni }
     ] });
     assert.equal(impor.status, 200, impor.teks);
     assert.equal(impor.body.imported, 1);

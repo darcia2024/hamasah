@@ -98,7 +98,7 @@ const PERMISSIONS = Object.freeze({
   'feedback.verify': Object.freeze([ROLES.ADMIN]),
   // Pengingat tagihan lewat WhatsApp klik-untuk-chat: admin dan keuangan.
   'reminders.manage': Object.freeze([ROLES.ADMIN, ROLES.FINANCE]),
-  // Integrasi pembayaran (Sendit), tahap persiapan: tautan dibaca semua pihak penagihan; rekonsiliasi oleh admin dan keuangan;
+  // Integrasi pembayaran (Xendit), tahap persiapan: tautan dibaca semua pihak penagihan; rekonsiliasi oleh admin dan keuangan;
   // pengaturan, audit, dan keputusan hanya admin.
   'payment-link.read': Object.freeze([ROLES.ADMIN, ROLES.FINANCE, ROLES.PARENT, ROLES.STUDENT]),
   'payments.manage': Object.freeze([ROLES.ADMIN, ROLES.FINANCE]),

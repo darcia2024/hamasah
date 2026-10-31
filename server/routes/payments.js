@@ -1,7 +1,7 @@
 const { json, publicError } = require('../http/respond.js');
 const { ACTIONS } = require('../audit-service.js');
 
-// Integrasi pembayaran, tahap persiapan (payment-integration-service.js). Tidak menghubungi Sendit. Penerapan transaksi ke tagihan
+// Integrasi pembayaran, tahap persiapan (payment-integration-service.js). Tidak menghubungi Xendit. Penerapan transaksi ke tagihan
 // memakai jalur pelunasan resmi, termasuk efek sampingnya (audit, pembukaan kelas, notifikasi).
 function balas(response, hasil, sukses = 200) {
   json(response, hasil.ok ? sukses : (hasil.status || 422), hasil.ok ? hasil.value : publicError(hasil));

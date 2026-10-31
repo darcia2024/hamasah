@@ -2,10 +2,10 @@
 
 const crypto = require('node:crypto');
 
-// Integrasi sistem pembayaran (Sendit), tahap persiapan (migrasi 074).
+// Integrasi sistem pembayaran (Xendit), tahap persiapan (migrasi 074).
 //
 // Prinsip dari rapat: tidak membangun ulang payment gateway; audit dulu; hindari dua sistem yang sama-sama bisa menandai lunas
-// tanpa sinkronisasi. Yang ada di sini TIDAK menghubungi Sendit (API-nya belum terverifikasi). Isinya:
+// tanpa sinkronisasi. Yang ada di sini TIDAK menghubungi Xendit (API-nya belum terverifikasi). Isinya:
 //   1. Tautan ke halaman pembayaran yang sudah ada, untuk wali dan santri, serta untuk pesan pengingat.
 //   2. Daftar audit dan catatan keputusan (integrasi atau migrasi penuh) yang diisi bersama tim IT.
 //   3. Rekonsiliasi: transaksi dari website pembayaran dicatat (idempoten per nomor referensi), dicocokkan ke tagihan, lalu
@@ -18,7 +18,7 @@ const crypto = require('node:crypto');
 const MODE = Object.freeze({ tautan: 'Tautan ke website pembayaran saja', rekonsiliasi: 'Tautan dan rekonsiliasi pembayaran dari website pembayaran' });
 const KEPUTUSAN = Object.freeze({ 'belum-final': 'Belum diputuskan', integrasi: 'Integrasi dengan website pembayaran', 'migrasi-penuh': 'Migrasi penuh ke sistem Hamasah' });
 const STATUS_AUDIT = Object.freeze({ belum: 'Belum diperiksa', ya: 'Ya, sudah terpenuhi', tidak: 'Tidak tersedia', 'perlu-konfirmasi': 'Perlu konfirmasi tim IT' });
-const BAWAAN = Object.freeze({ mode: 'tautan', providerName: 'Sendit', paymentUrl: '', decision: 'belum-final', decisionNote: '', decidedAt: null });
+const BAWAAN = Object.freeze({ mode: 'tautan', providerName: 'Xendit', paymentUrl: '', decision: 'belum-final', decisionNote: '', decidedAt: null });
 const DATABASE_BELUM_SIAP = 'Database belum diperbarui untuk integrasi pembayaran. Terapkan pembaruan database di halaman Pengaturan lebih dulu.';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAKS_IMPOR = 200;
@@ -124,7 +124,7 @@ function createPaymentIntegrationService({ database, markInvoicePaid, now = () =
     return tulis(async () => {
       const { config: lama } = await muatConfig();
       const config = { ...lama };
-      if (sumber.providerName !== undefined) config.providerName = rapi(sumber.providerName, 60) || 'Sendit';
+      if (sumber.providerName !== undefined) config.providerName = rapi(sumber.providerName, 60) || 'Xendit';
       if (sumber.paymentUrl !== undefined) {
         const aman = tautanAman(sumber.paymentUrl);
         if (aman === false) return { ok: false, error: 'Tautan pembayaran harus alamat https yang valid.' };
@@ -207,7 +207,7 @@ function createPaymentIntegrationService({ database, markInvoicePaid, now = () =
     // Hari ini menurut Jakarta, sama dengan kuitansi (operations-service). Dengan tanggal UTC, pukul 00.00-07.00 WIB
     // pembayaran hari itu ditolak di sini sebagai "masa depan" padahal kuitansinya menolak tanggal kemarin.
     if (sumber.paidOn > new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(now())) return { ok: false, error: 'Tanggal bayar tidak boleh di masa depan.' };
-    const asal = sumber.source === 'manual' ? 'manual' : 'sendit';
+    const asal = sumber.source === 'manual' ? 'manual' : 'xendit';
     const tagihan = await cariTagihan(sumber.invoiceNumber);
     const ada = await database.query('SELECT id FROM external_payments WHERE source = $1 AND external_ref = $2', [asal, ref]);
     if (ada.rows.length) return { ok: false, status: 409, error: `Transaksi dengan referensi ${ref} sudah pernah dicatat.` };
@@ -286,7 +286,7 @@ function createPaymentIntegrationService({ database, markInvoicePaid, now = () =
           return { ok: false, status: 409, error: `Nominal transaksi (${Number(baris.amount_rupiah)}) berbeda dari tagihan (${Number(baris.invoice_amount)}). Hanya admin yang dapat menerapkannya, dengan alasan tertulis.` };
         }
       }
-      const catatan = `${baris.source === 'sendit' ? 'Sendit' : 'Manual'} ref ${baris.external_ref}${sama ? '' : ` (selisih nominal: ${rapi(input.mismatchReason, 200)})`}`.slice(0, 300);
+      const catatan = `${baris.source === 'xendit' ? 'Xendit' : 'Manual'} ref ${baris.external_ref}${sama ? '' : ` (selisih nominal: ${rapi(input.mismatchReason, 200)})`}`.slice(0, 300);
       const hasil = await markInvoicePaid(baris.matched_invoice_id, actor, { paidOn: baris.paid_on_text, method: 'lainnya', note: catatan });
       if (!hasil.ok) return { ok: false, status: hasil.status || 422, error: hasil.error || 'Tagihan belum dapat ditandai lunas.' };
       await database.query(`UPDATE external_payments SET status = 'diterapkan', decided_by_account_id = $2, decided_at = $3 WHERE id = $1`, [id, actor.id || null, now()]);

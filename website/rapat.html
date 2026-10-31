@@ -92,7 +92,7 @@
           <div class="alat">
             <div class="cari">
               <label for="cari-modul">Cari kata di semua modul</label>
-              <input id="cari-modul" type="search" placeholder="Contoh: Sendit, AC, KPI, iqamah" autocomplete="off" />
+              <input id="cari-modul" type="search" placeholder="Contoh: Xendit, AC, KPI, iqamah" autocomplete="off" />
             </div>
             <div class="alat__tombol">
               <button type="button" class="tombol tombol--garis" id="buka-semua">Buka semua rincian</button>
@@ -276,7 +276,7 @@
               </article>
 
               <article class="mod" id="m2-11">
-                <header class="mod__kepala"><span class="mod__no">2.11</span><h4>Keuangan, Sendit, dan pengingat tagihan</h4></header>
+                <header class="mod__kepala"><span class="mod__no">2.11</span><h4>Keuangan, Xendit, dan pengingat tagihan</h4></header>
                 <p class="mod__ringkas">Pembayaran sudah punya aplikasi sendiri. Pertanyaannya: tetap di sana atau pindah.</p>
                 <div class="mod__awas"><strong>Belum diputuskan</strong><ul>
                   <li data-ref="D07">Opsi A (pembayaran tetap di aplikasi lama, statusnya tampil di Hamasah) atau Opsi B (migrasi penuh).</li>
@@ -285,8 +285,8 @@
                 </ul></div>
                 <details class="mod__rinci"><summary>Lihat rincian</summary>
                   <ul class="butir">
-                    <li>Website pembayaran lama sudah punya portal wali, tagihan berkala, riwayat, gateway Sendit, dan update status. Jangan dibangun ulang sebelum diaudit.</li>
-                    <li>Opsi A memakai API, webhook, atau akses yang sah. Jangan berasumsi ada akses langsung ke database Sendit; konfirmasikan arsitekturnya dengan tim IT.</li>
+                    <li>Website pembayaran lama sudah punya portal wali, tagihan berkala, riwayat, gateway Xendit, dan update status. Jangan dibangun ulang sebelum diaudit.</li>
+                    <li>Opsi A memakai API, webhook, atau akses yang sah. Jangan berasumsi ada akses langsung ke database Xendit; konfirmasikan arsitekturnya dengan tim IT.</li>
                     <li>Reminder sekitar tiga kali per bulan, hanya untuk tagihan yang belum lunas.</li>
                     <li>Biaya rendah: tombol WhatsApp click-to-chat dengan pesan terisi, admin tetap menekan Send.</li>
                     <li>Fonnte: API pengiriman massal, tapi berbiaya dan berisiko akun karena integrasinya tidak resmi.</li>
@@ -348,7 +348,7 @@
             <li data-id="D04" data-pemilik="Pimpinan|Keuangan"><label><input type="checkbox" /><span class="putusan__id">D04</span><span class="putusan__isi">Kebijakan izin pulang, diskon tagihan, dan penanganan ma’sum</span><span class="putusan__pemilik">Pimpinan dan Keuangan</span></label></li>
             <li data-id="D05" data-pemilik="Admin|Legal"><label><input type="checkbox" /><span class="putusan__id">D05</span><span class="putusan__isi">Daftar empat surat, template, penandatangan, dan prosedur keluar</span><span class="putusan__pemilik">Admin dan Legal</span></label></li>
             <li data-id="D06" data-pemilik="Keuangan|Asrama"><label><input type="checkbox" /><span class="putusan__id">D06</span><span class="putusan__isi">Daftar AC patungan, kontribusi tiap orang, nominal refund, dan bukti</span><span class="putusan__pemilik">Keuangan dan Asrama</span></label></li>
-            <li data-id="D07" data-pemilik="Tim IT"><label><input type="checkbox" /><span class="putusan__id">D07</span><span class="putusan__isi">Akses integrasi aplikasi pembayaran dan dokumentasi Sendit</span><span class="putusan__pemilik">Tim IT pembayaran</span></label></li>
+            <li data-id="D07" data-pemilik="Tim IT"><label><input type="checkbox" /><span class="putusan__id">D07</span><span class="putusan__isi">Akses integrasi aplikasi pembayaran dan dokumentasi Xendit</span><span class="putusan__pemilik">Tim IT pembayaran</span></label></li>
             <li data-id="D08" data-pemilik="Pimpinan|Keuangan"><label><input type="checkbox" /><span class="putusan__id">D08</span><span class="putusan__isi">Pilih WhatsApp manual, Fonnte, atau penyedia resmi</span><span class="putusan__pemilik">Pimpinan dan Keuangan</span></label></li>
             <li data-id="D09" data-pemilik="Pimpinan|Wali"><label><input type="checkbox" /><span class="putusan__id">D09</span><span class="putusan__isi">Hak akses galeri, izin publikasi foto, dan pesan privat santri</span><span class="putusan__pemilik">Pimpinan dan Wali</span></label></li>
             <li data-id="D10" data-pemilik="Tim Indonesia"><label><input type="checkbox" /><span class="putusan__id">D10</span><span class="putusan__isi">Detail program batch Indonesia, durasi, dan transisi ke Mesir</span><span class="putusan__pemilik">Tim Indonesia</span></label></li>
@@ -651,10 +651,10 @@
     </ul>
     <p class="prd__terbuka"><strong>Belum pasti:</strong> branding perlu diselaraskan dengan Mas Rahman (IT website learning), dan status landing page eksternal belum jelas (D13).</p>
 
-    <h4>Pembayaran, Sendit, dan pengingat tagihan</h4>
+    <h4>Pembayaran, Xendit, dan pengingat tagihan</h4>
     <ul>
-      <li>Website pembayaran lama sudah punya portal wali, tagihan berkala, riwayat, dan gateway Sendit. Jangan dibangun ulang sebelum diaudit.</li>
-      <li>Opsi A pakai API atau akses resmi. Jangan berasumsi bisa masuk langsung ke database Sendit. Konfirmasi dulu ke tim IT.</li>
+      <li>Website pembayaran lama sudah punya portal wali, tagihan berkala, riwayat, dan gateway Xendit. Jangan dibangun ulang sebelum diaudit.</li>
+      <li>Opsi A pakai API atau akses resmi. Jangan berasumsi bisa masuk langsung ke database Xendit. Konfirmasi dulu ke tim IT.</li>
       <li>Pengingat sekitar tiga kali sebulan, cuma buat tagihan yang belum lunas.</li>
       <li>Cara paling murah: tombol WhatsApp dengan pesan yang sudah terisi, admin tinggal tekan Kirim.</li>
       <li>Fonnte bisa kirim massal lewat API, tapi berbayar dan berisiko buat akun karena nggak resmi.</li>
@@ -686,7 +686,7 @@
         <tr><th scope="row">P0<br><span>Rapikan</span></th><td>Tampilan iqamah bertabrakan. Data, kontak, dan alur yang error. Login, RLS, backup. QA semua portal.</td><td>Alur yang ada aman dan bisa diuji</td></tr>
         <tr><th scope="row">P1<br><span>Operasional inti</span></th><td>Impor 108 santri. Asrama dan kamar (Mesir dan Indonesia). Absensi dan izin. Setoran tahfidz dan rapor. KPI musyrif.</td><td>Data nyata masuk, peran utama jalan</td></tr>
         <tr><th scope="row">P2<br><span>Administrasi</span></th><td>Pantau dokumen dan pengingat. Surat dan template. Inventaris dan AC patungan. Galeri dan izin foto. Kotak masukan wali. Audit trail.</td><td>Alur terverifikasi dan tercatat di audit</td></tr>
-        <tr><th scope="row">P3<br><span>Sambungan</span></th><td>Pembayaran (Sendit, opsi A atau B). Pengingat tagihan WhatsApp. LMS dan tautan kelas eksternal. PWA.</td><td>Sambungan dan uji ujung ke ujung berhasil</td></tr>
+        <tr><th scope="row">P3<br><span>Sambungan</span></th><td>Pembayaran (Xendit, opsi A atau B). Pengingat tagihan WhatsApp. LMS dan tautan kelas eksternal. PWA.</td><td>Sambungan dan uji ujung ke ujung berhasil</td></tr>
         <tr><th scope="row">P4<br><span>Lanjutan</span></th><td>AI assistant. Artikel dan editorial. Otomasi tambahan.</td><td>Ruang lingkup dan biaya disetujui terpisah</td></tr>
         <tr><th scope="row">Belum ada tahap</th><td>CMS dan landing page. Portal wali dan santri (pengumuman, notifikasi).</td><td>Tahap ditentukan setelah audit</td></tr>
       </tbody>
@@ -704,7 +704,7 @@
       <li><span class="prd__kode">D04</span> Kebijakan izin pulang, diskon tagihan, penanganan ma’sum. <em>Pimpinan, Keuangan</em></li>
       <li><span class="prd__kode">D05</span> Empat surat: daftar, template, penandatangan, prosedur keluar. <em>Admin, Legal</em></li>
       <li><span class="prd__kode">D06</span> Daftar AC patungan, jumlah bayar tiap orang, refund, bukti. <em>Keuangan, Asrama</em></li>
-      <li><span class="prd__kode">D07</span> Akses integrasi pembayaran dan dokumentasi Sendit. <em>Tim IT pembayaran</em></li>
+      <li><span class="prd__kode">D07</span> Akses integrasi pembayaran dan dokumentasi Xendit. <em>Tim IT pembayaran</em></li>
       <li><span class="prd__kode">D08</span> Pilih WhatsApp manual, Fonnte, atau penyedia resmi. <em>Pimpinan, Keuangan</em></li>
       <li><span class="prd__kode">D09</span> Akses galeri, izin publikasi foto, pesan privat santri. <em>Pimpinan, Wali</em></li>
       <li><span class="prd__kode">D10</span> Program batch Indonesia, durasi, transisi ke Mesir. <em>Tim Indonesia</em></li>
