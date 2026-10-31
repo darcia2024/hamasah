@@ -312,70 +312,108 @@
       return el('span', `mp-chip ${lewat || item.severity === 'tinggi' ? 'mp-chip--urgent' : 'mp-chip--soon'}`, teks);
     }
 
+    // Satu urusan = satu baris ringkas: jenis, siapa, apa yang harus dilakukan, sisa waktu, dan satu tombol utama.
+    // Catatan, penanggung jawab, riwayat, bukti, dan tindakan lain ada di pop up "Kelola urusan".
+    const NAMA_JENIS = Object.freeze({ paspor: 'Paspor', iqamah: 'Iqamah', 'lapor-diri': 'Lapor diri', 'lapor-pendidikan': 'Lapor pendidikan', 'status-pendidikan': 'Status pendidikan' });
+
+    function aksiUtama(item, sebelum) {
+      const jalan = (fn) => () => { if (sebelum) sebelum(); fn(); };
+      if (item.status === 'baru') return tombol('Mulai proses', 'button button--primary mp-small', jalan(() => ubah(item, 'diproses')));
+      if (item.status === 'diproses') return tombol('Tandai selesai', 'button button--primary mp-small', jalan(() => selesaikan(item)));
+      return tombol('Buka lagi', 'button button--secondary mp-small', jalan(() => ubah(item, 'baru')));
+    }
+
     function barisMasalah(item) {
-      const li = el('li', `mp-case is-${item.severity} is-${item.status}`);
-      const utama = el('div', 'mp-case__main');
-      const atas = el('div', 'mp-case__top');
-      const nama = tombol(item.studentName, 'mp-link mp-case__name', () => onOpenStudent(item.studentId));
+      const li = el('li', `ur ur--${item.kind} is-${item.severity} is-${item.status}`);
+      li.append(el('span', `ur__kind ur__kind--${item.kind}`, NAMA_JENIS[item.kind] || item.kind));
+
+      const utama = el('div', 'ur__main');
+      const nama = tombol(item.studentName, 'mp-link ur__name', () => onOpenStudent(item.studentId));
       nama.setAttribute('aria-label', `Buka santri ${item.studentName}`);
-      atas.append(nama);
-      const meta = [item.dormitory || 'Belum berasrama', item.country !== 'Belum berasrama' ? item.country : '', item.level].filter(Boolean).join(' · ');
-      atas.append(el('span', 'mp-case__meta', meta));
+      const meta = [item.dormitory || 'Belum berasrama', item.country !== 'Belum berasrama' ? item.country : ''].filter(Boolean).join(' · ');
+      utama.append(nama, el('span', 'ur__meta', meta), el('p', 'ur__detail', item.detail));
+      utama.append(el('p', `ur__pj${item.assignee ? '' : ' is-kosong'}`, item.assignee ? `Penanggung jawab: ${item.assignee.name || 'staf'}` : 'Belum ada penanggung jawab'));
+
+      const waktu = el('div', 'ur__when');
       const chip = chipHitung(item);
-      utama.append(atas, el('p', 'mp-case__title', item.kind === 'paspor' || item.kind === 'iqamah' ? item.title : item.title), el('p', 'mp-case__detail', item.detail));
+      if (chip) waktu.append(chip);
+      waktu.append(el('span', `mp-status-badge mp-status-badge--${item.status}`, LABEL_STATUS[item.status]));
+
+      const aksi = el('div', 'ur__act');
+      aksi.append(aksiUtama(item), tombol('Kelola', 'button button--secondary mp-small', () => dialogKelola(item)));
+      li.append(utama, waktu, aksi);
+      return li;
+    }
+
+    // Pop up "Kelola urusan". Setiap tindakan menutupnya dulu karena daftar digambar ulang setelah data dimuat lagi.
+    function dialogKelola(item) {
+      const dialog = el('dialog', 'mp-dialog ur-dialog');
+      dialog.setAttribute('aria-labelledby', 'ur-dialog-judul');
+      const tutup = () => dialog.close();
+      const kepala = el('header', 'ur-dialog__head');
+      const judul = el('h4', 'mp-dialog__title', `${NAMA_JENIS[item.kind] || item.kind}: ${item.studentName}`);
+      judul.id = 'ur-dialog-judul';
+      const meta = [item.dormitory || 'Belum berasrama', item.country !== 'Belum berasrama' ? item.country : '', item.level].filter(Boolean).join(' · ');
+      const teks = el('div');
+      teks.append(judul, el('p', 'mp-sub', meta));
+      kepala.append(teks, tombol('Tutup', 'button button--secondary mp-small', tutup));
+
+      const badan = el('div', 'ur-dialog__body');
+      const ringkas = el('div', 'ur-dialog__sum');
+      const lencana = el('div', 'ur__when');
+      const chip = chipHitung(item);
+      if (chip) lencana.append(chip);
+      lencana.append(el('span', `mp-status-badge mp-status-badge--${item.status}`, LABEL_STATUS[item.status]));
+      ringkas.append(lencana, el('p', 'ur__detail', item.detail));
       const jejak = [];
       if (item.recordedBy) jejak.push(`Dicatat ${item.recordedBy}`);
       if (item.since) jejak.push(WAKTU.format(new Date(item.since)));
-      if (jejak.length) utama.append(el('p', 'mp-case__trail', jejak.join(' · ')));
-      if (item.note && (item.kind === 'paspor' || item.kind === 'iqamah')) utama.append(el('p', 'mp-case__note', `Catatan: ${item.note}`));
-      if (item.assignee) utama.append(el('p', 'mp-case__trail', `Penanggung jawab: ${item.assignee.name || 'staf'}`));
+      if (jejak.length) ringkas.append(el('p', 'mp-case__trail', jejak.join(' · ')));
+      if (item.note && (item.kind === 'paspor' || item.kind === 'iqamah')) ringkas.append(el('p', 'mp-case__note', `Catatan: ${item.note}`));
       if (item.evidenceNote || item.evidenceFileId) {
         const bukti = el('p', 'mp-case__note', item.evidenceNote ? `Bukti penyelesaian: ${item.evidenceNote}` : 'Bukti penyelesaian terlampir.');
         if (item.evidenceFileId) {
           const lihat = tombol('Lihat berkas bukti', 'mp-link', () => window.HamasahUnggah.buka(item.evidenceFileId, headers()).catch((error) => { status.textContent = error.message; }));
           bukti.append(document.createTextNode(' '), lihat);
         }
-        utama.append(bukti);
+        ringkas.append(bukti);
       }
-      if (item.history && item.history.length) {
-        const riwayat = el('details', 'mp-case__history');
-        riwayat.append(el('summary', '', `Riwayat (${item.history.length})`));
-        const ul = el('ul');
-        const ARTI = { dibuat: 'Dibuat', status: 'Status', 'penanggung-jawab': 'Penanggung jawab', catatan: 'Catatan' };
-        item.history.forEach((h) => ul.append(el('li', '', `${WAKTU.format(new Date(h.at))} · ${ARTI[h.action] || h.action}${h.to ? `: ${LABEL_STATUS[h.to] || h.to}` : ''}${h.by ? ` oleh ${h.by}` : ''}${h.note ? ` · ${h.note}` : ''}`)));
-        riwayat.append(ul);
-        utama.append(riwayat);
-      }
+      badan.append(ringkas);
 
-      const sisi = el('div', 'mp-case__side');
-      const lencana = el('div', 'mp-case__badges');
-      if (chip) lencana.append(chip);
-      lencana.append(el('span', `mp-status-badge mp-status-badge--${item.status}`, LABEL_STATUS[item.status]));
-      sisi.append(lencana);
-      const aksiUtama = item.status === 'baru'
-        ? tombol('Mulai proses', 'button button--primary mp-small', () => ubah(item, 'diproses'))
-        : item.status === 'diproses'
-          ? tombol('Tandai selesai', 'button button--primary mp-small', () => selesaikan(item))
-          : tombol('Buka lagi', 'button button--secondary mp-small', () => ubah(item, 'baru'));
-      sisi.append(aksiUtama);
-
-      const lain = el('details', 'mp-case__more');
-      lain.append(el('summary', '', 'Tindakan lain'));
-      const isi = el('div', 'mp-case__more-body');
-      const aksi = el('div', 'mp-case__actions');
-      aksi.append(tombol('Buka profil santri', 'button button--secondary mp-small', () => onOpenStudent(item.studentId)));
+      const tindakan = el('div', 'mp-case__actions');
+      tindakan.append(aksiUtama(item, tutup));
+      if (item.status === 'baru') tindakan.append(tombol('Langsung selesai', 'button button--secondary mp-small', () => { tutup(); selesaikan(item); }));
+      if (item.status === 'diproses') tindakan.append(tombol('Kembalikan ke baru', 'button button--secondary mp-small', () => { tutup(); ubah(item, 'baru'); }));
+      tindakan.append(tombol('Buka profil santri', 'button button--secondary mp-small', () => { tutup(); onOpenStudent(item.studentId); }));
       // Tanggal paspor dan iqamah dicatat di satu tempat: Keuangan > Visa & Paspor. Di sini hanya tindak lanjutnya.
       if (item.kind === 'paspor' || item.kind === 'iqamah') {
         const ubahTanggal = el('a', 'button button--secondary mp-small', 'Ubah tanggal di Visa & Paspor');
         ubahTanggal.href = `operations?santri=${encodeURIComponent(item.studentId)}#visa`;
-        aksi.append(ubahTanggal);
+        tindakan.append(ubahTanggal);
       }
-      if (item.status === 'baru') aksi.append(tombol('Langsung selesai', 'button button--secondary mp-small', () => selesaikan(item)));
-      if (item.status === 'diproses') aksi.append(tombol('Kembalikan ke baru', 'button button--secondary mp-small', () => ubah(item, 'baru')));
-      isi.append(aksi, pilihPenanggungJawab(item), formCatatan(item));
-      lain.append(isi);
-      li.append(utama, sisi, lain);
-      return li;
+      badan.append(tindakan);
+
+      const penanggung = pilihPenanggungJawab(item);
+      penanggung.querySelector('select').addEventListener('change', tutup);
+      badan.append(penanggung);
+      const catatan = formCatatan(item);
+      catatan.addEventListener('submit', tutup);
+      badan.append(catatan);
+
+      if (item.history && item.history.length) {
+        const riwayat = el('div', 'ur-dialog__history');
+        riwayat.append(el('h5', 'ur-dialog__sub', `Riwayat (${item.history.length})`));
+        const ul = el('ul');
+        const ARTI = { dibuat: 'Dibuat', status: 'Status', 'penanggung-jawab': 'Penanggung jawab', catatan: 'Catatan' };
+        item.history.forEach((h) => ul.append(el('li', '', `${WAKTU.format(new Date(h.at))} · ${ARTI[h.action] || h.action}${h.to ? `: ${LABEL_STATUS[h.to] || h.to}` : ''}${h.by ? ` oleh ${h.by}` : ''}${h.note ? ` · ${h.note}` : ''}`)));
+        riwayat.append(ul);
+        badan.append(riwayat);
+      }
+
+      dialog.append(kepala, badan);
+      dialog.addEventListener('close', () => dialog.remove());
+      document.body.append(dialog);
+      dialog.showModal();
     }
 
     function dialogMasalah() {
@@ -479,7 +517,7 @@
           : 'Tidak ada urusan dengan status ini pada saringan ini.'));
         return;
       }
-      const daftar = el('ul', 'mp-list');
+      const daftar = el('ul', 'mp-list mp-list--kartu');
       const tampil = tampilSemua ? c.items : c.items.slice(0, BARIS_AWAL);
       tampil.forEach((item) => daftar.append(barisMasalah(item)));
       kartuMasalah.append(daftar);
