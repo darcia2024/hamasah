@@ -270,9 +270,11 @@ async function isiAdministrasi(ctx, S, K) {
   }
 
   if (await tabelAda(database, 'kpi_evaluations')) {
-    if (!(await satu(database, 'SELECT 1 FROM kpi_evaluations WHERE musyrif_account_id = $1', [c.musyrif.id]))) {
+    // Draf yang sudah ada dihitung ulang juga: draf yang disusun sebelum kegiatan demo terisi masih berbunyi "belum ada data".
+    const kpi = await satu(database, 'SELECT status FROM kpi_evaluations WHERE musyrif_account_id = $1 AND month = $2', [c.musyrif.id, bulanIni()]);
+    if (!kpi || kpi.status !== 'final') {
       wajib(await S.kpi.evaluate(c.musyrif.id, bulanIni(), c.admin), 'menyusun penilaian KPI musyrif', K);
-      dibuat += 1;
+      if (!kpi) dibuat += 1;
     }
   }
   return dibuat;
