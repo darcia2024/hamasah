@@ -45,7 +45,7 @@ module.exports = [
       balas(response, hasil);
     }
   },
-  { method: 'GET', pattern: pola('\\/api\\/kpi\\/musyrif'), permission: 'kpi.manage', async handler({ response, services, auth }) { balas(response, await services.kpiService.listMusyrif(await auth.actor())); } },
+  { method: 'GET', pattern: pola('\\/api\\/kpi\\/musyrif'), permission: 'kpi.manage', async handler({ response, services, auth, url }) { balas(response, await services.kpiService.listMusyrif(await auth.actor(), url.searchParams.get('month') || undefined)); } },
   {
     method: 'POST',
     pattern: pola('\\/api\\/kpi\\/penilaian'),

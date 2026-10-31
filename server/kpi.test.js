@@ -146,6 +146,17 @@ async function run() {
     assert.equal((await api('PATCH', `/api/kpi/penilaian/${id}`, admin, { comment: 'Ubah diam-diam.' })).status, 409);
     assert.equal((await api('POST', '/api/kpi/penilaian', admin, { musyrifId: mA.id, month: BULAN })).status, 409);
 
+    // Kartu musyrif di tab Penilaian: daftar membawa status bulan itu. Tanpa bulan, bentuknya tetap seperti semula.
+    const kartu = await api('GET', `/api/kpi/musyrif?month=${BULAN}`, admin);
+    assert.equal(kartu.status, 200, kartu.teks);
+    const kartuA = kartu.body.items.find((m) => m.id === mA.id);
+    assert.equal(kartuA.evaluation.status, 'final');
+    assert.equal(kartuA.evaluation.grade, 'A');
+    assert.equal(kartu.body.items.find((m) => m.id === mB.id).evaluation, null, 'Musyrif yang belum dihitung: evaluation null.');
+    assert.equal(kartu.body.items.find((m) => m.id === mA.id).evaluation.total, final.body.total);
+    assert.ok(!('evaluation' in (await api('GET', '/api/kpi/musyrif', admin)).body.items[0]));
+    assert.equal((await api('GET', '/api/kpi/musyrif?month=ngawur', admin)).body.items[0].evaluation, null, 'Bulan tidak valid diabaikan.');
+
     // Musyrif melihat KPI dirinya sendiri (final), bukan milik orang lain.
     const saya = await api('GET', '/api/kpi/saya', tA);
     assert.equal(saya.status, 200);

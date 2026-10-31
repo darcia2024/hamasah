@@ -179,14 +179,24 @@ function createKpiService({ database, now = () => new Date() } = {}) {
     });
   }
 
-  async function listMusyrif(actor) {
+  // Dengan bulan (YYYY-MM), tiap musyrif membawa ringkasan penilaian bulan itu untuk kartu di tab Penilaian:
+  // evaluation null berarti belum dihitung.
+  async function listMusyrif(actor, bulan) {
     if (!admin(actor)) return TOLAK_ADMIN;
     const { rows } = await database.query(
       `SELECT a.id, a.name, COALESCE(string_agg(d.name, ', ' ORDER BY d.name), '') AS dormitories FROM accounts a
          LEFT JOIN staff_dormitory_assignments sd ON sd.account_id = a.id LEFT JOIN dormitories d ON d.id = sd.dormitory_id
         WHERE a.role = 'supervisor' AND a.active GROUP BY a.id, a.name ORDER BY a.name`
     );
-    return { ok: true, value: { items: rows.map((r) => ({ id: r.id, name: r.name, dormitories: r.dormitories })) } };
+    let ringkas = new Map();
+    if (BULAN.test(String(bulan || '')) && rows.length) {
+      try {
+        const { config } = await muatConfig();
+        const evals = await database.query(`${SELECT_EVAL} WHERE e.month = $1 AND e.musyrif_account_id = ANY($2::uuid[])`, [bulan, rows.map((r) => r.id)]);
+        ringkas = new Map(evals.rows.map((r) => { const e = rakit(r, config); return [e.musyrifId, { status: e.status, statusLabel: e.statusLabel, total: e.total, grade: e.grade }]; }));
+      } catch (error) { if (!tabelBelumAda(error)) throw error; }
+    }
+    return { ok: true, value: { items: rows.map((r) => ({ id: r.id, name: r.name, dormitories: r.dormitories, ...(bulan ? { evaluation: ringkas.get(r.id) || null } : {}) })) } };
   }
 
   // ------------------------------------------------------------------ penghitungan otomatis

@@ -29,6 +29,26 @@
 .kg-chip.is-tidak-terlaksana, .kg-chip.is-dibatalkan { background: #fbe4e1; color: #9a2a1d; }
 .kg-chip.is-terjadwal { background: #fff0cf; color: #7a5410; }
 
+/* KPI musyrif: kartu per musyrif dan pop up rincian. Dialog tinggal di dalam #kpi-app, jadi variabel halaman ikut berlaku. */
+.kg-chip.is-final { background: #dff3e4; color: #1d6b34; }
+.kg-chip.is-draft { background: #fff0cf; color: #7a5410; }
+.kpi-musyrif__card { gap: 6px; min-height: 96px; align-content: start; }
+.kpi-musyrif__status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; }
+.kpi-musyrif__nilai { font-size: 14px; font-weight: 700; }
+.kpi-dialog { width: min(1040px, calc(100vw - 24px)); max-height: calc(100dvh - 32px); overflow: auto; overscroll-behavior: contain; }
+.kpi-dialog__head { position: sticky; top: 0; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 24px 14px; background: var(--crm-card-bg, #fff); border-bottom: 1px solid var(--wali-rule); }
+.kpi-dialog__head h3 { margin: 0; font-size: var(--fs-20, 20px); line-height: 1.3; overflow-wrap: anywhere; }
+.kpi-dialog__sub { margin: 4px 0 0; font-size: 13.5px; color: var(--md-sys-color-on-surface-variant); }
+.kpi-dialog__body { padding: 18px 24px 24px; display: grid; gap: 18px; }
+.kpi-dialog .kg-bar { align-items: center; }
+/* Judul pop up sudah punya garis bawah sendiri; bagian pertama tidak perlu garis dan jarak atas lagi. */
+.kpi-dialog__body > .wali-section:first-child { border-top: 0; padding-top: 0; }
+@media (max-width: 640px) {
+  .kpi-dialog { width: calc(100vw - 16px); max-height: calc(100dvh - 16px); }
+  .kpi-dialog__head { padding: 14px 16px 12px; }
+  .kpi-dialog__body { padding: 14px 16px 20px; }
+}
+
 .kg-scroll { overflow-x: auto; }
 .kg-table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .kg-table th, .kg-table td { padding: 10px 12px; border-bottom: 1px solid var(--wali-rule); text-align: left; vertical-align: middle; }

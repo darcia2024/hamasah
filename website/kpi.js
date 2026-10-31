@@ -72,13 +72,6 @@
     return b;
   }
 
-  function pilihan(opsi, nilai) {
-    const s = el('select', 'wali-field');
-    opsi.forEach(([v, t]) => s.append(new Option(t, v)));
-    if (nilai !== undefined) s.value = nilai;
-    return s;
-  }
-
   function isian(tipe, nilai, atribut = {}) {
     const i = el('input', 'wali-field');
     i.type = tipe;
@@ -109,35 +102,77 @@
 
   // ------------------------------------------------------------------ admin: penilaian bulanan
 
+  // Tab Penilaian: satu kartu per musyrif untuk bulan yang dipilih. Mengetuk kartu membuka pop up berisi rincian KPI-nya.
   async function tabPenilaian() {
     const akar = el('div', 'kg-stack');
-    const pilih = pilihan([['', 'Pilih musyrif...'], ...state.musyrif.map((m) => [m.id, `${m.name}${m.dormitories ? ` · ${m.dormitories}` : ''}`])], state.pilihMusyrif);
     const bulan = isian('month', state.bulan);
     const bar = el('div', 'kg-bar');
-    bar.append(kolom('Musyrif', pilih), kolom('Bulan', bulan));
-    const badan = el('div');
-    akar.append(bagian('Penilaian bulanan', 'Hitung dari data sistem, sesuaikan nilai bila perlu (wajib berkomentar), lalu finalkan. Keluhan wali yang belum diverifikasi tidak pernah menurunkan nilai.'), badan);
-    akar.firstChild.append(bar);
+    bar.append(kolom('Bulan', bulan));
+    const daftar = el('div', 'kg-list kpi-musyrif');
+    const b = bagian('Penilaian bulanan', 'Pilih bulan, lalu ketuk kartu musyrif untuk melihat rincian nilainya. Di sana nilai dihitung dari data sistem, disesuaikan bila perlu (wajib berkomentar), lalu difinalkan. Keluhan wali yang belum diverifikasi tidak pernah menurunkan nilai.');
+    b.append(bar, daftar);
+    akar.append(b);
 
-    async function muat() {
-      state.pilihMusyrif = pilih.value;
-      state.bulan = bulan.value;
-      if (!pilih.value) { badan.replaceChildren(kosong('Pilih musyrif terlebih dahulu.')); return; }
-      badan.replaceChildren(kosong('Memuat...'));
-      let data;
-      try { data = await api('GET', `/api/kpi/penilaian?musyrifId=${encodeURIComponent(pilih.value)}&month=${encodeURIComponent(bulan.value)}&t=${Date.now()}`); } catch (error) { badan.replaceChildren(kosong(error.message)); return; }
-      badan.replaceChildren(rincianPenilaian(data, muat));
+    function kartu(m) {
+      const k = el('button', 'kg-card kpi-musyrif__card');
+      k.type = 'button';
+      const ev = m.evaluation;
+      const status = !ev ? ['belum', 'Belum dihitung'] : ev.status === 'final' ? ['final', 'Final'] : ['draft', 'Draf'];
+      k.append(el('strong', 'kg-card__title', m.name), el('span', 'kg-card__meta', m.dormitories || 'Belum ditugaskan ke asrama'));
+      const baris = el('span', 'kpi-musyrif__status');
+      baris.append(el('span', `kg-chip is-${status[0]}`, status[1]));
+      if (ev && ev.total !== null) baris.append(el('span', 'kpi-musyrif__nilai', `Nilai ${ev.total} · ${ev.grade}`));
+      k.append(baris);
+      k.setAttribute('aria-label', `Buka KPI ${m.name}, ${labelBulan(state.bulan)}: ${status[1]}${ev && ev.total !== null ? `, nilai ${ev.total}` : ''}`);
+      k.addEventListener('click', () => bukaDetail(m));
+      return k;
     }
-    pilih.addEventListener('change', () => muat().catch(() => {}));
-    bulan.addEventListener('change', () => muat().catch(() => {}));
-    if (pilih.value) await muat();
-    else badan.replaceChildren(kosong('Pilih musyrif terlebih dahulu.'));
+
+    async function muatDaftar() {
+      state.bulan = bulan.value;
+      if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(bulan.value)) { daftar.replaceChildren(kosong('Pilih bulan terlebih dahulu.')); return; }
+      daftar.replaceChildren(kosong('Memuat...'));
+      try {
+        const hasil = await api('GET', `/api/kpi/musyrif?month=${encodeURIComponent(bulan.value)}&t=${Date.now()}`);
+        state.musyrif = hasil.items || [];
+        daftar.replaceChildren(...(state.musyrif.length ? state.musyrif.map(kartu) : [kosong('Belum ada musyrif aktif.')]));
+      } catch (error) { daftar.replaceChildren(kosong(error.message)); }
+    }
+
+    function bukaDetail(m) {
+      state.pilihMusyrif = m.id;
+      const dialog = el('dialog', 'op-dialog kpi-dialog');
+      dialog.setAttribute('aria-labelledby', 'kpi-dialog-judul');
+      const kepala = el('header', 'kpi-dialog__head');
+      const teks = el('div');
+      const judul = el('h3', '', m.name);
+      judul.id = 'kpi-dialog-judul';
+      teks.append(judul, el('p', 'kpi-dialog__sub', `${m.dormitories || 'Belum ditugaskan ke asrama'} · ${labelBulan(state.bulan)}`));
+      const tutup = tombol('Tutup', 'button button--secondary kg-small', () => dialog.close());
+      kepala.append(teks, tutup);
+      const badan = el('div', 'kpi-dialog__body');
+      dialog.append(kepala, badan);
+      async function muat() {
+        badan.replaceChildren(kosong('Memuat...'));
+        let data;
+        try { data = await api('GET', `/api/kpi/penilaian?musyrifId=${encodeURIComponent(m.id)}&month=${encodeURIComponent(state.bulan)}&t=${Date.now()}`); } catch (error) { badan.replaceChildren(kosong(error.message)); return; }
+        badan.replaceChildren(rincianPenilaian(data, muat));
+      }
+      // Dialog tinggal di dalam #kpi-app supaya gaya halaman ikut berlaku; kartu disegarkan begitu ditutup.
+      dialog.addEventListener('close', () => { dialog.remove(); muatDaftar().catch(() => {}); });
+      app.append(dialog);
+      dialog.showModal();
+      muat().catch(() => {});
+    }
+
+    bulan.addEventListener('change', () => muatDaftar().catch(() => {}));
+    await muatDaftar();
     return akar;
   }
 
   function rincianPenilaian(data, muat) {
     const ev = data.evaluation;
-    const b = bagian(`${labelBulan(state.bulan)}`, ev ? `${ev.statusLabel}${ev.finalizedBy ? ` · difinalkan ${ev.finalizedBy}` : ''}` : 'Belum dihitung.');
+    const b = bagian('Rincian penilaian', ev ? `${ev.statusLabel}${ev.finalizedBy ? ` · difinalkan ${ev.finalizedBy}` : ''}` : 'Belum dihitung.');
     const status = pesanStatus();
     const bar = el('div', 'kg-bar');
     if (!ev || ev.status === 'draft') {
