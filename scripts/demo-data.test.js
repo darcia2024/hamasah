@@ -55,12 +55,25 @@ async function run() {
     assert.ok(await hitung(database, "SELECT count(*)::int AS jumlah FROM dormitory_schedule WHERE kind = 'acara' AND event_date > CURRENT_DATE") >= 1, 'Ada acara mendatang.');
     assert.ok(await hitung(database, 'SELECT count(*)::int AS jumlah FROM dormitory_duty_assignments') > 0, 'Piket sudah dibagi.');
     assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM dormitory_cash_entries WHERE voided_at IS NOT NULL'), DEMO_DORMITORIES.length, 'Satu salah catat dibatalkan per asrama.');
-    assert.equal(await hitung(database, "SELECT count(*)::int AS jumlah FROM file_objects WHERE purpose = 'dormitory-photo' AND status = 'ready'"), await hitung(database, 'SELECT count(*)::int AS jumlah FROM dormitory_gallery'));
+    assert.equal(await hitung(database, "SELECT count(*)::int AS jumlah FROM file_objects WHERE purpose = 'dormitory-photo' AND status = 'ready'"), await hitung(database, 'SELECT count(*)::int AS jumlah FROM dormitory_gallery WHERE youtube_id IS NULL'));
+    assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM dormitory_gallery WHERE youtube_id IS NOT NULL'), 1, 'Satu video YouTube di galeri.');
     assert.equal(await hitung(database, "SELECT count(*)::int AS jumlah FROM dormitory_schedule WHERE created_by_account_id IS NULL"), 0);
     assert.equal(await hitung(database, 'SELECT count(DISTINCT student_id)::int AS jumlah FROM student_juz_progress'), DEMO_STUDENTS.length, 'Peta hafalan semua santri terisi.');
     assert.equal(await hitung(database, 'SELECT count(DISTINCT dormitory_id)::int AS jumlah FROM announcements'), DEMO_DORMITORIES.length);
     const izin = (await database.query('SELECT status, count(*)::int AS jumlah FROM student_leave_requests GROUP BY status ORDER BY status')).rows;
     assert.deepEqual(izin.map((row) => row.status), ['disetujui']);
+
+    // Fitur sesudah rapat pimpinan: setiap halaman baru punya minimal satu contoh.
+    for (const tabel of [
+      'programs', 'program_batches', 'batch_participants', 'dormitory_rooms', 'course_sessions', 'course_session_attendance',
+      'activity_sessions', 'activity_attendance', 'tahfidz_entries', 'monthly_reports', 'letters', 'student_cases', 'residence_reports',
+      'kpi_evaluations', 'inventory_checks', 'dormitory_ac_units', 'ac_contributions', 'student_personal_messages', 'parent_feedback', 'external_payments'
+    ]) {
+      assert.ok(await hitung(database, `SELECT count(*)::int AS jumlah FROM ${tabel}`) > 0, `${tabel} terisi.`);
+    }
+    assert.equal(await hitung(database, "SELECT count(*)::int AS jumlah FROM dormitory_inventory WHERE owner_type = 'santri'"), 1, 'Satu barang pribadi santri.');
+    assert.equal(await hitung(database, "SELECT count(*)::int AS jumlah FROM announcements WHERE audience = 'musyrif'"), 1, 'Satu pengumuman musyrif.');
+    assert.equal(await hitung(database, "SELECT count(*)::int AS jumlah FROM monthly_reports WHERE status = 'published'"), 0, 'Rapor contoh tidak diterbitkan.');
 
     // Satu contoh per fitur: satu pendaftar yang siap berangkat dan sudah masuk kloter.
     const status = (await database.query('SELECT DISTINCT status FROM registrations')).rows.map((row) => row.status).sort();
@@ -103,7 +116,10 @@ async function run() {
     assert.ok(data.berkas.length > 0, 'Foto galeri ikut terdaftar untuk dihapus.');
     await hapusDataDemo({ database, data, storage, logger: SILENT_LOGGER });
     assert.equal(totalBaris(await temukanDataDemo(database)), 0);
-    for (const tabel of ['students', 'registrations', 'invoices', 'departure_groups', 'dormitories', 'inventory_items', 'inquiries', 'courses', 'dormitory_schedule', 'dormitory_cash_entries', 'dormitory_gallery', 'file_objects', 'announcements', 'student_juz_progress', 'student_leave_requests']) {
+    for (const tabel of ['students', 'registrations', 'invoices', 'departure_groups', 'dormitories', 'inventory_items', 'inquiries', 'courses', 'dormitory_schedule', 'dormitory_cash_entries', 'dormitory_gallery', 'file_objects', 'announcements', 'student_juz_progress', 'student_leave_requests',
+      'programs', 'program_batches', 'dormitory_rooms', 'course_sessions', 'activity_sessions', 'tahfidz_entries', 'monthly_reports', 'letters',
+      'student_cases', 'residence_reports', 'kpi_evaluations', 'dormitory_inventory', 'inventory_checks', 'dormitory_ac_units', 'ac_contributions',
+      'student_personal_messages', 'parent_feedback', 'external_payments']) {
       assert.equal(await hitung(database, `SELECT count(*)::int AS jumlah FROM ${tabel}`), 0, `Tabel ${tabel} bersih.`);
     }
     assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM accounts'), 1, 'Hanya akun admin yang tersisa.');
@@ -117,7 +133,7 @@ async function run() {
       const langkah = await jalankanLangkahDemo({ database, langkah: item.id, kataSandi: LOCAL_DEMO_PASSWORD, storage: storageMenolak });
       if (item.id.startsWith('galeri:')) assert.match(langkah.peringatan, /Bucket not found/);
     }
-    assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM dormitory_gallery'), 0);
+    assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM dormitory_gallery WHERE youtube_id IS NULL'), 0);
     assert.equal(await hitung(database, 'SELECT count(*)::int AS jumlah FROM file_objects'), 0, 'Unggahan yang gagal tidak meninggalkan baris berkas.');
     assert.ok(await hitung(database, 'SELECT count(*)::int AS jumlah FROM course_enrollments') > 0, 'Langkah sesudah galeri tetap jalan.');
     await hapusDataDemo({ database, data: await temukanDataDemo(database), storage: storageMenolak, logger: SILENT_LOGGER });

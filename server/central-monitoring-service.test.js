@@ -20,6 +20,9 @@ async function run() {
     assert.deepEqual(kosong.value.cases.items, []);
 
     await isiDataDemo({ database, kataSandi: LOCAL_DEMO_PASSWORD, logger: { log() {} } });
+    // Data demo membawa satu urusan manual (lapor diri) sebagai contoh. Dihapus supaya hitungan di bawah hanya
+    // memuat urusan yang dibuat test ini.
+    assert.equal((await database.query(`DELETE FROM student_cases WHERE source = 'manual' AND kind = 'lapor-diri' RETURNING id`)).rows.length, 1);
 
     // Hanya admin.
     for (const role of ['supervisor', 'finance', 'registration-officer', 'teacher', 'parent', 'student']) {

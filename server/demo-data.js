@@ -52,6 +52,7 @@ const { createDormitoryManagementService } = require('./dormitory-management-ser
 const { createStudentLifeService } = require('./student-life-service.js');
 const { createFileService } = require('./file-service.js');
 const { createPostgresFileStore } = require('./postgres-file-store.js');
+const { LANGKAH_LANJUTAN, jalankanLangkahLanjutan, hapusDataLanjutan } = require('./demo-data-lanjutan.js');
 
 const DEMO_DOMAIN = 'demo.hamasah.test';
 const DEMO_EMAIL_PATTERN = `%@${DEMO_DOMAIN}`;
@@ -1553,7 +1554,9 @@ const LANGKAH_DEMO = Object.freeze([
   { id: 'kehidupan', label: 'Peta hafalan, pengumuman, dan izin' },
   { id: 'pesan', label: 'Pesan konsultasi' },
   { id: 'maddah', label: 'Maddah dan materi' },
-  ...DEMO_STUDENTS.map((s) => ({ id: `belajar:${s.key}`, label: `Progres belajar ${s.name}` }))
+  ...DEMO_STUDENTS.map((s) => ({ id: `belajar:${s.key}`, label: `Progres belajar ${s.name}` })),
+  // Fitur sesudah rapat pimpinan (program, kegiatan, rapor, surat, KPI, AC, dan lainnya): server/demo-data-lanjutan.js.
+  ...LANGKAH_LANJUTAN
 ]);
 
 // Menjalankan satu langkah. kataSandi hanya dipakai langkah 'akun'. Hasilnya memuat
@@ -1590,6 +1593,7 @@ async function jalankanLangkahDemo({ database, langkah, kataSandi, fileService =
   if (langkah.startsWith('galeri:')) return { langkah, ...(await buatGaleriAsrama(ctx, langkah.slice('galeri:'.length), { fileService, storage, buckets })) };
   if (langkah === 'pesan') return { langkah, dibuat: await buatPesan(ctx) };
   if (langkah === 'maddah') return { langkah, dibuat: await buatMaddah(ctx) };
+  if (langkah.startsWith('lanjutan:')) return { langkah, dibuat: await jalankanLangkahLanjutan(ctx, langkah, KesalahanDemo) };
   const indeks = DEMO_STUDENTS.findIndex((s) => s.key === langkah.slice('belajar:'.length));
   return { langkah, dibuat: await isiBelajarSantri(ctx, DEMO_STUDENTS[indeks], indeks) };
 }
@@ -1604,7 +1608,8 @@ async function isiDataDemo({ database, kataSandi, fileService = null, storage = 
   const kodeBaru = new Map();
   const JUDUL_KELOMPOK = {
     pendaftaran: 'Pendaftar di setiap tahap', catatan: 'Catatan harian santri (bagian paling lama)', belajar: 'Progres belajar santri',
-    kelola: 'Kelola Asrama: jadwal, piket, kas, dan inventaris', galeri: 'Galeri foto asrama'
+    kelola: 'Kelola Asrama: jadwal, piket, kas, dan inventaris', galeri: 'Galeri foto asrama',
+    lanjutan: 'Fitur baru: program, kegiatan, rapor, surat, KPI, aset, dan AC'
   };
   let kelompokTerakhir = '';
   for (const item of LANGKAH_DEMO) {
@@ -1803,6 +1808,7 @@ async function hapusDataDemo({ database, data, storage, logger = console }) {
     await hapus('DELETE FROM invoice_corrections WHERE invoice_id = ANY($1::uuid[])', ids(data.invoice));
     await hapus('DELETE FROM invoices WHERE id = ANY($1::uuid[])', ids(data.invoice));
     await hapus('DELETE FROM departure_groups WHERE id = ANY($1::uuid[])', ids(data.kloter));
+    await hapusDataLanjutan(tx, { santriIds: ids(data.santri), akunIds });
     await hapus('DELETE FROM students WHERE id = ANY($1::uuid[])', ids(data.santri));
     await hapus('DELETE FROM courses WHERE id = ANY($1::uuid[])', ids(data.maddah));
     await hapus('DELETE FROM registrations WHERE id = ANY($1::uuid[])', ids(data.pendaftaran));
