@@ -14,7 +14,7 @@
 
   // Tiap adegan: peran, judul, apa yang terlihat, poin yang ditunjukkan, catatan pembicara, dan layarnya.
   // Layar: [berkas, jenis, teks pengganti].
-  const ADEGAN = [
+  const SEMUA = [
     {
       peran: 'Petugas pendaftaran',
       judul: 'Pendaftar masuk ke satu daftar',
@@ -102,6 +102,11 @@
       layar: [['admin-audit', LAPTOP, 'Timeline kejadian di Jejak audit']]
     }
   ];
+
+  // Versi ringkas (?ringkas=1) untuk waktu terbatas: lima langkah yang paling berdampak, urutan nomor di SEMUA (mulai 1).
+  const RINGKAS = [1, 4, 6, 8, 9];
+  const modeRingkas = new URLSearchParams(window.location.search).get('ringkas') === '1';
+  const ADEGAN = modeRingkas ? RINGKAS.map((nomor) => SEMUA[nomor - 1]) : SEMUA;
 
   // Ukuran asli tiap jenis gambar, dipakai mengubah kotak sorotan dari piksel menjadi persen.
   const UKURAN = { [LAPTOP]: [1366, 860], [PONSEL]: [780, 1688], [DOKUMEN]: [1190, 470] };
@@ -254,6 +259,13 @@
       if (document.fullscreenElement) document.exitFullscreen();
       else if (el.demo.requestFullscreen) el.demo.requestFullscreen();
     } catch (galat) { /* peramban menolak, abaikan */ }
+  }
+
+  const alatMode = $('alat-mode');
+  if (alatMode) {
+    alatMode.textContent = modeRingkas ? 'Versi lengkap' : 'Versi ringkas';
+    alatMode.href = modeRingkas ? '?#1' : '?ringkas=1#1';
+    alatMode.title = modeRingkas ? 'Semua 10 langkah' : 'Hanya 5 langkah utama';
   }
 
   el.mundur.addEventListener('click', () => pindah(kini - 1));
