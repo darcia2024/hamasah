@@ -147,7 +147,7 @@
     const gambar = document.createElement('img');
     gambar.src = alamatGambar(berkas);
     gambar.alt = alt;
-    gambar.decoding = 'async';
+    gambar.decoding = 'sync';
     if (jenis === LAPTOP) { gambar.width = 1366; gambar.height = 860; }
     else if (jenis === PONSEL) { gambar.width = 780; gambar.height = 1688; }
     else { gambar.width = 1190; gambar.height = 470; }
