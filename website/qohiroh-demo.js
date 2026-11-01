@@ -160,9 +160,13 @@
       kotak.style.cssText = `left:${(x / lebarAsli) * 100}%;top:${(y / tinggiAsli) * 100}%;width:${(l / lebarAsli) * 100}%;height:${(t / tinggiAsli) * 100}%`;
       layar.appendChild(kotak);
     }
+    // Tutup laptop atau bingkai logam HP membungkus layarnya; tampilan perangkatnya diatur di CSS.
+    const tutup = document.createElement('div');
+    tutup.className = 'bingkai__tutup';
+    tutup.appendChild(layar);
     const figure = document.createElement('figure');
     figure.className = `bingkai bingkai--${jenis}`;
-    figure.appendChild(layar);
+    figure.appendChild(tutup);
     const unit = document.createElement('div');
     unit.className = `unit unit--${jenis}`;
     unit.appendChild(figure);
