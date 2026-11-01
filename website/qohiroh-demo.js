@@ -106,6 +106,10 @@
   // Ukuran asli tiap jenis gambar, dipakai mengubah kotak sorotan dari piksel menjadi persen.
   const UKURAN = { [LAPTOP]: [1366, 860], [PONSEL]: [780, 1688], [DOKUMEN]: [1190, 470] };
 
+  // Layar HP dimulai sedikit di bawah dynamic island, supaya teks paling atas tidak terpotong sudut layar.
+  // Nilainya harus sama dengan --geser di qohiroh-demo.css (dalam persen tinggi layar).
+  const GESER_PONSEL = 4;
+
   // Bagian layar yang disorot saat adegan tampil: berkas -> [x, y, lebar, tinggi] dalam piksel gambar asli, dan keterangannya.
   // Ubah angkanya bila gambar diambil ulang dengan tata letak yang berbeda.
   const SOROT = {
@@ -115,11 +119,11 @@
     'admin-perhatian': [[300, 142, 1012, 132], 'Satu santri, tiga hal yang perlu perhatian'],
     'musyrif-presensi': [[323, 712, 952, 62], 'Sudah terpilih Berjamaah, cukup ubah yang berbeda'],
     'guru-kurikulum': [[292, 516, 1032, 264], 'Urutan materi sama dengan yang dilihat santri'],
-    'santri-pertemuan': [[32, 1000, 716, 530], 'Daftar pertemuan dan progresnya'],
+    'santri-pertemuan': [[24, 1030, 732, 330], 'Daftar pertemuan dan progresnya'],
     'keuangan-invoice': [[323, 405, 970, 188], 'Belum dibayar, tinggal Tandai lunas'],
-    'dok-kuitansi': [[96, 200, 1000, 200], 'Nomor kuitansi dan tagihan tercatat'],
-    'wali-1': [[32, 1080, 716, 520], 'Tagihan dan iqamah tampil di depan'],
-    'wali-2': [[32, 706, 716, 460], 'Sholat, kegiatan, dan hafalan dalam angka'],
+    'dok-kuitansi': [[84, 196, 1022, 210], 'Nomor kuitansi dan tagihan tercatat'],
+    'wali-1': [[24, 1110, 732, 370], 'Tagihan dan iqamah tampil di depan'],
+    'wali-2': [[14, 694, 752, 484], 'Sholat, kegiatan, dan hafalan dalam angka'],
     'admin-audit': [[323, 625, 970, 214], 'Siapa, kapan, dan pada data apa']
   };
 
@@ -150,6 +154,12 @@
     const layar = document.createElement('div');
     layar.className = 'bingkai__layar';
     layar.appendChild(gambar);
+    if (jenis === PONSEL) {
+      const indikator = document.createElement('span');
+      indikator.className = 'bingkai__indikator';
+      indikator.setAttribute('aria-hidden', 'true');
+      layar.appendChild(indikator);
+    }
     const sorot = SOROT[berkas];
     if (sorot) {
       const [lebarAsli, tinggiAsli] = UKURAN[jenis];
@@ -157,7 +167,8 @@
       const kotak = document.createElement('span');
       kotak.className = 'sorot';
       kotak.setAttribute('aria-hidden', 'true');
-      kotak.style.cssText = `left:${(x / lebarAsli) * 100}%;top:${(y / tinggiAsli) * 100}%;width:${(l / lebarAsli) * 100}%;height:${(t / tinggiAsli) * 100}%`;
+      const geser = jenis === PONSEL ? GESER_PONSEL : 0;
+      kotak.style.cssText = `left:${(x / lebarAsli) * 100}%;top:${(y / tinggiAsli) * 100 + geser}%;width:${(l / lebarAsli) * 100}%;height:${(t / tinggiAsli) * 100}%`;
       layar.appendChild(kotak);
     }
     // Tutup laptop atau bingkai logam HP membungkus layarnya; tampilan perangkatnya diatur di CSS.
