@@ -54,15 +54,42 @@ button { font: inherit; color: inherit; }
 .layar--masuk > * { animation: masuk 420ms var(--ease-out) both; }
 @keyframes masuk { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 
-.bingkai { margin: 0; background: #0b1f08; box-shadow: 0 0 0 4px color-mix(in srgb, var(--yellow) 80%, transparent), 0 40px 80px -30px rgba(0, 0, 0, 0.7); }
+/* Satu unit = bingkai perangkat + keterangan sorotan di bawahnya. */
+.unit { display: flex; flex-direction: column; align-items: center; gap: 14px; min-width: 0; }
+.unit--laptop { flex: 1 1 auto; max-width: 860px; }
+.unit--laptop .bingkai { width: 100%; }
+.unit--ponsel { flex: 0 0 auto; width: clamp(150px, 17vw, 240px); }
+.unit--dokumen { flex: 0 1 auto; width: min(100%, 560px); }
+.unit__teks { max-width: 100%; color: var(--yellow); font-size: 0.8125rem; font-weight: 600; line-height: 1.35; text-align: center; text-wrap: balance; opacity: 0; animation: teks-muncul 360ms var(--ease-out) 900ms forwards; }
+.unit__teks::before { content: "\2192\00a0"; }
+
+.bingkai { margin: 0; width: 100%; background: #0b1f08; box-shadow: 0 0 0 4px color-mix(in srgb, var(--yellow) 80%, transparent), 0 40px 80px -30px rgba(0, 0, 0, 0.7); }
+.bingkai__layar { position: relative; overflow: hidden; }
 .bingkai img { width: 100%; }
-.bingkai--laptop { flex: 1 1 auto; min-width: 0; max-width: 860px; padding: 10px 10px 12px; border-radius: 16px 16px 6px 6px; }
-.bingkai--laptop img { border-radius: 6px; aspect-ratio: 1366 / 860; object-fit: cover; object-position: top; }
-.bingkai--ponsel { flex: 0 0 auto; width: clamp(150px, 17vw, 240px); padding: 8px; border-radius: 28px; }
-.bingkai--ponsel img { border-radius: 21px; aspect-ratio: 780 / 1688; object-fit: cover; object-position: top; }
-.bingkai--dokumen { flex: 0 1 auto; width: min(100%, 560px); padding: 0; border-radius: 6px; background: #fff; }
-.bingkai--dokumen img { border-radius: 4px; }
-.bingkai--dokumen.tinggi { width: min(100%, clamp(240px, 30vw, 400px)); }
+.bingkai--laptop { padding: 10px 10px 12px; border-radius: 16px 16px 6px 6px; }
+.bingkai--laptop .bingkai__layar { border-radius: 6px; aspect-ratio: 1366 / 860; }
+.bingkai--ponsel { padding: 8px; border-radius: 28px; }
+.bingkai--ponsel .bingkai__layar { border-radius: 21px; aspect-ratio: 780 / 1688; }
+.bingkai--dokumen { padding: 0; border-radius: 6px; background: #fff; }
+.bingkai--dokumen .bingkai__layar { border-radius: 4px; }
+.bingkai--laptop img, .bingkai--ponsel img { height: 100%; object-fit: cover; object-position: top; }
+
+/* Sorotan: bagian layar lain meredup, kotak kuning muncul lalu berdenyut dua kali. */
+.sorot { position: absolute; border: 3px solid var(--yellow); border-radius: 10px; box-shadow: 0 0 0 100vmax rgba(6, 24, 4, 0.5); opacity: 0; pointer-events: none; animation: sorot-masuk 520ms var(--ease-out) 600ms forwards, sorot-denyut 1400ms ease-out 1200ms 2; }
+@keyframes sorot-masuk { from { opacity: 0; transform: scale(1.05); } to { opacity: 1; transform: none; } }
+@keyframes sorot-denyut { 0% { outline: 0 solid color-mix(in srgb, var(--yellow) 70%, transparent); outline-offset: 0; } 100% { outline: 14px solid transparent; outline-offset: 4px; } }
+@keyframes teks-muncul { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Teks di kiri masuk berurutan: peran, judul, penjelasan, lalu tiap poin. */
+.adegan--masuk .adegan__peran, .adegan--masuk h1, .adegan--masuk .adegan__lihat, .adegan--masuk .adegan__poin li, .adegan--masuk .catatan { animation: teks-masuk 460ms var(--ease-out) both; }
+.adegan--masuk .adegan__peran { animation-delay: 0ms; }
+.adegan--masuk h1 { animation-delay: 70ms; }
+.adegan--masuk .adegan__lihat { animation-delay: 150ms; }
+.adegan--masuk .adegan__poin li:nth-child(1) { animation-delay: 260ms; }
+.adegan--masuk .adegan__poin li:nth-child(2) { animation-delay: 340ms; }
+.adegan--masuk .adegan__poin li:nth-child(n + 3) { animation-delay: 420ms; }
+.adegan--masuk .catatan { animation-delay: 450ms; }
+@keyframes teks-masuk { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
 .demo__bawah { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; padding: 14px clamp(16px, 3vw, 40px) 6px; }
 .nav-btn { min-height: 48px; padding: 0 24px; border: 0; border-radius: 999px; background: transparent; box-shadow: inset 0 0 0 1px color-mix(in srgb, #fff 38%, transparent); font-weight: 600; font-size: 0.9375rem; cursor: pointer; transition: background-color 140ms var(--ease-out), transform 140ms var(--ease-out); }
@@ -88,7 +115,7 @@ button { font: inherit; color: inherit; }
   .demo__isi { grid-template-columns: 1fr; align-items: start; }
   .adegan__lihat { max-width: none; }
   .layar { flex-wrap: wrap; }
-  .bingkai--laptop { max-width: 100%; }
+  .unit--laptop { max-width: 100%; width: 100%; }
 }
 @media (max-width: 560px) {
   .alat#alat-penuh { display: none; }
@@ -96,6 +123,8 @@ button { font: inherit; color: inherit; }
   .titik button { width: 10px; height: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .layar--masuk > * { animation: none; }
+  .layar--masuk > *, .adegan--masuk * { animation: none !important; }
+  .sorot { animation: none; opacity: 1; }
+  .unit__teks { animation: none; opacity: 1; }
   .demo__bar span, .titik button { transition: none; }
 }

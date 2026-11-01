@@ -103,9 +103,29 @@
     }
   ];
 
+  // Ukuran asli tiap jenis gambar, dipakai mengubah kotak sorotan dari piksel menjadi persen.
+  const UKURAN = { [LAPTOP]: [1366, 860], [PONSEL]: [780, 1688], [DOKUMEN]: [1190, 470] };
+
+  // Bagian layar yang disorot saat adegan tampil: berkas -> [x, y, lebar, tinggi] dalam piksel gambar asli, dan keterangannya.
+  // Ubah angkanya bila gambar diambil ulang dengan tata letak yang berbeda.
+  const SOROT = {
+    'petugas-daftar': [[290, 318, 1036, 134], 'Jumlah pendaftar di tiap tahap'],
+    'petugas-detail': [[236, 534, 436, 172], 'WhatsApp ke calon santri dan wali'],
+    'petugas-kloter': [[309, 425, 987, 126], 'Kloter terkonfirmasi, lengkap dengan pendaftarnya'],
+    'admin-perhatian': [[300, 142, 1012, 132], 'Satu santri, tiga hal yang perlu perhatian'],
+    'musyrif-presensi': [[323, 712, 952, 62], 'Sudah terpilih Berjamaah, cukup ubah yang berbeda'],
+    'guru-kurikulum': [[292, 516, 1032, 264], 'Urutan materi sama dengan yang dilihat santri'],
+    'santri-pertemuan': [[32, 1000, 716, 530], 'Daftar pertemuan dan progresnya'],
+    'keuangan-invoice': [[323, 405, 970, 188], 'Belum dibayar, tinggal Tandai lunas'],
+    'dok-kuitansi': [[96, 200, 1000, 200], 'Nomor kuitansi dan tagihan tercatat'],
+    'wali-1': [[32, 1080, 716, 520], 'Tagihan dan iqamah tampil di depan'],
+    'wali-2': [[32, 706, 716, 460], 'Sholat, kegiatan, dan hafalan dalam angka'],
+    'admin-audit': [[323, 625, 970, 214], 'Siapa, kapan, dan pada data apa']
+  };
+
   const $ = (id) => document.getElementById(id);
   const el = {
-    demo: $('demo'), no: $('adegan-no'), peran: $('adegan-peran'), judul: $('adegan-judul'), lihat: $('adegan-lihat'),
+    demo: $('demo'), adegan: document.querySelector('.adegan'), no: $('adegan-no'), peran: $('adegan-peran'), judul: $('adegan-judul'), lihat: $('adegan-lihat'),
     poin: $('adegan-poin'), catatan: $('catatan'), catatanTeks: $('catatan-teks'), layar: $('layar'), bar: $('bar'),
     titik: $('titik'), mundur: $('mundur'), maju: $('maju'), alatCatatan: $('alat-catatan'), alatPenuh: $('alat-penuh')
   };
@@ -127,10 +147,39 @@
     if (jenis === LAPTOP) { gambar.width = 1366; gambar.height = 860; }
     else if (jenis === PONSEL) { gambar.width = 780; gambar.height = 1688; }
     else { gambar.width = 1190; gambar.height = 470; }
-    const gambarFigure = document.createElement('figure');
-    gambarFigure.className = `bingkai bingkai--${jenis}`;
-    gambarFigure.appendChild(gambar);
-    return gambarFigure;
+    const layar = document.createElement('div');
+    layar.className = 'bingkai__layar';
+    layar.appendChild(gambar);
+    const sorot = SOROT[berkas];
+    if (sorot) {
+      const [lebarAsli, tinggiAsli] = UKURAN[jenis];
+      const [x, y, l, t] = sorot[0];
+      const kotak = document.createElement('span');
+      kotak.className = 'sorot';
+      kotak.setAttribute('aria-hidden', 'true');
+      kotak.style.cssText = `left:${(x / lebarAsli) * 100}%;top:${(y / tinggiAsli) * 100}%;width:${(l / lebarAsli) * 100}%;height:${(t / tinggiAsli) * 100}%`;
+      layar.appendChild(kotak);
+    }
+    const figure = document.createElement('figure');
+    figure.className = `bingkai bingkai--${jenis}`;
+    figure.appendChild(layar);
+    const unit = document.createElement('div');
+    unit.className = `unit unit--${jenis}`;
+    unit.appendChild(figure);
+    if (sorot) {
+      const teks = document.createElement('p');
+      teks.className = 'unit__teks';
+      teks.textContent = sorot[1];
+      unit.appendChild(teks);
+    }
+    return unit;
+  }
+
+  // Mengulang animasi CSS: lepas kelasnya, paksa hitung ulang tata letak, lalu pasang lagi.
+  function ulangAnimasi(elemen, kelas) {
+    elemen.classList.remove(kelas);
+    void elemen.offsetWidth;
+    elemen.classList.add(kelas);
   }
 
   function siapkanTitik() {
@@ -155,7 +204,7 @@
     el.catatanTeks.textContent = adegan.catatan;
     el.layar.classList.remove('layar--masuk');
     el.layar.replaceChildren(...adegan.layar.map(bingkai));
-    if (animasi) { void el.layar.offsetWidth; el.layar.classList.add('layar--masuk'); }
+    if (animasi) { ulangAnimasi(el.layar, 'layar--masuk'); ulangAnimasi(el.adegan, 'adegan--masuk'); }
     el.bar.style.width = `${((i + 1) / ADEGAN.length) * 100}%`;
     el.mundur.disabled = i === 0;
     el.maju.disabled = i === ADEGAN.length - 1;
