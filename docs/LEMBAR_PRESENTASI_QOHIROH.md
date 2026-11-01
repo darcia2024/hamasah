@@ -1,7 +1,6 @@
 # Lembar presentasi Qohiroh Center
 
-Catatan pribadi untuk presentasi, bukan untuk dibagikan ke Qohiroh. Bagian bertanda **[ISI]** harus diisi
-sebelum acara, karena datanya hanya dipegang pemilik penawaran.
+Catatan pribadi untuk presentasi, bukan untuk dibagikan ke Qohiroh. Semuanya siap dipakai, tidak ada yang perlu diisi.
 
 Halaman yang dipakai: `/qohiroh` (penawaran) dan `/qohiroh-demo` (demo terpandu, tombol `N` untuk catatan).
 
@@ -32,7 +31,7 @@ Semua jawaban di bawah mengikuti isi halaman penawaran. Jangan menjanjikan lebih
 |---|---|
 | Data santri aman? | Menu mengikuti peran akun, wali dan santri hanya melihat data yang terhubung ke akunnya. Kata sandi disimpan sebagai hash, paspor dan ijazah di penyimpanan privat, dan setiap koreksi tercatat siapa dan kapan. |
 | Siapa yang memegang kode dan data? | Ditetapkan tertulis di awal, sebelum mulai. |
-| Kalau ada masalah setelah dipakai? | Masa perbaikan setelah mulai dipakai disepakati bersama. **[ISI: lama dan bentuk dukungan]** |
+| Kalau ada masalah setelah dipakai? | Masa perbaikan setelah mulai dipakai disepakati bersama, dan itu dibahas bersama bagian biaya. |
 | Kenapa pesan ke wali belum otomatis? | Sistem menyiapkan pesan WhatsApp dan petugas yang mengirim. Otomatis butuh domain dan pengirim resmi, dan itu salah satu dari lima keputusan pimpinan. |
 | Bisa bayar online? | Belum diputuskan. Jangan dijanjikan. Bilang: "Itu bisa dibahas di pertemuan keputusan." |
 | AI-nya ngarang jawaban? | Jawabannya hanya dari isi website dan materi pengajar. Pemakaian dibatasi per jam dan per hari, dan asisten tetap menjawab dari jawaban tersimpan kalau layanan AI bermasalah. |
@@ -40,40 +39,33 @@ Semua jawaban di bawah mengikuti isi halaman penawaran. Jangan menjanjikan lebih
 | Data awal siapa yang isi? | Diisi bersama di tahap pertama: akun tim, asrama, pembina, dan santri. |
 | Kalau tim kami kesulitan memakainya? | Tiap peran dicoba oleh orang yang nanti memakainya di tahap uji coba, dengan panduan cara pakai. |
 
-## 4. Harga
+## 4. Kalau ditanya harga
 
-Halaman penawaran sengaja tanpa angka. Siapkan jawaban lisan:
+Penawaran ini sengaja tanpa angka, karena hitungannya mengikuti bagian yang dipilih. Itu bukan hal yang disembunyikan,
+jadi jawab terus terang:
 
-- Biaya membangun (sekali): **[ISI: angka atau rentang]**, sudah termasuk: **[ISI]**.
-- Biaya berjalan (domain, hosting, pemakaian AI): **[ISI: per bulan atau per tahun]**.
-- Dukungan setelah mulai dipakai: **[ISI]**.
-- Dasar hitungan: bagian yang dipilih dan seberapa banyak yang perlu disesuaikan (nama, logo, warna, istilah, data awal).
+> "Di halaman ini memang tidak ada angka, karena hitungannya mengikuti bagian yang Bapak/Ibu pilih. Ada empat unsur:
+> membangun, yang sekali; berjalan, yaitu domain, hosting, dan pemakaian AI; kepemilikan, yang ditetapkan tertulis di
+> awal; dan dukungan setelah mulai dipakai. Kalau Bapak/Ibu sebut urusan yang paling mendesak, kita hitung dari situ."
 
-Kalau ditanya sebelum kebutuhan jelas: "Hitungannya mengikuti bagian yang dipilih. Kalau Bapak/Ibu sebut tiga urusan yang
-paling mendesak, saya bisa beri angka hari ini."
+Dasar hitungan membangun: bagian yang dipilih dan seberapa banyak yang perlu disesuaikan (nama, logo, warna, istilah,
+data awal).
 
-## 5. Bukti
+## 5. Penutup
 
-Satu cerita nyata lebih kuat dari daftar fitur. **[ISI]**
-
-- Siapa yang sudah memakai: **[ISI]**
-- Apa yang berubah (waktu, kesalahan, keluhan wali): **[ISI]**
-- Bisa dilihat atau dihubungi? **[ISI: ya atau tidak]**
-
-## 6. Penutup
-
-Jangan tutup dengan "kabari kami". Tutup dengan langkah berikutnya yang konkret:
+Jangan tutup dengan "kabari kami". Tutup dengan langkah berikutnya yang konkret (sama dengan yang tertulis di akhir
+halaman penawaran):
 
 > "Kalau Bapak/Ibu sepakat, langkah berikutnya: pilih satu asrama dan satu orang untuk tiap peran. Minggu pertama kita isi
 > data dan akun, minggu kedua dan ketiga uji coba, minggu keempat pimpinan memutuskan. Kapan kita mulai, dan siapa
 > penanggung jawab dari sisi Qohiroh?"
 
 Lalu bawa ke lima keputusan pimpinan di halaman penawaran (data kesehatan, data pendaftar yang batal, kata sandi sementara,
-uji coba tiap peran, pesan ke wali). Jangan pulang tanpa tanggal.
+uji coba tiap peran, pesan ke wali).
 
-## 7. Hal yang jangan dilakukan
+## 6. Hal yang jangan dilakukan
 
 - Menjanjikan pembayaran online (belum diputuskan).
-- Menyebut angka yang belum disepakati sebelum bagian **[ISI]** di atas terisi.
+- Menyebut angka yang belum dibahas dan disepakati.
 - Menunjukkan semua langkah kalau mereka hanya peduli satu hal.
 - Menyebut data di layar sebagai data asli: itu data contoh.
