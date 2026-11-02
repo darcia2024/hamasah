@@ -173,7 +173,11 @@
       kotak.className = 'sorot';
       kotak.setAttribute('aria-hidden', 'true');
       const geser = jenis === PONSEL ? GESER_PONSEL : 0;
-      kotak.style.cssText = `left:${(x / lebarAsli) * 100}%;top:${(y / tinggiAsli) * 100 + geser}%;width:${(l / lebarAsli) * 100}%;height:${(t / tinggiAsli) * 100}%`;
+      // Properti satu per satu (CSSOM), bukan atribut style, supaya lolos Content Security Policy tanpa unsafe-inline.
+      kotak.style.left = `${(x / lebarAsli) * 100}%`;
+      kotak.style.top = `${(y / tinggiAsli) * 100 + geser}%`;
+      kotak.style.width = `${(l / lebarAsli) * 100}%`;
+      kotak.style.height = `${(t / tinggiAsli) * 100}%`;
       layar.appendChild(kotak);
     }
     // Tutup laptop atau bingkai logam HP membungkus layarnya; tampilan perangkatnya diatur di CSS.
