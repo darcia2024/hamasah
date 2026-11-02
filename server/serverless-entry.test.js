@@ -85,6 +85,18 @@ test('api/index.js melayani permintaan dengan environment production', async () 
     });
     assert.equal(perawatan.status, 401);
 
+    // URL yang tidak bisa diurai dijawab 400, bukan membuat fungsi gagal tanpa jawaban.
+    const urlRusak = await new Promise((resolve, reject) => {
+      const soket = require('node:net').connect(server.address().port, '127.0.0.1');
+      let data = '';
+      soket.setTimeout(5000, () => { soket.destroy(); reject(new Error('URL rusak tidak dijawab.')); });
+      soket.on('data', (potongan) => { data += potongan; });
+      soket.on('close', () => resolve(data));
+      soket.on('error', reject);
+      soket.write('GET // HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n');
+    });
+    assert.match(urlRusak, /^HTTP\/1\.1 400 /);
+
     console.log('serverless entry tests passed');
   } finally {
     await new Promise((resolve) => server.close(resolve));

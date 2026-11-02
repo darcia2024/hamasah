@@ -69,6 +69,20 @@ function restoreOriginalUrl(rawUrl, headers = {}) {
   return rawUrl;
 }
 
+function urlBisaDiurai(rawUrl) {
+  try {
+    new URL(rawUrl || '/', 'http://localhost');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function tolakUrlRusak(response) {
+  response.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
+  response.end('Permintaan tidak valid.');
+}
+
 let handlerPromise = null;
 
 function buatHandler() {
@@ -113,7 +127,17 @@ module.exports = async function handler(request, response) {
     return;
   }
   const receivedUrl = request.url;
+  // URL yang tidak bisa diurai dijawab di sini. Kalau dibiarkan melempar, fungsinya gagal
+  // tanpa jawaban. Firewall di server/app.js baru bekerja setelah alamat asli dikembalikan.
+  if (!urlBisaDiurai(receivedUrl)) {
+    tolakUrlRusak(response);
+    return;
+  }
   request.url = restoreOriginalUrl(receivedUrl, request.headers);
+  if (!urlBisaDiurai(request.url)) {
+    tolakUrlRusak(response);
+    return;
+  }
   const received = new URL(receivedUrl || '/', 'http://localhost');
   if (received.pathname.startsWith('/api/index')) {
     // Diagnosis rewrite: path yang diterima dan hasilnya, NAMA parameter dan header saja

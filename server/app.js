@@ -3,6 +3,7 @@
 
 const http = require('node:http');
 const path = require('node:path');
+const { periksaPermintaan, tolakPermintaan } = require('./http/firewall.js');
 const registrationServiceModule = require('./registration-service.js');
 const { createDatabase } = require('./db.js');
 const { createPostgresRegistrationStore } = require('./postgres-registration-store.js');
@@ -704,15 +705,29 @@ function createHamasahApp(options) {
   }
 
   async function tanganiPermintaan(request, response) {
+    const requestId = createRequestId();
+    response.setHeader('X-Request-Id', requestId);
+    // Firewall berjalan paling awal, sebelum URL diurai dan sebelum menyentuh database.
+    const ditolak = periksaPermintaan(request);
+    if (ditolak) {
+      applyHeaders(response, securityHeaders.forApi());
+      logEvent('info', 'firewall_blocked', { requestId, aturan: ditolak.aturan, method: request.method, path: String(request.url).slice(0, 120) }, config.logger || console);
+      tolakPermintaan(request, response, ditolak);
+      return;
+    }
     const url = new URL(request.url, 'http://localhost');
     const isApi = url.pathname.startsWith('/api/');
-    const requestId = createRequestId();
     // Dipasang lebih dulu supaya berlaku juga untuk 404 dan 500.
     applyHeaders(response, isApi ? securityHeaders.forApi() : securityHeaders.forDocument());
-    response.setHeader('X-Request-Id', requestId);
     try {
       if (sitePin) {
         if (url.pathname === sitePin.ALAMAT_KIRIM && request.method === 'POST') {
+          // Rute ini tidak melewati handleApi, jadi menebak PIN perlu batasnya sendiri.
+          const jatahPin = await rateLimiter.check('site-pin', clientIp(request, { trustProxy }));
+          if (!jatahPin.allowed) {
+            tooManyRequests(response, jatahPin.retryAfterSeconds, TOO_MANY_REQUESTS);
+            return;
+          }
           const secure = Boolean(request.socket.encrypted || siteBaseUrl.startsWith('https://') || (trustProxy && request.headers['x-forwarded-proto'] === 'https'));
           sitePin.kirim(request, response, await readRawBody(request, 2048), { secure });
           return;

@@ -51,6 +51,8 @@ const RULES = Object.freeze({
   'ai-ask': Object.freeze({ limit: 10, windowMs: 10 * MENIT }),
   // Dipakai mulai Task 8.10, saat unggahan berkas tersedia.
   upload: Object.freeze({ limit: 30, windowMs: 1 * JAM }),
+  // Menebak PIN pratinjau. PIN pendek, jadi percobaannya harus dibatasi.
+  'site-pin': Object.freeze({ limit: 10, windowMs: 15 * MENIT }),
   // Jaring pengaman untuk seluruh API.
   'api-default': Object.freeze({ limit: 300, windowMs: 5 * MENIT })
 });
