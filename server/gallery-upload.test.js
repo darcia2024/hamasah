@@ -53,7 +53,7 @@ async function run() {
     const petugas = await masuk('petugas@uji.test');
 
     const permintaan = { purpose: 'gallery-photo', entityId: 'galeri', fileName: 'galeri.jpg', contentType: 'image/jpeg', size: JPEG.length };
-    assert.equal((await api('POST', '/api/uploads', petugas, permintaan)).status, 403, 'Hanya pemegang content.manage.');
+    assert.equal((await api('POST', '/api/uploads', petugas, permintaan)).status, 403, 'Hanya pemegang gallery.manage.');
     assert.equal((await api('POST', '/api/uploads', null, permintaan)).status, 403, 'Tanpa sesi ditolak.');
     assert.equal((await api('POST', '/api/uploads', admin, { ...permintaan, contentType: 'application/pdf' })).status, 422, 'Bukan gambar ditolak.');
 

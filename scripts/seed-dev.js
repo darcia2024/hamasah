@@ -20,6 +20,7 @@ const DEV_ACCOUNTS = Object.freeze([
   { name: 'Musyrif Dev', email: 'musyrif@hamasah.test', role: identity.ROLES.SUPERVISOR },
   { name: 'Guru Dev', email: 'guru@hamasah.test', role: identity.ROLES.TEACHER },
   { name: 'Keuangan Dev', email: 'keuangan@hamasah.test', role: identity.ROLES.FINANCE },
+  { name: 'Tim Media Dev', email: 'media@hamasah.test', role: identity.ROLES.MEDIA },
   { name: 'Wali Dev', email: 'wali@hamasah.test', role: identity.ROLES.PARENT },
   { name: 'Santri Dev', email: 'santri@hamasah.test', role: identity.ROLES.STUDENT }
 ]);

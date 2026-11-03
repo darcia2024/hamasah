@@ -23,7 +23,10 @@ function tabelBelumAda(error) {
 // awalan: misalnya 'konten.'. blok: daftar nama blok. bawaan: { blok: nilai }.
 // periksa(blok, nilai): { ok, nilai } atau { ok: false, error, bidang }.
 // namaAkses: dipakai di pesan penolakan, misalnya "konten website".
-function createStoredBlocksService({ database, awalan, blok: daftarBlok, bawaan, periksa, namaAkses, cacheMs = 10000, now = () => Date.now() } = {}) {
+// bolehUbah(actor, blok): siapa yang boleh mengubah satu blok; bawaannya hanya super admin.
+const hanyaAdmin = (actor) => actor.role === 'admin';
+
+function createStoredBlocksService({ database, awalan, blok: daftarBlok, bawaan, periksa, namaAkses, bolehUbah = hanyaAdmin, cacheMs = 10000, now = () => Date.now() } = {}) {
   if (!database) throw new Error('createStoredBlocksService membutuhkan database.');
   let cache = null;
 
@@ -86,14 +89,14 @@ function createStoredBlocksService({ database, awalan, blok: daftarBlok, bawaan,
     };
   }
 
-  function tolak(actor) {
-    return !actor || actor.role !== 'admin'
+  function tolak(actor, blok) {
+    return !actor || !bolehUbah(actor, blok)
       ? { ok: false, status: 403, error: `Hanya super admin yang dapat mengubah ${namaAkses}.` }
       : null;
   }
 
   async function simpan(blok, nilai, actor) {
-    const ditolak = tolak(actor);
+    const ditolak = tolak(actor, blok);
     if (ditolak) return ditolak;
     if (!daftarBlok.includes(blok)) return { ok: false, status: 404, error: 'Bagian tidak dikenal.' };
     const hasil = periksa(blok, nilai);
@@ -122,7 +125,7 @@ function createStoredBlocksService({ database, awalan, blok: daftarBlok, bawaan,
 
   // Menghapus nilai tersimpan, sehingga blok kembali ke bawaan.
   async function kembalikan(blok, actor) {
-    const ditolak = tolak(actor);
+    const ditolak = tolak(actor, blok);
     if (ditolak) return ditolak;
     if (!daftarBlok.includes(blok)) return { ok: false, status: 404, error: 'Bagian tidak dikenal.' };
     const sekarang = await muat();

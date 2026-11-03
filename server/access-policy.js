@@ -11,6 +11,7 @@ const ROLES = Object.freeze({
   SUPERVISOR: 'supervisor',
   TEACHER: 'teacher',
   FINANCE: 'finance',
+  MEDIA: 'media',
   PARENT: 'parent',
   STUDENT: 'student'
 });
@@ -56,6 +57,8 @@ const PERMISSIONS = Object.freeze({
   'settings.manage': Object.freeze([ROLES.ADMIN]),
   // Halaman Konten Website: biaya, program, kontak, testimoni, FAQ, pengumuman.
   'content.manage': Object.freeze([ROLES.ADMIN]),
+  // Galeri beranda: dokumentasi kegiatan umum dan kelembagaan. Tim Media hanya memegang izin ini.
+  'gallery.manage': Object.freeze([ROLES.ADMIN, ROLES.MEDIA]),
   // Halaman Template: pesan WhatsApp, email, kop dan rekening PDF, dokumen pendaftar.
   'templates.manage': Object.freeze([ROLES.ADMIN]),
   // Memilih santri teladan bulanan dan mengatur fase roadmap studi.

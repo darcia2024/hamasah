@@ -219,6 +219,9 @@ async function run() {
       // Isi tidak lengkap: admin mendapat 422, bukan konten situs yang berubah.
       { permission: 'content.manage', method: 'PUT', path: '/api/admin/content/kontak', body: () => ({ nilai: {} }) },
       { permission: 'content.manage', method: 'DELETE', path: '/api/admin/content/pengumuman' },
+      { permission: 'gallery.manage', method: 'GET', path: '/api/media/konten' },
+      { permission: 'gallery.manage', method: 'PUT', path: '/api/media/konten/galeri', body: () => ({ nilai: {} }) },
+      { permission: 'gallery.manage', method: 'DELETE', path: '/api/media/konten/galeri' },
       { permission: 'templates.manage', method: 'GET', path: '/api/admin/templates' },
       { permission: 'templates.manage', method: 'PUT', path: '/api/admin/templates/kop', body: () => ({ nilai: {} }) },
       { permission: 'templates.manage', method: 'DELETE', path: '/api/admin/templates/kop' },

@@ -44,6 +44,10 @@ const ROLE_NAV_LABELS = Object.freeze({
     pembayaran: 'Pembayaran',
     inventaris: 'AC & Refund'
   },
+  media: {
+    portal: 'Portal Utama',
+    konten: 'Galeri Website'
+  },
   admin: {
     portal: 'Portal Utama',
     staff: 'Pendaftaran',
@@ -78,11 +82,12 @@ const ROLE_DISPLAY_NAMES = Object.freeze({
   'registration-officer': 'Petugas Pendaftaran',
   teacher: 'Guru / Asatidz',
   finance: 'Keuangan',
+  media: 'Tim Media',
   admin: 'Super Admin'
 });
 
 // Urutan peran di pilihan formulir dan filter: staf dulu, lalu keluarga, admin terakhir.
-const ROLE_ORDER = Object.freeze(['registration-officer', 'supervisor', 'teacher', 'finance', 'parent', 'student', 'admin']);
+const ROLE_ORDER = Object.freeze(['registration-officer', 'supervisor', 'teacher', 'finance', 'media', 'parent', 'student', 'admin']);
 
 const STAFF_NAV_LINKS = Object.freeze([
   {
@@ -282,7 +287,7 @@ const STAFF_NAV_LINKS = Object.freeze([
     href: 'konten',
     label: 'Konten Website',
     page: 'konten',
-    roles: ['admin'],
+    roles: ['admin', 'media'],
     badge: null,
     badgeType: null,
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>'

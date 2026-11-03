@@ -9,7 +9,8 @@ const ROLES = Object.freeze({
   STUDENT: 'student',
   SUPERVISOR: 'supervisor',
   TEACHER: 'teacher',
-  FINANCE: 'finance'
+  FINANCE: 'finance',
+  MEDIA: 'media'
 });
 
 const ROLE_VALUES = Object.freeze(Object.values(ROLES));
@@ -28,6 +29,7 @@ const SESSION_TTL_MS = Object.freeze({
   [ROLES.SUPERVISOR]: 12 * JAM,
   [ROLES.TEACHER]: 12 * JAM,
   [ROLES.FINANCE]: 12 * JAM,
+  [ROLES.MEDIA]: 12 * JAM,
   [ROLES.PARENT]: 30 * HARI,
   [ROLES.STUDENT]: 30 * HARI
 });

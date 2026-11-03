@@ -807,8 +807,16 @@ if (logoutButton) {
   try {
     const me = await window.hamasahMintaAkun(headers());
     const result = me.body;
-    if (!me.ok || result.account.role !== 'admin') {
+    // Tim Media hanya membuka bagian Galeri di Konten Website, lewat endpoint yang tidak memuat isian lain.
+    const timMedia = me.ok && result.account.role === 'media' && EDITOR === 'konten';
+    if (!me.ok || (result.account.role !== 'admin' && !timMedia)) {
       throw new Error('Halaman ini hanya dapat dibuka oleh super admin.');
+    }
+    if (timMedia) {
+      KONFIG.api = '/api/media/konten';
+      aktif = 'galeri';
+      document.querySelector('.crm-summary-title').textContent = 'Galeri website';
+      document.querySelector('.crm-summary-subtitle').textContent = 'Dokumentasi kegiatan umum dan kelembagaan di beranda website. Setiap perubahan tercatat di Jejak Audit.';
     }
     guard.hidden = true;
     consoleSection.hidden = false;
@@ -816,7 +824,7 @@ if (logoutButton) {
     renderStaffNav(staffNav, result.account.role, KONFIG.halaman, result.account);
     try {
       const tersimpan = sessionStorage.getItem(KONFIG.simpanan);
-      if (tersimpan && SKEMA[tersimpan]) aktif = tersimpan;
+      if (!timMedia && tersimpan && SKEMA[tersimpan]) aktif = tersimpan;
     } catch {}
     await muat().catch((error) => setStatus(error.message || 'Konten belum dapat dimuat.', true));
   } catch (error) {

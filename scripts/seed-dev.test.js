@@ -17,7 +17,7 @@ async function run() {
     const akun = await database.query('SELECT email, role FROM accounts ORDER BY email');
     assert.deepEqual(
       akun.rows.map((row) => row.role).sort(),
-      ['admin', 'finance', 'parent', 'registration-officer', 'student', 'supervisor', 'teacher']
+      ['admin', 'finance', 'media', 'parent', 'registration-officer', 'student', 'supervisor', 'teacher']
     );
 
     // Santri contoh punya relasi wali, presensi, kegiatan, dan maddah.

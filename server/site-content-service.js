@@ -17,7 +17,9 @@ function createSiteContentService({ database, cacheMs, now } = {}) {
     blok: BLOK,
     bawaan: BAWAAN,
     periksa: periksaBlok,
-    namaAkses: 'konten website'
+    namaAkses: 'konten website',
+    // Tim Media hanya mengubah galeri; bagian lain tetap super admin.
+    bolehUbah: (actor, nama) => actor.role === 'admin' || (actor.role === 'media' && nama === 'galeri')
   });
   return Object.freeze({
     kembalikan: blok.kembalikan,

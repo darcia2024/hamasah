@@ -1527,6 +1527,7 @@ const PINTASAN_PERAN = {
     ['operations#tunggakan', 'Tunggakan per santri'],
     ['operations#visa', 'Visa dan paspor']
   ],
+  media: [['konten', 'Kelola galeri website']],
   student: [['lms', 'Buka ruang belajar']]
 };
 
@@ -1578,6 +1579,7 @@ function hiasKepala(hero, account) {
 const BERANDA_PERAN = {
   teacher: { tag: 'RUANG ASATIDZ', judul: 'Konsol pengajar', sub: 'Maddah yang Anda ampu, kiriman tugas, dan progres santri.', cta: 'Buka maddah saya', href: 'lms' },
   finance: { tag: 'KONSOL KEUANGAN', judul: 'Konsol keuangan', sub: 'Tagihan, pembayaran, dan kuitansi santri.', cta: 'Buka tagihan', href: 'operations' },
+  media: { tag: 'KONSOL MEDIA', judul: 'Konsol Tim Media', sub: 'Dokumentasi kegiatan umum dan kelembagaan di galeri beranda website.', cta: 'Buka galeri website', href: 'konten' },
   'registration-officer': { tag: 'KONSOL PENDAFTARAN', judul: 'Konsol pendaftaran', sub: 'Calon santri, berkas, dan pesan konsultasi.', cta: 'Buka pendaftaran', href: 'staff' }
 };
 
@@ -1929,7 +1931,7 @@ function renderStudents(students, account) {
 
 // Peran yang tidak membaca daftar santri. /api/me mengirim daftar izin; bila tidak ada,
 // peran-peran ini yang dipakai sebagai cadangan.
-const PERAN_TANPA_DAFTAR_SANTRI = ['teacher', 'finance', 'registration-officer'];
+const PERAN_TANPA_DAFTAR_SANTRI = ['teacher', 'finance', 'media', 'registration-officer'];
 let izinAkun = null;
 function bolehMembacaSantri(account) {
   if (Array.isArray(izinAkun)) return izinAkun.includes('students.read');

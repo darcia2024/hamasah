@@ -122,7 +122,7 @@ const POLICIES = Object.freeze({
     // Peramban sudah mengecilkan foto ke 1600 px (konten.js), hasilnya jauh di bawah 1 MB.
     maxBytes: 2 * MB,
     async canUpload({ actor }) {
-      return Boolean(actor) && roleHasPermission(actor.role, 'content.manage');
+      return Boolean(actor) && roleHasPermission(actor.role, 'gallery.manage');
     },
     async canDownload() {
       return true;
