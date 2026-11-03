@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="Laporan pembaruan aplikasi Hamasah International, 3 November 2026: revisi dari dokumen Follow up Website, keamanan, dan yang masih perlu diputuskan." />
+    <title>Laporan Pembaruan Hamasah</title>
+    <link rel="icon" href="../assets/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Philosopher:wght@700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="update.css?v=d7181d69e4" />
+  </head>
+  <body>
+    <a class="skip-link" href="#isi">Lewati ke isi laporan</a>
+
+    <header class="kepala">
+      <div class="lebar kepala__baris">
+        <img src="../assets/logo-hamasah-300.webp" alt="Hamasah International" width="150" height="44" />
+        <nav aria-label="Isi laporan">
+          <a href="#revisi">Revisi</a>
+          <a href="#keamanan">Keamanan</a>
+          <a href="#keputusan">Perlu diputuskan</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="isi" class="lebar">
+      <section class="pembuka">
+        <p class="tanggal">3 November 2026</p>
+        <h1>Revisi Follow up sudah masuk ke aplikasi</h1>
+        <p class="ringkas">Tiga revisi dan satu lapisan keamanan selesai. Empat hal menunggu tindak lanjut.</p>
+        <a class="tombol" href="#keputusan">Lihat yang perlu diputuskan</a>
+      </section>
+
+      <section class="bab" id="revisi" aria-labelledby="judul-revisi">
+        <h2 id="judul-revisi">Revisi dari dokumen Follow up Website</h2>
+
+        <article class="butir">
+          <h3>Rapor memakai enam predikat</h3>
+          <p>Rapor bulanan, halaman wali, dan PDF kini memakai skala baru. Rapor lama tetap tampil seperti saat diterbitkan.</p>
+          <div class="tabel-gulir">
+            <table>
+              <caption class="tersembunyi">Skala nilai rapor bulanan</caption>
+              <thead>
+                <tr><th scope="col">Nilai</th><th scope="col">Huruf</th><th scope="col">Sebutan</th><th scope="col">Bahasa Arab</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>93 sampai 100</td><td>A+</td><td>Istimewa</td><td>Mumtaz Murtafi'</td></tr>
+                <tr><td>85 sampai 92</td><td>A</td><td>Sangat Baik</td><td>Mumtaz</td></tr>
+                <tr><td>78 sampai 84</td><td>B+</td><td>Baik Sekali</td><td>Jayyid Jiddan</td></tr>
+                <tr><td>70 sampai 77</td><td>B</td><td>Baik</td><td>Jayyid</td></tr>
+                <tr><td>60 sampai 69</td><td>C</td><td>Cukup</td><td>Maqbul</td></tr>
+                <tr><td>0 sampai 59</td><td>D</td><td>Kurang / Butuh Pembinaan Khusus</td><td>Rasib</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Aturan hadiah dari Direktur Asrama dicatat di tab Pengaturan rapor. Aplikasi belum punya fitur pencatatan hadiah santri.</p>
+        </article>
+
+        <article class="butir">
+          <h3>Pengembalian dana AC patungan mengikuti SOP</h3>
+          <p>Perhitungan di menu Inventaris &amp; AC sudah mengikuti SOP internal. Rinciannya sengaja tidak ditulis di sini karena SOP ini tidak dicantumkan di website, dan sudah dihapus dari halaman presentasi.</p>
+        </article>
+
+        <article class="butir">
+          <h3>Musyrif menayangkan foto asramanya sendiri</h3>
+          <p>Foto kegiatan asrama kini langsung tampil di website dari tangan Musyrif rumahnya, tanpa menunggu admin, dan bisa dicabut kapan saja. Musyrif asrama lain tidak bisa melakukannya.</p>
+        </article>
+      </section>
+
+      <section class="bab" id="keamanan" aria-labelledby="judul-keamanan">
+        <h2 id="judul-keamanan">Keamanan aplikasi</h2>
+        <p class="pengantar">Audit cepat menemukan tiga hal, dan ketiganya sudah diperbaiki.</p>
+        <ul class="daftar">
+          <li><strong>Firewall sederhana terpasang.</strong> Permintaan rusak dan penyisiran otomatis ditolak sebelum menyentuh database.</li>
+          <li><strong>Alamat rusak tidak lagi menggantung.</strong> Sebelumnya permintaan seperti ini tidak pernah dijawab server.</li>
+          <li><strong>Percobaan PIN pratinjau dibatasi.</strong> Menebak PIN berulang kali kini berhenti setelah batas tertentu.</li>
+          <li><strong>Satu komponen pihak ketiga diperbarui.</strong> Pemeriksaan dependensi kini tidak menemukan kerentanan.</li>
+        </ul>
+        <p class="pengantar">Seluruh 402 tes otomatis lulus. Ini audit cepat, bukan uji penetrasi penuh.</p>
+      </section>
+
+      <section class="bab" id="keputusan" aria-labelledby="judul-keputusan">
+        <h2 id="judul-keputusan">Yang masih perlu ditindaklanjuti</h2>
+        <ol class="tindak">
+          <li><h3>Konfirmasi bobot rapor</h3><p>Dokumen baru mengatur skala nilai. Rapor belum bisa terbit sampai admin memeriksa bobot penilaian di tab Pengaturan.</p></li>
+          <li><h3>Akun Tim Media</h3><p>Dokumentasi kegiatan umum menjadi wewenang Tim Media, tetapi perannya belum ada di aplikasi. Galeri umum sementara masih dikelola admin.</p></li>
+          <li><h3>Catatan persetujuan foto</h3><p>Musyrif tetap wajib mengisi catatan persetujuan wali saat menayangkan foto. Dokumen tidak menyebutnya, jadi perlu dipastikan tetap dipakai.</p></li>
+          <li><h3>Pengiriman ulang notifikasi</h3><p>Tugas terjadwal di GitHub masih gagal, kemungkinan karena pengaturannya belum diisi. Perlu diisi, atau dimatikan bila belum dipakai.</p></li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="kaki">
+      <div class="lebar">
+        <p>Hamasah International, laporan internal. Data santri tidak dimuat di halaman ini.</p>
+      </div>
+    </footer>
+  </body>
+</html>
