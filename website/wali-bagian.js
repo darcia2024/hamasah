@@ -203,6 +203,24 @@
       }
     }
 
+    // Hadiah dari Direktur Asrama. Tampil walau belum ada rapor terbit; kosong berarti bagiannya tidak ditampilkan.
+    const hadiah = el('div');
+    wadah.append(hadiah);
+    (async () => {
+      try {
+        const respons = await fetch(`/api/students/${encodeURIComponent(student.id)}/hadiah?t=${Date.now()}`, { headers });
+        const data = respons.ok ? await respons.json() : null;
+        if (!data || !data.items.length) return;
+        const ul = el('ul', 'wali-mini-list');
+        data.items.forEach((h) => {
+          const li = el('li');
+          li.append(el('span', '', `${h.title}, ${h.reason}`), el('strong', '', h.awardedOn));
+          ul.append(li);
+        });
+        hadiah.append(el('h4', 'wali-subtitle', 'Hadiah dan apresiasi'), ul);
+      } catch { /* Kartu rapor tetap tampil walau hadiah gagal dimuat. */ }
+    })();
+
     (async () => {
       let data;
       try {

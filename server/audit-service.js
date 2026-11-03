@@ -116,6 +116,8 @@ const ACTIONS = Object.freeze({
  ,REPORT_CARD_UPDATED: 'report-card.updated'
  ,REPORT_CARD_PUBLISHED: 'report-card.published'
  ,REPORT_CARD_DOWNLOADED: 'report-card.downloaded'
+ ,STUDENT_REWARD_GIVEN: 'student-reward.given'
+ ,STUDENT_REWARD_VOIDED: 'student-reward.voided'
  ,DOCUMENT_ALERTS_CHANGED: 'document-alerts.changed'
  ,LETTER_TYPE_CHANGED: 'letter-type.changed'
  ,LETTER_CREATED: 'letter.created'

@@ -8,7 +8,7 @@
   const app = document.querySelector('#kegiatan-app');
   const staffNav = document.querySelector('#staff-nav');
   const HARI = new Intl.DateTimeFormat('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
-  const TAB = [['absensi', 'Absensi kegiatan'], ['setoran', 'Setoran tahfidz'], ['rapor', 'Rapor bulanan'], ['pengaturan', 'Pengaturan']];
+  const TAB = [['absensi', 'Absensi kegiatan'], ['setoran', 'Setoran tahfidz'], ['rapor', 'Rapor bulanan'], ['hadiah', 'Hadiah santri'], ['pengaturan', 'Pengaturan']];
   const STATUS_ABSENSI = [['hadir', 'Hadir'], ['izin', 'Izin'], ['sakit', 'Sakit'], ['alpa', 'Tidak hadir']];
   const state = { akun: null, tab: 'absensi', asrama: [], santri: [], staff: [], pilihanSantri: '', sesiTerbuka: null };
 
@@ -615,14 +615,76 @@
       } catch (error) { statusAturan.set(error.message, true); }
     });
     r.append(form);
-    r.append(el('p', 'wali-field__hint', 'Hadiah dan apresiasi santri berprestasi ditetapkan langsung oleh Direktur Asrama dan harus mendidik, misalnya buku bacaan atau kitab referensi, piagam penghargaan, atau fasilitas penunjang pengembangan diri.'));
     akar.append(j, r);
     return akar;
   }
 
   // ------------------------------------------------------------------ rangka
 
-  const BUAT = { absensi: tabAbsensi, setoran: tabSetoran, rapor: tabRapor, pengaturan: tabPengaturan };
+  // ------------------------------------------------------------------ tab hadiah
+
+  async function tabHadiah() {
+    const akar = el('div', 'kg-stack');
+    const data = await api('GET', `/api/hadiah?t=${Date.now()}`);
+    const b = bagian('Hadiah dan apresiasi santri', data.canManage
+      ? 'Wujud hadiah ditetapkan langsung oleh Direktur Asrama dan harus mendidik. Catat di sini setelah ditetapkan; wali dan santri melihatnya di bagian rapor.'
+      : 'Hadiah untuk santri di asrama Anda. Wujudnya ditetapkan langsung oleh Direktur Asrama dan dicatat admin.');
+    const status = pesanStatus();
+    b.append(status);
+    if (data.available === false) {
+      status.set('Database belum diperbarui untuk hadiah santri. Terapkan pembaruan database di halaman Pengaturan.', true);
+      akar.append(b);
+      return akar;
+    }
+    if (data.canManage) {
+      const pilihanSantri = state.santri.map((s) => [s.id, s.name]);
+      b.append(tombol('Catat hadiah', 'button button--primary kg-small', async () => {
+        if (!pilihanSantri.length) { status.set('Belum ada santri aktif.', true); return; }
+        const hasil = await window.HamasahDialog.formulir({
+          judul: 'Catat hadiah santri',
+          keterangan: 'Yang dicatat adalah hadiah yang sudah ditetapkan Direktur Asrama. Wali dan santri dapat melihat catatan ini.',
+          bidang: [
+            { nama: 'studentId', label: 'Santri', jenis: 'select', pilihan: pilihanSantri, nilai: pilihanSantri[0][0], wajib: true },
+            { nama: 'kind', label: 'Jenis hadiah', jenis: 'select', pilihan: data.kinds.map((k) => [k.id, k.label]), nilai: data.kinds[0].id },
+            { nama: 'title', label: 'Wujud hadiah, misalnya judul kitab', wajib: true },
+            { nama: 'reason', label: 'Prestasi yang diapresiasi', jenis: 'textarea', wajib: true },
+            { nama: 'awardedOn', label: 'Tanggal pemberian', jenis: 'date', nilai: new Date().toISOString().slice(0, 10), wajib: true }
+          ],
+          labelSimpan: 'Catat',
+          kirim: (v) => api('POST', '/api/hadiah', v)
+        });
+        if (hasil) render().catch(() => {});
+      }));
+    }
+    if (!data.items.length) {
+      b.append(kosong('Belum ada hadiah yang dicatat.'));
+    } else {
+      const tabel = el('table', 'kg-table kg-table--stack');
+      const kepala = el('tr');
+      ['Santri', 'Hadiah', 'Prestasi', 'Tanggal', 'Status', ''].forEach((t) => kepala.append(el('th', '', t)));
+      tabel.append(kepala);
+      data.items.forEach((h) => {
+        const tr = el('tr');
+        const isiTd = (v, label) => { const c = el('td', '', v); c.dataset.label = label; return c; };
+        const aksi = el('td');
+        if (data.canManage && !h.voided) {
+          aksi.append(tombol('Batalkan', 'wali-link', async () => {
+            const hasil = await window.HamasahDialog.formulir({ judul: 'Batalkan catatan hadiah', bidang: [{ nama: 'reason', label: 'Alasan', jenis: 'textarea', wajib: true }], labelSimpan: 'Batalkan', kirim: (v) => api('POST', `/api/hadiah/${encodeURIComponent(h.id)}/batal`, v) });
+            if (hasil) render().catch(() => {});
+          }));
+        }
+        tr.append(isiTd(h.studentName, 'Santri'), isiTd(`${h.title} (${h.kindLabel})`, 'Hadiah'), isiTd(h.reason, 'Prestasi'), isiTd(h.awardedOn, 'Tanggal'), isiTd(h.voided ? `Dibatalkan: ${h.voidReason}` : 'Berlaku', 'Status'), aksi);
+        tabel.append(tr);
+      });
+      const bungkus = el('div', 'kg-scroll');
+      bungkus.append(tabel);
+      b.append(bungkus);
+    }
+    akar.append(b);
+    return akar;
+  }
+
+  const BUAT = { absensi: tabAbsensi, setoran: tabSetoran, rapor: tabRapor, hadiah: tabHadiah, pengaturan: tabPengaturan };
 
   async function render() {
     const kepala = el('header', 'asr-head');

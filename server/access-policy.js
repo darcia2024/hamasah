@@ -86,6 +86,10 @@ const PERMISSIONS = Object.freeze({
   'reports.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   'reports.config': Object.freeze([ROLES.ADMIN]),
   'reports.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.PARENT, ROLES.STUDENT]),
+  // Hadiah santri: ditetapkan Direktur Asrama dan dicatat lewat akun admin; musyrif, wali, dan santri membaca sesuai cakupannya.
+  'rewards.manage': Object.freeze([ROLES.ADMIN]),
+  'rewards.list': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
+  'rewards.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR, ROLES.PARENT, ROLES.STUDENT]),
   // Batas peringatan paspor dan iqamah: staf melihat, admin mengubah.
   'document-alerts.read': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   'document-alerts.manage': Object.freeze([ROLES.ADMIN]),

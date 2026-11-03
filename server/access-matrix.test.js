@@ -79,7 +79,7 @@ async function run() {
     assert.deepEqual(saya.body.permissions, ['ac.manage', 'ac.read', 'finance.manage', 'leave.payment-read', 'operations.manage', 'operations.read', 'payment-link.read', 'payments.manage', 'reminders.manage']);
     assert.deepEqual(
       (await request(baseUrl, 'GET', '/api/me', { token: token[ROLES.PARENT] })).body.permissions,
-      ['assistant-ops.use', 'dormitory-schedule.read', 'family-messages.send', 'feedback.mine', 'feedback.send', 'inbox.read', 'payment-link.read', 'personal-messages.read', 'programs.history', 'reports.read', 'residence.read', 'students.read', 'tahfidz.read']
+      ['assistant-ops.use', 'dormitory-schedule.read', 'family-messages.send', 'feedback.mine', 'feedback.send', 'inbox.read', 'payment-link.read', 'personal-messages.read', 'programs.history', 'reports.read', 'residence.read', 'rewards.read', 'students.read', 'tahfidz.read']
     );
 
     // Data secukupnya supaya endpoint punya sasaran yang nyata.
@@ -219,6 +219,10 @@ async function run() {
       // Isi tidak lengkap: admin mendapat 422, bukan konten situs yang berubah.
       { permission: 'content.manage', method: 'PUT', path: '/api/admin/content/kontak', body: () => ({ nilai: {} }) },
       { permission: 'content.manage', method: 'DELETE', path: '/api/admin/content/pengumuman' },
+      { permission: 'rewards.list', method: 'GET', path: '/api/hadiah' },
+      { permission: 'rewards.manage', method: 'POST', path: '/api/hadiah', body: () => ({}) },
+      { permission: 'rewards.manage', method: 'POST', path: '/api/hadiah/00000000-0000-4000-8000-000000000000/batal', body: () => ({}) },
+      { permission: 'rewards.read', method: 'GET', path: '/api/students/00000000-0000-4000-8000-000000000000/hadiah' },
       { permission: 'gallery.manage', method: 'GET', path: '/api/media/konten' },
       { permission: 'gallery.manage', method: 'PUT', path: '/api/media/konten/galeri', body: () => ({ nilai: {} }) },
       { permission: 'gallery.manage', method: 'DELETE', path: '/api/media/konten/galeri' },

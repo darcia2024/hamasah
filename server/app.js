@@ -62,6 +62,7 @@ const { createStudentMessageService } = require('./student-message-service.js');
 const { createActivityAttendanceService } = require('./activity-attendance-service.js');
 const { createTahfidzService } = require('./tahfidz-service.js');
 const { createReportCardService } = require('./report-card-service.js');
+const { createStudentRewardService } = require('./student-reward-service.js');
 const { createDocumentSettingsService } = require('./document-settings-service.js');
 const { createLetterArchiveService } = require('./letter-archive-service.js');
 const { createKpiService } = require('./kpi-service.js');
@@ -113,6 +114,7 @@ const ROUTES = Object.freeze([
   ...require('./routes/activity-attendance.js'),
   ...require('./routes/tahfidz.js'),
   ...require('./routes/report-cards.js'),
+  ...require('./routes/student-rewards.js'),
   ...require('./routes/document-settings.js'),
   ...require('./routes/letters.js'),
   ...require('./routes/kpi.js'),
@@ -516,6 +518,12 @@ function createHamasahApp(options) {
     tahfidz: tahfidzService
   });
 
+  const studentRewardService = createStudentRewardService({
+    database,
+    accessFor: (studentId, actor) => studentPortalService.accessFor(studentId, actor),
+    staffDormitories: (accountId) => dormitoryService.dormitoriesForStaff(accountId)
+  });
+
   // Santri yang mengundurkan diri: status berubah, kamar dilepas, dan riwayat status tercatat (sama dengan PATCH santri).
   const letterArchiveService = config.letterArchiveService || createLetterArchiveService({
     database,
@@ -585,6 +593,7 @@ function createHamasahApp(options) {
     activityAttendanceService,
     tahfidzService,
     reportCardService,
+    studentRewardService,
     documentSettingsService,
     letterArchiveService,
     kpiService,

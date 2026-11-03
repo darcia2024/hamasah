@@ -68,6 +68,8 @@ const LABEL = {
   'student.juz-updated': 'Peta hafalan juz diubah',
   'announcement.created': 'Pengumuman dibuat',
   'announcement.deleted': 'Pengumuman dihapus',
+  'student-reward.given': 'Hadiah santri dicatat',
+  'student-reward.voided': 'Catatan hadiah santri dibatalkan',
   'leave.requested': 'Izin diajukan santri',
   'leave.decided': 'Izin diputuskan',
   'leave.cancelled': 'Izin dibatalkan santri',
