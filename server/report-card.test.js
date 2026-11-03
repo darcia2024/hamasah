@@ -1,4 +1,4 @@
-// Rapor bulanan: indikator dari absensi, tahfidz, disiplin, partisipasi; bobot dan batas A/B/C dari pengaturan (bukan kode);
+// Rapor bulanan: indikator dari absensi, tahfidz, disiplin, partisipasi; bobot dan batas nilai dari pengaturan (bukan kode);
 // alur draf -> tinjau -> terbit; wali hanya melihat yang terbit; PDF mengikuti pengaturan; riwayat tidak berubah saat
 // pengaturan diganti.
 const assert = require('node:assert/strict');
@@ -6,14 +6,21 @@ const path = require('node:path');
 const { createHamasahApp } = require('./app.js');
 const { createTestDatabase } = require('./test-support/database.js');
 const { createRelaxedRateLimiter } = require('./test-support/rate-limit.js');
-const { periksaConfig, DEFAULT_CONFIG } = require('./report-card-service.js');
+const { periksaConfig, nilaiHuruf, DEFAULT_CONFIG, PREDIKAT } = require('./report-card-service.js');
 
 const SANDI = 'kata-sandi-uji-rapor';
 const BULAN = new Date().toISOString().slice(0, 7);
 
 async function run() {
   assert.ok(periksaConfig({ weights: { attendance: 50, tahfidz: 50, discipline: 10, participation: 0 } }, DEFAULT_CONFIG).error, 'Bobot harus berjumlah 100.');
-  assert.ok(periksaConfig({ grades: { A: 60, B: 70 } }, DEFAULT_CONFIG).error, 'A harus di atas B.');
+  assert.ok(periksaConfig({ grades: { A: 60, B: 70 } }, DEFAULT_CONFIG).error, 'Skala lama tidak diterima lagi.');
+  assert.ok(periksaConfig({ grades: { 'A+': 93, A: 85, 'B+': 86, B: 70, C: 60 } }, DEFAULT_CONFIG).error, 'Batas harus menurun.');
+  // Standar dokumen "Follow up Website", diuji di setiap tepi rentang.
+  assert.deepEqual(DEFAULT_CONFIG.grades, { 'A+': 93, A: 85, 'B+': 78, B: 70, C: 60 });
+  const tepi = [[100, 'A+'], [93, 'A+'], [92, 'A'], [85, 'A'], [84, 'B+'], [78, 'B+'], [77, 'B'], [70, 'B'], [69, 'C'], [60, 'C'], [59, 'D'], [0, 'D']];
+  for (const [skor, huruf] of tepi) assert.equal(nilaiHuruf(skor, DEFAULT_CONFIG.grades), huruf, `Nilai ${skor}`);
+  assert.equal(nilaiHuruf(null, DEFAULT_CONFIG.grades), null);
+  assert.deepEqual(PREDIKAT.map((p) => p.arab), ["Mumtaz Murtafi'", 'Mumtaz', 'Jayyid Jiddan', 'Jayyid', 'Maqbul', 'Rasib']);
   assert.ok(periksaConfig({ publishRoles: ['supervisor'] }, DEFAULT_CONFIG).error, 'Admin tetap penerbit.');
   assert.ok(periksaConfig({ publishRoles: ['parent', 'admin'] }, DEFAULT_CONFIG).error);
 
@@ -59,6 +66,8 @@ async function run() {
     const aturan = await api('GET', '/api/rapor/pengaturan', tA);
     assert.equal(aturan.status, 200);
     assert.deepEqual(aturan.body.config.weights, { attendance: 30, tahfidz: 35, discipline: 20, participation: 15 });
+    assert.deepEqual(aturan.body.config.grades, DEFAULT_CONFIG.grades, 'Baris pengaturan A/B/C dari migrasi 068 memakai standar baru.');
+    assert.equal(aturan.body.predicates.length, 6);
     assert.equal(aturan.body.canEdit, false);
     assert.equal((await api('GET', '/api/rapor/pengaturan', tWali)).status, 403);
     assert.equal((await api('PUT', '/api/rapor/pengaturan', tA, { grades: { A: 90, B: 80 } })).status, 403, 'Musyrif tidak mengubah pengaturan.');
@@ -88,6 +97,8 @@ async function run() {
     // (100*30 + 50*35 + 95*20 + 25*15) / 100 = 70.25 -> 70 -> B
     assert.equal(draf.body.total, 70);
     assert.equal(draf.body.grade, 'B');
+    assert.equal(draf.body.gradeText, 'B · Baik (Jayyid)');
+    assert.equal(draf.body.scaleText, 'A+ mulai 93, A mulai 85, B+ mulai 78, B mulai 70, C mulai 60, di bawahnya D.');
 
     // Keluarga belum melihat apa pun sebelum terbit.
     assert.equal((await api('GET', `/api/students/${anak.id}/rapor`, tWali)).body.items.length, 0);
@@ -119,8 +130,8 @@ async function run() {
     assert.equal(ulang.body.status, 'draft');
     assert.equal((await api('PATCH', `/api/students/${anak.id}/rapor/${BULAN}`, tA, { status: 'review' })).status, 200);
 
-    // Ganti pengaturan: rapor draf tidak berubah sampai disusun ulang; batas A/B/C dari pengaturan.
-    assert.equal((await api('PUT', '/api/rapor/pengaturan', admin, { grades: { A: 70, B: 50 } })).status, 200);
+    // Ganti pengaturan: rapor draf tidak berubah sampai disusun ulang; batas nilai dari pengaturan.
+    assert.equal((await api('PUT', '/api/rapor/pengaturan', admin, { grades: { 'A+': 95, A: 90, 'B+': 85, B: 80, C: 70 } })).status, 200);
     const terbit = await terbitkan(tA);
     assert.equal(terbit.status, 200, terbit.teks);
     assert.equal(terbit.body.status, 'published');
@@ -141,7 +152,7 @@ async function run() {
     // Penyusunan ulang setelah pengaturan berganti memakai batas baru.
     assert.equal((await terbitkan(tA, { retract: true })).body.status, 'review');
     assert.equal((await api('GET', `/api/students/${anak.id}/rapor`, tWali)).body.items.length, 0, 'Ditarik: keluarga tidak melihat lagi.');
-    assert.equal((await api('POST', `/api/students/${anak.id}/rapor/${BULAN}/susun`, tA)).body.grade, 'A', 'Batas baru A=70.');
+    assert.equal((await api('POST', `/api/students/${anak.id}/rapor/${BULAN}/susun`, tA)).body.grade, 'C', 'Batas baru B=80, C=70.');
     await api('PATCH', `/api/students/${anak.id}/rapor/${BULAN}`, tA, { status: 'review' });
     assert.equal((await terbitkan(tA)).status, 200);
 
@@ -154,6 +165,12 @@ async function run() {
     assert.equal((await api('GET', `/api/students/${anak.id}/rapor/${BULAN}/pdf`, tWali)).status, 403);
     assert.equal((await api('GET', `/api/students/${anak.id}/rapor`, tWali)).body.pdfEnabled, false);
     assert.equal((await fetch(`${baseUrl}/api/students/${anak.id}/rapor/${BULAN}/pdf`, { headers: { Authorization: `Bearer ${tA}` } })).status, 200, 'Staf tetap bisa mengunduh.');
+
+    // Rapor lama berskala A/B/C tetap tampil apa adanya, tanpa predikat baru.
+    await database.query(`UPDATE monthly_reports SET snapshot = jsonb_set(jsonb_set(snapshot, '{grade}', '"B"'), '{config,grades}', '{"A": 85, "B": 70}') WHERE student_id = $1 AND month = $2`, [anak.id, BULAN]);
+    const lamaAbc = (await api('GET', `/api/students/${anak.id}/rapor`, tWali)).body.items[0];
+    assert.equal(lamaAbc.gradeText, 'B');
+    assert.equal(lamaAbc.scaleText, 'Kategori A mulai 85, B mulai 70, di bawahnya C.');
 
     // Bulan tanpa absensi kegiatan memakai presensi harian asrama (sumber ditandai).
     const dulu = new Date(); dulu.setUTCDate(1); dulu.setUTCMonth(dulu.getUTCMonth() - 1);

@@ -8,16 +8,28 @@ const { createDocumentPdf } = require('./pdf.js');
 // Alur: musyrif menyusun (draft) -> mengajukan tinjauan (review) -> pihak yang berhak menerbitkan (published).
 // Wali dan santri hanya melihat rapor yang sudah terbit; PDF hanya bila pengaturan mengizinkan.
 //
-// Tidak ada angka yang ditulis mati di sini: bobot indikator, batas A/B/C, target, penalti disiplin, dan siapa yang
+// Tidak ada angka yang ditulis mati di sini: bobot indikator, batas nilai, target, penalti disiplin, dan siapa yang
 // berhak menerbitkan dibaca dari report_card_settings (diubah admin). DEFAULT_CONFIG hanya dipakai bila barisnya belum
 // ada. Setiap rapor menyimpan salinan pengaturan yang dipakai, jadi riwayat tidak berubah saat pengaturan diganti.
 //
 // Indikator tanpa data (misalnya absensi kegiatan belum dipakai) tidak dihitung nol: bobotnya dibagi ke indikator
 // yang punya data, dan rapor menandainya "belum ada data".
 
+// Standar penilaian rapor bulanan dari dokumen "Follow up Website": urutan dari tertinggi. D tidak punya batas, yaitu
+// semua nilai di bawah batas C. Sebutan tetap; angka batasnya mengikuti pengaturan.
+const PREDIKAT = Object.freeze([
+  Object.freeze({ huruf: 'A+', sebutan: 'Istimewa', arab: "Mumtaz Murtafi'" }),
+  Object.freeze({ huruf: 'A', sebutan: 'Sangat Baik', arab: 'Mumtaz' }),
+  Object.freeze({ huruf: 'B+', sebutan: 'Baik Sekali', arab: 'Jayyid Jiddan' }),
+  Object.freeze({ huruf: 'B', sebutan: 'Baik', arab: 'Jayyid' }),
+  Object.freeze({ huruf: 'C', sebutan: 'Cukup', arab: 'Maqbul' }),
+  Object.freeze({ huruf: 'D', sebutan: 'Kurang / Butuh Pembinaan Khusus', arab: 'Rasib' })
+]);
+const HURUF_BERBATAS = Object.freeze(PREDIKAT.map((p) => p.huruf).filter((huruf) => huruf !== 'D'));
+
 const DEFAULT_CONFIG = Object.freeze({
   weights: Object.freeze({ attendance: 30, tahfidz: 35, discipline: 20, participation: 15 }),
-  grades: Object.freeze({ A: 85, B: 70 }),
+  grades: Object.freeze({ 'A+': 93, A: 85, 'B+': 78, B: 70, C: 60 }),
   tahfidzTargetAyat: 40,
   participationTarget: 4,
   disciplinePenalty: Object.freeze({ ringan: 5, sedang: 10, berat: 20 }),
@@ -75,10 +87,13 @@ function periksaConfig(input, lama) {
       config.weights = w;
     }
     if (sumber.grades !== undefined) {
-      const a = angka(sumber.grades && sumber.grades.A, 'Batas nilai A', 1, 100);
-      const b = angka(sumber.grades && sumber.grades.B, 'Batas nilai B', 1, 100);
-      if (!(a > b)) throw new Error('Batas A harus lebih tinggi dari batas B.');
-      config.grades = { A: a, B: b };
+      const batas = {};
+      HURUF_BERBATAS.forEach((huruf, i) => {
+        batas[huruf] = angka(sumber.grades && sumber.grades[huruf], `Batas nilai ${huruf}`, 1, 100);
+        const atasnya = HURUF_BERBATAS[i - 1];
+        if (atasnya && !(batas[atasnya] > batas[huruf])) throw new Error(`Batas ${atasnya} harus lebih tinggi dari batas ${huruf}.`);
+      });
+      config.grades = batas;
     }
     if (sumber.tahfidzTargetAyat !== undefined) config.tahfidzTargetAyat = angka(sumber.tahfidzTargetAyat, 'Target ayat tahfidz per bulan', 1, 6236);
     if (sumber.participationTarget !== undefined) config.participationTarget = angka(sumber.participationTarget, 'Target partisipasi per bulan', 1, 100);
@@ -102,7 +117,22 @@ function periksaConfig(input, lama) {
 
 function nilaiHuruf(skor, grades) {
   if (skor === null) return null;
-  return skor >= grades.A ? 'A' : skor >= grades.B ? 'B' : 'C';
+  return HURUF_BERBATAS.find((huruf) => skor >= grades[huruf]) || 'D';
+}
+
+// Rapor lama menyimpan skala A/B/C dan tetap ditampilkan apa adanya, karena riwayat tidak berubah.
+const skalaBaru = (grades) => Boolean(grades && grades['A+'] !== undefined);
+
+function teksNilai(grade, grades) {
+  if (!grade) return '';
+  const predikat = skalaBaru(grades) ? PREDIKAT.find((p) => p.huruf === grade) : null;
+  return predikat ? `${grade} · ${predikat.sebutan} (${predikat.arab})` : grade;
+}
+
+function teksSkala(grades) {
+  if (!grades) return '';
+  if (!skalaBaru(grades)) return `Kategori A mulai ${grades.A}, B mulai ${grades.B}, di bawahnya C.`;
+  return `${HURUF_BERBATAS.map((huruf) => `${huruf} mulai ${grades[huruf]}`).join(', ')}, di bawahnya D.`;
 }
 
 function createReportCardService({ database, accessFor, staffDormitories, activityAttendance, tahfidz, now = () => new Date() } = {}) {
@@ -128,7 +158,10 @@ function createReportCardService({ database, accessFor, staffDormitories, activi
   async function muatConfig() {
     try {
       const { rows } = await database.query('SELECT config FROM report_card_settings WHERE id = 1');
-      return { available: true, config: { ...DEFAULT_CONFIG, ...(rows[0] ? rows[0].config : {}) } };
+      const config = { ...DEFAULT_CONFIG, ...(rows[0] ? rows[0].config : {}) };
+      // Baris lama masih memakai skala A/B/C dari migrasi 068: diganti standar yang berlaku.
+      if (!skalaBaru(config.grades)) config.grades = DEFAULT_CONFIG.grades;
+      return { available: true, config };
     } catch (error) {
       if (!tabelBelumAda(error)) throw error;
       return { available: false, config: { ...DEFAULT_CONFIG } };
@@ -140,7 +173,7 @@ function createReportCardService({ database, accessFor, staffDormitories, activi
   async function getSettings(actor) {
     if (!staf(actor)) return { ok: false, status: 403, error: 'Hanya admin dan musyrif.' };
     const { available, config } = await muatConfig();
-    return { ok: true, value: { available, config, indicators: Object.entries(INDIKATOR).map(([id, label]) => ({ id, label })), canEdit: actor.role === 'admin' } };
+    return { ok: true, value: { available, config, indicators: Object.entries(INDIKATOR).map(([id, label]) => ({ id, label })), predicates: PREDIKAT, canEdit: actor.role === 'admin' } };
   }
 
   async function updateSettings(input, actor) {
@@ -222,10 +255,11 @@ function createReportCardService({ database, accessFor, staffDormitories, activi
 
   function bentuk(row, { internal }) {
     const snap = row.snapshot || {};
+    const grades = snap.config ? snap.config.grades : null;
     const dasar = {
       id: row.id, studentId: row.student_id, month: row.month, monthLabel: labelBulan(row.month), status: row.status, statusLabel: STATUS[row.status],
-      total: snap.total === undefined ? null : snap.total, grade: snap.grade || null, scores: snap.scores || {}, raw: snap.raw || {}, missing: snap.missing || [],
-      weights: snap.config ? snap.config.weights : null, grades: snap.config ? snap.config.grades : null,
+      total: snap.total === undefined ? null : snap.total, grade: snap.grade || null, gradeText: teksNilai(snap.grade, grades), scores: snap.scores || {}, raw: snap.raw || {}, missing: snap.missing || [],
+      weights: snap.config ? snap.config.weights : null, grades, scaleText: teksSkala(grades),
       note: row.musyrif_note || '', recommendation: row.recommendation || '', publishedAt: iso(row.published_at)
     };
     if (!internal) return dasar;
@@ -298,7 +332,7 @@ function createReportCardService({ database, accessFor, staffDormitories, activi
     return tulis(async () => {
       const { config } = await muatConfig();
       if (!config.publishRoles.includes(actor.role)) return { ok: false, status: 403, error: 'Peran Anda belum diberi wewenang menerbitkan rapor. Hubungi admin.' };
-      if (!tarik && !config.confirmedAt) return { ok: false, status: 409, error: 'Pengaturan penilaian rapor (bobot dan batas A/B/C) belum dikonfirmasi admin. Admin perlu memeriksanya di tab Pengaturan dan menyimpannya lebih dulu.' };
+      if (!tarik && !config.confirmedAt) return { ok: false, status: 409, error: 'Pengaturan penilaian rapor (bobot dan batas nilai) belum dikonfirmasi admin. Admin perlu memeriksanya di tab Pengaturan dan menyimpannya lebih dulu.' };
       const row = BULAN.test(String(bulan)) ? await ambilRow(studentId, bulan) : null;
       if (!row) return { ok: false, status: 404, error: 'Rapor bulan ini belum disusun.' };
       if (tarik) {
@@ -369,8 +403,8 @@ function createReportCardService({ database, accessFor, staffDormitories, activi
         ...(r.status === 'published' ? [] : [{ kind: 'muted', text: 'DRAF: belum diterbitkan dan belum terlihat oleh wali.' }]),
         { kind: 'rule' },
         { kind: 'heading', text: 'Nilai keseluruhan' },
-        { kind: 'text', text: r.total === null ? 'Belum ada data yang cukup untuk dinilai.' : `Nilai ${r.total} · Kategori ${r.grade}` },
-        { kind: 'muted', text: r.grades ? `Kategori A mulai ${r.grades.A}, B mulai ${r.grades.B}, di bawahnya C.` : '' },
+        { kind: 'text', text: r.total === null ? 'Belum ada data yang cukup untuk dinilai.' : `Nilai ${r.total} · Predikat ${r.gradeText}` },
+        { kind: 'muted', text: r.scaleText },
         { kind: 'heading', text: 'Rincian indikator' }
       ];
       for (const [kunci, label] of Object.entries(INDIKATOR)) {
@@ -391,4 +425,4 @@ function createReportCardService({ database, accessFor, staffDormitories, activi
   return { getSettings, updateSettings, compose, update, publish, list, monthOverview, pdf };
 }
 
-module.exports = { createReportCardService, DEFAULT_CONFIG, periksaConfig };
+module.exports = { createReportCardService, DEFAULT_CONFIG, PREDIKAT, nilaiHuruf, periksaConfig };

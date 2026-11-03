@@ -214,9 +214,9 @@
       const label = { attendance: 'Absensi kegiatan', tahfidz: 'Tahfidz', discipline: 'Kedisiplinan', participation: 'Partisipasi' };
       const daftar = el('ul', 'wali-notes');
       data.items.forEach((r) => {
-        const li = el('li', `wali-note is-${r.grade === 'A' ? 'baik' : r.grade === 'C' ? 'perlu' : 'catatan'}`);
+        const li = el('li', `wali-note is-${['A+', 'A', 'B+'].includes(r.grade) ? 'baik' : ['C', 'D'].includes(r.grade) ? 'perlu' : 'catatan'}`);
         const meta = el('div', 'wali-note__meta');
-        meta.append(el('span', 'wali-note__kind', r.monthLabel), el('span', '', r.total === null ? 'Belum dinilai' : `Kategori ${r.grade} · nilai ${r.total}`));
+        meta.append(el('span', 'wali-note__kind', r.monthLabel), el('span', '', r.total === null ? 'Belum dinilai' : `Predikat ${r.gradeText} · nilai ${r.total}`));
         li.append(meta);
         const rincian = el('ul', 'wali-mini-list');
         Object.keys(label).forEach((k) => {

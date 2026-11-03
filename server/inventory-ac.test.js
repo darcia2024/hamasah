@@ -1,5 +1,5 @@
 // Inventaris asrama yang diperluas (kode otomatis, riwayat, pemeriksaan bulanan, dashboard) dan AC patungan (kontribusi dibedakan antara
-// pembelian dan pemasangan, ketentuan pengembalian, refund hanya untuk santri yang berkontribusi, persetujuan dan bukti pencairan).
+// pembelian dan pemasangan, refund flat hanya untuk santri yang ikut iuran pembelian, persetujuan dan bukti pencairan).
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const { createHamasahApp } = require('./app.js');
@@ -192,11 +192,10 @@ async function run() {
     // ------------------------------------------------------------ AC patungan
     assert.equal((await api('GET', '/api/ac/unit', tWali)).status, 403);
     assert.equal((await api('POST', '/api/ac/unit', tA, { dormitoryId: A.id, label: 'AC Kamar 1', ownership: 'hamasah' })).status, 403, 'Musyrif tidak membuat AC.');
-    assert.equal((await api('POST', '/api/ac/unit', tUang, { dormitoryId: A.id, label: 'AC Kamar 1', ownership: 'patungan', purchaseTotal: 4000000 })).status, 422, 'AC patungan wajib memuat ketentuan pengembalian.');
     const bukti = await unggah(tUang, 'ac-proof', A.id);
     assert.ok(bukti.id);
     assert.ok((await unggah(tA, 'ac-proof', A.id)).gagal, 'Musyrif tidak mengunggah bukti keuangan AC.');
-    const unit = await api('POST', '/api/ac/unit', tUang, { dormitoryId: A.id, label: 'AC Kamar 1', ownership: 'patungan', purchaseTotal: 4000000, installTotal: 600000, purchasedOn: '2026-05-01', proofFileId: bukti.id, refundPurchase: true, refundInstall: false, terms: 'Kontribusi pembelian dikembalikan penuh bila santri keluar sebelum 12 bulan. Biaya pemasangan tidak dikembalikan.' });
+    const unit = await api('POST', '/api/ac/unit', tUang, { dormitoryId: A.id, label: 'AC Kamar 1', ownership: 'patungan', purchaseTotal: 4000000, installTotal: 600000, purchasedOn: '2026-05-01', proofFileId: bukti.id });
     assert.equal(unit.status, 201, unit.teks);
     const milikHamasah = await api('POST', '/api/ac/unit', admin, { dormitoryId: A.id, label: 'AC Ruang Tamu', ownership: 'hamasah', purchaseTotal: 5000000 });
     assert.equal(milikHamasah.status, 201);
@@ -231,10 +230,39 @@ async function run() {
     assert.equal(rinci.body.unit.installCollected, 200000);
     assert.equal(rinci.body.unit.contributors, 2);
 
-    // Hak refund: hanya yang berkontribusi; santri aktif belum bisa; teman sekamar tidak berhak.
+    // Hak refund: flat per santri, hanya yang ikut iuran pembelian; santri aktif belum bisa; teman sekamar tidak berhak.
     const preview = await api('GET', `/api/ac/santri/${donatur.id}/refund`, tUang);
     assert.equal(preview.body.left, false);
-    assert.equal(preview.body.entitlements[0].eligibleAmount, 1500000, 'Hanya pembelian yang dikembalikan menurut ketentuan; pemasangan tidak.');
+    assert.equal(preview.body.canRequest, false);
+    assert.equal(preview.body.entitlements[0].eligibleAmount, 1000000, 'Flat, tidak mengikuti besar kontribusi (1,5 juta).');
+    assert.equal((await api('GET', `/api/ac/santri/${donatur2.id}/refund`, tUang)).body.entitlements[0].eligibleAmount, 1000000);
+
+    // Hanya membayar pemasangan: tidak ikut iuran pembelian, jadi tidak berhak walau sudah keluar.
+    const pasangSaja = await mk('Santri Pasang Saja', A);
+    assert.equal((await kontribusi(tUang, unit.body.id, { studentId: pasangSaja.id, kind: 'pemasangan', amount: 100000, paidOn: '2026-05-02' })).status, 201);
+    assert.equal((await api('GET', `/api/ac/santri/${pasangSaja.id}/refund`, tUang)).body.entitlements[0].eligibleAmount, 0);
+    assert.equal((await api('PATCH', `/api/students/${pasangSaja.id}`, admin, { status: 'withdrawn' })).status, 200);
+    const pasangRefund = await api('POST', `/api/ac/santri/${pasangSaja.id}/refund`, tUang, {});
+    assert.equal(pasangRefund.status, 409);
+    assert.match(pasangRefund.body.error, /iuran pembelian/);
+
+    // Pindah asrama juga berhak, dan nominalnya tetap sekali walau ikut di dua AC.
+    const unitKedua = await api('POST', '/api/ac/unit', tUang, { dormitoryId: A.id, label: 'AC Kamar 2', ownership: 'patungan', purchaseTotal: 4000000 });
+    assert.equal(unitKedua.status, 201, unitKedua.teks);
+    const pindahan = await mk('Santri Pindahan', A);
+    for (const id of [unit.body.id, unitKedua.body.id]) assert.equal((await kontribusi(tUang, id, { studentId: pindahan.id, kind: 'pembelian', amount: 500000, paidOn: '2026-05-04' })).status, 201);
+    assert.equal((await api('POST', `/api/ac/santri/${pindahan.id}/refund`, tUang, {})).status, 409, 'Masih di asrama yang sama.');
+    const pindahkan = await api('PATCH', `/api/students/${pindahan.id}/placement`, admin, { gender: 'putra', dormitoryId: B.id });
+    assert.equal(pindahkan.status, 200, pindahkan.teks);
+    const hakPindah = (await api('GET', `/api/ac/santri/${pindahan.id}/refund`, tUang)).body;
+    assert.equal(hakPindah.left, false);
+    assert.equal(hakPindah.canRequest, true);
+    assert.deepEqual(hakPindah.entitlements.map((h) => h.eligibleAmount).sort(), [0, 1000000], 'Sekali per santri, bukan per AC.');
+    const refundPindah = await api('POST', `/api/ac/santri/${pindahan.id}/refund`, tUang, {});
+    assert.equal(refundPindah.status, 201, refundPindah.teks);
+    assert.deepEqual(refundPindah.body.items.map((f) => f.eligibleAmount), [1000000]);
+    assert.equal((await api('POST', `/api/ac/santri/${pindahan.id}/refund`, tUang, {})).status, 409, 'Jatahnya sudah terpakai.');
+
     const temanPreview = await api('GET', `/api/ac/santri/${teman.id}/refund`, tUang);
     assert.equal(temanPreview.body.entitlements.length, 0);
     assert.match(temanPreview.body.note, /tidak otomatis berhak/);
@@ -249,7 +277,7 @@ async function run() {
     const ajukan = await api('POST', `/api/ac/santri/${donatur.id}/refund`, tUang, {});
     assert.equal(ajukan.status, 201, ajukan.teks);
     assert.equal(ajukan.body.items.length, 1);
-    assert.equal(ajukan.body.items[0].eligibleAmount, 1500000);
+    assert.equal(ajukan.body.items[0].eligibleAmount, 1000000);
     assert.equal(ajukan.body.items[0].status, 'diajukan');
     assert.equal((await api('POST', `/api/ac/santri/${donatur.id}/refund`, tUang, {})).status, 409, 'Tidak diajukan dua kali.');
     const refundId = ajukan.body.items[0].id;
@@ -261,10 +289,10 @@ async function run() {
     assert.equal((await api('POST', `/api/ac/refund/${refundId}/cairkan`, tUang, { disbursedOn: HARI, proofFileId: bukti.id })).status, 409, 'Harus disetujui dulu.');
     assert.equal((await api('POST', `/api/ac/refund/${refundId}/putusan`, tUang, { decision: 'disetujui' })).status, 403, 'Hanya admin menyetujui.');
     assert.equal((await api('POST', `/api/ac/refund/${refundId}/putusan`, admin, { decision: 'disetujui', approvedAmount: 2000000 })).status, 422, 'Tidak boleh melebihi hak.');
-    assert.equal((await api('POST', `/api/ac/refund/${refundId}/putusan`, admin, { decision: 'disetujui', approvedAmount: 1000000 })).status, 422, 'Nominal lebih kecil wajib beralasan.');
-    const setuju = await api('POST', `/api/ac/refund/${refundId}/putusan`, admin, { decision: 'disetujui', approvedAmount: 1200000, note: 'Dipotong biaya pemakaian 300 ribu sesuai ketentuan.' });
+    assert.equal((await api('POST', `/api/ac/refund/${refundId}/putusan`, admin, { decision: 'disetujui', approvedAmount: 800000 })).status, 422, 'Nominal lebih kecil wajib beralasan.');
+    const setuju = await api('POST', `/api/ac/refund/${refundId}/putusan`, admin, { decision: 'disetujui' });
     assert.equal(setuju.status, 200, setuju.teks);
-    assert.equal(setuju.body.approvedAmount, 1200000);
+    assert.equal(setuju.body.approvedAmount, 1000000, 'Tanpa nominal: disetujui sebesar hak flat.');
     assert.equal((await api('POST', `/api/ac/refund/${refundId}/putusan`, admin, { decision: 'ditolak', note: 'Sudah diputuskan.' })).status, 409);
     assert.equal((await api('POST', `/api/ac/refund/${refundId}/cairkan`, tUang, { disbursedOn: HARI })).status, 422, 'Bukti pencairan wajib.');
     const cair = await api('POST', `/api/ac/refund/${refundId}/cairkan`, tUang, { disbursedOn: HARI, proofFileId: bukti.id });

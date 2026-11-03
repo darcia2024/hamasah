@@ -24,7 +24,6 @@
   let tabAktif = 'kalender';
   let adalahAdmin = false;
   let bulan = null;
-  let peranAkun = null;
   let nomor = 0;
   // Pesan berhasil tingkat halaman: panel digambar ulang setelah data dimuat ulang, jadi
   // pesan di dalam formulir lama ikut hilang.
@@ -623,7 +622,7 @@
 
   // ------------------------------------------------------------ Galeri
   // Foto dan video kegiatan asrama (galeri-asrama.js). Tampil di beranda santri dan wali sesuai audiens item.
-  // Foto bisa diajukan tampil di website dengan catatan persetujuan; admin yang memutuskan.
+  // Foto bisa ditampilkan di website dengan catatan persetujuan; kurasi lingkup asrama wewenang musyrif rumahnya.
   const KATEGORI_GALERI = [['lainnya', 'Lainnya'], ['belajar', 'Belajar'], ['ibadah', 'Ibadah'], ['olahraga', 'Olahraga'], ['kebersamaan', 'Kebersamaan'], ['perjalanan', 'Perjalanan']];
   let saringKategori = '';
 
@@ -692,7 +691,7 @@
     const persetujuan = bidang('Tampilkan di website? Catatan persetujuan (opsional)', 'text', { placeholder: 'Contoh: Seluruh wali menyetujui di rapat 5 Oktober' });
     persetujuan.input.maxLength = 300;
     persetujuan.el.classList.add('lms-grow');
-    const petunjukPublik = el('p', 'mus-note', 'Hanya foto. Diisi bila wali atau pihak berwenang sudah menyetujui fotonya tampil di website. Admin memeriksa dan memutuskan; tanpa keputusan admin foto tetap internal.');
+    const petunjukPublik = el('p', 'mus-note', 'Hanya foto. Diisi bila wali atau pihak berwenang sudah menyetujui. Foto langsung tampil di website begitu catatan ini diisi dan bisa dicabut kapan saja; tanpa catatan foto tetap internal.');
 
     const st = status();
     const kirim = tombol('Unggah ke galeri', 'button button--primary');
@@ -766,18 +765,18 @@
           });
           kotak.append(tarik);
           if (f.mediaType === 'foto' && ['internal', 'ditolak'].includes(f.publicStatus)) {
-            const ajukan = tombol(f.publicStatus === 'ditolak' ? 'Ajukan ulang ke website' : 'Ajukan ke website', 'mus-link galeri-cell__action');
-            ajukan.addEventListener('click', async () => {
+            const tayangkan = tombol('Tampilkan di website', 'mus-link galeri-cell__action');
+            tayangkan.addEventListener('click', async () => {
               const hasil = await window.HamasahDialog.formulir({
-                judul: 'Ajukan foto ke website',
-                keterangan: f.publicStatus === 'ditolak' && f.publicDecisionNote ? `Ditolak sebelumnya: ${f.publicDecisionNote}` : 'Foto tampil publik hanya setelah ada persetujuan wali atau pihak berwenang dan admin menyetujuinya. Catat siapa yang menyetujui dan bagaimana.',
+                judul: 'Tampilkan foto di website',
+                keterangan: f.publicStatus === 'ditolak' && f.publicDecisionNote ? `Ditolak sebelumnya: ${f.publicDecisionNote}` : 'Foto langsung tampil di website setelah disimpan. Pastikan wali atau pihak berwenang sudah menyetujui, lalu catat siapa yang menyetujui dan bagaimana.',
                 bidang: [{ nama: 'consentNote', label: 'Catatan persetujuan', jenis: 'textarea', wajib: true, nilai: '' }],
-                labelSimpan: 'Ajukan',
+                labelSimpan: 'Tampilkan',
                 kirim: (v) => api('POST', `/api/asrama/${asramaAktif}/galeri/${f.id}/publikasi`, v)
               });
-              if (hasil) { kabar = 'Foto diajukan untuk tampil di website. Menunggu keputusan admin.'; await muat(); }
+              if (hasil) { kabar = 'Foto kini tampil di website.'; await muat(); }
             });
-            kotak.append(ajukan);
+            kotak.append(tayangkan);
           }
           if (f.mediaType === 'foto' && ['diajukan', 'dipublikasi'].includes(f.publicStatus)) {
             const cabut = tombol(f.publicStatus === 'dipublikasi' ? 'Cabut dari website' : 'Batalkan pengajuan', 'mus-link galeri-cell__action');
@@ -786,7 +785,7 @@
             });
             kotak.append(cabut);
           }
-          if (f.publicStatus === 'diajukan' && peranAkun === 'admin') {
+          if (f.publicStatus === 'diajukan') {
             const putus = tombol('Putuskan publikasi', 'button button--primary galeri-cell__action');
             putus.addEventListener('click', async () => {
               const hasil = await window.HamasahDialog.formulir({
@@ -983,7 +982,6 @@
       guard.hidden = true;
       konsol.hidden = false;
       document.body.classList.add('in-crm');
-      peranAkun = akun.role;
       renderStaffNav(staffNav, akun.role, 'asrama', akun);
       adalahAdmin = akun.role === 'admin';
       try { tabAktif = localStorage.getItem(TAB_KUNCI) || tabAktif; } catch { /* opsional */ }

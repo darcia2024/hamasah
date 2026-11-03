@@ -360,7 +360,7 @@
     const akar = el('div', 'kg-stack');
     const data = await api('GET', `/api/ac/unit?t=${Date.now()}`);
     const status = pesanStatus();
-    const unit = bagian('AC asrama', 'Tandai AC milik Hamasah sepenuhnya atau hasil patungan. Pada AC patungan, kontribusi santri dicatat terpisah antara pembelian dan pemasangan, beserta ketentuan pengembaliannya.');
+    const unit = bagian('AC asrama', 'Tandai AC milik Hamasah sepenuhnya atau hasil patungan. Pada AC patungan, kontribusi santri dicatat terpisah antara pembelian dan pemasangan.');
     if (data.canManage) unit.append(tombol('Tambah AC', 'button button--primary kg-small', () => formUnit(null).catch((error) => status.set(error.message, true))));
     unit.append(status);
     unit.append(data.items.length ? tabelStack(['AC', 'Asrama', 'Kamar', 'Kepemilikan', 'Beli / pasang', 'Penyumbang', ''], data.items.map((u) => {
@@ -376,7 +376,7 @@
     async function formUnit(u) {
       const hasil = await window.HamasahDialog.formulir({
         judul: u ? `Ubah ${u.label}` : 'AC baru',
-        keterangan: 'AC patungan wajib memuat ketentuan pengembalian: apa yang dikembalikan, kapan, dan dengan potongan apa.',
+        keterangan: 'Pengembalian dana AC patungan mengikuti SOP internal, jadi tidak diatur per unit.',
         bidang: [
           { nama: 'dormitoryId', label: 'Asrama', jenis: 'select', pilihan: data.dormitories.map((d) => [d.id, d.name]), nilai: u ? u.dormitoryId : data.dormitories[0] && data.dormitories[0].id },
           { nama: 'roomId', label: 'Kamar (opsional)', jenis: 'select', pilihan: [['', 'Tidak dikaitkan ke kamar'], ...data.rooms.map((r) => [r.id, r.name])], nilai: u ? u.roomId || '' : '' },
@@ -385,14 +385,11 @@
           { nama: 'purchaseTotal', label: 'Total biaya pembelian (Rp)', jenis: 'number', nilai: u ? u.purchaseTotal : 0 },
           { nama: 'installTotal', label: 'Total biaya pemasangan (Rp)', jenis: 'number', nilai: u ? u.installTotal : 0 },
           { nama: 'purchasedOn', label: 'Tanggal beli (opsional)', jenis: 'date', nilai: u ? u.purchasedOn || '' : '' },
-          { nama: 'refundPurchase', label: 'Kontribusi pembelian dapat dikembalikan', jenis: 'select', pilihan: [['true', 'Ya'], ['false', 'Tidak']], nilai: u ? String(u.refundPurchase) : 'true' },
-          { nama: 'refundInstall', label: 'Biaya pemasangan dapat dikembalikan', jenis: 'select', pilihan: [['false', 'Tidak'], ['true', 'Ya']], nilai: u ? String(u.refundInstall) : 'false' },
-          { nama: 'terms', label: 'Ketentuan pengembalian', jenis: 'textarea', nilai: u ? u.terms : '' },
           { nama: 'proof', label: 'Bukti pembelian AC (opsional)', jenis: 'file', accept: 'image/jpeg,image/png,application/pdf' }
         ],
         labelSimpan: u ? 'Simpan' : 'Tambah AC',
         kirim: async (v) => {
-          const badan = { dormitoryId: v.dormitoryId, roomId: v.roomId || null, label: v.label, ownership: v.ownership, purchaseTotal: Number(v.purchaseTotal || 0), installTotal: Number(v.installTotal || 0), purchasedOn: v.purchasedOn || null, refundPurchase: v.refundPurchase === 'true', refundInstall: v.refundInstall === 'true', terms: v.terms };
+          const badan = { dormitoryId: v.dormitoryId, roomId: v.roomId || null, label: v.label, ownership: v.ownership, purchaseTotal: Number(v.purchaseTotal || 0), installTotal: Number(v.installTotal || 0), purchasedOn: v.purchasedOn || null };
           if (v.proof) badan.proofFileId = await window.HamasahUnggah.kirim({ purpose: 'ac-proof', entityId: v.dormitoryId, berkas: v.proof, headers: headers() });
           return u ? api('PATCH', `/api/ac/unit/${encodeURIComponent(u.id)}`, badan) : api('POST', '/api/ac/unit', badan);
         }
@@ -403,7 +400,7 @@
     async function kontribusi(u) {
       rincian.replaceChildren(kosong('Memuat kontribusi...'));
       const d = await api('GET', `/api/ac/unit/${encodeURIComponent(u.id)}/kontribusi?t=${Date.now()}`);
-      const r = bagian(`Kontribusi ${d.unit.label}`, `Ketentuan: ${d.unit.terms || '-'} · pembelian terkumpul ${RUPIAH.format(d.unit.purchaseCollected)} dari ${RUPIAH.format(d.unit.purchaseTotal)}, pemasangan ${RUPIAH.format(d.unit.installCollected)} dari ${RUPIAH.format(d.unit.installTotal)}.`);
+      const r = bagian(`Kontribusi ${d.unit.label}`, `Pembelian terkumpul ${RUPIAH.format(d.unit.purchaseCollected)} dari ${RUPIAH.format(d.unit.purchaseTotal)}, pemasangan ${RUPIAH.format(d.unit.installCollected)} dari ${RUPIAH.format(d.unit.installTotal)}.`);
       r.append(tombol('Catat kontribusi', 'button button--primary kg-small', async () => {
         const hasil = await window.HamasahDialog.formulir({
           judul: 'Catat kontribusi santri',
@@ -441,7 +438,7 @@
   }
 
   async function bagianRefund(dataUnit, status) {
-    const r = bagian('Refund AC saat santri keluar', 'Hanya santri yang berkontribusi pada AC patungan yang berhak. Tinggal di kamar ber-AC tidak otomatis berhak atas pengembalian dana.');
+    const r = bagian('Refund AC saat santri keluar atau pindah asrama', 'SOP internal: hanya santri yang tercatat ikut iuran pembelian AC yang berhak. Tinggal di kamar ber-AC tidak otomatis berhak atas pengembalian dana.');
     r.append(tombol('Periksa hak refund santri', 'button button--secondary kg-small', async () => {
       // Hanya santri yang punya kontribusi tercatat yang bisa berhak refund, jadi daftar diambil dari kontribusi AC patungan.
       const unik = new Map();
@@ -454,16 +451,16 @@
       if (!siswa.length) { status.set('Belum ada santri yang punya kontribusi AC tercatat, jadi belum ada yang berhak refund.', true); return; }
       const hasil = await window.HamasahDialog.formulir({
         judul: 'Periksa hak refund',
-        keterangan: 'Pilih santri yang keluar. Sistem menampilkan hak refund menurut kontribusi dan ketentuan tiap AC.',
+        keterangan: 'Pilih santri yang keluar atau pindah asrama. Sistem menampilkan hak refund menurut SOP internal.',
         bidang: [{ nama: 'studentId', label: 'Santri', jenis: 'select', pilihan: siswa.map((s) => [s.id, s.name]), nilai: siswa[0] && siswa[0].id, wajib: true }],
         labelSimpan: 'Periksa',
         kirim: (v) => api('GET', `/api/ac/santri/${encodeURIComponent(v.studentId)}/refund`)
       });
       if (!hasil) return;
-      const ringkas = [hasil.note, ...hasil.entitlements.map((h) => `${h.label} (${h.dormitoryName}): hak ${RUPIAH.format(h.eligibleAmount)} · pembelian ${RUPIAH.format(h.purchaseContribution)}${h.refundPurchase ? '' : ' (tidak dikembalikan)'} · pemasangan ${RUPIAH.format(h.installContribution)}${h.refundInstall ? '' : ' (tidak dikembalikan)'}${h.existingRefundStatus ? ` · refund ${h.existingRefundStatus}` : ''}`)];
-      if (!hasil.left) ringkas.push('Santri ini masih aktif: pengajuan refund dibuat setelah santri keluar.');
+      const ringkas = [hasil.note, ...hasil.entitlements.map((h) => `${h.label} (${h.dormitoryName}): hak ${RUPIAH.format(h.eligibleAmount)} · pembelian ${RUPIAH.format(h.purchaseContribution)} · pemasangan ${RUPIAH.format(h.installContribution)}${h.moved && !hasil.left ? ' · santri sudah pindah asrama' : ''}${h.existingRefundStatus ? ` · refund ${h.existingRefundStatus}` : ''}`)];
+      if (!hasil.canRequest) ringkas.push('Santri ini masih aktif di asrama yang sama: pengajuan refund dibuat setelah santri keluar atau pindah asrama.');
       await window.HamasahDialog.pesan({ judul: `Hak refund ${hasil.studentName}`, isi: ringkas });
-      if (hasil.left && hasil.entitlements.some((h) => h.eligibleAmount > 0 && !h.existingRefundId) && window.confirm('Buat pengajuan refund untuk santri ini?')) {
+      if (hasil.canRequest && hasil.entitlements.some((h) => h.eligibleAmount > 0 && !h.existingRefundId && (hasil.left || h.moved)) && window.confirm('Buat pengajuan refund untuk santri ini?')) {
         try { await api('POST', `/api/ac/santri/${encodeURIComponent(hasil.studentId)}/refund`, {}); render().catch(() => {}); } catch (error) { status.set(error.message, true); }
       }
     }));

@@ -161,7 +161,7 @@ module.exports = [
       balas(response, await services.dormitoryManagementService.addPhoto(params[0], await readBody(), await auth.actor()), 201);
     }
   },
-  // Publikasi foto ke website: diajukan pengelola asrama dengan catatan persetujuan, diputuskan admin, bisa dicabut kapan saja.
+  // Publikasi foto ke website: wewenang pengelola asrama, dengan catatan persetujuan, dan bisa dicabut kapan saja.
   {
     method: 'POST',
     pattern: pola(`\\/api\\/asrama\\/${ID}\\/galeri\\/${ID}\\/publikasi`),

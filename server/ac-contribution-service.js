@@ -5,14 +5,17 @@ const crypto = require('node:crypto');
 // AC patungan dan refund (migrasi 075).
 //
 // Satu unit AC bisa milik Hamasah sepenuhnya ("hamasah") atau hasil patungan santri ("patungan"). Pada AC patungan, kontribusi tiap
-// santri dicatat terpisah menurut jenisnya (pembelian atau pemasangan) beserta nominal dan bukti pembayaran, dan ketentuan
-// pengembalian disimpan di unit itu (apakah kontribusi pembelian dan/atau pemasangan dapat dikembalikan).
+// santri dicatat terpisah menurut jenisnya (pembelian atau pemasangan) beserta nominal dan bukti pembayaran.
 //
-// HAK REFUND tidak otomatis: tinggal di kamar ber-AC tidak membuat santri berhak atas pengembalian dana. Hanya santri yang
-// punya kontribusi tercatat (belum dibatalkan) pada AC patungan yang bisa diajukan refund, sebesar kontribusi yang boleh dikembalikan
-// menurut ketentuan unit itu. Pengajuan dibuat ketika santri keluar (status bukan aktif atau cuti, atau ada permohonan pengunduran
-// diri yang disetujui), disetujui admin, lalu dicairkan dengan bukti pencairan.
+// HAK REFUND mengikuti SOP internal (dokumen "Follow up Website"), yang TIDAK dicantumkan di website resmi. Karena itu nominalnya
+// hanya ada di server, tidak boleh ditulis di website/ yang berkasnya bisa dibaca siapa saja:
+//   - Nominalnya flat per santri, tidak mengikuti besar kontribusi, dan tidak berlipat walau santri ikut di lebih dari satu AC.
+//   - Hanya santri yang tercatat ikut iuran PEMBELIAN AC yang berhak. Yang hanya membayar pemasangan, atau sekadar tinggal di
+//     kamar ber-AC, tidak berhak.
+//   - Pengajuan dibuat ketika santri keluar (status bukan aktif atau cuti, atau ada permohonan pengunduran diri yang disetujui)
+//     atau pindah ke asrama lain, disetujui admin, lalu dicairkan dengan bukti pencairan.
 
+const REFUND_FLAT_RUPIAH = 1000000;
 const JENIS = Object.freeze({ pembelian: 'Pembelian AC', pemasangan: 'Biaya pemasangan' });
 const STATUS_REFUND = Object.freeze({ diajukan: 'Menunggu persetujuan', disetujui: 'Disetujui, menunggu pencairan', ditolak: 'Ditolak', dicairkan: 'Sudah dicairkan' });
 const DATABASE_BELUM_SIAP = 'Database belum diperbarui untuk AC patungan. Terapkan pembaruan database di halaman Pengaturan lebih dulu.';
@@ -116,7 +119,6 @@ function createAcContributionService({ database, staffDormitories, now = () => n
     const tanggal = ambil('purchasedOn', lama && lama.purchased_on_text) || null;
     if (tanggal && (!tanggalValid(tanggal) || tanggal > hariIni())) return { ok: false, error: 'Tanggal pembelian tidak valid atau di masa depan.' };
     const terms = rapi(ambil('terms', lama && lama.terms), 1000);
-    if (ownership === 'patungan' && terms.length < 10) return { ok: false, error: 'AC patungan wajib memuat ketentuan pengembalian (minimal 10 karakter), misalnya: kontribusi pembelian dikembalikan penuh bila santri keluar sebelum 1 tahun.' };
     const bukti = await berkas(ambil('proofFileId', lama && lama.proof_file_id), dormitoryId);
     if (bukti === false) return { ok: false, error: 'Berkas bukti tidak ditemukan untuk asrama ini.' };
     return { ok: true, value: { dormitoryId, label, ownership, roomId, beli, pasang, tanggal, terms, bukti, refundPurchase: Boolean(ambil('refundPurchase', lama ? lama.refund_purchase : true)), refundInstall: Boolean(ambil('refundInstall', lama ? lama.refund_install : false)) } };
@@ -221,20 +223,25 @@ function createAcContributionService({ database, staffDormitories, now = () => n
 
   // ------------------------------------------------------------------ hak refund
 
-  // Hak refund per AC untuk satu santri: hanya dari kontribusi tercatat, menurut ketentuan unit itu.
+  // Hak refund per AC untuk satu santri. Nominal flat hanya jatuh ke satu AC, supaya tetap sekali per santri; AC dari asrama yang
+  // sudah ditinggalkan didahulukan, karena itu yang bisa diajukan selagi santri masih aktif di asrama barunya.
   async function hitungHak(studentId) {
     const { rows } = await database.query(
-      `SELECT u.id AS ac_id, u.label, u.refund_purchase, u.refund_install, u.terms, d.name AS dormitory_name,
+      `SELECT u.id AS ac_id, u.label, d.name AS dormitory_name, u.dormitory_id IS DISTINCT FROM s.dormitory_id AS pindah,
               COALESCE(sum(c.amount_rupiah) FILTER (WHERE c.kind = 'pembelian'), 0)::bigint AS pembelian,
               COALESCE(sum(c.amount_rupiah) FILTER (WHERE c.kind = 'pemasangan'), 0)::bigint AS pemasangan
-         FROM ac_contributions c JOIN dormitory_ac_units u ON u.id = c.ac_id JOIN dormitories d ON d.id = u.dormitory_id
-        WHERE c.student_id = $1 AND c.voided_at IS NULL AND u.ownership = 'patungan' GROUP BY u.id, u.label, u.refund_purchase, u.refund_install, u.terms, d.name`, [studentId]
+         FROM ac_contributions c JOIN dormitory_ac_units u ON u.id = c.ac_id JOIN dormitories d ON d.id = u.dormitory_id JOIN students s ON s.id = c.student_id
+        WHERE c.student_id = $1 AND c.voided_at IS NULL AND u.ownership = 'patungan' GROUP BY u.id, u.label, d.name, s.dormitory_id
+        ORDER BY pindah DESC, u.label`, [studentId]
     );
-    const refund = (await database.query(`SELECT id, ac_id, status FROM ac_refunds WHERE student_id = $1`, [studentId])).rows;
+    const refund = (await database.query(`SELECT id, ac_id, status FROM ac_refunds WHERE student_id = $1 AND status IN ('diajukan', 'disetujui', 'dicairkan')`, [studentId])).rows;
+    let jatahTersisa = refund.length === 0;
     return rows.map((r) => {
-      const eligible = (r.refund_purchase ? Number(r.pembelian) : 0) + (r.refund_install ? Number(r.pemasangan) : 0);
-      const terbuka = refund.find((f) => f.ac_id === r.ac_id && ['diajukan', 'disetujui', 'dicairkan'].includes(f.status));
-      return { acId: r.ac_id, label: r.label, dormitoryName: r.dormitory_name, purchaseContribution: Number(r.pembelian), installContribution: Number(r.pemasangan), refundPurchase: Boolean(r.refund_purchase), refundInstall: Boolean(r.refund_install), terms: r.terms, eligibleAmount: eligible, existingRefundId: terbuka ? terbuka.id : null, existingRefundStatus: terbuka ? terbuka.status : null };
+      const terbuka = refund.find((f) => f.ac_id === r.ac_id);
+      const ikutPembelian = Number(r.pembelian) > 0;
+      const eligible = ikutPembelian && (terbuka || jatahTersisa) ? REFUND_FLAT_RUPIAH : 0;
+      if (eligible && !terbuka) jatahTersisa = false;
+      return { acId: r.ac_id, label: r.label, dormitoryName: r.dormitory_name, moved: Boolean(r.pindah), purchaseContribution: Number(r.pembelian), installContribution: Number(r.pemasangan), eligibleAmount: eligible, existingRefundId: terbuka ? terbuka.id : null, existingRefundStatus: terbuka ? terbuka.status : null };
     });
   }
 
@@ -255,7 +262,7 @@ function createAcContributionService({ database, staffDormitories, now = () => n
       const s = await santriKeluar(studentId);
       if (!s) return { ok: false, status: 404, error: 'Santri tidak ditemukan.' };
       const hak = await hitungHak(studentId);
-      return { ok: true, value: { studentId, studentName: s.name, left: s.left, status: s.status, exitLetterId: s.exitLetterId, entitlements: hak, note: hak.length ? 'Hak refund hanya dari kontribusi yang tercatat, menurut ketentuan tiap AC.' : 'Santri ini tidak punya kontribusi AC patungan yang tercatat, jadi tidak ada hak pengembalian dana. Tinggal di kamar ber-AC tidak otomatis berhak atas refund.' } };
+      return { ok: true, value: { studentId, studentName: s.name, left: s.left, canRequest: s.left || hak.some((h) => h.moved), status: s.status, exitLetterId: s.exitLetterId, entitlements: hak, note: hak.length ? 'Nominal refund flat per santri, hanya bagi yang tercatat ikut iuran pembelian AC.' : 'Santri ini tidak punya kontribusi AC patungan yang tercatat, jadi tidak ada hak pengembalian dana. Tinggal di kamar ber-AC tidak otomatis berhak atas refund.' } };
     });
   }
 
@@ -270,25 +277,25 @@ function createAcContributionService({ database, staffDormitories, now = () => n
   const SELECT_REFUND = `SELECT f.*, u.label AS ac_label, u.dormitory_id, d.name AS dormitory_name, s.name AS student_name, a.name AS decided_by, to_char(f.disbursed_on, 'YYYY-MM-DD') AS disbursed_on_text
       FROM ac_refunds f JOIN dormitory_ac_units u ON u.id = f.ac_id JOIN dormitories d ON d.id = u.dormitory_id JOIN students s ON s.id = f.student_id LEFT JOIN accounts a ON a.id = f.decided_by_account_id`;
 
-  // Pengajuan refund saat santri keluar: satu pengajuan per AC yang santri itu benar-benar berkontribusi.
+  // Pengajuan refund saat santri keluar atau pindah asrama.
   async function requestRefund(studentId, input, actor) {
     if (!keuangan(actor)) return TOLAK;
     if (!UUID.test(String(studentId))) return { ok: false, status: 404, error: 'Santri tidak ditemukan.' };
     return tulis(async () => {
       const s = await santriKeluar(studentId);
       if (!s) return { ok: false, status: 404, error: 'Santri tidak ditemukan.' };
-      if (!s.left) return { ok: false, status: 409, error: 'Pengajuan refund dibuat ketika santri keluar. Santri ini masih aktif dan belum punya permohonan pengunduran diri yang disetujui.' };
-      const hak = (await hitungHak(studentId)).filter((h) => h.eligibleAmount > 0 && !h.existingRefundId);
+      const semuaHak = await hitungHak(studentId);
+      if (!s.left && !semuaHak.some((h) => h.moved)) return { ok: false, status: 409, error: 'Pengajuan refund dibuat ketika santri keluar atau pindah asrama. Santri ini masih aktif di asrama yang sama dan belum punya permohonan pengunduran diri yang disetujui.' };
+      const hak = semuaHak.filter((h) => h.eligibleAmount > 0 && !h.existingRefundId && (s.left || h.moved));
       if (!hak.length) {
-        const adaKontribusi = (await hitungHak(studentId)).length > 0;
-        return { ok: false, status: 409, error: adaKontribusi ? 'Tidak ada hak refund yang tersisa: sudah diajukan, atau ketentuan AC tidak mengizinkan pengembalian untuk jenis kontribusinya.' : 'Santri ini tidak punya kontribusi AC patungan yang tercatat, jadi tidak berhak atas pengembalian dana. Tinggal di kamar ber-AC tidak otomatis berhak refund.' };
+        return { ok: false, status: 409, error: semuaHak.length ? 'Tidak ada hak refund yang tersisa: sudah diajukan, atau santri tidak tercatat ikut iuran pembelian AC.' : 'Santri ini tidak punya kontribusi AC patungan yang tercatat, jadi tidak berhak atas pengembalian dana. Tinggal di kamar ber-AC tidak otomatis berhak refund.' };
       }
       const dibuat = [];
       for (const h of hak) {
         const id = crypto.randomUUID();
         await database.query(
           'INSERT INTO ac_refunds (id, ac_id, student_id, letter_id, eligible_amount_rupiah, basis, created_by_account_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-          [id, h.acId, studentId, s.exitLetterId, h.eligibleAmount, `Pembelian ${h.purchaseContribution}${h.refundPurchase ? '' : ' (tidak dikembalikan)'}; pemasangan ${h.installContribution}${h.refundInstall ? '' : ' (tidak dikembalikan)'}. Ketentuan: ${h.terms}`.slice(0, 800), actor.id || null, now()]
+          [id, h.acId, studentId, s.exitLetterId, h.eligibleAmount, `Flat per santri menurut SOP internal. Kontribusi pembelian ${h.purchaseContribution}; pemasangan ${h.installContribution}. ${s.left ? 'Santri keluar.' : 'Santri pindah asrama.'}`, actor.id || null, now()]
         );
         dibuat.push(id);
       }
@@ -319,7 +326,7 @@ function createAcContributionService({ database, staffDormitories, now = () => n
       let jumlah = null;
       if (keputusan === 'disetujui') {
         jumlah = input.approvedAmount === undefined ? Number(f.eligible_amount_rupiah) : Math.round(Number(input.approvedAmount));
-        if (!Number.isFinite(jumlah) || jumlah < 0 || jumlah > Number(f.eligible_amount_rupiah)) return { ok: false, error: `Nominal disetujui harus antara 0 dan ${Number(f.eligible_amount_rupiah)} (hak refund menurut kontribusi).` };
+        if (!Number.isFinite(jumlah) || jumlah < 0 || jumlah > Number(f.eligible_amount_rupiah)) return { ok: false, error: `Nominal disetujui harus antara 0 dan ${Number(f.eligible_amount_rupiah)} (hak refund).` };
         if (jumlah < Number(f.eligible_amount_rupiah) && catatan.length < 5) return { ok: false, error: 'Nominal lebih kecil dari hak refund wajib disertai alasan.' };
       }
       await database.query('UPDATE ac_refunds SET status = $2, approved_amount_rupiah = $3, decision_note = $4, decided_by_account_id = $5, decided_at = $6 WHERE id = $1', [id, keputusan, jumlah, catatan, actor.id || null, now()]);

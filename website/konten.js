@@ -146,7 +146,7 @@ const SKEMA_KONTEN = {
     }
   },
   galeri: {
-    keterangan: 'Foto dokumentasi di bagian Galeri beranda. Urutan di sini sama dengan urutan tampil. Foto otomatis dikecilkan sebelum diunggah, jadi foto langsung dari HP pun boleh.',
+    keterangan: 'Foto dokumentasi di bagian Galeri beranda. Dokumentasi kegiatan umum dan kelembagaan dikelola dan disaring oleh Tim Media. Urutan di sini sama dengan urutan tampil. Foto otomatis dikecilkan sebelum diunggah, jadi foto langsung dari HP pun boleh.',
     tautan: './#galeri',
     akar: {
       jenis: 'daftar', batas: 40, minimal: 1, tambah: 'Tambah foto', nama: 'Foto',

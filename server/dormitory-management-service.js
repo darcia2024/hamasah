@@ -544,7 +544,7 @@ function createDormitoryManagementService({ database, staffDormitories, listStud
     if (audience === 'terpilih' && !studentIds.length) return { ok: false, error: 'Pilih santri yang boleh melihat item ini, atau tampilkan untuk seluruh asrama.' };
     if (audience === 'asrama' && studentIds.length) return { ok: false, error: 'Daftar santri hanya dipakai bila audiens "santri terpilih".' };
     const persetujuan = bersih(s.publicConsentNote, 300);
-    if (persetujuan && jenis === 'video') return { ok: false, error: 'Video tidak dipublikasikan di website. Hanya foto yang dapat diajukan untuk publikasi.' };
+    if (persetujuan && jenis === 'video') return { ok: false, error: 'Video tidak dipublikasikan di website. Hanya foto yang dapat dipublikasikan.' };
     if (persetujuan && persetujuan.length < 10) return { ok: false, error: 'Catatan persetujuan publikasi minimal 10 karakter: siapa yang menyetujui dan bagaimana.' };
     let fileId = null;
     let youtubeId = null;
@@ -571,9 +571,9 @@ function createDormitoryManagementService({ database, staffDormitories, listStud
         }
         const id = crypto.randomUUID();
         const [row] = await ambil(
-          `INSERT INTO dormitory_gallery (id, dormitory_id, file_id, caption, taken_on, created_by_account_id, media_type, category, thumb_file_id, audience, public_status, consent_note, consent_by_account_id, consent_at${youtubeId ? ', youtube_id' : ''})
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14${youtubeId ? ', $15' : ''}) RETURNING *`,
-          [id, dormitoryId, fileId, caption, takenOn, actor.id || null, jenis, kategori, thumbId, audience, persetujuan ? 'diajukan' : 'internal', persetujuan, persetujuan ? (actor.id || null) : null, persetujuan ? now() : null, ...(youtubeId ? [youtubeId] : [])]
+          `INSERT INTO dormitory_gallery (id, dormitory_id, file_id, caption, taken_on, created_by_account_id, media_type, category, thumb_file_id, audience, public_status, consent_note, consent_by_account_id, consent_at, public_decided_by_account_id, public_decided_at${youtubeId ? ', youtube_id' : ''})
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $13, $14${youtubeId ? ', $15' : ''}) RETURNING *`,
+          [id, dormitoryId, fileId, caption, takenOn, actor.id || null, jenis, kategori, thumbId, audience, persetujuan ? 'dipublikasi' : 'internal', persetujuan, persetujuan ? (actor.id || null) : null, persetujuan ? now() : null, ...(youtubeId ? [youtubeId] : [])]
         );
         for (const sid of studentIds) await database.query('INSERT INTO dormitory_gallery_students (gallery_id, student_id) VALUES ($1, $2)', [id, sid]);
         return { ok: true, value: barisFoto(row) };
@@ -601,7 +601,8 @@ function createDormitoryManagementService({ database, staffDormitories, listStud
     return (await ambil(`SELECT * FROM dormitory_gallery WHERE id::text = $1 AND dormitory_id::text = $2 AND archived_at IS NULL`, [String(photoId), String(dormitoryId)]))[0] || null;
   }
 
-  // Mengajukan foto untuk ditampilkan publik: butuh catatan persetujuan (wali atau pihak berwenang) dan keputusan admin.
+  // Menampilkan foto kegiatan asrama di website. Kurasi dan publikasi lingkup asrama adalah wewenang Musyrif rumah masing-masing
+  // (dokumen "Follow up Website"), jadi langsung tayang tanpa keputusan pihak lain. Catatan persetujuan wali tetap wajib sebagai arsip.
   async function requestPublic(dormitoryId, photoId, input, actor) {
     const izin = await bolehKelola(dormitoryId, actor);
     if (!izin.ok) return izin;
@@ -611,14 +612,16 @@ function createDormitoryManagementService({ database, staffDormitories, listStud
       const item = await ambilItem(dormitoryId, photoId);
       if (!item) return { ok: false, status: 404, error: 'Foto tidak ditemukan.' };
       if (item.media_type === 'video') return { ok: false, status: 409, error: 'Video tidak dipublikasikan di website.' };
-      if (!['internal', 'ditolak'].includes(item.public_status)) return { ok: false, status: 409, error: item.public_status === 'dipublikasi' ? 'Foto ini sudah dipublikasikan.' : 'Foto ini sudah diajukan.' };
-      const [row] = await ambil(`UPDATE dormitory_gallery SET public_status = 'diajukan', consent_note = $2, consent_by_account_id = $3, consent_at = $4, public_decision_note = '', public_decided_by_account_id = NULL, public_decided_at = NULL WHERE id = $1 RETURNING *`, [item.id, catatan, actor.id || null, now()]);
+      if (!['internal', 'ditolak'].includes(item.public_status)) return { ok: false, status: 409, error: item.public_status === 'dipublikasi' ? 'Foto ini sudah dipublikasikan.' : 'Foto ini masih menunggu keputusan publikasi.' };
+      const [row] = await ambil(`UPDATE dormitory_gallery SET public_status = 'dipublikasi', consent_note = $2, consent_by_account_id = $3, consent_at = $4, public_decision_note = '', public_decided_by_account_id = $3, public_decided_at = $4 WHERE id = $1 RETURNING *`, [item.id, catatan, actor.id || null, now()]);
       return { ok: true, value: barisFoto(row) };
     });
   }
 
+  // Hanya untuk foto yang sudah diajukan sebelum alur ini berubah; yang baru langsung tayang lewat requestPublic.
   async function decidePublic(dormitoryId, photoId, input, actor) {
-    if (!actor || actor.role !== 'admin') return { ok: false, status: 403, error: 'Hanya admin yang memutuskan publikasi foto.' };
+    const izin = await bolehKelola(dormitoryId, actor);
+    if (!izin.ok) return izin;
     const keputusan = String(input && input.decision || '');
     if (!['dipublikasi', 'ditolak'].includes(keputusan)) return { ok: false, error: 'Keputusan harus dipublikasi atau ditolak.' };
     const catatan = bersih(input && input.note, 300);

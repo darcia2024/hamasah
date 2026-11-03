@@ -46,7 +46,8 @@ const PERMISSIONS = Object.freeze({
   'overview.dormitory': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   // Kelola Asrama: jadwal, agenda, piket, kas, dan inventaris asrama yang dipegang.
   'dormitory-management.manage': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
-  'gallery.publish': Object.freeze([ROLES.ADMIN]),
+  // Publikasi dokumentasi kegiatan lingkup asrama: wewenang Musyrif rumah masing-masing (dicek per asrama di service).
+  'gallery.publish': Object.freeze([ROLES.ADMIN, ROLES.SUPERVISOR]),
   // Jadwal, agenda, dan piket asrama ananda untuk santri dan wali.
   'dormitory-schedule.read': Object.freeze([ROLES.ADMIN, ROLES.PARENT, ROLES.STUDENT]),
   // Mengisi, mengganti kata sandi, dan menghapus data demo dari dashboard.

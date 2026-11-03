@@ -430,7 +430,7 @@
     const rincian = el('div');
     const aturanAwal = await api('GET', '/api/rapor/pengaturan').catch(() => null);
     const peringatan = aturanAwal && !aturanAwal.config.confirmedAt
-      ? el('p', 'kg-warning', 'Pengaturan penilaian (bobot dan batas A/B/C) belum dikonfirmasi admin, jadi rapor belum bisa diterbitkan. Rapor tetap bisa disusun dan diajukan. Admin mengonfirmasinya di tab Pengaturan.')
+      ? el('p', 'kg-warning', 'Pengaturan penilaian (bobot dan batas nilai) belum dikonfirmasi admin, jadi rapor belum bisa diterbitkan. Rapor tetap bisa disusun dan diajukan. Admin mengonfirmasinya di tab Pengaturan.')
       : null;
     akar.append(bagianDengan('Rapor bulanan', 'Susun, ajukan tinjauan, lalu terbitkan. Wali dan santri hanya melihat rapor yang sudah terbit.', ...[peringatan, bar, status, daftar].filter(Boolean)), rincian);
 
@@ -474,7 +474,7 @@
     if (!r || r.status !== 'published') bar.append(tombol(r ? 'Hitung ulang dari data' : 'Susun rapor', 'button button--primary kg-small', () => panggil('POST', `/api/students/${encodeURIComponent(studentId)}/rapor/${bulan}/susun`)));
     b.append(bar, status);
     if (r) {
-      b.append(el('p', 'kg-score', r.total === null ? 'Belum ada data yang cukup untuk dinilai.' : `Nilai ${r.total} · Kategori ${r.grade}`));
+      b.append(el('p', 'kg-score', r.total === null ? 'Belum ada data yang cukup untuk dinilai.' : `Nilai ${r.total} · Predikat ${r.gradeText}`));
       const ul = el('ul', 'wali-mini-list');
       const label = { attendance: 'Absensi kegiatan', tahfidz: 'Tahfidz', discipline: 'Kedisiplinan', participation: 'Partisipasi' };
       Object.keys(label).forEach((k) => {
@@ -483,7 +483,7 @@
         ul.append(li);
       });
       b.append(ul);
-      if (r.grades) b.append(el('p', 'wali-field__hint', `Kategori A mulai ${r.grades.A}, B mulai ${r.grades.B}, di bawahnya C. Pengaturan ini disalin saat rapor disusun.`));
+      if (r.scaleText) b.append(el('p', 'wali-field__hint', `${r.scaleText} Pengaturan ini disalin saat rapor disusun.`));
       const dapat = r.raw.attendance, taf = r.raw.tahfidz;
       const rincianData = [dapat ? `Absensi (${dapat.source === 'presensi-asrama' ? 'presensi harian asrama, karena absensi kegiatan belum dipakai bulan ini' : 'absensi kegiatan'}): hadir ${dapat.hadir}, izin ${dapat.izin}, sakit ${dapat.sakit}, tidak hadir ${dapat.alpa}, belum dicatat ${dapat.belum}.` : '', taf ? `Tahfidz: ${taf.newAyat} ayat baru, ${taf.murajaahAyat} ayat murajaah.` : ''].filter(Boolean);
       rincianData.forEach((t) => b.append(el('p', 'wali-field__hint', t)));
@@ -566,8 +566,8 @@
     form.noValidate = true;
     const angka = (v) => isian('number', String(v), { min: '0', step: '1' });
     const w = { attendance: angka(c.weights.attendance), tahfidz: angka(c.weights.tahfidz), discipline: angka(c.weights.discipline), participation: angka(c.weights.participation) };
-    const gA = angka(c.grades.A);
-    const gB = angka(c.grades.B);
+    const batasNilai = aturan.predicates.filter((x) => x.huruf !== 'D').map((x) => ({ ...x, isian: angka(c.grades[x.huruf]) }));
+    const terendah = aturan.predicates.find((x) => x.huruf === 'D');
     const tT = angka(c.tahfidzTargetAyat);
     const tP = angka(c.participationTarget);
     const p = { ringan: angka(c.disciplinePenalty.ringan), sedang: angka(c.disciplinePenalty.sedang), berat: angka(c.disciplinePenalty.berat) };
@@ -579,7 +579,7 @@
     perMusyrif.checked = c.publishRoles.includes('supervisor');
     form.append(
       kolom('Bobot absensi kegiatan (%)', w.attendance), kolom('Bobot tahfidz (%)', w.tahfidz), kolom('Bobot kedisiplinan (%)', w.discipline), kolom('Bobot partisipasi (%)', w.participation),
-      kolom('Batas nilai A (mulai)', gA), kolom('Batas nilai B (mulai)', gB, 'Di bawah batas B adalah kategori C.'),
+      ...batasNilai.map((x, i) => kolom(`Batas ${x.huruf}, ${x.sebutan} / ${x.arab} (mulai)`, x.isian, i === batasNilai.length - 1 ? `Di bawah batas ${x.huruf} adalah ${terendah.huruf}, ${terendah.sebutan} / ${terendah.arab}.` : undefined)),
       kolom('Target ayat hafalan baru per bulan (nilai tahfidz 100)', tT), kolom('Target partisipasi per bulan (kegiatan + prestasi)', tP),
       kolom('Pengurang nilai disiplin: ringan', p.ringan), kolom('Pengurang nilai disiplin: sedang', p.sedang), kolom('Pengurang nilai disiplin: berat', p.berat),
       kolom('Musyrif ikut berwenang menerbitkan rapor', perMusyrif, 'Admin selalu berwenang. Musyrif hanya bisa menerbitkan rapor santri asramanya.'),
@@ -607,7 +607,7 @@
       event.preventDefault();
       try {
         await api('PUT', '/api/rapor/pengaturan', {
-          weights: Object.fromEntries(Object.entries(w).map(([k, v]) => [k, Number(v.value)])), grades: { A: Number(gA.value), B: Number(gB.value) },
+          weights: Object.fromEntries(Object.entries(w).map(([k, v]) => [k, Number(v.value)])), grades: Object.fromEntries(batasNilai.map((x) => [x.huruf, Number(x.isian.value)])),
           tahfidzTargetAyat: Number(tT.value), participationTarget: Number(tP.value), disciplinePenalty: Object.fromEntries(Object.entries(p).map(([k, v]) => [k, Number(v.value)])),
           publishRoles: perMusyrif.checked ? ['admin', 'supervisor'] : ['admin'], pdfEnabled: pdf.checked
         });
@@ -615,6 +615,7 @@
       } catch (error) { statusAturan.set(error.message, true); }
     });
     r.append(form);
+    r.append(el('p', 'wali-field__hint', 'Hadiah dan apresiasi santri berprestasi ditetapkan langsung oleh Direktur Asrama dan harus mendidik, misalnya buku bacaan atau kitab referensi, piagam penghargaan, atau fasilitas penunjang pengembangan diri.'));
     akar.append(j, r);
     return akar;
   }

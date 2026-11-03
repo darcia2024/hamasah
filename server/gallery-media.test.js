@@ -1,5 +1,5 @@
 // Galeri kegiatan asrama (item 18, migrasi 079): foto dan video (video lewat tautan YouTube, bukan unggahan), kategori, thumbnail, audiens (seluruh asrama atau santri terpilih,
-// ditegakkan juga saat berkas diunduh), dan publikasi ke website yang butuh catatan persetujuan serta keputusan admin.
+// ditegakkan juga saat berkas diunduh), dan publikasi ke website oleh musyrif asrama itu, dengan catatan persetujuan.
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const { createHamasahApp } = require('./app.js');
@@ -119,17 +119,12 @@ async function run() {
     assert.equal((await api('POST', `/api/asrama/${A.id}/galeri/${satu.body.id}/publikasi`, tA, { consentNote: 'ok' })).status, 422, 'Catatan persetujuan terlalu pendek.');
     assert.equal((await api('POST', `/api/asrama/${A.id}/galeri/${satu.body.id}/publikasi`, tB, { consentNote: 'Wali menyetujui lewat WhatsApp 10 Oktober.' })).status, 403);
     assert.equal((await api('POST', `/api/asrama/${A.id}/galeri/${satu.body.id}/publikasi`, tW1, { consentNote: 'Wali menyetujui lewat WhatsApp 10 Oktober.' })).status, 403);
-    const ajukan = await api('POST', `/api/asrama/${A.id}/galeri/${satu.body.id}/publikasi`, tA, { consentNote: 'Wali menyetujui lewat WhatsApp 10 Oktober.' });
-    assert.equal(ajukan.status, 200, ajukan.teks);
-    assert.equal(ajukan.body.publicStatus, 'diajukan');
-    assert.equal((await api('POST', `/api/asrama/${A.id}/galeri/${satu.body.id}/publikasi`, tA, { consentNote: 'Wali menyetujui lewat WhatsApp 10 Oktober.' })).status, 409, 'Sudah diajukan.');
-    assert.deepEqual((await api('GET', '/api/galeri-publik')).body.items, [], 'Diajukan belum tampil publik.');
-    assert.equal((await fetch(`${baseUrl}/media/galeri-kegiatan/${satu.body.id}.jpg`)).status, 404, 'Belum disetujui: tidak disajikan.');
-
-    assert.equal((await api('POST', `/api/asrama/${A.id}/galeri/${satu.body.id}/keputusan`, tA, { decision: 'dipublikasi' })).status, 403, 'Musyrif tidak memutuskan publikasi.');
-    assert.equal((await api('POST', `/api/asrama/${A.id}/galeri/${satu.body.id}/keputusan`, admin, { decision: 'ditolak' })).status, 422, 'Penolakan butuh alasan.');
-    const setuju = await api('POST', `/api/asrama/${A.id}/galeri/${satu.body.id}/keputusan`, admin, { decision: 'dipublikasi' });
-    assert.equal(setuju.status, 200, setuju.teks);
+    assert.equal((await fetch(`${baseUrl}/media/galeri-kegiatan/${satu.body.id}.jpg`)).status, 404, 'Belum dipublikasikan: tidak disajikan.');
+    // Kurasi lingkup asrama wewenang musyrif rumah itu: langsung tayang tanpa keputusan admin.
+    const tayang = await api('POST', `/api/asrama/${A.id}/galeri/${satu.body.id}/publikasi`, tA, { consentNote: 'Wali menyetujui lewat WhatsApp 10 Oktober.' });
+    assert.equal(tayang.status, 200, tayang.teks);
+    assert.equal(tayang.body.publicStatus, 'dipublikasi');
+    assert.equal((await api('POST', `/api/asrama/${A.id}/galeri/${satu.body.id}/publikasi`, tA, { consentNote: 'Wali menyetujui lewat WhatsApp 10 Oktober.' })).status, 409, 'Sudah dipublikasikan.');
     const publik = await api('GET', '/api/galeri-publik');
     assert.equal(publik.body.items.length, 1);
     assert.deepEqual(Object.keys(publik.body.items[0]).sort(), ['caption', 'category', 'categoryLabel', 'id', 'takenOn'], 'Publik hanya tahu keterangan, kategori, dan tanggal.');
@@ -145,19 +140,26 @@ async function run() {
     assert.deepEqual((await api('GET', '/api/galeri-publik')).body.items, []);
     assert.equal((await fetch(`${baseUrl}/media/galeri-kegiatan/${satu.body.id}.jpg`)).status, 404);
 
-    // Pengajuan baru lewat unggah: catatan persetujuan langsung dibawa; penolakan admin tercatat dan bisa diajukan ulang.
+    // Unggah dengan catatan persetujuan: langsung tayang.
     const baru = await unggah(tA, 'dormitory-photo', A.id);
     const langsung = await tambah(tA, A, { fileId: baru.id, caption: 'Olahraga pagi', category: 'olahraga', publicConsentNote: 'Seluruh wali menyetujui di rapat 5 Oktober.' });
     assert.equal(langsung.status, 201, langsung.teks);
-    assert.equal(langsung.body.publicStatus, 'diajukan');
-    const tolak = await api('POST', `/api/asrama/${A.id}/galeri/${langsung.body.id}/keputusan`, admin, { decision: 'ditolak', note: 'Ada wajah yang belum disetujui.' });
+    assert.equal(langsung.body.publicStatus, 'dipublikasi');
+    assert.equal((await api('GET', '/api/galeri-publik')).body.items.length, 1);
+
+    // Foto yang diajukan sebelum alur ini berubah diputuskan musyrif asrama itu, bukan musyrif asrama lain.
+    await database.query(`UPDATE dormitory_gallery SET public_status = 'diajukan' WHERE id = $1`, [langsung.body.id]);
+    assert.deepEqual((await api('GET', '/api/galeri-publik')).body.items, [], 'Pengajuan lama belum tampil publik.');
+    assert.equal((await api('POST', `/api/asrama/${A.id}/galeri/${langsung.body.id}/keputusan`, tB, { decision: 'dipublikasi' })).status, 403, 'Musyrif asrama lain tidak berwenang.');
+    assert.equal((await api('POST', `/api/asrama/${A.id}/galeri/${langsung.body.id}/keputusan`, tW1, { decision: 'dipublikasi' })).status, 403);
+    assert.equal((await api('POST', `/api/asrama/${A.id}/galeri/${langsung.body.id}/keputusan`, tA, { decision: 'ditolak' })).status, 422, 'Penolakan butuh alasan.');
+    const tolak = await api('POST', `/api/asrama/${A.id}/galeri/${langsung.body.id}/keputusan`, tA, { decision: 'ditolak', note: 'Ada wajah yang belum disetujui.' });
     assert.equal(tolak.body.publicStatus, 'ditolak');
-    assert.equal((await api('POST', `/api/asrama/${A.id}/galeri/${langsung.body.id}/keputusan`, admin, { decision: 'dipublikasi' })).status, 409, 'Sudah diputuskan.');
-    assert.equal((await api('POST', `/api/asrama/${A.id}/galeri/${langsung.body.id}/publikasi`, tA, { consentNote: 'Wajah sudah diperbaiki dan wali setuju.' })).status, 200, 'Boleh diajukan ulang setelah ditolak.');
+    assert.equal((await api('POST', `/api/asrama/${A.id}/galeri/${langsung.body.id}/keputusan`, tA, { decision: 'dipublikasi' })).status, 409, 'Sudah diputuskan.');
+    assert.equal((await api('POST', `/api/asrama/${A.id}/galeri/${langsung.body.id}/publikasi`, tA, { consentNote: 'Wajah sudah diperbaiki dan wali setuju.' })).status, 200, 'Boleh ditayangkan lagi setelah ditolak.');
     assert.equal((await tambah(tA, A, { mediaType: 'video', youtubeUrl: 'https://www.youtube.com/watch?v=qKaR8eTDIl4', publicConsentNote: 'Wali menyetujui semuanya.' })).status, 422, 'Video tidak dipublikasikan.');
 
     // Item yang ditarik dari galeri tidak lagi tampil publik walau pernah dipublikasikan.
-    await api('POST', `/api/asrama/${A.id}/galeri/${langsung.body.id}/keputusan`, admin, { decision: 'dipublikasi' });
     assert.equal((await api('GET', '/api/galeri-publik')).body.items.length, 1);
     await api('DELETE', `/api/asrama/${A.id}/galeri/${langsung.body.id}`, tA);
     assert.deepEqual((await api('GET', '/api/galeri-publik')).body.items, []);
