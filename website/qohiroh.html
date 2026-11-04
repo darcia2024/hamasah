@@ -9,7 +9,7 @@
     <link rel="icon" href="../assets/qohiroh/logo-mark.png" />
     <link rel="preload" href="../assets/fonts/qohiroh/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="../assets/fonts/qohiroh/manrope-latin.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="qohiroh.css?v=08944b38b8" />
+    <link rel="stylesheet" href="qohiroh.css?v=06bad5a01c" />
   </head>
   <body>
     <a class="skip-link" href="#isi">Lewati ke isi</a>
@@ -531,17 +531,43 @@
       </section>
 
       <section class="bab" id="biaya">
-        <div class="wrap ledger">
-          <div class="ledger__head">
+        <div class="wrap">
+          <header class="bab__kepala">
             <span class="bab__no">15</span>
-            <h2>Biaya dibahas setelah kebutuhan jelas</h2>
-            <p class="sub">Halaman ini tidak memuat angka, karena hitungannya mengikuti bagian yang dipilih.</p>
+            <h2>Pilihan paket dan biaya</h2>
+            <p class="sub">Pilih sesuai kebutuhan sekarang. Harga di bawah ini dibayar sekali.</p>
+          </header>
+          <div class="matrix-wrap" tabindex="0" role="region" aria-label="Tabel pilihan paket">
+            <table class="matrix matrix--paket">
+              <caption class="sr-only">Isi dan harga tiap paket</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Yang didapat</th>
+                  <th scope="col"><span class="paket__nama">Dasar</span><span class="paket__harga">Rp3,5 juta</span></th>
+                  <th scope="col"><span class="paket__nama">Asrama</span><span class="paket__harga">Rp5,5 juta</span></th>
+                  <th scope="col" class="pilih"><span class="paket__nama">Administrasi</span><span class="paket__harga">Rp7,5 juta</span><span class="paket__saran">Saran kami</span></th>
+                  <th scope="col"><span class="paket__nama">Lengkap</span><span class="paket__harga">Rp10 juta</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Pendaftaran calon santri</th><td class="y">Ya</td><td class="y">Ya</td><td class="y pilih">Ya</td><td class="y">Ya</td></tr>
+                <tr><th scope="row">Gelombang keberangkatan</th><td class="y">Ya</td><td class="y">Ya</td><td class="y pilih">Ya</td><td class="y">Ya</td></tr>
+                <tr><th scope="row">Beranda pimpinan</th><td class="y">Ya</td><td class="y">Ya</td><td class="y pilih">Ya</td><td class="y">Ya</td></tr>
+                <tr><th scope="row">Asrama dan pembinaan</th><td class="n"><span class="sr-only">Tidak</span></td><td class="y">Ya</td><td class="y pilih">Ya</td><td class="y">Ya</td></tr>
+                <tr><th scope="row">Portal wali dan santri</th><td class="n"><span class="sr-only">Tidak</span></td><td class="y">Ya</td><td class="y pilih">Ya</td><td class="y">Ya</td></tr>
+                <tr><th scope="row">Keuangan dan tagihan</th><td class="n"><span class="sr-only">Tidak</span></td><td class="n"><span class="sr-only">Tidak</span></td><td class="y pilih">Ya</td><td class="y">Ya</td></tr>
+                <tr><th scope="row">Rapor dan kuitansi PDF</th><td class="n"><span class="sr-only">Tidak</span></td><td class="n"><span class="sr-only">Tidak</span></td><td class="y pilih">Ya</td><td class="y">Ya</td></tr>
+                <tr><th scope="row">Kelas online</th><td class="n"><span class="sr-only">Tidak</span></td><td class="n"><span class="sr-only">Tidak</span></td><td class="n pilih"><span class="sr-only">Tidak</span></td><td class="y">Ya</td></tr>
+                <tr><th scope="row">Asisten AI</th><td class="n"><span class="sr-only">Tidak</span></td><td class="n"><span class="sr-only">Tidak</span></td><td class="n pilih"><span class="sr-only">Tidak</span></td><td class="y">Ya</td></tr>
+                <tr><th scope="row">Masa perbaikan</th><td>14 hari</td><td>30 hari</td><td class="pilih">30 hari</td><td>60 hari</td></tr>
+              </tbody>
+            </table>
           </div>
-          <dl class="rows">
-            <div><dt>Membangun</dt><dd>Sekali, sesuai bagian yang dipilih dan seberapa banyak yang perlu disesuaikan: nama, logo, warna, istilah, dan data awal.</dd></div>
-            <div><dt>Berjalan</dt><dd>Domain, hosting, dan pemakaian AI. Pemakaian AI dibatasi per jam dan per hari.</dd></div>
-            <div><dt>Kepemilikan</dt><dd>Siapa memegang kode dan data ditetapkan tertulis di awal.</dd></div>
-            <div><dt>Dukungan</dt><dd>Masa perbaikan setelah mulai dipakai disepakati bersama.</dd></div>
+          <dl class="facts">
+            <div><dt>Sudah termasuk</dt><dd>Logo, warna, istilah, pengisian data awal, dan panduan cara pakai.</dd></div>
+            <div><dt>Biaya berjalan</dt><dd>Domain, hosting, dan pemakaian AI dibayar terpisah.</dd></div>
+            <div><dt>Hak pakai</dt><dd>Harga ini untuk hak pakai sistem. Source code tidak termasuk.</dd></div>
+            <div><dt>Permintaan tambahan</dt><dd>Perubahan di luar paket dihitung terpisah.</dd></div>
           </dl>
         </div>
       </section>

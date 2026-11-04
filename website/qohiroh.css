@@ -220,7 +220,8 @@ p { text-wrap: pretty; }
 .doc figcaption span { color: var(--muted); font-size: var(--text-sm); max-width: 48ch; }
 
 /* Access matrix: one row per menu, one column per role. */
-.matrix-wrap { overflow-x: auto; border-top: 1px solid var(--rule); }
+/* position: relative keeps the absolutely placed sr-only labels inside the scroller, so they cannot widen the page on phones. */
+.matrix-wrap { position: relative; overflow-x: auto; border-top: 1px solid var(--rule); }
 .matrix { width: 100%; min-width: 46rem; border-collapse: collapse; font-size: var(--text-sm); }
 .matrix th, .matrix td { padding: var(--space-sm) var(--space-md); border-bottom: 1px solid var(--rule); text-align: center; }
 .matrix thead th { color: var(--muted); font-weight: 500; background: var(--green-50); }
@@ -228,6 +229,17 @@ p { text-wrap: pretty; }
 .matrix thead th:first-child { text-align: left; }
 .matrix td.y { color: var(--green-700); font-weight: 600; }
 .matrix td.n::before { content: ""; display: block; width: var(--space-md); height: 1px; margin-inline: auto; background: var(--green-200); }
+/* Pricing table: same rows as the access matrix, one column per package, the suggested one tinted. */
+.matrix--paket { min-width: 40rem; }
+.matrix--paket thead th { vertical-align: bottom; }
+/* The first column stays put while the packages scroll on a phone, so each row keeps its name. */
+.matrix--paket th:first-child { position: sticky; left: 0; z-index: 1; background: var(--paper); }
+.matrix--paket thead th:first-child { background: var(--green-50); }
+.matrix--paket td.pilih, .matrix--paket thead th.pilih { background: var(--green-100); }
+.paket__nama, .paket__harga, .paket__saran { display: block; }
+.paket__nama { color: var(--ink); font-weight: 600; }
+.paket__harga { color: var(--green-800); font: 600 var(--text-title)/1.25 var(--font-display); white-space: nowrap; }
+.paket__saran { color: var(--yellow-ink); font-weight: 600; }
 .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 var(--space-lg); margin-top: var(--space-2xl); }
 .facts > div { padding-block: var(--space-md); border-top: 2px solid var(--green-200); }
 .facts dt { font: 600 var(--text-md)/1.35 var(--font-display); margin-bottom: var(--space-2xs); }
