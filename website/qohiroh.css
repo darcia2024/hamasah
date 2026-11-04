@@ -236,7 +236,8 @@ p { text-wrap: pretty; }
 .matrix--paket th:first-child { position: sticky; left: 0; z-index: 1; background: var(--paper); }
 .matrix--paket thead th:first-child { background: var(--green-50); }
 .matrix--paket td.pilih, .matrix--paket thead th.pilih { background: var(--green-100); }
-.paket__nama, .paket__harga, .paket__saran { display: block; }
+.paket__nama, .paket__arti, .paket__harga, .paket__saran { display: block; }
+.paket__arti { margin-bottom: var(--space-2xs); color: var(--muted); font-size: 0.875rem; }
 .paket__nama { color: var(--ink); font-weight: 600; }
 .paket__harga { color: var(--green-800); font: 600 var(--text-title)/1.25 var(--font-display); white-space: nowrap; }
 .paket__saran { color: var(--yellow-ink); font-weight: 600; }

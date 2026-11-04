@@ -41,10 +41,10 @@ Semua jawaban di bawah mengikuti isi halaman penawaran. Jangan menjanjikan lebih
 
 ## 4. Kalau ditanya harga
 
-Harganya ada di bagian Biaya halaman penawaran: Dasar Rp3,5 juta, Asrama Rp5,5 juta, Administrasi Rp7,5 juta, dan
-Lengkap Rp10 juta, dibayar sekali. Paket yang disarankan adalah Administrasi.
+Harganya ada di bagian Biaya halaman penawaran: Bidayah (permulaan) Rp3,5 juta, Tarbiyah (pembinaan) Rp5,5 juta, Idarah
+(administrasi) Rp7,5 juta, dan Kamil (lengkap) Rp10 juta, dibayar sekali. Paket yang disarankan adalah Idarah.
 
-> "Paket Administrasi sudah mencakup pendaftaran sampai keuangan, tanpa fitur AI yang menambah biaya bulanan. Domain,
+> "Paket Idarah sudah mencakup pendaftaran sampai keuangan, tanpa fitur AI yang menambah biaya bulanan. Domain,
 > hosting, dan pemakaian AI dibayar terpisah. Harga ini untuk hak pakai, jadi source code tidak termasuk, dan perubahan
 > di luar paket dihitung terpisah."
 
