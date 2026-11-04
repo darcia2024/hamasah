@@ -44,6 +44,14 @@ Semua jawaban di bawah mengikuti isi halaman penawaran. Jangan menjanjikan lebih
 Harganya ada di bagian Biaya halaman penawaran: Bidayah (permulaan) Rp3,5 juta, Tarbiyah (pembinaan) Rp5,5 juta, Idarah
 (administrasi) Rp7,5 juta, dan Kamil (lengkap) Rp10 juta, dibayar sekali. Paket yang disarankan adalah Idarah.
 
+Tiga penawaran di halaman: bayar 50% di awal dan sisanya setelah uji coba satu asrama, satu sesi pelatihan online, dan
+naik paket cukup bayar selisih. Kalau masih ragu, paket Idarah boleh ditawari masa perbaikan 60 hari. Jangan beri promo
+palsu, domain dan hosting gratis tanpa batas waktu, atau jaminan uang kembali penuh.
+
+> "Saran saya mulai dari paket Idarah. Bayarnya 50% dulu, sisanya setelah uji coba di satu asrama, dan tim Bapak/Ibu saya
+> latih sekali secara online. Kalau nanti mau tambah kelas online dan Asisten AI, cukup bayar selisihnya. Kita mulai dari
+> asrama yang mana?"
+
 > "Paket Idarah sudah mencakup pendaftaran sampai keuangan, tanpa fitur AI yang menambah biaya bulanan. Domain,
 > hosting, dan pemakaian AI dibayar terpisah. Harga ini untuk hak pakai, jadi source code tidak termasuk, dan perubahan
 > di luar paket dihitung terpisah."

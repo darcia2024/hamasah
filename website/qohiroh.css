@@ -241,6 +241,7 @@ p { text-wrap: pretty; }
 .paket__nama { color: var(--ink); font-weight: 600; }
 .paket__harga { color: var(--green-800); font: 600 var(--text-title)/1.25 var(--font-display); white-space: nowrap; }
 .paket__saran { color: var(--yellow-ink); font-weight: 600; }
+.paket__tenang { display: grid; gap: var(--space-lg); margin-top: var(--space-2xl); }
 .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 var(--space-lg); margin-top: var(--space-2xl); }
 .facts > div { padding-block: var(--space-md); border-top: 2px solid var(--green-200); }
 .facts dt { font: 600 var(--text-md)/1.35 var(--font-display); margin-bottom: var(--space-2xs); }
